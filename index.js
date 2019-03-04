@@ -5,6 +5,8 @@ var lookup = require("./data.js");
 
 client.once('ready', () => {
     console.log('Ready!')
+    //set bot activity
+    client.user.setActivity("Star Wars: Episode I - Racer")
 })
 
 // when a user joins/leaves a voice channel
@@ -446,6 +448,23 @@ if(messageLow.startsWith(`${prefix}racer`)) {
         message.channel.send(helpEmbed)
     }
 
+
+///////     voice     ///////
+
+
+if (message.content === ('!join')) {
+    // Only try to join the sender's voice channel if they are in one themselves
+    if (message.member.voiceChannel) {
+      message.member.voiceChannel.join()
+        .then(connection => { // Connection is an instance of VoiceConnection
+          const dispatcher = connection.playFile('C:/Users/Louis/code/botto/Botto/sfx/rali016a.wav');
+
+        })
+        .catch(console.log);
+    } else {
+      message.reply('You need to join a voice channel first!');
+    }
+} 
 
 //////      MISC     ////////
 
