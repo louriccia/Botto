@@ -461,9 +461,56 @@ if(messageLow.startsWith(`${prefix}chancecube`)){
 }
    
 if(message.content.startsWith(`${prefix}cleanup`)) {
-    message.channel
+    message.channel.fetchMessages({limit:50}).then(messages => {
+        const botMessages = messages.filter(msg => msg.author.bot || msg.content.startsWith("!"));
+        message.channel.bulkDelete(botMessages);
+        messagesDeleted = botMessages.array().length; // number of messages deleted
+
+        // Logging the number of messages deleted on both the channel and console.
+        message.channel.send("*I gotta lots of junk!* \n`" + messagesDeleted + " messages deleted`");
+        console.log('Deletion of messages successful. Total messages deleted: ' + messagesDeleted)
+    }).catch(err => {
+        console.log('Error while doing Bulk Delete');
+        console.log(err);
+    });
 }
 
+if(message.content.startsWith(`${prefix}github`)){
+    message.channel.send("https://github.com/louriccia/Botto")
+}
+
+if(message.content.startsWith(`${prefix}multiplayer`)){
+    let role = message.guild.roles.get("474920988790751232");
+    let member = message.member;
+    if(message.member.roles.has(role.id)){
+        member.removeRole(role).catch(console.error)
+        message.channel.send(member + " removed from multiplayer")
+    } else {
+        member.addRole(role).catch(console.error);
+        message.channel.send(member + " added to multiplayer")
+    } 
+}
+
+if(message.content.startsWith(`${prefix}speedrunning`)){
+    let role = message.guild.roles.get("535973118578130954");
+    let member = message.member;
+    if(message.member.roles.has(role.id)){
+        member.removeRole(role).catch(console.error)
+        message.channel.send(member + " removed from speedrunning")
+    } else {
+        member.addRole(role).catch(console.error);
+        message.channel.send(member + " added to speedrunning")
+    } 
+}
 })
+
+client.on('guildMemberAdd', (guildMember) => {
+    const guild = client.guilds.get("441839750555369474");
+    const role = guild.roles.get("442316203835392001");
+    let member = guildMember
+    member.addRole(role).catch(console.error);
+    client.channels.get("441839751235108875").send("Welcome to the Star Wars Episode I: Racer discord, " + guildMember + "! Look around! I gotta lots of junk.");
+
+ })
 
 client.login(token);

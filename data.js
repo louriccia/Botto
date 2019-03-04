@@ -218,13 +218,12 @@ module.exports = welcomeMessages = [
 module.exports = goodbyeMessages = [
     `*I sense a disturbance in the force. Clouded ${a}'s future is.*`,
     `*${a}? What's happening? A communications disruption can mean only one thing: invasion.*`,
-    `*The fastest podracer in the galaxy... ${a}!*`,
     `*Maybe next time you win, huh ${a}?*`,
     `*Get lost ${a}! Come back when you got some money!*`,
     `*You were the chosen one, ${a}!*`,
     `*You're going down a path I can't follow, ${a}!*`,
-    `*${a} was banished because he was clumsy.*`
-
+    `*${a} was banished because he was clumsy.*`,
+    `*Suit yourself, ${a}!*`
 ]
 
 module.exports = troubleShooting = [
@@ -235,7 +234,8 @@ module.exports = troubleShooting = [
     `*Well it looks like ${a} is having engine trouble also.*`,
     `*Ooh, there goes ${a}'s power coupling*!`,
     `*${a}'s spinning out of control!*`,
-    `*Count ${a} outta dis one.*`
+    `*Count ${a} outta dis one.*`,
+    `*You come back, huh, ${a}?*`
 ]
 
 module.exports = fixed = [
