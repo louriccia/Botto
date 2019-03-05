@@ -74,7 +74,7 @@ client.on('voiceStateUpdate', (oldMember, newMember) => {
 
 
 client.on('message', message => {
-
+if(message.author.bot) return;
 var messageText = message.content
 var messageLow = messageText.toLowerCase()
 var random2 = Math.floor(Math.random()*2) //1 in # chances of using playerPicks instead of movieQuotes
@@ -290,7 +290,7 @@ if(messageLow.startsWith(`${prefix}racer`)) {
     if(
     message.content == (`${prefix}racer noncanon`)) {
         let canon = [15, 18, 20, 21, 22]
-        var numb = canon[Math.floor(Math.random()*18)]}
+        var numb = canon[Math.floor(Math.random()*5)]}
     if(
     messageLow.startsWith(`${prefix}racer as`) || 
     messageLow.startsWith(`${prefix}racer anakin`) || 
@@ -408,7 +408,11 @@ if(messageLow.startsWith(`${prefix}racer`)) {
     messageLow.startsWith(`${prefix}racer bullseye`) || 
     messageLow.startsWith(`${prefix}racer navior`)) {
         var numb = 22}
-
+    
+    if(numb == undefined){
+        message.channel.send("Perhaps the archives are incomplete.")
+    }
+    else{
         const racerEmbed = new Discord.RichEmbed()
             .setThumbnail(racers[numb].img)
             .setColor('#00DE45')
@@ -417,6 +421,8 @@ if(messageLow.startsWith(`${prefix}racer`)) {
             .setImage(racers[numb].stats)
             .setFooter(racers[numb].footer)
         message.channel.send(racerEmbed);
+        playSfx(message, racers[numb].announce)
+    }
     }
 
 
@@ -451,20 +457,59 @@ if(messageLow.startsWith(`${prefix}racer`)) {
 
 ///////     voice     ///////
 
-
+if (!message.guild) return;
 if (message.content === ('!join')) {
     // Only try to join the sender's voice channel if they are in one themselves
     if (message.member.voiceChannel) {
-      message.member.voiceChannel.join()
-        .then(connection => { // Connection is an instance of VoiceConnection
-          const dispatcher = connection.playFile('C:/Users/Louis/code/botto/Botto/sfx/rali016a.wav');
-
-        })
-        .catch(console.log);
+        if(!message.guild.voiceConnection)
+        {
+            message.member.voiceChannel.join()
+            .then(connection => { // Connection is an instance of VoiceConnection
+                const dispatcher = connection.playFile('F:/botto/sfx/watto/whatyouwant.mp3');
+                dispatcher.setVolume(1);
+                dispatcher.on('end', () => {
+                  connection.disconnect
+                });
+              })
+        }
     } else {
       message.reply('You need to join a voice channel first!');
     }
 } 
+if (message.content === ('!leave')) {
+    // Only try to join the sender's voice channel if they are in one themselves
+    if (message.guild.voiceConnection) {
+      message.guild.voiceConnection.disconnect()
+    } else {
+      message.reply("What you want? I'm not in a voice channel.");
+    }
+} 
+
+if (message.content === ('!play')) {
+    playSfx(message, "F:/botto/sfx/bullseyenavior.mp3")
+} 
+
+function playSfx(message, filePath)
+{
+    const voicecon = client.guilds.get("353285403949793291")
+    if (message.member.voiceChannel && (voicecon.voiceConnection !== null)) {
+        message.member.voiceChannel.join()
+          .then(connection => { // Connection is an instance of VoiceConnection
+            const dispatcher = connection.playFile(filePath, {passes: 3});
+            dispatcher.setVolume(0.7);
+            dispatcher.on('end', () => {
+              connection.disconnect
+            });
+            //dispatcher.on('error', e => {
+              // Catch any errors that may arise
+            //  console.log(e);
+            //});
+           
+          })
+          .catch(console.log);
+      }
+}
+
 
 //////      MISC     ////////
 
