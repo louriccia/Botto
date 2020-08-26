@@ -1076,6 +1076,7 @@ if(message.content.startsWith(`${prefix}cleanup`) && message.channel.type !== "d
             .then(msg => {
                 msg.delete(5000)
             })
+            .catch()
         console.log('Deletion of messages successful. Total messages deleted: ' + messagesDeleted)
     }).catch(err => {
         console.log('Error while doing Bulk Delete');
