@@ -3,6 +3,8 @@ const { prefix, token } = require('./config.json');
 const client = new Discord.Client();
 var lookup = require("./data.js");
 
+const fetch = require('node-fetch');
+
 client.once('ready', () => {
     console.log('Ready!')
     //set bot activity
@@ -55,7 +57,7 @@ client.on('voiceStateUpdate', (oldMember, newMember) => {
             channel.join()
                 .then(connection => { // Connection is an instance of VoiceConnection
                 const dispatcher = connection.playFile(voiceWelcome[random]);
-                dispatcher.setVolume(0.5);
+                dispatcher.setVolume(0.2);
                 dispatcher.on('end', () => {
                     connection.disconnect
                 });
@@ -88,7 +90,7 @@ client.on('voiceStateUpdate', (oldMember, newMember) => {
             channel.join()
                 .then(connection => { // Connection is an instance of VoiceConnection
                 const dispatcher = connection.playFile(voiceFarewell[random2]);
-                dispatcher.setVolume(0.5);
+                dispatcher.setVolume(0.2);
                 dispatcher.on('end', () => {
                     connection.disconnect
                 });
@@ -119,7 +121,7 @@ client.on('voiceStateUpdate', (oldMember, newMember) => {
                 channel.join()
                     .then(connection => { // Connection is an instance of VoiceConnection
                     const dispatcher = connection.playFile(voiceTrouble[random2]);
-                    dispatcher.setVolume(0.5);
+                    dispatcher.setVolume(0.2);
                     dispatcher.on('end', () => {
                         connection.disconnect
                     });
@@ -152,7 +154,7 @@ client.on('voiceStateUpdate', (oldMember, newMember) => {
                 channel.join()
                     .then(connection => { // Connection is an instance of VoiceConnection
                     const dispatcher = connection.playFile(voiceFixed[random2]);
-                    dispatcher.setVolume(0.5);
+                    dispatcher.setVolume(0.2);
                     dispatcher.on('end', () => {
                     connection.disconnect
                     });
@@ -172,14 +174,13 @@ client.on('voiceStateUpdate', (oldMember, newMember) => {
 
 client.on('message', message => {
 if(message.author.bot) return;
-const args = message.content.slice(prefix.length).trim().split(/ +/g);
-const command = args.shift().toLowerCase();
+var args = message.content.slice(prefix.length).trim().split(/ +/g);
+var command = args.shift().toLowerCase();
 var messageText = message.content
 var messageLow = messageText.toLowerCase()
 var random2 = Math.floor(Math.random()*2) //1 in # chances of using playerPicks instead of movieQuotes
 var random3 = Math.floor(Math.random()*movieQuotes.length)
 var random5 = Math.floor(Math.random()*playerPicks.length)
-
 var chan = client.channels.get('441840193754890250');
 
 //get list of members in voicechannel
@@ -196,174 +197,294 @@ if(chan !== undefined && message.channel.type !== "dm"){
     var pickedPlayer = arr[Math.floor(Math.random()*arr.length)]
 }
 
+var myformat = new Intl.NumberFormat('en-US', { 
+    minimumIntegerDigits: 2, 
+    minimumFractionDigits: 3 
+});
+
+function timefix(time) {
+    if (time >= 3600) {
+        var hours = Math.floor(time/3600)
+        var minutes = Math.floor((time-hours*3600)/60)
+        if (minutes < 10) {
+            minutes = "0" + minutes
+        }
+        var seconds = time - hours*3600 - minutes * 60
+        return hours.toString() + ":" + minutes.toString() + ":" + myformat.format(seconds)
+    } else if (time >= 60) {
+        var minutes = Math.floor(time/60)
+        var seconds = time - minutes * 60
+        return minutes.toString() + ":" + myformat.format(seconds)
+    } else {
+        return time
+    }
+}
+
+if (messageLow.startsWith(`${prefix}src`)) {
+    var catg = "" 
+    var titl = ""
+    for (let i =0; i<25; i++) {
+        var nname = tracks[i].nickname
+        for (var y of nname) {
+            y = "" + y
+            if (args[0].toLowerCase() == y) {
+                var numb = i
+            }
+        }
+    }   
+    if (numb == null) {
+        if (args[0] == "any" || args[0] == "any%"){
+            catg = "category/xk9634k0"
+            titl = "Any%"
+        } else if (args[0] == "100" || args[0] == "100%") {
+            catg = "category/n2yqxo7k"
+            titl = "100%"
+        } else if (args[0] == "amc" || args[0] == "amateur") {
+            catg = "category/7dg8ywp2"
+            titl = "Amateur Circuit"
+        } else if (args[0] == "spc" || args[0] == "semi-pro") {
+            catg = "category/mkeoyg6d"
+            titl = "Semi-Pro Circuit"
+        } else if (args[0] == "ng+" || args[0] == "newgame") {
+            catg = "category/w20zml5d"
+            titl = "All Tracks NG+"
+        } 
+    } else {
+        catg = "level/"  + tracks[numb].id + "/824owmd5" //default to 3 lap
+        titl = tracks[numb].name + " | 3-Lap"
+    }
+    var upgr = ""
+    var skps = ""
+    var plat = ""
+    var platname = ""
+    var desc = ""
+    var sys = [{"name" : "PC", "id": "zqoe6ply"}, {"name":"N64", "id":"013kndq5"},{"name" : "DC", "id" : "rqv25716"}, {"name":"Switch", "id":"jqz7nnkl"},{"name":"PS4", "id":"klrw33w1"}]
+    for (let c = 1; c < args.length; c++) {
+        if (args[c] == "no") {
+            if (args[c+1] == "upgrades") {
+                if (numb == null) { 
+                    upgr = "&var-789k45lw=9qjzj014" //full game categories
+                } else {
+                    upgr = "&var-789k49lw=z194gjl4"
+                }
+            }
+            if (args[c+1] == "skips" || args[c+1] == "skip") {
+                if (numb == null) { 
+                    skps = "&var-onv6p08m=5lmxzy1v" //full game categories
+                } else {
+                    skps = "&var-2lgz978p=81p7we17"
+                }
+            }
+        } else if(args[c] == "nu") {
+            if (numb == null) { 
+                upgr = "&var-789k45lw=9qjzj014" //full game categories
+            } else {
+                upgr = "&var-789k49lw=z194gjl4"
+            }
+        } else if (args[c] == "mu" && upgr == "") {
+            if (numb == null) { 
+                upgr = "&var-789k45lw=gq7nen1p" //full game categories
+            } else {
+                upgr = "&var-789k49lw=xqkrk919"
+            }
+        } else if ((args[c] == "skips" || args[c] == "skip") && skps == "") {
+            if (numb == null) { 
+                skps = "&var-onv6p08m=21gjrx1z" //full game categories
+            } else {
+                skps = "&var-2lgz978p=p125ev1x"
+            }
+        } else if(args[c] == "ns") {
+            if (numb == null) { 
+                skps = "&var-onv6p08m=5lmxzy1v" //full game categories
+            } else {
+                skps = "&var-2lgz978p=81p7we17"
+            }
+        } else if (args[c] == "1lap" || args[c] == "flap" || args[c] == "1-lap") {
+            catg = "level/"  + tracks[numb].id + "/9d8wr6dn"
+            titl = tracks[numb].name + " | 1-Lap"
+        } else {
+            for (u = 0; u < sys.length; u++) {
+                if (args[c].toLowerCase() == sys[u].name.toLowerCase()) {
+                    plat = "&var-wl39wwl1=" + sys[u].id
+                    platname = sys[u].name
+                }
+            }
+        }
+    }
+    if (upgr == "&var-789k49lw=z194gjl4" || upgr == "&var-789k45lw=9qjzj014") {
+        desc = "No Upgrades, "
+    } else {
+        desc = "Upgrades, "
+    }
+    if (skps == "&var-2lgz978p=81p7we17" ||  skps == "&var-onv6p08m=5lmxzy1v") {
+        desc = desc + "No Skips, "
+    } else {
+        desc = desc + "Skips, "
+    }
+    if (platname == "") {
+        desc = desc + "All Platforms"
+    } else {
+        desc = desc + platname
+    }
+    let url = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/' + catg + "?top=5&embed=players" + upgr + skps + plat
+    console.log(url)
+    let settings = {method: "Get"}
+    async function getsrcData() {
+        try {
+          const response = await fetch(url);
+          const data = await response.json();
+          console.log (data)
+          var src = data.data
+          const srcReport = new Discord.RichEmbed()
+          .setColor('#0099ff')
+          //.setThumbnail("https://www.speedrun.com/themes/Default/1st.png")
+          .setTitle(titl)
+          .setURL(src.weblink)
+          .setDescription(desc)
+            var pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>", "4th", "5th"]
+            var numberofruns = data.data.runs.length
+            if (numberofruns > 5) {
+                numberofruns = 5
+            }
+            for (let k =0; k<numberofruns; k++) {
+                var name = ""
+                if (numb == null) {
+                    var upgrades = "MU"
+                } else {
+                    var upgrades = " / MU"
+                }
+                var skips = ""
+                var system = ""
+                var character = ""
+                var country = ""
+                var time = data.data.runs[k].run.times.primary_t
+                var vid = data.data.runs[k].run.videos.links[0].uri
+                time = timefix(time)
+                if (src.players.data[k].hasOwnProperty("names")) {
+                    name = src.players.data[k].names.international
+                } else {
+                    name = src.players.data[k].name
+                }
+                if (src.runs[k].run.values["789k49lw"] == "z194gjl4" || src.runs[k].run.values["789k45lw"] == "9qjzj014") {
+                    if (numb == null) {
+                        upgrades = "NU"
+                    }else {
+                        upgrades = " / NU"
+                    }
+                    
+                }
+                if (src.runs[k].run.values["2lgz978p"] == "p125ev1x" || src.runs[k].run.values["onv6p08m"] == "21gjrx1z") {
+                    skips = " / Skips"
+                }
+                for (let j = 0; j<23; j++){
+                    if (src.runs[k].run.values.j846d94l == racers[j].id) {
+                        if (racers[j].hasOwnProperty("flag")) {
+                            character = racers[j].flag
+                        } else {
+                            character = racers[j].name
+                        }
+                    }
+                } 
+                for (let j = 0; j<5; j++) {
+                    if (src.runs[k].run.values.wl39wwl1 == sys[j].id) {
+                        system = "   " + sys[j].name
+                    }
+                }
+                if (data.data.players.data[k].hasOwnProperty("location")) {
+                    if (data.data.players.data[k].location !== null) {
+                        country = ":flag_" + data.data.players.data[k].location.country.code.substring(0, 2) + ":"
+                    }
+                }
+                srcReport.addField(
+                    pos[k] + " " + name,  country + system, true
+                )
+                srcReport.addField(
+                    time," " + character + "[" + upgrades + skips + "](" + vid + ")", true
+                )
+                srcReport.addField(
+                    '\u200B', '\u200B', true
+                )
+            }
+            message.channel.send(srcReport)
+        } catch (error) {
+          console.log(error);
+          message.channel.send("Sorry, speedrun.com is under too much pressure.")
+        }
+      };
+      
+    getsrcData()
+    
+    
+}
+
+if (messageLow.startsWith(`${prefix}random`)) {
+    if (args == "" | isNaN(args)) {
+        message.reply("You must include a number.")
+    } else {
+        
+        var randomnum = (Math.floor(Math.random()*args) + 1)
+    message.reply(randomnum)
+    }
+}
 
 /////   !track   /////
-
-
 if(messageLow.startsWith(`${prefix}track`)){
-    if(
-    messageLow == (`${prefix}track`)) {
+    args = args.join().replace(/,/g, '').replace(/time/g, '').toString()
+
+    if(messageLow == (`${prefix}track`)) {
         var numb = Math.floor(Math.random()*25)}
-    if(
-    messageLow == (`${prefix}track amc`) ||
-    messageLow == (`${prefix}track amateur`)) {
+    if(args == (`amc`) || args == (`amateur`)) {
         var numb = Math.floor(Math.random()*7)}
-    if(
-    messageLow == (`${prefix}track spc`) ||
-    messageLow.startsWith(`${prefix}track semi`)) {
+    if(args == (`spc`) || args==(`semi`)) {
         var numb = Math.floor(Math.random()*7) + 7}
-    if(
-    messageLow.startsWith(`${prefix}track gal`)) {
+    if(args == (`gal`)) {
         var numb = Math.floor(Math.random()*7) + 14}
-    if(
-    messageLow.startsWith(`${prefix}track inv`)) {
+    if(args == (`inv`)) {
         var numb = Math.floor(Math.random()*4) + 21}
-    if(
-    messageLow == (`${prefix}track andoprime`) ||
-    messageLow == (`${prefix}track ando prime`)) {
+    if(args.replace(/\s/g, '') == (`andoprime`)){
         let planet = [2, 8, 17, 21]
         var numb = planet[Math.floor(Math.random()*4)]}
-    if(
-    messageLow == (`${prefix}track aquilaris`)) {
+    if(args == (`aquilaris`)) {
         let planet = [3, 7, 13]
         var numb = planet[Math.floor(Math.random()*3)]}
-    if(
-    messageLow == (`${prefix}track baroonda`)) {
+    if(args == (`baroonda`)) {
         let planet = [12, 16, 19, 24]
         var numb = planet[Math.floor(Math.random()*4)]}
-    if(
-    messageLow == (`${prefix}track malastare`)) {
+    if(args == (`malastare`)) {
         let planet = [4, 9, 15]
         var numb = planet[Math.floor(Math.random()*3)]}
-    if(
-    messageLow == (`${prefix}track mon gazza`) ||
-    messageLow == (`${prefix}track mongazza`)) {
+    if(args.replace(/\s/g, '') == (`mongazza`)){
         let planet = [1, 6, 11]
         var numb = planet[Math.floor(Math.random()*3)]}
-    if(
-    messageLow == (`${prefix}track oovoiv`) ||
-    messageLow == (`${prefix}track oovo iv`)) {
+    if(args.replace(/\s/g, '') == (`oovoiv`)){
         let planet = [5, 14, 23]
         var numb = planet[Math.floor(Math.random()*3)]}
-    if(
-    messageLow == (`${prefix}track ord ibanna`) ||
-    messageLow == (`${prefix}track ordibanna`)) {
+    if(args.replace(/\s/g, '') == (`ordibanna`)) {
         let planet = [10, 18, 22]
         var numb = planet[Math.floor(Math.random()*3)]}
-    if(
-    messageLow == (`${prefix}track tatooine`)) {
+    if(args == (`tatooine`)) {
         let planet = [0, 20]
         var numb = planet[Math.floor(Math.random()*2)]}
-    if(
-        messageLow == (`${prefix}track a`) ||
-        messageLow.startsWith(`${prefix}track ab`)) {
-        var numb = 22}
-    if(
-        messageLow == (`${prefix}track apc`) ||
-        messageLow == (`${prefix}track ando prime centrum`) ||
-        messageLow == (`${prefix}track andoprimecentrum`)) {
-        var numb = 21}
-    if(
-        messageLow == (`${prefix}track amr`) ||
-        messageLow.startsWith(`${prefix}track andob`)) {
-        var numb = 17}
-    if(
-        messageLow == (`${prefix}track ac`) ||
-        messageLow == (`${prefix}track aquilarisclassic`) ||
-        messageLow == (`${prefix}track aquilaris classic`)) {
-        var numb = 3}
-    if(
-        messageLow == (`${prefix}track bc`) ||
-        messageLow == (`${prefix}track baroocoast`) ||
-        messageLow == (`${prefix}track baroo coast`)) {
-        var numb = 12}
-    if(
-        messageLow == (`${prefix}track bwr`) ||
-        messageLow.startsWith(`${prefix}track be`)) {
-        var numb = 2}
-    if(
-        messageLow == (`${prefix}track bb`) ||
-        messageLow.startsWith(`${prefix}track bu`)) {
-        var numb = 13}
-    if(
-        messageLow == (`${prefix}track dr`) ||
-        messageLow.startsWith(`${prefix}track de`)) {
-        var numb = 18}
-    if(
-        messageLow == (`${prefix}track dd`) ||
-        messageLow.startsWith(`${prefix}track du`)) {
-        var numb = 9}
-    if(
-        messageLow == (`${prefix}track e`) ||
-        messageLow.startsWith(`${prefix}track e`)) {
-        var numb = 14}
-    if(
-        messageLow == (`${prefix}track fmr`) ||
-        messageLow.startsWith(`${prefix}track f`)) {
-        var numb = 19}
-    if(
-        messageLow == (`${prefix}track gg`) ||
-        messageLow.startsWith(`${prefix}track gr`)) {
-        var numb = 16}
-    if(
-        messageLow == (`${prefix}track hg`) ||
-        messageLow.startsWith(`${prefix}track h`)) {
-        var numb = 8}
-    if(
-        messageLow == (`${prefix}track i`) ||
-        messageLow.startsWith(`${prefix}track inf`)) {
-        var numb = 24}
-    if(
-        messageLow.startsWith(`${prefix}track m1`) ||
-        messageLow == (`${prefix}track malastare 100`) ||
-        messageLow == (`${prefix}track malastare100`)) {
-        var numb = 4}
-    if(
-        messageLow == (`${prefix}track mgs`) ||
-        messageLow == (`${prefix}track mongazzaspeedway`) ||
-        messageLow == (`${prefix}track mon gazza speedway`)) {
-        var numb = 1}
-    if(
-        messageLow == (`${prefix}track sr`) ||
-        messageLow.startsWith(`${prefix}track scr`)) {
-        var numb = 10}
-    if(
-        messageLow == (`${prefix}track sl`) ||
-        messageLow.startsWith(`${prefix}track seb`)) {
-        var numb = 15}
-    if(
-        messageLow == (`${prefix}track smr`) ||
-        messageLow.startsWith(`${prefix}track spi`)) {
-        var numb = 6}
-    if(
-        messageLow == (`${prefix}track sc`) ||
-        messageLow.startsWith(`${prefix}track su`)) {
-        var numb = 7}
-    if(
-        messageLow == (`${prefix}track tbc`) ||
-        messageLow.startsWith(`${prefix}track theboontac`) ||
-        messageLow.startsWith(`${prefix}track the boonta c`)) {
-        var numb = 20}
-    if(
-        messageLow == (`${prefix}track tbtc`) ||
-        messageLow.startsWith(`${prefix}track theboontat`) ||
-        messageLow.startsWith(`${prefix}track the boonta t`)) {
-        var numb = 0}
-    if(
-        messageLow == (`${prefix}track tg`) ||
-        messageLow.startsWith(`${prefix}track the g`) ||
-        messageLow.startsWith(`${prefix}track theg`)) {
-        var numb = 23}
-    if(
-        messageLow == (`${prefix}track v`) ||
-        messageLow.startsWith(`${prefix}track v`)) {
-        var numb = 5}
-    if(
-        messageLow == (`${prefix}track zc`) ||
-        messageLow.startsWith(`${prefix}track z`)) {
-        var numb = 11}
-
-        
+    if(numb == null){
+        for (let i =0; i<25; i++) {
+            if (args == tracks[i].name.toLowerCase().replace(/\s/g, '')) {
+                var numb = i
+            } else {
+                var nname = tracks[i].nickname
+                for (let y of nname) {
+                    y = "" + y
+                    y.replace(/\s/g, '')
+                    if (args.toLowerCase() == y) {
+                        var numb = i
+                    }
+                }
+            }
+        }   
+    }
+    if(numb == null){ 
+        message.channel.send("Perhaps the archives are incomplete.")
+    }
+    else{
         const trackEmbed = new Discord.RichEmbed()
         .setThumbnail(planets[tracks[numb].planet].img)
         .setColor(planets[tracks[numb].planet].color)
@@ -379,55 +500,140 @@ if(messageLow.startsWith(`${prefix}track`)){
         //    description = description + "\n" + "Click :fast_forward: to view shortcut"
         //}
         if((pickedPlayer !== undefined) && (random2 == 0)) {
-            description =  description + "\n \n" +  str.replace("replaceme", pickedPlayer).replace("replaceme", pickedPlayer)
+            //description =  description + "\n \n" +  str.replace("replaceme", pickedPlayer).replace("replaceme", pickedPlayer)
         } else {
-            description = description + "\n \n" + movieQuotes[random3]
+            //description = description + "\n \n" + movieQuotes[random3]
         }
-        description = description + 
-        trackEmbed.setDescription(description)
-        message.channel.send(trackEmbed).then(sentMessage => {
+        trackEmbed.addField("Planet", planets[tracks[numb].planet].name, true)
+        trackEmbed.addField("Circuit", circuits[tracks[numb].circuit].name + " - Race " + tracks[numb].cirnum, true)
+        trackEmbed.addField("Favorite", tracks[numb].favorite, true)
+        let muurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-789k49lw=xqkrk919&var-2lgz978p=81p7we17" //mu
+        let nuurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-789k49lw=z194gjl4&var-2lgz978p=81p7we17" //nu
+        let skurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&&var-2lgz978p=p125ev1x" //sku
+        let settings = {method: "Get"}
+        async function getwrData() {
+            try {
+            const response1 = await fetch(muurl);
+            const data1 = await response1.json();
+            var mu = data1.data
+            const response2 = await fetch(nuurl);
+            const data2 = await response2.json();
+            var nu = data2.data
+            const response3 = await fetch(skurl);
+            const data3 = await response3.json();
+            var sk = data3.data
+            var character = ""
+            var name = ""
+            if (sk.hasOwnProperty("runs") && sk.runs.length > 0) {
+                if (sk.runs[0].hasOwnProperty("run")) {
+                    for (let j = 0; j<23; j++){
+                        if (sk.runs[0].run.values.j846d94l == racers[j].id) {
+                            if (racers[j].hasOwnProperty("flag")) {
+                                character = racers[j].flag
+                            } else {
+                                character = racers[j].name
+                            }
+                        }
+                    } 
+                    if (sk.players.data[0].hasOwnProperty("names")) {
+                        name = sk.players.data[0].names.international
+                    } else {
+                        name = sk.players.data[0].name
+                    }
+                    var vid = sk.runs[0].run.videos.links[0].uri
+                    trackEmbed.addField("Skips WR", character + " " + name + "\n[" + timefix(sk.runs[0].run.times.primary_t) + "](" + vid + ")",true)
+                }
+            }
+            for (let j = 0; j<23; j++){
+                if (mu.runs[0].run.values.j846d94l == racers[j].id) {
+                    if (racers[j].hasOwnProperty("flag")) {
+                        character = racers[j].flag
+                    } else {
+                        character = racers[j].name
+                    }
+                }
+            } 
+            if (mu.players.data[0].hasOwnProperty("names")) {
+                name = mu.players.data[0].names.international
+            } else {
+                name = mu.players.data[0].name
+            }
+            var vid = mu.runs[0].run.videos.links[0].uri
+            trackEmbed.addField("MU WR", character + " " + name + "\n[" + timefix(mu.runs[0].run.times.primary_t) + "](" + vid + ")", true)
+            for (let j = 0; j<23; j++){
+                if (nu.runs[0].run.values.j846d94l == racers[j].id) {
+                    if (racers[j].hasOwnProperty("flag")) {
+                        character = racers[j].flag
+                    } else {
+                        character = racers[j].name
+                    }
+                }
+            } 
+            if (nu.players.data[0].hasOwnProperty("names")) {
+                name = nu.players.data[0].names.international
+            } else {
+                name = nu.players.data[0].name
+            }
+            var vid = nu.runs[0].run.videos.links[0].uri
+            trackEmbed.addField("NU WR", character + " " + name + "\n[" + timefix(nu.runs[0].run.times.primary_t) + "](" +  vid+ ")",true)
+            
+            
+            message.channel.send(trackEmbed).then(sentMessage => {
+            
+                sentMessage.react('⏱️').then(() => {
+                    const filter = (reaction, user) => {
+                        return ['⏱️'].includes(reaction.emoji.name) && user.id !== "545798436105224203";
+                    };
+                    sentMessage.awaitReactions(filter, { max: 1})
+                        .then(collected => {
+                            const reaction = collected.first();
+                            if (reaction.emoji.name === '⏱️' && reaction.users.id !== "545798436105224203") {
+                                const tracktimesEmbed = new Discord.RichEmbed()
+                                .setColor(planets[tracks[numb].planet].color)
+                                .setTitle(tracks[numb].name + " | MU/No Skip Par Times")
+                                .setURL("https://docs.google.com/spreadsheets/d/1TwDtG6eOyiQZEZ3iTbZaEmthe5zdf9YEGJ-1tfFfQKg/edit?usp=sharing")
+                                .addField("3-Lap", ":gem: " + tracks[numb].partimes[0] + "\n:first_place: " + tracks[numb].partimes[1] + "\n:second_place: " + tracks[numb].partimes[2] + "\n:third_place: " + tracks[numb].partimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[numb].partimes[4], true)
+                                .addField("Fast-Lap", ":gem: " + tracks[numb].parlaptimes[0] + "\n:first_place: " + tracks[numb].parlaptimes[1] + "\n:second_place: " + tracks[numb].parlaptimes[2] + "\n:third_place: " + tracks[numb].parlaptimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[numb].parlaptimes[4], true)
+                                sentMessage.channel.send(tracktimesEmbed);
+                            } 
+                        })
+                })
+            
+        }) 
+            } catch (error) {
+                console.log(error)
+            }
+            
+        }
+        getwrData()
+        /*message.channel.send(trackEmbed).then(sentMessage => {
             if(tracks[numb].skip !== "") {
-                sentMessage.react('⏭').then(() => {
-
+                sentMessage.react(':stopwatch:').then(() => {
                     const filter = (reaction, user) => {
-                        return ['⏭'].includes(reaction.emoji.name) && user.id !== "545798436105224203";
+                        return [':stopwatch:'].includes(reaction.emoji.name) && user.id !== "545798436105224203";
                     };
                     sentMessage.awaitReactions(filter, { max: 1})
                         .then(collected => {
                             const reaction = collected.first();
-        
-                            if (reaction.emoji.name === '⏭' && reaction.users.id !== "545798436105224203") {
-                                //console.log(new map(reaction.users))
-                                sentMessage.channel.send(tracks[numb].skip);
+                            if (reaction.emoji.name === ':stopwatch:' && reaction.users.id !== "545798436105224203") {
+                                const tracktimesEmbed = new Discord.RichEmbed()
+                                .setColor(planets[tracks[numb].planet].color)
+                                .setTitle("[" + tracks[numb].name + " | MU/No Skip Par Times](" + https://docs.google.com/spreadsheets/d/1TwDtG6eOyiQZEZ3iTbZaEmthe5zdf9YEGJ-1tfFfQKg/edit?usp=sharing +")")
+                                .addField("3-Lap", ":trophy: " + tracks[numb].partimes[0] + "\n:first_place: " + tracks[numb].partimes[1] + "\n:second_place: " + tracks[numb].partimes[2] + "\n:third_place: " + tracks[numb].partimes[3] + "\n:bumpythumb: " + tracks[numb].partimes[4], true)
+                                .addField("1-Lap", ":trophy: " + tracks[numb].parlaptimes[0] + "\n:first_place: " + tracks[numb].parlaptimes[1] + "\n:second_place: " + tracks[numb].parlaptimes[2] + "\n:third_place: " + tracks[numb].parlaptimes[3] + "\n:bumpythumb: " + tracks[numb].parlaptimes[4], true)
+                                sentMessage.channel.send(tracktimesEmbed);
                             } 
                         })
                 })
             }
+        }) */
         
-            if(tracks[numb].shortcut !== "") {
-                sentMessage.react('⏩').then(() => {
-
-                    const filter = (reaction, user) => {
-                        return ['⏩'].includes(reaction.emoji.name) && user.id !== "545798436105224203";
-                    };
-                    sentMessage.awaitReactions(filter, { max: 1})
-                        .then(collected => {
-                            const reaction = collected.first();
-        
-                            if (reaction.emoji.name === '⏩' && reaction.users.id !== "545798436105224203") {
-                                //console.log(new map(reaction.users))
-                                sentMessage.channel.send(tracks[numb].shortcut);
-                            } 
-                        })
-                })
-            }
-        })
-
+    }
 
 
 
         random = Math.floor(Math.random()*voiceGeneral.length)
-        playSfx(message, voiceGeneral[random]);
+        //playSfx(message, voiceGeneral[random]);
     }
 
     
@@ -621,49 +827,45 @@ if(messageLow.startsWith(`${prefix}racer`) && !messageLow.startsWith(`${prefix}r
         var numb = 22}
     
     if(numb == undefined && messageLow.startsWith(`${prefix}racers`) == false){
-        message.channel.send("**Perhaps the archives are incomplete.**")
-        playSfx(message, voiceError[Math.floor(Math.random()*voiceError.length)])
+        message.channel.send("Perhaps the archives are incomplete.")
+        //playSfx(message, voiceError[Math.floor(Math.random()*voiceError.length)])
     }
     else{
         var racerFooter = racers[numb].footer
-        if(racers[numb].tier == 1){
-            racerFooter = racerFooter + " | Low Tier"
-        }
-        if(racers[numb].tier == 2){
-            racerFooter = racerFooter + " | Mid Tier"
-        }
-        if(racers[numb].tier == 3){
-            racerFooter = racerFooter + " | High Tier"
-        }
-        if(racers[numb].tier == 4){
-            racerFooter = racerFooter + " | Top Tier"
-        }
+        var Tier = ["Low", "Mid", "High", "Top"]
         const racerEmbed = new Discord.RichEmbed()
             .setThumbnail(racers[numb].img)
             .setColor('#00DE45')
             .setTitle(racers[numb].name)
             .setDescription("(" + (numb + 1) + ") " + racers[numb].intro)
-            .setImage(racers[numb].stats)
-            .setFooter(racerFooter)
+            .addField("Tier", Tier[racers[numb].tier -1], true)
+            if (racers[numb].hasOwnProperty("species")){
+                racerEmbed.addField("Species/Homeworld", racers[numb].species, true)
+            }
+            racerEmbed.addField("Pod", racers[numb].Pod, true)
+            racerEmbed.setImage(racers[numb].stats)
         message.channel.send(racerEmbed);
-        playSfx(message, racers[numb].announce)
+        //playSfx(message, racers[numb].announce)
     }
 }
 
 if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
     if(arr.length > 0){
         if(messageLow == (`${prefix}racers`)){
+            
             var assignRacers = ""
             var arrayLength = arr.length;
             for (var i = 0; i < arrayLength; i++) {
                 assignRacers = assignRacers + "**" + arr[i].displayName + "**" + " - " + "*" + racers[Math.floor(Math.random()*23)].name + "*\n"
             }
             message.channel.send(assignRacers)
+
         }
         if(messageLow == (`${prefix}racers canon`)){
             
             var assignRacers = ""
             var arrayLength = arr.length;
+            
             for (var i = 0; i < arrayLength; i++) {
                 let canon = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 19]
             var numb = canon[Math.floor(Math.random()*18)]
@@ -688,16 +890,22 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
             var assignRacers = ""
             var arrayLength = arr.length;
             //for each member in voicechannel
+
             for (var i = 0; i < arrayLength; i++) {
-                //gather racers from given tier
-                for (let i = 0; i < racers.length; i++) {
-                    if(racers[i].tier == 4){
-                        list.push(racers[i].racernum - 1)
+                    //gather racers from given tier
+                if (list.length == 0){
+                    console.log("refill")
+                    for (let i = 0; i < racers.length; i++) {
+                        if(racers[i].tier == 4){
+                            list.push(racers[i].racernum - 1)
+                        }
                     }
                 }
                 //pick random racer
-                var numb = list[Math.floor(Math.random()*list.length)]
+                var num = Math.floor(Math.random()*list.length)
+                var numb = list[num]
                 assignRacers = assignRacers + "**" + arr[i].displayName + "**" + " - " + "*" + racers[numb].name + "*\n"
+                list.splice(num, 1)
             }
             message.channel.send(assignRacers)
         }
@@ -706,17 +914,23 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
             var list = []
             var assignRacers = ""
             var arrayLength = arr.length;
+
+
             //for each member in voicechannel
             for (var i = 0; i < arrayLength; i++) {
-                //gather racers from given tier
+            if(list.length == 0){
+                    //gather racers from given tier
                 for (let i = 0; i < racers.length; i++) {
                     if(racers[i].tier == 3){
                         list.push(racers[i].racernum - 1)
                     }
                 }
+            }
                 //pick random racer
-                var numb = list[Math.floor(Math.random()*list.length)]
+                var num = Math.floor(Math.random()*list.length)
+                var numb = list[num]
                 assignRacers = assignRacers + "**" + arr[i].displayName + "**" + " - " + "*" + racers[numb].name + "*\n"
+                list.splice(num, 1)
             }
             message.channel.send(assignRacers)
         }
@@ -727,15 +941,19 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
             var arrayLength = arr.length;
             //for each member in voicechannel
             for (var i = 0; i < arrayLength; i++) {
-                //gather racers from given tier
-                for (let i = 0; i < racers.length; i++) {
-                    if(racers[i].tier == 2){
-                        list.push(racers[i].racernum - 1)
+                if (list.length == 0){
+                    //gather racers from given tier
+                    for (let i = 0; i < racers.length; i++) {
+                        if(racers[i].tier == 2){
+                            list.push(racers[i].racernum - 1)
+                        }
                     }
                 }
                 //pick random racer
-                var numb = list[Math.floor(Math.random()*list.length)]
+                var num = Math.floor(Math.random()*list.length)
+                var numb = list[num]
                 assignRacers = assignRacers + "**" + arr[i].displayName + "**" + " - " + "*" + racers[numb].name + "*\n"
+                list.splice(num, 1)
             }
             message.channel.send(assignRacers)
         }
@@ -746,15 +964,19 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
             var arrayLength = arr.length;
             //for each member in voicechannel
             for (var i = 0; i < arrayLength; i++) {
+                if (list.length == 0){
                 //gather racers from given tier
-                for (let i = 0; i < racers.length; i++) {
-                    if(racers[i].tier == 1){
-                        list.push(racers[i].racernum - 1)
+                    for (let i = 0; i < racers.length; i++) {
+                        if(racers[i].tier == 1){
+                            list.push(racers[i].racernum - 1)
+                        }
                     }
                 }
                 //pick random racer
-                var numb = list[Math.floor(Math.random()*list.length)]
+                var num = Math.floor(Math.random()*list.length)
+                var numb = list[num]
                 assignRacers = assignRacers + "**" + arr[i].displayName + "**" + " - " + "*" + racers[numb].name + "*\n"
+                list.splice(num,1)
             }
             message.channel.send(assignRacers)
         }
@@ -785,28 +1007,34 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
             //.setImage("https://i.imgur.com/ZAQAjfB.png")
             //.setThumbnail("https://i.imgur.com/jzPQv54.png")
             .setTitle("Botto Command List")
-            .addField(":large_blue_diamond: General", "**?help** - list of commands and racer stat guide\n" +
-            "**!cleanup** - deletes command and bot messages within the past 10 messages\n" +
-            "**!github** - reveals Botto github link\n" +
-            "**!img** - reveals links to racer/track graphics on imgur")
-            .addField(":busts_in_silhouette: Roles", "**!multiplayer** - adds or removes multiplayer role\n" +
-            "**!speedrunning** - adds or removes speedrunning role")
-            .addField(":game_die: Randomizers", "**!racer**(s) - random racer (adding “s” rolls for all players in voice channel)\n" +
-            "!racer(s) **canon** - random canon racer\n" +
-            "!racer(s) **noncanon** - random noncanon racer\n" +
-            "!racer(s) **<tier>** - random racer from given tier (low/f, mid/b, high/a, top/s)\n" +
-            "**!track** - random track\n" +
-            "!track **<circuit>** - random track from given circuit\n" +
-            "!track **<planet>** - random track from given planet\n" +
-            "**!challenge** - random racer + random track\n" +
-            "**!teams <n>** - randomly splits members in voice channel into *n* number of teams\n" +
-            "**!chancecube** - “let fate decide”")
-            .addField(":mag_right: Lookup", "**!racer <name/initials>** - lookup specific racer\n" +
-            "**!track <name/acronym>** - lookup specific track\n"+
-            "**!tier** - reveals tier list Botto uses to randomize\n" +
-            "**!stat** - reveals racer stat guide\n")
-            .addField(":telephone_receiver: Voice", "**!join** - adds Botto to the voice channel\n" +
-            "**!leave** - kicks Botto from the voice channel")
+            .addField(":large_blue_diamond: General", "`?help` - list of commands\n" +
+            "`!cleanup` - deletes command and bot messages within the past 10 messages\n" +
+            "`!github` - reveals Botto github link\n" +
+            "`!img` - reveals links to racer/track graphics on imgur\n" +
+            "`!guide` - posts link to multiplayer setup guide\n" +
+            "`!drive` - posts link to Google Drive", false)
+            .addField(":busts_in_silhouette: Roles", "`!multiplayer` - adds or removes multiplayer role\n" +
+            "`!speedrunning` - adds or removes speedrunning role", false)
+            .addField(":trophy: Speedrun.com", "`!src <track>` - shows top 5 3-lap times for given track\n" +
+            "`!src <category>` - shows top 5 times for given category (any,100,amc,spc,ng+)\n" +
+            "`!src <track/category> <upgrades/nu> <skips/no skips> <pc/n64/dc/switch/ps4> <flap>` - filters leaderboard", false)
+            .addField(":game_die: Randomizers", "`!racer(s)` - random racer (adding “s” rolls for all players in voice channel)\n" +
+            "`!racer(s) canon` - random canon racer\n" +
+            "`!racer(s) noncanon` - random noncanon racer\n" +
+            "`!racer(s) <tier>` - random racer from given tier (low/f, mid/b, high/a, top/s)\n" +
+            "`!track` - random track\n" +
+            "`!track <circuit>` - random track from given circuit\n" +
+            "`!track <planet>` - random track from given planet\n" +
+            "`!challenge` - random racer + random track\n" +
+            "`!teams <n>` - randomly splits members in voice channel into *n* number of teams\n" +
+            "`!chancecube` - “let fate decide”\n" +
+            "`!random <n>` - generates random number between 1 and *n*", false)
+            .addField(":mag_right: Lookup", "`!racer <name/initials>` - look up specific racer\n" +
+            "`!track <name/acronym>` - look up specific track\n"+
+            "`!tier` - reveals tier list Botto uses to randomize\n" +
+            "`!stat` - reveals racer stat guide\n", false)
+            .addField(":microphone2: Voice", "`!join` - adds Botto to the voice channel\n" +
+            "`!leave` - kicks Botto from the voice channel", false)
         message.channel.send(helpEmbed)
     }
 
@@ -825,15 +1053,18 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
 
 
 if(messageLow.startsWith(`${prefix}chancecube`)){
-    var numb = Math.floor(Math.random()*3)
+    var numb = Math.floor(Math.random()*2)
     if(numb == 0){
-        message.channel.send(":large_blue_circle:")
+        message.channel.send(":blue_square:")
     }
     else{
-        message.channel.send(":red_circle:")
+        message.channel.send(":red_square:")
     }
 }
-   
+
+if(messageLow.startsWith(`${prefix}drive`)){
+    message.channel.send("https://drive.google.com/drive/folders/1ScgPE1i1EpSYXT16a1ocxQiouMCcE9z1?usp=sharing")
+}
 if(message.content.startsWith(`${prefix}cleanup`) && message.channel.type !== "dm") {
     message.channel.fetchMessages({limit:10}).then(messages => {
         const botMessages = messages.filter(msg => msg.author.bot || msg.content.startsWith("!"));
@@ -853,6 +1084,9 @@ if(message.content.startsWith(`${prefix}github`) || message.content.startsWith(`
     message.channel.send("https://github.com/louriccia/Botto")
 }
 
+if(message.content.startsWith(`${prefix}guide`)){
+    message.channel.send("https://docs.google.com/document/d/1lxVkuT80ug0BX2LMJp5CXcMVPZneLK4unOetLU3WlQQ/edit?usp=sharing")
+}
 
 if(message.content.startsWith(`${prefix}img`) || message.content.startsWith(`${prefix}image`)){
     message.channel.send("Racers: https://imgur.com/a/uqTaaIl")
@@ -860,9 +1094,10 @@ if(message.content.startsWith(`${prefix}img`) || message.content.startsWith(`${p
     message.channel.send("Planets: https://imgur.com/a/G5yhapp")
 }
 
-if(messageLow.includes("botto")){
-    message.channel.send("*What you want? Message `?help` for a list of commands.*")
-}
+
+//if(messageLow.includes("botto")){
+//    message.channel.send("*What you want? Message `?help` for a list of commands.*")
+//}
 
 
 
@@ -882,10 +1117,10 @@ if(message.content.startsWith(`${prefix}tier`)){
             //.setImage("")
             //.setThumbnail("")
             .setTitle("Tier List")
-            .addField(":gem: Top", "Ben Quadinaros\n'Bullseye' Navior\nMars Guo\nMawhonic\nAldar Beedo\nBoles Roor")
-            .addField(":first_place: High", "Elan Mak\nNeva Kee\nRatts Tyerell\nClegg Holdfast\nToy Dampner")
-            .addField(":second_place: Mid", "Slide Paramita\nEbe Endocott\nGasgano\nDud Bolt\nOdy Mandrell\nBozzie Baranta\nWan Sandage")
-            .addField(":third_place: Low", "Anakin Skywalker\nArk 'Bumpy' Roose\nFud Sang\nTeemto Pagalies\nSebulba")
+            .addField(":gem: Top", "Ben Quadinaros\n'Bullseye' Navior\nMars Guo\nMawhonic\nAldar Beedo\nBoles Roor\nElan Mak")
+            .addField(":first_place: High", "Neva Kee\nRatts Tyerell\nClegg Holdfast\nToy Dampner")
+            .addField(":second_place: Mid", "Slide Paramita\nEbe Endocott\nGasgano\nDud Bolt\nOdy Mandrell\nBozzie Baranta\nAnakin Skywalker\nArk 'Bumpy' Roose")
+            .addField(":third_place: Low", "Fud Sang\nTeemto Pagalies\n Wan Sandage\nSebulba")
     message.channel.send(helpEmbed)
 }
 
@@ -962,7 +1197,7 @@ if (message.content === ('!join')) {
             message.member.voiceChannel.join()
             .then(connection => { // Connection is an instance of VoiceConnection
                 const dispatcher = connection.playArbitraryInput(voiceJoin[numb]);
-                dispatcher.setVolume(1);
+                dispatcher.setVolume(0.2);
                 dispatcher.on('end', () => {
                   connection.disconnect
                 });
@@ -972,6 +1207,7 @@ if (message.content === ('!join')) {
       message.reply('You need to join a voice channel first!');
     }
 } 
+
 if (message.content === ('!leave')) {
     // Only try to join the sender's voice channel if they are in one themselves
     if (message.guild.voiceConnection) {
@@ -989,7 +1225,7 @@ function playSfx(message, filePath)
         message.member.voiceChannel.join()
           .then(connection => { // Connection is an instance of VoiceConnection
             const dispatcher = connection.playFile(filePath);
-            dispatcher.setVolume(0.5);
+            dispatcher.setVolume(0.2);
             dispatcher.on('end', () => {
               connection.disconnect
             });
@@ -1005,13 +1241,13 @@ function playSfx(message, filePath)
 }
 })
 
-client.on('guildMemberAdd', (guildMember) => {
-    const guild = client.guilds.get("441839750555369474");
-    const role = guild.roles.get("442316203835392001");
-    let member = guildMember
-    member.addRole(role).catch(console.error);
-    client.channels.get("441839751235108875").send("Welcome to the Star Wars Episode I: Racer discord, " + guildMember + "! Take a look around! I've got everything you need'.");
+//client.on('guildMemberAdd', (guildMember) => {
+    //const guild = client.guilds.get("441839750555369474");
+    //const role = guild.roles.get("442316203835392001");
+    //let member = guildMember
+    //member.addRole(role).catch(console.error);
+    //client.channels.get("441839751235108875").send("Welcome to the Star Wars Episode I: Racer discord, " + guildMember + "! Take a look around! I've got everything you need.");
 
- })
+ //})
 
 client.login(token);
