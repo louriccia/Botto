@@ -3,7 +3,7 @@ const { prefix, token } = require('./config.json');
 const client = new Discord.Client();
 var lookup = require("./data.js");
 
-const fetch = require('node-fetch');
+//const fetch = require('node-fetch');
 
 client.once('ready', () => {
     console.log('Ready!')
@@ -1241,13 +1241,13 @@ function playSfx(message, filePath)
 }
 })
 
-//client.on('guildMemberAdd', (guildMember) => {
-    //const guild = client.guilds.get("441839750555369474");
-    //const role = guild.roles.get("442316203835392001");
-    //let member = guildMember
-    //member.addRole(role).catch(console.error);
-    //client.channels.get("441839751235108875").send("Welcome to the Star Wars Episode I: Racer discord, " + guildMember + "! Take a look around! I've got everything you need.");
+client.on('guildMemberAdd', (guildMember) => {
+    const guild = client.guilds.get("441839750555369474");
+    const role = guild.roles.get("442316203835392001");
+    let member = guildMember
+    member.addRole(role).catch(console.error);
+    client.channels.get("441839751235108875").send("Welcome to the Star Wars Episode I: Racer discord, " + guildMember + "! Take a look around! I've got everything you need.");
 
- //})
+ })
 
 client.login(process.env.token);
