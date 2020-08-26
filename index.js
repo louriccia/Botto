@@ -1001,7 +1001,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
 /////    ?help    //////
 
 
-    if(message.content.startsWith(`?help`) || message.content.startsWith(`${prefix}command`)) {
+    if(message.content.toLowerCase().startsWith(`?help`) || message.content.startsWith(`${prefix}command`)) {
         const helpEmbed = new Discord.RichEmbed()
             //.setColor('#00DE45')
             //.setImage("https://i.imgur.com/ZAQAjfB.png")
