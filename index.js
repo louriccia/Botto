@@ -1250,4 +1250,4 @@ function playSfx(message, filePath)
 
  //})
 
-client.login(token);
+client.login(process.env.token);
