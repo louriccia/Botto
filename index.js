@@ -1246,7 +1246,7 @@ client.on('guildMemberAdd', (guildMember) => {
     const role = guild.roles.get("442316203835392001");
     let member = guildMember
     member.addRole(role).catch(console.error);
-    client.channels.get("441839751235108875").send("Welcome to the Star Wars Episode I: Racer discord, " + guildMember + "! Take a look around! I've got everything you need.");
+    //client.channels.get("441839751235108875").send("Welcome to the Star Wars Episode I: Racer discord, " + guildMember + "! Take a look around! I've got everything you need.");
 
  })
 
