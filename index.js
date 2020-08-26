@@ -1067,7 +1067,7 @@ if(messageLow.startsWith(`${prefix}drive`)){
 }
 if(message.content.startsWith(`${prefix}cleanup`) && message.channel.type !== "dm") {
     message.channel.fetchMessages({limit:10}).then(messages => {
-        const botMessages = messages.filter(msg => msg.author.bot || msg.content.startsWith("!"));
+        const botMessages = messages.filter(msg => msg.author.bot || msg.content.startsWith("!") || msg.content == "?help");
         message.channel.bulkDelete(botMessages);
         messagesDeleted = botMessages.array().length; // number of messages deleted
 
