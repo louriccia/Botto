@@ -1072,7 +1072,10 @@ if(message.content.startsWith(`${prefix}cleanup`) && message.channel.type !== "d
         messagesDeleted = botMessages.array().length; // number of messages deleted
 
         // Logging the number of messages deleted on both the channel and console.
-        message.channel.send("*I gotta lots of junk!* \n`" + messagesDeleted + " messages deleted`");
+        message.channel.send("*I gotta lots of junk!* \n`" + messagesDeleted + " messages deleted`")
+            .then(msg => {
+                msg.delete(5000)
+            })
         console.log('Deletion of messages successful. Total messages deleted: ' + messagesDeleted)
     }).catch(err => {
         console.log('Error while doing Bulk Delete');
