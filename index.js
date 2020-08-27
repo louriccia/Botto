@@ -11,6 +11,11 @@ client.once('ready', () => {
     client.user.setActivity("Star Wars: Episode I - Racer")
 })
 
+
+client.on("messageDelete", (messageDelete) => {
+    console.log(`The message : "${messageDelete.content}" by ${messageDelete.author.tag} was deleted.`)
+   });
+
 // when a user joins/leaves a voice channel
 client.on('voiceStateUpdate', (oldMember, newMember) => {
 
