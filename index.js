@@ -3,6 +3,8 @@ const { prefix, token } = require('./config.json');
 const client = new Discord.Client();
 var lookup = require("./data.js");
 
+const fs = require('fs');
+
 const fetch = require('node-fetch');
 
 client.once('ready', () => {
@@ -14,10 +16,16 @@ client.once('ready', () => {
 
 client.on("messageDelete", (messageDelete) => {
     console.log(`The message : "${messageDelete.content}" by ${messageDelete.author.tag} was deleted.`)
+    fs.appendFile('log.txt', '\n ' + `The message : "${messageDelete.content}" by ${messageDelete.author.tag} was deleted.`, (err) => {
+        if (err) throw err;
+    });
    });
 
 client.on('messageUpdate', (oldMessage, newMessage) => {
     console.log(`The message : "${oldMessage.content}" was edited to "${newMessage.content}" by ${newMessage.author.tag}`)
+    fs.appendFile('log.txt', '\n ' + `The message : "${oldMessage.content}" was edited to "${newMessage.content}" by ${newMessage.author.tag}`, (err) => {
+        if (err) throw err;
+    });
  });
 
 // when a user joins/leaves a voice channel
