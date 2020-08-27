@@ -16,16 +16,12 @@ client.once('ready', () => {
 
 client.on("messageDelete", (messageDelete) => {
     console.log(`The message : "${messageDelete.content}" by ${messageDelete.author.tag} was deleted.`)
-    fs.appendFile('log.txt', '\n ' + `The message : "${messageDelete.content}" by ${messageDelete.author.tag} was deleted.`, (err) => {
-        if (err) throw err;
-    });
+    client.users.get("256236315144749059").send(`The message : "${messageDelete.content}" by ${messageDelete.author.tag} was deleted.`);
    });
 
 client.on('messageUpdate', (oldMessage, newMessage) => {
     console.log(`The message : "${oldMessage.content}" was edited to "${newMessage.content}" by ${newMessage.author.tag}`)
-    fs.appendFile('log.txt', '\n ' + `The message : "${oldMessage.content}" was edited to "${newMessage.content}" by ${newMessage.author.tag}`, (err) => {
-        if (err) throw err;
-    });
+    client.users.get("256236315144749059").send(`The message : "${oldMessage.content}" was edited to "${newMessage.content}" by ${newMessage.author.tag}`);
  });
 
 // when a user joins/leaves a voice channel
