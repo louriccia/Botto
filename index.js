@@ -16,6 +16,10 @@ client.on("messageDelete", (messageDelete) => {
     console.log(`The message : "${messageDelete.content}" by ${messageDelete.author.tag} was deleted.`)
    });
 
+client.on('messageUpdate', (oldMessage, newMessage) => {
+    console.log(`The message : "${oldMessage.content}" was edited to "${newMessage.content}" by ${newMessage.author.tag}`)
+ });
+
 // when a user joins/leaves a voice channel
 client.on('voiceStateUpdate', (oldMember, newMember) => {
 
