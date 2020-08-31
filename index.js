@@ -452,7 +452,7 @@ if (messageLow.startsWith(`${prefix}random`)) {
 /////   !track   /////
 if(messageLow.startsWith(`${prefix}track`)){
     var partime = false
-    if (args.includes("time") || (args.includes("times")) {
+    if (args.includes("time") || args.includes("times")) {
         partime = true
     }
     args = args.join().replace(/,/g, '').replace(/time/g, '').toString()
