@@ -16,15 +16,15 @@ client.once('ready', () => {
 
 client.on("messageDelete", (messageDelete) => {
     if (messageDelete.author.bot == false && messageDelete.channel.type == "text") {
-        console.log(`${messageDelete.author.tag} deleted the following message from ${messageDelete.channel}: \n${messageDelete.content}`)
-        client.users.get("256236315144749059").send(`${messageDelete.author.tag} deleted the following message from ${messageDelete.channel}: \n${messageDelete.content}`);
+        console.log(`${messageDelete.author.tag} deleted the following message from ${messageDelete.channel}: "${messageDelete.content}"`)
+        client.users.get("256236315144749059").send(`${messageDelete.author.tag} deleted a message from ${messageDelete.channel}\n> ${messageDelete.content}`);
     }
    });
 
 client.on('messageUpdate', (oldMessage, newMessage) => {
     if (oldMessage.author.bot == false && oldMessage.channel.type == "text") {
-        console.log(`${newMessage.author.tag} edited a message in ${oldMessage.channel}\n Before:\n ${oldMessage.content} \n After:\n ${newMessage.content}`)
-        client.users.get("256236315144749059").send(`${newMessage.author.tag} edited a message in ${oldMessage.channel}\n Before:\n ${oldMessage.content} \n After:\n ${newMessage.content}`);
+        console.log(`${newMessage.author.tag} edited a message in ${oldMessage.channel} from "${oldMessage.content}" to "${newMessage.content}"`)
+        client.users.get("256236315144749059").send(`${newMessage.author.tag} edited a message in ${oldMessage.channel}\n> ${oldMessage.content}\n==>\n> ${newMessage.content}`);
     }
 });
 
@@ -310,7 +310,7 @@ if (messageLow.startsWith(`${prefix}src`)) {
             } else {
                 skps = "&var-2lgz978p=p125ev1x"
             }
-        } else if(args[c] == "ns") {
+        } else if(args[c] == "ns" || args[c] == "ft" || args[c] == "full") {
             if (numb == null) { 
                 skps = "&var-onv6p08m=5lmxzy1v" //full game categories
             } else {
@@ -330,13 +330,17 @@ if (messageLow.startsWith(`${prefix}src`)) {
     }
     if (upgr == "&var-789k49lw=z194gjl4" || upgr == "&var-789k45lw=9qjzj014") {
         desc = "No Upgrades, "
-    } else {
+    } else if (upgr == "&var-789k45lw=gq7nen1p" || upgr == "&var-789k49lw=xqkrk919") {
         desc = "Upgrades, "
+    } else {
+        desc = "Any Upgrades, "
     }
     if (skps == "&var-2lgz978p=81p7we17" ||  skps == "&var-onv6p08m=5lmxzy1v") {
-        desc = desc + "No Skips, "
-    } else {
+        desc = desc + "Full Track, "
+    } else if (skps == "&var-onv6p08m=21gjrx1z" ||  skps == "&var-2lgz978p=p125ev1x"){
         desc = desc + "Skips, "
+    } else {
+        desc = desc + "Skips/Full Track, "
     }
     if (platname == "") {
         desc = desc + "All Platforms"
