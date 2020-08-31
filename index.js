@@ -17,14 +17,14 @@ client.once('ready', () => {
 client.on("messageDelete", (messageDelete) => {
     if (messageDelete.author.bot == false && messageDelete.channel.type == "text") {
         console.log(`${messageDelete.author.tag} deleted the following message from ${messageDelete.channel}: \n${messageDelete.content}`)
-        client.users.get("256236315144749059").send(`${messageDelete.author.tag} deleted the following message from ${messageDelete.guild.channels.cache.get(messageDelete.channel.id)}: \n${messageDelete.content}`);
+        client.users.get("256236315144749059").send(`${messageDelete.author.tag} deleted the following message from ${messageDelete.channel}: \n${messageDelete.content}`);
     }
    });
 
 client.on('messageUpdate', (oldMessage, newMessage) => {
     if (oldMessage.author.bot == false && oldMessage.channel.type == "text") {
         console.log(`${newMessage.author.tag} edited a message in ${oldMessage.channel}\n Before:\n ${oldMessage.content} \n After:\n ${newMessage.content}`)
-        client.users.get("256236315144749059").send(`${newMessage.author.tag} edited a message in ${oldMessage.guild.channels.cache.get(oldMessage.channel.id)}\n Before:\n ${oldMessage.content} \n After:\n ${newMessage.content}`);
+        client.users.get("256236315144749059").send(`${newMessage.author.tag} edited a message in ${oldMessage.channel}\n Before:\n ${oldMessage.content} \n After:\n ${newMessage.content}`);
     }
 });
 
