@@ -666,7 +666,7 @@ if(messageLow.startsWith(`${prefix}track`)){
         if (tracks[numb].hasOwnProperty("parskiptimes")) {
             tracktimesEmbed2.addField("Skips 3-Lap", ":gem: " + tracks[numb].parskiptimes[0] + "\n:first_place: " + tracks[numb].parskiptimes[1] + "\n:second_place: " + tracks[numb].parskiptimes[2] + "\n:third_place: " + tracks[numb].parskiptimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[numb].parskiptimes[4], true)
         }
-        sentMessage.channel.send(tracktimesEmbed2);
+        message.channel.send(tracktimesEmbed2);
     }
 
 
