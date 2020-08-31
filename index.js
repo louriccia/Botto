@@ -298,7 +298,7 @@ if (messageLow.startsWith(`${prefix}src`)) {
             } else {
                 upgr = "&var-789k49lw=z194gjl4"
             }
-        } else if (args[c] == "mu" && upgr == "") {
+        } else if ((args[c] == "mu" || args[c] == "upgrades") && upgr == "") {
             if (numb == null) { 
                 upgr = "&var-789k45lw=gq7nen1p" //full game categories
             } else {
@@ -1021,6 +1021,61 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         message.channel.send("Race as **" + racers[random1].name + "** (" + (random1 + 1) + ") on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + "\n" + movieQuotes[random3] + " ")
     }
 
+/////    !abb //////
+
+if(message.content.startsWith(`${prefix}abb`)) {
+    const AbbEmbed = new Discord.RichEmbed()
+    .setTitle("SWE1R Abbreviations")
+    .setURL("https://www.speedrun.com/swe1r/thread/nf4bo")
+    .addField(":large_blue_diamond: General",
+    "Swe1r/SWR --- Star Wars Ep. I Racer\n" +
+    "RTA --- Real Time Attack (Full game/circuit runs)\n" +
+    "IL --- Individual Level Time Attack\n" +
+    "NU --- No Upgrades\n" +
+    "MU --- Max Upgrades\n" +
+    "FT --- Full Track\n" +
+    "ASU --- Arbitrary Speed Units\n" +
+    "RNG --- Random Number Generation aka Luck\n" +
+    "SRC --- Speedrun.com\n" +
+    "CS --- Cyberscore.me.uk\n" +
+    "TFPS --- Traction/FPS setup\n" +
+    "MFG --- Maximum Fall Glitch")
+    .addField(":flags: Categories",
+    "AMC --- Amateur Circuit\n" +
+    "SPC --- Semi-Pro Circuit\n" +
+    "GC --- Galactic Circuit\n" +
+    "AT --- All Tracks\n" +
+    "NG+ --- New Game+\n" +
+    "Any% --- Complete the game without restrictions\n" +
+    "100% --- Win all 25 Races")
+    .addField(":triangular_flag_on_post: Tracks",
+    "Boonta Training Course --- TBTC/BTC\n" +
+    "Mon Gazza Speedway --- MGS\n" +
+    "Beedo's Wild Ride --- BWR\n" +
+    "Aquilaris Classic --- AQC\n" +
+    "Malastare 100 --- M100\n" +
+    "Vengeance --- VEN\n" +
+    "Spice Mine Run --- SMR\n\n" +
+    "Sunken City --- SC\n" +
+    "Howler Gorge --- HG\n" +
+    "Dug Derby --- DD\n" +
+    "Scrapper's Run --- SR\n" +
+    "Zugga Challenge --- ZC\n" +
+    "Baroo Coast --- BC\n" +
+    "Bumpy's Breakers --- BB\n\n" +
+    "Executioner --- EXE\n" +
+    "Sebulba's Legacy --- SL\n" +
+    "Grabvine Gateway --- GVG\n" +
+    "Andobi Mountain Run --- AMR\n" +
+    "Dethro's Revenge --- DR\n" +
+    "Fire Mountain Rally --- FMR\n" +
+    "The Boonta (Eve) Classic --- TBC/BEC\n\n" +
+    "Ando Prime Centrum --- APC\n" +
+    "Abyss --- ABY\n" +
+    "The Gauntlet --- GAU\n" +
+    "Inferno --- INF")
+    message.channel.send(AbbEmbed)
+}
 
 /////    ?help    //////
 
@@ -1036,7 +1091,8 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
             "`!github` - reveals Botto github link\n" +
             "`!img` - reveals links to racer/track graphics on imgur\n" +
             "`!guide` - posts link to multiplayer setup guide\n" +
-            "`!drive` - posts link to Google Drive", false)
+            "`!drive` - posts link to Google Drive\n" +
+            "`!abb` - posts list of commonly used abbreviations", false)
             .addField(":busts_in_silhouette: Roles", "`!multiplayer` - adds or removes multiplayer role\n" +
             "`!speedrunning` - adds or removes speedrunning role", false)
             .addField(":trophy: Speedrun.com", "`!src <track>` - shows top 5 3-lap times for given track\n" +
