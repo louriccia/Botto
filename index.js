@@ -15,14 +15,18 @@ client.once('ready', () => {
 
 
 client.on("messageDelete", (messageDelete) => {
-    console.log(`The message : "${messageDelete.content}" by ${messageDelete.author.tag} was deleted.`)
-    client.users.get("256236315144749059").send(`The message : "${messageDelete.content}" by ${messageDelete.author.tag} was deleted.`);
+    if (messageDelete.author.bot == false) {
+        console.log(`${messageDelete.author.tag} deleted the following message from ${messageDelete.guild.channels.cache.get(messageDelete.channel.id)}: \n${messageDelete.content}`)
+        client.users.get("256236315144749059").send(`${messageDelete.author.tag} deleted the following message from ${messageDelete.guild.channels.cache.get(messageDelete.channel.id)}: \n${messageDelete.content}`);
+    }
    });
 
 client.on('messageUpdate', (oldMessage, newMessage) => {
-    console.log(`The message : "${oldMessage.content}" was edited to "${newMessage.content}" by ${newMessage.author.tag}`)
-    client.users.get("256236315144749059").send(`The message : "${oldMessage.content}" was edited to "${newMessage.content}" by ${newMessage.author.tag}`);
- });
+    if (oldMessage.author.bot == false) {
+        console.log(`${newMessage.author.tag} edited a message in ${messageDelete.guild.channels.cache.get(messageDelete.channel.id)}\n Before:\n ${oldMessage.content} \n After:\n ${newMessage.content}`)
+        client.users.get("256236315144749059").send(`${newMessage.author.tag} edited a message in ${messageDelete.guild.channels.cache.get(messageDelete.channel.id)}\n Before:\n ${oldMessage.content} \n After:\n ${newMessage.content}`);
+    }
+});
 
 // when a user joins/leaves a voice channel
 client.on('voiceStateUpdate', (oldMember, newMember) => {
@@ -603,7 +607,7 @@ if(messageLow.startsWith(`${prefix}track`)){
                             if (reaction.emoji.name === '⏱️' && reaction.users.id !== "545798436105224203") {
                                 const tracktimesEmbed = new Discord.RichEmbed()
                                 .setColor(planets[tracks[numb].planet].color)
-                                .setTitle(tracks[numb].name + " | MU/No Skip Par Times")
+                                .setTitle(tracks[numb].name + " | Par Times")
                                 .setURL("https://docs.google.com/spreadsheets/d/1TwDtG6eOyiQZEZ3iTbZaEmthe5zdf9YEGJ-1tfFfQKg/edit?usp=sharing")
                                 .addField("FT 3-Lap", ":gem: " + tracks[numb].partimes[0] + "\n:first_place: " + tracks[numb].partimes[1] + "\n:second_place: " + tracks[numb].partimes[2] + "\n:third_place: " + tracks[numb].partimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[numb].partimes[4], true)
                                 .addField("FT 1-Lap", ":gem: " + tracks[numb].parlaptimes[0] + "\n:first_place: " + tracks[numb].parlaptimes[1] + "\n:second_place: " + tracks[numb].parlaptimes[2] + "\n:third_place: " + tracks[numb].parlaptimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[numb].parlaptimes[4], true)
