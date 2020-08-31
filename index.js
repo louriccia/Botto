@@ -455,7 +455,7 @@ if(messageLow.startsWith(`${prefix}track`)){
     if (args.includes("time") || args.includes("times")) {
         partime = true
     }
-    args = args.join().replace(/,/g, '').replace(/time/g, '').toString()
+    args = args.join().replace(/,/g, '').replace(/time/g, '').replace(/times/g, '').toString()
 
     if(messageLow == (`${prefix}track`)) {
         var numb = Math.floor(Math.random()*25)}
