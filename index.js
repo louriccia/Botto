@@ -471,7 +471,7 @@ if(messageLow.startsWith(`${prefix}tourn`)){
                 for (let y of nname) {
                     y = "" + y
                     y.replace(/\s/g, '')
-                    if (args[c].toLowerCase() == y) {
+                    if (args[c+1].toLowerCase() == y) {
                         podfilterout.push(i)
                     }
                 }
