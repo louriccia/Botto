@@ -528,7 +528,7 @@ if(messageLow.startsWith(`${prefix}tourn`)){
             tourneyfiltered = tourneyfiltered.filter(element => element.totaldeaths > 0)
         }
         if (dths == false) {
-           // tourneyfiltered = tourneyfiltered.filter(element => element.totaldeaths == 0)
+           tourneyfiltered = tourneyfiltered.filter(element => element.totaldeaths == 0)
         }
         if (podfilterin.length > 0) {
             for (i=0; i<podfilterin.length; i++) {
