@@ -467,8 +467,15 @@ if(messageLow.startsWith(`${prefix}tourn`)){
     }   
     if (numb !== null) {
         var tourneyfiltered = tourney.filter(element => element.track == tracks[numb].name)
+        var j = 0
+        var players = []
         for (i=0; i<5; i++){
-            message.channel.send(tourneyfiltered[i].player + " - " + timefix(tourneyfiltered[i].totaltime))
+            while (tourneyfiltered[j].player == player && j < tourneyfiltered.length) {
+                j++
+            }
+            message.channel.send(tourneyfiltered[j].player + " - " + timefix(tourneyfiltered[j].totaltime))
+            players.push(tourneyfiltered.player)
+            j++
         }
     }
 }
