@@ -450,8 +450,8 @@ if (messageLow.startsWith(`${prefix}random`)) {
 }
 
 if(messageLow.startsWith(`${prefix}tourn`)){
-    var upgr = ""
-    var skps = ""
+    var upgr = null
+    var skps = null
     var dths = null
     var podfilterout = []
     var podfilterin = []
