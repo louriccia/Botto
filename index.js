@@ -1337,7 +1337,7 @@ if(messageLow.startsWith(`${prefix}drive`)){
     message.channel.send("https://drive.google.com/drive/folders/1ScgPE1i1EpSYXT16a1ocxQiouMCcE9z1?usp=sharing")
 }
 if(message.content.startsWith(`${prefix}cleanup`) && message.channel.type !== "dm") {
-    message.channel.fetchMessages({limit:10}).then(messages => {
+    message.channel.fetchMessages({limit:20}).then(messages => {
         const botMessages = messages.filter(msg => msg.author.bot || msg.content.startsWith("!") || msg.content == "?help");
         message.channel.bulkDelete(botMessages);
         messagesDeleted = botMessages.array().length; // number of messages deleted
