@@ -558,7 +558,7 @@ if(messageLow.startsWith(`${prefix}tourn`)){
             for (i=0; i<5;){
                 var skip = false
                 for (k = 0; k < players.length; k++) {
-                    if (tourneyfiltered[j].player == players[k]) {
+                    if (tourneyfiltered[j].player + tourneyfiltered[j].force == players[k]) {
                         skip = true
                     }
                 }
@@ -610,7 +610,7 @@ if(messageLow.startsWith(`${prefix}tourn`)){
                         '\u200B', '\u200B', true
                     )
                     //message.channel.send(tourneyfiltered[j].player + " - " + timefix(tourneyfiltered[j].totaltime))
-                    players.push(tourneyfiltered[j].player)
+                    players.push(tourneyfiltered[j].player + tourneyfiltered[j].force)
                     i++
                 }
                 j++
