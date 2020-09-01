@@ -560,10 +560,13 @@ if(messageLow.startsWith(`${prefix}tourn`)){
                     }
                     if (tourneyfiltered[j].totaldeaths > 0) {
                         deaths = " / "
-                        for (d = 0; d< tourneyfiltered[j].totaldeaths; d++){
-                            deaths = deaths + ":skull:"
+                        if (tourneyfiltered[j].totaldeaths > 5) {
+                            deaths = " / :skull:×"+tourneyfiltered[j].totaldeaths
+                        } else
+                            for (d = 0; d< tourneyfiltered[j].totaldeaths; d++){
+                                deaths = deaths + ":skull:"
+                            }
                         }
-                        
                     }
                     for (let n = 0; n<23; n++){
                         if (tourneyfiltered[j].pod == racers[n].name) {
