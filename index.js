@@ -501,18 +501,14 @@ if(messageLow.startsWith(`${prefix}tourn`)){
             }   
         }
     }
-    args = args.join().replace(/,/g, '').replace(/par/g, '').replace(/times/g, '').replace(/time/g, '').toString()
+    //args = args.join().replace(/,/g, '').replace(/par/g, '').replace(/times/g, '').replace(/time/g, '').toString()
     for (let i =0; i<25; i++) {
-        if (args == tracks[i].name.toLowerCase().replace(/\s/g, '')) {
-            var numb = i
-        } else {
-            var nname = tracks[i].nickname
-            for (let y of nname) {
-                y = "" + y
-                y.replace(/\s/g, '')
-                if (args.toLowerCase() == y) {
-                    var numb = i
-                }
+        var nname = tracks[i].nickname
+        for (let y of nname) {
+            y = "" + y
+            y.replace(/\s/g, '')
+            if (args[0].toLowerCase() == y) {
+                var numb = i
             }
         }
     }   
