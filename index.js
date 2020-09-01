@@ -501,6 +501,8 @@ if(messageLow.startsWith(`${prefix}tourn`)){
             }   
         }
     }
+    console.log(podfilterin)
+    console.log(podfilterout)
     //args = args.join().replace(/,/g, '').replace(/par/g, '').replace(/times/g, '').replace(/time/g, '').toString()
     for (let i =0; i<25; i++) {
         var nname = tracks[i].nickname
