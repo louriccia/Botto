@@ -465,14 +465,15 @@ if(messageLow.startsWith(`${prefix}tourn`)){
             }
         }
     }   
-    const tourneyReport = new Discord.RichEmbed()
-          .setColor('#0099ff')
-          //.setThumbnail("https://www.speedrun.com/themes/Default/1st.png")
-          .setTitle(titl)
-          .setURL(src.weblink)
-          .setDescription(desc)
+
     var pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>", "4th", "5th"]
     if (numb !== null) {
+        const tourneyReport = new Discord.RichEmbed()
+        .setColor('#0099ff')
+        //.setThumbnail("https://www.speedrun.com/themes/Default/1st.png")
+        .setTitle(tracks[numb].name + " | Tournament Times")
+        .setURL("https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing")
+        //.setDescription("MU, PC")
         var tourneyfiltered = tourney.filter(element => element.track == tracks[numb].name) //filters out other tracks
         var j = 0
         var players = []
