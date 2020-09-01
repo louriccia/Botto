@@ -466,7 +466,7 @@ if(messageLow.startsWith(`${prefix}tourn`)){
         }
     }   
     if (numb !== null) {
-        var tourneyfiltered = tourney.filter(element => element.track == tracks[numb].name)
+        var tourneyfiltered = tourney.filter(element => element.track == tracks[numb].name) //filters out other tracks
         var j = 0
         var players = []
         for (i=0; i<5; i++){
@@ -480,7 +480,7 @@ if(messageLow.startsWith(`${prefix}tourn`)){
             }
             if (skip == false) {
                 message.channel.send(tourneyfiltered[j].player + " - " + timefix(tourneyfiltered[j].totaltime))
-                players.push(tourneyfiltered.player)
+                players.push(tourneyfiltered[j].player)
             }
             j++
         }
