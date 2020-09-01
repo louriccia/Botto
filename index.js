@@ -450,6 +450,57 @@ if (messageLow.startsWith(`${prefix}random`)) {
 }
 
 if(messageLow.startsWith(`${prefix}tourn`)){
+    var upgr = ""
+    var skps = ""
+    var dths = ""
+    var podfilterout = []
+    var podfilterin = []
+    for (let c = 1; c < args.length; c++) {
+        if (args[c] == "no") {
+            if (args[c+1] == "upgrades") {
+                upgr = false
+            }
+            if (args[c+1] == "skips" || args[c+1] == "skip") {
+                skps = false
+            }
+            if (args[c+1] == "death" || args[c+1] == "deaths") {
+                dths = false
+            }
+            for (let i =0; i<23; i++) {
+                var nname = racers[i].nickname
+                for (let y of nname) {
+                    y = "" + y
+                    y.replace(/\s/g, '')
+                    if (args[c].toLowerCase() == y) {
+                        podfilterout.push(i)
+                    }
+                }
+            }   
+        } else if(args[c] == "nu") {
+            upgr = false
+        } else if ((args[c] == "mu" || args[c] == "upgrades") && upgr == "") {
+            upgr = true
+        } else if ((args[c] == "skips" || args[c] == "skip") && skps == "") {
+            skps = true
+        } else if(args[c] == "ns" || args[c] == "ft" || args[c] == "full") {
+            skps = false
+        } else if(args[c] == "deathless") {
+            dths = false
+        } else if((args[c] == "death" || args[c] == "deaths") && dths == "") {
+            dths = true
+        } else {
+            for (let i =0; i<23; i++) {
+                var nname = racers[i].nickname
+                for (let y of nname) {
+                    y = "" + y
+                    y.replace(/\s/g, '')
+                    if (args[c].toLowerCase() == y && args[c-1] !== "no") {
+                        podfilterin.push(i)
+                    }
+                }
+            }   
+        }
+    }
     args = args.join().replace(/,/g, '').replace(/par/g, '').replace(/times/g, '').replace(/time/g, '').toString()
     for (let i =0; i<25; i++) {
         if (args == tracks[i].name.toLowerCase().replace(/\s/g, '')) {
@@ -470,11 +521,26 @@ if(messageLow.startsWith(`${prefix}tourn`)){
     if (numb !== null) {
         const tourneyReport = new Discord.RichEmbed()
         .setColor('#0099ff')
-        //.setThumbnail("https://www.speedrun.com/themes/Default/1st.png")
         .setTitle(tracks[numb].name + " | Tournament Times")
         .setURL("https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing")
         //.setDescription("MU, PC")
         var tourneyfiltered = tourney.filter(element => element.track == tracks[numb].name) //filters out other tracks
+        //add MU/NU + Skips filters here
+        if (dths == true) {
+            tourneyfiltered = tourneyfiltered.filter(element => element.totaldeaths > 0)
+        } else if (dths == false) {
+            tourneyfiltered = tourneyfiltered.filter(element => element.totaldeaths == 0)
+        }
+        if (podfilterin.length > 0) {
+            for (i=0; i<podfilterin.length; i++) {
+                tourneyfiltered = tourneyfiltered.filter(element => element.pod == racers[i].name)
+            }
+        }
+        if (podfilterout.length > 0) {
+            for (i=0; i<podfilterout.length; i++) {
+                tourneyfiltered = tourneyfiltered.filter(element => element.pod !== racers[i].name)
+            }
+        }
         var j = 0
         var players = []
         
@@ -514,7 +580,7 @@ if(messageLow.startsWith(`${prefix}tourn`)){
                     pos[i] + " " + tourneyfiltered[j].player, "2019, " + tourneyfiltered[j].bracket +": "+tourneyfiltered[j].round + "\nRace " + tourneyfiltered[j].race + ", vs " + tourneyfiltered[j].opponent, true
                 )
                 tourneyReport.addField(
-                    timefix(tourneyfiltered[j].totaltime)," " + character + "[ / MU" + deaths + "](" + tourneyfiltered[j].url + ")" + characterban, true
+                    timefix(tourneyfiltered[j].totaltime)," " + character + "[ / MU" + "](" + tourneyfiltered[j].url + ")" + deaths + characterban, true
                 )
                 tourneyReport.addField(
                     '\u200B', '\u200B', true
