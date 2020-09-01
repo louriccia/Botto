@@ -526,7 +526,8 @@ if(messageLow.startsWith(`${prefix}tourn`)){
         //add MU/NU + Skips filters here
         if (dths == true) {
             tourneyfiltered = tourneyfiltered.filter(element => element.totaldeaths > 0)
-        } else if (dths == false) {
+        }
+        if (dths == false) {
             tourneyfiltered = tourneyfiltered.filter(element => element.totaldeaths == 0)
         }
         if (podfilterin.length > 0) {
