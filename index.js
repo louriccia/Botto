@@ -465,6 +465,13 @@ if(messageLow.startsWith(`${prefix}tourn`)){
             }
         }
     }   
+    const tourneyReport = new Discord.RichEmbed()
+          .setColor('#0099ff')
+          //.setThumbnail("https://www.speedrun.com/themes/Default/1st.png")
+          .setTitle(titl)
+          .setURL(src.weblink)
+          .setDescription(desc)
+    var pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>", "4th", "5th"]
     if (numb !== null) {
         var tourneyfiltered = tourney.filter(element => element.track == tracks[numb].name) //filters out other tracks
         var j = 0
@@ -479,12 +486,36 @@ if(messageLow.startsWith(`${prefix}tourn`)){
                 }
             }
             if (skip == false) {
-                message.channel.send(tourneyfiltered[j].player + " - " + timefix(tourneyfiltered[j].totaltime))
+                var character = ""
+                var deaths = ""
+                if (tourneyfiltered[j].totaldeaths > 0) {
+                    deaths = " / :skull:"
+                }
+                for (let n = 0; n<23; n++){
+                    if (tourneyfiltered[j].pod == racers[n].name) {
+                        if (racers[n].hasOwnProperty("flag")) {
+                            character = racers[n].flag
+                        } else {
+                            character = racers[n].name
+                        }
+                    }
+                } 
+                tourneyReport.addField(
+                    pos[i] + " " + tourneyfiltered[j].player, "2019, Round - " + tourneyfiltered[j].round + "\nRace " + tourneyfiltered[j].race + ", vs " + tourneyfiltered[j].opponent, true
+                )
+                tourneyReport.addField(
+                    timefix(tourneyfiltered[j].totaltime)," " + character + "[ / MU" + deaths +"](" + tourneyfiltered[j].url + ")", true
+                )
+                tourneyReport.addField(
+                    '\u200B', '\u200B', true
+                )
+                //message.channel.send(tourneyfiltered[j].player + " - " + timefix(tourneyfiltered[j].totaltime))
                 players.push(tourneyfiltered[j].player)
                 i++
             }
             j++
         }
+        message.channel.send(tourneyReport)
     }
 }
 /////   !track   /////
