@@ -452,7 +452,7 @@ if (messageLow.startsWith(`${prefix}random`)) {
 if(messageLow.startsWith(`${prefix}tourn`)){
     var upgr = ""
     var skps = ""
-    var dths = ""
+    var dths = null
     var podfilterout = []
     var podfilterin = []
     for (let c = 1; c < args.length; c++) {
@@ -486,7 +486,7 @@ if(messageLow.startsWith(`${prefix}tourn`)){
             skps = false
         } else if(args[c] == "deathless") {
             dths = false
-        } else if((args[c] == "death" || args[c] == "deaths") && dths == "") {
+        } else if((args[c] == "death" || args[c] == "deaths") && dths == null) {
             dths = true
         } else {
             for (let i =0; i<23; i++) {
@@ -528,7 +528,7 @@ if(messageLow.startsWith(`${prefix}tourn`)){
             tourneyfiltered = tourneyfiltered.filter(element => element.totaldeaths > 0)
         }
         if (dths == false) {
-            tourneyfiltered = tourneyfiltered.filter(element => element.totaldeaths == 0)
+           // tourneyfiltered = tourneyfiltered.filter(element => element.totaldeaths == 0)
         }
         if (podfilterin.length > 0) {
             for (i=0; i<podfilterin.length; i++) {
