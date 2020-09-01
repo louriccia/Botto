@@ -227,11 +227,11 @@ function timefix(time) {
         if (minutes < 10) {
             minutes = "0" + minutes
         }
-        var seconds = time - hours*3600 - minutes * 60
+        var seconds = (time - hours*3600 - minutes * 60).toFixed(3)
         return hours.toString() + ":" + minutes.toString() + ":" + myformat.format(seconds)
     } else if (time >= 60) {
         var minutes = Math.floor(time/60)
-        var seconds = time - minutes * 60
+        var seconds = (time - minutes * 60).toFixed(3)
         return minutes.toString() + ":" + myformat.format(seconds)
     } else {
         return time
