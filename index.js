@@ -562,7 +562,7 @@ if(messageLow.startsWith(`${prefix}tourn`)){
                         deaths = " / "
                         if (tourneyfiltered[j].totaldeaths > 5) {
                             deaths = " / :skull:×"+tourneyfiltered[j].totaldeaths
-                        } else
+                        } else {
                             for (d = 0; d< tourneyfiltered[j].totaldeaths; d++){
                                 deaths = deaths + ":skull:"
                             }
