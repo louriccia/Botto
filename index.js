@@ -478,9 +478,9 @@ if(messageLow.startsWith(`${prefix}tourn`)){
             }   
         } else if(args[c] == "nu") {
             upgr = false
-        } else if ((args[c] == "mu" || args[c] == "upgrades") && upgr == "") {
+        } else if ((args[c] == "mu" || args[c] == "upgrades") && upgr == null) {
             upgr = true
-        } else if ((args[c] == "skips" || args[c] == "skip") && skps == "") {
+        } else if ((args[c] == "skips" || args[c] == "skip") && skps == null  && args[c-1] !== "no") {
             skps = true
         } else if(args[c] == "ns" || args[c] == "ft" || args[c] == "full") {
             skps = false
