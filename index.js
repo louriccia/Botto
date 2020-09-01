@@ -540,54 +540,58 @@ if(messageLow.startsWith(`${prefix}tourn`)){
         var j = 0
         var players = []
         
-        for (i=0; i<5;){
-            var skip = false
-            for (k = 0; k < players.length; k++) {
-                if (j < tourneyfiltered.length) {
-                    if (tourneyfiltered[j].player == players[k]) {
-                        skip = true
-                    }
-                }
-            }
-            if (skip == false) {
-                var character = ""
-                var deaths = ""
-                var characterban = ""
-                if (tourneyfiltered[j].hasOwnProperty("podtempban")) {
-                    characterban = "\n~~" + tourneyfiltered[j].podtempban + "~~"
-                }
-                if (tourneyfiltered[j].totaldeaths > 0) {
-                    deaths = " / "
-                    for (d = 0; d< tourneyfiltered[j].totaldeaths; d++){
-                        deaths = deaths + ":skull:"
-                    }
-                    
-                }
-                for (let n = 0; n<23; n++){
-                    if (tourneyfiltered[j].pod == racers[n].name) {
-                        if (racers[n].hasOwnProperty("flag")) {
-                            character = racers[n].flag
-                        } else {
-                            character = racers[n].name
+        if (tourneyfiltered.length > 0) {
+            for (i=0; i<5;){
+                var skip = false
+                for (k = 0; k < players.length; k++) {
+                    if (j < tourneyfiltered.length) {
+                        if (tourneyfiltered[j].player == players[k]) {
+                            skip = true
                         }
                     }
-                } 
-                tourneyReport.addField(
-                    pos[i] + " " + tourneyfiltered[j].player, "2019, " + tourneyfiltered[j].bracket +": "+tourneyfiltered[j].round + "\nRace " + tourneyfiltered[j].race + ", vs " + tourneyfiltered[j].opponent, true
-                )
-                tourneyReport.addField(
-                    timefix(tourneyfiltered[j].totaltime)," " + character + "[ / MU" + "](" + tourneyfiltered[j].url + ")" + deaths + characterban, true
-                )
-                tourneyReport.addField(
-                    '\u200B', '\u200B', true
-                )
-                //message.channel.send(tourneyfiltered[j].player + " - " + timefix(tourneyfiltered[j].totaltime))
-                players.push(tourneyfiltered[j].player)
-                i++
+                }
+                if (skip == false) {
+                    var character = ""
+                    var deaths = ""
+                    var characterban = ""
+                    if (tourneyfiltered[j].hasOwnProperty("podtempban")) {
+                        characterban = "\n~~" + tourneyfiltered[j].podtempban + "~~"
+                    }
+                    if (tourneyfiltered[j].totaldeaths > 0) {
+                        deaths = " / "
+                        for (d = 0; d< tourneyfiltered[j].totaldeaths; d++){
+                            deaths = deaths + ":skull:"
+                        }
+                        
+                    }
+                    for (let n = 0; n<23; n++){
+                        if (tourneyfiltered[j].pod == racers[n].name) {
+                            if (racers[n].hasOwnProperty("flag")) {
+                                character = racers[n].flag
+                            } else {
+                                character = racers[n].name
+                            }
+                        }
+                    } 
+                    tourneyReport.addField(
+                        pos[i] + " " + tourneyfiltered[j].player, "2019, " + tourneyfiltered[j].bracket +": "+tourneyfiltered[j].round + "\nRace " + tourneyfiltered[j].race + ", vs " + tourneyfiltered[j].opponent, true
+                    )
+                    tourneyReport.addField(
+                        timefix(tourneyfiltered[j].totaltime)," " + character + "[ / MU" + "](" + tourneyfiltered[j].url + ")" + deaths + characterban, true
+                    )
+                    tourneyReport.addField(
+                        '\u200B', '\u200B', true
+                    )
+                    //message.channel.send(tourneyfiltered[j].player + " - " + timefix(tourneyfiltered[j].totaltime))
+                    players.push(tourneyfiltered[j].player)
+                    i++
+                }
+                j++
             }
-            j++
+            message.channel.send(tourneyReport)
+        } else {
+            message.channel.send("Sorry, I didn't find anything")
         }
-        message.channel.send(tourneyReport)
     }
 }
 /////   !track   /////
