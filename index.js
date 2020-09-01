@@ -542,6 +542,9 @@ if(messageLow.startsWith(`${prefix}tourn`)){
         console.log(tourneyfiltered.length)
         if (tourneyfiltered.length > 0) {
             for (i=0; i<5;){
+                if (j == tourneyfiltered.length) {
+                    i = 5
+                }
                 var skip = false
                 for (k = 0; k < players.length; k++) {
                     if (j < tourneyfiltered.length) {
