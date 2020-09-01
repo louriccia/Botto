@@ -570,9 +570,9 @@ if(messageLow.startsWith(`${prefix}tourn`)){
                     var forc = "MU "
                     if (tourneyfiltered[j].hasOwnProperty("force")) {
                         if (tourneyfiltered[j].force == "Skips") {
-                            force = "Skips "
+                            forc = "Skips "
                         } else if (tourneyfiltered[j].force == "NU") {
-                            force = "NU "
+                            forc = "NU "
                         }
                     }
                     if (tourneyfiltered[j].hasOwnProperty("url")) {
