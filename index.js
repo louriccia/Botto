@@ -470,11 +470,18 @@ if(messageLow.startsWith(`${prefix}tourn`)){
         var j = 0
         var players = []
         for (i=0; i<5; i++){
-            while (tourneyfiltered[j].player == player && j < tourneyfiltered.length) {
-                j++
+            var skip = false
+            for (k = 0; k < players.length; k++) {
+                if (j < tourneyfiltered.length) {
+                    if (tourneyfiltered[j].player == players[k]) {
+                        skip = true
+                    }
+                }
             }
-            message.channel.send(tourneyfiltered[j].player + " - " + timefix(tourneyfiltered[j].totaltime))
-            players.push(tourneyfiltered.player)
+            if (skip == false) {
+                message.channel.send(tourneyfiltered[j].player + " - " + timefix(tourneyfiltered[j].totaltime))
+                players.push(tourneyfiltered.player)
+            }
             j++
         }
     }
