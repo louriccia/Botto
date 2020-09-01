@@ -523,7 +523,18 @@ if(messageLow.startsWith(`${prefix}tourn`)){
         .setURL("https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing")
         //.setDescription("MU, PC")
         var tourneyfiltered = tourney.filter(element => element.track == tracks[numb].name) //filters out other tracks
-        //add MU/NU + Skips filters here
+        if (skps == true) {
+            tourneyfiltered = tourneyfiltered.filter(element => element.force == "Skips")
+        }
+        if (skps == false) {
+            tourneyfiltered = tourneyfiltered.filter(element => element.force !== "Skips")
+        }
+        if (upgr == true) {
+            tourneyfiltered = tourneyfiltered.filter(element => element.force !== "NU")
+        }
+        if (upgr == false) {
+            tourneyfiltered = tourneyfiltered.filter(element => element.force == "NU")
+        }
         if (dths == true) {
             tourneyfiltered = tourneyfiltered.filter(element => element.totaldeaths > 0)
         }
@@ -555,13 +566,25 @@ if(messageLow.startsWith(`${prefix}tourn`)){
                     var character = ""
                     var deaths = ""
                     var characterban = ""
+                    var link = ""
+                    var forc = "MU "
+                    if (tourneyfiltered[j].hasOwnProperty("force")) {
+                        if (tourneyfiltered[j].force == "Skips") {
+                            force = "Skips "
+                        } else if (tourneyfiltered[j].force == "NU") {
+                            force = "NU "
+                        }
+                    }
+                    if (tourneyfiltered[j].hasOwnProperty("url")) {
+                        link = tourneyfiltered[j].url
+                    }
                     if (tourneyfiltered[j].hasOwnProperty("podtempban")) {
                         characterban = "\n~~" + tourneyfiltered[j].podtempban + "~~"
                     }
                     if (tourneyfiltered[j].totaldeaths > 0) {
-                        deaths = " / "
+                        deaths = ""
                         if (tourneyfiltered[j].totaldeaths > 5) {
-                            deaths = " / :skull:×"+tourneyfiltered[j].totaldeaths
+                            deaths = ":skull:×"+tourneyfiltered[j].totaldeaths
                         } else {
                             for (d = 0; d< tourneyfiltered[j].totaldeaths; d++){
                                 deaths = deaths + ":skull:"
@@ -581,7 +604,7 @@ if(messageLow.startsWith(`${prefix}tourn`)){
                         pos[i] + " " + tourneyfiltered[j].player, "2019, " + tourneyfiltered[j].bracket +": "+tourneyfiltered[j].round + "\nRace " + tourneyfiltered[j].race + ", vs " + tourneyfiltered[j].opponent, true
                     )
                     tourneyReport.addField(
-                        timefix(tourneyfiltered[j].totaltime)," " + character + "[ / MU" + "](" + tourneyfiltered[j].url + ")" + deaths + characterban, true
+                        timefix(tourneyfiltered[j].totaltime)," " + character + "[ " + forc + "](" + link + ")" + deaths + characterban, true
                     )
                     tourneyReport.addField(
                         '\u200B', '\u200B', true
