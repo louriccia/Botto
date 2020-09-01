@@ -449,13 +449,36 @@ if (messageLow.startsWith(`${prefix}random`)) {
     }
 }
 
+if(messageLow.startsWith(`${prefix}tourn`)){
+    args = args.join().replace(/,/g, '').replace(/par/g, '').replace(/times/g, '').replace(/time/g, '').toString()
+    for (let i =0; i<25; i++) {
+        if (args == tracks[i].name.toLowerCase().replace(/\s/g, '')) {
+            var numb = i
+        } else {
+            var nname = tracks[i].nickname
+            for (let y of nname) {
+                y = "" + y
+                y.replace(/\s/g, '')
+                if (args.toLowerCase() == y) {
+                    var numb = i
+                }
+            }
+        }
+    }   
+    if (numb !== null) {
+        const tourneyfiltered = tourney.filter((value, key) => key == tracks[numb].name)
+        for (i=0; i<5; i++){
+            messageLow.channel.send(tourney[i].player + " - " + timefix(tourney[i].totaltime))
+        }
+    }
+}
 /////   !track   /////
 if(messageLow.startsWith(`${prefix}track`)){
     var partime = false
-    if (args.includes("time") || args.includes("times")) {
+    if (args.includes("time") || args.includes("times") || args.includes("par")) {
         partime = true
     }
-    args = args.join().replace(/,/g, '').replace(/times/g, '').replace(/time/g, '').toString()
+    args = args.join().replace(/,/g, '').replace(/par/g, '').replace(/times/g, '').replace(/time/g, '').toString()
 
     if(messageLow == (`${prefix}track`)) {
         var numb = Math.floor(Math.random()*25)}
@@ -1126,6 +1149,7 @@ if(message.content.startsWith(`${prefix}abb`)) {
             "`!random <n>` - generates random number between 1 and *n*", false)
             .addField(":mag_right: Lookup", "`!racer <name/initials>` - look up specific racer\n" +
             "`!track <name/acronym>` - look up specific track\n"+
+            "`!track <name/acronym> times` - look up par times for given track\n"+
             "`!tier` - reveals tier list Botto uses to randomize\n" +
             "`!stat` - reveals racer stat guide\n", false)
             .addField(":microphone2: Voice", "`!join` - adds Botto to the voice channel\n" +
