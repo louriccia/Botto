@@ -477,6 +477,7 @@ if(messageLow.startsWith(`${prefix}tourn`)){
         var tourneyfiltered = tourney.filter(element => element.track == tracks[numb].name) //filters out other tracks
         var j = 0
         var players = []
+        
         for (i=0; i<5;){
             var skip = false
             for (k = 0; k < players.length; k++) {
@@ -489,6 +490,10 @@ if(messageLow.startsWith(`${prefix}tourn`)){
             if (skip == false) {
                 var character = ""
                 var deaths = ""
+                var characterban = ""
+                if (tourneyfiltered[j].hasOwnProperty("podtempban")) {
+                    characterban = "\n~~" + tourneyfiltered[j].podtempban + "~~"
+                }
                 if (tourneyfiltered[j].totaldeaths > 0) {
                     deaths = " / "
                     for (d = 0; d< tourneyfiltered[j].totaldeaths; d++){
@@ -509,7 +514,7 @@ if(messageLow.startsWith(`${prefix}tourn`)){
                     pos[i] + " " + tourneyfiltered[j].player, "2019, " + tourneyfiltered[j].bracket +": "+tourneyfiltered[j].round + "\nRace " + tourneyfiltered[j].race + ", vs " + tourneyfiltered[j].opponent, true
                 )
                 tourneyReport.addField(
-                    timefix(tourneyfiltered[j].totaltime)," " + character + "[ / MU" + deaths +"\n~~" + tourneyfiltered[j].podtempban + "~~](" + tourneyfiltered[j].url + ")", true
+                    timefix(tourneyfiltered[j].totaltime)," " + character + "[ / MU" + deaths + characterban + "](" + tourneyfiltered[j].url + ")", true
                 )
                 tourneyReport.addField(
                     '\u200B', '\u200B', true
