@@ -604,7 +604,7 @@ if(messageLow.startsWith(`${prefix}tourn`)){
                         pos[i] + " " + tourneyfiltered[j].player, tourneyfiltered[j].year + ", " + tourneyfiltered[j].bracket +": "+tourneyfiltered[j].round + "\nRace " + tourneyfiltered[j].race + ", vs " + tourneyfiltered[j].opponent, true
                     )
                     tourneyReport.addField(
-                        timefix(tourneyfiltered[j].totaltime)," " + character + "[ " + forc + "](" + link + ")" + deaths + characterban, true
+                        timefix(tourneyfiltered[j].totaltime.toFixed(3))," " + character + "[ " + forc + "](" + link + ")" + deaths + characterban, true
                     )
                     tourneyReport.addField(
                         '\u200B', '\u200B', true
