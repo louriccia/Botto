@@ -469,7 +469,7 @@ if(messageLow.startsWith(`${prefix}tourn`)){
         var tourneyfiltered = tourney.filter(element => element.track == tracks[numb].name) //filters out other tracks
         var j = 0
         var players = []
-        for (i=0; i<5; i++){
+        for (i=0; i<5;){
             var skip = false
             for (k = 0; k < players.length; k++) {
                 if (j < tourneyfiltered.length) {
@@ -481,6 +481,7 @@ if(messageLow.startsWith(`${prefix}tourn`)){
             if (skip == false) {
                 message.channel.send(tourneyfiltered[j].player + " - " + timefix(tourneyfiltered[j].totaltime))
                 players.push(tourneyfiltered[j].player)
+                i++
             }
             j++
         }
