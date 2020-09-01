@@ -468,7 +468,7 @@ if(messageLow.startsWith(`${prefix}tourn`)){
     if (numb !== null) {
         const tourneyfiltered = tourney.filter((value, key) => key == tracks[numb].name)
         for (i=0; i<5; i++){
-            messageLow.channel.send(tourney[i].player + " - " + timefix(tourney[i].totaltime))
+            message.channel.send(tourney[i].player + " - " + timefix(tourney[i].totaltime))
         }
     }
 }
