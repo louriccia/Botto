@@ -531,12 +531,12 @@ if(messageLow.startsWith(`${prefix}tourn`)){
         }
         if (podfilterin.length > 0) {
             for (i=0; i<podfilterin.length; i++) {
-                tourneyfiltered = tourneyfiltered.filter(element => element.pod == racers[i].name)
+                tourneyfiltered = tourneyfiltered.filter(element => element.pod == racers[podfilterin[i]].name)
             }
         }
         if (podfilterout.length > 0) {
             for (i=0; i<podfilterout.length; i++) {
-                tourneyfiltered = tourneyfiltered.filter(element => element.pod !== racers[i].name)
+                tourneyfiltered = tourneyfiltered.filter(element => element.pod !== racers[podfilterout[i]].name)
             }
         }
         var j = 0
