@@ -490,7 +490,11 @@ if(messageLow.startsWith(`${prefix}tourn`)){
                 var character = ""
                 var deaths = ""
                 if (tourneyfiltered[j].totaldeaths > 0) {
-                    deaths = " / :skull:"
+                    deaths = " / "
+                    for (d = 0; d< tourneyfiltered[j].totaldeaths; d++){
+                        deaths = deaths + ":skull:"
+                    }
+                    
                 }
                 for (let n = 0; n<23; n++){
                     if (tourneyfiltered[j].pod == racers[n].name) {
@@ -505,7 +509,7 @@ if(messageLow.startsWith(`${prefix}tourn`)){
                     pos[i] + " " + tourneyfiltered[j].player, "2019, " + tourneyfiltered[j].bracket +": "+tourneyfiltered[j].round + "\nRace " + tourneyfiltered[j].race + ", vs " + tourneyfiltered[j].opponent, true
                 )
                 tourneyReport.addField(
-                    timefix(tourneyfiltered[j].totaltime)," " + character + "[ / MU" + deaths +"](" + tourneyfiltered[j].url + ")", true
+                    timefix(tourneyfiltered[j].totaltime)," " + character + "[ / MU" + deaths +"\n~~" + tourneyfiltered[j].podtempban + "~~](" + tourneyfiltered[j].url + ")", true
                 )
                 tourneyReport.addField(
                     '\u200B', '\u200B', true
