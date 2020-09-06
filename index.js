@@ -562,7 +562,7 @@ if(messageLow.startsWith(`${prefix}tourn`)){
                         skip = true
                     }
                 }
-                if (skip == false) {
+                if (skip == false && tourneyfiltered[j].hasOwnProperty("totaltime")) {
                     var character = ""
                     var deaths = ""
                     var characterban = ""
