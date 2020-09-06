@@ -454,6 +454,7 @@ if(messageLow.startsWith(`${prefix}tourn`)){
     var upgr = null
     var skps = null
     var dths = null
+    var year = null
     var podfilterout = []
     var podfilterin = []
     for (let c = 1; c < args.length; c++) {
@@ -489,6 +490,8 @@ if(messageLow.startsWith(`${prefix}tourn`)){
             dths = false
         } else if((args[c] == "death" || args[c] == "deaths") && dths == null) {
             dths = true
+        } else if(args[c].startsWith("20") && args[c].startsWith("20").length == 4) {
+            year = args[c]
         } else {
             for (let i =0; i<23; i++) {
                 var nname = racers[i].nickname
@@ -542,6 +545,9 @@ if(messageLow.startsWith(`${prefix}tourn`)){
         if (dths == false) {
            tourneyfiltered = tourneyfiltered.filter(element => element.totaldeaths == 0)
         }
+        if (year !== null) {
+            tourneyfiltered = tourneyfiltered.filter(element => element.year == year)
+         }
         if (podfilterin.length > 0) {
             for (i=0; i<podfilterin.length; i++) {
                 tourneyfiltered = tourneyfiltered.filter(element => element.pod == racers[podfilterin[i]].name)
