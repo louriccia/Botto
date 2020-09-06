@@ -490,7 +490,7 @@ if(messageLow.startsWith(`${prefix}tourn`)){
             dths = false
         } else if((args[c] == "death" || args[c] == "deaths") && dths == null) {
             dths = true
-        } else if(args[c].startsWith("20") && args[c].startsWith("20").length == 4) {
+        } else if(args[c].startsWith("20") && args[c].length == 4) {
             year = args[c]
         } else {
             for (let i =0; i<23; i++) {
@@ -547,7 +547,7 @@ if(messageLow.startsWith(`${prefix}tourn`)){
         }
         if (year !== null) {
             tourneyfiltered = tourneyfiltered.filter(element => element.year == year)
-         }
+        }
         if (podfilterin.length > 0) {
             for (i=0; i<podfilterin.length; i++) {
                 tourneyfiltered = tourneyfiltered.filter(element => element.pod == racers[podfilterin[i]].name)
