@@ -12,6 +12,7 @@ client.once('ready', () => {
     console.log('Ready!')
     //set bot activity
     client.user.setActivity("Star Wars: Episode I - Racer")
+    client.users.get("256236315144749059").send("Ready!")
 })
 
 
