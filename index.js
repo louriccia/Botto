@@ -1394,20 +1394,19 @@ if(message.content.startsWith(`${prefix}test`)){
 
 
 if(message.content.startsWith(`${prefix}tier`)){  
+    const helpEmbed = new Discord.RichEmbed()
     if (args[0] == "nu") {
-        const helpEmbed = new Discord.RichEmbed()
-                .setTitle("NU Racer Tier List")
-                .addField(":gem: Top", "Boles Roor\nBen Quadinaros\nSebulba")
-                .addField(":first_place: High", "Mars Guo\nAldar Beedo\n'Bullseye' Navior\nRatts Tyerell\nToy Dampner\nMawhonic\nClegg Holdfast")
-                .addField(":second_place: Mid", "Ebe Endocott\nAnakin Skywalker\nSlide Paramita\nFud Sang\nDud Bolt\nBozzie Barranta\nNeva Kee")
-                .addField(":third_place: Low", "Elan Mak\nGasgano\nArk 'Bumpy' Roose\nOdy Mandrell\nTeemto Pagalies\nWan Sandage")
+        helpEmbed.setTitle("NU Racer Tier List")
+        helpEmbed.addField(":gem: Top", "Boles Roor\nBen Quadinaros\nSebulba")
+        helpEmbed.addField(":first_place: High", "Mars Guo\nAldar Beedo\n'Bullseye' Navior\nRatts Tyerell\nToy Dampner\nMawhonic\nClegg Holdfast")
+        helpEmbed.addField(":second_place: Mid", "Ebe Endocott\nAnakin Skywalker\nSlide Paramita\nFud Sang\nDud Bolt\nBozzie Barranta\nNeva Kee")
+        helpEmbed.addField(":third_place: Low", "Elan Mak\nGasgano\nArk 'Bumpy' Roose\nOdy Mandrell\nTeemto Pagalies\nWan Sandage")
     } else {
-        const helpEmbed = new Discord.RichEmbed()
-                .setTitle("MU Racer Tier List")
-                .addField(":gem: Top", "Ben Quadinaros\n'Bullseye' Navior\nMars Guo\nMawhonic\nAldar Beedo\nBoles Roor\nElan Mak")
-                .addField(":first_place: High", "Neva Kee\nRatts Tyerell\nClegg Holdfast\nToy Dampner")
-                .addField(":second_place: Mid", "Slide Paramita\nEbe Endocott\nGasgano\nDud Bolt\nOdy Mandrell\nBozzie Baranta\nAnakin Skywalker\nArk 'Bumpy' Roose")
-                .addField(":third_place: Low", "Fud Sang\nTeemto Pagalies\n Wan Sandage\nSebulba")
+        helpEmbed.setTitle("MU Racer Tier List")
+        helpEmbed.addField(":gem: Top", "Ben Quadinaros\n'Bullseye' Navior\nMars Guo\nMawhonic\nAldar Beedo\nBoles Roor\nElan Mak")
+        helpEmbed.addField(":first_place: High", "Neva Kee\nRatts Tyerell\nClegg Holdfast\nToy Dampner")
+        helpEmbed.addField(":second_place: Mid", "Slide Paramita\nEbe Endocott\nGasgano\nDud Bolt\nOdy Mandrell\nBozzie Baranta\nAnakin Skywalker\nArk 'Bumpy' Roose")
+        helpEmbed.addField(":third_place: Low", "Fud Sang\nTeemto Pagalies\n Wan Sandage\nSebulba")
     }
     message.channel.send(helpEmbed)
 }
