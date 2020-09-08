@@ -1296,7 +1296,7 @@ if(message.content.startsWith(`${prefix}abb`)) {
             "`!src <category>` - shows top 5 times for given category (any,100,amc,spc,ng+)\n" +
             "`!src <track/category> <mu/nu> <skips/ft> <pc/n64/dc/switch/ps4> <flap>` - filters leaderboard", false)
             .addField(":checkered_flag: Tournament", "`!tourney <track>` - shows top 5 tournament times for given track\n" +
-            "`!src <track> <skips/ft> <mu/nu> <deaths/deathless> <pod/no pod> <year>` - filters leaderboard", false)
+            "`!tourney <track> <skips/ft> <mu/nu> <deaths/deathless> <pod/no pod> <year>` - filters leaderboard", false)
             .addField(":game_die: Randomizers", "`!racer(s)` - random racer (adding “s” rolls for all players in voice channel)\n" +
             "`!racer(s) canon` - random canon racer\n" +
             "`!racer(s) noncanon` - random noncanon racer\n" +
