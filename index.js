@@ -1313,8 +1313,8 @@ if(message.content.startsWith(`${prefix}abb`)) {
             "`!track <name/acronym> times` - look up par times for given track\n"+
             "`!tier (nu)` - posts MU/NU pod tier list\n" +
             "`!stat` - reveals racer stat guide\n", false)
-            .addField(":microphone2: Voice", "`!join` - adds Botto to the voice channel\n" +
-            "`!leave` - kicks Botto from the voice channel", false)
+            //.addField(":microphone2: Voice", "`!join` - adds Botto to the voice channel\n" +
+            //"`!leave` - kicks Botto from the voice channel", false)
         message.channel.send(helpEmbed)
     }
 
