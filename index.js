@@ -1399,7 +1399,7 @@ if(message.content.startsWith(`${prefix}tier`)){
         helpEmbed.setTitle("NU Racer Tier List")
         helpEmbed.addField(":gem: Top", "Boles Roor\nBen Quadinaros\nSebulba")
         helpEmbed.addField(":first_place: High", "Mars Guo\nAldar Beedo\n'Bullseye' Navior\nRatts Tyerell\nToy Dampner\nMawhonic\nClegg Holdfast")
-        helpEmbed.addField(":second_place: Mid", "Ebe Endocott\nAnakin Skywalker\nSlide Paramita\nFud Sang\nDud Bolt\nBozzie Barranta\nNeva Kee")
+        helpEmbed.addField(":second_place: Mid", "Ebe Endocott\nAnakin Skywalker\nSlide Paramita\nFud Sang\nDud Bolt\nBozzie Baranta\nNeva Kee")
         helpEmbed.addField(":third_place: Low", "Elan Mak\nGasgano\nArk 'Bumpy' Roose\nOdy Mandrell\nTeemto Pagalies\nWan Sandage")
     } else {
         helpEmbed.setTitle("MU Racer Tier List")
