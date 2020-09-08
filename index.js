@@ -1284,7 +1284,7 @@ if(message.content.startsWith(`${prefix}abb`)) {
             //.setThumbnail("https://i.imgur.com/jzPQv54.png")
             .setTitle("Botto Command List")
             .addField(":large_blue_diamond: General", "`?help` - list of commands\n" +
-            "`!cleanup` - deletes command and bot messages within the past 10 messages\n" +
+            "`!cleanup` - deletes command and bot messages within the past 30 messages\n" +
             "`!github` - reveals Botto github link\n" +
             "`!img` - reveals links to racer/track graphics on imgur\n" +
             "`!guide` - posts link to multiplayer setup guide\n" +
