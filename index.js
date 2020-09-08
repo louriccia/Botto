@@ -1295,6 +1295,8 @@ if(message.content.startsWith(`${prefix}abb`)) {
             .addField(":trophy: Speedrun.com", "`!src <track>` - shows top 5 3-lap times for given track\n" +
             "`!src <category>` - shows top 5 times for given category (any,100,amc,spc,ng+)\n" +
             "`!src <track/category> <mu/nu> <skips/ft> <pc/n64/dc/switch/ps4> <flap>` - filters leaderboard", false)
+            .addField(":checkered_flag: Tournament", "`!tourney <track>` - shows top 5 tournament times for given track\n" +
+            "`!src <track> <skips/ft> <mu/nu> <deaths/deathless> <pod/no pod> <year>` - filters leaderboard", false)
             .addField(":game_die: Randomizers", "`!racer(s)` - random racer (adding “s” rolls for all players in voice channel)\n" +
             "`!racer(s) canon` - random canon racer\n" +
             "`!racer(s) noncanon` - random noncanon racer\n" +
@@ -1309,7 +1311,7 @@ if(message.content.startsWith(`${prefix}abb`)) {
             .addField(":mag_right: Lookup", "`!racer <name/initials>` - look up specific racer\n" +
             "`!track <name/acronym>` - look up specific track\n"+
             "`!track <name/acronym> times` - look up par times for given track\n"+
-            "`!tier` - reveals tier list Botto uses to randomize\n" +
+            "`!tier (nu)` - posts MU/NU pod tier list\n" +
             "`!stat` - reveals racer stat guide\n", false)
             .addField(":microphone2: Voice", "`!join` - adds Botto to the voice channel\n" +
             "`!leave` - kicks Botto from the voice channel", false)
