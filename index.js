@@ -1292,10 +1292,10 @@ if(message.content.startsWith(`${prefix}abb`)) {
             "`!abb` - posts list of commonly used abbreviations", false)
             .addField(":busts_in_silhouette: Roles", "`!multiplayer` - adds or removes multiplayer role\n" +
             "`!speedrunning` - adds or removes speedrunning role", false)
-            .addField(":trophy: Speedrun.com", "`!src <track>` - shows top 5 3-lap times for given track\n" +
+            .addField(":trophy: Speedrun.com Leaderboards", "`!src <track>` - shows top 5 3-lap times for given track\n" +
             "`!src <category>` - shows top 5 times for given category (any,100,amc,spc,ng+)\n" +
             "`!src <track/category> <mu/nu> <skips/ft> <pc/n64/dc/switch/ps4> <flap>` - filters leaderboard", false)
-            .addField(":checkered_flag: Tournament", "`!tourney <track>` - shows top 5 tournament times for given track\n" +
+            .addField(":checkered_flag: Tournament Leaderboards", "`!tourney <track>` - shows top 5 tournament times for given track\n" +
             "`!tourney <track> <skips/ft> <mu/nu> <deaths/deathless> <pod/no pod> <year>` - filters leaderboard", false)
             .addField(":game_die: Randomizers", "`!racer(s)` - random racer (adding “s” rolls for all players in voice channel)\n" +
             "`!racer(s) canon` - random canon racer\n" +
