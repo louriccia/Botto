@@ -1221,9 +1221,9 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
             nu = " with **NO UPGRADES**"
         }
         if (Math.random()<0.05){
-            mirror = ", **MIRRORED** "
+            mirror = ", **MIRRORED!** "
         }
-        message.channel.send("Race as **" + racers[random1].name + "** (" + (random1 + 1) + ") on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + nu + mirror + "\n" + movieQuotes[random3] + " ")
+        message.channel.send("Race as **" + racers[random1].name + "** (" + (random1 + 1) + ")"+ nu + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + mirror + "\n" + movieQuotes[random3] + " ")
     }
 
 /////    !abb //////
