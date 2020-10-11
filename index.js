@@ -1215,7 +1215,15 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         var random1 = Math.floor(Math.random()*23)
         var random2 = Math.floor(Math.random()*25)
         var random3 = Math.floor(Math.random()*movieQuotes.length)
-        message.channel.send("Race as **" + racers[random1].name + "** (" + (random1 + 1) + ") on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + "\n" + movieQuotes[random3] + " ")
+        var mirror = ""
+        var nu = ""
+        if (Math.random()<0.15){
+            nu = " with **NO UPGRADES**"
+        }
+        if (Math.random()<0.05){
+            mirror = ", **MIRRORED** "
+        }
+        message.channel.send("Race as **" + racers[random1].name + "** (" + (random1 + 1) + ") on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + nu + mirror + "\n" + movieQuotes[random3] + " ")
     }
 
 /////    !abb //////
