@@ -1217,10 +1217,11 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         var random3 = Math.floor(Math.random()*movieQuotes.length)
         var mirror = ""
         var nu = ""
-        var skips = ", FULL TRACK"
+        var skips = ""
         var time = tracks[random2].partimes[4]
         if (Math.random()<0.15){
             nu = " with **NO UPGRADES**"
+            time = ""
         }
         if (Math.random()<0.05){
             mirror = ", **MIRRORED!** "
@@ -1228,10 +1229,15 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         if (tracks[random2].hasOwnProperty("parskiptimes")) {
             if (Math.random()<0.25) {
                 skips = " with **SKIPS**"
-                time = tracks[random2].parskiptimes[4]
+                if (nu == "") {
+                    time = tracks[random2].parskiptimes[4]
+                }
             }
         }
-        message.channel.send("Race as **" + racers[random1].name + "** (" + (random1 + 1) + ")"+ nu + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + skips + mirror + "\n" + "Time to beat: " + time + "\n" + movieQuotes[random3] + " ")
+        if (time !== "") {
+            time = "Time to beat: " + time
+        }
+        message.channel.send("Race as **" + racers[random1].name + "** (" + (random1 + 1) + ")"+ nu + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + skips + mirror + "\n" + time + "\n" + movieQuotes[random3] + " ")
     }
 
 /////    !abb //////
