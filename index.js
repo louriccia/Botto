@@ -1239,9 +1239,9 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
             }
         }
         if (time !== "") {
-            time = "Time to beat: " + time
+            time = "\nTime to beat: " + time
         }
-        message.channel.send("Race as **" + flag + racers[random1].name + "** (" + (random1 + 1) + ")"+ nu + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + skips + mirror + "\n" + time + "\n" + movieQuotes[random3] + " ")
+        message.channel.send("Race as **" + flag + racers[random1].name + "** (" + (random1 + 1) + ")"+ nu + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + skips + mirror + time + "\n" + movieQuotes[random3] + " ")
     }
 
 /////    !abb //////
