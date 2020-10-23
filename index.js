@@ -1243,7 +1243,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         var random3 = Math.floor(Math.random()*movieQuotes.length)
         var laps = 3
         var lap = [1,2,4,5]
-        var laptext = " for 3 laps"
+        var laptext = ""
         var mirror = false
         var mirrortext = ""
         var nu = false
@@ -1266,7 +1266,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         }
         if (Math.random()<0.05){
             laps = lap[Math.floor(Math.random()*4)]
-            laptext = ", for " + laps + " lap(s)"
+            laptext = " for **" + laps + " lap(s)**"
         }
         if (tracks[random2].hasOwnProperty("parskiptimes")) {
             if (Math.random()<0.25) {
@@ -1291,6 +1291,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                 var data = {
                     name: message.author.id,
                     time: message.content,
+                    date: message.createdAt,
                     racer: random1,
                     track: random2,
                     laps: laps,
