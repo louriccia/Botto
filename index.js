@@ -1277,7 +1277,10 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                 //client.users.get("256236315144749059").send(message.content)
                 var data = {
                     name: message.author,
-                    time: message.content
+                    time: message.content,
+                    racer: random1,
+                    track: random2,
+                    
                 }
                 ref.push(data);
             }
