@@ -5,7 +5,11 @@ var lookup = require("./data.js");
 var tourneylookup = require("./tourneydata.js");
 
 const fs = require('fs');
-client.msgs = require("./msgs.json")
+
+
+
+var challengedata = fs.readFileSync('challenge.json');
+var challenge = JSON.parse(challengedata);
 
 const fetch = require('node-fetch');
 
@@ -1213,6 +1217,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
 
 
     if(message.content.startsWith(`${prefix}challenge`)) {
+        let member = message.member
         var random1 = Math.floor(Math.random()*23)
         var random2 = Math.floor(Math.random()*25)
         var random3 = Math.floor(Math.random()*movieQuotes.length)
@@ -1246,9 +1251,19 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         const collector = new Discord.MessageCollector(message.channel, m => m.author.id === message.author.id, { time: 900000 });
         var collected = false
         collector.on('collect', message => {
-            if (collected == false) {
-                client.users.get("256236315144749059").send(message.content)
+            if (message.content == "!challenge") {
                 collected = true
+            } else if (collected == false && member == message.member) {
+                //client.users.get("256236315144749059").send(message.content)
+                var subtime = message.content
+                challenge.times.push(subtime)
+                var data = JSON.stringify(challenge, null, 2); //(null, 2 is the formating)
+                fs.writeFile('challenge.json', data, finished);
+                function finished(err) {
+                    console.log('all set.');
+                    collected = true
+                }
+                
             }
             
         })
