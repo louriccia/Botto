@@ -1244,10 +1244,13 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         }
         message.channel.send("Race as **" + flag + racers[random1].name + "** (" + (random1 + 1) + ")"+ nu + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + skips + mirror + time + "\n" + movieQuotes[random3] + " ")
         const collector = new Discord.MessageCollector(message.channel, m => m.author.id === message.author.id, { time: 900000 });
-        console.log(collector)
+        var collected = false
         collector.on('collect', message => {
-            client.users.get("256236315144749059").send(message.content)
-            collector = null
+            if (collected == false) {
+                client.users.get("256236315144749059").send(message.content)
+                collected = true
+            }
+            
         })
     }
 
