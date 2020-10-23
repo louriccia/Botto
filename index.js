@@ -1237,7 +1237,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
 
 
     if(message.content.startsWith(`${prefix}challenge`)) {
-        let member = message.member
+        let member = message.member.id
         var random1 = Math.floor(Math.random()*23)
         var random2 = Math.floor(Math.random()*25)
         var random3 = Math.floor(Math.random()*movieQuotes.length)
@@ -1273,10 +1273,10 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         collector.on('collect', message => {
             if (message.content == "!challenge") {
                 collected = true
-            } else if (collected == false && member == message.member) {
+            } else if (collected == false && member == message.member.id) {
                 //client.users.get("256236315144749059").send(message.content)
                 var data = {
-                    name: message.author,
+                    name: message.member.id,
                     time: message.content,
                     racer: random1,
                     track: random2,
