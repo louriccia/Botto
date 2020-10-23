@@ -25,12 +25,7 @@ console.log(firebase)
 
 var database = firebase.database();
 var ref = database.ref('times'); //use forward slashes to navigate the data tree
-var data = {
-    name: "DTS",
-    score: 43
-}
 
-ref.push(data);
 //var challengedata = fs.readFileSync('./challenge.json');
 //var challenge = JSON.parse(challengedata);
 
@@ -1280,15 +1275,11 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                 collected = true
             } else if (collected == false && member == message.member) {
                 //client.users.get("256236315144749059").send(message.content)
-                var subtime = message.content
-                challenge.times.push(subtime)
-                var data = JSON.stringify(challenge, null, 2); //(null, 2 is the formating)
-                fs.writeFile('./challenge.json', data, finished);
-                function finished(err) {
-                    console.log('all set.');
-                    collected = true
+                var data = {
+                    name: message.member,
+                    time: message.content
                 }
-                
+                ref.push(data);
             }
             
         })
