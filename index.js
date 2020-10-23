@@ -8,7 +8,7 @@ const fs = require('fs');
 
 
 
-var challengedata = fs.readFileSync('challenge.json');
+var challengedata = fs.readFileSync('./challenge.json');
 var challenge = JSON.parse(challengedata);
 
 const fetch = require('node-fetch');
@@ -1258,7 +1258,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                 var subtime = message.content
                 challenge.times.push(subtime)
                 var data = JSON.stringify(challenge, null, 2); //(null, 2 is the formating)
-                fs.writeFile('challenge.json', data, finished);
+                fs.writeFile('./challenge.json', data, finished);
                 function finished(err) {
                     console.log('all set.');
                     collected = true
