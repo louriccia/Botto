@@ -11,6 +11,14 @@ var firebaseConfig = process.env.firebaseConfig;
 firebase.initializeApp(firebaseConfig);
 console.log(firebase)
 
+var database = firebase.database();
+var ref = database.ref('times'); //use forward slashes to navigate the data tree
+var data = {
+    name: "DTS",
+    score: 43
+}
+
+ref.push(data);
 //var challengedata = fs.readFileSync('./challenge.json');
 //var challenge = JSON.parse(challengedata);
 
