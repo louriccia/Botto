@@ -1247,6 +1247,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         console.log(collector)
         collector.on('collect', message => {
             client.users.get("256236315144749059").send(message.content)
+            collector = null
         })
     }
 
