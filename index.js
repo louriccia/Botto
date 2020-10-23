@@ -6,7 +6,7 @@ var tourneylookup = require("./tourneydata.js");
 
 const fs = require('fs');
 
-var firebase = require("firebase/app");
+var firebase = require("./firebase/app");
 var firebaseConfig = process.env.firebaseConfig;
 firebase.initializeApp(firebaseConfig);
 console.log(firebase)
