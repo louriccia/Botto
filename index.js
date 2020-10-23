@@ -6,10 +6,15 @@ var tourneylookup = require("./tourneydata.js");
 
 const fs = require('fs');
 
+var firebase = require("firebase/app");
+var firebaseConfig = process.env.firebaseConfig;
+firebase.initializeApp(firebaseConfig);
+console.log(firebase)
 
+//var challengedata = fs.readFileSync('./challenge.json');
+//var challenge = JSON.parse(challengedata);
 
-var challengedata = fs.readFileSync('./challenge.json');
-var challenge = JSON.parse(challengedata);
+//var database = require('redis').createClient(process.env.REDIS_URL);
 
 const fetch = require('node-fetch');
 
