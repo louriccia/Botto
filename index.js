@@ -1241,33 +1241,46 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         var random1 = Math.floor(Math.random()*23)
         var random2 = Math.floor(Math.random()*25)
         var random3 = Math.floor(Math.random()*movieQuotes.length)
-        var mirror = ""
-        var nu = ""
-        var skips = ""
-        var time = tracks[random2].partimes[4]
+        var laps = 3
+        var lap = [1,2,4,5]
+        var laptext = " for 3 laps"
+        var mirror = false
+        var mirrortext = ""
+        var nu = false
+        var nutext = ""
+        var skips = false
+        var skipstext = ""
+        var partime = tracks[random2].partimes[4]
         var flag = ""
         if (racers[random1].hasOwnProperty("flag")) {
             flag = racers[random1].flag
         }
         if (Math.random()<0.15){
-            nu = " with **NO UPGRADES**"
-            time = ""
+            nutext = " with **NO UPGRADES**"
+            nu = true
+            partime = ""
         }
         if (Math.random()<0.05){
-            mirror = ", **MIRRORED!** "
+            mirrortext = ", **MIRRORED!** "
+            mirror = true
+        }
+        if (Math.random()<0.05){
+            laps = lap[Math.floor(Math.random()*4)]
+            laptext = ", for " + laps + " lap(s)"
         }
         if (tracks[random2].hasOwnProperty("parskiptimes")) {
             if (Math.random()<0.25) {
-                skips = " with **SKIPS**"
-                if (nu == "") {
-                    time = tracks[random2].parskiptimes[4]
+                skipstext = ", with **SKIPS**"
+                skips = true
+                if (nutext == "") {
+                    partime = tracks[random2].parskiptimes[4]
                 }
             }
         }
-        if (time !== "") {
-            time = "\nTime to beat: " + time
+        if (partime !== "") {
+            partime = "\nPar time: " + partime
         }
-        message.channel.send("Race as **" + flag + racers[random1].name + "** (" + (random1 + 1) + ")"+ nu + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + skips + mirror + time + "\n" + movieQuotes[random3] + " ")
+        message.channel.send("Race as **" + flag + racers[random1].name + "** (" + (random1 + 1) + ")"+ nutext + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + laptext + skipstext + mirrortext + partime + "\n" + movieQuotes[random3] + " ")
         const collector = new Discord.MessageCollector(message.channel, m => m.author.id === message.author.id, { time: 900000 });
         var collected = false
         collector.on('collect', message => {
@@ -1280,7 +1293,10 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                     time: message.content,
                     racer: random1,
                     track: random2,
-                    
+                    laps: laps,
+                    nu: nu,
+                    skips: skips,
+                    mirror: mirror
                 }
                 ref.push(data);
             }
