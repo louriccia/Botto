@@ -1269,8 +1269,8 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
     if(message.content == "?challenge") {
         const challengeHelpEmbed = new Discord.RichEmbed()
         .setTitle("!challenge")
-        .setDescription("When you type `!challenge`, Botto will challenge you to race a random pod on a random track with random conditions. The default conditions are max upgrades, 3-lap, full track. You have 15 minutes to submit a time for the challenge. Botto will only accept one time from the person who triggered the challenge. \nYou can customize your odds by typing `!odds`")
-        .addField("Never Tell Me the Odds", "Skips - 25%\nNo upgrades - 15%\nNon 3-lap - 5%\nMirror mode - 5%", true)
+        .setDescription("When you type `!challenge`, Botto will challenge you to race a random pod on a random track with random conditions. The default conditions are max upgrades, 3-lap, full track. You have 15 minutes to submit a time for the challenge. Botto will only accept one time from the person who triggered the challenge. \n\nYou can customize your odds by typing `!odds`")
+        .addField("Default Odds", "Skips - 25%\nNo upgrades - 15%\nNon 3-lap - 5%\nMirror mode - 5%", true)
         .addField("Rating a Challenge",":thumbsup: = I like this challenge, I would play it again\n:thumbsdown: = I don't like this challenge, I don't want to do it again\n:x: = This challenge is impossible, no one should be expected to do this challenge", true)
         message.channel.send(challengeHelpEmbed);
     }
@@ -1291,9 +1291,9 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         }
         const oddsEmbed = new Discord.RichEmbed()
         .setTitle("Customize Your `!challenge` Odds")
-        .setDescription(desc + "Change your odds by replying to this message with 4 numbers separated by commas in order of Skips, No Upgrades, Non 3-lap, and Mirror Mode. \n Example: 15, 20, 10, 0")
+        .setDescription(desc + "Change your odds by replying to this message with 4 numbers separated by commas in order of Skips, No Upgrades, Non 3-lap, and Mirror Mode. These numbers will be divided by 100 to determine the chances Botto will give the conditions in a given `!challenge`. \n Example: 15, 20, 10, 0")
         .addField("Your Odds", "Skips - " + oddsdata[k].skips +"%\nNo upgrades - " + oddsdata[k].no_upgrades +"%\nNon 3-lap - " + oddsdata[k].non_3_lap +"%\nMirror mode - " + oddsdata[k].mirror_mode +"%", true)
-        .setFooter("Skips, No Upgrades, Non 3-lap, Mirror Mode")
+        .setFooter("Reset your odds to default by typing 'default'")
         message.channel.send(oddsEmbed);
         var collected = false
         const oddscollector = new Discord.MessageCollector(message.channel, m => m.author.id === message.author.id, { time: 500000 });
@@ -1322,7 +1322,16 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                 } else {
                     message.reply("*Only four numbers!*")
                 }
-            } 
+            } else if (message.content == "default") {
+                var keys = Object.keys(oddsdata)
+                for (var i=0; i<keys.length; i++) {
+                    var k = keys[i];
+                    if(oddsdata[k].name == message.author.id){
+                        oddsref.child(k).remove()
+                    }
+                }
+                message.reply("*Your odds have been reset to the default*")
+            }
         })
     }
 
@@ -1454,7 +1463,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         const collector = new Discord.MessageCollector(message.channel, m => m.author.id === message.author.id, { time: 900000 });
         var collected = false
         collector.on('collect', message => {
-            if (message.content == "!challenge") {
+            if (message.content == "!challenge" && message.author.id == m.author.id) {
                 collected = true
             } else if (collected == false && member == message.author.id && !isNaN(message.content.replace(":", "")) && timetoSeconds(message.content) !== null) {
                 var challengeend = Date.now()
