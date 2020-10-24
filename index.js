@@ -26,6 +26,11 @@ console.log(firebase)
 var database = firebase.database();
 var ref = database.ref('times'); //use forward slashes to navigate the data tree
 
+ref.on("value", function(snapshot) {
+    console.log(snapshot.val());
+  }, function (errorObject) {
+    console.log("The read failed: " + errorObject.code);
+  });
 //var challengedata = fs.readFileSync('./challenge.json');
 //var challenge = JSON.parse(challengedata);
 
@@ -1293,7 +1298,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                 }
             }
         }
-        if (partime !== "") {
+        if (partime !== "" && laps == 3) {
             partime = "\nPar time: " + partime
         }
         message.channel.send("Race as **" + flag + racers[random1].name + "** (" + (random1 + 1) + ")"+ nutext + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + laptext + skipstext + mirrortext + partime + "\n" + movieQuotes[random3] + " ")
@@ -1323,7 +1328,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                     ref.push(data);
                     collected = true
                     var parbeat = 5
-                    var rank = [":gem:Elite", ":first_place:Pro", ":second_place:Rookie", ":third_place:Amateur", "<:bumpythumb:703107780860575875>Youngling"]
+                    var rank = [":gem: Elite", ":first_place: Pro", ":second_place: Rookie", ":third_place: Amateur", "<:bumpythumb:703107780860575875> Youngling"]
                     for (i=0; i<5; i++) {
                         if (nu == false){
                             if (skips) {
