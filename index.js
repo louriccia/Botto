@@ -1291,7 +1291,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                 var data = {
                     name: message.author.id,
                     time: message.content,
-                    date: message.createdAt,
+                    date: message.createdTimestamp,
                     racer: random1,
                     track: random2,
                     laps: laps,
