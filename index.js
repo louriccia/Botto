@@ -272,12 +272,17 @@ function timefix(time) {
 function timetoSeconds(time) {
     if (time.includes(":")){
         var split = time.split(':')
-        var out = Number(split[0]*60)+Number(split[1])
-        if (Number(split[1]) >= 60) {
-            return null
+        if (split.length = 2) {
+            var out = Number(split[0]*60)+Number(split[1])
+            if (Number(split[1]) >= 60) {
+                return null
+            } else {
+                return out
+            }
         } else {
-            return out
+            return null
         }
+        
     } else {
         return time
     }
@@ -1093,7 +1098,7 @@ if(messageLow.startsWith(`${prefix}racer`) && !messageLow.startsWith(`${prefix}r
         var numb = 22}
     
     if(numb == undefined && messageLow.startsWith(`${prefix}racers`) == false){
-        message.channel.send("Perhaps the archives are incomplete.")
+        message.channel.send("*Perhaps the archives are incomplete.*")
         //playSfx(message, voiceError[Math.floor(Math.random()*voiceError.length)])
     }
     else{
@@ -1313,12 +1318,23 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         best.sort((a,b) => (a.time > b.time) ? 1 : -1)
         console.log(best)
         message.channel.send("Race as **" + flag + " " + racers[random1].name + "** (" + (random1 + 1) + ")"+ nutext + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + laptext + skipstext + mirrortext + partime + "\n" + movieQuotes[random3] + " ")
+        const challengeEmbed = new Discord.RichEmbed()
+            .setTitle("Race as **" + flag + " " + racers[random1].name + "** (" + (random1 + 1) + ")"+ nutext + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + laptext + skipstext + mirrortext)
+            .setDescription(movieQuotes[random3])
+            .addField("Tier", Tier[racers[numb].tier -1], true)
+            if(nu == false && skips == false && laps == 3) {
+                challengeEmbed.addField("Par Times", ":gem: " + tracks[numb].partimes[0] + "\n:first_place: " + tracks[numb].partimes[1] + "\n:second_place: " + tracks[numb].partimes[2] + "\n:third_place: " + tracks[numb].partimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[numb].partimes[4], true)
+            } else if (nu == false && skips == true && laps == 3) {
+                tracktimesEmbed2.addField("Par Times", ":gem: " + tracks[numb].parskiptimes[0] + "\n:first_place: " + tracks[numb].parskiptimes[1] + "\n:second_place: " + tracks[numb].parskiptimes[2] + "\n:third_place: " + tracks[numb].parskiptimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[numb].parskiptimes[4], true)
+            }
+        message.channel.send(challengeEmbed);
+        //playSfx(message, racers[numb].announce)
         const collector = new Discord.MessageCollector(message.channel, m => m.author.id === message.author.id, { time: 900000 });
         var collected = false
         collector.on('collect', message => {
             if (message.content == "!challenge") {
                 collected = true
-            } else if (collected == false && member == message.author.id && !isNaN(message.content.replace(":", ""))) {
+            } else if (collected == false && member == message.author.id && !isNaN(message.content.replace(":", "")) && timetoSeconds(message.content) !== null) {
                 var challengeend = Date.now()
                 var time = timetoSeconds(message.content)
                 if ((challengeend - challengestart) < time*1000) {
