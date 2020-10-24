@@ -1276,18 +1276,30 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
     }
 
     if(message.content.startsWith(`${prefix}odds`)) {
-
+        var record = ""
+        var desc = "You have not customized your odds. The default odds are listed bellow. "
+        var keys = Object.keys(oddsdata)
+        for (var i=0; i<keys.length; i++) {
+            var k = keys[i];
+            if(oddsdata[k].name == message.author.id){
+                record = k
+                i = keys.length
+            }
+        }
+        if (record !== "") {
+            desc = "Your custom odds are listed bellow. "
+        }
         const oddsEmbed = new Discord.RichEmbed()
         .setTitle("Customize Your `!challenge` Odds")
-        .setDescription("Your current odds for the `!challenge` command are listed bellow. Change your odds by replying to this message with 4 numbers separated by commas in order of Skips, No Upgrades, Non 3-lap, and Mirror Mode. \n Example: 15, 20, 10, 0")
-        .addField("Your Odds", "Skips - 25%\nNo upgrades - 15%\nNon 3-lap - 5%\nMirror mode - 5%", true)
+        .setDescription(desc + "Change your odds by replying to this message with 4 numbers separated by commas in order of Skips, No Upgrades, Non 3-lap, and Mirror Mode. \n Example: 15, 20, 10, 0")
+        .addField("Your Odds", "Skips - " + oddsdata[k].skips +"%\nNo upgrades - " + oddsdata[k].no_upgrades +"%\nNon 3-lap - " + oddsdata[k].non_3_lap +"%\nMirror mode - " + oddsdata[k].mirror_mode +"%", true)
         .setFooter("Skips, No Upgrades, Non 3-lap, Mirror Mode")
         message.channel.send(oddsEmbed);
+        var collected = false
         const oddscollector = new Discord.MessageCollector(message.channel, m => m.author.id === message.author.id, { time: 500000 });
         oddscollector.on('collect', message => {
-            if (!isNaN(Number(message.content.replace(/,/g, '').replace(/\s/g, "").replace(/%/g, "")))) {
+            if (!isNaN(Number(message.content.replace(/,/g, '').replace(/\s/g, "").replace(/%/g, ""))) && collected == false) {
                 var keys = Object.keys(oddsdata)
-                var old = []
                 for (var i=0; i<keys.length; i++) {
                     var k = keys[i];
                     if(oddsdata[k].name == message.author.id){
@@ -1296,7 +1308,6 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                 }
 
                 var odds = message.content.replace(/\s/g, "").replace(/%/g, "").split(",")
-                console.log(odds)
                 if (odds.length == 4) {
                     var data = {
                         name: message.author.id,
@@ -1306,7 +1317,8 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                         mirror_mode: odds[3]
                     }
                     oddsref.push(data);
-                    message.reply("*Your new odds have been saved*")
+                    message.reply("*Your new odds have been saved!*")
+                    collected = true
                 } else {
                     message.reply("*Only four numbers!*")
                 }
@@ -1334,22 +1346,42 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         if (racers[random1].hasOwnProperty("flag")) {
             flag = racers[random1].flag
         }
-        if (Math.random()<0.15){
+        var record = ""
+        var keys = Object.keys(oddsdata)
+        for (var i=0; i<keys.length; i++) {
+            var k = keys[i];
+            if(oddsdata[k].name == message.author.id){
+                record = k
+                i = keys.length
+            }
+        }
+        if (record !== "") {
+            odds_skips = oddsdata[k].skips/100
+            odds_noupgrades = oddsdata[k].no_upgrades/100
+            odds_non3lap = oddsdata[k].non_3_lap/100
+            odds_mirrormode = oddsdata[k].mirror_mode/100
+        } else {
+            odds_skips = 0.25
+            odds_noupgrades = 0.15
+            odds_non3lap = 0.05
+            odds_mirrormode = 0.05
+        }
+        if (Math.random()<odds_noupgrades){
             nutext = " with **NO UPGRADES**"
             nu = true
             partime = ""
         }
-        if (Math.random()<0.05){
+        if (Math.random()<odds_mirrormode){
             mirrortext = ", **MIRRORED!** "
             mirror = true
         }
-        if (Math.random()<0.05){
+        if (Math.random()<odds_non3lap){
             laps = lap[Math.floor(Math.random()*4)]
             laptext = " for **" + laps + " lap(s)**"
             partime = ""
         }
         if (tracks[random2].hasOwnProperty("parskiptimes")) {
-            if (Math.random()<0.25) {
+            if (Math.random()<odds_skips) {
                 skipstext = ", with **SKIPS**"
                 skips = true
                 if (nutext == "") {
