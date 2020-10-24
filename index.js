@@ -284,18 +284,6 @@ function timetoSeconds(time) {
     
 }
 
-Object.filter = function( obj, predicate) {
-    let result = {}, key;
-
-    for (key in obj) {
-        if (obj.hasOwnProperty(key) && !predicate(obj[key])) {
-            result[key] = obj[key];
-        }
-    }
-
-    return result;
-};
-
 if (messageLow.startsWith(`${prefix}src`)) {
     var catg = "" 
     var titl = ""
@@ -1314,10 +1302,13 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         if (partime !== "" && laps == 3) {
             partime = "\nPar time: " + partime
         }
-        var best = challengedata.filter(element => element.name == message.author.id)
-        best = best.filter(element => element.track == random2)
-        for (var i=0; i<best.length; i++) {
-            message.reply(best[i].time)
+        var keys = Object.keys(challengedata)
+        console.log(keys)
+        for (var i=0; i<keys.length; i++) {
+            var k = keys[i];
+            var name = challengedata[k].name;
+            var time = challengedata[k].time;
+            console.log(name,time)
         }
         message.channel.send("Race as **" + flag + " " + racers[random1].name + "** (" + (random1 + 1) + ")"+ nutext + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + laptext + skipstext + mirrortext + partime + "\n" + movieQuotes[random3] + " ")
         const collector = new Discord.MessageCollector(message.channel, m => m.author.id === message.author.id, { time: 900000 });
