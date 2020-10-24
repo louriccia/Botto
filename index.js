@@ -1303,7 +1303,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         const oddsEmbed = new Discord.RichEmbed()
         .setTitle("Customize Your `!challenge` Odds")
         .setDescription(desc + "Change your odds by replying to this message with 4 numbers separated by commas in order of Skips, No Upgrades, Non 3-lap, and Mirror Mode. These numbers will be divided by 100 to determine the chances Botto will give the conditions in a given `!challenge`. \n Example: 15, 20, 10, 0")
-        .addField("Your Odds", "Skips - " + odds_skips +"%\nNo upgrades - " + odds_noupgrades +"%\nNon 3-lap - " + dds_non3lap +"%\nMirror mode - " + odds_mirrormode +"%", true)
+        .addField("Your Odds", "Skips - " + odds_skips +"%\nNo upgrades - " + odds_noupgrades +"%\nNon 3-lap - " + odds_non3lap +"%\nMirror mode - " + odds_mirrormode +"%", true)
         .setFooter("Reset your odds to default by typing 'default'")
         message.channel.send(oddsEmbed);
         var collected = false
