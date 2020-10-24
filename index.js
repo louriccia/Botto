@@ -1300,7 +1300,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
             } else if (collected == false && member == message.author.id) {
                 var challengeend = Date.now()
                 var time = timetoSeconds(message.content)
-                if ((challengeend - challengestart) < time) {
+                if ((challengeend - challengestart) < time*1000) {
                     message.reply("*I warn you, no funny business.*")
                 } else {
                     var data = {
