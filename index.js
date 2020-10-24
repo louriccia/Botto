@@ -1306,7 +1306,8 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                 var challengeend = Date.now()
                 var time = timetoSeconds(message.content)
                 if ((challengeend - challengestart) < time*1000) {
-                    message.reply("*I warn you, no funny business.*")
+                    message.reply("*I warn you. No funny business.*")
+                    collected = true
                 } else {
                     var data = {
                         name: message.author.id,
@@ -1320,6 +1321,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                         mirror: mirror
                     }
                     ref.push(data);
+                    collected = true
                 }
                 
             }
