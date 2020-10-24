@@ -1306,8 +1306,9 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         var best = []
         for (var i=0; i<keys.length; i++) {
             var k = keys[i];
-            if(challengedata[k].track == random2);
-            best.push(challengedata[k])
+            if(challengedata[k].track == random2){
+                best.push(challengedata[k])
+            }
         }
         best.sort((a,b) => (a.time > b.time) ? 1 : -1)
         console.log(best)
