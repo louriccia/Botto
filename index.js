@@ -1287,10 +1287,12 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
             if (message.content == "!challenge") {
                 collected = true
             } else if (collected == false && member == message.author.id) {
-                //client.users.get("256236315144749059").send(message.content)
+                var ms = message.content
+                var split = ms.split(':')
+                var time = split[0]*60+split[1]
                 var data = {
                     name: message.author.id,
-                    time: message.content,
+                    time: time,
                     date: message.createdTimestamp,
                     racer: random1,
                     track: random2,
