@@ -1331,8 +1331,8 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
             } else if (nu == false && skips == true && laps == 3) {
                 tracktimesEmbed2.addField("Par Times", ":gem: " + tracks[random2].parskiptimes[0] + "\n:first_place: " + tracks[random2].parskiptimes[1] + "\n:second_place: " + tracks[random2].parskiptimes[2] + "\n:third_place: " + tracks[random2].parskiptimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[random2].parskiptimes[4], true)
             }
-        message.channel.send(challengeEmbed).then(async function (sentMessage) {
-            await sentMessage.react('👍').then(() => {
+        message.channel.send(challengeEmbed).then(sentMessage => {
+            sentMessage.react('👍').then(() => {
                 const filter = (reaction, user) => {
                     return ['👍'].includes(reaction.emoji.name) && user.id == message.author.id;
                 };
@@ -1343,31 +1343,33 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                             
                         } 
                     })
-            })
-            await sentMessage.react('👎').then(() => {
-                const filter = (reaction, user) => {
-                    return ['👎'].includes(reaction.emoji.name) && user.id == message.author.id;
-                };
-                sentMessage.awaitReactions(filter, { max: 1})
-                    .then(collected => {
-                        const reaction = collected.first();
-                        if (reaction.emoji.name === '👎' && reaction.users.id == message.author.id) {
-                            
-                        } 
+                sentMessage.react('👎').then(() => {
+                    const filter = (reaction, user) => {
+                        return ['👎'].includes(reaction.emoji.name) && user.id == message.author.id;
+                    };
+                    sentMessage.awaitReactions(filter, { max: 1})
+                        .then(collected => {
+                            const reaction = collected.first();
+                            if (reaction.emoji.name === '👎' && reaction.users.id == message.author.id) {
+                                
+                            } 
+                        })
+                    sentMessage.react('❌').then(() => {
+                        const filter = (reaction, user) => {
+                            return ['❌'].includes(reaction.emoji.name) && user.id == message.author.id;
+                        };
+                        sentMessage.awaitReactions(filter, { max: 1})
+                            .then(collected => {
+                                const reaction = collected.first();
+                                if (reaction.emoji.name === '❌' && reaction.users.id == message.author.id) {
+                                    
+                                } 
+                            })
                     })
+                })
             })
-            await sentMessage.react('❌').then(() => {
-                const filter = (reaction, user) => {
-                    return ['❌'].includes(reaction.emoji.name) && user.id == message.author.id;
-                };
-                sentMessage.awaitReactions(filter, { max: 1})
-                    .then(collected => {
-                        const reaction = collected.first();
-                        if (reaction.emoji.name === '❌' && reaction.users.id == message.author.id) {
-                            
-                        } 
-                    })
-            })
+            
+            
         })
         
         //playSfx(message, racers[numb].announce)
