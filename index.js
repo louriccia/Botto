@@ -1289,7 +1289,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
             } else if (collected == false && member == message.author.id) {
                 var ms = message.content
                 var split = ms.split(':')
-                var time = split[0]*60+split[1]
+                var time = Number(split[0]*60)+Number(split[1])
                 var data = {
                     name: message.author.id,
                     time: time,
