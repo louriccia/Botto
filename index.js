@@ -264,6 +264,16 @@ function timefix(time) {
     }
 }
 
+function timetoSeconds(time) {
+    var split = time.split(':')
+    var out = Number(split[0]*60)+Number(split[1])
+    if (Number(split[1]) >= 60) {
+        return null
+    } else {
+        return out
+    }
+}
+
 if (messageLow.startsWith(`${prefix}src`)) {
     var catg = "" 
     var titl = ""
@@ -1238,6 +1248,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
 
     if(message.content.startsWith(`${prefix}challenge`)) {
         let member = message.author.id
+        var challengestart = Date.now()
         var random1 = Math.floor(Math.random()*23)
         var random2 = Math.floor(Math.random()*25)
         var random3 = Math.floor(Math.random()*movieQuotes.length)
@@ -1287,21 +1298,25 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
             if (message.content == "!challenge") {
                 collected = true
             } else if (collected == false && member == message.author.id) {
-                var ms = message.content
-                var split = ms.split(':')
-                var time = Number(split[0]*60)+Number(split[1])
-                var data = {
-                    name: message.author.id,
-                    time: time,
-                    date: message.createdTimestamp,
-                    racer: random1,
-                    track: random2,
-                    laps: laps,
-                    nu: nu,
-                    skips: skips,
-                    mirror: mirror
+                var challengeend = Date.now()
+                var time = timetoSeconds(message.content)
+                if ((challengeend - challengestart) < time) {
+                    message.reply("*I warn you, no funny business.*")
+                } else {
+                    var data = {
+                        name: message.author.id,
+                        time: time,
+                        date: message.createdTimestamp,
+                        racer: random1,
+                        track: random2,
+                        laps: laps,
+                        nu: nu,
+                        skips: skips,
+                        mirror: mirror
+                    }
+                    ref.push(data);
                 }
-                ref.push(data);
+                
             }
             
         })
