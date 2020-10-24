@@ -1321,11 +1321,10 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         const challengeEmbed = new Discord.RichEmbed()
             .setTitle("Race as **" + flag + " " + racers[random1].name + "** (" + (random1 + 1) + ")"+ nutext + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + laptext + skipstext + mirrortext)
             .setDescription(movieQuotes[random3])
-            .addField("Tier", Tier[racers[numb].tier -1], true)
             if(nu == false && skips == false && laps == 3) {
-                challengeEmbed.addField("Par Times", ":gem: " + tracks[numb].partimes[0] + "\n:first_place: " + tracks[numb].partimes[1] + "\n:second_place: " + tracks[numb].partimes[2] + "\n:third_place: " + tracks[numb].partimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[numb].partimes[4], true)
+                challengeEmbed.addField("Par Times", ":gem: " + tracks[random2].partimes[0] + "\n:first_place: " + tracks[random2].partimes[1] + "\n:second_place: " + tracks[random2].partimes[2] + "\n:third_place: " + tracks[random2].partimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[random2].partimes[4], true)
             } else if (nu == false && skips == true && laps == 3) {
-                tracktimesEmbed2.addField("Par Times", ":gem: " + tracks[numb].parskiptimes[0] + "\n:first_place: " + tracks[numb].parskiptimes[1] + "\n:second_place: " + tracks[numb].parskiptimes[2] + "\n:third_place: " + tracks[numb].parskiptimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[numb].parskiptimes[4], true)
+                tracktimesEmbed2.addField("Par Times", ":gem: " + tracks[random2].parskiptimes[0] + "\n:first_place: " + tracks[random2].parskiptimes[1] + "\n:second_place: " + tracks[random2].parskiptimes[2] + "\n:third_place: " + tracks[random2].parskiptimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[random2].parskiptimes[4], true)
             }
         message.channel.send(challengeEmbed);
         //playSfx(message, racers[numb].announce)
