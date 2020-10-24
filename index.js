@@ -1318,7 +1318,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         collector.on('collect', message => {
             if (message.content == "!challenge") {
                 collected = true
-            } else if (collected == false && member == message.author.id) {
+            } else if (collected == false && member == message.author.id && !isNAN(message.content.replace(":", ""))) {
                 var challengeend = Date.now()
                 var time = timetoSeconds(message.content)
                 if ((challengeend - challengestart) < time*1000) {
