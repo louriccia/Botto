@@ -1477,7 +1477,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         const collector = new Discord.MessageCollector(message.channel, m => m.author.id === message.author.id, { time: 900000 });
         var collected = false
         collector.on('collect', message => {
-            if (message.content == "!challenge" && message.author.id == m.author.id) {
+            if (message.content == "!challenge") {
                 collected = true
             } else if (collected == false && member == message.author.id && !isNaN(message.content.replace(":", "")) && timetoSeconds(message.content) !== null) {
                 var challengeend = Date.now()
