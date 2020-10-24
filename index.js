@@ -1279,9 +1279,8 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         message.channel.send(oddsEmbed);
         const oddscollector = new Discord.MessageCollector(message.channel, m => m.author.id === message.author.id, { time: 500000 });
         oddscollector.on('collect', message => {
-            console.log(Number(message.content.replace(",", "").replace(" ", "").replace("%", "")))
-            if (!isNaN(Number(message.content.replace(",", "").replace(" ", "").replace("%", "")))) {
-                var odds = message.content.replace("%","").split(",")
+            if (!isNaN(Number(message.content.replace(/,/g, '').replace(/\s/g, "").replace(/%/g, "")))) {
+                var odds = message.content.replace(/\s/g, "").replace(/%/g, "").split(",")
                 console.log(odds)
                 if (odds.length == 4) {
                     var data = {
