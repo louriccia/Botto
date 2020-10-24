@@ -1322,6 +1322,28 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                     }
                     ref.push(data);
                     collected = true
+                    var parbeat = 5
+                    var rank = [":gem:Elite", ":first_place:Pro", ":second_place:Rookie", ":third_place:Amateur", "<:bumpythumb:703107780860575875>Youngling"]
+                    for (i=0; i<5; i++) {
+                        if (nu == false){
+                            if (skips) {
+                                if (time < tracks[random2].parskiptimes[i]) {
+                                    parbeat = i
+                                    i = 5
+                                }
+                            } else {
+                                if (time < tracks[random2].partimes[i]) {
+                                    parbeat = i
+                                    i = 5
+                                }
+                            }
+                        }
+                        
+                    }
+                    if (parbeat < 5) {
+                        message.reply("Challenge complete! You beat the " + rank[parbeat] + " time for **" + tracks[random2].name+ "** as **" + racers[random1].name + "**")
+                    }
+                    
                 }
                 
             }
