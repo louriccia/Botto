@@ -27,7 +27,7 @@ var database = firebase.database();
 var ref = database.ref('times'); //use forward slashes to navigate the data tree
 
 ref.on("value", function(snapshot) {
-    const challengedata = snapshot.val();
+    challengedata = snapshot.val();
   }, function (errorObject) {
     console.log("The read failed: " + errorObject.code);
   });
