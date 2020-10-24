@@ -1278,7 +1278,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
     if(message.content.startsWith(`${prefix}odds`)) {
         var record = ""
         var desc = "You have not customized your odds. The default odds are listed bellow. "
-        if (oddsdata.keys !==null) {
+        if (oddsdata !==null) {
             var keys = Object.keys(oddsdata)
             for (var i=0; i<keys.length; i++) {
                 var k = keys[i];
