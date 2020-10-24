@@ -265,13 +265,18 @@ function timefix(time) {
 }
 
 function timetoSeconds(time) {
-    var split = time.split(':')
-    var out = Number(split[0]*60)+Number(split[1])
-    if (Number(split[1]) >= 60) {
-        return null
+    if (time.includes(":")){
+        var split = time.split(':')
+        var out = Number(split[0]*60)+Number(split[1])
+        if (Number(split[1]) >= 60) {
+            return null
+        } else {
+            return out
+        }
     } else {
-        return out
+        return time
     }
+    
 }
 
 if (messageLow.startsWith(`${prefix}src`)) {
