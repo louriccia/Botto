@@ -1310,14 +1310,15 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         const oddscollector = new Discord.MessageCollector(message.channel, m => m.author.id === message.author.id, { time: 500000 });
         oddscollector.on('collect', message => {
             if (!isNaN(Number(message.content.replace(/,/g, '').replace(/\s/g, "").replace(/%/g, ""))) && collected == false) {
-                var keys = Object.keys(oddsdata)
-                for (var i=0; i<keys.length; i++) {
-                    var k = keys[i];
-                    if(oddsdata[k].name == message.author.id){
-                        oddsref.child(k).remove()
+                if (oddsdata !==null) {
+                    var keys = Object.keys(oddsdata)
+                    for (var i=0; i<keys.length; i++) {
+                        var k = keys[i];
+                        if(oddsdata[k].name == message.author.id){
+                            oddsref.child(k).remove()
+                        }
                     }
                 }
-
                 var odds = message.content.replace(/\s/g, "").replace(/%/g, "").split(",")
                 if (odds.length == 4) {
                     var data = {
