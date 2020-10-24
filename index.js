@@ -32,6 +32,12 @@ ref.on("value", function(snapshot) {
   }, function (errorObject) {
     console.log("The read failed: " + errorObject.code);
   });
+
+oddsref.on("value", function(snapshot) {
+    oddsdata = snapshot.val();
+    }, function (errorObject) {
+    console.log("The read failed: " + errorObject.code);
+    });
 //var challengedata = fs.readFileSync('./challenge.json');
 //var challenge = JSON.parse(challengedata);
 
@@ -1280,6 +1286,15 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         const oddscollector = new Discord.MessageCollector(message.channel, m => m.author.id === message.author.id, { time: 500000 });
         oddscollector.on('collect', message => {
             if (!isNaN(Number(message.content.replace(/,/g, '').replace(/\s/g, "").replace(/%/g, "")))) {
+                var keys = Object.keys(oddsdata)
+                var old = []
+                for (var i=0; i<keys.length; i++) {
+                    var k = keys[i];
+                    if(oddsdata[k].name == message.author.id){
+                        oddsref.child(k).remove()
+                    }
+                }
+
                 var odds = message.content.replace(/\s/g, "").replace(/%/g, "").split(",")
                 console.log(odds)
                 if (odds.length == 4) {
