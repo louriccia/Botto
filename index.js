@@ -25,6 +25,7 @@ firebase.initializeApp(firebaseConfig);
 
 var database = firebase.database();
 var ref = database.ref('times'); //use forward slashes to navigate the data tree
+var oddsref = database.ref('odds');
 
 ref.on("value", function(snapshot) {
     challengedata = snapshot.val();
@@ -1262,10 +1263,38 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
     if(message.content == "?challenge") {
         const challengeHelpEmbed = new Discord.RichEmbed()
         .setTitle("!challenge")
-        .setDescription("When you type `!challenge`, Botto will challenge you to race a random pod on a random track with random conditions. The default conditions are max upgrades, 3-lap, full track. You have 15 minutes to submit a time for the challenge. Botto will only accept one time from the person who triggered the challenge. ")
-        .addField("What are the odds?", "Skips - 25%\nNo upgrades - 15%\nMirror mode - 5%\nNon 3-lap - 5% ", true)
+        .setDescription("When you type `!challenge`, Botto will challenge you to race a random pod on a random track with random conditions. The default conditions are max upgrades, 3-lap, full track. You have 15 minutes to submit a time for the challenge. Botto will only accept one time from the person who triggered the challenge. \nYou can customize your odds by typing `!odds`")
+        .addField("Never Tell Me the Odds", "Skips - 25%\nNo upgrades - 15%\nNon 3-lap - 5%\nMirror mode - 5%", true)
         .addField("Rating a Challenge",":thumbsup: = I like this challenge, I would play it again\n:thumbsdown: = I don't like this challenge, I don't want to do it again\n:x: = This challenge is impossible, no one should be expected to do this challenge", true)
         message.channel.send(challengeHelpEmbed);
+    }
+
+    if(message.content.startsWith(`${prefix}odds`)) {
+
+        const challengeHelpEmbed = new Discord.RichEmbed()
+        .setTitle("Customize Your Challenge Odds")
+        .setDescription("Your current odds are listed bellow. Change your odds by replying to this message with 4 numbers separated by commas. These numbers will set your odds for Skips, No Upgrades, Non 3-lap, and Mirror Mode challenges in that order. \n Example: 15, 20, 10, 0")
+        .addField("Your Odds", "Skips - 25%\nNo upgrades - 15%\nNon 3-lap - 5%\nMirror mode - 5%", true)
+        message.channel.send(challengeHelpEmbed);
+        const collector = new Discord.MessageCollector(message.channel, m => m.author.id === message.author.id, { time: 900000 });
+        var collected = false
+        collector.on('collect', message => {
+            if (!isNaN(message.content.replace(",", "").replace(" ", "").replace("%", ""))) {
+                var odds = message.content.replace("%","").split(",")
+                if (odds.length == 4) {
+                    var data = {
+                        name: message.author.id,
+                        skips: odds[0],
+                        no_upgrades: odds[1],
+                        non_3_lap: odds[2],
+                        mirror_mode: odds[3]
+                    }
+                    oddsref.push(data);
+                } else {
+                    message.reply("*Only four numbers!*")
+                }
+            } 
+        })
     }
 
     if(message.content.startsWith(`${prefix}challenge`)) {
