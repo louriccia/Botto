@@ -1288,6 +1288,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         if (Math.random()<0.05){
             laps = lap[Math.floor(Math.random()*4)]
             laptext = " for **" + laps + " lap(s)**"
+            partime = ""
         }
         if (tracks[random2].hasOwnProperty("parskiptimes")) {
             if (Math.random()<0.25) {
@@ -1301,8 +1302,9 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         if (partime !== "" && laps == 3) {
             partime = "\nPar time: " + partime
         }
-        var best = ref.orderByChild("track").equalTo(random2)
-        for (i==0; i<best.length; i++) {
+        var best = challengedata.filter(element => element.name == message.author.id)
+        best = best.filter(element => element.track == random2)
+        for (var i=0; i<best.length; i++) {
             message.reply(best[i].time)
         }
         message.channel.send("Race as **" + flag + " " + racers[random1].name + "** (" + (random1 + 1) + ")"+ nutext + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + laptext + skipstext + mirrortext + partime + "\n" + movieQuotes[random3] + " ")
@@ -1333,7 +1335,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                     collected = true
                     var parbeat = 5
                     var rank = [":gem: Elite", ":first_place: Pro", ":second_place: Rookie", ":third_place: Amateur", "<:bumpythumb:703107780860575875> Youngling"]
-                    for (i=0; i<5; i++) {
+                    for (var i=0; i<5; i++) {
                         if (nu == false){
                             if (skips) {
                                 if (time < tracks[random2].parskiptimes[i]) {
