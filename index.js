@@ -21,7 +21,7 @@ var firebaseConfig = {
   };
 
 firebase.initializeApp(firebaseConfig);
-console.log(firebase)
+
 
 var database = firebase.database();
 var ref = database.ref('times'); //use forward slashes to navigate the data tree
@@ -1332,20 +1332,38 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                 tracktimesEmbed2.addField("Par Times", ":gem: " + tracks[random2].parskiptimes[0] + "\n:first_place: " + tracks[random2].parskiptimes[1] + "\n:second_place: " + tracks[random2].parskiptimes[2] + "\n:third_place: " + tracks[random2].parskiptimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[random2].parskiptimes[4], true)
             }
         message.channel.send(challengeEmbed).then(sentMessage => {
-            sentMessage.react('❌','👍','👎').then(() => {
+            sentMessage.react('❌').then(() => {
                 const filter = (reaction, user) => {
-                    return ['👍', '👎', '❌'].includes(reaction.emoji.name) && user.id == message.author.id;
+                    return ['❌'].includes(reaction.emoji.name) && user.id == message.author.id;
+                };
+                sentMessage.awaitReactions(filter, { max: 1})
+                    .then(collected => {
+                        const reaction = collected.first();
+                        if (reaction.emoji.name === '❌' && reaction.users.id == message.author.id) {
+                            
+                        } 
+                    })
+            })
+            sentMessage.react('👎').then(() => {
+                const filter = (reaction, user) => {
+                    return ['👎'].includes(reaction.emoji.name) && user.id == message.author.id;
+                };
+                sentMessage.awaitReactions(filter, { max: 1})
+                    .then(collected => {
+                        const reaction = collected.first();
+                        if (reaction.emoji.name === '👎' && reaction.users.id == message.author.id) {
+                            
+                        } 
+                    })
+            })
+            sentMessage.react('👍').then(() => {
+                const filter = (reaction, user) => {
+                    return ['👍'].includes(reaction.emoji.name) && user.id == message.author.id;
                 };
                 sentMessage.awaitReactions(filter, { max: 1})
                     .then(collected => {
                         const reaction = collected.first();
                         if (reaction.emoji.name === '👍' && reaction.users.id == message.author.id) {
-                            
-                        } 
-                        if (reaction.emoji.name === '👎' && reaction.users.id == message.author.id) {
-                            
-                        } 
-                        if (reaction.emoji.name === '❌' && reaction.users.id == message.author.id) {
                             
                         } 
                     })
