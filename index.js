@@ -284,6 +284,18 @@ function timetoSeconds(time) {
     
 }
 
+Object.filter = function( obj, predicate) {
+    let result = {}, key;
+
+    for (key in obj) {
+        if (obj.hasOwnProperty(key) && !predicate(obj[key])) {
+            result[key] = obj[key];
+        }
+    }
+
+    return result;
+};
+
 if (messageLow.startsWith(`${prefix}src`)) {
     var catg = "" 
     var titl = ""
