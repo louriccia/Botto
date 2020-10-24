@@ -1259,7 +1259,14 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
 }
 
 /////   !challenge    //////
-
+    if(message.content == "?challenge") {
+        const challengeHelpEmbed = new Discord.RichEmbed()
+        .setTitle("!challenge")
+        .setDescription("When you type `!challenge`, Botto will challenge you to race a random pod on a random track with random conditions. The default conditions are max upgrades, 3-lap, full track. You have 15 minutes to submit a time for the challenge. Botto will only accept one time from the person who triggered the challenge. ")
+        .addField("What are the odds?", "Skips - 25%\nNo upgrades - 15%\nMirror mode - 5%\nNon 3-lap - 5% ", true)
+        .addField("Rating a Challenge",":thumbsup: = I like this challenge, I would play it again\n:thumbsdown: = I don't like this challenge, I don't want to do it again\n:x: = This challenge is impossible, no one should be expected to do this challenge", true)
+        message.channel.send(challengeHelpEmbed);
+    }
 
     if(message.content.startsWith(`${prefix}challenge`)) {
         let member = message.author.id
@@ -1316,8 +1323,6 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
             }
         }
         best.sort((a,b) => (a.time > b.time) ? 1 : -1)
-        console.log(best)
-        message.channel.send("Race as **" + flag + " " + racers[random1].name + "** (" + (random1 + 1) + ")"+ nutext + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + laptext + skipstext + mirrortext + partime + "\n" + movieQuotes[random3] + " ")
         const challengeEmbed = new Discord.RichEmbed()
             .setTitle("Race as **" + flag + " " + racers[random1].name + "** (" + (random1 + 1) + ")"+ nutext + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + laptext + skipstext + mirrortext)
             .setDescription(movieQuotes[random3])
