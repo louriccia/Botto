@@ -1303,13 +1303,14 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
             partime = "\nPar time: " + partime
         }
         var keys = Object.keys(challengedata)
-        console.log(keys)
+        var best = []
         for (var i=0; i<keys.length; i++) {
             var k = keys[i];
-            var name = challengedata[k].name;
-            var time = challengedata[k].time;
-            console.log(name,time)
+            if(challengedata[k].track == random2);
+            best.push(challengedata[k])
         }
+        best.sort((a,b) => (a.time > b.time) ? 1 : -1)
+        console.log(best)
         message.channel.send("Race as **" + flag + " " + racers[random1].name + "** (" + (random1 + 1) + ")"+ nutext + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + laptext + skipstext + mirrortext + partime + "\n" + movieQuotes[random3] + " ")
         const collector = new Discord.MessageCollector(message.channel, m => m.author.id === message.author.id, { time: 900000 });
         var collected = false
