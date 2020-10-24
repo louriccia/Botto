@@ -1272,14 +1272,14 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
     if(message.content.startsWith(`${prefix}odds`)) {
 
         const oddsEmbed = new Discord.RichEmbed()
-        .setTitle("Customize Your Challenge Odds")
+        .setTitle("Customize Your `!challenge` Odds")
         .setDescription("Your current odds for the `!challenge` command are listed bellow. Change your odds by replying to this message with 4 numbers separated by commas in order of Skips, No Upgrades, Non 3-lap, and Mirror Mode. \n Example: 15, 20, 10, 0")
         .addField("Your Odds", "Skips - 25%\nNo upgrades - 15%\nNon 3-lap - 5%\nMirror mode - 5%", true)
         .setFooter("Skips, No Upgrades, Non 3-lap, Mirror Mode")
         message.channel.send(oddsEmbed);
         const oddscollector = new Discord.MessageCollector(message.channel, m => m.author.id === message.author.id, { time: 500000 });
         oddscollector.on('collect', message => {
-            console.log(message.content)
+            console.log(Number(message.content.replace(",", "").replace(" ", "").replace("%", "")))
             if (!isNaN(Number(message.content.replace(",", "").replace(" ", "").replace("%", "")))) {
                 var odds = message.content.replace("%","").split(",")
                 console.log(odds)
