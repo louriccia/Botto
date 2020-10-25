@@ -1426,14 +1426,14 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         var besttimes = ""
         if(best.length > 0) {
             best.sort((a,b) => (a.time > b.time) ? 1 : -1)
-            if (message.guild){
+            //if (message.guild){
                 for (var i=0; i<best.length; i++){
                     besttimes = besttimes + "**" + timefix(best[i].time) + "** - " + client.guilds.cahce.get("441839750555369474").member.get(best[i].name).username + "\n"
                     if (i == 4) {
                         i = best.length
                     }
                 }
-            }
+            //}
         }
         const challengeEmbed = new Discord.RichEmbed()
             .setTitle("Race as **" + flag + " " + racers[random1].name + "** (" + (random1 + 1) + ")"+ nutext + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + laptext + skipstext + mirrortext)
