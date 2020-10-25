@@ -1424,11 +1424,12 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
             }
         }
         var besttimes = ""
+        var pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>", "4th", "5th"]
         if(best.length > 0) {
             best.sort((a,b) => (a.time > b.time) ? 1 : -1)
             if (message.guild){
                 for (var i=0; i<best.length; i++){
-                    besttimes = besttimes + "**" + timefix(best[i].time) + "** - " + message.guild.cahce.get("441839750555369474").username + "\n"
+                    besttimes = besttimes + pos[i] + " " + timefix(best[i].time) + " - " + message.guild.cahce.get("441839750555369474").username + "\n"
                     if (i == 4) {
                         i = best.length
                     }
@@ -1451,7 +1452,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                 challengeEmbed.addField("Par Times", ":gem: " + tracks[random2].parskiptimes[0] + "\n:first_place: " + tracks[random2].parskiptimes[1] + "\n:second_place: " + tracks[random2].parskiptimes[2] + "\n:third_place: " + tracks[random2].parskiptimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[random2].parskiptimes[4], true)
             }
             if(besttimes !== "") {
-                challengeEmbed.addField("Best Times", besttimes)
+                challengeEmbed.addField("Best Times", besttimes, true)
             }
         message.channel.send(challengeEmbed).then(sentMessage => {
             sentMessage.react('👍').then(() => {
