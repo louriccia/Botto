@@ -1419,11 +1419,20 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         var best = []
         for (var i=0; i<keys.length; i++) {
             var k = keys[i];
-            if(challengedata[k].track == random2){
+            if(challengedata[k].track == random2 && challengedata[k].racer == random1){
                 best.push(challengedata[k])
             }
         }
-        best.sort((a,b) => (a.time > b.time) ? 1 : -1)
+        if(best.length > 0) {
+            best.sort((a,b) => (a.time > b.time) ? 1 : -1)
+        }
+        var besttimes = ""
+        for (var i=0; i<best.length; i++){
+            besttimes = besttimes + "**" + timefix(best[i].time) + "** - " + message.guild.members.cache.get(best[i].name).username + "\n"
+            if (i == 4) {
+                i = best.length
+            }
+        }
         const challengeEmbed = new Discord.RichEmbed()
             .setTitle("Race as **" + flag + " " + racers[random1].name + "** (" + (random1 + 1) + ")"+ nutext + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + laptext + skipstext + mirrortext)
             .setDescription(movieQuotes[random3])
@@ -1431,6 +1440,9 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                 challengeEmbed.addField("Par Times", ":gem: " + tracks[random2].partimes[0] + "\n:first_place: " + tracks[random2].partimes[1] + "\n:second_place: " + tracks[random2].partimes[2] + "\n:third_place: " + tracks[random2].partimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[random2].partimes[4], true)
             } else if (nu == false && skips == true && laps == 3) {
                 challengeEmbed.addField("Par Times", ":gem: " + tracks[random2].parskiptimes[0] + "\n:first_place: " + tracks[random2].parskiptimes[1] + "\n:second_place: " + tracks[random2].parskiptimes[2] + "\n:third_place: " + tracks[random2].parskiptimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[random2].parskiptimes[4], true)
+            }
+            if(besttimes !== "") {
+                challengeEmbed.addField("Best Times", besttimes)
             }
         message.channel.send(challengeEmbed).then(sentMessage => {
             sentMessage.react('👍').then(() => {
