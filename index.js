@@ -1505,7 +1505,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                     message.reply("*I warn you. No funny business.*")
                     collected = true
                 } else {
-                    sentMessage.edit(":white_check_mark: Challenge completed! You reported a time of " + time)
+                    sentMessage.edit(":white_check_mark: Challenge completed! The submitted time was: **" + time + "**")
                     var data = {
                         user: message.author.id,
                         name: message.author.username,
