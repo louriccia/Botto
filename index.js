@@ -1468,77 +1468,34 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                 challengeEmbed.addField("Best Times", besttimes, true)
             }
         message.channel.send(challengeEmbed).then(sentMessage => {
-            sentMessage.react('👍').then(() => {
-                const filter = (reaction, user) => {
-                    return ['👍'].includes(reaction.emoji.name) && user.id == message.author.id;
-                };
-                sentMessage.awaitReactions(filter, { max: 1})
-                    .then(collected => {
-                        const reaction = collected.first();
-                        if (reaction.emoji.name === '👍' && reaction.users.id == message.author.id) {
-                            var data = {
-                                user: message.author.id,
-                                name: message.author.username,
-                                feedback: "👍",
-                                date: message.createdTimestamp,
-                                racer: random1,
-                                track: random2,
-                                laps: laps,
-                                nu: nu,
-                                skips: skips,
-                                mirror: mirror
-                            }
-                            feedbackref.push(data);
-                        } 
-                    })
-                sentMessage.react('👎').then(() => {
-                    const filter = (reaction, user) => {
-                        return ['👎'].includes(reaction.emoji.name) && user.id == message.author.id;
-                    };
-                    sentMessage.awaitReactions(filter, { max: 1})
-                        .then(collected => {
-                            const reaction = collected.first();
-                            if (reaction.emoji.name === '👎' && reaction.users.id == message.author.id) {
-                                var data = {
-                                    user: message.author.id,
-                                    name: message.author.username,
-                                    feedback: "👎",
-                                    date: message.createdTimestamp,
-                                    racer: random1,
-                                    track: random2,
-                                    laps: laps,
-                                    nu: nu,
-                                    skips: skips,
-                                    mirror: mirror
-                                }
-                                feedbackref.push(data);
-                            } 
-                        })
-                    sentMessage.react('❌').then(() => {
-                        const filter = (reaction, user) => {
-                            return ['❌'].includes(reaction.emoji.name) && user.id == message.author.id;
-                        };
-                        sentMessage.awaitReactions(filter, { max: 1})
-                            .then(collected => {
-                                const reaction = collected.first();
-                                if (reaction.emoji.name === '❌' && reaction.users.id == message.author.id) {
-                                    var data = {
-                                        user: message.author.id,
-                                        name: message.author.username,
-                                        feedback: "❌",
-                                        date: message.createdTimestamp,
-                                        racer: random1,
-                                        track: random2,
-                                        laps: laps,
-                                        nu: nu,
-                                        skips: skips,
-                                        mirror: mirror
-                                    }
-                                    feedbackref.push(data);
-                                } 
-                            })
-                    })
+            sentMessage.react('👍').then(()=> {
+                sentMessage.react('👎').then(()=> {
+                    sentMessage.react('❌');
                 })
+            })
+            var feedback = ""
+            sentMessage.awaitReactions((reaction, user) => user.id === message.author.id && (reaction.emoji.name == '👍' || reaction.emoji.name == '👎' || reaction.emoji.name == '❌'),
+                { max: 1, time: 900000 }).then(collected => {
+                    if (collected.first().emoji.name == '👍') {
+                        feedback = '👍'
+                    } else if (collected.first().emoji.name == '👎') {
+                        feedback = '👎'
+                    } else if (collected.first().emoji.name == '❌') {
+                        feedback = '❌'
+                    } 
+                    var data = {
+                        user: message.author.id,
+                        name: message.author.username,
+                        feedback: feedback,
+                        date: message.createdTimestamp,
+                        racer: random1,
+                        track: random2,
+                        laps: laps,
+                        nu: nu,
+                        skips: skips,
+                        mirror: mirror
+                    }
+                    feedbackref.push(data);
             })
             //playSfx(message, racers[numb].announce)
         const collector = new Discord.MessageCollector(message.channel, m => m.author.id === message.author.id, { time: 900000 });
