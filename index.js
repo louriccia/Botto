@@ -1498,7 +1498,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         collector.on('collect', message => {
             if (message.content == "!challenge") {
                 collected = true
-                sentMessage.delete
+                sentMessage.delete()
             } else if (collected == false && member == message.author.id && !isNaN(message.content.replace(":", "")) && timetoSeconds(message.content) !== null) {
                 var challengeend = Date.now()
                 var time = timetoSeconds(message.content)
@@ -1542,7 +1542,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                     if (parbeat < 5) {
                         message.reply("Challenge complete! You beat the " + rank[parbeat] + " time for **" + tracks[random2].name+ "** as **" + racers[random1].name + "**")
                     }
-                    message.delete
+                    message.delete()
                 }
                 
             }
