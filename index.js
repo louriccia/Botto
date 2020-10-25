@@ -1428,7 +1428,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         }
         var besttimes = ""
         for (var i=0; i<best.length; i++){
-            besttimes = besttimes + "**" + timefix(best[i].time) + "** - " + message.guild.members.cache.get(best[i].name).username + "\n"
+            besttimes = besttimes + "**" + timefix(best[i].time) + "** - " + client.guilds.members.cache.get(best[i].name).username + "\n"
             if (i == 4) {
                 i = best.length
             }
