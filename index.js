@@ -1433,6 +1433,13 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                         i = best.length
                     }
                 }
+            } else {
+                for (var i=0; i<best.length; i++){
+                    besttimes = besttimes + "**" + timefix(best[i].time) + "** - " + best[i].name + "\n"
+                    if (i == 4) {
+                        i = best.length
+                    }
+                }
             }
         }
         const challengeEmbed = new Discord.RichEmbed()
@@ -1501,7 +1508,8 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                     collected = true
                 } else {
                     var data = {
-                        name: message.author.id,
+                        user: message.author.id,
+                        name: message.author.username,
                         time: time,
                         date: message.createdTimestamp,
                         racer: random1,
