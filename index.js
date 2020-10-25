@@ -1498,6 +1498,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         collector.on('collect', message => {
             if (message.content == "!challenge") {
                 collected = true
+                sentMessage.delete
             } else if (collected == false && member == message.author.id && !isNaN(message.content.replace(":", "")) && timetoSeconds(message.content) !== null) {
                 var challengeend = Date.now()
                 var time = timetoSeconds(message.content)
@@ -1505,7 +1506,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                     message.reply("*I warn you. No funny business.*")
                     collected = true
                 } else {
-                    sentMessage.edit(":white_check_mark: Challenge completed! The submitted time was: **" + time + "**")
+                    sentMessage.edit(":white_check_mark: Challenge completed! The submitted time was: **" + timefix(time) + "**")
                     var data = {
                         user: message.author.id,
                         name: message.author.username,
