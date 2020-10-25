@@ -1349,6 +1349,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
 
     if(message.content.startsWith(`${prefix}challenge`)) {
         let member = message.author.id
+
         var challengestart = Date.now()
         var random1 = Math.floor(Math.random()*23)
         var random2 = Math.floor(Math.random()*25)
@@ -1436,7 +1437,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                 }
             } else {
                 for (var i=0; i<best.length; i++){
-                    besttimes = besttimes + "**" + timefix(best[i].time) + "** - " + best[i].name + "\n"
+                    besttimes = besttimes + pos[i] + "" + timefix(best[i].time) + " - " + best[i].name + "\n"
                     if (i == 4) {
                         i = best.length
                     }
@@ -1491,11 +1492,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                     })
                 })
             })
-            
-            
-        })
-        
-        //playSfx(message, racers[numb].announce)
+            //playSfx(message, racers[numb].announce)
         const collector = new Discord.MessageCollector(message.channel, m => m.author.id === message.author.id, { time: 900000 });
         var collected = false
         collector.on('collect', message => {
@@ -1508,6 +1505,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                     message.reply("*I warn you. No funny business.*")
                     collected = true
                 } else {
+                    sentMessage.edit(":white_check_mark: Challenge completed! You reported a time of " + time + challengeEmbed)
                     var data = {
                         user: message.author.id,
                         name: message.author.username,
@@ -1549,6 +1547,10 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
             }
             
         })
+            
+        })
+        
+        
     }
 
 /////    !abb //////
