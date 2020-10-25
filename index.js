@@ -1303,7 +1303,8 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         const oddsEmbed = new Discord.RichEmbed()
         .setTitle("Customize Your `!challenge` Odds")
         .setDescription(desc + "Change your odds by replying to this message with 4 numbers separated by commas in order of Skips, No Upgrades, Non 3-lap, and Mirror Mode. These numbers will be divided by 100 to determine the chances Botto will give the conditions in a given `!challenge`. \n Example: 15, 20, 10, 0")
-        .addField("Your Odds", "Skips - " + odds_skips +"%\nNo upgrades - " + odds_noupgrades +"%\nNon 3-lap - " + odds_non3lap +"%\nMirror mode - " + odds_mirrormode +"%", true)
+        .addField("Your Odds", "Skips - " + odds_skips +"%\nNo Upgrades - " + odds_noupgrades +"%\nNon 3-Lap - " + odds_non3lap +"%\nMirror Mode - " + odds_mirrormode +"%", true)
+        .addField("Default Odds", "Skips - 25%\nNo Upgrades - 15%\nNon 3-Lap - 5%\nMirror Mode - 5%")
         .setFooter("Reset your odds to default by typing 'default'")
         message.channel.send(oddsEmbed);
         var collected = false
@@ -1335,11 +1336,13 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                     message.reply("*Only four numbers!*")
                 }
             } else if (message.content == "default") {
-                var keys = Object.keys(oddsdata)
-                for (var i=0; i<keys.length; i++) {
-                    var k = keys[i];
-                    if(oddsdata[k].name == message.author.id){
-                        oddsref.child(k).remove()
+                if (oddsdata !==null) {
+                    var keys = Object.keys(oddsdata)
+                    for (var i=0; i<keys.length; i++) {
+                        var k = keys[i];
+                        if(oddsdata[k].name == message.author.id){
+                            oddsref.child(k).remove()
+                        }
                     }
                 }
                 message.reply("*Your odds have been reset to the default*")
