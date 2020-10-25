@@ -26,6 +26,7 @@ firebase.initializeApp(firebaseConfig);
 var database = firebase.database();
 var ref = database.ref('times'); //use forward slashes to navigate the data tree
 var oddsref = database.ref('odds');
+var feedbackref = database.ref('feedback');
 
 ref.on("value", function(snapshot) {
     challengedata = snapshot.val();
@@ -35,6 +36,12 @@ ref.on("value", function(snapshot) {
 
 oddsref.on("value", function(snapshot) {
     oddsdata = snapshot.val();
+    }, function (errorObject) {
+    console.log("The read failed: " + errorObject.code);
+    });
+
+feedbackref.on("value", function(snapshot) {
+    feedbackdata = snapshot.val();
     }, function (errorObject) {
     console.log("The read failed: " + errorObject.code);
     });
@@ -1469,7 +1476,19 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                     .then(collected => {
                         const reaction = collected.first();
                         if (reaction.emoji.name === '👍' && reaction.users.id == message.author.id) {
-                            
+                            var data = {
+                                user: message.author.id,
+                                name: message.author.username,
+                                feedback: "👍",
+                                date: message.createdTimestamp,
+                                racer: random1,
+                                track: random2,
+                                laps: laps,
+                                nu: nu,
+                                skips: skips,
+                                mirror: mirror
+                            }
+                            feedbackref.push(data);
                         } 
                     })
                 sentMessage.react('👎').then(() => {
@@ -1480,7 +1499,19 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                         .then(collected => {
                             const reaction = collected.first();
                             if (reaction.emoji.name === '👎' && reaction.users.id == message.author.id) {
-                                
+                                var data = {
+                                    user: message.author.id,
+                                    name: message.author.username,
+                                    feedback: "👎",
+                                    date: message.createdTimestamp,
+                                    racer: random1,
+                                    track: random2,
+                                    laps: laps,
+                                    nu: nu,
+                                    skips: skips,
+                                    mirror: mirror
+                                }
+                                feedbackref.push(data);
                             } 
                         })
                     sentMessage.react('❌').then(() => {
@@ -1491,7 +1522,19 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                             .then(collected => {
                                 const reaction = collected.first();
                                 if (reaction.emoji.name === '❌' && reaction.users.id == message.author.id) {
-                                    
+                                    var data = {
+                                        user: message.author.id,
+                                        name: message.author.username,
+                                        feedback: "❌",
+                                        date: message.createdTimestamp,
+                                        racer: random1,
+                                        track: random2,
+                                        laps: laps,
+                                        nu: nu,
+                                        skips: skips,
+                                        mirror: mirror
+                                    }
+                                    feedbackref.push(data);
                                 } 
                             })
                     })
