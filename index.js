@@ -1505,7 +1505,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                     message.reply("*I warn you. No funny business.*")
                     collected = true
                 } else {
-                    sentMessage.edit(":white_check_mark: Challenge completed! You reported a time of " + time + challengeEmbed)
+                    sentMessage.edit(":white_check_mark: Challenge completed! You reported a time of " + time)
                     var data = {
                         user: message.author.id,
                         name: message.author.username,
@@ -1541,7 +1541,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                     if (parbeat < 5) {
                         message.reply("Challenge complete! You beat the " + rank[parbeat] + " time for **" + tracks[random2].name+ "** as **" + racers[random1].name + "**")
                     }
-                    
+                    message.delete
                 }
                 
             }
