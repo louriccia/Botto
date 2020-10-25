@@ -1423,14 +1423,16 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                 best.push(challengedata[k])
             }
         }
+        var besttimes = ""
         if(best.length > 0) {
             best.sort((a,b) => (a.time > b.time) ? 1 : -1)
-        }
-        var besttimes = ""
-        for (var i=0; i<best.length; i++){
-            besttimes = besttimes + "**" + timefix(best[i].time) + "** - " + bot.guilds.get("441839750555369474").members.cache.get(best[i].name).username + "\n"
-            if (i == 4) {
-                i = best.length
+            if (message.guild){
+                for (var i=0; i<best.length; i++){
+                    besttimes = besttimes + "**" + timefix(best[i].time) + "** - " + client.guilds.cahce.get("441839750555369474").member.get(best[i].name).username + "\n"
+                    if (i == 4) {
+                        i = best.length
+                    }
+                }
             }
         }
         const challengeEmbed = new Discord.RichEmbed()
