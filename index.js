@@ -1349,7 +1349,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
 
     if(message.content.startsWith(`${prefix}challenge`)) {
         let member = message.author.id
-
+        var commandmessage = message
         var challengestart = Date.now()
         var random1 = Math.floor(Math.random()*23)
         var random2 = Math.floor(Math.random()*25)
@@ -1498,6 +1498,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         collector.on('collect', message => {
             if (message.content == "!challenge") {
                 collected = true
+                commandmessage.delete()
                 sentMessage.delete()
             } else if (collected == false && member == message.author.id && !isNaN(message.content.replace(":", "")) && timetoSeconds(message.content) !== null) {
                 var challengeend = Date.now()
