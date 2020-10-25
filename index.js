@@ -1359,12 +1359,14 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
     }
 
     if(message.content.startsWith(`${prefix}challenge`)) {
+        var hints = ["Type `?challenge` to learn more about how it works", "You have 15 minutes to submit a time", "Your feedback is appreciated", "You can use `!odds` to customize how the challenge is randomized", "Can you beat the par times?", "React with a thumbs up if you liked the challenge", "React with a thumbs down if the challenge wasn't fun", "React with a red x if the challenge is impossible", "Submit your time below!", "Your time starts... now!", "Is that you, Hyuudoro?", "What are you waiting for?", "I know you want to skip this one...", "Only the person who called the challenge can submit a time", "If you call another challenge, it will cancel this one"]
         let member = message.author.id
         var commandmessage = message
         var challengestart = Date.now()
         var random1 = Math.floor(Math.random()*23)
         var random2 = Math.floor(Math.random()*25)
         var random3 = Math.floor(Math.random()*movieQuotes.length)
+        var random4 = Math.floor(Math.random()*hints.length)
         var laps = 3
         var lap = [1,2,4,5]
         var laptext = ""
@@ -1459,6 +1461,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         const challengeEmbed = new Discord.RichEmbed()
             .setTitle("Race as **" + flag + " " + racers[random1].name + "** (" + (random1 + 1) + ")"+ nutext + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + laptext + skipstext + mirrortext)
             .setDescription(movieQuotes[random3])
+            .setFooter(hints[random4])
             if(nu == false && skips == false && laps == 3) {
                 challengeEmbed.addField("Par Times", ":gem: " + tracks[random2].partimes[0] + "\n:first_place: " + tracks[random2].partimes[1] + "\n:second_place: " + tracks[random2].partimes[2] + "\n:third_place: " + tracks[random2].partimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[random2].partimes[4], true)
             } else if (nu == false && skips == true && laps == 3) {
