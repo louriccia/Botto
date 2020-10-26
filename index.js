@@ -1359,10 +1359,16 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
     }
 
     if(message.content.startsWith(`${prefix}challenge`)) {
-        var hints = ["Type `?challenge` to learn more about how it works", "You have 15 minutes to submit a time", "Your feedback is appreciated", "You can use `!odds` to customize how the challenge is randomized", "Can you beat the par times?", "React with a thumbs up if you liked the challenge", "React with a thumbs down if the challenge wasn't fun", "React with a red x if the challenge is impossible", "Submit your time below!", "Your time starts... now!", "Is that you, Hyuudoro?", "What are you waiting for?", "I know you want to skip this one...", "Only the person who called the challenge can submit a time", "If you call another challenge, it will cancel this one"]
+        var hints = ["Type `?challenge` to learn more about how it works", "You have 15 minutes to submit a time", "Your feedback is appreciated", "You can use `!odds` to customize how the challenge is randomized", "Can you beat the par times?", "React with a thumbs up if you liked the challenge", "React with a thumbs down if the challenge wasn't fun", "React with a red x if the challenge is impossible", "Submit your time below!", "Your time starts... now!", "Is that you, Hyuudoro?", "Only the person who called the challenge can submit a time", "If you call another challenge, it will cancel your current challenge"]
         let member = message.author.id
         var commandmessage = message
         var challengestart = Date.now()
+        //var randoms1 = [Math.random(),Math.random(),Math.random(),Math.random(),Math.random()]
+        //var randoms2 = [Math.random(),Math.random(),Math.random(),Math.random(),Math.random()]
+        //var randoms3 = [Math.random(),Math.random(),Math.random(),Math.random(),Math.random()]
+        //var randoms4 = [Math.random(),Math.random(),Math.random(),Math.random(),Math.random()]
+        //var randoms5 = [Math.random(),Math.random(),Math.random(),Math.random(),Math.random()]
+        //var randoms6 = [Math.random(),Math.random(),Math.random(),Math.random(),Math.random()]
         var random1 = Math.floor(Math.random()*23)
         var random2 = Math.floor(Math.random()*25)
         var random3 = Math.floor(Math.random()*movieQuotes.length)
@@ -1504,7 +1510,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         const collector = new Discord.MessageCollector(message.channel, m => m.author.id === message.author.id, { time: 900000 });
         var collected = false
         collector.on('collect', message => {
-            if (message.content == "!challenge") {
+            if (message.content == "!challenge" && collected == false && member == message.author.id) {
                 collected = true
                 commandmessage.delete()
                 sentMessage.delete()
@@ -1515,7 +1521,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                     message.reply("*I warn you. No funny business.*")
                     collected = true
                 } else {
-                    sentMessage.edit(":white_check_mark: Challenge completed! The submitted time was: **" + timefix(time) + "**")
+                    
                     var data = {
                         user: message.author.id,
                         name: message.author.username,
@@ -1535,12 +1541,12 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                     for (var i=0; i<5; i++) {
                         if (nu == false){
                             if (skips) {
-                                if (time < tracks[random2].parskiptimes[i]) {
+                                if (time < timetoSeconds(tracks[random2].parskiptimes[i])) {
                                     parbeat = i
                                     i = 5
                                 }
                             } else {
-                                if (time < tracks[random2].partimes[i]) {
+                                if (time < timetoSeconds(tracks[random2].partimes[i])) {
                                     parbeat = i
                                     i = 5
                                 }
@@ -1548,9 +1554,17 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                         }
                         
                     }
-                    if (parbeat < 5) {
-                        message.reply("Challenge complete! You beat the " + rank[parbeat] + " time for **" + tracks[random2].name+ "** as **" + racers[random1].name + "**")
+                    var congrats = ""
+                    if (best.length > 0) {
+                        if (parbeat < 5 && time < best[0].time) {
+                            congrats = "<:newrecord:770140118723198996> You beat the best challenge time and the " + rank[parbeat] + " time for this track! <:newrecord:770140118723198996>"
+                        } else if (time < best[0].time) {
+                            congrats = "<:newrecord:770140118723198996> You beat the best challenge time for this track! <:newrecord:770140118723198996>"
+                        }
+                    } else if (parbeat < 5) {
+                        congrats = "You beat the " + rank[parbeat] + " time for this track!"
                     }
+                    sentMessage.edit(":white_check_mark: Challenge completed! The submitted time was: **" + timefix(time) + "**\n" + congrats)
                     message.delete()
                 }
                 
