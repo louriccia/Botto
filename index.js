@@ -1457,8 +1457,15 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         }
         const challengeEmbed = new Discord.RichEmbed()
             .setTitle("Race as **" + flag + " " + racers[random1].name + "** (" + (random1 + 1) + ")"+ nutext + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + laptext + skipstext + mirrortext)
-            .setDescription(movieQuotes[random3])
             .setFooter(hints[random4])
+            if(Math.random()<0.50 && best.lenght> 0) {
+                challengeEmbed.setDescription("The current record-holder for this challenge is... " + best[0].name + "!")
+            } else if (math.random < 0.50) {
+                var str = playerPicks[Math.floor(Math.random()*playerPicks.length)]
+                challengeEmbed.setDescription(str.replace("replaceme", message.author.tag))
+            } else {
+                challengeEmbed.setDescription(movieQuotes[random3])
+            }
             if(nu == false && skips == false && laps == 3) {
                 challengeEmbed.addField("Par Times", ":gem: " + tracks[random2].partimes[0] + "\n:first_place: " + tracks[random2].partimes[1] + "\n:second_place: " + tracks[random2].partimes[2] + "\n:third_place: " + tracks[random2].partimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[random2].partimes[4], true)
             } else if (nu == false && skips == true && laps == 3) {
@@ -1548,9 +1555,9 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                     var congrats = ""
                     if (best.length > 0) {
                         if (parbeat < 5 && time < best[0].time) {
-                            congrats = "<:newrecord:770140118723198996> You beat the best challenge time and the " + rank[parbeat] + " time for this track! <:newrecord:770140118723198996>"
+                            congrats = "<a:newrecord:672640831882133524> You beat the best challenge time and the " + rank[parbeat] + " time for this track! <a:newrecord:672640831882133524>"
                         } else if (time < best[0].time) {
-                            congrats = "<:newrecord:770140118723198996> You beat the best challenge time for this track! <:newrecord:770140118723198996>"
+                            congrats = "<a:newrecord:672640831882133524> You beat the best challenge time for this track! <a:newrecord:672640831882133524>"
                         }
                     } else if (parbeat < 5) {
                         congrats = "You beat the " + rank[parbeat] + " time for this track!"
