@@ -1448,19 +1448,10 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         if(best.length > 0) {
             besttimes =""
             best.sort((a,b) => (a.time > b.time) ? 1 : -1)
-            if (message.guild){
-                for (var i=0; i<best.length; i++){
-                    besttimes = besttimes + pos[i] + " " + timefix(best[i].time) + " - " + message.guild.cahce.get("441839750555369474").username + "\n"
-                    if (i == 4) {
-                        i = best.length
-                    }
-                }
-            } else {
-                for (var i=0; i<best.length; i++){
-                    besttimes = besttimes + pos[i] + "" + timefix(best[i].time) + " - " + best[i].name + "\n"
-                    if (i == 4) {
-                        i = best.length
-                    }
+            for (var i=0; i<best.length; i++){
+                besttimes = besttimes + pos[i] + "" + timefix(best[i].time) + " - " + best[i].name + "\n"
+                if (i == 4) {
+                    i = best.length
                 }
             }
         }
