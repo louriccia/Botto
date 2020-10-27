@@ -1460,7 +1460,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
             .setFooter(hints[random4])
             if(Math.random()<0.50 && best.length> 0) {
                 challengeEmbed.setDescription("The current record-holder for this challenge is... " + best[0].name + "!")
-            } else if (Math.random < 0.50) {
+            } else if (Math.random() < 0.50) {
                 var str = playerPicks[Math.floor(Math.random()*playerPicks.length)]
                 challengeEmbed.setDescription(str.replace("replaceme", message.author.tag))
             } else {
