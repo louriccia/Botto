@@ -1462,7 +1462,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                 challengeEmbed.setDescription("The current record-holder for this challenge is... " + best[0].name + "!")
             } else if (Math.random() < 0.50) {
                 var str = playerPicks[Math.floor(Math.random()*playerPicks.length)]
-                challengeEmbed.setDescription(str.replace("replaceme", message.author.tag))
+                challengeEmbed.setDescription(str.replace("replaceme", message.author.username))
             } else {
                 challengeEmbed.setDescription(movieQuotes[random3])
             }
