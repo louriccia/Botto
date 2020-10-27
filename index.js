@@ -1503,6 +1503,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                         mirror: mirror
                     }
                     feedbackref.push(data);
+                }).catch(() => {
             })
             //playSfx(message, racers[numb].announce)
         const collector = new Discord.MessageCollector(message.channel, m => m.author.id === message.author.id, { time: 900000 });
@@ -1510,7 +1511,9 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         collector.on('collect', message => {
             if (message.content == "!challenge" && collected == false && member == message.author.id) {
                 collected = true
-                commandmessage.delete()
+                if (message.guild) {
+                    commandmessage.delete()
+                }
                 sentMessage.delete()
             } else if (collected == false && member == message.author.id && !isNaN(message.content.replace(":", "")) && timetoSeconds(message.content) !== null) {
                 var challengeend = Date.now()
@@ -1563,7 +1566,9 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                         congrats = "You beat the " + rank[parbeat] + " time for this track!"
                     }
                     sentMessage.edit(":white_check_mark: Challenge completed! The submitted time was: **" + timefix(time) + "**\n" + congrats)
-                    message.delete()
+                    if (message.guild) {
+                        message.delete()
+                    }
                 }
                 
             }
