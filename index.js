@@ -1458,7 +1458,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         const challengeEmbed = new Discord.RichEmbed()
             .setTitle("Race as **" + flag + " " + racers[random1].name + "** (" + (random1 + 1) + ")"+ nutext + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + laptext + skipstext + mirrortext)
             .setFooter(hints[random4])
-            if(Math.random()<0.50 && best.lenght> 0) {
+            if(Math.random()<0.50 && best.length> 0) {
                 challengeEmbed.setDescription("The current record-holder for this challenge is... " + best[0].name + "!")
             } else if (Math.random < 0.50) {
                 var str = playerPicks[Math.floor(Math.random()*playerPicks.length)]
