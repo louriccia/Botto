@@ -186,7 +186,7 @@ module.exports = playerPicks = [
     `*${a}'s midi-chlorian count is off the chart. Over 20,000!*`,
     `*I warn you, ${a}. No funny business.*`,
     `*You won't walk away from this one, ${a}, you slave scum.*`,
-    `*The current record holder for this track is... ${a}!*`,
+    //`*The current record holder for this track is... ${a}!*`,
     `*Come on, let's go and play ball. Keep racing, ${a}. You're gonna be bug squash!*`,
     
     
