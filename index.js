@@ -56,7 +56,7 @@ client.once('ready', () => {
     console.log('Ready!')
     //set bot activity
     client.user.setActivity("Star Wars: Episode I - Racer")
-    client.users.get("256236315144749059").send("Ready!")
+    //client.users.get("256236315144749059").send("Ready!")
 })
 
 
@@ -1271,6 +1271,28 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
     
 
 }
+
+/*
+Stats:
+X - Total Challenges
+X - Skips
+X - NU
+X - Non 3-Lap
+X - Mirror Mode
+
+Favorites:
+Most played pod:
+Most played track:
+Most played planet:
+Most played circuit:
+
+Achievements:
+Complete a challenge on every track:
+Complete a challenge with every pod:
+Complete a skip challenge for every skip track:
+Complete a NU challenge with every pod:
+Complete a challenge as every pod on every track: X/575
+*/
 
 /////   !challenge    //////
     if(message.content == "?challenge") {
