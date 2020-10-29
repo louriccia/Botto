@@ -70,9 +70,9 @@ client.on("messageDelete", (messageDelete) => {
             date: messageDelete.createdTimestamp,
             action: "deleted message",
             message: messageDelete.content,
-            channel: messageDelete.channel
+            channel: message.guild.channels.cache.get(messageDelete.channel.id)
         }
-        console.log(data)
+        //console.log(data)
         logref.push(data);
         //client.users.get("256236315144749059").send(`${messageDelete.author.tag} deleted a message from ${messageDelete.channel}\n> ${messageDelete.content}`);
     }
@@ -88,9 +88,9 @@ client.on('messageUpdate', (oldMessage, newMessage) => {
             action: "edited message",
             message: oldMessage.content,
             edit: newMessage.content,
-            channel: oldMessage.channel
+            channel: message.guild.channels.cache.get(oldMessage.channel.id)
         }
-        console.log(data)
+        //console.log(data)
         logref.push(data);
     }
 });
