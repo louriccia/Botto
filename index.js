@@ -27,6 +27,7 @@ var database = firebase.database();
 var ref = database.ref('times'); //use forward slashes to navigate the data tree
 var oddsref = database.ref('odds');
 var feedbackref = database.ref('feedback');
+var logref = database.ref('log');
 
 ref.on("value", function(snapshot) {
     challengedata = snapshot.val();
@@ -62,15 +63,33 @@ client.once('ready', () => {
 
 client.on("messageDelete", (messageDelete) => {
     if (messageDelete.author.bot == false && messageDelete.channel.type == "text") {
-        console.log(`${messageDelete.author.tag} deleted the following message from ${messageDelete.channel}: "${messageDelete.content}"`)
+        //console.log(`${messageDelete.author.tag} deleted the following message from ${messageDelete.channel}: "${messageDelete.content}"`)
+        var data = {
+            user: messageDelete.author.id,
+            name: messageDelete.author.username,
+            date: messageDelete.createdTimestamp,
+            action: "deleted message",
+            message: messageDelete.content,
+            channel: messageDelete.channel
+        }
+        logref.push(data);
         //client.users.get("256236315144749059").send(`${messageDelete.author.tag} deleted a message from ${messageDelete.channel}\n> ${messageDelete.content}`);
     }
    });
 
 client.on('messageUpdate', (oldMessage, newMessage) => {
     if (oldMessage.author.bot == false && oldMessage.channel.type == "text") {
-        console.log(`${newMessage.author.tag} edited a message in ${oldMessage.channel} from "${oldMessage.content}" to "${newMessage.content}"`)
-        //client.users.get("256236315144749059").send(`${newMessage.author.tag} edited a message in ${oldMessage.channel}\n> ${oldMessage.content}\n==>\n> ${newMessage.content}`);
+        //console.log(`${newMessage.author.tag} edited a message in ${oldMessage.channel} from "${oldMessage.content}" to "${newMessage.content}"`)
+        var data = {
+            user: oldMessage.author.id,
+            name: oldMessage.author.username,
+            date: oldMessage.createdTimestamp,
+            action: "edited message",
+            message: oldMessage.content,
+            edit: newMessage.content,
+            channel: oldMessage.channel
+        }
+        logref.push(data);
     }
 });
 
@@ -1477,16 +1496,35 @@ Complete a challenge as every pod on every track: X/575
                 }
             }
         }
+        var msg = ""
         const challengeEmbed = new Discord.RichEmbed()
             .setTitle("Race as **" + flag + " " + racers[random1].name + "** (" + (random1 + 1) + ")"+ nutext + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + laptext + skipstext + mirrortext)
-            .setFooter(hints[random4])
+            //.setFooter(hints[random4])
+            .setColor(planets[tracks[random2].planet].color)
+            var like = 0
+            var dislike = 0
+            var impossible = 0
+            var keys = Object.keys(feedbackdata)
+            for (var i=0; i<keys.length; i++) {
+                var k = keys[i];
+                if(feedbackdata[k].track == random2 && feedbackdata[k].racer == random1 && feedbackdata[k].laps == laps && feedbackdata[k].mirror == mirror && feedbackdata[k].nu == nu && feedbackdata[k].skips == skips){
+                    if (feedbackdata[k].track == "👍") {
+                        like = like +1
+                    } else if (feedbackdata[k].track == "👎") {
+                        dislike = dislike +1
+                    } else if (feedbackdata[k].track == "❌") {
+                        impossible = impossible + 1
+                    } 
+                }
+            }
+            challengeEmbed.setDescription("👍 " + like + "  👎 " + dislike + "  ❌ " + impossible)
             if(Math.random()<0.50 && best.length> 0) {
-                challengeEmbed.setDescription("The current record-holder for this challenge is... " + best[0].name + "!")
+                mgs = "*The current record-holder for this challenge is... " + best[0].name + "!*"
             } else if (Math.random() < 0.50) {
                 var str = playerPicks[Math.floor(Math.random()*playerPicks.length)]
-                challengeEmbed.setDescription(str.replace("replaceme", message.author.username))
+                mgs = str.replace("replaceme", message.author.username)
             } else {
-                challengeEmbed.setDescription(movieQuotes[random3])
+                mgs = movieQuotes[random3]
             }
             if(nu == false && skips == false && laps == 3) {
                 challengeEmbed.addField("Par Times", ":gem: " + tracks[random2].partimes[0] + "\n:first_place: " + tracks[random2].partimes[1] + "\n:second_place: " + tracks[random2].partimes[2] + "\n:third_place: " + tracks[random2].partimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[random2].partimes[4], true)
@@ -1496,7 +1534,7 @@ Complete a challenge as every pod on every track: X/575
             if(besttimes !== "") {
                 challengeEmbed.addField("Best Times", besttimes, true)
             }
-        message.channel.send(challengeEmbed).then(sentMessage => {
+        message.channel.send(msg + challengeEmbed).then(sentMessage => {
             sentMessage.react('👍').then(()=> {
                 sentMessage.react('👎').then(()=> {
                     sentMessage.react('❌');
