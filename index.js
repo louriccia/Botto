@@ -1517,7 +1517,17 @@ Complete a challenge as every pod on every track: X/575
                     } 
                 }
             }
-            challengeEmbed.setDescription("👍 " + like + "  👎 " + dislike + "  ❌ " + impossible)
+            var desc = ""
+            if (like > 0) {
+                desc = desc + "  👍 " + like
+            }
+            if (dislike > 0) {
+                desc = desc + "  👎 " + dislike
+            }
+            if (impossible > 0) {
+                desc = desc + "  ❌ " + impossible
+            }
+            challengeEmbed.setDescription(desc)
             if(Math.random()<0.50 && best.length> 0) {
                 mgs = "*The current record-holder for this challenge is... " + best[0].name + "!*"
             } else if (Math.random() < 0.50) {
