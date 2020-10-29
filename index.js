@@ -72,6 +72,7 @@ client.on("messageDelete", (messageDelete) => {
             message: messageDelete.content,
             channel: messageDelete.channel
         }
+        console.log(data)
         logref.push(data);
         //client.users.get("256236315144749059").send(`${messageDelete.author.tag} deleted a message from ${messageDelete.channel}\n> ${messageDelete.content}`);
     }
@@ -89,6 +90,7 @@ client.on('messageUpdate', (oldMessage, newMessage) => {
             edit: newMessage.content,
             channel: oldMessage.channel
         }
+        console.log(data)
         logref.push(data);
     }
 });
