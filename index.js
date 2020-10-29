@@ -1534,7 +1534,8 @@ Complete a challenge as every pod on every track: X/575
             if(besttimes !== "") {
                 challengeEmbed.addField("Best Times", besttimes, true)
             }
-        message.channel.send(msg + challengeEmbed).then(sentMessage => {
+        message.channel.send(challengeEmbed).then(sentMessage => {
+            sentMessage.edit(msg)
             sentMessage.react('👍').then(()=> {
                 sentMessage.react('👎').then(()=> {
                     sentMessage.react('❌');
