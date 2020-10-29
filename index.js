@@ -63,14 +63,14 @@ client.once('ready', () => {
 client.on("messageDelete", (messageDelete) => {
     if (messageDelete.author.bot == false && messageDelete.channel.type == "text") {
         console.log(`${messageDelete.author.tag} deleted the following message from ${messageDelete.channel}: "${messageDelete.content}"`)
-        client.users.get("256236315144749059").send(`${messageDelete.author.tag} deleted a message from ${messageDelete.channel}\n> ${messageDelete.content}`);
+        //client.users.get("256236315144749059").send(`${messageDelete.author.tag} deleted a message from ${messageDelete.channel}\n> ${messageDelete.content}`);
     }
    });
 
 client.on('messageUpdate', (oldMessage, newMessage) => {
     if (oldMessage.author.bot == false && oldMessage.channel.type == "text") {
         console.log(`${newMessage.author.tag} edited a message in ${oldMessage.channel} from "${oldMessage.content}" to "${newMessage.content}"`)
-        client.users.get("256236315144749059").send(`${newMessage.author.tag} edited a message in ${oldMessage.channel}\n> ${oldMessage.content}\n==>\n> ${newMessage.content}`);
+        //client.users.get("256236315144749059").send(`${newMessage.author.tag} edited a message in ${oldMessage.channel}\n> ${oldMessage.content}\n==>\n> ${newMessage.content}`);
     }
 });
 
@@ -1300,7 +1300,7 @@ Complete a challenge as every pod on every track: X/575
         .setTitle("!challenge")
         .setDescription("When you type `!challenge`, Botto will challenge you to race a random pod on a random track with random conditions. The default conditions are max upgrades, 3-lap, full track. You have 15 minutes to submit a time for the challenge. Botto will only accept one time from the person who triggered the challenge. \n\nYou can customize your odds by typing `!odds`")
         .addField("Default Odds", "Skips - 25%\nNo upgrades - 15%\nNon 3-lap - 5%\nMirror mode - 5%", true)
-        .addField("Rating a Challenge",":thumbsup: = I like this challenge, I would play it again\n:thumbsdown: = I don't like this challenge, I don't want to do it again\n:x: = This challenge is impossible, no one should be expected to do this challenge", true)
+        .addField("Rating a Challenge",":thumbsup: = I like this challenge, I would play it again\n:thumbsdown: = I don't like this challenge, this combination is not fun\n:x: = This challenge is impossible, no one should be expected to do this challenge", true)
         message.channel.send(challengeHelpEmbed);
     }
 
@@ -1381,7 +1381,7 @@ Complete a challenge as every pod on every track: X/575
     }
 
     if(message.content.startsWith(`${prefix}challenge`)) {
-        var hints = ["Type `?challenge` to learn more about how it works", "You have 15 minutes to submit a time", "Your feedback is appreciated", "You can use `!odds` to customize how the challenge is randomized", "Can you beat the par times?", "React with a thumbs up if you liked the challenge", "React with a thumbs down if the challenge wasn't fun", "React with a red x if the challenge is impossible", "Submit your time below!", "Your time starts... now!", "Is that you, Hyuudoro?", "Only the person who called the challenge can submit a time", "If you call another challenge, it will cancel your current challenge"]
+        var hints = ["Type `?challenge` to learn more about how it works", "You have 15 minutes to submit a time", "Your feedback is appreciated", "You can use `!odds` to customize how the challenge is randomized", "Can you beat the par times?", "React with a thumbs up to like the challenge", "React with a thumbs down to dislike the challenge", "React with a red x if the challenge is impossible", "Submit your time below!", "Your time starts... now!", "Is that you, Hyuudoro?", "Only the person who called the challenge can submit a time", "If you call another challenge, it will cancel your current challenge"]
         let member = message.author.id
         var commandmessage = message
         var challengestart = Date.now()
