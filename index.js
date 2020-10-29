@@ -1529,15 +1529,16 @@ Complete a challenge as every pod on every track: X/575
             if (impossible > 0) {
                 desc = desc + "  ❌ " + impossible
             }
-            challengeEmbed.setDescription(desc)
+            
             if(Math.random()<0.50 && best.length> 0) {
-                mgs = "*The current record-holder for this challenge is... " + best[0].name + "!*"
+                desc = desc +"*The current record-holder for this challenge is... " + best[0].name + "!*"
             } else if (Math.random() < 0.50) {
                 var str = playerPicks[Math.floor(Math.random()*playerPicks.length)]
-                mgs = str.replace("replaceme", message.author.username)
+                desc = desc + str.replace("replaceme", message.author.username)
             } else {
-                mgs = movieQuotes[random3]
+                desc = desc + movieQuotes[random3]
             }
+            challengeEmbed.setDescription(desc)
             if(nu == false && skips == false && laps == 3) {
                 challengeEmbed.addField("Par Times", ":gem: " + tracks[random2].partimes[0] + "\n:first_place: " + tracks[random2].partimes[1] + "\n:second_place: " + tracks[random2].partimes[2] + "\n:third_place: " + tracks[random2].partimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[random2].partimes[4], true)
             } else if (nu == false && skips == true && laps == 3) {
@@ -1547,7 +1548,7 @@ Complete a challenge as every pod on every track: X/575
                 challengeEmbed.addField("Best Times", besttimes, true)
             }
         message.channel.send(challengeEmbed).then(sentMessage => {
-            sentMessage.edit(msg)
+            //sentMessage.edit(msg)
             sentMessage.react('👍').then(()=> {
                 sentMessage.react('👎').then(()=> {
                     sentMessage.react('❌');
