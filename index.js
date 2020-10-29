@@ -70,7 +70,7 @@ client.on("messageDelete", (messageDelete) => {
             date: messageDelete.createdTimestamp,
             action: "deleted message",
             message: messageDelete.content,
-            channel: messageDelete.guild.channels.cache.get(messageDelete.channel.id)
+            channel: messageDelete.channel.id
         }
         //console.log(data)
         logref.push(data);
@@ -88,7 +88,7 @@ client.on('messageUpdate', (oldMessage, newMessage) => {
             action: "edited message",
             message: oldMessage.content,
             edit: newMessage.content,
-            channel: oldMessage.guild.channels.cache.get(oldMessage.channel.id)
+            channel: oldMessage.channel.id
         }
         //console.log(data)
         logref.push(data);
