@@ -62,7 +62,7 @@ client.once('ready', () => {
 
 
 client.on("messageDelete", (messageDelete) => {
-    if (messageDelete.author.bot == false && messageDelete.channel.type == "text") {
+    if (messageDelete.author.bot == false && messageDelete.channel.type == "text" && !message.startsWith("!")) {
         //console.log(`${messageDelete.author.tag} deleted the following message from ${messageDelete.channel}: "${messageDelete.content}"`)
         var data = {
             user: messageDelete.author.id,
