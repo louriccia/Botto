@@ -1972,7 +1972,8 @@ client.on('guildMemberAdd', (guildMember) => {
     const role = guild.roles.get("442316203835392001");
     let member = guildMember
     member.addRole(role).catch(console.error);
-    client.channels.cache.get("441839751235108875").send(welcomeMessages(Math.floor(Math.random)*welcomeMessages.length).replace("replaceme", guildMember.username));
+    var join = welcomeMessages[Math.floor(Math.random)*welcomeMessages.length].replace("replaceme", guildMember.username)
+    client.channels.cache.get("441839751235108875").send(join);
 
  })
 
