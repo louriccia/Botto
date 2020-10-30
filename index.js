@@ -1974,7 +1974,7 @@ client.on('guildMemberAdd', (guildMember) => {
     let member = guildMember
     member.addRole(role).catch(console.error);
     var join = welcomeMessages[Math.floor(Math.random)*welcomeMessages.length].replace("replaceme", guildMember.username)
-    client.channels.cache.get("441839751235108875").send(join);
+    client.channels.get("441839751235108875").send(join);
 
  })
 
