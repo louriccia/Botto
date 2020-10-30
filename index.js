@@ -1296,22 +1296,23 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
 /*
 Stats:
 X - Total Challenges
+X - Standard
 X - Skips
 X - NU
 X - Non 3-Lap
 X - Mirror Mode
 
-Favorites:
+Trends:
 Most played pod:
 Most played track:
 Most played planet:
 Most played circuit:
 
 Achievements:
-Complete a challenge on every track:
-Complete a challenge with every pod:
-Complete a skip challenge for every skip track:
-Complete a NU challenge with every pod:
+Complete a challenge on every track: X/25
+Complete a challenge with every pod: X/23
+Complete a skip challenge for every track with a skip: X/12
+Complete a NU challenge with every pod: X/23
 Complete a challenge as every pod on every track: X/575
 */
 
@@ -1971,7 +1972,7 @@ client.on('guildMemberAdd', (guildMember) => {
     const role = guild.roles.get("442316203835392001");
     let member = guildMember
     member.addRole(role).catch(console.error);
-    //client.channels.get("441839751235108875").send("Welcome to the Star Wars Episode I: Racer discord, " + guildMember + "! Take a look around! I've got everything you need.");
+    client.channels.get("441839751235108875").send(welcomeMessages(Math.floor(Math.random)*welcomeMessages.length).replace("replaceme", guildMember.username));
 
  })
 
