@@ -57,21 +57,21 @@ client.once('ready', () => {
     console.log('Ready!')
     //set bot activity
     client.user.setActivity("Star Wars: Episode I - Racer")
-    //client.users.get("256236315144749059").send("Ready!")
-    client.channels.get("444208252541075476").send("Ready!");
+    //client.users.cache.get("256236315144749059").send("Ready!")
+    client.channels.cache.get("444208252541075476").send("Ready!");
 })
 
 client.on('guildMemberAdd', (guildMember) => {
     var random = Math.floor(Math.random())*welcomeMessages.length
     var join = welcomeMessages[random]
     console.log(join)
-    //member.guild.channels.get("441839751235108875").send(join.replace("replaceme", member.username));
-    client.channels.get("441839751235108875").send(join.replace("replaceme", member.user.username));
-    const guild = client.guilds.get("441839750555369474");
-    const role = guild.roles.get("442316203835392001");
+    //member.guild.channels.cache.get("441839751235108875").send(join.replace("replaceme", member.username));
+    client.channels.cache.get("441839751235108875").send(join.replace("replaceme", member.user.username));
+    const guild = client.guilds.cache.get("441839750555369474");
+    const role = guild.roles.cache.get("442316203835392001");
     
     let member = guildMember
-    member.addRole(role).catch(console.error);
+    member.roles.add(role).catch(console.error);
 
  })
 
@@ -88,7 +88,7 @@ client.on("messageDelete", (messageDelete) => {
         }
         //console.log(data)
         logref.push(data);
-        //client.users.get("256236315144749059").send(`${messageDelete.author.tag} deleted a message from ${messageDelete.channel}\n> ${messageDelete.content}`);
+        //client.users.cache.get("256236315144749059").send(`${messageDelete.author.tag} deleted a message from ${messageDelete.channel}\n> ${messageDelete.content}`);
     }
    });
 
@@ -114,7 +114,7 @@ client.on('voiceStateUpdate', (oldMember, newMember) => {
 
     let newUserChannel = newMember.voiceChannel
     let oldUserChannel = oldMember.voiceChannel
-    var chan = client.channels.get('441840193754890250');
+    var chan = client.channels.cache.get('441840193754890250');
     
     //get list of members in voice channel
     
@@ -144,14 +144,14 @@ client.on('voiceStateUpdate', (oldMember, newMember) => {
         } else if(7 < arr.length) {
             var random = Math.floor(Math.random()*4)+17}
        var str = welcomeMessages[random]
-       client.channels.get("551786988861128714").send(str.replace("replaceme", newMember))
+       client.channels.cache.get("551786988861128714").send(str.replace("replaceme", newMember))
        random = Math.floor(Math.random()*voiceWelcome.length)
        // playSfx2(newUserChannel.id,voiceWelcome[random])
 
     
-       const voicecon = client.guilds.get("441839750555369474")
+       const voicecon = client.guilds.cache.get("441839750555369474")
        if ((voicecon.voiceConnection !== null)) {
-            const channel = client.channels.get("441840193754890250");
+            const channel = client.channels.cache.get("441840193754890250");
             channel.join()
                 .then(connection => { // Connection is an instance of VoiceConnection
                 const dispatcher = connection.playFile(voiceWelcome[random]);
@@ -172,19 +172,19 @@ client.on('voiceStateUpdate', (oldMember, newMember) => {
     //if member is already in any voice channel
     if(oldUserChannel !== undefined){ 
         //member leaves multiplayer or troubleshooting channel
-        const voicecon = client.guilds.get("441839750555369474")
+        const voicecon = client.guilds.cache.get("441839750555369474")
         if(voicecon.voiceConnection !== null){
         if((oldUserChannel.id == 441840193754890250 || oldUserChannel.id == 441840753111597086) && newUserChannel === undefined){ 
             random = Math.floor(Math.random()*goodbyeMessages.length)
             random2 = Math.floor(Math.random()*voiceFarewell.length)
             var str = goodbyeMessages[random]
-            client.channels.get("551786988861128714").send(str.replace("replaceme", oldMember))
+            client.channels.cache.get("551786988861128714").send(str.replace("replaceme", oldMember))
             //playSfx2(oldUserChannel.id,voiceFarewell[random2])
 
 
-            const voicecon = client.guilds.get("441839750555369474")
+            const voicecon = client.guilds.cache.get("441839750555369474")
             if ((voicecon.voiceConnection !== null)) {
-            const channel = client.channels.get("441840193754890250");
+            const channel = client.channels.cache.get("441840193754890250");
             channel.join()
                 .then(connection => { // Connection is an instance of VoiceConnection
                 const dispatcher = connection.playFile(voiceFarewell[random2]);
@@ -209,13 +209,13 @@ client.on('voiceStateUpdate', (oldMember, newMember) => {
                 random = Math.floor(Math.random()*troubleShooting.length)
                 random2 = Math.floor(Math.random()*voiceTrouble.length)
                 var str = troubleShooting[random]
-                client.channels.get("551786988861128714").send(str.replace("replaceme", oldMember))
+                client.channels.cache.get("551786988861128714").send(str.replace("replaceme", oldMember))
                 //playSfx2(oldUserChannel.id,voiceTrouble[random2])
 
-                const voicecon = client.guilds.get("441839750555369474")
+                const voicecon = client.guilds.cache.get("441839750555369474")
 
             if ((voicecon.voiceConnection !== null)) {
-                const channel = client.channels.get("441840193754890250");
+                const channel = client.channels.cache.get("441840193754890250");
                 channel.join()
                     .then(connection => { // Connection is an instance of VoiceConnection
                     const dispatcher = connection.playFile(voiceTrouble[random2]);
@@ -235,20 +235,20 @@ client.on('voiceStateUpdate', (oldMember, newMember) => {
         }
         //Renegawd moves from troubleshooting to multiplayer
         if(oldUserChannel.id == 441840753111597086 && newUserChannel.id == 441840193754890250 && newMember.id == "288258590010245123") { 
-            client.channels.get("551786988861128714").send("*Wouldn't have lasted long if <@288258590010245123> wasn't so good at fixing things.*")
+            client.channels.cache.get("551786988861128714").send("*Wouldn't have lasted long if <@288258590010245123> wasn't so good at fixing things.*")
         }
         //member moves back from troubleshooting to multiplayer
         if(oldUserChannel.id == 441840753111597086 && newUserChannel.id == 441840193754890250 && newMember.id !== "288258590010245123" && newMember.id !== 545798436105224203) { 
             random = Math.floor(Math.random()*fixed.length)
             random2 = Math.floor(Math.random()*voiceFixed.length)
             var str = fixed[random]
-            client.channels.get("551786988861128714").send(str.replace("replaceme", oldMember))
+            client.channels.cache.get("551786988861128714").send(str.replace("replaceme", oldMember))
             //playSfx2(newUserChannel.id,voiceFixed[random2])
 
-            const voicecon = client.guilds.get("441839750555369474")
+            const voicecon = client.guilds.cache.get("441839750555369474")
             if ((voicecon.voiceConnection !== null)) 
                 {
-                const channel = client.channels.get("441840193754890250");
+                const channel = client.channels.cache.get("441840193754890250");
                 channel.join()
                     .then(connection => { // Connection is an instance of VoiceConnection
                     const dispatcher = connection.playFile(voiceFixed[random2]);
@@ -279,7 +279,7 @@ var messageLow = messageText.toLowerCase()
 var random2 = Math.floor(Math.random()*2) //1 in # chances of using playerPicks instead of movieQuotes
 var random3 = Math.floor(Math.random()*movieQuotes.length)
 var random5 = Math.floor(Math.random()*playerPicks.length)
-var chan = client.channels.get('441840193754890250');
+var chan = client.channels.cache.get('441840193754890250');
 
 //get list of members in voicechannel
 if(chan !== undefined && message.channel.type !== "dm"){
@@ -457,7 +457,7 @@ if (messageLow.startsWith(`${prefix}src`)) {
           const data = await response.json();
           console.log (data)
           var src = data.data
-          const srcReport = new Discord.RichEmbed()
+          const srcReport = new Discord.MessageEmbed()
           .setColor('#0099ff')
           //.setThumbnail("https://www.speedrun.com/themes/Default/1st.png")
           .setTitle(titl)
@@ -620,7 +620,7 @@ if(messageLow.startsWith(`${prefix}tourn`)){
 
     var pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>", "4th", "5th"]
     if (numb !== null) {
-        const tourneyReport = new Discord.RichEmbed()
+        const tourneyReport = new Discord.MessageEmbed()
         .setColor('#0099ff')
         .setTitle(tracks[numb].name + " | Tournament Times")
         .setURL("https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing")
@@ -791,7 +791,7 @@ if(messageLow.startsWith(`${prefix}track`)){
     if(numb == null){ 
         message.channel.send("Perhaps the archives are incomplete.")
     } else if(partime == false) {
-        const trackEmbed = new Discord.RichEmbed()
+        const trackEmbed = new Discord.MessageEmbed()
         .setThumbnail(planets[tracks[numb].planet].img)
         .setColor(planets[tracks[numb].planet].color)
         .setImage(tracks[numb].img)
@@ -894,7 +894,7 @@ if(messageLow.startsWith(`${prefix}track`)){
                         .then(collected => {
                             const reaction = collected.first();
                             if (reaction.emoji.name === '⏱️' && reaction.users.id !== "545798436105224203") {
-                                const tracktimesEmbed = new Discord.RichEmbed()
+                                const tracktimesEmbed = new Discord.MessageEmbed()
                                 .setColor(planets[tracks[numb].planet].color)
                                 .setTitle(tracks[numb].name + " | Par Times")
                                 .setURL("https://docs.google.com/spreadsheets/d/1TwDtG6eOyiQZEZ3iTbZaEmthe5zdf9YEGJ-1tfFfQKg/edit?usp=sharing")
@@ -925,7 +925,7 @@ if(messageLow.startsWith(`${prefix}track`)){
                         .then(collected => {
                             const reaction = collected.first();
                             if (reaction.emoji.name === ':stopwatch:' && reaction.users.id !== "545798436105224203") {
-                                const tracktimesEmbed = new Discord.RichEmbed()
+                                const tracktimesEmbed = new Discord.MessageEmbed()
                                 .setColor(planets[tracks[numb].planet].color)
                                 .setTitle("[" + tracks[numb].name + " | MU/No Skip Par Times](" + https://docs.google.com/spreadsheets/d/1TwDtG6eOyiQZEZ3iTbZaEmthe5zdf9YEGJ-1tfFfQKg/edit?usp=sharing +")")
                                 .addField("3-Lap", ":trophy: " + tracks[numb].partimes[0] + "\n:first_place: " + tracks[numb].partimes[1] + "\n:second_place: " + tracks[numb].partimes[2] + "\n:third_place: " + tracks[numb].partimes[3] + "\n:bumpythumb: " + tracks[numb].partimes[4], true)
@@ -938,7 +938,7 @@ if(messageLow.startsWith(`${prefix}track`)){
         }) */
         
     } else if(partime == true) {
-        const tracktimesEmbed2 = new Discord.RichEmbed()
+        const tracktimesEmbed2 = new Discord.MessageEmbed()
         .setColor(planets[tracks[numb].planet].color)
         .setTitle(tracks[numb].name + " | Par Times")
         .setURL("https://docs.google.com/spreadsheets/d/1TwDtG6eOyiQZEZ3iTbZaEmthe5zdf9YEGJ-1tfFfQKg/edit?usp=sharing")
@@ -1153,7 +1153,7 @@ if(messageLow.startsWith(`${prefix}racer`) && !messageLow.startsWith(`${prefix}r
     else{
         var racerFooter = racers[numb].footer
         var Tier = ["Low", "Mid", "High", "Top"]
-        const racerEmbed = new Discord.RichEmbed()
+        const racerEmbed = new Discord.MessageEmbed()
             .setThumbnail(racers[numb].img)
             .setColor('#00DE45')
             .setTitle(racers[numb].name)
@@ -1332,7 +1332,7 @@ Complete a challenge as every pod on every track: X/575
 
 /////   !challenge    //////
     if(message.content == "?challenge") {
-        const challengeHelpEmbed = new Discord.RichEmbed()
+        const challengeHelpEmbed = new Discord.MessageEmbed()
         .setTitle("!challenge")
         .setDescription("When you type `!challenge`, Botto will challenge you to race a random pod on a random track with random conditions. The default conditions are max upgrades, 3-lap, full track. You have 15 minutes to submit a time for the challenge. Botto will only accept one time from the person who triggered the challenge. \n\nYou can customize your odds by typing `!odds`")
         .addField("Default Odds", "Skips - 25%\nNo upgrades - 15%\nNon 3-lap - 5%\nMirror mode - 5%", true)
@@ -1365,7 +1365,7 @@ Complete a challenge as every pod on every track: X/575
             odds_non3lap = 5
             odds_mirrormode = 5
         }
-        const oddsEmbed = new Discord.RichEmbed()
+        const oddsEmbed = new Discord.MessageEmbed()
         .setTitle("Customize Your `!challenge` Odds")
         .setDescription(desc + "Change your odds by replying to this message with 4 numbers separated by commas in order of Skips, No Upgrades, Non 3-lap, and Mirror Mode. These numbers will be divided by 100 to determine the chances Botto will give their conditions in a `!challenge`. \n Example: 15, 20, 10, 0")
         .addField("Your Odds", "Skips - " + odds_skips +"%\nNo Upgrades - " + odds_noupgrades +"%\nNon 3-Lap - " + odds_non3lap +"%\nMirror Mode - " + odds_mirrormode +"%", true)
@@ -1514,7 +1514,7 @@ Complete a challenge as every pod on every track: X/575
             }
         }
         var msg = ""
-        const challengeEmbed = new Discord.RichEmbed()
+        const challengeEmbed = new Discord.MessageEmbed()
             .setTitle("Race as **" + flag + " " + racers[random1].name + "** (" + (random1 + 1) + ")"+ nutext + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + laptext + skipstext + mirrortext)
             //.setFooter(hints[random4])
             .setColor(planets[tracks[random2].planet].color)
@@ -1672,7 +1672,7 @@ Complete a challenge as every pod on every track: X/575
 /////    !abb //////
 
 if(message.content.startsWith(`${prefix}abb`)) {
-    const AbbEmbed = new Discord.RichEmbed()
+    const AbbEmbed = new Discord.MessageEmbed()
     .setTitle("SWE1R Abbreviations")
     .setURL("https://www.speedrun.com/swe1r/thread/nf4bo")
     .addField(":large_blue_diamond: General",
@@ -1729,7 +1729,7 @@ if(message.content.startsWith(`${prefix}abb`)) {
 
 
     if(message.content.toLowerCase().startsWith(`?help`) || message.content.startsWith(`${prefix}command`)) {
-        const helpEmbed = new Discord.RichEmbed()
+        const helpEmbed = new Discord.MessageEmbed()
             //.setColor('#00DE45')
             //.setImage("https://i.imgur.com/ZAQAjfB.png")
             //.setThumbnail("https://i.imgur.com/jzPQv54.png")
@@ -1770,7 +1770,7 @@ if(message.content.startsWith(`${prefix}abb`)) {
     }
 
     if(message.content.startsWith(`${prefix}stat`)) {
-        const helpEmbed = new Discord.RichEmbed()
+        const helpEmbed = new Discord.MessageEmbed()
             .setColor('#00DE45')
             .setImage("https://i.imgur.com/ZAQAjfB.png")
             //.setThumbnail("https://i.imgur.com/jzPQv54.png")
@@ -1797,7 +1797,7 @@ if(messageLow.startsWith(`${prefix}drive`)){
     message.channel.send("https://drive.google.com/drive/folders/1ScgPE1i1EpSYXT16a1ocxQiouMCcE9z1?usp=sharing")
 }
 if(message.content.startsWith(`${prefix}cleanup`) && message.channel.type !== "dm") {
-    message.channel.fetchMessages({limit:30}).then(messages => {
+    message.channel.messages.fetch({limit:30}).then(messages => {
         const botMessages = messages.filter(msg => msg.author.bot || msg.content.startsWith("!") || msg.content == "?help");
         message.channel.bulkDelete(botMessages);
         messagesDeleted = botMessages.array().length; // number of messages deleted
@@ -1838,7 +1838,7 @@ if(message.content.startsWith(`${prefix}img`) || message.content.startsWith(`${p
 
 
 if(message.content.startsWith(`${prefix}test`)){
-    const helpEmbed = new Discord.RichEmbed()
+    const helpEmbed = new Discord.MessageEmbed()
         .setImage("https://i.imgur.com/4a1LSYg.gif")
         .setTitle("Beedo Skip")
         .setFooter("Its acE", "https://vignette.wikia.nocookie.net/starwars/images/f/f6/EE_Endocott_Headshot.png/revision/latest?cb=20131009010605")
@@ -1847,7 +1847,7 @@ if(message.content.startsWith(`${prefix}test`)){
 
 
 if(message.content.startsWith(`${prefix}tier`)){  
-    const helpEmbed = new Discord.RichEmbed()
+    const helpEmbed = new Discord.MessageEmbed()
     if (args[0] == "nu") {
         helpEmbed.setTitle("NU Racer Tier List")
         helpEmbed.addField(":gem: Top", "Boles Roor\nBen Quadinaros\nSebulba")
@@ -1869,25 +1869,25 @@ if(message.content.startsWith(`${prefix}tier`)){
 if (!message.guild) return; //anything that shouldn't be called in a dm goes after this
 
 if(message.content.startsWith(`${prefix}speedrunning`)){
-    let role = message.guild.roles.get("535973118578130954");
+    let role = message.guild.roles.cache.get("535973118578130954");
     let member = message.member;
     if(message.member.roles.has(role.id)){
         member.removeRole(role).catch(console.error)
         message.channel.send(member + " no longer has the speedrunning role")
     } else {
-        member.addRole(role).catch(console.error);
+        member.roles.add(role).catch(console.error);
         message.channel.send(member + " now has the speedrunning role")
     } 
 }
 
 if(message.content.startsWith(`${prefix}multiplayer`)){
-    let role = message.guild.roles.get("474920988790751232");
+    let role = message.guild.roles.cache.get("474920988790751232");
     let member = message.member;
     if(message.member.roles.has(role.id)){
         member.removeRole(role).catch(console.error)
         message.channel.send(member + " no longer has the multiplayer role")
     } else {
-        member.addRole(role).catch(console.error);
+        member.roles.add(role).catch(console.error);
         message.channel.send(member + " now has the multiplayer role")
     } 
 }
@@ -1960,7 +1960,7 @@ if (message.content === ('!leave')) {
 function playSfx(message, filePath)
 {
     if (message.channel.type !== "dm") {
-    const voicecon = client.guilds.get("441839750555369474")
+    const voicecon = client.guilds.cache.get("441839750555369474")
     if (message.member.voiceChannel && (voicecon.voiceConnection !== null)) {
         message.member.voiceChannel.join()
           .then(connection => { // Connection is an instance of VoiceConnection
