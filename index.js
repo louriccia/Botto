@@ -146,7 +146,7 @@ client.on('voiceStateUpdate', (oldState, newState) => {
         } else if(7 < arr.length) {
             var random = Math.floor(Math.random()*4)+17}
        var str = welcomeMessages[random]
-       client.channels.cache.get("551786988861128714").send(str.replace("replaceme", newMember))
+       client.channels.cache.get("551786988861128714").send(str.replace("replaceme", "<@" + newState.member + ">"))
     } 
     //if member is already in any voice channel
     if(oldUserChannel !== undefined){ 
@@ -157,7 +157,7 @@ client.on('voiceStateUpdate', (oldState, newState) => {
                 random = Math.floor(Math.random()*goodbyeMessages.length)
                 random2 = Math.floor(Math.random()*voiceFarewell.length)
                 var str = goodbyeMessages[random]
-                client.channels.cache.get("551786988861128714").send(str.replace("replaceme", oldState))
+                client.channels.cache.get("551786988861128714").send(str.replace("replaceme", "<@" + oldState.member + ">"))
             }
         }
         //member is moving from one channel to another
@@ -167,14 +167,14 @@ client.on('voiceStateUpdate', (oldState, newState) => {
                 random = Math.floor(Math.random()*troubleShooting.length)
                 random2 = Math.floor(Math.random()*voiceTrouble.length)
                 var str = troubleShooting[random]
-                client.channels.cache.get("551786988861128714").send(str.replace("replaceme", oldState.member))
+                client.channels.cache.get("551786988861128714").send(str.replace("replaceme", "<@" + oldState.member +">"))
             }
             //member moves back from troubleshooting to multiplayer
             if(oldState.channelID == "441840753111597086" && newState.channelID == "441840193754890250" && newState.member.id !== "288258590010245123" && newState.member.id !== "545798436105224203") { 
                 random = Math.floor(Math.random()*fixed.length)
                 random2 = Math.floor(Math.random()*voiceFixed.length)
                 var str = fixed[random]
-                client.channels.cache.get("551786988861128714").send(str.replace("replaceme", oldState.member))
+                client.channels.cache.get("551786988861128714").send(str.replace("replaceme", "<@" + oldState.member +">"))
             }
         }
     }
@@ -250,7 +250,7 @@ function timetoSeconds(time) {
 }
 
 if (messageLow.startsWith(`${prefix}testjoin`)) {
-client.emit("guildMemberAdd", message.member);
+//client.emit("guildMemberAdd", message.member);
 }
 
 if (messageLow.startsWith(`${prefix}src`)) {
