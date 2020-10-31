@@ -75,7 +75,7 @@ client.on('guildMemberAdd', (guildMember) => {
     const guild = client.guilds.cache.get("441839750555369474");
     const role = guild.roles.cache.get("442316203835392001");
     let member = guildMember
-    member.roles.add(role).catch(console.error);
+    member.roles.add("442316203835392001").catch(console.error);
 
  })
 
@@ -1786,8 +1786,8 @@ if (!message.guild) return; //anything that shouldn't be called in a dm goes aft
 if(message.content.startsWith(`${prefix}speedrunning`)){
     let role = message.guild.roles.cache.get("535973118578130954");
     let member = message.member;
-    if(message.member.roles.has(role.id)){
-        member.removeRole(role).catch(console.error)
+    if(message.member.roles.find(r => r.name === "Speedrunning")){
+        member.roles.remove(role).catch(console.error)
         message.channel.send(member + " no longer has the speedrunning role")
     } else {
         member.roles.add(role).catch(console.error);
@@ -1798,8 +1798,8 @@ if(message.content.startsWith(`${prefix}speedrunning`)){
 if(message.content.startsWith(`${prefix}multiplayer`)){
     let role = message.guild.roles.cache.get("474920988790751232");
     let member = message.member;
-    if(message.member.roles.has(role.id)){
-        member.removeRole(role).catch(console.error)
+    if(message.member.roles.find(r => r.name === "Multiplayer")){
+        member.roles.remove(role).catch(console.error)
         message.channel.send(member + " no longer has the multiplayer role")
     } else {
         member.roles.add(role).catch(console.error);
