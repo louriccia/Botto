@@ -61,6 +61,10 @@ client.once('ready', () => {
     client.channels.cache.get("444208252541075476").send("Ready!");
 })
 
+client.on("error", (e) => console.error(e));
+client.on("warn", (e) => console.warn(e));
+client.on("debug", (e) => console.info(e));
+
 client.on('guildMemberAdd', (guildMember) => {
     var random = Math.floor(Math.random())*welcomeMessages.length
     var join = welcomeMessages[random]
