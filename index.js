@@ -1969,15 +1969,17 @@ function playSfx(message, filePath)
 })
 
 client.on('guildMemberAdd', (guildMember) => {
-    const guild = client.guilds.get("441839750555369474");
-    const role = guild.roles.get("442316203835392001");
-    let member = guildMember
-    member.addRole(role).catch(console.error);
     var random = Math.floor(Math.random())*welcomeMessages.length
     var join = welcomeMessages[random]
     console.log(join)
     //member.guild.channels.get("441839751235108875").send(join.replace("replaceme", member.username));
-    client.channels.get("441839751235108875").send(join.replace("replaceme", member.username));
+    client.channels.get("441839751235108875").send(join.replace("replaceme", member.user.username));
+    const guild = client.guilds.get("441839750555369474");
+    const role = guild.roles.get("442316203835392001");
+    
+    let member = guildMember
+    member.addRole(role).catch(console.error);
+
  })
 
 client.login(process.env.token);
