@@ -1813,7 +1813,7 @@ if(message.content.startsWith(`${prefix}cleanup`) && message.channel.type !== "d
         // Logging the number of messages deleted on both the channel and console.
         message.channel.send("*I gotta lots of junk!* \n`" + messagesDeleted + " messages deleted`")
             .then(msg => {
-                msg.delete(5000)
+                msg.delete({ timeout: 5000, reason: 'bot cleanup'})
             })
             .catch()
         console.log('Deletion of messages successful. Total messages deleted: ' + messagesDeleted)
