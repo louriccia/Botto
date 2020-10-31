@@ -119,9 +119,7 @@ client.on('voiceStateUpdate', (oldState, newState) => {
     let newUserChannel = newState.channel
     let oldUserChannel = oldState.channel
     var chan = client.channels.cache.get('441840193754890250');
-    
     //get list of members in voice channel
-    
     if(chan !== undefined){
         var mems = chan.members;
         var arr = [];
@@ -150,125 +148,35 @@ client.on('voiceStateUpdate', (oldState, newState) => {
        var str = welcomeMessages[random]
        client.channels.cache.get("551786988861128714").send(str.replace("replaceme", newMember))
        random = Math.floor(Math.random()*voiceWelcome.length)
-       // playSfx2(newUserChannel.id,voiceWelcome[random])
-
-    
-       const voicecon = client.guilds.cache.get("441839750555369474")
-       if ((voicecon.voice.connection !== null)) {
-            const channel = client.channels.cache.get("441840193754890250");
-            channel.join()
-                .then(connection => { // Connection is an instance of VoiceConnection
-                const dispatcher = connection.playFile(voiceWelcome[random]);
-                dispatcher.setVolume(0.2);
-                dispatcher.on('end', () => {
-                    connection.disconnect
-                });
-                //dispatcher.on('error', e => {
-                    // Catch any errors that may arise
-                //  console.log(e);
-                //});
-                
-                })
-                .catch(console.log);
-            }
-        
     } 
     //if member is already in any voice channel
     if(oldUserChannel !== undefined){ 
         //member leaves multiplayer or troubleshooting channel
         const voicecon = client.guilds.cache.get("441839750555369474")
         if(voicecon.voice !== null){
-        if((oldUserChannel.id == "441840193754890250" || oldUserChannel.id == "441840753111597086") && newUserChannel === undefined){ 
-            random = Math.floor(Math.random()*goodbyeMessages.length)
-            random2 = Math.floor(Math.random()*voiceFarewell.length)
-            var str = goodbyeMessages[random]
-            client.channels.cache.get("551786988861128714").send(str.replace("replaceme", oldState))
-            //playSfx2(oldUserChannel.id,voiceFarewell[random2])
-
-
-            const voicecon = client.guilds.cache.get("441839750555369474")
-            if ((voicecon.voice !== null)) {
-            const channel = client.channels.cache.get("441840193754890250");
-            channel.join()
-                .then(connection => { // Connection is an instance of VoiceConnection
-                const dispatcher = connection.playFile(voiceFarewell[random2]);
-                dispatcher.setVolume(0.2);
-                dispatcher.on('end', () => {
-                    connection.disconnect
-                });
-                //dispatcher.on('error', e => {
-                    // Catch any errors that may arise
-                //  console.log(e);
-                //});
-                
-                })
-                .catch(console.log);
+            if((oldState.channelID == "441840193754890250" || oldState.channelID == "441840753111597086") && newUserChannel === undefined){ 
+                random = Math.floor(Math.random()*goodbyeMessages.length)
+                random2 = Math.floor(Math.random()*voiceFarewell.length)
+                var str = goodbyeMessages[random]
+                client.channels.cache.get("551786988861128714").send(str.replace("replaceme", oldState))
             }
         }
-    }
         //member is moving from one channel to another
         if(newUserChannel !== undefined) {
             //member moves from multiplayer to troubleshooting
-            if(oldUserChannel.id == "441840193754890250" && newUserChannel.id == "441840753111597086" && newState.member.id !== "288258590010245123" && newState.member.id !=="545798436105224203") {
+            if(oldState.channelID == "441840193754890250" && newState.channelID == "441840753111597086" && newState.member.id !== "288258590010245123" && newState.member.id !=="545798436105224203") {
                 random = Math.floor(Math.random()*troubleShooting.length)
                 random2 = Math.floor(Math.random()*voiceTrouble.length)
                 var str = troubleShooting[random]
                 client.channels.cache.get("551786988861128714").send(str.replace("replaceme", oldState.member))
-                //playSfx2(oldUserChannel.id,voiceTrouble[random2])
-
-                const voicecon = client.guilds.cache.get("441839750555369474")
-
-            if ((voicecon.voice !== null)) {
-                const channel = client.channels.cache.get("441840193754890250");
-                channel.join()
-                    .then(connection => { // Connection is an instance of VoiceConnection
-                    const dispatcher = connection.playFile(voiceTrouble[random2]);
-                    dispatcher.setVolume(0.2);
-                    dispatcher.on('end', () => {
-                        connection.disconnect
-                    });
-                    //dispatcher.on('error', e => {
-                        // Catch any errors that may arise
-                    //  console.log(e);
-                    //});
-                    
-                    })
-                    .catch(console.log);
-                }
-
-        }
-        //Renegawd moves from troubleshooting to multiplayer
-        if(oldUserChannel.id == "441840753111597086" && newUserChannel.id == "441840193754890250" && newState.member.id == "288258590010245123") { 
-            client.channels.cache.get("551786988861128714").send("*Wouldn't have lasted long if <@288258590010245123> wasn't so good at fixing things.*")
-        }
-        //member moves back from troubleshooting to multiplayer
-        if(oldUserChannel.id == "441840753111597086" && newUserChannel.id == "441840193754890250" && newState.member.id !== "288258590010245123" && newState.member.id !== "545798436105224203") { 
-            random = Math.floor(Math.random()*fixed.length)
-            random2 = Math.floor(Math.random()*voiceFixed.length)
-            var str = fixed[random]
-            client.channels.cache.get("551786988861128714").send(str.replace("replaceme", oldState.member))
-            //playSfx2(newUserChannel.id,voiceFixed[random2])
-
-            const voicecon = client.guilds.cache.get("441839750555369474")
-            if ((voicecon.voice !== null)) 
-                {
-                const channel = client.channels.cache.get("441840193754890250");
-                channel.join()
-                    .then(connection => { // Connection is an instance of VoiceConnection
-                    const dispatcher = connection.playFile(voiceFixed[random2]);
-                    dispatcher.setVolume(0.2);
-                    dispatcher.on('end', () => {
-                    connection.disconnect
-                    });
-                //dispatcher.on('error', e => {
-                    // Catch any errors that may arise
-                //  console.log(e);
-                //});
-                
-                })
-                .catch(console.log);
             }
-        }
+            //member moves back from troubleshooting to multiplayer
+            if(oldState.channelID == "441840753111597086" && newState.channelID == "441840193754890250" && newState.member.id !== "288258590010245123" && newState.member.id !== "545798436105224203") { 
+                random = Math.floor(Math.random()*fixed.length)
+                random2 = Math.floor(Math.random()*voiceFixed.length)
+                var str = fixed[random]
+                client.channels.cache.get("551786988861128714").send(str.replace("replaceme", oldState.member))
+            }
         }
     }
 })
