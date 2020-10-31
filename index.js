@@ -133,7 +133,7 @@ client.on('voiceStateUpdate', (oldState, newState) => {
     }
 
     //if member joins Multiplayer Lobby 1
-    if(oldUserChannel === undefined && newState.channelID == "441840193754890250" && newState.member.id !== "545798436105224203") {
+    if(oldState == undefined && newState.channelID == "441840193754890250" && newState.member.id !== "545798436105224203") {
         //random welcome message based on how many members are in voice channel
        if (arr.length == 1) {
             var random = Math.floor(Math.random()*2)
@@ -153,7 +153,7 @@ client.on('voiceStateUpdate', (oldState, newState) => {
         //member leaves multiplayer or troubleshooting channel
         const voicecon = client.guilds.cache.get("441839750555369474")
         if(voicecon.voice !== null){
-            if((oldState.channelID == "441840193754890250" || oldState.channelID == "441840753111597086") && newUserChannel === undefined){ 
+            if((oldState.channelID == "441840193754890250" || oldState.channelID == "441840753111597086") && newState == undefined){ 
                 random = Math.floor(Math.random()*goodbyeMessages.length)
                 random2 = Math.floor(Math.random()*voiceFarewell.length)
                 var str = goodbyeMessages[random]
@@ -161,7 +161,7 @@ client.on('voiceStateUpdate', (oldState, newState) => {
             }
         }
         //member is moving from one channel to another
-        if(newUserChannel !== undefined) {
+        if(newState !== undefined) {
             //member moves from multiplayer to troubleshooting
             if(oldState.channelID == "441840193754890250" && newState.channelID == "441840753111597086" && newState.member.id !== "288258590010245123" && newState.member.id !=="545798436105224203") {
                 random = Math.floor(Math.random()*troubleShooting.length)
