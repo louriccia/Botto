@@ -1788,10 +1788,10 @@ if(message.content.startsWith(`${prefix}speedrunning`)){
     let member = message.member;
     if(message.member.roles.cache.find(r => r.name === "Speedrunning")){
         member.roles.remove(role).catch(console.error)
-        message.channel.send(member.user + " no longer has the speedrunning role")
+        message.reply(" no longer has the speedrunning role")
     } else {
         member.roles.add(role).catch(console.error);
-        message.channel.send(member.user + " now has the speedrunning role")
+        message.reply(" now has the speedrunning role")
     } 
 }
 
@@ -1800,10 +1800,10 @@ if(message.content.startsWith(`${prefix}multiplayer`)){
     let member = message.member;
     if(message.member.roles.cache.find(r => r.name === "Multiplayer")){
         member.roles.remove(role).catch(console.error)
-        message.channel.send(member.user + " no longer has the multiplayer role")
+        message.reply(" no longer has the multiplayer role")
     } else {
         member.roles.add(role).catch(console.error);
-        message.channel.send(member.user + " now has the multiplayer role")
+        message.reply(" now has the multiplayer role")
     } 
 }
 
