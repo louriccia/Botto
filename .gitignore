@@ -25,5 +25,5 @@ sfx/rali021a.wav
 sfx/rali022a.wav
 sfx/rali023a.wav
 sfx/rali024a.wav
-'node_modules' 
+node_modules/
 'npm-debug.log' 
