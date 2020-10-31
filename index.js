@@ -69,8 +69,8 @@ client.on('guildMemberAdd', (guildMember) => {
     var random = Math.floor(Math.random()*welcomeMessages.length)
     var join = welcomeMessages[random]
     console.log(join)
-    guildMember.guild.channels.cache.get("441839751235108875").send(join.replace("replaceme", guildMember.user.username));
-    //client.channels.cache.get("441839751235108875").send(join.replace("replaceme", guildMember.user.username));
+    //guildMember.guild.channels.cache.get("441839751235108875").send(join.replace("replaceme", guildMember.user.username));
+    client.channels.cache.get("441839751235108875").send(join.replace("replaceme", guildMember.user.username));
 
     const guild = client.guilds.cache.get("441839750555369474");
     const role = guild.roles.cache.get("442316203835392001");
@@ -114,10 +114,10 @@ client.on('messageUpdate', (oldMessage, newMessage) => {
 });
 
 // when a user joins/leaves a voice channel
-client.on('voiceStateUpdate', (oldMember, newMember) => {
+client.on('voiceStateUpdate', (oldState, newState) => {
 
-    let newUserChannel = newMember.voiceChannel
-    let oldUserChannel = oldMember.voiceChannel
+    let newUserChannel = newState.channel
+    let oldUserChannel = oldState.channel
     var chan = client.channels.cache.get('441840193754890250');
     
     //get list of members in voice channel
@@ -135,7 +135,7 @@ client.on('voiceStateUpdate', (oldMember, newMember) => {
     }
 
     //if member joins Multiplayer Lobby 1
-    if(oldUserChannel === undefined && newUserChannel.id == "441840193754890250" && newMember.id !== "545798436105224203") {
+    if(oldUserChannel === undefined && newUserChannel.id == "441840193754890250" && newState.member.id !== "545798436105224203") {
         //random welcome message based on how many members are in voice channel
        if (arr.length == 1) {
             var random = Math.floor(Math.random()*2)
@@ -178,11 +178,11 @@ client.on('voiceStateUpdate', (oldMember, newMember) => {
         //member leaves multiplayer or troubleshooting channel
         const voicecon = client.guilds.cache.get("441839750555369474")
         if(voicecon.voiceConnection !== null){
-        if((oldUserChannel.id == 441840193754890250 || oldUserChannel.id == 441840753111597086) && newUserChannel === undefined){ 
+        if((oldUserChannel.id == "441840193754890250" || oldUserChannel.id == "441840753111597086") && newUserChannel === undefined){ 
             random = Math.floor(Math.random()*goodbyeMessages.length)
             random2 = Math.floor(Math.random()*voiceFarewell.length)
             var str = goodbyeMessages[random]
-            client.channels.cache.get("551786988861128714").send(str.replace("replaceme", oldMember))
+            client.channels.cache.get("551786988861128714").send(str.replace("replaceme", oldState))
             //playSfx2(oldUserChannel.id,voiceFarewell[random2])
 
 
@@ -209,11 +209,11 @@ client.on('voiceStateUpdate', (oldMember, newMember) => {
         //member is moving from one channel to another
         if(newUserChannel !== undefined) {
             //member moves from multiplayer to troubleshooting
-            if(oldUserChannel.id == 441840193754890250 && newUserChannel.id == 441840753111597086 && newMember.id !== "288258590010245123" && newMember.id !==545798436105224203) {
+            if(oldUserChannel.id == "441840193754890250" && newUserChannel.id == "441840753111597086" && newState.member.id !== "288258590010245123" && newState.member.id !=="545798436105224203") {
                 random = Math.floor(Math.random()*troubleShooting.length)
                 random2 = Math.floor(Math.random()*voiceTrouble.length)
                 var str = troubleShooting[random]
-                client.channels.cache.get("551786988861128714").send(str.replace("replaceme", oldMember))
+                client.channels.cache.get("551786988861128714").send(str.replace("replaceme", oldState.member))
                 //playSfx2(oldUserChannel.id,voiceTrouble[random2])
 
                 const voicecon = client.guilds.cache.get("441839750555369474")
@@ -238,15 +238,15 @@ client.on('voiceStateUpdate', (oldMember, newMember) => {
 
         }
         //Renegawd moves from troubleshooting to multiplayer
-        if(oldUserChannel.id == 441840753111597086 && newUserChannel.id == 441840193754890250 && newMember.id == "288258590010245123") { 
+        if(oldUserChannel.id == "441840753111597086" && newUserChannel.id == "441840193754890250" && newState.member.id == "288258590010245123") { 
             client.channels.cache.get("551786988861128714").send("*Wouldn't have lasted long if <@288258590010245123> wasn't so good at fixing things.*")
         }
         //member moves back from troubleshooting to multiplayer
-        if(oldUserChannel.id == 441840753111597086 && newUserChannel.id == 441840193754890250 && newMember.id !== "288258590010245123" && newMember.id !== 545798436105224203) { 
+        if(oldUserChannel.id == "441840753111597086" && newUserChannel.id == "441840193754890250" && newState.member.id !== "288258590010245123" && newState.member.id !== "545798436105224203") { 
             random = Math.floor(Math.random()*fixed.length)
             random2 = Math.floor(Math.random()*voiceFixed.length)
             var str = fixed[random]
-            client.channels.cache.get("551786988861128714").send(str.replace("replaceme", oldMember))
+            client.channels.cache.get("551786988861128714").send(str.replace("replaceme", oldState.member))
             //playSfx2(newUserChannel.id,voiceFixed[random2])
 
             const voicecon = client.guilds.cache.get("441839750555369474")
