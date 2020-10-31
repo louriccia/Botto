@@ -135,7 +135,7 @@ client.on('voiceStateUpdate', (oldMember, newMember) => {
     }
 
     //if member joins Multiplayer Lobby 1
-    if(oldUserChannel === undefined && newUserChannel.id == 441840193754890250 && newMember.id !== "545798436105224203") {
+    if(oldUserChannel === undefined && newUserChannel.id == "441840193754890250" && newMember.id !== "545798436105224203") {
         //random welcome message based on how many members are in voice channel
        if (arr.length == 1) {
             var random = Math.floor(Math.random()*2)
