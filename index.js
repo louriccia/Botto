@@ -177,7 +177,7 @@ client.on('voiceStateUpdate', (oldState, newState) => {
     if(oldUserChannel !== undefined){ 
         //member leaves multiplayer or troubleshooting channel
         const voicecon = client.guilds.cache.get("441839750555369474")
-        if(voicecon.voice.connection !== null){
+        if(voicecon.voice !== null){
         if((oldUserChannel.id == "441840193754890250" || oldUserChannel.id == "441840753111597086") && newUserChannel === undefined){ 
             random = Math.floor(Math.random()*goodbyeMessages.length)
             random2 = Math.floor(Math.random()*voiceFarewell.length)
@@ -187,7 +187,7 @@ client.on('voiceStateUpdate', (oldState, newState) => {
 
 
             const voicecon = client.guilds.cache.get("441839750555369474")
-            if ((voicecon.voice.connection !== null)) {
+            if ((voicecon.voice !== null)) {
             const channel = client.channels.cache.get("441840193754890250");
             channel.join()
                 .then(connection => { // Connection is an instance of VoiceConnection
@@ -218,7 +218,7 @@ client.on('voiceStateUpdate', (oldState, newState) => {
 
                 const voicecon = client.guilds.cache.get("441839750555369474")
 
-            if ((voicecon.voice.connection !== null)) {
+            if ((voicecon.voice !== null)) {
                 const channel = client.channels.cache.get("441840193754890250");
                 channel.join()
                     .then(connection => { // Connection is an instance of VoiceConnection
@@ -250,7 +250,7 @@ client.on('voiceStateUpdate', (oldState, newState) => {
             //playSfx2(newUserChannel.id,voiceFixed[random2])
 
             const voicecon = client.guilds.cache.get("441839750555369474")
-            if ((voicecon.voice.connection !== null)) 
+            if ((voicecon.voice !== null)) 
                 {
                 const channel = client.channels.cache.get("441840193754890250");
                 channel.join()
