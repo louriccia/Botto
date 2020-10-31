@@ -70,7 +70,7 @@ client.on('guildMemberAdd', (guildMember) => {
     var join = welcomeMessages[random]
     console.log(join)
     //guildMember.guild.channels.cache.get("441839751235108875").send(join.replace("replaceme", guildMember.user.username));
-    client.channels.cache.get("441839751235108875").send(join.replace("replaceme", guildMember.user.username));
+    client.channels.cache.get("441839751235108875").send(join.replace("replaceme", "**" + guildMember.user.username + "**"));
 
     const guild = client.guilds.cache.get("441839750555369474");
     const role = guild.roles.cache.get("442316203835392001");
@@ -147,7 +147,6 @@ client.on('voiceStateUpdate', (oldState, newState) => {
             var random = Math.floor(Math.random()*4)+17}
        var str = welcomeMessages[random]
        client.channels.cache.get("551786988861128714").send(str.replace("replaceme", newMember))
-       random = Math.floor(Math.random()*voiceWelcome.length)
     } 
     //if member is already in any voice channel
     if(oldUserChannel !== undefined){ 
