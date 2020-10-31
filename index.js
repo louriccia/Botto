@@ -342,6 +342,10 @@ function timetoSeconds(time) {
     
 }
 
+if (messageLow.startsWith(`${prefix}testjoin`)) {
+client.emit("guildMemberAdd", message.member);
+}
+
 if (messageLow.startsWith(`${prefix}src`)) {
     var catg = "" 
     var titl = ""
