@@ -81,7 +81,7 @@ client.on('guildMemberAdd', (guildMember) => {
     const guild = client.guilds.cache.get("441839750555369474");
     const role = guild.roles.cache.get("442316203835392001");
     let member = guildMember
-    member.roles.add("442316203835392001").catch(console.error);
+    member.roles.add(role).catch(console.error);
 
  })
 
