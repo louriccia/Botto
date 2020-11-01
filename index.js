@@ -69,9 +69,9 @@ client.on('guildMemberAdd', (guildMember) => {
     var random = Math.floor(Math.random()*welcomeMessages.length)
     var join = welcomeMessages[random]
     console.log(join)
-    //guildMember.guild.channels.cache.get("441839751235108875").send(join.replace("replaceme", guildMember.user.username));
-    client.channels.cache.get("441839751235108875").send(join.replace("replaceme", "**" + guildMember.user.username + "**"));
-
+    if (guildMember.guild.id == "441839750555369474") {
+        client.channels.cache.get("441839751235108875").send(join.replace("replaceme", "**" + guildMember.user.username + "**"));
+    }
     const guild = client.guilds.cache.get("441839750555369474");
     const role = guild.roles.cache.get("442316203835392001");
     let member = guildMember
@@ -249,8 +249,8 @@ function timetoSeconds(time) {
     
 }
 
-if (messageLow.startsWith(`${prefix}testjoin`)) {
-//client.emit("guildMemberAdd", message.member);
+if (messageLow.startsWith(`${prefix}guilds`)) {
+console.log(client.guilds.cache)
 }
 
 if (messageLow.startsWith(`${prefix}src`)) {
