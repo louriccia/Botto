@@ -56,7 +56,13 @@ const fetch = require('node-fetch');
 client.once('ready', () => {
     console.log('Ready!')
     //set bot activity
-    client.user.setActivity("Star Wars: Episode I - Racer")
+    client.user.setPresence({
+        status: "online",  //You can show online, idle....
+        game: {
+            name: "?help",  //The message shown
+            type: "PLAYING" //PLAYING: WATCHING: LISTENING: STREAMING:
+        }
+    });
     //client.users.cache.get("256236315144749059").send("Ready!")
     client.channels.cache.get("444208252541075476").send("Ready!");
 })
