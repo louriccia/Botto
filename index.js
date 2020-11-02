@@ -56,13 +56,7 @@ const fetch = require('node-fetch');
 client.once('ready', () => {
     console.log('Ready!')
     //set bot activity
-    client.user.setPresence({
-        status: "online",  //You can show online, idle....
-        game: {
-            name: "?help",  //The message shown
-            type: "PLAYING" //PLAYING: WATCHING: LISTENING: STREAMING:
-        }
-    });
+    client.user.setActivity("?help"); 
     //client.users.cache.get("256236315144749059").send("Ready!")
     client.channels.cache.get("444208252541075476").send("Ready!");
 })
@@ -72,17 +66,16 @@ client.on("warn", (e) => console.warn(e));
 client.on("debug", (e) => console.info(e));
 
 client.on('guildMemberAdd', (guildMember) => {
-    var random = Math.floor(Math.random()*welcomeMessages.length)
-    var join = welcomeMessages[random]
-    console.log(join)
     if (guildMember.guild.id == "441839750555369474") {
+        var random = Math.floor(Math.random()*welcomeMessages.length)
+        var join = welcomeMessages[random]
+        console.log(join)
         client.channels.cache.get("441839751235108875").send(join.replace("replaceme", "**" + guildMember.user.username + "**"));
+        const guild = client.guilds.cache.get("441839750555369474");
+        const role = guild.roles.cache.get("442316203835392001");
+        let member = guildMember
+        member.roles.add(role).catch(console.error);
     }
-    const guild = client.guilds.cache.get("441839750555369474");
-    const role = guild.roles.cache.get("442316203835392001");
-    let member = guildMember
-    member.roles.add(role).catch(console.error);
-
  })
 
 client.on("messageDelete", (messageDelete) => {
@@ -256,7 +249,8 @@ function timetoSeconds(time) {
 }
 
 if (messageLow.startsWith(`${prefix}guilds`)) {
-console.log(client.guilds.cache)
+//console.log(client.guilds.cache)
+console.log(client.guilds.cache.get("697833083201650689"))
 }
 
 if (messageLow.startsWith(`${prefix}src`)) {
