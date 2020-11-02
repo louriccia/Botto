@@ -255,7 +255,7 @@ console.log(client.guilds.cache)
 
 if (messageLow.startsWith(`${prefix}ping`)) {
     //console.log(client.guilds.cache)
-    client.channels.cache.get("444208252541075476").send("I'm alive! I've been up for " + timefix(client.uptime*1000) + " since " + client.readyAt);
+    client.channels.cache.get("444208252541075476").send("I'm alive! I've been up for " + timefix(client.uptime/1000) + " since " + client.readyAt);
 }
 
 if (messageLow.startsWith(`${prefix}src`)) {
