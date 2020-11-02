@@ -70,7 +70,7 @@ client.on('guildMemberAdd', (guildMember) => {
         var random = Math.floor(Math.random()*welcomeMessages.length)
         var join = welcomeMessages[random]
         console.log(join)
-        client.channels.cache.get("441839751235108875").send(join.replace("replaceme", "**" + guildMember.user.username + "**"));
+        client.channels.cache.get("441839751235108875").send(join.replace("replaceme", "**<@" + guildMember.user + ">**"));
         const guild = client.guilds.cache.get("441839750555369474");
         const role = guild.roles.cache.get("442316203835392001");
         let member = guildMember
@@ -96,7 +96,7 @@ client.on("messageDelete", (messageDelete) => {
    });
 
 client.on('messageUpdate', (oldMessage, newMessage) => {
-    if (oldMessage.author.bot == false && oldMessage.channel.type == "text") {
+    if (oldMessage.author.bot == false && oldMessage.channel.type == "text" && oldMessage !== newMessage) {
         //console.log(`${newMessage.author.tag} edited a message in ${oldMessage.channel} from "${oldMessage.content}" to "${newMessage.content}"`)
         var data = {
             user: oldMessage.author.id,
@@ -255,7 +255,7 @@ console.log(client.guilds.cache)
 
 if (messageLow.startsWith(`${prefix}ping`)) {
     //console.log(client.guilds.cache)
-    client.channels.cache.get("444208252541075476").send("I'm alive! I've been up for " + timefix(client.uptime/1000) + " since " + client.readyAt);
+    client.channels.cache.get("444208252541075476").send("I'm alive! I've been up for `" + timefix(client.uptime/1000) + "` since `" + client.readyAt + "`");
 }
 
 if (messageLow.startsWith(`${prefix}src`)) {
