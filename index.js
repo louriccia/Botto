@@ -28,6 +28,7 @@ var ref = database.ref('times'); //use forward slashes to navigate the data tree
 var oddsref = database.ref('odds');
 var feedbackref = database.ref('feedback');
 var logref = database.ref('log');
+var errorlogref = database.ref('log/error');
 
 ref.on("value", function(snapshot) {
     challengedata = snapshot.val();
@@ -61,7 +62,14 @@ client.once('ready', () => {
     client.channels.cache.get("444208252541075476").send("Ready!");
 })
 
-client.on("error", (e) => console.error(e));
+client.on("error", (e) => {
+    console.error(e)
+    var data = {
+        date: Date(),
+        error: e
+    }
+    errorlogref.push(data)
+});
 client.on("warn", (e) => console.warn(e));
 client.on("debug", (e) => console.info(e));
 
