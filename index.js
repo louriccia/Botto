@@ -89,13 +89,22 @@ client.on('guildMemberAdd', (guildMember) => {
 client.on("messageDelete", (messageDelete) => {
     if (messageDelete.author.bot == false && messageDelete.channel.type == "text" && !messageDelete.content.startsWith("!")) {
         //console.log(`${messageDelete.author.tag} deleted the following message from ${messageDelete.channel}: "${messageDelete.content}"`)
+        var channelname = ""
+        var keys = Object.keys(discordchannels)
+            for (var i=0; i<keys.length; i++) {
+                var k = keys[i];
+                if (discordchannels[k] = messageDelete.channel.id) {
+                    channelname = k
+                }
+            }
         var data = {
             user: messageDelete.author.id,
             name: messageDelete.author.username,
             date: messageDelete.createdTimestamp,
             action: "deleted message",
             message: messageDelete.content,
-            channel: messageDelete.channel.id
+            channel: messageDelete.channel.id,
+            channel_name: channelname
         }
         //console.log(data)
         logref.push(data);
@@ -104,20 +113,38 @@ client.on("messageDelete", (messageDelete) => {
    });
 
 client.on('messageUpdate', (oldMessage, newMessage) => {
-    if (oldMessage.author.bot == false && oldMessage.channel.type == "text" && oldMessage !== newMessage) {
-        //console.log(`${newMessage.author.tag} edited a message in ${oldMessage.channel} from "${oldMessage.content}" to "${newMessage.content}"`)
-        var data = {
-            user: oldMessage.author.id,
-            name: oldMessage.author.username,
-            date: oldMessage.createdTimestamp,
-            action: "edited message",
-            message: oldMessage.content,
-            edit: newMessage.content,
-            channel: oldMessage.channel.id
+    emb = newMessage.embeds
+    for (i=0; i<emb.length; i++) {
+        if (emb[i].url == "" && newMessage.author.bot == false) {
+            client.users.cache.get("256236315144749059").send(`potential spambot: ${messageDelete.author.username} detected in ${messageDelete.channel.id}`)
         }
-        //console.log(data)
-        logref.push(data);
     }
+    if (emb.length == 0) {
+        if (oldMessage.author.bot == false && oldMessage.channel.type == "text" && oldMessage !== newMessage) {
+            //console.log(`${newMessage.author.tag} edited a message in ${oldMessage.channel} from "${oldMessage.content}" to "${newMessage.content}"`)
+            var channelname = ""
+            var keys = Object.keys(discordchannels)
+                for (var i=0; i<keys.length; i++) {
+                    var k = keys[i];
+                    if (discordchannels[k] = messageDelete.channel.id) {
+                        channelname = k
+                    }
+                }
+            var data = {
+                user: oldMessage.author.id,
+                name: oldMessage.author.username,
+                date: oldMessage.createdTimestamp,
+                action: "edited message",
+                message: oldMessage.content,
+                edit: newMessage.content,
+                channel: oldMessage.channel.id,
+                channel_name: channelname
+            }
+            //console.log(data)
+            logref.push(data);
+        }
+    }
+    
 });
 
 // when a user joins/leaves a voice channel

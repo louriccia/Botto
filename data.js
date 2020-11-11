@@ -209,10 +209,10 @@ module.exports = welcomeMessages = [
     `*And back again it's the mighty ${a}!*`,
     `*And hoping for a big win today, ${a}, with their record-setting pit droid team.*`,
     `*And in the front row, nearside pole position, ${a}!*`,
-    `This cocky little guy does not know the meaning of the word 'fear'. It's ${a}!`,
+    `*This cocky little guy does not know the meaning of the word 'fear'. It's ${a}!*`,
     //`${a}'s whole family's here today to cheer him on. We understand Mrs. ${a} just got out of the hospital so we wish her and her family the best of luck today. `,
-    `They're not good-looking, but they're not shy. ${a}!`,
-    `Lookie there. It's ${a}, always a threat on this course.`,
+    `*They're not good-looking, but they're not shy. ${a}!*`,
+    `*Lookie there. It's ${a}, always a threat on this course.*`,
     //5-7
     `*${a}? Why do I get the feeling that we've picked up another pathetic life form?*`,
     `*And a late entry, young ${a}, a local boy.*`,
@@ -224,7 +224,7 @@ module.exports = welcomeMessages = [
     `*Welcome, ${a}. Take a look around! I've gotta lots of junk*`,
     `*${a}. They come here, how do they find me? They come here, they mess up my discord-- Hey!*`,
     `*${a}. They come here. They look around. They no buy. Why nobody buy? Eyyyyyyyy*`,
-    `*${a}. Just who is this mysterious podracer? They sure impressed us with their qualifying laps, whoever they is.*`,
+    `*${a}. Just who is this mysterious podracer? They sure impressed us with their qualifying laps, whoever they are.*`,
     `*${a} is down there! Well I thought they were serving four life sentences here at Oovo IV.*`,
     `*${a} has joined the pack in their black and white Turca Special. Hooo! They look fast!*`,
     `*It's ${a} in their modified Pizer-Errol Stinger. Very sharp!*`,
@@ -433,3 +433,32 @@ module.exports = voiceFixed = [
 module.exports = voiceChallenge = [
     
 ]
+
+module.exports = discordchannels = [
+    {
+    "welcome-rules": "442116200147714049",
+    "discord-affiliates": "593235685914312708",
+    "join-logs": "441839751235108875",
+    "bot-commands": "444208252541075476",
+    "administration": "443136283838251019",
+    "general-chat": "442087812007985174",
+    "support": "441863426998796308",
+    "modding": "441842584592056320",
+    "swe1r-data": "444853518424080395",
+    "streams": "515311630100463656",
+    "tournaments": "536455290091077652",
+    "tournament-scheduling": "716053382548160644",
+    "weekly-challenge": "775134898633048084",
+    "creative": "602412114363154432",
+    "speedrun": "449375461886132235",
+    "speedrun-pc": "449375389081403413",
+    "speedrun-n64": "449375331208658965",
+    "speedrun-dreamcast": "449375302502711297",
+    "speedrun-switch-ps4": "725066951185137776",
+    "src-mods": "585800660226801682",
+    "multiplayer": "444627151858171934",
+    "bottos-junkyard": "551786988861128714",
+    "1-on-1-tourney-practice": "706428880323477504",
+    "off-topic": "441858905014927361",
+    "minecraft": "699297214257823850"
+} ]
