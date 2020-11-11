@@ -70,8 +70,8 @@ client.on("error", (e) => {
     }
     errorlogref.push(data)
 });
-client.on("warn", (e) => console.warn(e));
-client.on("debug", (e) => console.info(e));
+//client.on("warn", (e) => console.warn(e));
+//client.on("debug", (e) => console.info(e));
 
 client.on('guildMemberAdd', (guildMember) => {
     if (guildMember.guild.id == "441839750555369474") {
@@ -126,7 +126,7 @@ client.on('messageUpdate', (oldMessage, newMessage) => {
             var keys = Object.keys(discordchannels)
                 for (var i=0; i<keys.length; i++) {
                     var k = keys[i];
-                    if (discordchannels[k] = messageDelete.channel.id) {
+                    if (discordchannels[k] = newMessage.channel.id) {
                         channelname = k
                     }
                 }
