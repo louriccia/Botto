@@ -1259,6 +1259,35 @@ Complete a challenge as every pod on every track: X/575
 */
 
 /////   !challenge    //////
+    if(message.content.startsWith(`${prefix}stats`)) {
+        var keys = Object.keys(challengedata)
+        var best = []
+        for (var i=0; i<keys.length; i++) {
+            var k = keys[i];
+            if(challengedata[k].track == random2 && challengedata[k].racer == random1 && challengedata[k].laps == laps && challengedata[k].mirror == mirror && challengedata[k].nu == nu && challengedata[k].skips == skips){
+                best.push(challengedata[k])
+            }
+        }
+        if(array.length == 0)
+        return null;
+    var modeMap = {};
+    var maxEl = array[0], maxCount = 1;
+    for(var i = 0; i < array.length; i++)
+    {
+        var el = array[i];
+        if(modeMap[el] == null)
+            modeMap[el] = 1;
+        else
+            modeMap[el]++;  
+        if(modeMap[el] > maxCount)
+        {
+            maxEl = el;
+            maxCount = modeMap[el];
+        }
+    }
+    return maxEl;
+    }
+
     if(message.content == "?challenge") {
         const challengeHelpEmbed = new Discord.MessageEmbed()
         .setTitle("!challenge")
