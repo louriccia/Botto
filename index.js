@@ -90,13 +90,11 @@ client.on("messageDelete", (messageDelete) => {
     if (messageDelete.author.bot == false && messageDelete.channel.type == "text" && !messageDelete.content.startsWith("!")) {
         //console.log(`${messageDelete.author.tag} deleted the following message from ${messageDelete.channel}: "${messageDelete.content}"`)
         var channelname = ""
-        var keys = Object.keys(discordchannels)
-            for (var i=0; i<keys.length; i++) {
-                var k = keys[i];
-                if (discordchannels[k] = messageDelete.channel.id) {
-                    channelname = k
-                }
+        for (var i=0; i<discordchannels.length; i++) {
+            if (discordchannels[i].id == messageDelete.channel.id) {
+                channelname = discordchannels[i].name
             }
+        }
         var data = {
             user: messageDelete.author.id,
             name: messageDelete.author.username,
@@ -123,13 +121,11 @@ client.on('messageUpdate', (oldMessage, newMessage) => {
         if (oldMessage.author.bot == false && oldMessage.channel.type == "text" && oldMessage !== newMessage) {
             //console.log(`${newMessage.author.tag} edited a message in ${oldMessage.channel} from "${oldMessage.content}" to "${newMessage.content}"`)
             var channelname = ""
-            var keys = Object.keys(discordchannels)
-                for (var i=0; i<keys.length; i++) {
-                    var k = keys[i];
-                    if (discordchannels[k] = newMessage.channel.id) {
-                        channelname = k
-                    }
+            for (var i=0; i<discordchannels.length; i++) {
+                if (discordchannels[i].id == newMessage.channel.id) {
+                    channelname = discordchannels[i].name
                 }
+            }
             var data = {
                 user: oldMessage.author.id,
                 name: oldMessage.author.username,
