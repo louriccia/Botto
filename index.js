@@ -926,7 +926,7 @@ if(messageLow.startsWith(`${prefix}racer`) && !messageLow.startsWith(`${prefix}r
         var list = []
         for (let i = 0; i < racers.length; i++) {
             
-            if(racers[i].tier == 4){
+            if(racers[i].mu_tier == 0){
                 console.log(racers[i].name)
                 list.push(racers[i].racernum - 1)
             }
@@ -940,7 +940,7 @@ if(messageLow.startsWith(`${prefix}racer`) && !messageLow.startsWith(`${prefix}r
         var list = []
         for (let i = 0; i < racers.length; i++) {
             
-            if(racers[i].tier == 3){
+            if(racers[i].mu_tier == 1){
                 console.log(racers[i].name)
                 list.push(racers[i].racernum - 1)
             }
@@ -954,7 +954,7 @@ if(messageLow.startsWith(`${prefix}racer`) && !messageLow.startsWith(`${prefix}r
         var list = []
         for (let i = 0; i < racers.length; i++) {
             
-            if(racers[i].tier == 2){
+            if(racers[i].mu_tier == 2){
                 console.log(racers[i].name)
                 list.push(racers[i].racernum - 1)
             }
@@ -968,7 +968,7 @@ if(messageLow.startsWith(`${prefix}racer`) && !messageLow.startsWith(`${prefix}r
         var list = []
         for (let i = 0; i < racers.length; i++) {
             
-            if(racers[i].tier == 1){
+            if(racers[i].mu_tier == 3){
                 console.log(racers[i].name)
                 list.push(racers[i].racernum - 1)
             }
@@ -1103,13 +1103,13 @@ if(messageLow.startsWith(`${prefix}racer`) && !messageLow.startsWith(`${prefix}r
     }
     else{
         var racerFooter = racers[numb].footer
-        var Tier = ["Low", "Mid", "High", "Top"]
+        var Tier = ["Top", "High", "Mid", "Low"]
         const racerEmbed = new Discord.MessageEmbed()
             .setThumbnail(racers[numb].img)
             .setColor('#00DE45')
             .setTitle(racers[numb].name)
             .setDescription("(" + (numb + 1) + ") " + racers[numb].intro)
-            .addField("Tier", Tier[racers[numb].tier -1], true)
+            .addField("Tier", Tier[racers[numb].mu_tier], true)
             if (racers[numb].hasOwnProperty("species")){
                 racerEmbed.addField("Species/Homeworld", racers[numb].species, true)
             }
@@ -1167,7 +1167,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                 if (list.length == 0){
                     console.log("refill")
                     for (let i = 0; i < racers.length; i++) {
-                        if(racers[i].tier == 4){
+                        if(racers[i].mu_tier == 0){
                             list.push(racers[i].racernum - 1)
                         }
                     }
@@ -1192,7 +1192,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
             if(list.length == 0){
                     //gather racers from given tier
                 for (let i = 0; i < racers.length; i++) {
-                    if(racers[i].tier == 3){
+                    if(racers[i].mu_tier == 1){
                         list.push(racers[i].racernum - 1)
                     }
                 }
@@ -1215,7 +1215,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                 if (list.length == 0){
                     //gather racers from given tier
                     for (let i = 0; i < racers.length; i++) {
-                        if(racers[i].tier == 2){
+                        if(racers[i].mu_tier == 2){
                             list.push(racers[i].racernum - 1)
                         }
                     }
@@ -1238,7 +1238,7 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
                 if (list.length == 0){
                 //gather racers from given tier
                     for (let i = 0; i < racers.length; i++) {
-                        if(racers[i].tier == 1){
+                        if(racers[i].mu_tier == 3){
                             list.push(racers[i].racernum - 1)
                         }
                     }
@@ -1515,6 +1515,12 @@ Complete a challenge as every pod on every track: X/575
                 }
             }
             var desc = ""
+            var multiplier = 1
+            if (nu) {
+                multiplier = multipliers[racers[random1].nu_tier].nu_multiplier
+            } else {
+                multiplier = multipliers[racers[random1].mu_tier].mu_multiplier
+            }
             if (like > 0) {
                 desc = desc + "  👍 " + like
             }
@@ -1534,10 +1540,10 @@ Complete a challenge as every pod on every track: X/575
                 desc = desc + movieQuotes[random3]
             }
             challengeEmbed.setDescription(desc)
-            if(nu == false && skips == false && laps == 3) {
-                challengeEmbed.addField("Par Times", ":gem: " + tracks[random2].partimes[0] + "\n:first_place: " + tracks[random2].partimes[1] + "\n:second_place: " + tracks[random2].partimes[2] + "\n:third_place: " + tracks[random2].partimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[random2].partimes[4], true)
-            } else if (nu == false && skips == true && laps == 3) {
-                challengeEmbed.addField("Par Times", ":gem: " + tracks[random2].parskiptimes[0] + "\n:first_place: " + tracks[random2].parskiptimes[1] + "\n:second_place: " + tracks[random2].parskiptimes[2] + "\n:third_place: " + tracks[random2].parskiptimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[random2].parskiptimes[4], true)
+            if(skips == false && laps == 3) {
+                challengeEmbed.addField("Goal Times", ":gem: " + timefix(timetoSeconds(tracks[random2].partimes[0])*multiplier) + "\n:first_place: " + timefix(timetoSeconds(tracks[random2].partimes[1])*multiplier) + "\n:second_place: " + timefix(timetoSeconds(tracks[random2].partimes[2])*multiplier) + "\n:third_place: " + timefix(timetoSeconds(tracks[random2].partimes[3])*multiplier) + "\n<:bumpythumb:703107780860575875> " + timefix(timetoSeconds(tracks[random2].partimes[4])*multiplier), true)
+            } else if (skips == true && laps == 3) {
+                challengeEmbed.addField("Goal Times", ":gem: " + timefix(timetoSeconds(tracks[random2].parskiptimes[0])*multiplier) + "\n:first_place: " + timefix(timetoSeconds(tracks[random2].parskiptimes[1])*multiplier) + "\n:second_place: " + timefix(timetoSeconds(tracks[random2].parskiptimes[2])*multiplier) + "\n:third_place: " + timefix(timetoSeconds(tracks[random2].parskiptimes[3])*multiplier) + "\n<:bumpythumb:703107780860575875> " + timefix(timetoSeconds(tracks[random2].parskiptimes[4])*multiplier), true)
             }
             if(besttimes !== "") {
                 challengeEmbed.addField("Best Times", besttimes, true)
