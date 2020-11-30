@@ -249,11 +249,11 @@ function timefix(time) {
             minutes = "0" + minutes
         }
         var seconds = (time - hours*3600 - minutes * 60).toFixed(3)
-        return hours.toString() + ":" + minutes.toString() + ":" + myformat.format(seconds)
+        return hours.toString() + ":" + minutes.toString() + ":" + myformat.format(seconds.toFixed(3))
     } else if (time >= 60) {
         var minutes = Math.floor(time/60)
         var seconds = (time - minutes * 60).toFixed(3)
-        return minutes.toString() + ":" + myformat.format(seconds)
+        return minutes.toString() + ":" + myformat.format(seconds.toFixed(3))
     } else {
         return time
     }
@@ -1617,12 +1617,12 @@ Complete a challenge as every pod on every track: X/575
                     for (var i=0; i<5; i++) {
                         if (nu == false){
                             if (skips) {
-                                if (time < timetoSeconds(tracks[random2].parskiptimes[i])) {
+                                if (time < timetoSeconds(tracks[random2].parskiptimes[i])*multiplier) {
                                     parbeat = i
                                     i = 5
                                 }
                             } else {
-                                if (time < timetoSeconds(tracks[random2].partimes[i])) {
+                                if (time < timetoSeconds(tracks[random2].partimes[i])*multiplier) {
                                     parbeat = i
                                     i = 5
                                 }
