@@ -1620,12 +1620,12 @@ Complete a challenge as every pod on every track: X/575
                     for (var i=0; i<5; i++) {
                         if (nu == false){
                             if (skips) {
-                                if (time < timetoSeconds(tracks[random2].parskiptimes[i])*multiplier) {
+                                if (time < timetoSeconds(tracks[random2].parskiptimes[i])*multipliers[i].skips_multiplier) {
                                     parbeat = i
                                     i = 5
                                 }
                             } else {
-                                if (time < timetoSeconds(tracks[random2].partimes[i])*multiplier) {
+                                if (time < goal*multipliers[i].ft_multiplier) {
                                     parbeat = i
                                     i = 5
                                 }
