@@ -255,7 +255,7 @@ function timefix(time) {
         var seconds = (time - minutes * 60).toFixed(3)
         return minutes.toString() + ":" + myformat.format(seconds)
     } else {
-        return time.toFixed(3)
+        return Number(time).toFixed(3)
     }
 }
 
