@@ -1515,12 +1515,16 @@ Complete a challenge as every pod on every track: X/575
                 }
             }
             var desc = ""
-            var multiplier = 1
+            var speed = 1
+            var speedmod = tracks[random2].avgspeedmod
+            var length = tracks[random2].length
+            length = length * laps
             if (nu) {
-                multiplier = multipliers[racers[random1].nu_tier].nu_multiplier
+                speed = racers[random1].avgspeed_nu
             } else {
-                multiplier = multipliers[racers[random1].mu_tier].mu_multiplier
+                speed = racers[random1].avgspeed_mu
             }
+            var goal = length/(speed*speedmod)
             if (like > 0) {
                 desc = desc + "  👍 " + like
             }
@@ -1530,7 +1534,6 @@ Complete a challenge as every pod on every track: X/575
             if (impossible > 0) {
                 desc = desc + "  ❌ " + impossible
             }
-            
             if(Math.random()<0.50 && best.length> 0) {
                 desc = desc +"*The current record-holder for this challenge is... " + best[0].name + "!*"
             } else if (Math.random() < 0.50) {
@@ -1540,10 +1543,10 @@ Complete a challenge as every pod on every track: X/575
                 desc = desc + movieQuotes[random3]
             }
             challengeEmbed.setDescription(desc)
-            if(skips == false && laps == 3) {
-                challengeEmbed.addField("Goal Times", ":gem: " + timefix(timetoSeconds(tracks[random2].partimes[0])*multiplier) + "\n:first_place: " + timefix(timetoSeconds(tracks[random2].partimes[1])*multiplier) + "\n:second_place: " + timefix(timetoSeconds(tracks[random2].partimes[2])*multiplier) + "\n:third_place: " + timefix(timetoSeconds(tracks[random2].partimes[3])*multiplier) + "\n<:bumpythumb:703107780860575875> " + timefix(timetoSeconds(tracks[random2].partimes[4])*multiplier), true)
-            } else if (skips == true && laps == 3) {
-                challengeEmbed.addField("Goal Times", ":gem: " + timefix(timetoSeconds(tracks[random2].parskiptimes[0])*multiplier) + "\n:first_place: " + timefix(timetoSeconds(tracks[random2].parskiptimes[1])*multiplier) + "\n:second_place: " + timefix(timetoSeconds(tracks[random2].parskiptimes[2])*multiplier) + "\n:third_place: " + timefix(timetoSeconds(tracks[random2].parskiptimes[3])*multiplier) + "\n<:bumpythumb:703107780860575875> " + timefix(timetoSeconds(tracks[random2].parskiptimes[4])*multiplier), true)
+            if(!skips) {
+                challengeEmbed.addField("Goal Times", ":gem: " + timefix(goal*multipliers[0].ft_multiplier) + "\n:first_place: " + timefix(goal*multipliers[1].ft_multiplier) + "\n:second_place: " + timefix(goal*multipliers[2].ft_multiplier) + "\n:third_place: " + timefix(goal*multipliers[3].ft_multiplier) + "\n<:bumpythumb:703107780860575875> " + timefix(goal*multipliers[4].ft_multiplier), true)
+            } else {
+                challengeEmbed.addField("Goal Times", ":gem: " + timefix(timetoSeconds(tracks[random2].parskiptimes[0])*multipliers[0].skips_multiplier) + "\n:first_place: " + timefix(timetoSeconds(tracks[random2].parskiptimes[1])*multipliers[1].skips_multiplier) + "\n:second_place: " + timefix(timetoSeconds(tracks[random2].parskiptimes[2])*multipliers[2].skips_multiplier) + "\n:third_place: " + timefix(timetoSeconds(tracks[random2].parskiptimes[3])*multipliers[3].skips_multiplier) + "\n<:bumpythumb:703107780860575875> " + timefix(timetoSeconds(tracks[random2].parskiptimes[4])*multipliers[4].skips_multiplier), true)
             }
             if(besttimes !== "") {
                 challengeEmbed.addField("Best Times", besttimes, true)
