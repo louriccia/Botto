@@ -13,9 +13,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "discord.js": "12.x",
+    "discord.js": "^12.x",
     "firebase": "^7.24.0",
-    "node-fetch": "^2.6.1",
-    "opusscript": "0.0.6"
+    "node-fetch": "^2.6.1"
+    
   }
 }
