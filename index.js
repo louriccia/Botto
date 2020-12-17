@@ -284,6 +284,7 @@ function timetoSeconds(time) {
 }
 
 function findTime(str) {
+    console.log("looking for a time in: " + str)
     var time = ""
     var time_begin = -1
     var time_length = 0
@@ -304,15 +305,16 @@ function findTime(str) {
             time_length = 0
         }
     }
-    /*if (time_length > 0) {
+    if (time_length > 0) {
         time = mgs.substring(time_begin, time_begin+time_length)
+        console.log(time)
         if (time.length > 6 && !time.includes(":")) {
             time = ""
         }
         if (time.length > 4 && !time.includes(".")) {
             time = ""
         }
-    }*/
+    }
     return time
 }
 
