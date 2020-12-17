@@ -1320,6 +1320,7 @@ if(message.channel.id == 545800310283829270) { //775134898633048084 weekly chall
     } else if (emb[0].type == "video") {
         url = emb[0].video.url
         embtitle = emb[0].title
+        console.log(embtitle)
         time = findTime(embtitle)
     }
     var msg = message.content
