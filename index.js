@@ -29,6 +29,10 @@ var oddsref = database.ref('odds');
 var feedbackref = database.ref('feedback');
 var logref = database.ref('log');
 var errorlogref = database.ref('log/error');
+var weeklychallenges = database.ref('weekly/challenges');
+var weeklyqueue = database.ref('weekly/queue');
+var weeklyapproved = database.ref('weekly/submissions');
+
 
 ref.on("value", function(snapshot) {
     challengedata = snapshot.val();
@@ -163,7 +167,7 @@ client.on('voiceStateUpdate', (oldState, newState) => {
     }
 
     //if member joins Multiplayer Lobby 1
-    if(oldState == undefined && newState.channelID == "441840193754890250" && newState.member.id !== "545798436105224203") {
+    if(oldState == undefined && newState.channel.id == "441840193754890250" && newState.member.id !== "545798436105224203") {
         //random welcome message based on how many members are in voice channel
        if (arr.length == 1) {
             var random = Math.floor(Math.random()*2)
@@ -183,7 +187,7 @@ client.on('voiceStateUpdate', (oldState, newState) => {
         //member leaves multiplayer or troubleshooting channel
         const voicecon = client.guilds.cache.get("441839750555369474")
         if(voicecon.voice !== null){
-            if((oldState.channelID == "441840193754890250" || oldState.channelID == "441840753111597086") && newState == undefined){ 
+            if((oldState.channel.id == "441840193754890250" || oldState.channel.id == "441840753111597086") && newState == undefined){ 
                 random = Math.floor(Math.random()*goodbyeMessages.length)
                 random2 = Math.floor(Math.random()*voiceFarewell.length)
                 var str = goodbyeMessages[random]
@@ -193,14 +197,14 @@ client.on('voiceStateUpdate', (oldState, newState) => {
         //member is moving from one channel to another
         if(newState !== undefined) {
             //member moves from multiplayer to troubleshooting
-            if(oldState.channelID == "441840193754890250" && newState.channelID == "441840753111597086" && newState.member.id !== "288258590010245123" && newState.member.id !=="545798436105224203") {
+            if(oldState.channel.id == "441840193754890250" && newState.channel.id == "441840753111597086" && newState.member.id !== "288258590010245123" && newState.member.id !=="545798436105224203") {
                 random = Math.floor(Math.random()*troubleShooting.length)
                 random2 = Math.floor(Math.random()*voiceTrouble.length)
                 var str = troubleShooting[random]
                 client.channels.cache.get("551786988861128714").send(str.replace("replaceme", "<@" + oldState.member +">"))
             }
             //member moves back from troubleshooting to multiplayer
-            if(oldState.channelID == "441840753111597086" && newState.channelID == "441840193754890250" && newState.member.id !== "288258590010245123" && newState.member.id !== "545798436105224203") { 
+            if(oldState.channel.id == "441840753111597086" && newState.channel.id == "441840193754890250" && newState.member.id !== "288258590010245123" && newState.member.id !== "545798436105224203") { 
                 random = Math.floor(Math.random()*fixed.length)
                 random2 = Math.floor(Math.random()*voiceFixed.length)
                 var str = fixed[random]
@@ -277,6 +281,39 @@ function timetoSeconds(time) {
         return time
     }
     
+}
+
+function findTime(str) {
+    var time = ""
+    var time_begin = -1
+    var time_length = 0
+    for (let i =0; i<str.length; i++) {
+        if(str.charAt(i).isInteger) {
+            for (let j = 1; j<9; j++) {
+                if (str.charAt(i+j).isInteger  || str.charAt(i+j) == ":" || str.charAt(i+j) == ".") {
+                    time_length += 1
+                } else {
+                    j = 9
+                }
+            }
+            if (time_length > 4) {
+                time_begin = i
+                i = str.length
+            }
+        } else {
+            time_length = 0
+        }
+    }
+    if (time_length > 0) {
+        time = mgs.substring(time_begin, time_begin+time_length)
+        if (time.length > 6 && !time.includes(":")) {
+            time = ""
+        }
+        if (time.length > 4 && !time.includes(".")) {
+            time = ""
+        }
+    }
+    return time
 }
 
 if (messageLow.startsWith(`${prefix}guilds`)) {
@@ -1255,6 +1292,54 @@ if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
         message.channel.send("What you want? No one's in the voice channel.")
     }
     
+
+}
+
+/////   !weekly    //////
+if(message.content.startsWith(`${prefix}weekly`)) {
+    if (args.length > 0) {
+        if (args[0].startsWith("q")) {
+            //generate approval queue
+        } else if (args[0].startsWith("challenge")) {
+            //set challenge
+        } else {
+            //submission
+        }
+    } else {
+        //post leaderboard
+    }
+}
+
+if(message.channel.id == 545800310283829270) { //775134898633048084 weekly challenge 
+    var embtitle = ""
+    var emb = message.embeds
+    var att = message.attachments.array()
+    var url = ""
+    if (att.length > 0) {
+        url = att[0].url
+    }
+    if (emb[0].url !== "") {
+        url = emb[0].url
+        embtitle = emb[0].title
+    }
+
+    var msg = message.content
+    var time = findTime(msg)
+    if (time == "" && embtitle !== "") {
+        time = findTime(embtitle)
+    }
+
+    var data = {
+        user: message.author.id,
+        name: message.author.username,
+        platform: "",
+        proof: url,
+        id: message.id,
+        timestamp: message.createdTimestamp,
+        time: time,
+        challengeid: "",
+    }
+    weeklyqueue.push(data);
 
 }
 
