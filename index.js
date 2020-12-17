@@ -288,9 +288,9 @@ function findTime(str) {
     var time_begin = -1
     var time_length = 0
     for (let i =0; i<str.length; i++) {
-        if(str.charAt(i).isInteger) {
+        if(Number(str.charAt(i)).isInteger) {
             for (let j = 1; j<9; j++) {
-                if (str.charAt(i+j).isInteger  || str.charAt(i+j) == ":" || str.charAt(i+j) == ".") {
+                if (Number(str.charAt(i+j)).isInteger  || str.charAt(i+j) == ":" || str.charAt(i+j) == ".") {
                     time_length += 1
                 } else {
                     j = 9
