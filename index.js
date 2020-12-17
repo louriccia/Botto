@@ -292,10 +292,10 @@ function findTime(str) {
     for (let i =0; i<str.length; i++) {
         console.log("test")
         chr = parseInt(str.charAt(i))
-        if(chr.isInteger()) {
+        if(Number.isInteger(chr)) {
             console.log(chr)
             for (let j = 1; j<9; j++) {
-                if (str.charAt(i+j).isInteger() || str.charAt(i+j) == ":" || str.charAt(i+j) == ".") {
+                if (Number.isInteger(str.charAt(i+j)) || str.charAt(i+j) == ":" || str.charAt(i+j) == ".") {
                     time_length += 1
                 } else {
                     j = 9
