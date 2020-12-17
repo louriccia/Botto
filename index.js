@@ -1311,26 +1311,21 @@ if(message.content.startsWith(`${prefix}weekly`)) {
 }
 
 if(message.channel.id == 545800310283829270) { //775134898633048084 weekly challenge 
+    var time = ""
     var embtitle = ""
     var emb = message.embeds
-    var att = message.attachments.array()
     var url = ""
-    if (att.length > 0) {
-        url = att[0].url
-    }
-    if (emb.length > 0) {
-        if (emb[0].video.url !== "") {
-            url = emb[0].video.url
-            embtitle = emb[0].title
-        }
-    }
-
-    var msg = message.content
-    var time = findTime(msg)
-    if (time == "" && embtitle !== "") {
+    if (emb[0].type == "image") {
+        url = emb[0].image.url
+    } else if (emb[0].type == "video") {
+        url = emb[0].video.url
+        embtitle = emb[0].title
         time = findTime(embtitle)
     }
-
+    var msg = message.content
+    if (time == "" ) {
+        time = findTime(msg)
+    }
     var data = {
         user: message.author.id,
         name: message.author.username,
