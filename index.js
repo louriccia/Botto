@@ -1315,29 +1315,32 @@ if(message.channel.id == 545800310283829270) { //775134898633048084 weekly chall
     var embtitle = ""
     var emb = message.embeds
     var url = ""
-    if (emb[0].type == "image") {
-        url = emb[0].url
-    } else if (emb[0].type == "video") {
-        url = emb[0].video.url
-        embtitle = emb[0].title
-        console.log(embtitle)
-        time = findTime(embtitle)
+    if (emb > 0) {
+        if (emb[0].type == "image") {
+            url = emb[0].url
+        } else if (emb[0].type == "video") {
+            url = emb[0].video.url
+            embtitle = emb[0].title
+            console.log(embtitle)
+            time = findTime(embtitle)
+        }
+        var msg = message.content
+        if (time == "" ) {
+            time = findTime(msg)
+        }
+        var data = {
+            user: message.author.id,
+            name: message.author.username,
+            platform: "",
+            proof: url,
+            id: message.id,
+            timestamp: message.createdTimestamp,
+            time: time,
+            challengeid: "",
+        }
+        weeklyqueue.push(data);
     }
-    var msg = message.content
-    if (time == "" ) {
-        time = findTime(msg)
-    }
-    var data = {
-        user: message.author.id,
-        name: message.author.username,
-        platform: "",
-        proof: url,
-        id: message.id,
-        timestamp: message.createdTimestamp,
-        time: time,
-        challengeid: "",
-    }
-    weeklyqueue.push(data);
+    
 
 }
 
