@@ -304,7 +304,7 @@ function findTime(str) {
             time_length = 0
         }
     }
-    if (time_length > 0) {
+    /*if (time_length > 0) {
         time = mgs.substring(time_begin, time_begin+time_length)
         if (time.length > 6 && !time.includes(":")) {
             time = ""
@@ -312,7 +312,7 @@ function findTime(str) {
         if (time.length > 4 && !time.includes(".")) {
             time = ""
         }
-    }
+    }*/
     return time
 }
 
