@@ -295,8 +295,8 @@ function findTime(str) {
             for (let j = 1; j<9; j++) {
                 if (Number.isInteger(str.charAt(i+j)) || str.charAt(i+j) == ":" || str.charAt(i+j) == ".") {
                     time_length++
-                    console.log(str.charAt(i+j))
-                    console.log(time_length)
+                    console.log("i+j: " + str.charAt(i+j))
+                    console.log("time_length: " + time_length)
                 } else {
                     j = 9
                 }
