@@ -285,13 +285,15 @@ function timetoSeconds(time) {
 
 function findTime(str) {
     console.log("looking for a time in: " + str)
+    var chr = ""
     var time = ""
     var time_begin = -1
     var time_length = 0
     for (let i =0; i<str.length; i++) {
         console.log("test")
-        if(parseInt(str.charAt(i)).isInteger) {
-            console.log(str.charAt(i))
+        chr = str.charAt(i)
+        if(parseInt(chr).isInteger) {
+            console.log(chr)
             for (let j = 1; j<9; j++) {
                 if (parseInt(str.charAt(i+j)).isInteger  || str.charAt(i+j) == ":" || str.charAt(i+j) == ".") {
                     time_length += 1
