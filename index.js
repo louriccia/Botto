@@ -3,6 +3,7 @@ const { prefix, token } = require('./config.json');
 const client = new Discord.Client();
 var lookup = require("./data.js");
 var tourneylookup = require("./tourneydata.js");
+const ytdl = require('ytdl-core');
 
 const fs = require('fs');
 
@@ -315,6 +316,14 @@ function findTime(str) {
     }
     return time
 }
+
+function getTitleVideo (videoUrl){
+    return new Promise ((resolve, reject) => {
+       ytdl.getBasicInfo (videoUrl, (err, info) => {
+             resolve (info.title)
+       })
+    })
+ } 
 
 if (messageLow.startsWith(`${prefix}guilds`)) {
 console.log(client.guilds.cache)
@@ -1320,7 +1329,9 @@ if(message.channel.id == 545800310283829270) { //775134898633048084 weekly chall
             url = emb[0].url
         } else if (emb[0].type == "video") {
             url = emb[0].video.url
-            embtitle = emb[0].title
+            title = getTitleVideo(url)
+            embtitle = title
+            //embtitle = emb[0].title
             console.log(embtitle)
             time = findTime(embtitle)
         }
