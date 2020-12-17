@@ -310,7 +310,7 @@ function findTime(str) {
         }
     }
     if (time_length > 0) {
-        time = msg.substring(time_begin, time_begin+time_length)
+        time = str.substring(time_begin, time_begin+time_length)
         console.log(time)
         if (time.length > 6 && !time.includes(":")) {
             time = ""
