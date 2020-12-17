@@ -1316,7 +1316,7 @@ if(message.channel.id == 545800310283829270) { //775134898633048084 weekly chall
     var emb = message.embeds
     var url = ""
     if (emb[0].type == "image") {
-        url = emb[0].image.url
+        url = emb[0].url
     } else if (emb[0].type == "video") {
         url = emb[0].video.url
         embtitle = emb[0].title
