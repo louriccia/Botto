@@ -317,13 +317,6 @@ function findTime(str) {
     return time
 }
 
-function getTitleVideo (videoUrl){
-    return new Promise ((resolve, reject) => {
-       ytdl.getBasicInfo (videoUrl, (err, info) => {
-             resolve (info.title)
-       })
-    })
- } 
 
 if (messageLow.startsWith(`${prefix}guilds`)) {
 console.log(client.guilds.cache)
@@ -1321,6 +1314,7 @@ if(message.content.startsWith(`${prefix}weekly`)) {
 
 if(message.channel.id == 545800310283829270) { //775134898633048084 weekly challenge 
     var time = ""
+    var title = ""
     var embtitle = ""
     var emb = message.embeds
     var url = ""
@@ -1329,7 +1323,9 @@ if(message.channel.id == 545800310283829270) { //775134898633048084 weekly chall
             url = emb[0].url
         } else if (emb[0].type == "video") {
             url = emb[0].video.url
-            title = getTitleVideo(url)
+            ytdl.getInfo('https://www.youtube.com/watch?v=YQHsXMglC9A', function(err, info) {
+                title = (info.title) // "Adele - Hello"
+            });
             embtitle = title
             //embtitle = emb[0].title
             console.log(embtitle)
