@@ -167,7 +167,7 @@ client.on('voiceStateUpdate', (oldState, newState) => {
     }
 
     //if member joins Multiplayer Lobby 1
-    if(oldState == undefined && newState.channel.id == "441840193754890250" && newState.member.id !== "545798436105224203") {
+    if(oldState == undefined && newState.channelID == "441840193754890250" && newState.member.id !== "545798436105224203") {
         //random welcome message based on how many members are in voice channel
        if (arr.length == 1) {
             var random = Math.floor(Math.random()*2)
@@ -187,7 +187,7 @@ client.on('voiceStateUpdate', (oldState, newState) => {
         //member leaves multiplayer or troubleshooting channel
         const voicecon = client.guilds.cache.get("441839750555369474")
         if(voicecon.voice !== null){
-            if((oldState.channel.id == "441840193754890250" || oldState.channel.id == "441840753111597086") && newState == undefined){ 
+            if((oldState.channelID == "441840193754890250" || oldState.channelID == "441840753111597086") && newState == undefined){ 
                 random = Math.floor(Math.random()*goodbyeMessages.length)
                 random2 = Math.floor(Math.random()*voiceFarewell.length)
                 var str = goodbyeMessages[random]
@@ -197,14 +197,14 @@ client.on('voiceStateUpdate', (oldState, newState) => {
         //member is moving from one channel to another
         if(newState !== undefined) {
             //member moves from multiplayer to troubleshooting
-            if(oldState.channel.id == "441840193754890250" && newState.channel.id == "441840753111597086" && newState.member.id !== "288258590010245123" && newState.member.id !=="545798436105224203") {
+            if(oldState.channelID == "441840193754890250" && newState.channelID == "441840753111597086" && newState.member.id !== "288258590010245123" && newState.member.id !=="545798436105224203") {
                 random = Math.floor(Math.random()*troubleShooting.length)
                 random2 = Math.floor(Math.random()*voiceTrouble.length)
                 var str = troubleShooting[random]
                 client.channels.cache.get("551786988861128714").send(str.replace("replaceme", "<@" + oldState.member +">"))
             }
             //member moves back from troubleshooting to multiplayer
-            if(oldState.channel.id == "441840753111597086" && newState.channel.id == "441840193754890250" && newState.member.id !== "288258590010245123" && newState.member.id !== "545798436105224203") { 
+            if(oldState.channelID == "441840753111597086" && newState.channelID == "441840193754890250" && newState.member.id !== "288258590010245123" && newState.member.id !== "545798436105224203") { 
                 random = Math.floor(Math.random()*fixed.length)
                 random2 = Math.floor(Math.random()*voiceFixed.length)
                 var str = fixed[random]
@@ -290,6 +290,7 @@ function findTime(str) {
     var time_length = 0
     for (let i =0; i<str.length; i++) {
         if(Number(str.charAt(i)).isInteger) {
+            console.log(str.charAt(i))
             for (let j = 1; j<9; j++) {
                 if (Number(str.charAt(i+j)).isInteger  || str.charAt(i+j) == ":" || str.charAt(i+j) == ".") {
                     time_length += 1
