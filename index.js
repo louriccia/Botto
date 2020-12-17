@@ -289,7 +289,6 @@ function findTime(str) {
     var time_begin = -1
     var time_length = 0
     for (let i =0; i<str.length; i++) {
-        console.log("test")
         if(Number.isInteger(parseInt(str.charAt(i)))) {
             console.log(str.charAt(i))
             for (let j = 1; j<9; j++) {
@@ -298,6 +297,7 @@ function findTime(str) {
                     console.log("i+j: " + str.charAt(i+j))
                     console.log("time_length: " + time_length)
                 } else {
+                    console.log("i+j not a number: " + str.charAt(i+j))
                     j = 9
                 }
             }
