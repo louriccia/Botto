@@ -284,20 +284,15 @@ function timetoSeconds(time) {
 }
 
 function findTime(str) {
-    console.log("looking for a time in: " + str)
     var time = ""
     var time_begin = -1
     var time_length = 0
     for (let i =0; i<str.length; i++) {
         if(Number.isInteger(parseInt(str.charAt(i)))) {
-            console.log(str.charAt(i))
             for (let j = 1; j<9; j++) {
                 if (Number.isInteger(parseInt(str.charAt(i+j))) || str.charAt(i+j) == ":" || str.charAt(i+j) == ".") {
                     time_length++
-                    console.log("i+j: " + str.charAt(i+j))
-                    console.log("time_length: " + time_length)
                 } else {
-                    console.log("i+j not a number: " + str.charAt(i+j))
                     j = 9
                 }
             }
@@ -310,8 +305,7 @@ function findTime(str) {
         }
     }
     if (time_length > 0) {
-        time = str.substring(time_begin, time_begin+time_length)
-        console.log(time)
+        time = str.substring(time_begin, time_begin+time_length+1)
         if (time.length > 6 && !time.includes(":")) {
             time = ""
         }
