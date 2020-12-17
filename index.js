@@ -1318,9 +1318,11 @@ if(message.channel.id == 545800310283829270) { //775134898633048084 weekly chall
     if (att.length > 0) {
         url = att[0].url
     }
-    if (emb[0].video.url !== "") {
-        url = emb[0].video.url
-        embtitle = emb[0].title
+    if (emb.length > 0) {
+        if (emb[0].video.url !== "") {
+            url = emb[0].video.url
+            embtitle = emb[0].title
+        }
     }
 
     var msg = message.content
