@@ -216,7 +216,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                     ]
                 },
                 {
-                    name: "1 Lap Runs",
+                    name: "flap",
                     description: "whether to show only 1-lap/flap runs",
                     type: 5,
                     required: false
@@ -257,7 +257,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                     ]
                 },
                 {
-                    name: "skips",
+                    name: "skips/full track",
                     description: "filter by skip runs or full track runs",
                     type: 3,
                     required: false,
