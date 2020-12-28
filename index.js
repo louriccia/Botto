@@ -145,8 +145,8 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
     description: 'get top-5 leaderboards from speedrun.com',
     options: [
         {
-            name: "track",
-            description: "get track leaderboards",
+            name: "IL",
+            description: "get individual level leaderboards",
             type: 1, //sub command
             options: [
                 {
@@ -158,7 +158,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
             ]
         },
         {
-            name: "category",
+            name: "RTA",
             description: "get category leaderboards",
             type: 1, //sub command
             options: [
@@ -395,10 +395,11 @@ var messageLow = messageText.toLowerCase()
 var random2 = Math.floor(Math.random()*2) //1 in # chances of using playerPicks instead of movieQuotes
 var random3 = Math.floor(Math.random()*movieQuotes.length)
 var random5 = Math.floor(Math.random()*playerPicks.length)
-var chan = client.channels.cache.get(message.member.voice.channelID);
+
 
 //get list of members in voicechannel
 if(chan !== undefined && message.channel.type !== "dm"){
+    var chan = client.channels.cache.get(message.member.voice.channelID);
     var mems = chan.members;
     var arr = [];
     for (let [snowflake, guildMember] of mems){
