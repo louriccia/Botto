@@ -159,7 +159,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
         },
         {
             name: "RTA",
-            description: "get category leaderboards",
+            description: "get real time attack leaderboards",
             type: 1, //sub command
             options: [
                 {
