@@ -156,11 +156,11 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                     required: true
                 },
                 {
-                    name: "skips",
+                    name: "skips/full track",
                     description: "filter by skip runs or full track runs",
                     type: 3,
                     required: false,
-                    options: [
+                    choices: [
                         {
                             name: "skips",
                             value: "skips"
@@ -174,9 +174,9 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                 {
                     name: "upgrades",
                     description: "filter by upgrade runs and no upgrade (nu) runs",
-                    required: false,
                     type: 3,
-                    options: [
+                    required: false,
+                    choices: [
                         {
                             name: "upgrades",
                             value: "mu" 
@@ -190,9 +190,9 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                 {
                     name: "platform",
                     description: "filter runs by platform",
-                    required: false,
                     type: 3,
-                    options: [
+                    required: false,
+                    choices: [
                         {
                             name: "PC",
                             value: "pc" 
@@ -261,7 +261,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                     description: "filter by skip runs or full track runs",
                     type: 3,
                     required: false,
-                    options: [
+                    choices: [
                         {
                             name: "skips",
                             value: "skips"
@@ -275,9 +275,9 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                 {
                     name: "upgrades",
                     description: "filter by upgrade runs and no upgrade (nu) runs",
-                    required: false,
                     type: 3,
-                    options: [
+                    required: false,
+                    choices: [
                         {
                             name: "upgrades",
                             value: "mu" 
@@ -291,9 +291,9 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                 {
                     name: "platform",
                     description: "filter runs by platform",
-                    required: false,
                     type: 3,
-                    options: [
+                    required: false,
+                    choices: [
                         {
                             name: "PC",
                             value: "pc" 
