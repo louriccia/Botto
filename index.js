@@ -135,7 +135,7 @@ function findTime(str) {
     return time
 }
 
-client.api.applications(client.user.id).guilds('441839750555369474').commands.post({data: {
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
     name: 'help',
     description: 'botto help'
 }})
