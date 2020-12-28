@@ -59,188 +59,6 @@ feedbackref.on("value", function(snapshot) {
 
 const fetch = require('node-fetch');
 
-client.once('ready', () => {
-    console.log('Ready!')
-    //set bot activity
-    client.user.setActivity("?help"); 
-    //client.users.cache.get("256236315144749059").send("Ready!")
-    client.channels.cache.get("444208252541075476").send("Ready!");
-})
-
-client.on("error", (e) => {
-    console.error(e)
-    var data = {
-        date: Date(),
-        error: e
-    }
-    errorlogref.push(data)
-});
-//client.on("warn", (e) => console.warn(e));
-//client.on("debug", (e) => console.info(e));
-
-client.on('guildMemberAdd', (guildMember) => {
-    if (guildMember.guild.id == "441839750555369474") {
-        var random = Math.floor(Math.random()*welcomeMessages.length)
-        var join = welcomeMessages[random]
-        console.log(join)
-        client.channels.cache.get("441839751235108875").send(join.replace("replaceme", "**<@" + guildMember.user + ">**"));
-        const guild = client.guilds.cache.get("441839750555369474");
-        const role = guild.roles.cache.get("442316203835392001");
-        let member = guildMember
-        member.roles.add(role).catch(console.error);
-    }
- })
-
-client.on("messageDelete", (messageDelete) => {
-    if (messageDelete.author.bot == false && messageDelete.channel.type == "text" && !messageDelete.content.startsWith("!")) {
-        //console.log(`${messageDelete.author.tag} deleted the following message from ${messageDelete.channel}: "${messageDelete.content}"`)
-        var channelname = ""
-        for (var i=0; i<discordchannels.length; i++) {
-            if (discordchannels[i].id == messageDelete.channel.id) {
-                channelname = discordchannels[i].name
-            }
-        }
-        var data = {
-            user: messageDelete.author.id,
-            name: messageDelete.author.username,
-            date: messageDelete.createdTimestamp,
-            action: "deleted message",
-            message: messageDelete.content,
-            channel: messageDelete.channel.id,
-            channel_name: channelname
-        }
-        //console.log(data)
-        logref.push(data);
-        //client.users.cache.get("256236315144749059").send(`${messageDelete.author.tag} deleted a message from ${messageDelete.channel}\n> ${messageDelete.content}`);
-    }
-   });
-
-client.on('messageUpdate', (oldMessage, newMessage) => {
-    emb = newMessage.embeds
-    for (i=0; i<emb.length; i++) {
-        if (emb[i].url == "" && newMessage.author.bot == false) {
-            client.users.cache.get("256236315144749059").send(`potential spambot: ${messageDelete.author.username} detected in ${messageDelete.channel.id}`)
-        }
-    }
-    if (emb.length == 0) {
-        if (oldMessage.author.bot == false && oldMessage.channel.type == "text" && oldMessage !== newMessage) {
-            //console.log(`${newMessage.author.tag} edited a message in ${oldMessage.channel} from "${oldMessage.content}" to "${newMessage.content}"`)
-            var channelname = ""
-            for (var i=0; i<discordchannels.length; i++) {
-                if (discordchannels[i].id == newMessage.channel.id) {
-                    channelname = discordchannels[i].name
-                }
-            }
-            var data = {
-                user: oldMessage.author.id,
-                name: oldMessage.author.username,
-                date: oldMessage.createdTimestamp,
-                action: "edited message",
-                message: oldMessage.content,
-                edit: newMessage.content,
-                channel: oldMessage.channel.id,
-                channel_name: channelname
-            }
-            //console.log(data)
-            logref.push(data);
-        }
-    }
-    
-});
-
-// when a user joins/leaves a voice channel
-client.on('voiceStateUpdate', (oldState, newState) => {
-
-    let newUserChannel = newState.channel
-    let oldUserChannel = oldState.channel
-    var chan = client.channels.cache.get('441840193754890250');
-    //get list of members in voice channel
-    if(chan !== undefined){
-        var mems = chan.members;
-        var arr = [];
-        for (let [snowflake, guildMember] of mems){
-            if(guildMember.displayName !== "Botto"){
-                arr.push(guildMember)
-            }
-            
-        }
-        
-    }
-
-    //if member joins Multiplayer Lobby 1
-    if(oldState == undefined && newState.channelID == "441840193754890250" && newState.member.id !== "545798436105224203") {
-        //random welcome message based on how many members are in voice channel
-       if (arr.length == 1) {
-            var random = Math.floor(Math.random()*2)
-       } else if(arr.length == 2) {
-            var random = Math.floor(Math.random()*3)+2
-       } else if(2 < arr.length < 5 ) {
-            var random = Math.floor(Math.random()*9)+5
-       } else if(4 < arr.length < 8 ) {
-            var random = Math.floor(Math.random()*6)+14
-        } else if(7 < arr.length) {
-            var random = Math.floor(Math.random()*4)+17}
-       var str = welcomeMessages[random]
-       client.channels.cache.get("551786988861128714").send(str.replace("replaceme", "<@" + newState.member + ">"))
-    } 
-    //if member is already in any voice channel
-    if(oldUserChannel !== undefined){ 
-        //member leaves multiplayer or troubleshooting channel
-        const voicecon = client.guilds.cache.get("441839750555369474")
-        if(voicecon.voice !== null){
-            if((oldState.channelID == "441840193754890250" || oldState.channelID == "441840753111597086") && newState == undefined){ 
-                random = Math.floor(Math.random()*goodbyeMessages.length)
-                random2 = Math.floor(Math.random()*voiceFarewell.length)
-                var str = goodbyeMessages[random]
-                client.channels.cache.get("551786988861128714").send(str.replace("replaceme", "<@" + oldState.member + ">"))
-            }
-        }
-        //member is moving from one channel to another
-        if(newState !== undefined) {
-            //member moves from multiplayer to troubleshooting
-            if(oldState.channelID == "441840193754890250" && newState.channelID == "441840753111597086" && newState.member.id !== "288258590010245123" && newState.member.id !=="545798436105224203") {
-                random = Math.floor(Math.random()*troubleShooting.length)
-                random2 = Math.floor(Math.random()*voiceTrouble.length)
-                var str = troubleShooting[random]
-                client.channels.cache.get("551786988861128714").send(str.replace("replaceme", "<@" + oldState.member +">"))
-            }
-            //member moves back from troubleshooting to multiplayer
-            if(oldState.channelID == "441840753111597086" && newState.channelID == "441840193754890250" && newState.member.id !== "288258590010245123" && newState.member.id !== "545798436105224203") { 
-                random = Math.floor(Math.random()*fixed.length)
-                random2 = Math.floor(Math.random()*voiceFixed.length)
-                var str = fixed[random]
-                client.channels.cache.get("551786988861128714").send(str.replace("replaceme", "<@" + oldState.member +">"))
-            }
-        }
-    }
-})
-
-
-client.on('message', message => {
-if(message.author.bot) return;
-var args = message.content.slice(prefix.length).trim().split(/ +/g);
-var command = args.shift().toLowerCase();
-var messageText = message.content
-var messageLow = messageText.toLowerCase()
-var random2 = Math.floor(Math.random()*2) //1 in # chances of using playerPicks instead of movieQuotes
-var random3 = Math.floor(Math.random()*movieQuotes.length)
-var random5 = Math.floor(Math.random()*playerPicks.length)
-var chan = client.channels.cache.get('441840193754890250');
-
-//get list of members in voicechannel
-if(chan !== undefined && message.channel.type !== "dm"){
-    var mems = chan.members;
-    var arr = [];
-    for (let [snowflake, guildMember] of mems){
-        if(guildMember.displayName !== "Botto"){
-        arr.push(guildMember)
-        }
-        
-    }
-    //get random member from voicechannel
-    var pickedPlayer = arr[Math.floor(Math.random()*arr.length)]
-}
-
 var myformat = new Intl.NumberFormat('en-US', { 
     minimumIntegerDigits: 2, 
     minimumFractionDigits: 3 
@@ -316,6 +134,229 @@ function findTime(str) {
     }
     return time
 }
+
+client.api.applications(client.user.id).guilds('441839750555369474').commands.post({data: {
+    name: 'help',
+    description: 'botto help'
+}})
+
+client.once('ready', () => {
+    console.log('Ready!')
+    //set bot activity
+    client.user.setActivity("?help"); 
+    //client.users.cache.get("256236315144749059").send("Ready!")
+    client.channels.cache.get("444208252541075476").send("Ready!");
+
+
+})
+
+client.on("error", (e) => {
+    console.error(e)
+    var data = {
+        date: Date(),
+        error: e
+    }
+    errorlogref.push(data)
+});
+//client.on("warn", (e) => console.warn(e));
+//client.on("debug", (e) => console.info(e));
+
+client.on('guildMemberAdd', (guildMember) => { //join log
+    if (guildMember.guild.id == "441839750555369474") {
+        var random = Math.floor(Math.random()*welcomeMessages.length)
+        var join = welcomeMessages[random]
+        console.log(join)
+        client.channels.cache.get("441839751235108875").send(join.replace("replaceme", "<@" + guildMember.user + ">"));
+        const guild = client.guilds.cache.get("441839750555369474");
+        const role = guild.roles.cache.get("442316203835392001");
+        let member = guildMember
+        member.roles.add(role).catch(console.error);
+    }
+ })
+
+client.on("messageDelete", (messageDelete) => {
+    if (messageDelete.author.bot == false && messageDelete.channel.type == "text" && !messageDelete.content.startsWith("!")) {
+        //console.log(`${messageDelete.author.tag} deleted the following message from ${messageDelete.channel}: "${messageDelete.content}"`)
+        var channelname = ""
+        for (var i=0; i<discordchannels.length; i++) {
+            if (discordchannels[i].id == messageDelete.channel.id) {
+                channelname = discordchannels[i].name
+            }
+        }
+        var data = {
+            user: messageDelete.author.id,
+            name: messageDelete.author.username,
+            date: messageDelete.createdTimestamp,
+            action: "deleted message",
+            message: messageDelete.content,
+            channel: messageDelete.channel.id,
+            channel_name: channelname
+        }
+        //console.log(data)
+        logref.push(data);
+        //client.users.cache.get("256236315144749059").send(`${messageDelete.author.tag} deleted a message from ${messageDelete.channel}\n> ${messageDelete.content}`);
+    }
+   });
+
+client.on('messageUpdate', (oldMessage, newMessage) => {
+    emb = newMessage.embeds
+    for (i=0; i<emb.length; i++) {
+        if (emb[i].url == "" && newMessage.author.bot == false) {
+            client.users.cache.get("256236315144749059").send(`potential spambot: ${messageDelete.author.username} detected in ${messageDelete.channel.id}`)
+        }
+    }
+    if (emb.length == 0) {
+        if (oldMessage.author.bot == false && oldMessage.channel.type == "text" && oldMessage !== newMessage) {
+            //console.log(`${newMessage.author.tag} edited a message in ${oldMessage.channel} from "${oldMessage.content}" to "${newMessage.content}"`)
+            var channelname = ""
+            for (var i=0; i<discordchannels.length; i++) {
+                if (discordchannels[i].id == newMessage.channel.id) {
+                    channelname = discordchannels[i].name
+                }
+            }
+            var data = {
+                user: oldMessage.author.id,
+                name: oldMessage.author.username,
+                date: oldMessage.createdTimestamp,
+                action: "edited message",
+                message: oldMessage.content,
+                edit: newMessage.content,
+                channel: oldMessage.channel.id,
+                channel_name: channelname
+            }
+            //console.log(data)
+            logref.push(data);
+        }
+    }
+    if(message.channel.id == 545800310283829270) { //775134898633048084 weekly challenge 
+        var time = ""
+        var embtitle = ""
+        var emb = message.embeds
+        var url = ""
+        if (emb.length > 0) {
+            if (emb[0].type == "image") {
+                url = emb[0].url
+            } else if (emb[0].type == "video") {
+                url = emb[0].video.url
+                embtitle = emb[0].title
+                time = findTime(embtitle)
+            }
+            var msg = message.content
+            if (time == "" ) {
+                time = findTime(msg)
+            }
+            var data = {
+                user: message.author.id,
+                name: message.author.username,
+                platform: "",
+                proof: url,
+                id: message.id,
+                timestamp: message.createdTimestamp,
+                time: time,
+                challengeid: "",
+            }
+            weeklyqueue.push(data);
+        }
+    }
+    
+});
+
+// when a user joins/leaves a voice channel
+client.on('voiceStateUpdate', (oldState, newState) => {
+
+    let newUserChannel = newState.channel
+    let oldUserChannel = oldState.channel
+    var chan = client.channels.cache.get('441840193754890250');
+    //get list of members in voice channel
+    if(chan !== undefined){
+        var mems = chan.members;
+        var arr = [];
+        for (let [snowflake, guildMember] of mems){
+            if(guildMember.displayName !== "Botto"){
+                arr.push(guildMember)
+            }
+            
+        }
+        
+    }
+
+    //if member joins Multiplayer Lobby 1
+    if(oldState == undefined && newState.channelID == "441840193754890250" && newState.member.id !== "545798436105224203") {
+        //random welcome message based on how many members are in voice channel
+       if (arr.length == 1) {
+            var random = Math.floor(Math.random()*2)
+       } else if(arr.length == 2) {
+            var random = Math.floor(Math.random()*3)+2
+       } else if(2 < arr.length < 5 ) {
+            var random = Math.floor(Math.random()*9)+5
+       } else if(4 < arr.length < 8 ) {
+            var random = Math.floor(Math.random()*6)+14
+        } else if(7 < arr.length) {
+            var random = Math.floor(Math.random()*4)+17}
+       var str = welcomeMessages[random]
+       client.channels.cache.get("551786988861128714").send(str.replace("replaceme", "<@" + newState.member + ">"))
+    } 
+    //if member is already in any voice channel
+    if(oldUserChannel !== undefined){ 
+        //member leaves multiplayer or troubleshooting channel
+        const voicecon = client.guilds.cache.get("441839750555369474")
+        if(voicecon.voice !== null){
+            if((oldState.channelID == "441840193754890250" || oldState.channelID == "441840753111597086") && newState == undefined){ 
+                random = Math.floor(Math.random()*goodbyeMessages.length)
+                random2 = Math.floor(Math.random()*voiceFarewell.length)
+                var str = goodbyeMessages[random]
+                client.channels.cache.get("551786988861128714").send(str.replace("replaceme", "<@" + oldState.member + ">"))
+            }
+        }
+        //member is moving from one channel to another
+        if(newState !== undefined) {
+            //member moves from multiplayer to troubleshooting
+            if(oldState.channelID == "441840193754890250" && newState.channelID == "441840753111597086" && newState.member.id !== "288258590010245123" && newState.member.id !=="545798436105224203") {
+                random = Math.floor(Math.random()*troubleShooting.length)
+                random2 = Math.floor(Math.random()*voiceTrouble.length)
+                var str = troubleShooting[random]
+                client.channels.cache.get("551786988861128714").send(str.replace("replaceme", "<@" + oldState.member +">"))
+            }
+            //member moves back from troubleshooting to multiplayer
+            if(oldState.channelID == "441840753111597086" && newState.channelID == "441840193754890250" && newState.member.id !== "288258590010245123" && newState.member.id !== "545798436105224203") { 
+                random = Math.floor(Math.random()*fixed.length)
+                random2 = Math.floor(Math.random()*voiceFixed.length)
+                var str = fixed[random]
+                client.channels.cache.get("551786988861128714").send(str.replace("replaceme", "<@" + oldState.member +">"))
+            }
+        }
+    }
+})
+
+
+client.on('message', message => {
+if(message.author.bot) return; //trumps any command from executing from a bot message
+var args = message.content.slice(prefix.length).trim().split(/ +/g);
+var command = args.shift().toLowerCase();
+var messageText = message.content
+var messageLow = messageText.toLowerCase()
+var random2 = Math.floor(Math.random()*2) //1 in # chances of using playerPicks instead of movieQuotes
+var random3 = Math.floor(Math.random()*movieQuotes.length)
+var random5 = Math.floor(Math.random()*playerPicks.length)
+var chan = client.channels.cache.get(message.member.voice.channelID);
+
+//get list of members in voicechannel
+if(chan !== undefined && message.channel.type !== "dm"){
+    var mems = chan.members;
+    var arr = [];
+    for (let [snowflake, guildMember] of mems){
+        if(guildMember.displayName !== "Botto"){
+        arr.push(guildMember)
+        }
+        
+    }
+    //get random member from voicechannel
+    var pickedPlayer = arr[Math.floor(Math.random()*arr.length)]
+}
+
+
+
+
 
 if (messageLow.startsWith(`${prefix}guilds`)) {
 console.log(client.guilds.cache)
@@ -1322,7 +1363,6 @@ if(message.channel.id == 545800310283829270) { //775134898633048084 weekly chall
         } else if (emb[0].type == "video") {
             url = emb[0].video.url
             embtitle = emb[0].title
-            console.log(embtitle)
             time = findTime(embtitle)
         }
         var msg = message.content
@@ -1341,8 +1381,6 @@ if(message.channel.id == 545800310283829270) { //775134898633048084 weekly chall
         }
         weeklyqueue.push(data);
     }
-    
-
 }
 
 /*
