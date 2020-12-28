@@ -162,6 +162,10 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                     required: false,
                     choices: [
                         {
+                            name: "any",
+                            value: "any"
+                        },
+                        {
                             name: "skips",
                             value: "skips"
                         },
@@ -177,6 +181,10 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                     type: 3,
                     required: false,
                     choices: [
+                        {
+                            name: "any",
+                            value: "any"
+                        },
                         {
                             name: "upgrades",
                             value: "mu" 
@@ -194,6 +202,10 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                     required: false,
                     choices: [
                         {
+                            name: "any",
+                            value: "any"
+                        },
+                        {
                             name: "PC",
                             value: "pc" 
                         },
@@ -210,16 +222,26 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                             value: "switch"
                         },
                         {
-                            name: "Play Station 4",
+                            name: "PlayStation 4",
                             value: "ps4"
                         }
                     ]
                 },
                 {
-                    name: "flap",
-                    description: "whether to show only 1-lap/fast lap runs",
-                    type: 5,
-                    required: false
+                    name: "laps",
+                    description: "show 3-lap or 1-lap runs (defaults to 3-lap)",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "3-lap",
+                            value: "3"
+                        },
+                        {
+                            name: "1-lap",
+                            value: "1"
+                        }
+                    ]
                 }
             ]
         },
@@ -263,6 +285,10 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                     required: false,
                     choices: [
                         {
+                            name: "any",
+                            value: "any"
+                        },
+                        {
                             name: "skips",
                             value: "skips"
                         },
@@ -274,10 +300,14 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                 },
                 {
                     name: "upgrades",
-                    description: "filter by upgrade runs and no upgrade (nu) runs",
+                    description: "filter by upgrade runs (mu) and no upgrade runs (nu)",
                     type: 3,
                     required: false,
                     choices: [
+                        {
+                            name: "any",
+                            value: "any"
+                        },
                         {
                             name: "upgrades",
                             value: "mu" 
@@ -295,6 +325,10 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                     required: false,
                     choices: [
                         {
+                            name: "any",
+                            value: "any"
+                        },
+                        {
                             name: "PC",
                             value: "pc" 
                         },
@@ -311,7 +345,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                             value: "switch"
                         },
                         {
-                            name: "Play Station 4",
+                            name: "PlayStation 4",
                             value: "ps4"
                         }
                     ]
