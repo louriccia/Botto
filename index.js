@@ -156,7 +156,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                     required: true
                 },
                 {
-                    name: "skips/full track",
+                    name: "skips",
                     description: "filter by skip runs or full track runs",
                     type: 3,
                     required: false,
@@ -217,7 +217,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                 },
                 {
                     name: "flap",
-                    description: "whether to show only 1-lap/flap runs",
+                    description: "whether to show only 1-lap/fast lap runs",
                     type: 5,
                     required: false
                 }
@@ -229,7 +229,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
             type: 1, //sub command
             options: [
                 {
-                    name: "category name",
+                    name: "category",
                     description: "the name or abbreviation of the category",
                     type: 3,//string
                     required: true,
@@ -257,7 +257,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                     ]
                 },
                 {
-                    name: "skips/full track",
+                    name: "skips",
                     description: "filter by skip runs or full track runs",
                     type: 3,
                     required: false,
