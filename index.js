@@ -146,7 +146,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
     options: [
         {
             name: "IL",
-            description: "get individual level leaderboards",
+            description: "get individual level top-5 leaderboards",
             type: 1, //sub command
             options: [
                 {
@@ -154,22 +154,88 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                     description: "the name or abbreviation of the track",
                     type: 3, //string
                     required: true
+                },
+                {
+                    name: "skips",
+                    description: "filter by skip runs or full track runs",
+                    type: 3,
+                    required: false,
+                    options: [
+                        {
+                            name: "skips",
+                            value: "skips"
+                        },
+                        {
+                            name: "full track",
+                            value: "ft"
+                        }
+                    ]
+                },
+                {
+                    name: "upgrades",
+                    description: "filter by upgrade runs and no upgrade (nu) runs",
+                    required: false,
+                    type: 3,
+                    options: [
+                        {
+                            name: "upgrades",
+                            value: "mu" 
+                        },
+                        {
+                            name: "no upgrades",
+                            value: "nu"
+                        }
+                    ]
+                },
+                {
+                    name: "platform",
+                    description: "filter runs by platform",
+                    required: false,
+                    type: 3,
+                    options: [
+                        {
+                            name: "PC",
+                            value: "pc" 
+                        },
+                        {  
+                            name: "Nintendo 64",
+                            value: "n64"
+                        },
+                        {
+                            name: "Dreamcast",
+                            value: "dc"
+                        },
+                        {
+                            name: "Nintendo Switch",
+                            value: "switch"
+                        },
+                        {
+                            name: "Play Station 4",
+                            value: "ps4"
+                        }
+                    ]
+                },
+                {
+                    name: "1 Lap Runs",
+                    description: "whether to show only 1-lap/flap runs",
+                    type: 5,
+                    required: false
                 }
             ]
         },
         {
             name: "RTA",
-            description: "get real time attack leaderboards",
+            description: "get real time attack top-5 leaderboards",
             type: 1, //sub command
             options: [
                 {
-                    name: "category",
+                    name: "category name",
                     description: "the name or abbreviation of the category",
                     type: 3,//string
                     required: true,
                     choices: [
                         {
-                            name: "Any %",
+                            name: "Any%",
                             value: "any%"
                         },
                         {
@@ -187,6 +253,66 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                         {
                             name: "All Tracks New Game+",
                             value: "ng+"
+                        }
+                    ]
+                },
+                {
+                    name: "skips",
+                    description: "filter by skip runs or full track runs",
+                    type: 3,
+                    required: false,
+                    options: [
+                        {
+                            name: "skips",
+                            value: "skips"
+                        },
+                        {
+                            name: "full track",
+                            value: "ft"
+                        }
+                    ]
+                },
+                {
+                    name: "upgrades",
+                    description: "filter by upgrade runs and no upgrade (nu) runs",
+                    required: false,
+                    type: 3,
+                    options: [
+                        {
+                            name: "upgrades",
+                            value: "mu" 
+                        },
+                        {
+                            name: "no upgrades",
+                            value: "nu"
+                        }
+                    ]
+                },
+                {
+                    name: "platform",
+                    description: "filter runs by platform",
+                    required: false,
+                    type: 3,
+                    options: [
+                        {
+                            name: "PC",
+                            value: "pc" 
+                        },
+                        {  
+                            name: "Nintendo 64",
+                            value: "n64"
+                        },
+                        {
+                            name: "Dreamcast",
+                            value: "dc"
+                        },
+                        {
+                            name: "Nintendo Switch",
+                            value: "switch"
+                        },
+                        {
+                            name: "Play Station 4",
+                            value: "ps4"
                         }
                     ]
                 }
@@ -285,10 +411,10 @@ client.on('messageUpdate', (oldMessage, newMessage) => {
             logref.push(data);
         }
     }
-    if(message.channel.id == 545800310283829270) { //775134898633048084 weekly challenge 
+    if(newMessage.channel.id == 545800310283829270) { //775134898633048084 weekly challenge 
         var time = ""
         var embtitle = ""
-        var emb = message.embeds
+        var emb = newMessage.embeds
         var url = ""
         if (emb.length > 0) {
             if (emb[0].type == "image") {
@@ -298,17 +424,17 @@ client.on('messageUpdate', (oldMessage, newMessage) => {
                 embtitle = emb[0].title
                 time = findTime(embtitle)
             }
-            var msg = message.content
+            var msg = newMessage.content
             if (time == "" ) {
                 time = findTime(msg)
             }
             var data = {
-                user: message.author.id,
-                name: message.author.username,
+                user: newMessage.author.id,
+                name: newMessage.author.username,
                 platform: "",
                 proof: url,
-                id: message.id,
-                timestamp: message.createdTimestamp,
+                id: newMessage.id,
+                timestamp: newMessage.createdTimestamp,
                 time: time,
                 challengeid: "",
             }
