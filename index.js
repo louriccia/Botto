@@ -140,6 +140,63 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
     description: 'botto help'
 }})
 
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+    name: 'src',
+    description: 'get top-5 leaderboards from speedrun.com',
+    options: [
+        {
+            name: "track",
+            description: "get track leaderboards",
+            type: 1, //sub command
+            options: [
+                {
+                    name: "track",
+                    description: "the name or abbreviation of the track",
+                    type: 3, //string
+                    required: true
+                }
+            ]
+        },
+        {
+            name: "category",
+            description: "get category leaderboards",
+            type: 1, //sub command
+            options: [
+                {
+                    name: "category",
+                    description: "the name or abbreviation of the category",
+                    type: 3,//string
+                    required: true,
+                    choices: [
+                        {
+                            name: "Any %",
+                            value: "any%"
+                        },
+                        {
+                            name: "Semi-Pro Circuit",
+                            value: "spc"
+                        },
+                        {
+                            name: "Amateur Circuit",
+                            value: "amc"
+                        },
+                        {
+                            name: "100%",
+                            value: "100%"
+                        },
+                        {
+                            name: "All Tracks New Game+",
+                            value: "ng+"
+                        }
+                    ]
+                }
+            ]
+        },
+        
+        
+    ]
+}})
+
 client.once('ready', () => {
     console.log('Ready!')
     //set bot activity
