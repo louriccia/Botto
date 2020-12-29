@@ -141,8 +141,85 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
 }})
 
 client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+    name: 'racer',
+    description: 'look up or roll random racers',
+    options: [
+        {
+            name: "lookup",
+            description: "look up a specific racer",
+            type: 1,
+            options: [
+                {
+                    name: "name",
+                    description: "racer's first name or initials",
+                    type: 3,
+                    required: true
+                }
+            ]
+        },
+        {
+            name: "random",
+            description: "roll a random podracer",
+            type: 1,
+            options: [
+                {
+                    name: "tier",
+                    description: "roll a random podracer from a specific tier",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "any",
+                            value: "any"
+                        },
+                        {
+                            name: "0 top",
+                            value: "top"
+                        },
+                        {
+                            name: "1 high",
+                            value: "high"
+                        },
+                        {
+                            name: "2 mid",
+                            value: "mid"
+                        },
+                        {
+                            name: "3 low",
+                            value: "low"
+                        }
+                    ]
+                },
+                {
+                    name: "vc",
+                    description: "whether to roll a random racer for everyone in your voice channel",
+                    type: 5,
+                    required: false,
+                },
+                {
+                    name: "canon",
+                    description: "roll random canonical or non-canonical racers",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "canon",
+                            value: "canon"
+                        },
+                        {
+                            name: "non-canon",
+                            value: "noncanon"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}})
+
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
     name: 'track',
-    description: 'lookup or roll random tracks',
+    description: 'look up or roll random tracks',
     options: [
         {
             name: "lookup",
