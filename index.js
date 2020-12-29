@@ -151,7 +151,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
     description: 'convert seconds to --:--.--- format and vice versa',
     options: [
         {
-            name: "duration",
+            name: "time",
             description: "the seconds or mm:ss.000 you wish to convert",
             type: 3,
             required: true
