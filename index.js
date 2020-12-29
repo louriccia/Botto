@@ -140,7 +140,7 @@ console.log(commands)
 
 client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
     name: 'weekly',
-    description: 'submit and create challenges for the weekly challenge',
+    description: 'view leaderboards and create submissions for the weekly challenge',
     options: [
         {
             name: "leaderboard",
@@ -439,6 +439,52 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
             name: "abbreviations",
             description: "get a list of commonly used abbreviations for Star Wars Episode I: Racer",
             type: 1
+        }
+    ]
+}})
+
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+    name: 'lookup',
+    description: 'get information for a specific racer, track, etc.',
+    options: [
+        {
+            name: "racer",
+            description: "get information for a specific racer",
+            type: 1,
+            options: [
+                {
+                    name: "name",
+                    description: "racer's first name or initials",
+                    type: 3,
+                    required: true
+                }
+            ]
+        },
+        {
+            name: "track",
+            description: "get information for a specific track",
+            type: 1,
+            options: [
+                {
+                    name: "name",
+                    description: "track name or abbreviation",
+                    type: 3,
+                    required: true
+                },
+            ]
+        },
+        {
+            name: "times",
+            description: "get the par times for a specific track",
+            type: 1,
+            options: [
+                {
+                    name: "name",
+                    description: "track name or abbreviation",
+                    type: 3,
+                    required: true
+                },
+            ]
         },
         {
             name: "tier",
@@ -460,6 +506,115 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                             value: "nu"
                         }
                     ]
+                }
+            ]
+        }
+    ]
+}})
+
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+    name: 'random',
+    description: 'get a random racer, track, etc.',
+    options: [
+        {
+            name: "racer",
+            description: "get a random racer",
+            type: 1,
+            options: [
+                {
+                    name: "name",
+                    description: "racer's first name or initials",
+                    type: 3,
+                    required: true
+                }
+            ]
+        },
+        {
+            name: "track",
+            description: "get a random track",
+            type: 1,
+            options: [
+                {
+                    name: "circuit",
+                    description: "roll a random track from a specific circuit",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "Amateur Circuit",
+                            value: "amc"
+                        },
+                        {
+                            name: "Semi-Pro Circuit",
+                            value: "spc"
+                        },
+                        {
+                            name: "Galactic Circuit",
+                            value: "gal"
+                        },
+                        {
+                            name: "Invitational Circuit",
+                            value: "inv"
+                        }
+                    ]
+                },
+                {
+                    name: "planet",
+                    description: "roll a random track from a specific planet",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "Ando Prime",
+                            value: "andoprime"
+                        },
+                        {
+                            name: "Aquilaris",
+                            value: "aquilaris"
+                        },
+                        {
+                            name: "Baroonda",
+                            value: "baroonda"
+                        },
+                        {
+                            name: "Malastare",
+                            value: "malastare"
+                        },
+                        {
+                            name: "Mon Gozza",
+                            value: "mongozza"
+                        },
+                        {
+                            name: "Oovo IV",
+                            value: "oovoiv"
+                        },
+                        {
+                            name: "Ord Ibanna",
+                            value: "ordibanna"
+                        },
+                        {
+                            name: "Tatooine",
+                            value: "tatooine"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            name: "challenge",
+            description: "get a random pod/track challenge",
+            type: 1,
+        },
+        {
+            name: "number",
+            description: "get a random number",
+            type: 1,
+            options: [
+                {
+                    name: "max",
+                    description: "get a random number between 1 and this number",
+                    type: 4,
+                    required: true,
                 }
             ]
         }
