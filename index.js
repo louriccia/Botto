@@ -166,7 +166,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                             required: true
                         },
                         {
-                            name: "challenge_name",
+                            name: "title",
                             description: "the name of the challenge",
                             type: 3,
                             required: true
@@ -262,16 +262,16 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                             ]
                         },
                         {
-                            name: "duedate",
-                            description: "the last day of the challenge (ends at midnight ET)",
-                            type: 3,
-                            required: true
-                        },
-                        {
                             name: "conditions",
                             description: "any additional challenge conditions such as mirror mode, ai, and specifying route and upgrades",
                             type: 3,
-                            required: false,
+                            required: true,
+                        },
+                        {
+                            name: "duedate",
+                            description: "the last day of the challenge (ends at midnight ET), please use MM/DD/YYYY",
+                            type: 3,
+                            required: true
                         }
                     ]
                 }
