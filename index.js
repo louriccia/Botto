@@ -141,22 +141,22 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
     options: [
         {
             name: "leaderboard",
-            description: "shows leaderboard for current weekly challenge",
+            description: "get leaderboard for current weekly challenge",
             type: 1
         },
         {
             name: "challenge",
-            description: "view the current weekly challenge or create a new one",
+            description: "view the current weekly challenge or post a new one",
             type: 2,
             options: [
                 {
                     name: "view",
-                    description: "view the current weekly challenge",
+                    description: "show the current weekly challenge",
                     type: 1
                 },
                 {
-                    name: "create",
-                    description: "create a weekly challenge",
+                    name: "post",
+                    description: "post a new weekly challenge",
                     type: 1,
                     options: [
                         {
@@ -216,7 +216,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                         {
                             name: "laps",
                             description: "the number of laps for the challenge",
-                            type: 4,
+                            type: 3,
                             required: true,
                             choices: [
                                 {
@@ -238,6 +238,10 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                                 {
                                     name: 5,
                                     value: 5
+                                },
+                                {
+                                    name: "flap",
+                                    value: "flap"
                                 }
                             ]
                         },
@@ -263,7 +267,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                         },
                         {
                             name: "conditions",
-                            description: "any additional challenge conditions such as mirror mode, ai, and specifying route and upgrades",
+                            description: "any additional challenge conditions such as mirror mode, ai, specific routes and custom upgrades",
                             type: 3,
                             required: true,
                         },
@@ -279,18 +283,18 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
         },
         {
             name: "submission",
-            description: "make a submission for the weekly challenge",
+            description: "create a submission for the weekly challenge",
             type: 1,
             options: [
                 {
                     name: "time",
-                    description: "the time you achieved for this submission",
+                    description: "the time achieved for this submission",
                     type: 3,
                     required: true
                 },
                 {
                     name: "platform",
-                    description: "the platform you used to complete the challenge",
+                    description: "the platform used to complete the challenge",
                     type: 3,
                     required: true,
                     choices: [
@@ -318,9 +322,141 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                 },
                 {
                     name: "proof",
-                    description: "the link to your video or image proof",
+                    description: "the link to the video or image proof",
                     type: 3,
                     required: true
+                },
+                {
+                    name: "user",
+                    description: "the user who performed the run (if not yourself)",
+                    type: 6,
+                    required: false
+                }
+            ]
+        }
+    ]
+}})
+
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+    name: 'challenge',
+    description: 'randomly generated challenges',
+    options: [
+        {
+            name: "generate",
+            description: "generates a random pod/track challenge that must be completed in 15 minutes; submit your time below",
+            type: 1
+        },
+        {
+            name: "odds",
+            description: "customize your personal challenge odds of rolling upgrades, skips, etc.",
+            type: 1
+        },
+        {
+            name: "stats",
+            description: "view your career stats and achievement progress for random challenges",
+            type: 1
+        },
+        {
+            name: "about",
+            description: "learn more about how the random challenge works and how to submit a time",
+            type: 1
+        }
+    ]
+}})
+
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+    name: 'links',
+    description: 'get your links here',
+    options: [
+        {
+            name: "botto",
+            description: "Botto related links",
+            type: 2,
+            options: [
+                {
+                    name: "github",
+                    description: "posts a link to Botto's github page",
+                    type: 1
+                },
+                {
+                    name: "graphics",
+                    description: "posts imgur links to the graphics that Botto uses",
+                    type: 1
+                },
+                {
+                    name: "invite",
+                    description: "posts a link to invite Botto to your Discord",
+                    type: 1
+                }
+            ]
+        },
+        {
+            name: "drive",
+            description: "posts a link to the community Google Drive",
+            type: 1
+        },
+        {
+            name: "mp_guide",
+            description: "posts a link to the online multiplayer guide",
+            type: 1
+        },
+        {
+            name: "stats",
+            description: "posts a link to the pod and track statistics sheet",
+            type: 1
+        },
+        {
+            name: "src_resources",
+            description: "posts a link to the SWE1R speedrun.com resources page",
+            type: 1
+        },
+        {
+            name: "rtss",
+            description: "posts a link to download rivatuner for limiting the game's framerate",
+            type: 1
+        },
+        {
+            name: "dgvoodoo",
+            description: "posts a link to download dgvoodoo for running the game in windowed mode",
+            type: 1
+        }
+    ]
+}})
+
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+    name: 'help',
+    description: 'helpful info about commands and other stuff',
+    options: [
+        {
+            name: "commands",
+            description: "get a list of Botto's commands and descriptions for how to use them",
+            type: 1
+        },
+        {
+            name: "abbreviations",
+            description: "get a list of commonly used abbreviations for Star Wars Episode I: Racer",
+            type: 1
+        },
+        {
+            name: "tier",
+            description: "get a list of all the podracers grouped into four tiers",
+            type: 1,
+            options: [
+                {
+                    name: "upgrades",
+                    description: "the upgrade level that determines each pod's tier (defaults to mu)",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "max upgrades",
+                            value: "mu"
+                        },
+                        {
+                            name: "no upgrades",
+                            value: "nu"
+                        }
+                    ]
                 }
             ]
         }
