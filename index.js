@@ -164,7 +164,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
     description: 'divides everyone in your voice channel into # number of teams',
     options: [
         {
-            name: "#",
+            name: "number",
             description: "the number of teams you wish to create",
             type: 4,
             required: true
@@ -177,7 +177,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
     description: 'deletes bot spam within the past # messages (defaults to 30)',
     options: [
         {
-            name: "#",
+            name: "messages",
             description: "the number of messages to scan through for bot spam",
             type: 4,
             required: true
