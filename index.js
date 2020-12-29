@@ -409,7 +409,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
         },
         {
             name: "pod",
-            description: "Filter runs by specific pods (example: 'mawhonic'). Filter out pods with 'no' or '-'. Multiple entries are accepted (example: 'no ben -bullseye')",
+            description: "Filter runs by specific pods. Filter out pods with 'no' or '-'. Multiple entries accepted",
             type: 3,
             required: false,
         },
