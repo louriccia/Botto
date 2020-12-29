@@ -215,7 +215,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                         },
                         {
                             name: "laps",
-                            desciprtion: "the number of laps for the challenge",
+                            description: "the number of laps for the challenge",
                             type: 4,
                             required: true,
                             choices: [
@@ -263,7 +263,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                         },
                         {
                             name: "conditions",
-                            descritption: "any additional challenge conditions such as mirror mode, ai, and specifying route and upgrades",
+                            description: "any additional challenge conditions such as mirror mode, ai, and specifying route and upgrades",
                             type: 3,
                             required: false,
                         },
@@ -296,7 +296,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                 },
                 {
                     name: "platform",
-                    descpriotion: "the platform you used to complete the challenge",
+                    description: "the platform you used to complete the challenge",
                     type: 3,
                     required: true,
                     choices: [
