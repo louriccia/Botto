@@ -136,96 +136,7 @@ function findTime(str) {
 }
 
 
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
-    name: 'botto',
-    description: 'introduces botto'
-}})
 
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
-    name: 'chancecube',
-    description: "Blue—it's the boy. Red—his mother"
-}})
-
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
-    name: 'convert',
-    description: 'convert seconds to --:--.--- format and vice versa',
-    options: [
-        {
-            name: "time",
-            description: "the seconds or mm:ss.000 you wish to convert",
-            type: 3,
-            required: true
-        }
-    ]
-}})
-
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
-    name: 'teams',
-    description: 'divides everyone in your voice channel into # number of teams',
-    options: [
-        {
-            name: "number",
-            description: "the number of teams you wish to create",
-            type: 4,
-            required: true
-        }
-    ]
-}})
-
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: { //this stays as a guild command
-    name: 'cleanup',
-    description: 'deletes bot spam within the past # messages (defaults to 30)',
-    options: [
-        {
-            name: "messages",
-            description: "the number of messages to scan through for bot spam",
-            type: 4,
-            required: true
-        }
-    ]
-}})
-
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: { //this stays as a guild command
-    name: 'role',
-    description: "assign yourself the speedrunning or multiplayer role",
-    options: [
-        {
-            name: "speedrunning",
-            description: "get or drop the speedrunning role",
-            type: 2,
-            options: [
-                {
-                    name: "get",
-                    description: "get this role",
-                    type: 1
-                },
-                {
-                    name: "remove",
-                    description: "remove this role",
-                    type: 1
-                }
-            ]
-            
-        },
-        {
-            name: "multiplayer",
-            description: "get or drop the multiplayer role",
-            type: 2,
-            options: [
-                {
-                    name: "get",
-                    description: "get this role",
-                    type: 1
-                },
-                {
-                    name: "remove",
-                    description: "remove this role",
-                    type: 1
-                }
-            ]
-        }
-    ]
-}})
 
 client.ws.on('INTERACTION_CREATE', async interaction => {
     const command = interaction.data.name.toLowerCase();
@@ -277,6 +188,8 @@ async function createAPIMessage(interaction, content) {
 
 async function getCommands() {
     const commands = await client.api.applications("545798436105224203").guilds('441839750555369474').commands.get()
+    await client.api.applications("545798436105224203").commands('793304837302386709').delete()
+    await client.api.applications("545798436105224203").commands('793311885809156146').delete()
     console.log(commands)
 }
 
