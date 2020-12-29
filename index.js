@@ -188,8 +188,8 @@ async function createAPIMessage(interaction, content) {
 
 async function getCommands() {
     const commands = await client.api.applications("545798436105224203").guilds('441839750555369474').commands.get()
-    await client.api.applications("545798436105224203").commands('793304837302386709').delete()
-    await client.api.applications("545798436105224203").commands('793311885809156146').delete()
+    await client.api.applications("545798436105224203").guilds('441839750555369474').commands('793304837302386709').delete()
+    await client.api.applications("545798436105224203").guilds('441839750555369474').commands('793311885809156146').delete()
     console.log(commands)
 }
 
