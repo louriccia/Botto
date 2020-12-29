@@ -135,8 +135,65 @@ function findTime(str) {
     return time
 }
 
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+    name: 'botto',
+    description: 'introduces botto and provides an invite link'
+}})
 
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: { //this stays as a guild command
+    name: 'cleanup',
+    description: 'deletes bot spam within the past # messages (defaults to 30)',
+    options: [
+        {
+            name: "messages",
+            description: "the number of messages to scan through for bot spam",
+            type: 4,
+            required: false
+        }
+    ]
+}})
 
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: { //this stays as a guild command
+    name: 'role',
+    description: "get or remove the speedrunning or multiplayer role",
+    options: [
+        {
+            name: "speedrunning",
+            description: "get or drop the speedrunning role",
+            type: 2,
+            options: [
+                {
+                    name: "get",
+                    description: "get this role",
+                    type: 1
+                },
+                {
+                    name: "remove",
+                    description: "remove this role",
+                    type: 1
+                }
+            ]
+            
+        },
+        {
+            name: "multiplayer",
+            description: "get or drop the multiplayer role",
+            type: 2,
+            options: [
+                {
+                    name: "get",
+                    description: "get this role",
+                    type: 1
+                },
+                {
+                    name: "remove",
+                    description: "remove this role",
+                    type: 1
+                }
+            ]
+        }
+    ]
+}})
 
 client.ws.on('INTERACTION_CREATE', async interaction => {
     const command = interaction.data.name.toLowerCase();
@@ -2024,15 +2081,15 @@ if(message.content.startsWith(`${prefix}tier`)){
     if (args[0] == "nu") {
         helpEmbed.setTitle("NU Racer Tier List")
         helpEmbed.addField(":gem: Top", "Boles Roor\nBen Quadinaros\nSebulba")
-        helpEmbed.addField(":first_place: High", "Mars Guo\nAldar Beedo\n'Bullseye' Navior\nRatts Tyerell\nToy Dampner\nMawhonic\nClegg Holdfast")
-        helpEmbed.addField(":second_place: Mid", "Ebe Endocott\nAnakin Skywalker\nSlide Paramita\nFud Sang\nDud Bolt\nBozzie Baranta\nNeva Kee")
-        helpEmbed.addField(":third_place: Low", "Elan Mak\nGasgano\nArk 'Bumpy' Roose\nOdy Mandrell\nTeemto Pagalies\nWan Sandage")
+        helpEmbed.addField(":first_place: High", "Aldar Beedo\n'Bullseye' Navior\nMars Guo\nRatts Tyerell\nMawhonic")
+        helpEmbed.addField(":second_place: Mid", "Toy Dampner\nClegg Holdfast\nEbe Endocott\nFud Sang\nAnakin Skywalker\nSlide Paramita\nArk 'Bumpy' Roose")
+        helpEmbed.addField(":third_place: Low", "Neva Kee\nDud Bolt\nElan Mak\nBozzie Baranta\nOdy Mandrell\nGasgano\nTeemto Pagalies\nWan Sandage")
     } else {
         helpEmbed.setTitle("MU Racer Tier List")
-        helpEmbed.addField(":gem: Top", "Ben Quadinaros\n'Bullseye' Navior\nMars Guo\nMawhonic\nAldar Beedo\nBoles Roor\nElan Mak")
-        helpEmbed.addField(":first_place: High", "Neva Kee\nRatts Tyerell\nClegg Holdfast\nToy Dampner")
-        helpEmbed.addField(":second_place: Mid", "Slide Paramita\nEbe Endocott\nGasgano\nDud Bolt\nOdy Mandrell\nBozzie Baranta\nAnakin Skywalker\nArk 'Bumpy' Roose")
-        helpEmbed.addField(":third_place: Low", "Fud Sang\nTeemto Pagalies\n Wan Sandage\nSebulba")
+        helpEmbed.addField(":gem: Top", "Ben Quadinaros\nBoles Roor\nMars Guo\nAldar Beedo\nElan Mak\nMawhonic\n'Bullseye' Navior")
+        helpEmbed.addField(":first_place: High", "Clegg Holdfast\nNeva Kee\nRatts Tyerell\nToy Dampner\nArk 'Bumpy' Roose\nBozzie Baranta\nFud Sang")
+        helpEmbed.addField(":second_place: Mid", "Dud Bolt\nOdy Mandrell\nGasgano\nWan Sandage\nAnakin Skywalker")
+        helpEmbed.addField(":third_place: Low", "Slide Paramita\nSebulba\nEbe Endocott\nTeemto Pagalies")
     }
     message.channel.send(helpEmbed)
 }
