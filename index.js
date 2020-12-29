@@ -135,7 +135,7 @@ function findTime(str) {
     return time
 }
 
-var commands = client.api.applications("545798436105224203").guilds('441839750555369474').commands
+var commands = client.api.applications("545798436105224203").guilds('441839750555369474').commands.get()
 console.log(commands)
 
 client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
