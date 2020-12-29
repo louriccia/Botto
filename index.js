@@ -144,6 +144,15 @@ client.ws.on('INTERACTION_CREATE', async interaction => {
     const command = interaction.data.name.toLowerCase();
     const args = interaction.data.options;
 
+    client.api.interactions(interaction.id, interaction.token).callback.post({
+        data: {
+            type: 4,
+            data: {
+                content: interaction.id
+            }
+        }
+    })
+
     if(command == 'help') {
         client.api.interactions(interaction.id, interaction.token).callback.post({
             data: {
