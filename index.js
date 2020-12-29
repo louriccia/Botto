@@ -262,16 +262,16 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                             ]
                         },
                         {
-                            name: "conditions",
-                            description: "any additional challenge conditions such as mirror mode, ai, and specifying route and upgrades",
-                            type: 3,
-                            required: false,
-                        },
-                        {
                             name: "duedate",
                             description: "the last day of the challenge (ends at midnight ET)",
                             type: 3,
                             required: true
+                        },
+                        {
+                            name: "conditions",
+                            description: "any additional challenge conditions such as mirror mode, ai, and specifying route and upgrades",
+                            type: 3,
+                            required: false,
                         }
                     ]
                 }
@@ -287,12 +287,6 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                     description: "the time you achieved for this submission",
                     type: 3,
                     required: true
-                },
-                {
-                    name: "proof",
-                    description: "the link to your video or image proof",
-                    type: 3,
-                    required: false
                 },
                 {
                     name: "platform",
@@ -321,6 +315,12 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                             value: "ps4"
                         }
                     ]
+                },
+                {
+                    name: "proof",
+                    description: "the link to your video or image proof",
+                    type: 3,
+                    required: false
                 }
             ]
         }
