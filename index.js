@@ -136,373 +136,171 @@ function findTime(str) {
 }
 
 client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
-    name: 'help',
-    description: 'botto help'
-}})
-
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
-    name: 'racer',
-    description: 'look up or roll random racers',
+    name: 'weekly',
+    description: 'submit and create challenges for the weekly challenge',
     options: [
         {
-            name: "lookup",
-            description: "look up a specific racer",
-            type: 1,
-            options: [
-                {
-                    name: "name",
-                    description: "racer's first name or initials",
-                    type: 3,
-                    required: true
-                }
-            ]
+            name: "leaderboard",
+            description: "shows leaderboard for current weekly challenge",
+            type: 1
         },
         {
-            name: "random",
-            description: "roll a random podracer",
-            type: 1,
+            name: "challenge",
+            description: "view the current weekly challenge or create a new one",
+            type: 2,
             options: [
                 {
-                    name: "tier",
-                    description: "roll a random podracer from a specific tier",
-                    type: 3,
-                    required: false,
-                    choices: [
-                        {
-                            name: "any",
-                            value: "any"
-                        },
-                        {
-                            name: "0 top",
-                            value: "top"
-                        },
-                        {
-                            name: "1 high",
-                            value: "high"
-                        },
-                        {
-                            name: "2 mid",
-                            value: "mid"
-                        },
-                        {
-                            name: "3 low",
-                            value: "low"
-                        }
-                    ]
+                    name: "view",
+                    description: "view the current weekly challenge",
+                    type: 1
                 },
                 {
-                    name: "vc",
-                    description: "whether to roll a random racer for everyone in your voice channel",
-                    type: 5,
-                    required: false,
-                },
-                {
-                    name: "canon",
-                    description: "roll random canonical or non-canonical racers",
-                    type: 3,
-                    required: false,
-                    choices: [
+                    name: "create",
+                    description: "create a weekly challenge",
+                    type: 1,
+                    options: [
                         {
-                            name: "canon",
-                            value: "canon"
+                            name: "author",
+                            description: "the user who created the challenge",
+                            type: 6,
+                            required: true
                         },
                         {
-                            name: "non-canon",
-                            value: "noncanon"
-                        }
-                    ]
-                }
-            ]
-        }
-    ]
-}})
-
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
-    name: 'track',
-    description: 'look up or roll random tracks',
-    options: [
-        {
-            name: "lookup",
-            description: "look up a specific track",
-            type: 1,
-            options: [
-                {
-                    name: "name",
-                    description: "track name or abbreviation",
-                    type: 3,
-                    required: true
-                },
-                {
-                    name: "times",
-                    description: "whether to show only the par times for the given track",
-                    type: 5,
-                    required: false
-                }
-            ]
-        },
-        {
-            name: "random",
-            description: "roll a random track",
-            type: 1,
-            options: [
-                {
-                    name: "circuit",
-                    description: "roll a random track from a specific circuit",
-                    type: 3,
-                    required: false,
-                    choices: [
-                        {
-                            name: "Amateur Circuit",
-                            value: "amc"
+                            name: "challenge_name",
+                            description: "the name of the challenge",
+                            type: 3,
+                            required: true
                         },
                         {
-                            name: "Semi-Pro Circuit",
-                            value: "spc"
+                            name: "blurb",
+                            description: "a creative description to contextualize the challenge in the lore",
+                            type: 3,
+                            required: true
                         },
                         {
-                            name: "Galactic Circuit",
-                            value: "gal"
-                        },
-                        {
-                            name: "Invitational Circuit",
-                            value: "inv"
-                        }
-                    ]
-                },
-                {
-                    name: "planet",
-                    description: "roll a random track from a specific planet",
-                    type: 3,
-                    required: false,
-                    choices: [
-                        {
-                            name: "Ando Prime",
-                            value: "andoprime"
-                        },
-                        {
-                            name: "Aquilaris",
-                            value: "aquilaris"
-                        },
-                        {
-                            name: "Baroonda",
-                            value: "baroonda"
-                        },
-                        {
-                            name: "Malastare",
-                            value: "malastare"
-                        },
-                        {
-                            name: "Mon Gozza",
-                            value: "mongozza"
-                        },
-                        {
-                            name: "Oovo IV",
-                            value: "oovoiv"
-                        },
-                        {
-                            name: "Ord Ibanna",
-                            value: "ordibanna"
-                        },
-                        {
-                            name: "Tatooine",
-                            value: "tatooine"
-                        }
-                    ]
-                }
-            ]
-        }
-    ]
-}})
-
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
-    name: 'src',
-    description: 'get top-5 leaderboards from speedrun.com',
-    options: [
-        {
-            name: "IL",
-            description: "get individual level top-5 leaderboards from speedrun.com",
-            type: 1, //sub command
-            options: [
-                {
-                    name: "track",
-                    description: "the name or abbreviation of the track",
-                    type: 3, //string
-                    required: true
-                },
-                {
-                    name: "skips",
-                    description: "filter by skip runs or full track runs",
-                    type: 3,
-                    required: false,
-                    choices: [
-                        {
-                            name: "any",
-                            value: "any"
-                        },
-                        {
-                            name: "skips",
-                            value: "skips"
-                        },
-                        {
-                            name: "full track",
-                            value: "ft"
-                        }
-                    ]
-                },
-                {
-                    name: "upgrades",
-                    description: "filter by upgrade runs and no upgrade (nu) runs",
-                    type: 3,
-                    required: false,
-                    choices: [
-                        {
-                            name: "any",
-                            value: "any"
+                            name: "pod",
+                            description: "the pod that must be used in the challenge",
+                            type: 3,
+                            required: true
                         },
                         {
                             name: "upgrades",
-                            value: "mu" 
+                            description: "the upgrades that must be used in this challenge",
+                            type: 3,
+                            required: true,
+                            choices: [
+                                {
+                                    name: "full upgrades",
+                                    value: "mu"
+                                },
+                                {
+                                    name: "no upgrades",
+                                    value: "nu"
+                                },
+                                {
+                                    name: "any",
+                                    value: "any"
+                                },
+                                {
+                                    name: "custom",
+                                    value: "custom"
+                                }
+                            ]
                         },
                         {
-                            name: "no upgrades",
-                            value: "nu"
-                        }
-                    ]
-                },
-                {
-                    name: "platform",
-                    description: "filter runs by platform",
-                    type: 3,
-                    required: false,
-                    choices: [
-                        {
-                            name: "any",
-                            value: "any"
+                            name: "track",
+                            description: "the challenge track",
+                            type: 3,
+                            required: true
                         },
                         {
-                            name: "PC",
-                            value: "pc" 
-                        },
-                        {  
-                            name: "Nintendo 64",
-                            value: "n64"
-                        },
-                        {
-                            name: "Dreamcast",
-                            value: "dc"
-                        },
-                        {
-                            name: "Nintendo Switch",
-                            value: "switch"
-                        },
-                        {
-                            name: "PlayStation 4",
-                            value: "ps4"
-                        }
-                    ]
-                },
-                {
-                    name: "laps",
-                    description: "show 3-lap or 1-lap runs (defaults to 3-lap)",
-                    type: 3,
-                    required: false,
-                    choices: [
-                        {
-                            name: "3-lap",
-                            value: "3"
+                            name: "laps",
+                            desciprtion: "the number of laps for the challenge",
+                            type: 4,
+                            required: true,
+                            choices: [
+                                {
+                                    name: 1,
+                                    value: 1
+                                },
+                                {
+                                    name: 2,
+                                    value: 2
+                                },
+                                {
+                                    name: 3,
+                                    value: 3
+                                },
+                                {
+                                    name: 4,
+                                    value: 4
+                                },
+                                {
+                                    name: 5,
+                                    value: 5
+                                }
+                            ]
                         },
                         {
-                            name: "1-lap (flap)",
-                            value: "1"
+                            name: "skips",
+                            description: "the allowed route for this challenge",
+                            type: 3,
+                            required: true,
+                            choices: [
+                                {
+                                    name: "skips",
+                                    value: "skips"
+                                },
+                                {
+                                    name: "full track",
+                                    value: "ft"
+                                },
+                                {
+                                    name: "custom",
+                                    value: "custom"
+                                }
+                            ]
+                        },
+                        {
+                            name: "conditions",
+                            descritption: "any additional challenge conditions such as mirror mode, ai, and specifying route and upgrades",
+                            type: 3,
+                            required: false,
+                        },
+                        {
+                            name: "duedate",
+                            description: "the last day of the challenge (ends at midnight ET)",
+                            type: 3,
+                            required: true
                         }
                     ]
                 }
             ]
         },
         {
-            name: "RTA",
-            description: "get real time attack top-5 leaderboards from speedrun.com",
-            type: 1, //sub command
+            name: "submission",
+            description: "make a submission for the weekly challenge",
+            type: 1,
             options: [
                 {
-                    name: "category",
-                    description: "the name or abbreviation of the category",
-                    type: 3,//string
+                    name: "time",
+                    description: "the time you achieved for this submission",
+                    type: 3,
+                    required: true
+                },
+                {
+                    name: "proof",
+                    description: "the link to your video or image proof",
+                    type: 3,
+                    required: false
+                },
+                {
+                    name: "platform",
+                    descpriotion: "the platform you used to complete the challenge",
+                    type: 3,
                     required: true,
                     choices: [
                         {
-                            name: "Any%",
-                            value: "any%"
-                        },
-                        {
-                            name: "Semi-Pro Circuit",
-                            value: "spc"
-                        },
-                        {
-                            name: "Amateur Circuit",
-                            value: "amc"
-                        },
-                        {
-                            name: "100%",
-                            value: "100%"
-                        },
-                        {
-                            name: "All Tracks New Game+",
-                            value: "ng+"
-                        }
-                    ]
-                },
-                {
-                    name: "skips",
-                    description: "filter by skip runs or full track runs",
-                    type: 3,
-                    required: false,
-                    choices: [
-                        {
-                            name: "any",
-                            value: "any"
-                        },
-                        {
-                            name: "skips",
-                            value: "skips"
-                        },
-                        {
-                            name: "full track",
-                            value: "ft"
-                        }
-                    ]
-                },
-                {
-                    name: "upgrades",
-                    description: "filter by upgrade runs (mu) and no upgrade runs (nu)",
-                    type: 3,
-                    required: false,
-                    choices: [
-                        {
-                            name: "any",
-                            value: "any"
-                        },
-                        {
-                            name: "upgrades",
-                            value: "mu" 
-                        },
-                        {
-                            name: "no upgrades",
-                            value: "nu"
-                        }
-                    ]
-                },
-                {
-                    name: "platform",
-                    description: "filter runs by platform",
-                    type: 3,
-                    required: false,
-                    choices: [
-                        {
-                            name: "any",
-                            value: "any"
-                        },
-                        {
                             name: "PC",
                             value: "pc" 
                         },
@@ -523,103 +321,6 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                             value: "ps4"
                         }
                     ]
-                }
-            ]
-        },
-        
-        
-    ]
-}})
-
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
-    name: 'tourney',
-    description: 'get top-5 leaderboards for tournament runs of each track',
-    options: [
-        {
-            name: "track",
-            description: "name or abbreviation of the track",
-            type: 3,
-            required: true
-        },
-        {
-            name: "skips",
-            description: "filter by skip runs or full track runs",
-            type: 3,
-            required: false,
-            choices: [
-                {
-                    name: "any",
-                    value: "any"
-                },
-                {
-                    name: "skips",
-                    value: "skips"
-                },
-                {
-                    name: "full track",
-                    value: "ft"
-                }
-            ]
-        },
-        {
-            name: "upgrades",
-            description: "filter by upgrade runs (mu) or no upgrade runs (nu)",
-            type: 3,
-            required: false,
-            choices: [
-                {
-                    name: "any",
-                    value: "any"
-                },
-                {
-                    name: "upgrades",
-                    value: "mu" 
-                },
-                {
-                    name: "no upgrades",
-                    value: "nu"
-                }
-            ]
-        },
-        {
-            name: "pod",
-            description: "Filter runs by specific pods. Filter out pods with 'no' or '-'. Multiple entries accepted",
-            type: 3,
-            required: false,
-        },
-        {
-            name: "deaths",
-            description: "filter runs by deaths or deathless",
-            type: 3,
-            required: false,
-            choices: [
-                {
-                    name: "any",
-                    value: "any"
-                },
-                {
-                    name: "deaths",
-                    value: "deaths"
-                },
-                {
-                    name: "deathless",
-                    value: "deathless"
-                }
-            ]
-        },
-        {
-            name: "year",
-            description: "filter runs by the year the tournament was held",
-            type: 4,
-            required: false,
-            choices: [
-                {
-                    name: 2019,
-                    value: 2019
-                },
-                {
-                    name: 2020,
-                    value: 2020
                 }
             ]
         }
