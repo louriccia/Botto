@@ -135,8 +135,7 @@ function findTime(str) {
     return time
 }
 
-var commands = client.api.applications("545798436105224203").guilds('441839750555369474').commands.get()
-console.log(commands)
+
 
 
 
@@ -187,6 +186,13 @@ async function createAPIMessage(interaction, content) {
 
     return { ...apiMessage.data, files: apiMessage.files};
 }
+
+async function getCommands() {
+    const commands = await client.api.applications("545798436105224203").guilds('441839750555369474').commands.get()
+    console.log(commands)
+}
+
+getCommands()
 
 client.once('ready', () => {
     console.log('Ready!')
