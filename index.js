@@ -141,6 +141,103 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
 }})
 
 client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+    name: 'track',
+    description: 'lookup or roll random tracks',
+    options: [
+        {
+            name: "lookup",
+            description: "look up a specific track",
+            type: 1,
+            options: [
+                {
+                    name: "track",
+                    description: "track name or abbreviation",
+                    type: 3,
+                    required: true
+                },
+                {
+                    name: "times",
+                    description: "whether to show only the par times for the given track",
+                    type: 5,
+                    required: false
+                }
+            ]
+        },
+        {
+            name: "random",
+            description: "roll a random track",
+            type: 1,
+            optiones: [
+                {
+                    name: "circuit",
+                    description: "roll a random track from a specific circuit",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "Amateur Circuit",
+                            value: "amc"
+                        },
+                        {
+                            name: "Semi-Pro Circuit",
+                            value: "spc"
+                        },
+                        {
+                            name: "Galactic Circuit",
+                            value: "gal"
+                        },
+                        {
+                            name: "Invitational Circuit",
+                            value: "inv"
+                        }
+                    ]
+                },
+                {
+                    name: "planet",
+                    description: "roll a random track from a specific planet",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "Ando Prime",
+                            value: "andoprime"
+                        },
+                        {
+                            name: "Aquilaris",
+                            value: "aquilaris"
+                        },
+                        {
+                            name: "Baroonda",
+                            value: "baroonda"
+                        },
+                        {
+                            name: "Malastare",
+                            value: "malastare"
+                        },
+                        {
+                            name: "Mon Gozza",
+                            value: "mongozza"
+                        },
+                        {
+                            name: "Oovo IV",
+                            value: "oovoiv"
+                        },
+                        {
+                            name: "Ord Ibanna",
+                            value: "ordibanna"
+                        },
+                        {
+                            name: "Tatooine",
+                            value: "tatooine"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}})
+
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
     name: 'src',
     description: 'get top-5 leaderboards from speedrun.com',
     options: [
