@@ -135,6 +135,9 @@ function findTime(str) {
     return time
 }
 
+var commands = client.api.applications("545798436105224203").guilds('441839750555369474').commands
+console.log(commands)
+
 client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
     name: 'weekly',
     description: 'submit and create challenges for the weekly challenge',
@@ -358,7 +361,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
         },
         {
             name: "about",
-            description: "learn more about how the random challenge works and how to submit a time",
+            description: "learn more about how the random challenges work and how to submit a time",
             type: 1
         }
     ]
