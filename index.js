@@ -282,8 +282,8 @@ async function getCommands() {
 
 getCommands()
 
-client.api.applications("545798436105224203").commands('793304837302386709').delete()
-client.api.applications("545798436105224203").commands('793311885809156146').delete()
+//client.api.applications("545798436105224203").commands('793304837302386709').delete()
+//client.api.applications("545798436105224203").commands('793311885809156146').delete()
 
 client.once('ready', () => {
     console.log('Ready!')
