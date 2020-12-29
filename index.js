@@ -146,7 +146,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
     options: [
         {
             name: "IL",
-            description: "get individual level top-5 leaderboards",
+            description: "get individual level top-5 leaderboards from speedrun.com",
             type: 1, //sub command
             options: [
                 {
@@ -238,7 +238,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                             value: "3"
                         },
                         {
-                            name: "1-lap",
+                            name: "1-lap (flap)",
                             value: "1"
                         }
                     ]
@@ -247,7 +247,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
         },
         {
             name: "RTA",
-            description: "get real time attack top-5 leaderboards",
+            description: "get real time attack top-5 leaderboards from speedrun.com",
             type: 1, //sub command
             options: [
                 {
@@ -354,6 +354,101 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
         },
         
         
+    ]
+}})
+
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+    name: 'tourney',
+    description: 'get top-5 leaderboards for tournament runs of each track',
+    options: [
+        {
+            name: "track",
+            description: "name or abbreviation of the track",
+            type: 3,
+            required: true
+        },
+        {
+            name: "skips",
+            description: "filter by skip runs or full track runs",
+            type: 3,
+            required: false,
+            choices: [
+                {
+                    name: "any",
+                    value: "any"
+                },
+                {
+                    name: "skips",
+                    value: "skips"
+                },
+                {
+                    name: "full track",
+                    value: "ft"
+                }
+            ]
+        },
+        {
+            name: "upgrades",
+            description: "filter by upgrade runs (mu) or no upgrade runs (nu)",
+            type: 3,
+            required: false,
+            choices: [
+                {
+                    name: "any",
+                    value: "any"
+                },
+                {
+                    name: "upgrades",
+                    value: "mu" 
+                },
+                {
+                    name: "no upgrades",
+                    value: "nu"
+                }
+            ]
+        },
+        {
+            name: "pod",
+            description: "Filter runs by specific pods (example: 'mawhonic'). Filter out pods with 'no' or '-'. Multiple entries are accepted (example: 'no ben -bullseye')",
+            type: 3,
+            required: false,
+        },
+        {
+            name: "deaths",
+            description: "filter runs by deaths or deathless",
+            type: 3,
+            required: false,
+            choices: [
+                {
+                    name: "any",
+                    value: "any"
+                },
+                {
+                    name: "deaths",
+                    value: "deaths"
+                },
+                {
+                    name: "deathless",
+                    value: "deathless"
+                }
+            ]
+        },
+        {
+            name: "year",
+            description: "filter runs by the year the tournament was held",
+            type: 4,
+            required: false,
+            choices: [
+                {
+                    name: 2019,
+                    value: 2019
+                },
+                {
+                    name: 2020,
+                    value: 2020
+                }
+            ]
+        }
     ]
 }})
 
