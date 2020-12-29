@@ -150,7 +150,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
             type: 1,
             options: [
                 {
-                    name: "track",
+                    name: "name",
                     description: "track name or abbreviation",
                     type: 3,
                     required: true
@@ -167,7 +167,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
             name: "random",
             description: "roll a random track",
             type: 1,
-            optiones: [
+            options: [
                 {
                     name: "circuit",
                     description: "roll a random track from a specific circuit",
