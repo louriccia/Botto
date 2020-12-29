@@ -320,7 +320,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                     name: "proof",
                     description: "the link to your video or image proof",
                     type: 3,
-                    required: false
+                    required: true
                 }
             ]
         }
