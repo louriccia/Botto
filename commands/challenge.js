@@ -1,6 +1,15 @@
 module.exports = {
     name: 'challenge',
     execute(client, interaction, args) {
+        client.api.interactions(interaction.id, interaction.token).callback.post({
+            data: {
+                type: 2,
+                data: {
+                    //content: "challenge",
+                    //embeds: [challengeEmbed]
+                }
+            }
+        })
         const Discord = require('discord.js');
         var tools = require('./../tools.js');
         //const myEmbed = new Discord.MessageEmbed()
@@ -132,18 +141,7 @@ module.exports = {
             if(besttimes !== "") {
                 challengeEmbed.addField("Best Times", besttimes, true)
             }
-        //send embed
-            
-            client.api.interactions(interaction.id, interaction.token).callback.post({
-                data: {
-                    type: 5,
-                    data: {
-                        //content: "challenge",
-                        //embeds: [challengeEmbed]
-                    }
-                }
-            })
-            
+        //send embed          
             client.channels.cache.get(interaction.channel_id).send(challengeEmbed).then(sentMessage => {
                 sentMessage.react('👍').then(()=> {
                     sentMessage.react('👎');
