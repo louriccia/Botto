@@ -2,7 +2,7 @@ module.exports = {
     name: '',
     execute(client, interaction, args) {
         const Discord = require('discord.js');
-        const myEmbed = new Discord.MessageEmbed()
+        //const myEmbed = new Discord.MessageEmbed()
         if(args[0].name =="generate") {
             let member = interaction.member.user.id
             var vc = ""
@@ -131,6 +131,16 @@ module.exports = {
             if(besttimes !== "") {
                 challengeEmbed.addField("Best Times", besttimes, true)
             }
+        //send embed
+            client.api.interactions(interaction.id, interaction.token).callback.post({
+                data: {
+                    type: 4,
+                    data: {
+                        //content: "",
+                        embeds: [challengeEmbed]
+                    }
+                }
+            })
             client.guilds.channels.cache.get(interaction.channel_id).send(challengeEmbed).then(sentMessage => {
                 sentMessage.react('👍').then(()=> {
                     sentMessage.react('👎');
