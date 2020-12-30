@@ -137,7 +137,7 @@ module.exports = {
                 data: {
                     type: 4,
                     data: {
-                        //content: "challenge",
+                        content: "",
                         embeds: [challengeEmbed]
                     }
                 }
