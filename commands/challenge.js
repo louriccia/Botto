@@ -2,7 +2,7 @@ module.exports = {
     name: 'challenge',
     execute(client, interaction, args) {
         const Discord = require('discord.js');
-        var tools = require('/Botto/tools.js');
+        var tools = require('./../tools.js');
         //const myEmbed = new Discord.MessageEmbed()
         if(args[0].name =="generate") {
             let member = interaction.member.user.id
