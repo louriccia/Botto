@@ -24,7 +24,7 @@ module.exports = {
                     var keys = Object.keys(oddsdata)
                     for (var i=0; i<keys.length; i++) {
                         var k = keys[i];
-                        if(oddsdata[k].name == message.author.id){
+                        if(oddsdata[k].name == member){
                             record = k
                             i = keys.length
                         }
@@ -239,10 +239,10 @@ module.exports = {
             
         } else if(args[0].name=="about") {
             const challengeHelpEmbed = new Discord.MessageEmbed()
-                .setTitle("!challenge")
-                .setDescription("When you type `!challenge`, Botto will challenge you to race a random pod on a random track with random conditions. The default conditions are max upgrades, 3-lap, full track. You have 15 minutes to submit a time for the challenge. Botto will only accept one time from the person who triggered the challenge. \n\nYou can customize your odds by typing `!odds`")
+                .setTitle("Random Challenges")
+                .setDescription("When you type `/challenge generate` or `/random challenge`, Botto will challenge you to race a random pod on a random track with random conditions. The default conditions are max upgrades, 3-lap, full track. You have 15 minutes to submit a time for the challenge. Botto will only accept one time from the person who triggered the challenge. \n\nYou can customize your odds by typing `/challenge odds`")
                 .addField("Default Odds", "Skips - 25%\nNo upgrades - 15%\nNon 3-lap - 5%\nMirror mode - 5%", true)
-                .addField("Rating a Challenge",":thumbsup: = I like this challenge, I would play it again\n:thumbsdown: = I don't like this challenge, this combination is not fun\n:x: = This challenge is impossible, no one should be expected to do this challenge", true)
+                .addField("Rating a Challenge",":thumbsup: = I like this challenge, I would play it again\n:thumbsdown: = I don't like this challenge, this combination is not fun", true)
             client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {
                     type: 4,
