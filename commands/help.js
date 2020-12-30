@@ -2,6 +2,7 @@ module.exports = {
     name: 'help',
     execute(client, interaction, args) {
         if(args[0].name =="abbreviations") {
+            const Discord = require('discord.js');
             const helpEmbed = new Discord.MessageEmbed()
             .setTitle("SWE1R Abbreviations")
             .setURL("https://www.speedrun.com/swe1r/thread/nf4bo")
