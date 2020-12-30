@@ -1,11 +1,16 @@
+const fs = require('fs');
 const Discord = require('discord.js');
 const { prefix, token } = require('./config.json');
 const client = new Discord.Client();
 var lookup = require("./data.js");
 var tourneylookup = require("./tourneydata.js");
+client.commands = new Discord.Collection();
+const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 
-
-const fs = require('fs');
+for (const file of commandFiles) {
+	const command = require(`./commands/${file}`);
+	client.commands.set(command.name, command);
+}
 
 var firebase = require("firebase/app");
 require('firebase/auth');
@@ -135,85 +140,24 @@ function findTime(str) {
     return time
 }
 
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
-    name: 'botto',
-    description: 'introduces botto and provides an invite link'
-}})
 
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: { //this stays as a guild command
-    name: 'cleanup',
-    description: 'deletes bot spam within the past # messages (defaults to 30)',
-    options: [
-        {
-            name: "messages",
-            description: "the number of messages to scan through for bot spam",
-            type: 4,
-            required: false
-        }
-    ]
-}})
-
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: { //this stays as a guild command
-    name: 'role',
-    description: "get or remove the speedrunning or multiplayer role",
-    options: [
-        {
-            name: "speedrunning",
-            description: "get or drop the speedrunning role",
-            type: 2,
-            options: [
-                {
-                    name: "get",
-                    description: "get this role",
-                    type: 1
-                },
-                {
-                    name: "remove",
-                    description: "remove this role",
-                    type: 1
-                }
-            ]
-            
-        },
-        {
-            name: "multiplayer",
-            description: "get or drop the multiplayer role",
-            type: 2,
-            options: [
-                {
-                    name: "get",
-                    description: "get this role",
-                    type: 1
-                },
-                {
-                    name: "remove",
-                    description: "remove this role",
-                    type: 1
-                }
-            ]
-        }
-    ]
-}})
 
 client.ws.on('INTERACTION_CREATE', async interaction => {
     const command = interaction.data.name.toLowerCase();
     const args = interaction.data.options;
+    console.log(interaction.member)
+    console.log(interaction.data)
+    if (!client.commands.has(command)) return;
 
-    client.api.interactions(interaction.id, interaction.token).callback.post({
-        data: {
-            type: 4,
-            data: {
-                content: interaction.id
-            }
-        }
-    })
-
-    if(command == 'help') {
+    try {
+        client.commands.get(command).execute(interaction, args);
+    } catch (error) {
+        console.error(error);
         client.api.interactions(interaction.id, interaction.token).callback.post({
             data: {
                 type: 4,
                 data: {
-                    content: "Here's some help!"
+                    content: "something went wrong"
                 }
             }
         })
