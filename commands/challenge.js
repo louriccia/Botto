@@ -115,7 +115,7 @@ module.exports = {
                 desc = desc +"*The current record-holder for this challenge is... " + best[0].name + "!*"
             } else if (Math.random() < 0.50) {
                 var str = playerPicks[Math.floor(Math.random()*playerPicks.length)]
-                desc = desc + str.replace("replaceme", message.author.username)
+                desc = desc + str.replace("replaceme", interaction.member.user.username)
             } else {
                 desc = desc + movieQuotes[random3]
             }
@@ -133,6 +133,7 @@ module.exports = {
                 challengeEmbed.addField("Best Times", besttimes, true)
             }
         //send embed
+            /*
             client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {
                     type: 4,
@@ -142,6 +143,7 @@ module.exports = {
                     }
                 }
             })
+            */
             client.guilds.channels.cache.get(interaction.channel_id).send(challengeEmbed).then(sentMessage => {
                 sentMessage.react('👍').then(()=> {
                     sentMessage.react('👎');
