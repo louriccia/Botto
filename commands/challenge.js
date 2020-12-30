@@ -2,6 +2,7 @@ module.exports = {
     name: 'challenge',
     execute(client, interaction, args) {
         const Discord = require('discord.js');
+        var tools = require('./tools');
         //const myEmbed = new Discord.MessageEmbed()
         if(args[0].name =="generate") {
             let member = interaction.member.user.id
@@ -124,9 +125,9 @@ module.exports = {
                 .setColor(planets[tracks[random2].planet].color)
                 .setDescription(desc)
             if(!skips) {
-                challengeEmbed.addField("Goal Times", ":gem: " + timefix(goal*multipliers[0].ft_multiplier) + "\n:first_place: " + timefix(goal*multipliers[1].ft_multiplier) + "\n:second_place: " + timefix(goal*multipliers[2].ft_multiplier) + "\n:third_place: " + timefix(goal*multipliers[3].ft_multiplier) + "\n<:bumpythumb:703107780860575875> " + timefix(goal*multipliers[4].ft_multiplier), true)
+                challengeEmbed.addField("Goal Times", ":gem: " + tools.timefix(goal*multipliers[0].ft_multiplier) + "\n:first_place: " + tools.timefix(goal*multipliers[1].ft_multiplier) + "\n:second_place: " + tools.timefix(goal*multipliers[2].ft_multiplier) + "\n:third_place: " + tools.timefix(goal*multipliers[3].ft_multiplier) + "\n<:bumpythumb:703107780860575875> " + tools.timefix(goal*multipliers[4].ft_multiplier), true)
             } else {
-                challengeEmbed.addField("Goal Times", ":gem: " + timefix(timetoSeconds(tracks[random2].parskiptimes[0])*multipliers[0].skips_multiplier) + "\n:first_place: " + timefix(timetoSeconds(tracks[random2].parskiptimes[1])*multipliers[1].skips_multiplier) + "\n:second_place: " + timefix(timetoSeconds(tracks[random2].parskiptimes[2])*multipliers[2].skips_multiplier) + "\n:third_place: " + timefix(timetoSeconds(tracks[random2].parskiptimes[3])*multipliers[3].skips_multiplier) + "\n<:bumpythumb:703107780860575875> " + timefix(timetoSeconds(tracks[random2].parskiptimes[4])*multipliers[4].skips_multiplier), true)
+                challengeEmbed.addField("Goal Times", ":gem: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[0])*multipliers[0].skips_multiplier) + "\n:first_place: " + tools.timefix(timetoSeconds(tracks[random2].parskiptimes[1])*multipliers[1].skips_multiplier) + "\n:second_place: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[2])*multipliers[2].skips_multiplier) + "\n:third_place: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[3])*multipliers[3].skips_multiplier) + "\n<:bumpythumb:703107780860575875> " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[4])*multipliers[4].skips_multiplier), true)
             }
             if(besttimes !== "") {
                 challengeEmbed.addField("Best Times", besttimes, true)
@@ -175,9 +176,9 @@ module.exports = {
                     if (message.content == "!challenge" && collected == false && member == message.author.id) {
                         collected = true
                         sentMessage.delete()
-                    } else if (collected == false && member == message.author.id && !isNaN(message.content.replace(":", "")) && timetoSeconds(message.content) !== null) {
+                    } else if (collected == false && member == message.author.id && !isNaN(message.content.replace(":", "")) && tools.timetoSeconds(message.content) !== null) {
                         var challengeend = Date.now()
-                        var time = timetoSeconds(message.content)
+                        var time = tools.timetoSeconds(message.content)
                         if ((challengeend - challengestart) < time*1000) {
                             message.reply("*I warn you. No funny business.*")
                             collected = true
@@ -202,7 +203,7 @@ module.exports = {
                             var rank = [":gem: Elite", ":first_place: Pro", ":second_place: Rookie", ":third_place: Amateur", "<:bumpythumb:703107780860575875> Youngling"]
                             for (var i=0; i<5; i++) {
                                 if (skips) {
-                                    if (time < timetoSeconds(tracks[random2].parskiptimes[i])*multipliers[i].skips_multiplier) {
+                                    if (time < tools.timetoSeconds(tracks[random2].parskiptimes[i])*multipliers[i].skips_multiplier) {
                                         parbeat = i
                                         i = 5
                                     }
@@ -222,7 +223,7 @@ module.exports = {
                                 congrats = "You beat the " + rank[parbeat] + " time for this track!"
                             }
                         //edit original message
-                            sentMessage.edit(":white_check_mark: Challenge completed! The submitted time was: **" + timefix(time) + "**\n" + congrats)
+                            sentMessage.edit(":white_check_mark: Challenge completed! The submitted time was: **" + tools.timefix(time) + "**\n" + congrats)
                         //maybe find a way to undo a submission
                         //delete message
                             if (message.guild) {
@@ -245,7 +246,7 @@ module.exports = {
                 .addField("Rating a Challenge",":thumbsup: = I like this challenge, I would play it again\n:thumbsdown: = I don't like this challenge, this combination is not fun", true)
             client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {
-                    type: 4,
+                    type: 3,
                     data: {
                         content: "",
                         embeds: [challengeHelpEmbed]
