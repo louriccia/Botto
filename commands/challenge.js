@@ -157,8 +157,8 @@ module.exports = {
                             feedback = '👎'
                         }
                         var data = {
-                            user: message.author.id,
-                            name: message.author.username,
+                            user: user.id,
+                            name: user.username,
                             feedback: feedback,
                             date: message.createdTimestamp,
                             racer: random1,
@@ -171,7 +171,7 @@ module.exports = {
                         feedbackref.push(data);
                     }).catch(() => {
                 })
-                const collector = new Discord.MessageCollector(message.channel, m => m.author.id === message.author.id, { time: 900000 });
+                const collector = new Discord.MessageCollector(client.channels.cache.get(interaction.channel_id), m => { time: 900000 });
                 var collected = false
                 collector.on('collect', message => {
                 //need a way to cancel a challenge if another one is called
