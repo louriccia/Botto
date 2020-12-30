@@ -1,15 +1,149 @@
 client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
-    name: 'help',
-    description: 'botto help'
+    name: 'botto',
+    description: 'introduces botto and provides an invite link'
 }})
 
 client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
-    name: 'racer',
-    description: 'look up or roll random racers',
+    name: 'challenge',
+    description: 'randomly generated challenges',
     options: [
         {
-            name: "lookup",
-            description: "look up a specific racer",
+            name: "generate",
+            description: "generates a random pod/track challenge that must be completed in 15 minutes; submit your time below",
+            type: 1
+        },
+        {
+            name: "odds",
+            description: "customize your personal challenge odds of rolling upgrades, skips, etc.",
+            type: 1
+        },
+        {
+            name: "stats",
+            description: "view your career stats and achievement progress for random challenges",
+            type: 1
+        },
+        {
+            name: "about",
+            description: "learn more about how the random challenges work and how to submit a time",
+            type: 1
+        }
+    ]
+}})
+
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+    name: 'chancecube',
+    description: "Blue—it's the boy. Red—his mother"
+}})
+
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: { //this stays as a guild command
+    name: 'cleanup',
+    description: 'deletes bot spam within the past # messages (defaults to 30)',
+    options: [
+        {
+            name: "messages",
+            description: "the number of messages to scan through for bot spam",
+            type: 4,
+            required: false
+        }
+    ]
+}})
+
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+    name: 'convert',
+    description: 'convert seconds to --:--.--- format and vice versa',
+    options: [
+        {
+            name: "time",
+            description: "the seconds or mm:ss.000 you wish to convert",
+            type: 3,
+            required: true
+        }
+    ]
+}})
+
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+    name: 'help',
+    description: 'helpful info about commands and other stuff',
+    options: [
+        {
+            name: "commands",
+            description: "get a list of Botto's commands and descriptions for how to use them",
+            type: 1
+        },
+        {
+            name: "abbreviations",
+            description: "get a list of commonly used abbreviations for Star Wars Episode I: Racer",
+            type: 1
+        }
+    ]
+}})
+
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+    name: 'links',
+    description: 'get your links here',
+    options: [
+        {
+            name: "botto",
+            description: "Botto related links",
+            type: 2,
+            options: [
+                {
+                    name: "github",
+                    description: "posts a link to Botto's github page",
+                    type: 1
+                },
+                {
+                    name: "graphics",
+                    description: "posts imgur links to the graphics that Botto uses",
+                    type: 1
+                },
+                {
+                    name: "invite",
+                    description: "posts a link to invite Botto to your Discord",
+                    type: 1
+                }
+            ]
+        },
+        {
+            name: "drive",
+            description: "posts a link to the community Google Drive",
+            type: 1
+        },
+        {
+            name: "mp_guide",
+            description: "posts a link to the online multiplayer guide",
+            type: 1
+        },
+        {
+            name: "stats",
+            description: "posts a link to the pod and track statistics sheet",
+            type: 1
+        },
+        {
+            name: "src_resources",
+            description: "posts a link to the SWE1R speedrun.com resources page",
+            type: 1
+        },
+        {
+            name: "rtss",
+            description: "posts a link to download rivatuner for limiting the game's framerate",
+            type: 1
+        },
+        {
+            name: "dgvoodoo",
+            description: "posts a link to download dgvoodoo for running the game in windowed mode",
+            type: 1
+        }
+    ]
+}})
+
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+    name: 'lookup',
+    description: 'get information for a specific racer, track, etc.',
+    options: [
+        {
+            name: "racer",
+            description: "get information for a specific racer",
             type: 1,
             options: [
                 {
@@ -21,61 +155,49 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
             ]
         },
         {
-            name: "random",
-            description: "roll a random podracer",
+            name: "track",
+            description: "get information for a specific track",
             type: 1,
             options: [
                 {
-                    name: "tier",
-                    description: "roll a random podracer from a specific tier",
+                    name: "name",
+                    description: "track name or abbreviation",
+                    type: 3,
+                    required: true
+                },
+            ]
+        },
+        {
+            name: "times",
+            description: "get the par times for a specific track",
+            type: 1,
+            options: [
+                {
+                    name: "name",
+                    description: "track name or abbreviation",
+                    type: 3,
+                    required: true
+                },
+            ]
+        },
+        {
+            name: "tier",
+            description: "get a list of all the podracers grouped into four tiers",
+            type: 1,
+            options: [
+                {
+                    name: "upgrades",
+                    description: "the upgrade level that determines each pod's tier (defaults to mu)",
                     type: 3,
                     required: false,
                     choices: [
                         {
-                            name: "any",
-                            value: "any"
+                            name: "max upgrades",
+                            value: "mu"
                         },
                         {
-                            name: "0 top",
-                            value: "top"
-                        },
-                        {
-                            name: "1 high",
-                            value: "high"
-                        },
-                        {
-                            name: "2 mid",
-                            value: "mid"
-                        },
-                        {
-                            name: "3 low",
-                            value: "low"
-                        }
-                    ]
-                },
-                {
-                    name: "vc",
-                    description: "whether to roll a random racer for everyone in your voice channel",
-                    type: 5,
-                    required: false,
-                },
-                {
-                    name: "canon",
-                    description: "roll random canonical or non-canonical racers",
-                    type: 3,
-                    required: false,
-                    choices: [
-                        {
-                            name: "any",
-                            value: "any"
-                        },
-                        {
-                            name: "canon",
-                            value: "canon"
-                        },
-                        {
-                            name: "non-canon",
-                            value: "noncanon"
+                            name: "no upgrades",
+                            value: "nu"
                         }
                     ]
                 }
@@ -85,31 +207,25 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
 }})
 
 client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
-    name: 'track',
-    description: 'look up or roll random tracks',
+    name: 'random',
+    description: 'get a random racer, track, etc.',
     options: [
         {
-            name: "lookup",
-            description: "look up a specific track",
+            name: "racer",
+            description: "get a random racer",
             type: 1,
             options: [
                 {
                     name: "name",
-                    description: "track name or abbreviation",
+                    description: "racer's first name or initials",
                     type: 3,
                     required: true
-                },
-                {
-                    name: "times",
-                    description: "whether to show only the par times for the given track",
-                    type: 5,
-                    required: false
                 }
             ]
         },
         {
-            name: "random",
-            description: "roll a random track",
+            name: "track",
+            description: "get a random track",
             type: 1,
             options: [
                 {
@@ -175,6 +291,66 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                             value: "tatooine"
                         }
                     ]
+                }
+            ]
+        },
+        {
+            name: "challenge",
+            description: "get a random pod/track challenge",
+            type: 1,
+        },
+        {
+            name: "number",
+            description: "get a random number",
+            type: 1,
+            options: [
+                {
+                    name: "max",
+                    description: "get a random number between 1 and this number",
+                    type: 4,
+                    required: true,
+                }
+            ]
+        }
+    ]
+}})
+
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: { //this stays as a guild command
+    name: 'role',
+    description: "get or remove the speedrunning or multiplayer role",
+    options: [
+        {
+            name: "speedrunning",
+            description: "get or drop the speedrunning role",
+            type: 2,
+            options: [
+                {
+                    name: "get",
+                    description: "get this role",
+                    type: 1
+                },
+                {
+                    name: "remove",
+                    description: "remove this role",
+                    type: 1
+                }
+            ]
+            
+        },
+        {
+            name: "multiplayer",
+            description: "get or drop the multiplayer role",
+            type: 2,
+            options: [
+                {
+                    name: "get",
+                    description: "get this role",
+                    type: 1
+                },
+                {
+                    name: "remove",
+                    description: "remove this role",
+                    type: 1
                 }
             ]
         }
@@ -395,6 +571,19 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
         },
         
         
+    ]
+}})
+
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+    name: 'teams',
+    description: 'divides everyone in your voice channel into # number of teams',
+    options: [
+        {
+            name: "number",
+            description: "the number of teams you wish to create",
+            type: 4,
+            required: true
+        }
     ]
 }})
 
@@ -695,374 +884,23 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
     ]
 }})
 
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
-    name: 'challenge',
-    description: 'randomly generated challenges',
-    options: [
-        {
-            name: "generate",
-            description: "generates a random pod/track challenge that must be completed in 15 minutes; submit your time below",
-            type: 1
-        },
-        {
-            name: "odds",
-            description: "customize your personal challenge odds of rolling upgrades, skips, etc.",
-            type: 1
-        },
-        {
-            name: "stats",
-            description: "view your career stats and achievement progress for random challenges",
-            type: 1
-        },
-        {
-            name: "about",
-            description: "learn more about how the random challenges work and how to submit a time",
-            type: 1
-        }
-    ]
-}})
 
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
-    name: 'links',
-    description: 'get your links here',
-    options: [
-        {
-            name: "botto",
-            description: "Botto related links",
-            type: 2,
-            options: [
-                {
-                    name: "github",
-                    description: "posts a link to Botto's github page",
-                    type: 1
-                },
-                {
-                    name: "graphics",
-                    description: "posts imgur links to the graphics that Botto uses",
-                    type: 1
-                },
-                {
-                    name: "invite",
-                    description: "posts a link to invite Botto to your Discord",
-                    type: 1
-                }
-            ]
-        },
-        {
-            name: "drive",
-            description: "posts a link to the community Google Drive",
-            type: 1
-        },
-        {
-            name: "mp_guide",
-            description: "posts a link to the online multiplayer guide",
-            type: 1
-        },
-        {
-            name: "stats",
-            description: "posts a link to the pod and track statistics sheet",
-            type: 1
-        },
-        {
-            name: "src_resources",
-            description: "posts a link to the SWE1R speedrun.com resources page",
-            type: 1
-        },
-        {
-            name: "rtss",
-            description: "posts a link to download rivatuner for limiting the game's framerate",
-            type: 1
-        },
-        {
-            name: "dgvoodoo",
-            description: "posts a link to download dgvoodoo for running the game in windowed mode",
-            type: 1
-        }
-    ]
-}})
 
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
-    name: 'help',
-    description: 'helpful info about commands and other stuff',
-    options: [
-        {
-            name: "commands",
-            description: "get a list of Botto's commands and descriptions for how to use them",
-            type: 1
-        },
-        {
-            name: "abbreviations",
-            description: "get a list of commonly used abbreviations for Star Wars Episode I: Racer",
-            type: 1
-        }
-    ]
-}})
 
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
-    name: 'lookup',
-    description: 'get information for a specific racer, track, etc.',
-    options: [
-        {
-            name: "racer",
-            description: "get information for a specific racer",
-            type: 1,
-            options: [
-                {
-                    name: "name",
-                    description: "racer's first name or initials",
-                    type: 3,
-                    required: true
-                }
-            ]
-        },
-        {
-            name: "track",
-            description: "get information for a specific track",
-            type: 1,
-            options: [
-                {
-                    name: "name",
-                    description: "track name or abbreviation",
-                    type: 3,
-                    required: true
-                },
-            ]
-        },
-        {
-            name: "times",
-            description: "get the par times for a specific track",
-            type: 1,
-            options: [
-                {
-                    name: "name",
-                    description: "track name or abbreviation",
-                    type: 3,
-                    required: true
-                },
-            ]
-        },
-        {
-            name: "tier",
-            description: "get a list of all the podracers grouped into four tiers",
-            type: 1,
-            options: [
-                {
-                    name: "upgrades",
-                    description: "the upgrade level that determines each pod's tier (defaults to mu)",
-                    type: 3,
-                    required: false,
-                    choices: [
-                        {
-                            name: "max upgrades",
-                            value: "mu"
-                        },
-                        {
-                            name: "no upgrades",
-                            value: "nu"
-                        }
-                    ]
-                }
-            ]
-        }
-    ]
-}})
 
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
-    name: 'random',
-    description: 'get a random racer, track, etc.',
-    options: [
-        {
-            name: "racer",
-            description: "get a random racer",
-            type: 1,
-            options: [
-                {
-                    name: "name",
-                    description: "racer's first name or initials",
-                    type: 3,
-                    required: true
-                }
-            ]
-        },
-        {
-            name: "track",
-            description: "get a random track",
-            type: 1,
-            options: [
-                {
-                    name: "circuit",
-                    description: "roll a random track from a specific circuit",
-                    type: 3,
-                    required: false,
-                    choices: [
-                        {
-                            name: "Amateur Circuit",
-                            value: "amc"
-                        },
-                        {
-                            name: "Semi-Pro Circuit",
-                            value: "spc"
-                        },
-                        {
-                            name: "Galactic Circuit",
-                            value: "gal"
-                        },
-                        {
-                            name: "Invitational Circuit",
-                            value: "inv"
-                        }
-                    ]
-                },
-                {
-                    name: "planet",
-                    description: "roll a random track from a specific planet",
-                    type: 3,
-                    required: false,
-                    choices: [
-                        {
-                            name: "Ando Prime",
-                            value: "andoprime"
-                        },
-                        {
-                            name: "Aquilaris",
-                            value: "aquilaris"
-                        },
-                        {
-                            name: "Baroonda",
-                            value: "baroonda"
-                        },
-                        {
-                            name: "Malastare",
-                            value: "malastare"
-                        },
-                        {
-                            name: "Mon Gozza",
-                            value: "mongozza"
-                        },
-                        {
-                            name: "Oovo IV",
-                            value: "oovoiv"
-                        },
-                        {
-                            name: "Ord Ibanna",
-                            value: "ordibanna"
-                        },
-                        {
-                            name: "Tatooine",
-                            value: "tatooine"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            name: "challenge",
-            description: "get a random pod/track challenge",
-            type: 1,
-        },
-        {
-            name: "number",
-            description: "get a random number",
-            type: 1,
-            options: [
-                {
-                    name: "max",
-                    description: "get a random number between 1 and this number",
-                    type: 4,
-                    required: true,
-                }
-            ]
-        }
-    ]
-}})
 
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
-    name: 'chancecube',
-    description: "Blue—it's the boy. Red—his mother"
-}})
 
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
-    name: 'convert',
-    description: 'convert seconds to --:--.--- format and vice versa',
-    options: [
-        {
-            name: "time",
-            description: "the seconds or mm:ss.000 you wish to convert",
-            type: 3,
-            required: true
-        }
-    ]
-}})
 
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
-    name: 'teams',
-    description: 'divides everyone in your voice channel into # number of teams',
-    options: [
-        {
-            name: "number",
-            description: "the number of teams you wish to create",
-            type: 4,
-            required: true
-        }
-    ]
-}})
 
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
-    name: 'botto',
-    description: 'introduces botto and provides an invite link'
-}})
 
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: { //this stays as a guild command
-    name: 'cleanup',
-    description: 'deletes bot spam within the past # messages (defaults to 30)',
-    options: [
-        {
-            name: "messages",
-            description: "the number of messages to scan through for bot spam",
-            type: 4,
-            required: false
-        }
-    ]
-}})
 
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: { //this stays as a guild command
-    name: 'role',
-    description: "get or remove the speedrunning or multiplayer role",
-    options: [
-        {
-            name: "speedrunning",
-            description: "get or drop the speedrunning role",
-            type: 2,
-            options: [
-                {
-                    name: "get",
-                    description: "get this role",
-                    type: 1
-                },
-                {
-                    name: "remove",
-                    description: "remove this role",
-                    type: 1
-                }
-            ]
-            
-        },
-        {
-            name: "multiplayer",
-            description: "get or drop the multiplayer role",
-            type: 2,
-            options: [
-                {
-                    name: "get",
-                    description: "get this role",
-                    type: 1
-                },
-                {
-                    name: "remove",
-                    description: "remove this role",
-                    type: 1
-                }
-            ]
-        }
-    ]
-}})
+
+
+
+
+
+
+
+
+
+
