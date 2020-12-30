@@ -1,6 +1,6 @@
 module.exports = {
     name: 'help',
-    execute(interaction, args) {
+    execute(client, interaction, args) {
         if(args[0]=="abbreviations") {
             const helpEmbed = new Discord.MessageEmbed()
             .setTitle("SWE1R Abbreviations")

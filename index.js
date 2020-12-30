@@ -150,7 +150,7 @@ client.ws.on('INTERACTION_CREATE', async interaction => {
     if (!client.commands.has(command)) return;
 
     try {
-        client.commands.get(command).execute(interaction, args);
+        client.commands.get(command).execute(client, interaction, args);
     } catch (error) {
         console.error(error);
         client.api.interactions(interaction.id, interaction.token).callback.post({
