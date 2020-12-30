@@ -133,17 +133,17 @@ module.exports = {
                 challengeEmbed.addField("Best Times", besttimes, true)
             }
         //send embed
-            /*
+            
             client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {
-                    type: 4,
+                    type: 5,
                     data: {
-                        content: "challenge",
-                        embeds: [challengeEmbed]
+                        //content: "challenge",
+                        //embeds: [challengeEmbed]
                     }
                 }
             })
-            */
+            
             client.channels.cache.get(interaction.channel_id).send(challengeEmbed).then(sentMessage => {
                 sentMessage.react('👍').then(()=> {
                     sentMessage.react('👎');
