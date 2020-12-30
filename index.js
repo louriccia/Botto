@@ -162,30 +162,7 @@ client.ws.on('INTERACTION_CREATE', async interaction => {
             }
         })
     }
-
-    if(command == "echo") {
-        const description = args.find(arg => arg.name.toLowerCase() == "content").value;
-        const embed = new discord.MessageEmbed()
-            .setTitle("Echo!")
-            .setDescription(description)
-            .setAuthor(interaction.member.user.username)
-
-        client.api.interactions(interaction.id, interaction.token).callback.post({
-            data: {
-                type: 4,
-                data: await createAPIMessage(interaction, embed)
-            }
-        })
-    }
 })
-
-async function createAPIMessage(interaction, content) {
-    const apiMessage = await discord.APIMessage.create(client.channels.resolve(interaction.channel_id),content)
-        .resolveData()
-        .resolveFiles()
-
-    return { ...apiMessage.data, files: apiMessage.files};
-}
 
 async function getCommands() {
     const commands = await client.api.applications("545798436105224203").guilds('441839750555369474').commands.get()
@@ -202,7 +179,7 @@ getCommands()
 client.once('ready', () => {
     console.log('Ready!')
     //set bot activity
-    client.user.setActivity("?help"); 
+    client.user.setActivity("/help"); 
     //client.users.cache.get("256236315144749059").send("Ready!")
     client.channels.cache.get("444208252541075476").send("Ready!");
 
