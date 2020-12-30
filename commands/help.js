@@ -1,9 +1,10 @@
 module.exports = {
     name: 'help',
     execute(client, interaction, args) {
+        const Discord = require('discord.js');
+        const helpEmbed = new Discord.MessageEmbed()
         if(args[0].name =="abbreviations") {
-            const Discord = require('discord.js');
-            const helpEmbed = new Discord.MessageEmbed()
+            helpEmbed
             .setTitle("SWE1R Abbreviations")
             .setURL("https://www.speedrun.com/swe1r/thread/nf4bo")
             .addField(":large_blue_diamond: General",
@@ -54,7 +55,7 @@ module.exports = {
             "The Gauntlet --- GAU\n" +
             "Inferno --- INF")
         } else if(args[0].name=="commands") {
-            const helpEmbed = new Discord.MessageEmbed()
+            helpEmbed
             //.setColor('#00DE45')
             //.setImage("https://i.imgur.com/ZAQAjfB.png")
             //.setThumbnail("https://i.imgur.com/jzPQv54.png")
