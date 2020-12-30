@@ -17,51 +17,51 @@ module.exports = {
                 flag = racers[random1].flag
             }
         //calculate odds
-        const Guild = client.guilds.cache.get(interaction.guild_id); // Getting the guild.
-        const Member = Guild.members.cache.get(member); // Getting the member.
-        if (!Member.voice.channel) {
-            if (oddsdata !==null) {
-                var keys = Object.keys(oddsdata)
-                for (var i=0; i<keys.length; i++) {
-                    var k = keys[i];
-                    if(oddsdata[k].name == message.author.id){
-                        record = k
-                        i = keys.length
+            const Guild = client.guilds.cache.get(interaction.guild_id); // Getting the guild.
+            const Member = Guild.members.cache.get(member); // Getting the member.
+            if (!Member.voice.channel) {
+                if (oddsdata !==null) {
+                    var keys = Object.keys(oddsdata)
+                    for (var i=0; i<keys.length; i++) {
+                        var k = keys[i];
+                        if(oddsdata[k].name == message.author.id){
+                            record = k
+                            i = keys.length
+                        }
                     }
                 }
-            }
-            if (record !== "") {
-                odds_skips = oddsdata[k].skips/100
-                odds_noupgrades = oddsdata[k].no_upgrades/100
-                odds_non3lap = oddsdata[k].non_3_lap/100
-                odds_mirrormode = oddsdata[k].mirror_mode/100
-            } else {
-                odds_skips = 0.25
-                odds_noupgrades = 0.15
-                odds_non3lap = 0.05
-                odds_mirrormode = 0.05
-            }
-            if (Math.random()<odds_noupgrades){
-                nutext = " with **NO UPGRADES**"
-                nu = true
-            }
-            if (Math.random()<odds_mirrormode){
-                mirrortext = ", **MIRRORED!** "
-                mirror = true
-            }
-            if (Math.random()<odds_non3lap){
-                laps = lap[Math.floor(Math.random()*4)]
-                laptext = " for **" + laps + " lap(s)**"
-            }
-            if (tracks[random2].hasOwnProperty("parskiptimes")) {
-                if (Math.random()<odds_skips) {
-                    skipstext = ", with **SKIPS**"
-                    skips = true
+                if (record !== "") {
+                    odds_skips = oddsdata[k].skips/100
+                    odds_noupgrades = oddsdata[k].no_upgrades/100
+                    odds_non3lap = oddsdata[k].non_3_lap/100
+                    odds_mirrormode = oddsdata[k].mirror_mode/100
+                } else {
+                    odds_skips = 0.25
+                    odds_noupgrades = 0.15
+                    odds_non3lap = 0.05
+                    odds_mirrormode = 0.05
                 }
+                if (Math.random()<odds_noupgrades){
+                    nutext = " with **NO UPGRADES**"
+                    nu = true
+                }
+                if (Math.random()<odds_mirrormode){
+                    mirrortext = ", **MIRRORED!** "
+                    mirror = true
+                }
+                if (Math.random()<odds_non3lap){
+                    laps = lap[Math.floor(Math.random()*4)]
+                    laptext = " for **" + laps + " lap(s)**"
+                }
+                if (tracks[random2].hasOwnProperty("parskiptimes")) {
+                    if (Math.random()<odds_skips) {
+                        skipstext = ", with **SKIPS**"
+                        skips = true
+                    }
+                }
+            } else {
+                vc = "MP Challenge: "
             }
-        } else {
-            vc = "MP Challenge: "
-        }
         //get best runs
             var keys = Object.keys(challengedata), best = []
             for (var i=0; i<keys.length; i++) {
@@ -136,7 +136,7 @@ module.exports = {
                 data: {
                     type: 4,
                     data: {
-                        content: "",
+                        content: "challenge",
                         embeds: [challengeEmbed]
                     }
                 }
@@ -238,7 +238,20 @@ module.exports = {
         } else if(args[0].name=="stats") {
             
         } else if(args[0].name=="about") {
-            
+            const challengeHelpEmbed = new Discord.MessageEmbed()
+                .setTitle("!challenge")
+                .setDescription("When you type `!challenge`, Botto will challenge you to race a random pod on a random track with random conditions. The default conditions are max upgrades, 3-lap, full track. You have 15 minutes to submit a time for the challenge. Botto will only accept one time from the person who triggered the challenge. \n\nYou can customize your odds by typing `!odds`")
+                .addField("Default Odds", "Skips - 25%\nNo upgrades - 15%\nNon 3-lap - 5%\nMirror mode - 5%", true)
+                .addField("Rating a Challenge",":thumbsup: = I like this challenge, I would play it again\n:thumbsdown: = I don't like this challenge, this combination is not fun\n:x: = This challenge is impossible, no one should be expected to do this challenge", true)
+            client.api.interactions(interaction.id, interaction.token).callback.post({
+                data: {
+                    type: 4,
+                    data: {
+                        content: "",
+                        embeds: [challengeHelpEmbed]
+                    }
+                }
+            })
         }
         /*
         client.api.interactions(interaction.id, interaction.token).callback.post({
