@@ -92,6 +92,7 @@ module.exports = {
                         like = like +1
                     } else if (feedbackdata[k].track == "👎") {
                         dislike = dislike +1
+                    }
                 }
             }
         //calculate goal time
@@ -233,11 +234,31 @@ module.exports = {
                         
                     }   
                 })
-            })*/}
+            })*/
         } else if(args[0].name=="odds") {
-
+        /*
+        client.api.interactions(interaction.id, interaction.token).callback.post({
+            data: {
+                type: 4,
+                data: {
+                    //content: "",
+                    //embeds: [myEmbed]
+                }
+            }
+        })
+        */
         } else if(args[0].name=="stats") {
-            
+                    /*
+        client.api.interactions(interaction.id, interaction.token).callback.post({
+            data: {
+                type: 4,
+                data: {
+                    //content: "",
+                    //embeds: [myEmbed]
+                }
+            }
+        })
+        */
         } else if(args[0].name=="about") {
             const challengeHelpEmbed = new Discord.MessageEmbed()
                 .setTitle("Random Challenges")

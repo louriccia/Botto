@@ -4,6 +4,7 @@ const { prefix, token } = require('./config.json');
 const client = new Discord.Client();
 var lookup = require("./data.js");
 var tourneylookup = require("./tourneydata.js");
+var tools = require('./tools.js');
 client.commands = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 
@@ -57,90 +58,8 @@ feedbackref.on("value", function(snapshot) {
     }, function (errorObject) {
     console.log("The read failed: " + errorObject.code);
     });
-//var challengedata = fs.readFileSync('./challenge.json');
-//var challenge = JSON.parse(challengedata);
-
-//var database = require('redis').createClient(process.env.REDIS_URL);
 
 const fetch = require('node-fetch');
-
-var myformat = new Intl.NumberFormat('en-US', { 
-    minimumIntegerDigits: 2, 
-    minimumFractionDigits: 3 
-});
-
-function timefix(time) {
-    if (time >= 3600) {
-        var hours = Math.floor(time/3600)
-        var minutes = Math.floor((time-hours*3600)/60)
-        if (minutes < 10) {
-            minutes = "0" + minutes
-        }
-        var seconds = (time - hours*3600 - minutes * 60).toFixed(3)
-        return hours.toString() + ":" + minutes.toString() + ":" + myformat.format(seconds)
-    } else if (time >= 60) {
-        var minutes = Math.floor(time/60)
-        var seconds = (time - minutes * 60).toFixed(3)
-        return minutes.toString() + ":" + myformat.format(seconds)
-    } else {
-        return Number(time).toFixed(3)
-    }
-}
-
-function timetoSeconds(time) {
-    if (time.includes(":")){
-        var split = time.split(':')
-        if (split.length = 2) {
-            var out = Number(split[0]*60)+Number(split[1])
-            if (Number(split[1]) >= 60) {
-                return null
-            } else {
-                return out
-            }
-        } else {
-            return null
-        }
-        
-    } else {
-        return time
-    }
-    
-}
-
-function findTime(str) {
-    var time = ""
-    var time_begin = -1
-    var time_length = 0
-    for (let i =0; i<str.length; i++) {
-        if(Number.isInteger(parseInt(str.charAt(i)))) {
-            for (let j = 1; j<9; j++) {
-                if (Number.isInteger(parseInt(str.charAt(i+j))) || str.charAt(i+j) == ":" || str.charAt(i+j) == ".") {
-                    time_length++
-                } else {
-                    j = 9
-                }
-            }
-            if (time_length > 4) {
-                time_begin = i
-                i = str.length
-            }
-        } else {
-            time_length = 0
-        }
-    }
-    if (time_length > 0) {
-        time = str.substring(time_begin, time_begin+time_length+1)
-        if (time.length > 6 && !time.includes(":")) {
-            time = ""
-        }
-        if (time.length > 4 && !time.includes(".")) {
-            time = ""
-        }
-    }
-    return time
-}
-
-
 
 client.ws.on('INTERACTION_CREATE', async interaction => {
     const command = interaction.data.name.toLowerCase();
@@ -148,7 +67,6 @@ client.ws.on('INTERACTION_CREATE', async interaction => {
     console.log(interaction.member)
     console.log(interaction.data)
     if (!client.commands.has(command)) return;
-
     try {
         client.commands.get(command).execute(client, interaction, args);
     } catch (error) {
@@ -171,19 +89,12 @@ async function getCommands() {
     console.log(commands)
 }
 
-getCommands()
-
-//client.api.applications("545798436105224203").commands('793304837302386709').delete()
-//client.api.applications("545798436105224203").commands('793311885809156146').delete()
-
 client.once('ready', () => {
     console.log('Ready!')
     //set bot activity
     client.user.setActivity("/help"); 
     //client.users.cache.get("256236315144749059").send("Ready!")
     client.channels.cache.get("444208252541075476").send("Ready!");
-
-
 })
 
 client.on("error", (e) => {
@@ -275,11 +186,11 @@ client.on('messageUpdate', (oldMessage, newMessage) => {
             } else if (emb[0].type == "video") {
                 url = emb[0].video.url
                 embtitle = emb[0].title
-                time = findTime(embtitle)
+                time = tools.findTime(embtitle)
             }
             var msg = newMessage.content
             if (time == "" ) {
-                time = findTime(msg)
+                time = tools.findTime(msg)
             }
             var data = {
                 user: newMessage.author.id,
@@ -402,7 +313,7 @@ console.log(client.guilds.cache)
 
 if (messageLow.startsWith(`${prefix}ping`)) {
     //console.log(client.guilds.cache)
-    client.channels.cache.get("444208252541075476").send("I'm alive! I've been up for `" + timefix(client.uptime/1000) + "` since `" + client.readyAt + "`");
+    client.channels.cache.get("444208252541075476").send("I'm alive! I've been up for `" + tools.timefix(client.uptime/1000) + "` since `" + client.readyAt + "`");
 }
 
 if (messageLow.startsWith(`${prefix}src`)) {
@@ -548,7 +459,7 @@ if (messageLow.startsWith(`${prefix}src`)) {
                 var country = ""
                 var time = data.data.runs[k].run.times.primary_t
                 var vid = data.data.runs[k].run.videos.links[0].uri
-                time = timefix(time)
+                time = tools.timefix(time)
                 if (src.players.data[k].hasOwnProperty("names")) {
                     name = src.players.data[k].names.international
                 } else {
@@ -777,12 +688,12 @@ if(messageLow.startsWith(`${prefix}tourn`)){
                         pos[i] + " " + tourneyfiltered[j].player, tourneyfiltered[j].year + ", " + tourneyfiltered[j].bracket +": "+tourneyfiltered[j].round + "\nRace " + tourneyfiltered[j].race + ", vs " + tourneyfiltered[j].opponent, true
                     )
                     tourneyReport.addField(
-                        timefix(Number(tourneyfiltered[j].totaltime).toFixed(3))," " + character + "[ " + forc + "](" + link + ")" + deaths + characterban, true
+                        tools.timefix(Number(tourneyfiltered[j].totaltime).toFixed(3))," " + character + "[ " + forc + "](" + link + ")" + deaths + characterban, true
                     )
                     tourneyReport.addField(
                         '\u200B', '\u200B', true
                     )
-                    //message.channel.send(tourneyfiltered[j].player + " - " + timefix(tourneyfiltered[j].totaltime))
+                    //message.channel.send(tourneyfiltered[j].player + " - " + tools.timefix(tourneyfiltered[j].totaltime))
                     players.push(tourneyfiltered[j].player + tourneyfiltered[j].force)
                     i++
                 }
@@ -914,7 +825,7 @@ if(messageLow.startsWith(`${prefix}track`)){
                         name = sk.players.data[0].name
                     }
                     var vid = sk.runs[0].run.videos.links[0].uri
-                    trackEmbed.addField("Skips WR", character + " " + name + "\n[" + timefix(sk.runs[0].run.times.primary_t) + "](" + vid + ")",true)
+                    trackEmbed.addField("Skips WR", character + " " + name + "\n[" + tools.timefix(sk.runs[0].run.times.primary_t) + "](" + vid + ")",true)
                 }
             }
             for (let j = 0; j<23; j++){
@@ -932,7 +843,7 @@ if(messageLow.startsWith(`${prefix}track`)){
                 name = mu.players.data[0].name
             }
             var vid = mu.runs[0].run.videos.links[0].uri
-            trackEmbed.addField("MU WR", character + " " + name + "\n[" + timefix(mu.runs[0].run.times.primary_t) + "](" + vid + ")", true)
+            trackEmbed.addField("MU WR", character + " " + name + "\n[" + tools.timefix(mu.runs[0].run.times.primary_t) + "](" + vid + ")", true)
             for (let j = 0; j<23; j++){
                 if (nu.runs[0].run.values.j846d94l == racers[j].id) {
                     if (racers[j].hasOwnProperty("flag")) {
@@ -948,7 +859,7 @@ if(messageLow.startsWith(`${prefix}track`)){
                 name = nu.players.data[0].name
             }
             var vid = nu.runs[0].run.videos.links[0].uri
-            trackEmbed.addField("NU WR", character + " " + name + "\n[" + timefix(nu.runs[0].run.times.primary_t) + "](" +  vid+ ")",true)
+            trackEmbed.addField("NU WR", character + " " + name + "\n[" + tools.timefix(nu.runs[0].run.times.primary_t) + "](" +  vid+ ")",true)
             
             
             message.channel.send(trackEmbed).then(sentMessage => {
@@ -1400,11 +1311,11 @@ if(message.channel.id == 545800310283829270) { //775134898633048084 weekly chall
         } else if (emb[0].type == "video") {
             url = emb[0].video.url
             embtitle = emb[0].title
-            time = findTime(embtitle)
+            time = tools.findTime(embtitle)
         }
         var msg = message.content
         if (time == "" ) {
-            time = findTime(msg)
+            time = tools.findTime(msg)
         }
         var data = {
             user: message.author.id,
@@ -1649,7 +1560,7 @@ Complete a challenge as every pod on every track: X/575
             besttimes =""
             best.sort((a,b) => (a.time > b.time) ? 1 : -1)
             for (var i=0; i<best.length; i++){
-                besttimes = besttimes + pos[i] + "" + timefix(best[i].time) + " - " + best[i].name + "\n"
+                besttimes = besttimes + pos[i] + "" + tools.timefix(best[i].time) + " - " + best[i].name + "\n"
                 if (i == 4) {
                     i = best.length
                 }
@@ -1706,9 +1617,9 @@ Complete a challenge as every pod on every track: X/575
             }
             challengeEmbed.setDescription(desc)
             if(!skips) {
-                challengeEmbed.addField("Goal Times", ":gem: " + timefix(goal*multipliers[0].ft_multiplier) + "\n:first_place: " + timefix(goal*multipliers[1].ft_multiplier) + "\n:second_place: " + timefix(goal*multipliers[2].ft_multiplier) + "\n:third_place: " + timefix(goal*multipliers[3].ft_multiplier) + "\n<:bumpythumb:703107780860575875> " + timefix(goal*multipliers[4].ft_multiplier), true)
+                challengeEmbed.addField("Goal Times", ":gem: " + tools.timefix(goal*multipliers[0].ft_multiplier) + "\n:first_place: " + tools.timefix(goal*multipliers[1].ft_multiplier) + "\n:second_place: " + tools.timefix(goal*multipliers[2].ft_multiplier) + "\n:third_place: " + tools.timefix(goal*multipliers[3].ft_multiplier) + "\n<:bumpythumb:703107780860575875> " + tools.timefix(goal*multipliers[4].ft_multiplier), true)
             } else {
-                challengeEmbed.addField("Goal Times", ":gem: " + timefix(timetoSeconds(tracks[random2].parskiptimes[0])*multipliers[0].skips_multiplier) + "\n:first_place: " + timefix(timetoSeconds(tracks[random2].parskiptimes[1])*multipliers[1].skips_multiplier) + "\n:second_place: " + timefix(timetoSeconds(tracks[random2].parskiptimes[2])*multipliers[2].skips_multiplier) + "\n:third_place: " + timefix(timetoSeconds(tracks[random2].parskiptimes[3])*multipliers[3].skips_multiplier) + "\n<:bumpythumb:703107780860575875> " + timefix(timetoSeconds(tracks[random2].parskiptimes[4])*multipliers[4].skips_multiplier), true)
+                challengeEmbed.addField("Goal Times", ":gem: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[0])*multipliers[0].skips_multiplier) + "\n:first_place: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[1])*multipliers[1].skips_multiplier) + "\n:second_place: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[2])*multipliers[2].skips_multiplier) + "\n:third_place: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[3])*multipliers[3].skips_multiplier) + "\n<:bumpythumb:703107780860575875> " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[4])*multipliers[4].skips_multiplier), true)
             }
             if(besttimes !== "") {
                 challengeEmbed.addField("Best Times", besttimes, true)
@@ -1755,9 +1666,9 @@ Complete a challenge as every pod on every track: X/575
                     commandmessage.delete()
                 }
                 sentMessage.delete()
-            } else if (collected == false && member == message.author.id && !isNaN(message.content.replace(":", "")) && timetoSeconds(message.content) !== null) {
+            } else if (collected == false && member == message.author.id && !isNaN(message.content.replace(":", "")) && tools.timetoSeconds(message.content) !== null) {
                 var challengeend = Date.now()
-                var time = timetoSeconds(message.content)
+                var time = tools.timetoSeconds(message.content)
                 if ((challengeend - challengestart) < time*1000) {
                     message.reply("*I warn you. No funny business.*")
                     collected = true
@@ -1782,7 +1693,7 @@ Complete a challenge as every pod on every track: X/575
                     for (var i=0; i<5; i++) {
                         if (nu == false){
                             if (skips) {
-                                if (time < timetoSeconds(tracks[random2].parskiptimes[i])*multipliers[i].skips_multiplier) {
+                                if (time < tools.timetoSeconds(tracks[random2].parskiptimes[i])*multipliers[i].skips_multiplier) {
                                     parbeat = i
                                     i = 5
                                 }
@@ -1805,7 +1716,7 @@ Complete a challenge as every pod on every track: X/575
                     } else if (parbeat < 5) {
                         congrats = "You beat the " + rank[parbeat] + " time for this track!"
                     }
-                    sentMessage.edit(":white_check_mark: Challenge completed! The submitted time was: **" + timefix(time) + "**\n" + congrats)
+                    sentMessage.edit(":white_check_mark: Challenge completed! The submitted time was: **" + tools.timefix(time) + "**\n" + congrats)
                     if (message.guild) {
                         message.delete()
                     }
