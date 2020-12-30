@@ -1,7 +1,7 @@
 module.exports = {
     name: 'help',
     execute(client, interaction, args) {
-        if(args[0]=="abbreviations") {
+        if(args[0].name =="abbreviations") {
             const helpEmbed = new Discord.MessageEmbed()
             .setTitle("SWE1R Abbreviations")
             .setURL("https://www.speedrun.com/swe1r/thread/nf4bo")
@@ -52,7 +52,7 @@ module.exports = {
             "Abyss --- ABY\n" +
             "The Gauntlet --- GAU\n" +
             "Inferno --- INF")
-        } else if(args[0]=="commands") {
+        } else if(args[0].name=="commands") {
             const helpEmbed = new Discord.MessageEmbed()
             //.setColor('#00DE45')
             //.setImage("https://i.imgur.com/ZAQAjfB.png")
