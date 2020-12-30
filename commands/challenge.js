@@ -1,5 +1,5 @@
 module.exports = {
-    name: '',
+    name: 'challenge',
     execute(client, interaction, args) {
         const Discord = require('discord.js');
         //const myEmbed = new Discord.MessageEmbed()
