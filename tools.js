@@ -1,5 +1,9 @@
 module.exports = {
     timefix: function(time) {
+        var myformat = new Intl.NumberFormat('en-US', { 
+            minimumIntegerDigits: 2, 
+            minimumFractionDigits: 3 
+        });
         if (time >= 3600) {
             var hours = Math.floor(time/3600)
             var minutes = Math.floor((time-hours*3600)/60)
