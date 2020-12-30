@@ -144,7 +144,7 @@ module.exports = {
                 }
             })
             */
-            client.guilds.channels.cache.get(interaction.channel_id).send(challengeEmbed).then(sentMessage => {
+            client.channels.cache.get(interaction.channel_id).send(challengeEmbed).then(sentMessage => {
                 sentMessage.react('👍').then(()=> {
                     sentMessage.react('👎');
                 })
