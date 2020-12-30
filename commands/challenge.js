@@ -77,7 +77,7 @@ module.exports = {
                 besttimes =""
                 best.sort((a,b) => (a.time > b.time) ? 1 : -1)
                 for (var i=0; i<best.length; i++){
-                    besttimes = besttimes + pos[i] + "" + timefix(best[i].time) + " - " + best[i].name + "\n"
+                    besttimes = besttimes + pos[i] + "" + tools.timefix(best[i].time) + " - " + best[i].name + "\n"
                     if (i == 4) {
                         i = best.length
                     }
