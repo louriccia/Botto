@@ -193,18 +193,20 @@ module.exports = {
                 var collected = false
                 collector.on('collect', message => {
                 //need a way to cancel a challenge if another one is called
-                
-                    if (message.embeds.length > 0) {
-                        emb = message.embeds.toJSON()
-                        console.log(emb)
-                        if (emb[0].title.startsWith("Race")) {
-                            if (vc && !collected) {
-                                collected = true
-                                sentMessage.delete()
-                            } else if (collected == false && member == message.author.id) {
-                                collected = true
-                                sentMessage.delete()
-                            }
+                var emb = false
+                message.embeds.forEach((embed) => {
+                    console.log(embed.title)
+                    if (embed.title.startsWith("Race")) {
+                        emb = true
+                    }
+                 });
+                    if (emb) {
+                        if (vc && !collected) {
+                            collected = true
+                            sentMessage.delete()
+                        } else if (collected == false && member == message.author.id) {
+                            collected = true
+                            sentMessage.delete()
                         }
                     } else if (!isNaN(message.content.replace(":", "")) && tools.timetoSeconds(message.content) !== null) {
                         //need to branch here based on mp challenge or singular challenge
@@ -277,7 +279,7 @@ module.exports = {
                                 if(vc) {
                                     editEmbed.setAuthor("Multiplayer Challenge")
                                 } else {
-                                    editEmbed.setAuthor(interaction.member.user.username + "'s Challenge", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
+                                    editEmbed.setAuthor(interaction.member.user.username + "'s Challenge - :white_check_mark: Completed", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
                                 }
                                 if(!skips) {
                                     editEmbed.addField("Goal Times", ":gem: " + tools.timefix(goal*multipliers[0].ft_multiplier) + "\n:first_place: " + tools.timefix(goal*multipliers[1].ft_multiplier) + "\n:second_place: " + tools.timefix(goal*multipliers[2].ft_multiplier) + "\n:third_place: " + tools.timefix(goal*multipliers[3].ft_multiplier) + "\n<:bumpythumb:703107780860575875> " + tools.timefix(goal*multipliers[4].ft_multiplier), true)
