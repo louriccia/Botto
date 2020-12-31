@@ -199,7 +199,7 @@ module.exports = {
                         if (vc && !collected) {
                             collected = true
                             sentMessage.delete()
-                        } else if (collected == false && message.embed[0].author.replace("'s Challenge", "") == interaction.member.user.username) {
+                        } else if (collected == false && message.embeds[0].author.replace("'s Challenge", "") == interaction.member.user.username) {
                             collected = true
                             sentMessage.delete()
                         }
