@@ -196,10 +196,11 @@ module.exports = {
                 var collected = false
                 collector.on('collect', message => {
                     if (message.embeds[0].title.startsWith("Race") && message.author.id == "545798436105224203") {
+                        
                         if (vc && !collected) {
                             collected = true
                             sentMessage.delete()
-                        } else if (collected == false && message.embeds[0].author.replace("'s Challenge", "") == interaction.member.user.username) {
+                        } else if (collected == false && String(message.embeds[0].author).replace("'s Challenge", "") == interaction.member.user.username) {
                             collected = true
                             sentMessage.delete()
                         }
