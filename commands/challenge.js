@@ -195,14 +195,15 @@ module.exports = {
                 const collector = new Discord.MessageCollector(client.channels.cache.get(interaction.channel_id), m => m,{ time: 900000 });
                 var collected = false
                 collector.on('collect', message => {
-                    if (message.embeds[0].title.startsWith("Race") && message.author.id == "545798436105224203") {
-                        
-                        if (vc && !collected) {
-                            collected = true
-                            sentMessage.delete()
-                        } else if (collected == false && message.embeds[0].author.name.replace("'s Challenge", "") == interaction.member.user.username) {
-                            collected = true
-                            sentMessage.delete()
+                    if(message.embeds.length > 0 && message.author.id == "545798436105224203") {
+                        if (message.embeds[0].title.startsWith("Race")) {
+                            if (vc && !collected) {
+                                collected = true
+                                sentMessage.delete()
+                            } else if (collected == false && message.embeds[0].author.name.replace("'s Challenge", "") == interaction.member.user.username) {
+                                collected = true
+                                sentMessage.delete()
+                            }
                         }
                     } else if (!isNaN(message.content.replace(":", "")) && tools.timetoSeconds(message.content) !== null) {
                         //need to branch here based on mp challenge or singular challenge
