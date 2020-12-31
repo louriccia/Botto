@@ -179,10 +179,11 @@ module.exports = {
                     }).catch(() => {
                 })
             //collect times
-                const collector = new Discord.MessageCollector(client.channels.cache.get(interaction.channel_id), m => { time: 900000 });
+                const collector = new Discord.MessageCollector(client.channels.cache.get(interaction.channel_id), m => m.author.id === message.author.id,{ time: 900000 });
                 var collected = false
                 collector.on('collect', message => {
                 //need a way to cancel a challenge if another one is called
+                console.log(message.embeds[0])
                     if (message.embeds[0].title.startsWith() == "Race" && collected == false && member == message.author.id) {
                         collected = true
                         sentMessage.delete()
