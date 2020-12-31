@@ -25,10 +25,8 @@ var firebaseConfig = {
     messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
     appId: process.env.FIREBASE_APP_ID,
     measurementId: process.env.FIREBASE_MEASUREMENT_ID
-  };
-
+};
 firebase.initializeApp(firebaseConfig);
-
 
 var database = firebase.database();
 var ref = database.ref('times'); //use forward slashes to navigate the data tree
@@ -64,8 +62,8 @@ const fetch = require('node-fetch');
 client.ws.on('INTERACTION_CREATE', async interaction => {
     const command = interaction.data.name.toLowerCase();
     const args = interaction.data.options;
-    console.log(interaction.member)
-    console.log(interaction.data)
+    //console.log(interaction.member)
+    //console.log(interaction.data)
     if (!client.commands.has(command)) return;
     try {
         client.commands.get(command).execute(client, interaction, args);

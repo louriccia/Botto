@@ -194,9 +194,11 @@ module.exports = {
                 collector.on('collect', message => {
                 //need a way to cancel a challenge if another one is called
                 var emb = false
+                console.log(message.author.username)
                 message.embeds.forEach((embed) => {
+                    console.log(embed)
                     console.log(embed.title)
-                    if (embed.title.startsWith("Race")) {
+                    if (embed.title.startsWith("Race") && message.author.id == "545798436105224203") {
                         emb = true
                     }
                  });
@@ -273,13 +275,13 @@ module.exports = {
                                     }
                                 }
                                 const editEmbed = new Discord.MessageEmbed()
-                                    .setTitle("Race as **" + flag + " " + racers[random1].name + "** (" + (random1 + 1) + ")"+ nutext + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + laptext + skipstext + mirrortext)
+                                    .setTitle(":white_check_mark: Completed: Race as **" + flag + " " + racers[random1].name + "** (" + (random1 + 1) + ")"+ nutext + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + laptext + skipstext + mirrortext)
                                     .setColor(planets[tracks[random2].planet].color)
                                     .setDescription(desc)
                                 if(vc) {
                                     editEmbed.setAuthor("Multiplayer Challenge")
                                 } else {
-                                    editEmbed.setAuthor(interaction.member.user.username + "'s Challenge - :white_check_mark: Completed", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
+                                    editEmbed.setAuthor(interaction.member.user.username + "'s Challenge", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
                                 }
                                 if(!skips) {
                                     editEmbed.addField("Goal Times", ":gem: " + tools.timefix(goal*multipliers[0].ft_multiplier) + "\n:first_place: " + tools.timefix(goal*multipliers[1].ft_multiplier) + "\n:second_place: " + tools.timefix(goal*multipliers[2].ft_multiplier) + "\n:third_place: " + tools.timefix(goal*multipliers[3].ft_multiplier) + "\n<:bumpythumb:703107780860575875> " + tools.timefix(goal*multipliers[4].ft_multiplier), true)
