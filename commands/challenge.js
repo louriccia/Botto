@@ -223,14 +223,14 @@ module.exports = {
                         feedbackref.push(feedbackdata);
                     }).catch(() => {
                 })
-                setTimeout(function() { //1 minute warning
+                setTimeout(async function() { //1 minute warning
                     if(!collected){
                         try { 
                             await sentMessage.edit(createEmbed(":warning: 1 Minute Warning: ", null)) 
                         } catch {}
                     }
                 }, 840000)
-                setTimeout(function() { //challenge closed
+                setTimeout(async function() { //challenge closed
                     if(!collected){
                         try { 
                             await sentMessage.edit(createEmbed(":negative_squared_cross_mark: Closed: ", null)) 
