@@ -145,7 +145,8 @@ module.exports = {
             } else {
                 baseEmbed.addField("Goal Times", ":gem: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[0])*multipliers[0].skips_multiplier) + "\n:first_place: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[1])*multipliers[1].skips_multiplier) + "\n:second_place: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[2])*multipliers[2].skips_multiplier) + "\n:third_place: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[3])*multipliers[3].skips_multiplier) + "\n<:bumpythumb:703107780860575875> " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[4])*multipliers[4].skips_multiplier), true)
             }
-            var challengeEmbed = baseEmbed
+            const challengeEmbed = new Discord.MessageEmbed()
+            challengeEmbed = baseEmbed
             if(besttimes !== "") {
                 challengeEmbed.addField("Best Times", besttimes, true)
             }
@@ -196,8 +197,9 @@ module.exports = {
                 //need a way to cancel a challenge if another one is called
                 
                     if (message.embeds.length > 0) {
-                        console.log(message.embeds[0])
-                        if (message.embeds[0].title.startsWith("Race")) {
+                        emb = message.embeds.toJSON()
+                        console.log(emb)
+                        if (emb[0].title.startsWith("Race")) {
                             if (vc && !collected) {
                                 collected = true
                                 sentMessage.delete()
@@ -270,7 +272,8 @@ module.exports = {
                                         i = best.length
                                     }
                                 }
-                                var editEmbed = baseEmbed
+                                const editEmbed = new Discord.MessageEmbed()
+                                editEmbed = baseEmbed
                                 editEmbed.addField("Best Times", besttimes, true)
                                 sentMessage.edit(editEmbed)
                                 //sentMessage.edit(":white_check_mark: Challenge completed! The submitted time was: **" + tools.timefix(time) + "**\n" + congrats)
