@@ -6,16 +6,6 @@ module.exports = {
         var firebase = require("firebase/app");
         require('firebase/auth');
         require('firebase/database');
-        var firebaseConfig = {
-            apiKey: process.env.FIREBASE_API_KEY,
-            authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-            databaseURL: process.env.FIREBASE_DATABASE_URL,
-            projectId: process.env.FIREBASE_PROJECT_ID,
-            storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-            messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-            appId: process.env.FIREBASE_APP_ID,
-            measurementId: process.env.FIREBASE_MEASUREMENT_ID
-        };
         var database = firebase.database();
         var ref = database.ref('times');
         ref.on("value", function(snapshot) {
@@ -141,20 +131,21 @@ module.exports = {
                 desc = desc + movieQuotes[random3]
             }
         //build embed
-            const challengeEmbed = new Discord.MessageEmbed()
+            const baseEmbed = new Discord.MessageEmbed()
                 .setTitle("Race as **" + flag + " " + racers[random1].name + "** (" + (random1 + 1) + ")"+ nutext + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + laptext + skipstext + mirrortext)
                 .setColor(planets[tracks[random2].planet].color)
                 .setDescription(desc)
             if(vc) {
-                challengeEmbed.setAuthor("Multiplayer Challenge")
+                baseEmbed.setAuthor("Multiplayer Challenge")
             } else {
-                challengeEmbed.setAuthor(interaction.member.user.username + "'s Challenge", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
+                baseEmbed.setAuthor(interaction.member.user.username + "'s Challenge", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
             }
             if(!skips) {
-                challengeEmbed.addField("Goal Times", ":gem: " + tools.timefix(goal*multipliers[0].ft_multiplier) + "\n:first_place: " + tools.timefix(goal*multipliers[1].ft_multiplier) + "\n:second_place: " + tools.timefix(goal*multipliers[2].ft_multiplier) + "\n:third_place: " + tools.timefix(goal*multipliers[3].ft_multiplier) + "\n<:bumpythumb:703107780860575875> " + tools.timefix(goal*multipliers[4].ft_multiplier), true)
+                baseEmbed.addField("Goal Times", ":gem: " + tools.timefix(goal*multipliers[0].ft_multiplier) + "\n:first_place: " + tools.timefix(goal*multipliers[1].ft_multiplier) + "\n:second_place: " + tools.timefix(goal*multipliers[2].ft_multiplier) + "\n:third_place: " + tools.timefix(goal*multipliers[3].ft_multiplier) + "\n<:bumpythumb:703107780860575875> " + tools.timefix(goal*multipliers[4].ft_multiplier), true)
             } else {
-                challengeEmbed.addField("Goal Times", ":gem: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[0])*multipliers[0].skips_multiplier) + "\n:first_place: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[1])*multipliers[1].skips_multiplier) + "\n:second_place: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[2])*multipliers[2].skips_multiplier) + "\n:third_place: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[3])*multipliers[3].skips_multiplier) + "\n<:bumpythumb:703107780860575875> " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[4])*multipliers[4].skips_multiplier), true)
+                baseEmbed.addField("Goal Times", ":gem: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[0])*multipliers[0].skips_multiplier) + "\n:first_place: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[1])*multipliers[1].skips_multiplier) + "\n:second_place: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[2])*multipliers[2].skips_multiplier) + "\n:third_place: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[3])*multipliers[3].skips_multiplier) + "\n<:bumpythumb:703107780860575875> " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[4])*multipliers[4].skips_multiplier), true)
             }
+            const challengeEmbed = baseEmbed
             if(besttimes !== "") {
                 challengeEmbed.addField("Best Times", besttimes, true)
             }
@@ -183,7 +174,7 @@ module.exports = {
                         } else if (collected.first().emoji.name == '👎') {
                             feedback = '👎'
                         }
-                        var data = {
+                        var feedbackdata = {
                             user: user.id,
                             name: user.username,
                             feedback: feedback,
@@ -195,7 +186,7 @@ module.exports = {
                             skips: skips,
                             mirror: mirror
                         }
-                        feedbackref.push(data);
+                        feedbackref.push(feedbackdata);
                     }).catch(() => {
                 })
             //collect times
@@ -205,7 +196,7 @@ module.exports = {
                 //need a way to cancel a challenge if another one is called
                 //console.log(message.embeds[0])
                     if (message.embeds.size > 0) {
-                        if (message.embeds[0].title.startsWith() == "Race") {
+                        if (message.embeds[0].title.startsWith("Race")) {
                             if (vc && !collected) {
                                 collected = true
                                 sentMessage.delete()
@@ -230,7 +221,7 @@ module.exports = {
                                 collected = true
                             } else {
                             //log time
-                                var data = {
+                                var submissiondata = {
                                     user: message.author.id,
                                     name: message.author.username,
                                     time: time,
@@ -242,7 +233,8 @@ module.exports = {
                                     skips: skips,
                                     mirror: mirror
                                 }
-                                ref.push(data);
+                                ref.push(submissiondata);
+                                best.push(submissiondata)
                                 collected = true
                             //build congratulations message
                                 var parbeat = 5
@@ -269,7 +261,17 @@ module.exports = {
                                     congrats = "You beat the " + rank[parbeat] + " time for this track!"
                                 }
                             //edit original message
-                                sentMessage.edit(":white_check_mark: Challenge completed! The submitted time was: **" + tools.timefix(time) + "**\n" + congrats)
+                                best.sort((a,b) => (a.time > b.time) ? 1 : -1)
+                                for (var i=0; i<best.length; i++){
+                                    besttimes = besttimes + pos[i] + "" + tools.timefix(best[i].time) + " - " + best[i].name + "\n"
+                                    if (i == 4) {
+                                        i = best.length
+                                    }
+                                }
+                                var editEmbed = baseEmbed
+                                editEmbed.addField("Best Times", besttimes, true)
+                                sentMessage.edit(editEmbed)
+                                //sentMessage.edit(":white_check_mark: Challenge completed! The submitted time was: **" + tools.timefix(time) + "**\n" + congrats)
                             //maybe find a way to undo a submission
                             //delete message
                                 if (message.guild) {
