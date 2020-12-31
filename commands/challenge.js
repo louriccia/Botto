@@ -17,6 +17,7 @@ module.exports = {
         });
         //const myEmbed = new Discord.MessageEmbed()
         if(args[0].name =="generate") {
+            
             let member = interaction.member.user.id
             var vc = false
             var challengestart = Date.now()
@@ -133,25 +134,58 @@ module.exports = {
                 desc = desc + movieQuotes[random3]
             }
         //build embed
+            var eTitle = "", eColor = "", eAuthor = [], eGoalTimes = []
             const challengeEmbed = new Discord.MessageEmbed()
-                .setTitle("Race as **" + flag + " " + racers[random1].name + "** (" + (random1 + 1) + ")"+ nutext + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + laptext + skipstext + mirrortext)
-                .setColor(planets[tracks[random2].planet].color)
-                .setDescription(desc)
+                eTitle = "Race as **" + flag + " " + racers[random1].name + "** (" + (random1 + 1) + ")"+ nutext + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + laptext + skipstext + mirrortext
+                eColor = planets[tracks[random2].planet].color
             if(vc) {
-                challengeEmbed.setAuthor("Multiplayer Challenge")
+                eAuthor = ["Multiplayer Challenge", ""]
             } else {
-                challengeEmbed.setAuthor(interaction.member.user.username + "'s Challenge", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
+                eAuthor = [interaction.member.user.username + "'s Challenge", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL()]
             }
             if(!skips) {
-                challengeEmbed.addField("Goal Times", ":gem: " + tools.timefix(goal*multipliers[0].ft_multiplier) + "\n:first_place: " + tools.timefix(goal*multipliers[1].ft_multiplier) + "\n:second_place: " + tools.timefix(goal*multipliers[2].ft_multiplier) + "\n:third_place: " + tools.timefix(goal*multipliers[3].ft_multiplier) + "\n<:bumpythumb:703107780860575875> " + tools.timefix(goal*multipliers[4].ft_multiplier), true)
+                eGoalTimes = ":gem: " + tools.timefix(goal*multipliers[0].ft_multiplier) + "\n:first_place: " + tools.timefix(goal*multipliers[1].ft_multiplier) + "\n:second_place: " + tools.timefix(goal*multipliers[2].ft_multiplier) + "\n:third_place: " + tools.timefix(goal*multipliers[3].ft_multiplier) + "\n<:bumpythumb:703107780860575875> " + tools.timefix(goal*multipliers[4].ft_multiplier)
             } else {
-                challengeEmbed.addField("Goal Times", ":gem: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[0])*multipliers[0].skips_multiplier) + "\n:first_place: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[1])*multipliers[1].skips_multiplier) + "\n:second_place: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[2])*multipliers[2].skips_multiplier) + "\n:third_place: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[3])*multipliers[3].skips_multiplier) + "\n<:bumpythumb:703107780860575875> " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[4])*multipliers[4].skips_multiplier), true)
+                eGoalTimes = ":gem: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[0])*multipliers[0].skips_multiplier) + "\n:first_place: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[1])*multipliers[1].skips_multiplier) + "\n:second_place: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[2])*multipliers[2].skips_multiplier) + "\n:third_place: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[3])*multipliers[3].skips_multiplier) + "\n<:bumpythumb:703107780860575875> " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[4])*multipliers[4].skips_multiplier)
             }
-            if(besttimes !== "") {
-                challengeEmbed.addField("Best Times", besttimes, true)
+            function createEmbed(title, highlight) {
+                var keys = Object.keys(challengedata), best = []
+                for (var i=0; i<keys.length; i++) {
+                    var k = keys[i];
+                    if(challengedata[k].track == random2 && challengedata[k].racer == random1 && challengedata[k].laps == laps && challengedata[k].mirror == mirror && challengedata[k].nu == nu && challengedata[k].skips == skips){
+                        best.push(challengedata[k])
+                    }
+                }
+                var besttimes = "Be the first to submit a time for this challenge!"
+                var pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>", "4th", "5th"]
+                if(best.length > 0) {
+                    besttimes =""
+                    best.sort((a,b) => (a.time > b.time) ? 1 : -1)
+                    var date = ""
+                    if (highlight !== null) {
+                        date = highlight
+                    }
+                    for (var i=0; i<best.length; i++){
+                        if(best[i].date == date) {
+                            besttimes = besttimes + pos[i] + "" + tools.timefix(best[i].time) + " - " + best[i].name + " <a:newrecord:672640831882133524>\n"
+                        } else {
+                            besttimes = besttimes + pos[i] + "" + tools.timefix(best[i].time) + " - " + best[i].name + "\n"
+                        }
+                        if (i == 4) {
+                            i = best.length
+                        }
+                    }
+                }
+                const newEmbed = new Discord.MessageEmbed()
+                    .setTitle(title + eTitle)
+                    .setColor(eColor)
+                    .setAuthor(eAuthor[0], eAuthor[1])
+                    .setDescription(desc)
+                    .addField("Goal Times", eGoalTimes, true)
+                    .addField("Best Times", times, true)
+                return newEmbed
             }
-        //send embed  
-                
+        //send embed
             client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {
                     type: 2,
@@ -161,8 +195,7 @@ module.exports = {
                     }
                 }
             })
-            
-            client.channels.cache.get(interaction.channel_id).send(challengeEmbed).then(sentMessage => {
+            client.channels.cache.get(interaction.channel_id).send(createEmbed("",null)).then(sentMessage => {
             //collect feedback
                 sentMessage.react('👍').then(()=> {
                     sentMessage.react('👎');
@@ -190,8 +223,21 @@ module.exports = {
                         feedbackref.push(feedbackdata);
                     }).catch(() => {
                 })
+                setTimeout(function() { //1 minute warning
+                    if(!collected){
+                        try { 
+                            await sentMessage.edit(createEmbed(":warning: 1 Minute Warning: ", null)) 
+                        } catch {}
+                    }
+                }, 840000)
+                setTimeout(function() { //challenge closed
+                    if(!collected){
+                        try { 
+                            await sentMessage.edit(createEmbed(":negative_squared_cross_mark: Closed: ", null)) 
+                        } catch {}
+                    }
+                }, 900000)
             //collect times
-                
                 const collector = new Discord.MessageCollector(client.channels.cache.get(interaction.channel_id), m => m,{ time: 900000 });
                 var collected = false
                 collector.on('collect', message => {
@@ -236,58 +282,8 @@ module.exports = {
                                 ref.push(submissiondata);
                                 best.push(submissiondata)
                                 collected = true
-                            //build congratulations message
-                                var parbeat = 5
-                                var rank = [":gem: Elite", ":first_place: Pro", ":second_place: Rookie", ":third_place: Amateur", "<:bumpythumb:703107780860575875> Youngling"]
-                                for (var i=0; i<5; i++) {
-                                    if (skips) {
-                                        if (time < tools.timetoSeconds(tracks[random2].parskiptimes[i])*multipliers[i].skips_multiplier) {
-                                            parbeat = i
-                                            i = 5
-                                        }
-                                    } else {
-                                        if (time < goal*multipliers[i].ft_multiplier) {
-                                            parbeat = i
-                                            i = 5
-                                        }
-                                    }
-                                }
-                                var congrats = ""
-                                if (parbeat < 5 && time < best[0].time) {
-                                    congrats = "<a:newrecord:672640831882133524> You beat the best challenge time and the " + rank[parbeat] + " time for this track! <a:newrecord:672640831882133524>"
-                                } else if (time < best[0].time) {
-                                    congrats = "<a:newrecord:672640831882133524> You beat the best challenge time for this track! <a:newrecord:672640831882133524>"
-                                } else if (parbeat < 5) {
-                                    congrats = "You beat the " + rank[parbeat] + " time for this track!"
-                                }
                             //edit original message
-                                besttimes = ""
-                                best.sort((a,b) => (a.time > b.time) ? 1 : -1)
-                                for (var i=0; i<best.length; i++){
-                                    besttimes = besttimes + pos[i] + "" + tools.timefix(best[i].time) + " - " + best[i].name + "\n"
-                                    if (i == 4) {
-                                        i = best.length
-                                    }
-                                }
-                                const editEmbed = new Discord.MessageEmbed()
-                                    .setTitle(":white_check_mark: Completed: Race as **" + flag + " " + racers[random1].name + "** (" + (random1 + 1) + ")"+ nutext + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + laptext + skipstext + mirrortext)
-                                    .setColor(planets[tracks[random2].planet].color)
-                                    .setDescription(desc)
-                                if(vc) {
-                                    editEmbed.setAuthor("Multiplayer Challenge")
-                                } else {
-                                    editEmbed.setAuthor(interaction.member.user.username + "'s Challenge", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
-                                }
-                                if(!skips) {
-                                    editEmbed.addField("Goal Times", ":gem: " + tools.timefix(goal*multipliers[0].ft_multiplier) + "\n:first_place: " + tools.timefix(goal*multipliers[1].ft_multiplier) + "\n:second_place: " + tools.timefix(goal*multipliers[2].ft_multiplier) + "\n:third_place: " + tools.timefix(goal*multipliers[3].ft_multiplier) + "\n<:bumpythumb:703107780860575875> " + tools.timefix(goal*multipliers[4].ft_multiplier), true)
-                                } else {
-                                    editEmbed.addField("Goal Times", ":gem: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[0])*multipliers[0].skips_multiplier) + "\n:first_place: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[1])*multipliers[1].skips_multiplier) + "\n:second_place: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[2])*multipliers[2].skips_multiplier) + "\n:third_place: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[3])*multipliers[3].skips_multiplier) + "\n<:bumpythumb:703107780860575875> " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[4])*multipliers[4].skips_multiplier), true)
-                                }
-                                if(besttimes !== "") {
-                                    editEmbed.addField("Best Times", besttimes, true)
-                                }
-                                sentMessage.edit(editEmbed)
-                                //sentMessage.edit(":white_check_mark: Challenge completed! The submitted time was: **" + tools.timefix(time) + "**\n" + congrats)
+                                sentMessage.edit(createEmbed(":white_check_mark: Completed: ", submissiondata.date))
                             //maybe find a way to undo a submission
                             //delete message
                                 if (message.guild) {
@@ -299,6 +295,79 @@ module.exports = {
                 })
             })
         } else if(args[0].name=="odds") {
+            var record = ""
+            var desc = "You have not customized your odds. The default odds are listed below. "
+            if (oddsdata !==null) {
+                var keys = Object.keys(oddsdata)
+                for (var i=0; i<keys.length; i++) {
+                    var k = keys[i];
+                    if(oddsdata[k].name == message.author.id){
+                        record = k
+                        i = keys.length
+                    }
+                }
+            }
+            if (record !== "") {
+                desc = "Your custom odds are listed below. "
+                odds_skips = oddsdata[k].skips
+                odds_noupgrades = oddsdata[k].no_upgrades
+                odds_non3lap = oddsdata[k].non_3_lap
+                odds_mirrormode = oddsdata[k].mirror_mode
+            } else {
+                odds_skips = 25
+                odds_noupgrades = 15
+                odds_non3lap = 5
+                odds_mirrormode = 5
+            }
+            const oddsEmbed = new Discord.MessageEmbed()
+            .setTitle("Customize Your `!challenge` Odds")
+            .setDescription(desc + "Change your odds by replying to this message with 4 numbers separated by commas in order of Skips, No Upgrades, Non 3-lap, and Mirror Mode. These numbers will be divided by 100 to determine the chances Botto will give their conditions in a `!challenge`. \n Example: 15, 20, 10, 0")
+            .addField("Your Odds", "Skips - " + odds_skips +"%\nNo Upgrades - " + odds_noupgrades +"%\nNon 3-Lap - " + odds_non3lap +"%\nMirror Mode - " + odds_mirrormode +"%", true)
+            .addField("Default Odds", "Skips - 25%\nNo Upgrades - 15%\nNon 3-Lap - 5%\nMirror Mode - 5%", true)
+            .setFooter("Reset your odds to default by typing 'default'")
+            message.channel.send(oddsEmbed);
+            var collected = false
+            const oddscollector = new Discord.MessageCollector(message.channel, m => m.author.id === message.author.id, { time: 500000 });
+            oddscollector.on('collect', message => {
+                if (!isNaN(Number(message.content.replace(/,/g, '').replace(/\s/g, "").replace(/%/g, ""))) && collected == false) {
+                    if (oddsdata !==null) {
+                        var keys = Object.keys(oddsdata)
+                        for (var i=0; i<keys.length; i++) {
+                            var k = keys[i];
+                            if(oddsdata[k].name == message.author.id){
+                                oddsref.child(k).remove()
+                            }
+                        }
+                    }
+                    var odds = message.content.replace(/\s/g, "").replace(/%/g, "").split(",")
+                    if (odds.length == 4) {
+                        var data = {
+                            name: message.author.id,
+                            skips: odds[0],
+                            no_upgrades: odds[1],
+                            non_3_lap: odds[2],
+                            mirror_mode: odds[3]
+                        }
+                        oddsref.push(data);
+                        message.reply("*Your new odds have been saved!*")
+                        collected = true
+                    } else {
+                        message.reply("*Only four numbers!*")
+                    }
+                } else if (message.content == "default") {
+                    if (oddsdata !==null) {
+                        var keys = Object.keys(oddsdata)
+                        for (var i=0; i<keys.length; i++) {
+                            var k = keys[i];
+                            if(oddsdata[k].name == message.author.id){
+                                oddsref.child(k).remove()
+                            }
+                        }
+                    }
+                    message.reply("*Your odds have been reset to the default*")
+                    collected = true
+                }
+            })
         /*
         client.api.interactions(interaction.id, interaction.token).callback.post({
             data: {

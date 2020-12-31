@@ -96,7 +96,7 @@ module.exports = {
             data: {
                 type: 4,
                 data: {
-                    content: "Here's some help!",
+                    //content: "Here's some help!",
                     embeds: [helpEmbed]
                 }
             }
