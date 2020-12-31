@@ -184,7 +184,7 @@ module.exports = {
                 collector.on('collect', message => {
                 //need a way to cancel a challenge if another one is called
                 //console.log(message.embeds[0])
-                    if (message.embeds.length > 0) {
+                    if (message.embeds.size > 0) {
                         if (message.embeds[0].title.startsWith() == "Race") {
                             if (vc && !collected) {
                                 collected = true
