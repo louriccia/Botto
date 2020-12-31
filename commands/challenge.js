@@ -192,7 +192,7 @@ module.exports = {
                 })
             //collect times
                 
-                const collector = new Discord.MessageCollector(client.channels.cache.get(interaction.channel_id), filter,{ time: 900000 });
+                const collector = new Discord.MessageCollector(client.channels.cache.get(interaction.channel_id), m => m,{ time: 900000 });
                 var collected = false
                 collector.on('collect', message => {
                     if (message.embeds[0].title.startsWith("Race") && message.author.id == "545798436105224203") {
