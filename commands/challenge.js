@@ -128,7 +128,7 @@ module.exports = {
             if(vc) {
                 challengeEmbed.setAuthor("Multiplayer Challenge")
             } else {
-                challengeEmbed.setAuthor(interaction.member.user.username, client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
+                challengeEmbed.setAuthor(interaction.member.user.username + "'s Challenge", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
             }
             if(!skips) {
                 challengeEmbed.addField("Goal Times", ":gem: " + tools.timefix(goal*multipliers[0].ft_multiplier) + "\n:first_place: " + tools.timefix(goal*multipliers[1].ft_multiplier) + "\n:second_place: " + tools.timefix(goal*multipliers[2].ft_multiplier) + "\n:third_place: " + tools.timefix(goal*multipliers[3].ft_multiplier) + "\n<:bumpythumb:703107780860575875> " + tools.timefix(goal*multipliers[4].ft_multiplier), true)
@@ -183,65 +183,80 @@ module.exports = {
                 var collected = false
                 collector.on('collect', message => {
                 //need a way to cancel a challenge if another one is called
-                console.log(message.embeds[0])
-                    if (message.embeds[0].title.startsWith() == "Race" && collected == false && member == message.author.id) {
-                        collected = true
-                        sentMessage.delete()
-                    } else if (collected == false && member == message.author.id && !isNaN(message.content.replace(":", "")) && tools.timetoSeconds(message.content) !== null) {
-                        var challengeend = Date.now()
-                        var time = tools.timetoSeconds(message.content)
-                        if ((challengeend - challengestart) < time*1000) {
-                            message.reply("*I warn you. No funny business.*")
-                            collected = true
-                        } else {
-                        //log time
-                            var data = {
-                                user: message.author.id,
-                                name: message.author.username,
-                                time: time,
-                                date: message.createdTimestamp,
-                                racer: random1,
-                                track: random2,
-                                laps: laps,
-                                nu: nu,
-                                skips: skips,
-                                mirror: mirror
-                            }
-                            ref.push(data);
-                            collected = true
-                        //build congratulations message
-                            var parbeat = 5
-                            var rank = [":gem: Elite", ":first_place: Pro", ":second_place: Rookie", ":third_place: Amateur", "<:bumpythumb:703107780860575875> Youngling"]
-                            for (var i=0; i<5; i++) {
-                                if (skips) {
-                                    if (time < tools.timetoSeconds(tracks[random2].parskiptimes[i])*multipliers[i].skips_multiplier) {
-                                        parbeat = i
-                                        i = 5
-                                    }
-                                } else {
-                                    if (time < goal*multipliers[i].ft_multiplier) {
-                                        parbeat = i
-                                        i = 5
-                                    }
-                                }
-                            }
-                            var congrats = ""
-                            if (parbeat < 5 && time < best[0].time) {
-                                congrats = "<a:newrecord:672640831882133524> You beat the best challenge time and the " + rank[parbeat] + " time for this track! <a:newrecord:672640831882133524>"
-                            } else if (time < best[0].time) {
-                                congrats = "<a:newrecord:672640831882133524> You beat the best challenge time for this track! <a:newrecord:672640831882133524>"
-                            } else if (parbeat < 5) {
-                                congrats = "You beat the " + rank[parbeat] + " time for this track!"
-                            }
-                        //edit original message
-                            sentMessage.edit(":white_check_mark: Challenge completed! The submitted time was: **" + tools.timefix(time) + "**\n" + congrats)
-                        //maybe find a way to undo a submission
-                        //delete message
-                            if (message.guild) {
-                                message.delete()
+                //console.log(message.embeds[0])
+                    if (message.embeds.length > 0) {
+                        if (message.embeds[0].title.startsWith() == "Race") {
+                            if (vc && !collected) {
+                                collected = true
+                                sentMessage.delete()
+                            } else if (collected == false && member == message.author.id) {
+                                collected = true
+                                sentMessage.delete()
                             }
                         }
-                        
+                    } else if (!isNaN(message.content.replace(":", "")) && tools.timetoSeconds(message.content) !== null) {
+                        //need to branch here based on mp challenge or singular challenge
+                        var challengeend = Date.now()
+                        var time = ""
+                        if (vc){
+                            time = tools.timetoSeconds(message.content)
+                        } else if (collected == false && member == message.author.id) {
+                            time = tools.timetoSeconds(message.content)
+                        }
+                        tools.timetoSeconds(message.content)
+                        if(time !== ""){
+                            if ((challengeend - challengestart) < time*1000) {
+                                message.reply("*I warn you. No funny business.*")
+                                collected = true
+                            } else {
+                            //log time
+                                var data = {
+                                    user: message.author.id,
+                                    name: message.author.username,
+                                    time: time,
+                                    date: message.createdTimestamp,
+                                    racer: random1,
+                                    track: random2,
+                                    laps: laps,
+                                    nu: nu,
+                                    skips: skips,
+                                    mirror: mirror
+                                }
+                                ref.push(data);
+                                collected = true
+                            //build congratulations message
+                                var parbeat = 5
+                                var rank = [":gem: Elite", ":first_place: Pro", ":second_place: Rookie", ":third_place: Amateur", "<:bumpythumb:703107780860575875> Youngling"]
+                                for (var i=0; i<5; i++) {
+                                    if (skips) {
+                                        if (time < tools.timetoSeconds(tracks[random2].parskiptimes[i])*multipliers[i].skips_multiplier) {
+                                            parbeat = i
+                                            i = 5
+                                        }
+                                    } else {
+                                        if (time < goal*multipliers[i].ft_multiplier) {
+                                            parbeat = i
+                                            i = 5
+                                        }
+                                    }
+                                }
+                                var congrats = ""
+                                if (parbeat < 5 && time < best[0].time) {
+                                    congrats = "<a:newrecord:672640831882133524> You beat the best challenge time and the " + rank[parbeat] + " time for this track! <a:newrecord:672640831882133524>"
+                                } else if (time < best[0].time) {
+                                    congrats = "<a:newrecord:672640831882133524> You beat the best challenge time for this track! <a:newrecord:672640831882133524>"
+                                } else if (parbeat < 5) {
+                                    congrats = "You beat the " + rank[parbeat] + " time for this track!"
+                                }
+                            //edit original message
+                                sentMessage.edit(":white_check_mark: Challenge completed! The submitted time was: **" + tools.timefix(time) + "**\n" + congrats)
+                            //maybe find a way to undo a submission
+                            //delete message
+                                if (message.guild) {
+                                    message.delete()
+                                }
+                            }
+                        }
                     }   
                 })
             })
