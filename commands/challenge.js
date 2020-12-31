@@ -6,7 +6,7 @@ module.exports = {
         //const myEmbed = new Discord.MessageEmbed()
         if(args[0].name =="generate") {
             let member = interaction.member.user.id
-            var vc = ""
+            var vc = false
             var challengestart = Date.now()
             var random1 = Math.floor(Math.random()*23)
             var random2 = Math.floor(Math.random()*25)
@@ -61,7 +61,7 @@ module.exports = {
                     }
                 }
             } else {
-                vc = "MP Challenge: "
+                vc = true
             }
         //get best runs
             var keys = Object.keys(challengedata), best = []
@@ -125,6 +125,11 @@ module.exports = {
                 .setTitle(vc+"Race as **" + flag + " " + racers[random1].name + "** (" + (random1 + 1) + ")"+ nutext + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + laptext + skipstext + mirrortext)
                 .setColor(planets[tracks[random2].planet].color)
                 .setDescription(desc)
+            if(vc) {
+                challengeEmbed.setAuthor("Multiplayer Challenge")
+            } else {
+                challengeEmbed.setAuthor(interaction.member.user.username, client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
+            }
             if(!skips) {
                 challengeEmbed.addField("Goal Times", ":gem: " + tools.timefix(goal*multipliers[0].ft_multiplier) + "\n:first_place: " + tools.timefix(goal*multipliers[1].ft_multiplier) + "\n:second_place: " + tools.timefix(goal*multipliers[2].ft_multiplier) + "\n:third_place: " + tools.timefix(goal*multipliers[3].ft_multiplier) + "\n<:bumpythumb:703107780860575875> " + tools.timefix(goal*multipliers[4].ft_multiplier), true)
             } else {
@@ -133,23 +138,26 @@ module.exports = {
             if(besttimes !== "") {
                 challengeEmbed.addField("Best Times", besttimes, true)
             }
-        //send embed      
+        //send embed  
+            /*    
             client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {
-                    type: 4,
+                    type: 2,
                     data: {
-                        content: "",
-                        embeds: [challengeEmbed]
+                        //content: "",
+                        //embeds: [challengeEmbed]
                     }
                 }
-            })    
-            /*client.channels.cache.get(interaction.channel_id).send(challengeEmbed).then(sentMessage => {
+            })
+            */
+            client.channels.cache.get(interaction.channel_id).send(challengeEmbed).then(sentMessage => {
+            //collect feedback
                 sentMessage.react('👍').then(()=> {
                     sentMessage.react('👎');
                 })
                 var feedback = ""
                 sentMessage.awaitReactions((reaction, user) => (reaction.emoji.name == '👍' || reaction.emoji.name == '👎'),
-                    { max: 1, time: 900000 }).then(collected => {
+                    {time: 900000 }).then(collected => {
                         if (collected.first().emoji.name == '👍') {
                             feedback = '👍'
                         } else if (collected.first().emoji.name == '👎') {
@@ -170,11 +178,12 @@ module.exports = {
                         feedbackref.push(data);
                     }).catch(() => {
                 })
+            //collect times
                 const collector = new Discord.MessageCollector(client.channels.cache.get(interaction.channel_id), m => { time: 900000 });
                 var collected = false
                 collector.on('collect', message => {
                 //need a way to cancel a challenge if another one is called
-                    if (message.content == "!challenge" && collected == false && member == message.author.id) {
+                    if (message.embeds[0].title.startsWith() == "Race" && collected == false && member == message.author.id) {
                         collected = true
                         sentMessage.delete()
                     } else if (collected == false && member == message.author.id && !isNaN(message.content.replace(":", "")) && tools.timetoSeconds(message.content) !== null) {
@@ -234,7 +243,7 @@ module.exports = {
                         
                     }   
                 })
-            })*/
+            })
         } else if(args[0].name=="odds") {
         /*
         client.api.interactions(interaction.id, interaction.token).callback.post({
