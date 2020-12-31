@@ -1,3 +1,5 @@
+const { filter } = require('../tourneydata.js');
+
 module.exports = {
     name: 'challenge',
     execute(client, interaction, args) {
@@ -189,24 +191,15 @@ module.exports = {
                     }).catch(() => {
                 })
             //collect times
-                const collector = new Discord.MessageCollector(client.channels.cache.get(interaction.channel_id), m => m.author.id === interaction.member.user.id,{ time: 900000 });
+                
+                const collector = new Discord.MessageCollector(client.channels.cache.get(interaction.channel_id), filter,{ time: 900000 });
                 var collected = false
                 collector.on('collect', message => {
-                //need a way to cancel a challenge if another one is called
-                var emb = false
-                console.log(message.author.username)
-                message.embeds.forEach((embed) => {
-                    console.log(embed)
-                    console.log(embed.title)
-                    if (embed.title.startsWith("Race") && message.author.id == "545798436105224203") {
-                        emb = true
-                    }
-                 });
-                    if (emb) {
+                    if (message.embeds[0].title.startsWith("Race") && message.author.id == "545798436105224203") {
                         if (vc && !collected) {
                             collected = true
                             sentMessage.delete()
-                        } else if (collected == false && member == message.author.id) {
+                        } else if (collected == false && message.embed[0].author.replace("'s Challenge", "") == interaction.member.user.username) {
                             collected = true
                             sentMessage.delete()
                         }
