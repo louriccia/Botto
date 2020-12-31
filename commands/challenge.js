@@ -145,7 +145,7 @@ module.exports = {
             } else {
                 baseEmbed.addField("Goal Times", ":gem: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[0])*multipliers[0].skips_multiplier) + "\n:first_place: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[1])*multipliers[1].skips_multiplier) + "\n:second_place: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[2])*multipliers[2].skips_multiplier) + "\n:third_place: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[3])*multipliers[3].skips_multiplier) + "\n<:bumpythumb:703107780860575875> " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[4])*multipliers[4].skips_multiplier), true)
             }
-            const challengeEmbed = baseEmbed
+            var challengeEmbed = baseEmbed
             if(besttimes !== "") {
                 challengeEmbed.addField("Best Times", besttimes, true)
             }
@@ -194,8 +194,9 @@ module.exports = {
                 var collected = false
                 collector.on('collect', message => {
                 //need a way to cancel a challenge if another one is called
-                //console.log(message.embeds[0])
-                    if (message.embeds.size > 0) {
+                
+                    if (message.embeds.length > 0) {
+                        console.log(message.embeds[0])
                         if (message.embeds[0].title.startsWith("Race")) {
                             if (vc && !collected) {
                                 collected = true
@@ -261,6 +262,7 @@ module.exports = {
                                     congrats = "You beat the " + rank[parbeat] + " time for this track!"
                                 }
                             //edit original message
+                                besttimes = ""
                                 best.sort((a,b) => (a.time > b.time) ? 1 : -1)
                                 for (var i=0; i<best.length; i++){
                                     besttimes = besttimes + pos[i] + "" + tools.timefix(best[i].time) + " - " + best[i].name + "\n"
