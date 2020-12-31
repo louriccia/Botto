@@ -122,7 +122,7 @@ module.exports = {
             }
         //build embed
             const challengeEmbed = new Discord.MessageEmbed()
-                .setTitle(vc+"Race as **" + flag + " " + racers[random1].name + "** (" + (random1 + 1) + ")"+ nutext + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + laptext + skipstext + mirrortext)
+                .setTitle("Race as **" + flag + " " + racers[random1].name + "** (" + (random1 + 1) + ")"+ nutext + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + laptext + skipstext + mirrortext)
                 .setColor(planets[tracks[random2].planet].color)
                 .setDescription(desc)
             if(vc) {
@@ -139,7 +139,7 @@ module.exports = {
                 challengeEmbed.addField("Best Times", besttimes, true)
             }
         //send embed  
-            /*    
+                
             client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {
                     type: 2,
@@ -149,7 +149,7 @@ module.exports = {
                     }
                 }
             })
-            */
+            
             client.channels.cache.get(interaction.channel_id).send(challengeEmbed).then(sentMessage => {
             //collect feedback
                 sentMessage.react('👍').then(()=> {
