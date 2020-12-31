@@ -16,7 +16,6 @@ module.exports = {
             appId: process.env.FIREBASE_APP_ID,
             measurementId: process.env.FIREBASE_MEASUREMENT_ID
         };
-        firebase.initializeApp(firebaseConfig);
         var database = firebase.database();
         var ref = database.ref('times');
         ref.on("value", function(snapshot) {
