@@ -182,7 +182,7 @@ module.exports = {
                     .setAuthor(eAuthor[0], eAuthor[1])
                     .setDescription(desc)
                     .addField("Goal Times", eGoalTimes, true)
-                    .addField("Best Times", times, true)
+                    .addField("Best Times", besttimes, true)
                 return newEmbed
             }
         //send embed
