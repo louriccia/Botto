@@ -206,11 +206,10 @@ module.exports = {
                 const filter = (reaction, user) => {
                     return ['👍', '👎'].includes(reaction.emoji.name) && user.id !== "545798436105224203";
                 };
-                sentMessage.awaitReactions(filter, {time: 900000, errors: ['time'] })
-                    .then(collected => {
-                        const reaction = collected.first();
-                        console.log(reaction);
-                        if (reaction.emoji.name === '👍') {
+                sentMessage.awaitReactions(filter, 
+                    {time: 900000, errors: ['time'] }).then(collected => {
+                        console.log(collected.first());
+                        if (collected.first().emoji.name === '👍') {
                             feedback = '👍'
                         } else {
                             feedback = '👎'
@@ -248,7 +247,10 @@ module.exports = {
                     if(!collected){
                         try { 
                             await sentMessage.edit(createEmbed(":negative_squared_cross_mark: Closed: ", null)) 
-                        } catch {}
+                        } catch (error) {
+                            // log all errors
+                            console.error(error)
+                        }
                     }
                 }, 900000)
             //collect times
