@@ -82,7 +82,7 @@ client.ws.on('INTERACTION_CREATE', async interaction => {
 
 async function getCommands() {
     const commands = await client.api.applications("545798436105224203").guilds('441839750555369474').commands.get()
-    //await client.api.applications("545798436105224203").guilds('441839750555369474').commands('793304837302386709').delete()
+    await client.api.applications("545798436105224203").guilds('441839750555369474').commands('793613776355852308').delete()
     //await client.api.applications("545798436105224203").guilds('441839750555369474').commands('793311885809156146').delete()
     console.log(commands)
 }
@@ -90,60 +90,123 @@ async function getCommands() {
 getCommands()
 
 client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
-    name: 'challenge',
-    description: 'randomly generated challenges',
+    name: 'random',
+    description: 'get a random racer, track, etc.',
     options: [
         {
-            name: "generate",
-            description: "get a random pod/track challenge; 15-minute time limit; submit your time below",
-            type: 1
-        },
-        {
-            name: "odds",
-            description: "view and customize your personal challenge odds of rolling no upgrades, skips, etc.",
+            name: "racer",
+            description: "get a random racer",
             type: 1,
             options: [
                 {
-                    name: "skips",
-                    description: "x/100 chance of getting a skip challenge",
-                    type: 4,
-                    required: false
-                },
-                {
-                    name: "no_upgrades",
-                    description: "x/100 chance of getting a no upgrades challenge",
-                    type: 4,
-                    required: false
-                },
-                {
-                    name: "non_3_lap",
-                    description: "x/100 chance of getting a non 3-lap challenge",
-                    type: 4,
-                    required: false
-                },
-                {
-                    name: "mirrored",
-                    description: "x/100 chance of getting a mirrored challenge",
-                    type: 4,
-                    required: false
-                },
-                {
-                    name: "reset",
-                    description: "if true, resets your challenge odds to default",
-                    type: 5,
-                    required: false
+                    name: "name",
+                    description: "racer's first name or initials",
+                    type: 3,
+                    required: true
                 }
             ]
         },
         {
-            name: "stats",
-            description: "view your career stats and achievement progress for random challenges",
-            type: 1
+            name: "track",
+            description: "get a random track",
+            type: 1,
+            options: [
+                {
+                    name: "circuit",
+                    description: "roll a random track from a specific circuit",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "Amateur Circuit",
+                            value: "amc"
+                        },
+                        {
+                            name: "Semi-Pro Circuit",
+                            value: "spc"
+                        },
+                        {
+                            name: "Galactic Circuit",
+                            value: "gal"
+                        },
+                        {
+                            name: "Invitational Circuit",
+                            value: "inv"
+                        }
+                    ]
+                },
+                {
+                    name: "planet",
+                    description: "roll a random track from a specific planet",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "Ando Prime",
+                            value: "andoprime"
+                        },
+                        {
+                            name: "Aquilaris",
+                            value: "aquilaris"
+                        },
+                        {
+                            name: "Baroonda",
+                            value: "baroonda"
+                        },
+                        {
+                            name: "Malastare",
+                            value: "malastare"
+                        },
+                        {
+                            name: "Mon Gozza",
+                            value: "mongozza"
+                        },
+                        {
+                            name: "Oovo IV",
+                            value: "oovoiv"
+                        },
+                        {
+                            name: "Ord Ibanna",
+                            value: "ordibanna"
+                        },
+                        {
+                            name: "Tatooine",
+                            value: "tatooine"
+                        }
+                    ]
+                }
+            ]
         },
         {
-            name: "about",
-            description: "learn more about how the random challenges work and how to submit a time",
-            type: 1
+            name: "challenge",
+            description: "get a random pod/track challenge",
+            type: 1,
+        },
+        {
+            name: 'teams',
+            description: 'divides everyone in your voice channel into # number of teams',
+            type: 1,
+            options: [
+                {
+                    name: "number",
+                    description: "the number of teams you wish to create",
+                    type: 4,
+                    required: true
+                }
+            ]
+        },
+        {
+            name: "number",
+            description: "get a random number",
+            type: 1,
+            options: [
+                {
+                    name: "max",
+                    description: "get a random number between 1 and this number",
+                    type: 4,
+                    required: true,
+                }
+            ]
         }
     ]
 }})

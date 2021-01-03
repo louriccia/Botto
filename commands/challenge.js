@@ -325,11 +325,20 @@ module.exports = {
             })
         } else if(args[0].name=="odds") {
         //get input
-            var odds_skips = args.find(arg => arg.name.toLowerCase() == "skips").value;
-            var odds_noupgrades = args.find(arg => arg.name.toLowerCase() == "no_upgrades").value;
-            var odds_non3lap = args.find(arg => arg.name.toLowerCase() == "non_3_lap").value;
-            var odds_mirrormode = args.find(arg => arg.name.toLowerCase() == "mirrored").value;
-            var odds_reset = args.find(arg => arg.name.toLowerCase() == "reset").value;
+            var odds_skips = undefined, odds_noupgrades = undefined, odds_non3lap = undefined, odds_mirrormode = undefined, odds_reset = undefined;
+            for (let i = 1; i<args.length; i++) {
+                if (args[i].name = "skips") {
+                    odds_skips = args[i].value
+                } else if (args[i].name = "no_upgrades") {
+                    odds_noupgrades = args[i].value
+                } else if (args[i].name = "non_3_lap") {
+                    odds_non3lap = args[i].value
+                } else if (args[i].name = "mirrored") {
+                    odds_mirrormode = args[i].value
+                } else if (args[i].name = "reset") {
+                    odds_reset = args[i].value
+                }
+            }
             var record = ""
             var desc = "You have not customized your odds. The default odds are listed below. "
             var odds_default = {
