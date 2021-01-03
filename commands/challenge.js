@@ -114,9 +114,9 @@ module.exports = {
                 desc = desc + str.replace("replaceme", interaction.member.user.username)
             } else {
                 if (vc) {
-                    desc = desc + movieQuotes[random3]
-                } else {
                     desc = desc + mpQuotes[Math.floor(Math.random()*mpQuotes.length)]
+                } else {
+                    desc = desc + movieQuotes[random3]
                 }
             }
         //build embed
@@ -201,9 +201,7 @@ module.exports = {
             })
             client.channels.cache.get(interaction.channel_id).send(createEmbed("",null)).then(sentMessage => {
             //collect feedback
-                sentMessage.react('👍').then(()=> {
-                    sentMessage.react('👎');
-                })
+                sentMessage.react('👍').then(()=> sentMessage.react('👎'));
                 var feedback = ""
                 const filter = (reaction, user) => {
                     return ['👍', '👎'].includes(reaction.emoji.name) && user.id !== "545798436105224203";
