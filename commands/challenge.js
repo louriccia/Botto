@@ -205,12 +205,7 @@ module.exports = {
                 var feedback = ""
                 const filter = (reaction, user) => {
                     return (['👍', '👎'].includes(reaction.emoji.name) && user.id !== "545798436105224203");
-                };
-                sentMessage.awaitReactions((reaction, user) => user.id === message.author.id && (reaction.emoji.name == '👍' || reaction.emoji.name == '👎' || reaction.emoji.name == '❌'),
-                { max: 1, time: 900000 }).then(collected => {
-                    console.log(collected.first().emoji.name, )
-                })
-                
+                };              
                 sentMessage.awaitReactions(filter, 
                     {time: 900000})
                     .then(collected => {
