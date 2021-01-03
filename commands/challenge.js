@@ -325,8 +325,9 @@ module.exports = {
             })
         } else if(args[0].name=="odds") {
         //get input
+            console.log(args)
             var odds_skips = undefined, odds_noupgrades = undefined, odds_non3lap = undefined, odds_mirrormode = undefined, odds_reset = undefined;
-            for (let i = 1; i<args.length; i++) {
+            for (let i = 0; i<args.length; i++) {
                 if (args[i].name == "skips") {
                     odds_skips = args[i].value
                 } else if (args[i].name == "no_upgrades") {
