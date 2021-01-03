@@ -339,17 +339,19 @@ module.exports = {
         //get input
             console.log(args)
             var odds_skips = undefined, odds_noupgrades = undefined, odds_non3lap = undefined, odds_mirrormode = undefined, odds_reset = undefined;
-            for (let i = 0; i<args[0].options.length; i++) {
-                if (args[0].options[i].name == "skips") {
-                    odds_skips = args[0].options[i].value
-                } else if (args[0].options[i].name == "no_upgrades") {
-                    odds_noupgrades = args[0].options[i].value
-                } else if (args[0].options[i].name == "non_3_lap") {
-                    odds_non3lap = args[0].options[i].value
-                } else if (args[0].options[i].name == "mirrored") {
-                    odds_mirrormode = args[0].options[i].value
-                } else if (args[0].options[i].name == "reset") {
-                    odds_reset = args[0].options[i].value
+            if (args[0].hasOwnProperty("options")) {
+                for (let i = 0; i<args[0].options.length; i++) {
+                    if (args[0].options[i].name == "skips") {
+                        odds_skips = args[0].options[i].value
+                    } else if (args[0].options[i].name == "no_upgrades") {
+                        odds_noupgrades = args[0].options[i].value
+                    } else if (args[0].options[i].name == "non_3_lap") {
+                        odds_non3lap = args[0].options[i].value
+                    } else if (args[0].options[i].name == "mirrored") {
+                        odds_mirrormode = args[0].options[i].value
+                    } else if (args[0].options[i].name == "reset") {
+                        odds_reset = args[0].options[i].value
+                    }
                 }
             }
             var record = ""
