@@ -206,7 +206,7 @@ module.exports = {
                 })
                 var feedback = ""
                 const filter = (reaction, user) => {
-                    return ['👍', '👎'].includes(reaction.emoji.name);
+                    return ['👍', '👎'].includes(reaction.emoji.name) && user !== "";
                 };
                 sentMessage.awaitReactions(filter, {time: 900000, errors: ['time'] })
                     .then(collected => {
@@ -438,15 +438,13 @@ module.exports = {
                 }
                 oddsref.push(data);
             }
-
-
             const oddsEmbed = new Discord.MessageEmbed()
                 .setThumbnail("https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/259/game-die_1f3b2.png")
                 .setAuthor(interaction.member.user.username + "'s Odds", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
                 .setTitle("Customize Your `/challenge` Odds")
                 .setDescription(desc)
                 .addField("Your Odds", "Skips - " + odds_skips +"%\nNo Upgrades - " + odds_noupgrades +"%\nNon 3-Lap - " + odds_non3lap +"%\nMirror Mode - " + odds_mirrormode +"%", true)
-                .addField("Default Odds", "Skips - 25%\nNo Upgrades - 15%\nNon 3-Lap - 5%\nMirror Mode - 5%", true)
+                .addField("Default Odds", "Skips - "+odds_default.skips+"%\nNo Upgrades - "+odds_default.no_upgrades+"%\nNon 3-Lap - "+odds_default.non_3_lap+"%\nMirror Mode - "+ odds_default.mirrored +"%", true)
                 .setColor("EA596E")
             client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {
