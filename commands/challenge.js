@@ -16,6 +16,7 @@ module.exports = {
             console.log("The read failed: " + errorObject.code);
         });
         var oddsref = database.ref('odds');
+        var oddsdata = null
         oddsref.on("value", function(snapshot) {
             oddsdata = snapshot.val();
         }, function (errorObject) {
