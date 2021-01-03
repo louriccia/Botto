@@ -375,6 +375,10 @@ module.exports = {
                 if(record !== "") {
                     desc = "You have successfully reset your odds to the default. "
                     oddsref.child(record).remove()
+                    odds_skips = odds_default.skips
+                    odds_noupgrades = odds_default.no_upgrades
+                    odds_non3lap = odds_default.non_3_lap
+                    odds_mirrormode = odds_default.mirrored
                 }
             } else if (odds_skips == undefined && odds_noupgrades == undefined && odds_non3lap == undefined && odds_mirrormode == undefined) { //no odds submitted
                 if(record !== "") {
@@ -416,7 +420,7 @@ module.exports = {
                     if (record !== "") {
                         odds_mirrormode = oddsdata[k].mirror_mode
                     } else {
-                        odds_mirrormode = odds_default.mirror_mode
+                        odds_mirrormode = odds_default.mirrored
                     }
                 }
                 var data = {
