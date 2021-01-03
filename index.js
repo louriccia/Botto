@@ -37,6 +37,24 @@ var weeklychallenges = database.ref('weekly/challenges');
 var weeklyqueue = database.ref('weekly/queue');
 var weeklyapproved = database.ref('weekly/submissions');
 
+var ref = database.ref('times');
+ref.on("value", function(snapshot) {
+    challengedata = snapshot.val();
+}, function (errorObject) {
+    console.log("The read failed: " + errorObject.code);
+});
+var oddsref = database.ref('odds');
+oddsref.on("value", function(snapshot) {
+    oddsdata = snapshot.val();
+}, function (errorObject) {
+    console.log("The read failed: " + errorObject.code);
+});
+var feedbackref = database.ref('feedback');
+feedbackref.on("value", function(snapshot) {
+    feedbackdata = snapshot.val();
+}, function (errorObject) {
+    console.log("The read failed: " + errorObject.code);
+});
 
 ref.on("value", function(snapshot) {
     challengedata = snapshot.val();
