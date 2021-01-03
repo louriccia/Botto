@@ -15,6 +15,18 @@ module.exports = {
         }, function (errorObject) {
             console.log("The read failed: " + errorObject.code);
         });
+        var oddsref = database.ref('odds');
+        oddsref.on("value", function(snapshot) {
+            oddsdata = snapshot.val();
+        }, function (errorObject) {
+            console.log("The read failed: " + errorObject.code);
+        });
+        var feedbackref = database.ref('feedback');
+        feedbackref.on("value", function(snapshot) {
+            feedbackdata = snapshot.val();
+        }, function (errorObject) {
+            console.log("The read failed: " + errorObject.code);
+        });
         //const myEmbed = new Discord.MessageEmbed()
         if(args[0].name =="generate") {
             
