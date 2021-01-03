@@ -211,7 +211,7 @@ module.exports = {
                 sentMessage.awaitReactions(filter, {time: 900000, errors: ['time'] })
                     .then(collected => {
                         const reaction = collected.first();
-                        console.log(reaction.users);
+                        console.log(reaction);
                         if (reaction.emoji.name === '👍') {
                             feedback = '👍'
                         } else {
