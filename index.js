@@ -30,8 +30,7 @@ firebase.initializeApp(firebaseConfig);
 
 var database = firebase.database();
 var ref = database.ref('times'); //use forward slashes to navigate the data tree
-var oddsref = database.ref('odds');
-var feedbackref = database.ref('feedback');
+
 var logref = database.ref('log');
 var errorlogref = database.ref('log/error');
 var weeklychallenges = database.ref('weekly/challenges');
@@ -45,17 +44,8 @@ ref.on("value", function(snapshot) {
     console.log("The read failed: " + errorObject.code);
   });
 
-oddsref.on("value", function(snapshot) {
-    oddsdata = snapshot.val();
-    }, function (errorObject) {
-    console.log("The read failed: " + errorObject.code);
-    });
 
-feedbackref.on("value", function(snapshot) {
-    feedbackdata = snapshot.val();
-    }, function (errorObject) {
-    console.log("The read failed: " + errorObject.code);
-    });
+
 
 const fetch = require('node-fetch');
 
@@ -87,7 +77,7 @@ async function getCommands() {
     console.log(commands)
 }
 
-getCommands()
+//getCommands()
 
 client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
     name: 'random',
