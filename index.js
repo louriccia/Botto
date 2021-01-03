@@ -103,7 +103,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                     description: "get a random racer from a specific tier",
                     type: 3,
                     required: false,
-                    options: [
+                    choices: [
                         {
                             name: "any",
                             value: "any"
@@ -131,7 +131,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                     description: "get canonical or non-canonical racers",
                     type: 3,
                     required: false,
-                    options: [
+                    choices: [
                         {
                             name: "any",
                             value: "any"
