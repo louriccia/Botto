@@ -248,10 +248,58 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
             type: 1,
             options: [
                 {
-                    name: "name",
-                    description: "racer's first name or initials",
+                    name: "tier",
+                    description: "get a random racer from a specific tier",
                     type: 3,
-                    required: true
+                    required: false,
+                    options: [
+                        {
+                            name: "any",
+                            value: "any"
+                        },
+                        {
+                            name: "0 Top",
+                            value: "top"
+                        },
+                        {
+                            name: "1 High",
+                            value: "high"
+                        },
+                        {
+                            name: "2 Mid",
+                            value: "mid"
+                        },
+                        {
+                            name: "3 Low",
+                            value: "low"
+                        }
+                    ]
+                },
+                {
+                    name: "canon",
+                    description: "get canonical or non-canonical racers",
+                    type: 3,
+                    required: false,
+                    options: [
+                        {
+                            name: "any",
+                            value: "any"
+                        },
+                        {
+                            name: "canon",
+                            value: "canon"
+                        },
+                        {
+                            name: "non-canon",
+                            value: "non-canon"
+                        }
+                    ]
+                },
+                {
+                    name: "vc",
+                    description: "whether to role for everyone in your voice channel",
+                    type: 5,
+                    required: false
                 }
             ]
         },
@@ -330,6 +378,19 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
             name: "challenge",
             description: "get a random pod/track challenge",
             type: 1,
+        },
+        {
+            name: 'teams',
+            description: 'divides everyone in your voice channel into # number of teams',
+            type: 1,
+            options: [
+                {
+                    name: "number",
+                    description: "the number of teams you wish to create",
+                    type: 4,
+                    required: true
+                }
+            ]
         },
         {
             name: "number",
