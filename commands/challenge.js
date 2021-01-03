@@ -327,15 +327,15 @@ module.exports = {
         //get input
             var odds_skips = undefined, odds_noupgrades = undefined, odds_non3lap = undefined, odds_mirrormode = undefined, odds_reset = undefined;
             for (let i = 1; i<args.length; i++) {
-                if (args[i].name = "skips") {
+                if (args[i].name == "skips") {
                     odds_skips = args[i].value
-                } else if (args[i].name = "no_upgrades") {
+                } else if (args[i].name == "no_upgrades") {
                     odds_noupgrades = args[i].value
-                } else if (args[i].name = "non_3_lap") {
+                } else if (args[i].name == "non_3_lap") {
                     odds_non3lap = args[i].value
-                } else if (args[i].name = "mirrored") {
+                } else if (args[i].name == "mirrored") {
                     odds_mirrormode = args[i].value
-                } else if (args[i].name = "reset") {
+                } else if (args[i].name == "reset") {
                     odds_reset = args[i].value
                 }
             }
@@ -360,12 +360,12 @@ module.exports = {
             }
             if (odds_reset) { //resetting to default
                 if(record !== "") {
-                    desc = "You have successfully reset your odds to the default."
+                    desc = "You have successfully reset your odds to the default. "
                     oddsref.child(record).remove()
                 }
             } else if (odds_skips == undefined && odds_noupgrades == undefined && odds_non3lap == undefined && odds_mirrormode == undefined) { //no odds submitted
                 if(record !== "") {
-                    desc = "Your custom odds are listed below."
+                    desc = "Your custom odds are listed below. "
                     odds_skips = oddsdata[k].skips
                     odds_noupgrades = oddsdata[k].no_upgrades
                     odds_non3lap = oddsdata[k].non_3_lap
@@ -377,7 +377,7 @@ module.exports = {
                     odds_mirrormode = odds_default.mirrored
                 }
             } else { //at least one new odd submitted
-                desc = "You have successfully updated your custom odds. Your custom odds are listed below."
+                desc = "You have successfully updated your custom odds. Your custom odds are listed below. "
                 if (odds_skips == undefined) {
                     if (record !== "") {
                         odds_skips = oddsdata[k].skips
