@@ -204,7 +204,7 @@ module.exports = {
                 sentMessage.react('👍').then(()=> sentMessage.react('👎'));
                 var feedback = ""
                 const filter = (reaction, user) => {
-                    return (['👍', '👎'].includes(reaction.emoji.name) && user.id !== "545798436105224203");
+                    return (['👍', '👎'].includes(reaction.emoji.name) && user.id === interaction.member.user.id);
                 };              
                 sentMessage.awaitReactions(filter, 
                     {time: 900000})
