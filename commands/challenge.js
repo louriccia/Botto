@@ -208,8 +208,8 @@ module.exports = {
                 };
                 sentMessage.awaitReactions(filter, 
                     {time: 900000, errors: ['time'] }).then(collected => {
-                        console.log(collected.first());
-                        if (collected.first().emoji.name === '👍') {
+                        console.log(collected.cache.first());
+                        if (collected.cache.first().emoji.name === '👍') {
                             feedback = '👍'
                         } else {
                             feedback = '👎'
