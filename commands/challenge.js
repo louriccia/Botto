@@ -353,7 +353,7 @@ module.exports = {
                 }
             }
             var record = ""
-            var desc = "You have not customized your odds. The default odds are listed below. "
+            var desc = "You have not customized your odds. The default odds are listed below. Customize your odds by using the `/challenge odds` command and inputting numbers for Skips, No Upgrades, Non 3-lap, and Mirror Mode. These numbers will be divided by 100 to determine the chances Botto will give their conditions in a `/challenge`."
             var odds_default = {
                 skips: 25,
                 no_upgrades: 15,
@@ -382,12 +382,13 @@ module.exports = {
                 }
             } else if (odds_skips == undefined && odds_noupgrades == undefined && odds_non3lap == undefined && odds_mirrormode == undefined) { //no odds submitted
                 if(record !== "") {
-                    desc = "Your custom odds are listed below. "
+                    desc = "Your custom odds are listed below. Customize your odds by using the `/challenge odds` command and inputting numbers for Skips, No Upgrades, Non 3-lap, and Mirror Mode. These numbers will be divided by 100 to determine the chances Botto will give their conditions in a `/challenge`."
                     odds_skips = oddsdata[k].skips
                     odds_noupgrades = oddsdata[k].no_upgrades
                     odds_non3lap = oddsdata[k].non_3_lap
                     odds_mirrormode = oddsdata[k].mirror_mode
                 } else {
+                    desc = "You have not customized your odds. The default odds are listed below. Customize your odds by using the `/challenge odds` command and inputting numbers for Skips, No Upgrades, Non 3-lap, and Mirror Mode. These numbers will be divided by 100 to determine the chances Botto will give their conditions in a `/challenge`."
                     odds_skips = odds_default.skips
                     odds_noupgrades = odds_default.no_upgrades
                     odds_non3lap = odds_default.non_3_lap
@@ -441,7 +442,7 @@ module.exports = {
                 .setThumbnail("https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/259/game-die_1f3b2.png")
                 .setAuthor(interaction.member.user.username + "'s Odds", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
                 .setTitle("Customize Your `/challenge` Odds")
-                .setDescription(desc + "Customize your odds by using the `/challenge odds` command and inputting numbers for Skips, No Upgrades, Non 3-lap, and Mirror Mode. These numbers will be divided by 100 to determine the chances Botto will give their conditions in a `/challenge`.")
+                .setDescription(desc)
                 .addField("Your Odds", "Skips - " + odds_skips +"%\nNo Upgrades - " + odds_noupgrades +"%\nNon 3-Lap - " + odds_non3lap +"%\nMirror Mode - " + odds_mirrormode +"%", true)
                 .addField("Default Odds", "Skips - 25%\nNo Upgrades - 15%\nNon 3-Lap - 5%\nMirror Mode - 5%", true)
                 .setColor("EA596E")
