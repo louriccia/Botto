@@ -87,6 +87,67 @@ async function getCommands() {
     console.log(commands)
 }
 
+getCommands()
+
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+    name: 'challenge',
+    description: 'randomly generated challenges',
+    options: [
+        {
+            name: "generate",
+            description: "get a random pod/track challenge; 15-minute time limit; submit your time below",
+            type: 1
+        },
+        {
+            name: "odds",
+            description: "view and customize your personal challenge odds of rolling no upgrades, skips, etc.",
+            type: 1,
+            options: [
+                {
+                    name: "skips",
+                    description: "x/100 chance of getting a skip challenge",
+                    type: 4,
+                    required: false
+                },
+                {
+                    name: "no_upgrades",
+                    description: "x/100 chance of getting a no upgrades challenge",
+                    type: 4,
+                    required: false
+                },
+                {
+                    name: "non_3_lap",
+                    description: "x/100 chance of getting a non 3-lap challenge",
+                    type: 4,
+                    required: false
+                },
+                {
+                    name: "mirrored",
+                    description: "x/100 chance of getting a mirrored challenge",
+                    type: 4,
+                    required: false
+                },
+                {
+                    name: "reset",
+                    description: "if true, resets your challenge odds to default",
+                    type: 5,
+                    required: false
+                }
+            ]
+        },
+        {
+            name: "stats",
+            description: "view your career stats and achievement progress for random challenges",
+            type: 1
+        },
+        {
+            name: "about",
+            description: "learn more about how the random challenges work and how to submit a time",
+            type: 1
+        }
+    ]
+}})
+
 client.once('ready', () => {
     console.log('Ready!')
     //set bot activity
@@ -1459,7 +1520,7 @@ Complete a challenge as every pod on every track: X/575
     }
 
     if(message.content.startsWith(`${prefix}challenge`)) {
-        message.channel.send("Use slash commands to generate a challenge: `challenge generate`")
+        message.channel.send("Use slash commands to generate a challenge: `/challenge generate`")
     }
 
 /////    ?help    //////

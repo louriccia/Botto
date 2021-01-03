@@ -9,13 +9,45 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
     options: [
         {
             name: "generate",
-            description: "generates a random pod/track challenge that must be completed in 15 minutes; submit your time below",
+            description: "get a random pod/track challenge; 15-minute time limit; submit your time below",
             type: 1
         },
         {
             name: "odds",
-            description: "customize your personal challenge odds of rolling upgrades, skips, etc.",
-            type: 1
+            description: "view and customize your personal challenge odds of rolling no upgrades, skips, etc.",
+            type: 1,
+            options: [
+                {
+                    name: "skips",
+                    description: "x/100 chance of getting a skip challenge",
+                    type: 4,
+                    required: false
+                },
+                {
+                    name: "no_upgrades",
+                    description: "x/100 chance of getting a no upgrades challenge",
+                    type: 4,
+                    required: false
+                },
+                {
+                    name: "non_3_lap",
+                    description: "x/100 chance of getting a non 3-lap challenge",
+                    type: 4,
+                    required: false
+                },
+                {
+                    name: "mirrored",
+                    description: "x/100 chance of getting a mirrored challenge",
+                    type: 4,
+                    required: false
+                },
+                {
+                    name: "reset",
+                    description: "if true, resets your challenge odds to default",
+                    type: 5,
+                    required: false
+                }
+            ]
         },
         {
             name: "stats",

@@ -84,30 +84,6 @@ module.exports = {
                     best.push(challengedata[k])
                 }
             }
-            var besttimes = "Be the first to submit a time for this challenge!"
-            var pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>", "4th", "5th"]
-            if(best.length > 0) {
-                besttimes =""
-                best.sort((a,b) => (a.time > b.time) ? 1 : -1)
-                for (var i=0; i<best.length; i++){
-                    besttimes = besttimes + pos[i] + "" + tools.timefix(best[i].time) + " - " + best[i].name + "\n"
-                    if (i == 4) {
-                        i = best.length
-                    }
-                }
-            }
-        //tally likes and dislikes
-            var like = 0, dislike = 0, keys = Object.keys(feedbackdata)
-            for (var i=0; i<keys.length; i++) {
-                var k = keys[i];
-                if(feedbackdata[k].track == random2 && feedbackdata[k].racer == random1 && feedbackdata[k].laps == laps && feedbackdata[k].mirror == mirror && feedbackdata[k].nu == nu && feedbackdata[k].skips == skips){
-                    if (feedbackdata[k].track == "👍") {
-                        like = like +1
-                    } else if (feedbackdata[k].track == "👎") {
-                        dislike = dislike +1
-                    }
-                }
-            }
         //calculate goal time
             var speed = 1, speedmod = tracks[random2].avgspeedmod, length = tracks[random2].length
             length = length * laps
@@ -119,19 +95,17 @@ module.exports = {
             var goal = length/(speed*speedmod)
         //build description
             var desc = ""
-            if (like > 0) {
-                desc = desc + "  👍 " + like
-            }
-            if (dislike > 0) {
-                desc = desc + "  👎 " + dislike
-            }
             if(Math.random()<0.50 && best.length> 0) {
                 desc = desc +"*The current record-holder for this challenge is... " + best[0].name + "!*"
             } else if (Math.random() < 0.50) {
                 var str = playerPicks[Math.floor(Math.random()*playerPicks.length)]
                 desc = desc + str.replace("replaceme", interaction.member.user.username)
             } else {
-                desc = desc + movieQuotes[random3]
+                if (vc) {
+                    desc = desc + movieQuotes[random3]
+                } else {
+                    desc = desc + mpQuotes[Math.floor(Math.random()*mpQuotes.length)]
+                }
             }
         //build embed
             var eTitle = "", eColor = "", eAuthor = [], eGoalTimes = []
@@ -139,7 +113,7 @@ module.exports = {
                 eTitle = "Race as **" + flag + " " + racers[random1].name + "** (" + (random1 + 1) + ")"+ nutext + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + laptext + skipstext + mirrortext
                 eColor = planets[tracks[random2].planet].color
             if(vc) {
-                eAuthor = ["Multiplayer Challenge", ""]
+                eAuthor = ["Multiplayer Challenge", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/160/twitter/259/chequered-flag_1f3c1.png"]
             } else {
                 eAuthor = [interaction.member.user.username + "'s Challenge", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL()]
             }
@@ -149,6 +123,24 @@ module.exports = {
                 eGoalTimes = ":gem: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[0])*multipliers[0].skips_multiplier) + "\n:first_place: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[1])*multipliers[1].skips_multiplier) + "\n:second_place: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[2])*multipliers[2].skips_multiplier) + "\n:third_place: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[3])*multipliers[3].skips_multiplier) + "\n<:bumpythumb:703107780860575875> " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[4])*multipliers[4].skips_multiplier)
             }
             function createEmbed(title, highlight) {
+                //tally likes and dislikes
+                var like = 0, dislike = 0, keys = Object.keys(feedbackdata)
+                for (var i=0; i<keys.length; i++) {
+                    var k = keys[i];
+                    if(feedbackdata[k].track == random2 && feedbackdata[k].racer == random1 && feedbackdata[k].laps == laps && feedbackdata[k].mirror == mirror && feedbackdata[k].nu == nu && feedbackdata[k].skips == skips){
+                        if (feedbackdata[k].track == "👍") {
+                            like = like +1
+                        } else if (feedbackdata[k].track == "👎") {
+                            dislike = dislike +1
+                        }
+                    }
+                }
+                if (like > 0) {
+                    desc = "`👍" + like + "` " + desc 
+                }
+                if (dislike > 0) {
+                    desc = "`👎" + dislike + "` " + desc 
+                }
                 var keys = Object.keys(challengedata), best = []
                 for (var i=0; i<keys.length; i++) {
                     var k = keys[i];
@@ -201,18 +193,23 @@ module.exports = {
                     sentMessage.react('👎');
                 })
                 var feedback = ""
-                sentMessage.awaitReactions((reaction, user) => (reaction.emoji.name == '👍' || reaction.emoji.name == '👎'),
-                    {time: 900000 }).then(collected => {
-                        if (collected.first().emoji.name == '👍') {
+                const filter = (reaction, user) => {
+                    return ['👍', '👎'].includes(reaction.emoji.name);
+                };
+                sentMessage.awaitReactions(filter, {time: 900000, errors: ['time'] })
+                    .then(collected => {
+                        const reaction = collected.first();
+
+                        if (reaction.emoji.name === '👍') {
                             feedback = '👍'
-                        } else if (collected.first().emoji.name == '👎') {
+                        } else {
                             feedback = '👎'
                         }
                         var feedbackdata = {
                             user: user.id,
                             name: user.username,
                             feedback: feedback,
-                            date: message.createdTimestamp,
+                            date: sentMessage.createdTimestamp,
                             racer: random1,
                             track: random2,
                             laps: laps,
@@ -221,8 +218,15 @@ module.exports = {
                             mirror: mirror
                         }
                         feedbackref.push(feedbackdata);
-                    }).catch(() => {
-                })
+                    })
+                    .catch()
+                setTimeout(async function() { //5 minute warning
+                    if(!collected){
+                        try { 
+                            await sentMessage.edit(createEmbed(":warning: 5 Minute Warning: ", null)) 
+                        } catch {}
+                    }
+                }, 600000)
                 setTimeout(async function() { //1 minute warning
                     if(!collected){
                         try { 
@@ -239,20 +243,34 @@ module.exports = {
                 }, 900000)
             //collect times
                 const collector = new Discord.MessageCollector(client.channels.cache.get(interaction.channel_id), m => m,{ time: 900000 });
-                var collected = false
+                var collected = false, collecting = true
                 collector.on('collect', message => {
+                //a new challenge appears
                     if(message.embeds.length > 0 && message.author.id == "545798436105224203") {
                         if (message.embeds[0].title.startsWith("Race")) {
-                            if (vc && !collected) {
+                            if (vc) {
+                                if(collected){ //previous challenge closed after rolling a new challenge
+                                    try {
+                                        sentMessage.edit(createEmbed(":white_check_mark: Completed: ", null)) 
+                                    } catch {}
+                                    collecting = false
+                                } else { //rerolling mp challenge
+                                    try {
+                                        sentMessage.delete()
+                                    } catch {}
+                                    collected = true
+                                    collecting = false
+                                }
+                            } else if (collected == false && message.embeds[0].author.name.replace("'s Challenge", "") == interaction.member.user.username) { //rerolling sp challenge
                                 collected = true
-                                sentMessage.delete()
-                            } else if (collected == false && message.embeds[0].author.name.replace("'s Challenge", "") == interaction.member.user.username) {
-                                collected = true
-                                sentMessage.delete()
+                                collecting = false
+                                try {
+                                    sentMessage.delete()
+                                } catch {}
                             }
                         }
+                //submitting the time
                     } else if (!isNaN(message.content.replace(":", "")) && tools.timetoSeconds(message.content) !== null) {
-                        //need to branch here based on mp challenge or singular challenge
                         var challengeend = Date.now()
                         var time = ""
                         if (vc){
@@ -261,7 +279,7 @@ module.exports = {
                             time = tools.timetoSeconds(message.content)
                         }
                         tools.timetoSeconds(message.content)
-                        if(time !== ""){
+                        if(time !== "" && collecting){
                             if ((challengeend - challengestart) < time*1000) {
                                 message.reply("*I warn you. No funny business.*")
                                 collected = true
@@ -283,11 +301,22 @@ module.exports = {
                                 best.push(submissiondata)
                                 collected = true
                             //edit original message
-                                sentMessage.edit(createEmbed(":white_check_mark: Completed: ", submissiondata.date))
+                                if(vc){
+                                    try {
+                                        sentMessage.edit(createEmbed("", submissiondata.date))
+                                    } catch {}
+                                } else {
+                                    try {
+                                    sentMessage.edit(createEmbed(":white_check_mark: Completed: ", submissiondata.date))
+                                    } catch {}
+                                }
+                                
                             //maybe find a way to undo a submission
                             //delete message
                                 if (message.guild) {
-                                    message.delete()
+                                    try {
+                                        message.delete()
+                                    } catch {}
                                 }
                             }
                         }
@@ -295,90 +324,110 @@ module.exports = {
                 })
             })
         } else if(args[0].name=="odds") {
+        //get input
+            var odds_skips = args.find(arg => arg.name.toLowerCase() == "skips").value;
+            var odds_noupgrades = args.find(arg => arg.name.toLowerCase() == "no_upgrades").value;
+            var odds_non3lap = args.find(arg => arg.name.toLowerCase() == "non_3_lap").value;
+            var odds_mirrormode = args.find(arg => arg.name.toLowerCase() == "mirrored").value;
+            var odds_reset = args.find(arg => arg.name.toLowerCase() == "reset").value;
             var record = ""
             var desc = "You have not customized your odds. The default odds are listed below. "
+            var odds_default = {
+                skips: 25,
+                no_upgrades: 15,
+                non_3_lap: 5,
+                mirrored: 5
+            }
+        //find odds record
             if (oddsdata !==null) {
                 var keys = Object.keys(oddsdata)
                 for (var i=0; i<keys.length; i++) {
                     var k = keys[i];
-                    if(oddsdata[k].name == message.author.id){
+                    if(oddsdata[k].name == interaction.member.user.id){
                         record = k
                         i = keys.length
                     }
                 }
             }
-            if (record !== "") {
-                desc = "Your custom odds are listed below. "
-                odds_skips = oddsdata[k].skips
-                odds_noupgrades = oddsdata[k].no_upgrades
-                odds_non3lap = oddsdata[k].non_3_lap
-                odds_mirrormode = oddsdata[k].mirror_mode
-            } else {
-                odds_skips = 25
-                odds_noupgrades = 15
-                odds_non3lap = 5
-                odds_mirrormode = 5
-            }
-            const oddsEmbed = new Discord.MessageEmbed()
-            .setTitle("Customize Your `!challenge` Odds")
-            .setDescription(desc + "Change your odds by replying to this message with 4 numbers separated by commas in order of Skips, No Upgrades, Non 3-lap, and Mirror Mode. These numbers will be divided by 100 to determine the chances Botto will give their conditions in a `!challenge`. \n Example: 15, 20, 10, 0")
-            .addField("Your Odds", "Skips - " + odds_skips +"%\nNo Upgrades - " + odds_noupgrades +"%\nNon 3-Lap - " + odds_non3lap +"%\nMirror Mode - " + odds_mirrormode +"%", true)
-            .addField("Default Odds", "Skips - 25%\nNo Upgrades - 15%\nNon 3-Lap - 5%\nMirror Mode - 5%", true)
-            .setFooter("Reset your odds to default by typing 'default'")
-            message.channel.send(oddsEmbed);
-            var collected = false
-            const oddscollector = new Discord.MessageCollector(message.channel, m => m.author.id === message.author.id, { time: 500000 });
-            oddscollector.on('collect', message => {
-                if (!isNaN(Number(message.content.replace(/,/g, '').replace(/\s/g, "").replace(/%/g, ""))) && collected == false) {
-                    if (oddsdata !==null) {
-                        var keys = Object.keys(oddsdata)
-                        for (var i=0; i<keys.length; i++) {
-                            var k = keys[i];
-                            if(oddsdata[k].name == message.author.id){
-                                oddsref.child(k).remove()
-                            }
-                        }
-                    }
-                    var odds = message.content.replace(/\s/g, "").replace(/%/g, "").split(",")
-                    if (odds.length == 4) {
-                        var data = {
-                            name: message.author.id,
-                            skips: odds[0],
-                            no_upgrades: odds[1],
-                            non_3_lap: odds[2],
-                            mirror_mode: odds[3]
-                        }
-                        oddsref.push(data);
-                        message.reply("*Your new odds have been saved!*")
-                        collected = true
+            if (odds_reset) { //resetting to default
+                if(record !== "") {
+                    desc = "You have successfully reset your odds to the default."
+                    oddsref.child(record).remove()
+                }
+            } else if (odds_skips == undefined && odds_noupgrades == undefined && odds_non3lap == undefined && odds_mirrormode == undefined) { //no odds submitted
+                if(record !== "") {
+                    desc = "Your custom odds are listed below."
+                    odds_skips = oddsdata[k].skips
+                    odds_noupgrades = oddsdata[k].no_upgrades
+                    odds_non3lap = oddsdata[k].non_3_lap
+                    odds_mirrormode = oddsdata[k].mirror_mode
+                } else {
+                    odds_skips = odds_default.skips
+                    odds_noupgrades = odds_default.no_upgrades
+                    odds_non3lap = odds_default.non_3_lap
+                    odds_mirrormode = odds_default.mirrored
+                }
+            } else { //at least one new odd submitted
+                desc = "You have successfully updated your custom odds. Your custom odds are listed below."
+                if (odds_skips == undefined) {
+                    if (record !== "") {
+                        odds_skips = oddsdata[k].skips
                     } else {
-                        message.reply("*Only four numbers!*")
+                        odds_skips = odds_default.skips
                     }
-                } else if (message.content == "default") {
-                    if (oddsdata !==null) {
-                        var keys = Object.keys(oddsdata)
-                        for (var i=0; i<keys.length; i++) {
-                            var k = keys[i];
-                            if(oddsdata[k].name == message.author.id){
-                                oddsref.child(k).remove()
-                            }
-                        }
+                }
+                if (odds_noupgrades == undefined) {
+                    if (record !== "") {
+                        odds_noupgrades = oddsdata[k].no_upgrades
+                    } else {
+                        odds_noupgrades = odds_default.no_upgrades
                     }
-                    message.reply("*Your odds have been reset to the default*")
-                    collected = true
+                }
+                if (odds_non3lap == undefined) {
+                    if (record !== "") {
+                        odds_non3lap = oddsdata[k].non_3_lap
+                    } else {
+                        odds_non3lap = odds_default.non_3_lap
+                    }
+                }
+                if (odds_mirrormode == undefined) {
+                    if (record !== "") {
+                        odds_mirrormode = oddsdata[k].mirror_mode
+                    } else {
+                        odds_mirrormode = odds_default.mirror_mode
+                    }
+                }
+                var data = {
+                    name: interaction.member.user.id,
+                    skips: odds_skips,
+                    no_upgrades: odds_noupgrades,
+                    non_3_lap: odds_non3lap,
+                    mirror_mode: odds_mirrormode
+                }
+                if (record !== "") {
+                    oddsref.child(record).remove() //delete old odds
+                }
+                oddsref.push(data);
+            }
+
+
+            const oddsEmbed = new Discord.MessageEmbed()
+                .setThumbnail("https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/259/game-die_1f3b2.png")
+                .setAuthor(interaction.member.user.username + "'s Odds", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
+                .setTitle("Customize Your `/challenge` Odds")
+                .setDescription(desc + "Customize your odds by using the `/challenge odds` command and inputting numbers for Skips, No Upgrades, Non 3-lap, and Mirror Mode. These numbers will be divided by 100 to determine the chances Botto will give their conditions in a `/challenge`.")
+                .addField("Your Odds", "Skips - " + odds_skips +"%\nNo Upgrades - " + odds_noupgrades +"%\nNon 3-Lap - " + odds_non3lap +"%\nMirror Mode - " + odds_mirrormode +"%", true)
+                .addField("Default Odds", "Skips - 25%\nNo Upgrades - 15%\nNon 3-Lap - 5%\nMirror Mode - 5%", true)
+                .setColor("EA596E")
+            client.api.interactions(interaction.id, interaction.token).callback.post({
+                data: {
+                    type: 3,
+                    data: {
+                        content: "",
+                        embeds: [oddsEmbed]
+                    }
                 }
             })
-        /*
-        client.api.interactions(interaction.id, interaction.token).callback.post({
-            data: {
-                type: 4,
-                data: {
-                    //content: "",
-                    //embeds: [myEmbed]
-                }
-            }
-        })
-        */
         } else if(args[0].name=="stats") {
                     /*
         client.api.interactions(interaction.id, interaction.token).callback.post({
@@ -394,7 +443,7 @@ module.exports = {
         } else if(args[0].name=="about") {
             const challengeHelpEmbed = new Discord.MessageEmbed()
                 .setTitle("Random Challenges")
-                .setDescription("When you type `/challenge generate` or `/random challenge`, Botto will challenge you to race a random pod on a random track with random conditions. The default conditions are max upgrades, 3-lap, full track. You have 15 minutes to submit a time for the challenge. Botto will only accept one time from the person who triggered the challenge. \n\nYou can customize your odds by typing `/challenge odds`")
+                .setDescription("When you type `/challenge generate` or `/random challenge`, Botto will challenge you to race a random pod on a random track with random conditions. The default conditions are max upgrades, 3-lap, full track. You have 15 minutes to submit a time for the challenge. You can submit your time by entering it in the same channel that you called the challenge. \n\n Don't like a challenge? You can reroll a challenge by entering the command again and Botto will automatically clean up the uncompleted challenge for you.\n\nYou can customize your odds by typing `/challenge odds`")
                 .addField("Default Odds", "Skips - 25%\nNo upgrades - 15%\nNon 3-lap - 5%\nMirror mode - 5%", true)
                 .addField("Rating a Challenge",":thumbsup: = I like this challenge, I would play it again\n:thumbsdown: = I don't like this challenge, this combination is not fun", true)
             client.api.interactions(interaction.id, interaction.token).callback.post({
