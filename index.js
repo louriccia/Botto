@@ -82,7 +82,7 @@ client.ws.on('INTERACTION_CREATE', async interaction => {
 
 async function getCommands() {
     const commands = await client.api.applications("545798436105224203").guilds('441839750555369474').commands.get()
-    await client.api.applications("545798436105224203").guilds('441839750555369474').commands('793613776355852308').delete()
+    //await client.api.applications("545798436105224203").guilds('441839750555369474').commands('793613776355852308').delete()
     //await client.api.applications("545798436105224203").guilds('441839750555369474').commands('793311885809156146').delete()
     console.log(commands)
 }
@@ -99,10 +99,58 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
             type: 1,
             options: [
                 {
-                    name: "name",
-                    description: "racer's first name or initials",
+                    name: "tier",
+                    description: "get a random racer from a specific tier",
                     type: 3,
-                    required: true
+                    required: false,
+                    options: [
+                        {
+                            name: "any",
+                            value: "any"
+                        },
+                        {
+                            name: "0 Top",
+                            value: "top"
+                        },
+                        {
+                            name: "1 High",
+                            value: "high"
+                        },
+                        {
+                            name: "2 Mid",
+                            value: "mid"
+                        },
+                        {
+                            name: "3 Low",
+                            value: "low"
+                        }
+                    ]
+                },
+                {
+                    name: "canon",
+                    description: "get canonical or non-canonical racers",
+                    type: 3,
+                    required: false,
+                    options: [
+                        {
+                            name: "any",
+                            value: "any"
+                        },
+                        {
+                            name: "canon",
+                            value: "canon"
+                        },
+                        {
+                            name: "non-canon",
+                            value: "non-canon"
+                        }
+                    ]
+                },
+                {
+                    name: "vc",
+                    description: "whether to role for everyone in your voice channel",
+                    type: 5,
+                    required: false
                 }
             ]
         },
