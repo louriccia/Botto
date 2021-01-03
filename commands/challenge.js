@@ -204,12 +204,19 @@ module.exports = {
                 sentMessage.react('👍').then(()=> sentMessage.react('👎'));
                 var feedback = ""
                 const filter = (reaction, user) => {
-                    return ['👍', '👎'].includes(reaction.emoji.name) && user.id !== "545798436105224203";
+                    return (['👍', '👎'].includes(reaction.emoji.name) && user.id !== "545798436105224203");
                 };
+                sentMessage.awaitReactions((reaction, user) => user.id === message.author.id && (reaction.emoji.name == '👍' || reaction.emoji.name == '👎' || reaction.emoji.name == '❌'),
+                { max: 1, time: 900000 }).then(collected => {
+                    console.log(collected.first().emoji.name, )
+                })
+                
                 sentMessage.awaitReactions(filter, 
-                    {time: 900000, errors: ['time'] }).then(collected => {
-                        console.log(collected.cache.first());
-                        if (collected.cache.first().emoji.name === '👍') {
+                    {time: 900000})
+                    .then(collected => {
+                        console.log(collected.first().emoji.name);
+                        const reaction = collected.first();
+                        if (reaction.emoji.name === '👍') {
                             feedback = '👍'
                         } else {
                             feedback = '👎'
@@ -228,7 +235,8 @@ module.exports = {
                         }
                         feedbackref.push(feedbackdata);
                     })
-                    .catch()
+                    .catch(console.error)
+                    
                 setTimeout(async function() { //5 minute warning
                     if(!collected){
                         try { 
