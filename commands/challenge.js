@@ -16,7 +16,6 @@ module.exports = {
             console.log("The read failed: " + errorObject.code);
         });
         var oddsref = database.ref('odds');
-        var oddsdata = null
         oddsref.on("value", function(snapshot) {
             oddsdata = snapshot.val();
         }, function (errorObject) {
@@ -212,7 +211,7 @@ module.exports = {
                 sentMessage.awaitReactions(filter, {time: 900000, errors: ['time'] })
                     .then(collected => {
                         const reaction = collected.first();
-
+                        console.log(reaction.users);
                         if (reaction.emoji.name === '👍') {
                             feedback = '👍'
                         } else {
