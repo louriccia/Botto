@@ -82,11 +82,11 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
 
 client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
     name: 'convert',
-    description: 'convert seconds to --:--.--- format and vice versa',
+    description: 'convert seconds to --:--.--- format and vice versa; for people who are bad at quick math',
     options: [
         {
             name: "time",
-            description: "the seconds or mm:ss.000 you wish to convert",
+            description: "the seconds or mm:ss.sss you wish to convert",
             type: 3,
             required: true
         }
@@ -95,7 +95,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
 
 client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
     name: 'help',
-    description: 'helpful info about commands and other stuff',
+    description: 'helpful information about botto commands and other stuff',
     options: [
         {
             name: "commands",
@@ -112,7 +112,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
 
 client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
     name: 'links',
-    description: 'get your links here',
+    description: 'quickly get the most commonly shared links on the SWE1R Discord',
     options: [
         {
             name: "botto",
@@ -171,7 +171,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
 
 client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
     name: 'lookup',
-    description: 'get information for a specific racer, track, etc.',
+    description: 'get information for racers, tracks, and more',
     options: [
         {
             name: "racer",
@@ -201,14 +201,137 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
         },
         {
             name: "times",
-            description: "get the par times for a specific track",
-            type: 1,
+            description: "get par times or projected goal times for each track and racer",
+            type: 2,
             options: [
                 {
-                    name: "name",
-                    description: "track name or abbreviation",
-                    type: 3,
-                    required: true
+                    name: "par_times",
+                    description: "look up the speedrunning par times for a specific track",
+                    type: 1,
+                    options: [
+                        {
+                            name: "track",
+                            description: "track name or abbreviation",
+                            type: 3,
+                            required: true
+                        }
+                    ]
+                },
+                {
+                    name: "goal_times",
+                    description: "get projected goal times for each pod, track, and upgrade",
+                    type: 1,
+                    options: [
+                        {
+                            name: "track",
+                            description: "track name or abbreviation",
+                            type: 3,
+                            required: true
+                        },
+                        {
+                            name: "racer",
+                            description: "racer initials or first name",
+                            type: 3,
+                            required: true
+                        },
+                        {
+                            name: "accel.",
+                            description: "upgrade level for acceleration",
+                            type: 3,
+                            required: true,
+                            choices: [
+                                {
+                                    name: "0: Dual 20 PCX",
+                                    value: "0"
+                                },
+                                {
+                                    name: "1: 44 PCX",
+                                    value: "1"
+                                },
+                                {
+                                    name: "2: Dual 32 PCX",
+                                    value: "2"
+                                },
+                                {
+                                    name: "3: Quad 32 PCX",
+                                    value: "3"
+                                },
+                                {
+                                    name: "4: Quad 44",
+                                    value: "4"
+                                },
+                                {
+                                    name: "5: Mag 6",
+                                    value: "5"
+                                }
+                            ]
+                        },
+                        {
+                            name: "top_speed",
+                            description: "upgrade level for top speed",
+                            type: 3,
+                            required: true,
+                            choices: [
+                                {
+                                    name: "0: Plug 2",
+                                    value: "0"
+                                },
+                                {
+                                    name: "1: Plug 3",
+                                    value: "1"
+                                },
+                                {
+                                    name: "2: Plug 5",
+                                    value: "2"
+                                },
+                                {
+                                    name: "3: Plug 8",
+                                    value: "3"
+                                },
+                                {
+                                    name: "4: Block 5",
+                                    value: "4"
+                                },
+                                {
+                                    name: "5: Block 6",
+                                    value: "5"
+                                }
+                            ]
+                        },
+                        {
+                            name: "cooling",
+                            description: "upgrade level for cooling",
+                            type: 3,
+                            required: true,
+                            choices: [
+                                {
+                                    name: "0: Coolant",
+                                    value: "0"
+                                },
+                                {
+                                    name: "1: Stack-3",
+                                    value: "1"
+                                },
+                                {
+                                    name: "2: Stack-6",
+                                    value: "2"
+                                },
+                                {
+                                    name: "3: Rod",
+                                    value: "3"
+                                },
+                                {
+                                    name: "4: Dual",
+                                    value: "4"
+                                },
+                                {
+                                    name: "5: Turbo",
+                                    value: "5"
+                                }
+                            ]
+                        }
+                        
+                    ]
                 },
             ]
         },
@@ -230,6 +353,260 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                         {
                             name: "no upgrades",
                             value: "nu"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            name: "prices",
+            description: "look up prices for each upgrade and get a total cost; avoid getting swindled by Watto",
+            type: 1,
+            options: [
+                {
+                    name: "traction",
+                    description: "upgrade level for traction",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "0: R-20",
+                            value: "0"
+                        },
+                        {
+                            name: "1: R-60",
+                            value: "1"
+                        },
+                        {
+                            name: "2: R-80",
+                            value: "2"
+                        },
+                        {
+                            name: "3: R-100",
+                            value: "3"
+                        },
+                        {
+                            name: "4: R-300",
+                            value: "4"
+                        },
+                        {
+                            name: "5: R-600",
+                            value: "5"
+                        }
+                    ]
+                },
+                {
+                    name: "turning",
+                    description: "upgrade level for turning",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "0: Linkage",
+                            value: "0"
+                        },
+                        {
+                            name: "1: Shift Plate",
+                            value: "1"
+                        },
+                        {
+                            name: "2: Vectro-Jet",
+                            value: "2"
+                        },
+                        {
+                            name: "3: Coupling",
+                            value: "3"
+                        },
+                        {
+                            name: "4: Nozzle",
+                            value: "4"
+                        },
+                        {
+                            name: "5: Stabilizer",
+                            value: "5"
+                        }
+                    ]
+                },
+                {
+                    name: "accel.",
+                    description: "upgrade level for acceleration",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "0: Dual 20 PCX",
+                            value: "0"
+                        },
+                        {
+                            name: "1: 44 PCX",
+                            value: "1"
+                        },
+                        {
+                            name: "2: Dual 32 PCX",
+                            value: "2"
+                        },
+                        {
+                            name: "3: Quad 32 PCX",
+                            value: "3"
+                        },
+                        {
+                            name: "4: Quad 44",
+                            value: "4"
+                        },
+                        {
+                            name: "5: Mag 6",
+                            value: "5"
+                        }
+                    ]
+                },
+                {
+                    name: "top_speed",
+                    description: "upgrade level for top speed",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "0: Plug 2",
+                            value: "0"
+                        },
+                        {
+                            name: "1: Plug 3",
+                            value: "1"
+                        },
+                        {
+                            name: "2: Plug 5",
+                            value: "2"
+                        },
+                        {
+                            name: "3: Plug 8",
+                            value: "3"
+                        },
+                        {
+                            name: "4: Block 5",
+                            value: "4"
+                        },
+                        {
+                            name: "5: Block 6",
+                            value: "5"
+                        }
+                    ]
+                },
+                {
+                    name: "air_brake",
+                    description: "upgrade level for air brake",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "0: Mark II",
+                            value: "0"
+                        },
+                        {
+                            name: "1: Mark III",
+                            value: "1"
+                        },
+                        {
+                            name: "2: Mark IV",
+                            value: "2"
+                        },
+                        {
+                            name: "3: Mark V",
+                            value: "3"
+                        },
+                        {
+                            name: "4: Tri-Jet",
+                            value: "4"
+                        },
+                        {
+                            name: "5: Quadrijet",
+                            value: "5"
+                        }
+                    ]
+                },
+                {
+                    name: "cooling",
+                    description: "upgrade level for cooling",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "0: Coolant",
+                            value: "0"
+                        },
+                        {
+                            name: "1: Stack-3",
+                            value: "1"
+                        },
+                        {
+                            name: "2: Stack-6",
+                            value: "2"
+                        },
+                        {
+                            name: "3: Rod",
+                            value: "3"
+                        },
+                        {
+                            name: "4: Dual",
+                            value: "4"
+                        },
+                        {
+                            name: "5: Turbo",
+                            value: "5"
+                        }
+                    ]
+                },
+                {
+                    name: "repair",
+                    description: "upgrade level for repair",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "0: Single",
+                            value: "0"
+                        },
+                        {
+                            name: "1: Dual2",
+                            value: "1"
+                        },
+                        {
+                            name: "2: Quad",
+                            value: "2"
+                        },
+                        {
+                            name: "3: Cluster",
+                            value: "3"
+                        },
+                        {
+                            name: "4: Rotary",
+                            value: "4"
+                        },
+                        {
+                            name: "5: Cluster 2",
+                            value: "5"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            name: "cheats",
+            description: "get a full list of cheats for the game",
+            type: 1,
+            options: [
+                {
+                    name: "system",
+                    description: "which version of the game to get cheats for",
+                    type: 3,
+                    required: true,
+                    choices: [
+                        {
+                            name: "PC",
+                            value: "PC"
+                        },
+                        {
+                            name: "console",
+                            value: "console"
                         }
                     ]
                 }
@@ -259,19 +636,19 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                         },
                         {
                             name: "0 Top",
-                            value: "top"
+                            value: "0"
                         },
                         {
                             name: "1 High",
-                            value: "high"
+                            value: "1"
                         },
                         {
                             name: "2 Mid",
-                            value: "mid"
+                            value: "2"
                         },
                         {
                             name: "3 Low",
-                            value: "low"
+                            value: "3"
                         }
                     ]
                 },
@@ -297,7 +674,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                 },
                 {
                     name: "vc",
-                    description: "whether to role for everyone in your voice channel",
+                    description: "whether to roll for everyone in your voice channel",
                     type: 5,
                     required: false
                 }
@@ -316,19 +693,19 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                     choices: [
                         {
                             name: "Amateur Circuit",
-                            value: "amc"
+                            value: "Amateur"
                         },
                         {
                             name: "Semi-Pro Circuit",
-                            value: "spc"
+                            value: "Semi-Pro"
                         },
                         {
                             name: "Galactic Circuit",
-                            value: "gal"
+                            value: "Galactic"
                         },
                         {
                             name: "Invitational Circuit",
-                            value: "inv"
+                            value: "Invitational"
                         }
                     ]
                 },
@@ -340,35 +717,35 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                     choices: [
                         {
                             name: "Ando Prime",
-                            value: "andoprime"
+                            value: "Ando Prime"
                         },
                         {
                             name: "Aquilaris",
-                            value: "aquilaris"
+                            value: "Aquilaris"
                         },
                         {
                             name: "Baroonda",
-                            value: "baroonda"
+                            value: "Baroonda"
                         },
                         {
                             name: "Malastare",
-                            value: "malastare"
+                            value: "Malastare"
                         },
                         {
-                            name: "Mon Gozza",
-                            value: "mongozza"
+                            name: "Mon Gazza",
+                            value: "Mon Gazza"
                         },
                         {
                             name: "Oovo IV",
-                            value: "oovoiv"
+                            value: "Oovo IV"
                         },
                         {
                             name: "Ord Ibanna",
-                            value: "ordibanna"
+                            value: "Ord Ibanna"
                         },
                         {
                             name: "Tatooine",
-                            value: "tatooine"
+                            value: "Tatooine"
                         }
                     ]
                 }
@@ -385,7 +762,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
             type: 1,
             options: [
                 {
-                    name: "number",
+                    name: "teams",
                     description: "the number of teams you wish to create",
                     type: 4,
                     required: true

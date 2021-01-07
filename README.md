@@ -28,17 +28,3 @@ A discord bot that runs on the SWE1R server
 * Bot announces when a racer joins and leaves the voice channel
   * Also announces when they join and leave troubleshooting, excluding helper members
 * Bot announces when a new member joins the server and assigns them the padawan role
-
-## Work-in-Progress
-* 
-
-## Ideas
-* If someone reacts to a track with a certain emote, botto responds with that track's shortcuts in gif form
-* !track index
-* !racer index
-* currency/betting system
-* !teams # have bot split number of players in the voice channel into n number of teams
-* Calculate track length to include as stat
-* Have bot announce when weekly races are about to start
-* Add keyboard shortcuts
-* Popular gifs

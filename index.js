@@ -90,182 +90,11 @@ client.ws.on('INTERACTION_CREATE', async interaction => {
 
 async function getCommands() {
     const commands = await client.api.applications("545798436105224203").guilds('441839750555369474').commands.get()
-    //await client.api.applications("545798436105224203").guilds('441839750555369474').commands('793613776355852308').delete()
-    //await client.api.applications("545798436105224203").guilds('441839750555369474').commands('793311885809156146').delete()
+    //await client.api.applications("545798436105224203").guilds('441839750555369474').commands('').delete()
     console.log(commands)
 }
 
 //getCommands()
-
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
-    name: 'random',
-    description: 'get a random racer, track, etc.',
-    options: [
-        {
-            name: "racer",
-            description: "get a random racer",
-            type: 1,
-            options: [
-                {
-                    name: "tier",
-                    description: "get a random racer from a specific tier",
-                    type: 3,
-                    required: false,
-                    choices: [
-                        {
-                            name: "any",
-                            value: "any"
-                        },
-                        {
-                            name: "0 Top",
-                            value: "top"
-                        },
-                        {
-                            name: "1 High",
-                            value: "high"
-                        },
-                        {
-                            name: "2 Mid",
-                            value: "mid"
-                        },
-                        {
-                            name: "3 Low",
-                            value: "low"
-                        }
-                    ]
-                },
-                {
-                    name: "canon",
-                    description: "get canonical or non-canonical racers",
-                    type: 3,
-                    required: false,
-                    choices: [
-                        {
-                            name: "any",
-                            value: "any"
-                        },
-                        {
-                            name: "canon",
-                            value: "canon"
-                        },
-                        {
-                            name: "non-canon",
-                            value: "non-canon"
-                        }
-                    ]
-                },
-                {
-                    name: "vc",
-                    description: "whether to role for everyone in your voice channel",
-                    type: 5,
-                    required: false
-                }
-            ]
-        },
-        {
-            name: "track",
-            description: "get a random track",
-            type: 1,
-            options: [
-                {
-                    name: "circuit",
-                    description: "roll a random track from a specific circuit",
-                    type: 3,
-                    required: false,
-                    choices: [
-                        {
-                            name: "Amateur Circuit",
-                            value: "amc"
-                        },
-                        {
-                            name: "Semi-Pro Circuit",
-                            value: "spc"
-                        },
-                        {
-                            name: "Galactic Circuit",
-                            value: "gal"
-                        },
-                        {
-                            name: "Invitational Circuit",
-                            value: "inv"
-                        }
-                    ]
-                },
-                {
-                    name: "planet",
-                    description: "roll a random track from a specific planet",
-                    type: 3,
-                    required: false,
-                    choices: [
-                        {
-                            name: "Ando Prime",
-                            value: "andoprime"
-                        },
-                        {
-                            name: "Aquilaris",
-                            value: "aquilaris"
-                        },
-                        {
-                            name: "Baroonda",
-                            value: "baroonda"
-                        },
-                        {
-                            name: "Malastare",
-                            value: "malastare"
-                        },
-                        {
-                            name: "Mon Gozza",
-                            value: "mongozza"
-                        },
-                        {
-                            name: "Oovo IV",
-                            value: "oovoiv"
-                        },
-                        {
-                            name: "Ord Ibanna",
-                            value: "ordibanna"
-                        },
-                        {
-                            name: "Tatooine",
-                            value: "tatooine"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            name: "challenge",
-            description: "get a random pod/track challenge",
-            type: 1,
-        },
-        {
-            name: 'teams',
-            description: 'divides everyone in your voice channel into # number of teams',
-            type: 1,
-            options: [
-                {
-                    name: "number",
-                    description: "the number of teams you wish to create",
-                    type: 4,
-                    required: true
-                }
-            ]
-        },
-        {
-            name: "number",
-            description: "get a random number",
-            type: 1,
-            options: [
-                {
-                    name: "max",
-                    description: "get a random number between 1 and this number",
-                    type: 4,
-                    required: true,
-                }
-            ]
-        }
-    ]
-}})
 
 client.once('ready', () => {
     console.log('Ready!')
@@ -494,990 +323,6 @@ if (messageLow.startsWith(`${prefix}ping`)) {
     client.channels.cache.get("444208252541075476").send("I'm alive! I've been up for `" + tools.timefix(client.uptime/1000) + "` since `" + client.readyAt + "`");
 }
 
-if (messageLow.startsWith(`${prefix}src`)) {
-    var catg = "" 
-    var titl = ""
-    for (let i =0; i<25; i++) {
-        var nname = tracks[i].nickname
-        for (var y of nname) {
-            y = "" + y
-            if (args[0].toLowerCase() == y) {
-                var numb = i
-            }
-        }
-    }   
-    if (numb == null) {
-        if (args[0] == "any" || args[0] == "any%"){
-            catg = "category/xk9634k0"
-            titl = "Any%"
-        } else if (args[0] == "100" || args[0] == "100%") {
-            catg = "category/n2yqxo7k"
-            titl = "100%"
-        } else if (args[0] == "amc" || args[0] == "amateur") {
-            catg = "category/7dg8ywp2"
-            titl = "Amateur Circuit"
-        } else if (args[0] == "spc" || args[0] == "semi-pro") {
-            catg = "category/mkeoyg6d"
-            titl = "Semi-Pro Circuit"
-        } else if (args[0] == "ng+" || args[0] == "newgame") {
-            catg = "category/w20zml5d"
-            titl = "All Tracks NG+"
-        } 
-    } else {
-        catg = "level/"  + tracks[numb].id + "/824owmd5" //default to 3 lap
-        titl = tracks[numb].name + " | 3-Lap"
-    }
-    var upgr = ""
-    var skps = ""
-    var plat = ""
-    var platname = ""
-    var desc = ""
-    var sys = [{"name" : "PC", "id": "zqoe6ply"}, {"name":"N64", "id":"013kndq5"},{"name" : "DC", "id" : "rqv25716"}, {"name":"Switch", "id":"jqz7nnkl"},{"name":"PS4", "id":"klrw33w1"}]
-    for (let c = 1; c < args.length; c++) {
-        if (args[c] == "no") {
-            if (args[c+1] == "upgrades") {
-                if (numb == null) { 
-                    upgr = "&var-789k45lw=9qjzj014" //full game categories
-                } else {
-                    upgr = "&var-789k49lw=z194gjl4"
-                }
-            }
-            if (args[c+1] == "skips" || args[c+1] == "skip") {
-                if (numb == null) { 
-                    skps = "&var-onv6p08m=5lmxzy1v" //full game categories
-                } else {
-                    skps = "&var-2lgz978p=81p7we17"
-                }
-            }
-        } else if(args[c] == "nu") {
-            if (numb == null) { 
-                upgr = "&var-789k45lw=9qjzj014" //full game categories
-            } else {
-                upgr = "&var-789k49lw=z194gjl4"
-            }
-        } else if ((args[c] == "mu" || args[c] == "upgrades") && upgr == "") {
-            if (numb == null) { 
-                upgr = "&var-789k45lw=gq7nen1p" //full game categories
-            } else {
-                upgr = "&var-789k49lw=xqkrk919"
-            }
-        } else if ((args[c] == "skips" || args[c] == "skip") && skps == "") {
-            if (numb == null) { 
-                skps = "&var-onv6p08m=21gjrx1z" //full game categories
-            } else {
-                skps = "&var-2lgz978p=p125ev1x"
-            }
-        } else if(args[c] == "ns" || args[c] == "ft" || args[c] == "full") {
-            if (numb == null) { 
-                skps = "&var-onv6p08m=5lmxzy1v" //full game categories
-            } else {
-                skps = "&var-2lgz978p=81p7we17"
-            }
-        } else if (args[c] == "1lap" || args[c] == "flap" || args[c] == "1-lap") {
-            catg = "level/"  + tracks[numb].id + "/9d8wr6dn"
-            titl = tracks[numb].name + " | 1-Lap"
-        } else {
-            for (u = 0; u < sys.length; u++) {
-                if (args[c].toLowerCase() == sys[u].name.toLowerCase()) {
-                    plat = "&var-wl39wwl1=" + sys[u].id
-                    platname = sys[u].name
-                }
-            }
-        }
-    }
-    if (upgr == "&var-789k49lw=z194gjl4" || upgr == "&var-789k45lw=9qjzj014") {
-        desc = "No Upgrades, "
-    } else if (upgr == "&var-789k45lw=gq7nen1p" || upgr == "&var-789k49lw=xqkrk919") {
-        desc = "Upgrades, "
-    } else {
-        desc = "Any Upgrades, "
-    }
-    if (skps == "&var-2lgz978p=81p7we17" ||  skps == "&var-onv6p08m=5lmxzy1v") {
-        desc = desc + "Full Track, "
-    } else if (skps == "&var-onv6p08m=21gjrx1z" ||  skps == "&var-2lgz978p=p125ev1x"){
-        desc = desc + "Skips, "
-    } else {
-        desc = desc + "Skips/Full Track, "
-    }
-    if (platname == "") {
-        desc = desc + "All Platforms"
-    } else {
-        desc = desc + platname
-    }
-    let url = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/' + catg + "?top=5&embed=players" + upgr + skps + plat
-    console.log(url)
-    let settings = {method: "Get"}
-    async function getsrcData() {
-        try {
-          const response = await fetch(url);
-          const data = await response.json();
-          console.log (data)
-          var src = data.data
-          const srcReport = new Discord.MessageEmbed()
-          .setColor('#0099ff')
-          //.setThumbnail("https://www.speedrun.com/themes/Default/1st.png")
-          .setTitle(titl)
-          .setURL(src.weblink)
-          .setDescription(desc)
-            var pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>", "4th", "5th"]
-            var numberofruns = data.data.runs.length
-            if (numberofruns > 5) {
-                numberofruns = 5
-            }
-            for (let k =0; k<numberofruns; k++) {
-                var name = ""
-                if (numb == null) {
-                    var upgrades = "MU"
-                } else {
-                    var upgrades = " / MU"
-                }
-                var skips = ""
-                var system = ""
-                var character = ""
-                var country = ""
-                var time = data.data.runs[k].run.times.primary_t
-                var vid = data.data.runs[k].run.videos.links[0].uri
-                time = tools.timefix(time)
-                if (src.players.data[k].hasOwnProperty("names")) {
-                    name = src.players.data[k].names.international
-                } else {
-                    name = src.players.data[k].name
-                }
-                if (src.runs[k].run.values["789k49lw"] == "z194gjl4" || src.runs[k].run.values["789k45lw"] == "9qjzj014") {
-                    if (numb == null) {
-                        upgrades = "NU"
-                    }else {
-                        upgrades = " / NU"
-                    }
-                    
-                }
-                if (src.runs[k].run.values["2lgz978p"] == "p125ev1x" || src.runs[k].run.values["onv6p08m"] == "21gjrx1z") {
-                    skips = " / Skips"
-                }
-                for (let j = 0; j<23; j++){
-                    if (src.runs[k].run.values.j846d94l == racers[j].id) {
-                        if (racers[j].hasOwnProperty("flag")) {
-                            character = racers[j].flag
-                        } else {
-                            character = racers[j].name
-                        }
-                    }
-                } 
-                for (let j = 0; j<5; j++) {
-                    if (src.runs[k].run.values.wl39wwl1 == sys[j].id) {
-                        system = "   " + sys[j].name
-                    }
-                }
-                if (data.data.players.data[k].hasOwnProperty("location")) {
-                    if (data.data.players.data[k].location !== null) {
-                        country = ":flag_" + data.data.players.data[k].location.country.code.substring(0, 2) + ":"
-                    }
-                }
-                srcReport.addField(
-                    pos[k] + " " + name,  country + system, true
-                )
-                srcReport.addField(
-                    time," " + character + "[" + upgrades + skips + "](" + vid + ")", true
-                )
-                srcReport.addField(
-                    '\u200B', '\u200B', true
-                )
-            }
-            message.channel.send(srcReport)
-        } catch (error) {
-          console.log(error);
-          message.channel.send("Sorry, speedrun.com is under too much pressure.")
-        }
-      };
-      
-    getsrcData()
-    
-    
-}
-
-if (messageLow.startsWith(`${prefix}random`)) {
-    if (args == "" | isNaN(args)) {
-        message.reply("You must include a number.")
-    } else {
-        
-        var randomnum = (Math.floor(Math.random()*args) + 1)
-    message.reply(randomnum)
-    }
-}
-
-if(messageLow.startsWith(`${prefix}tourn`)){
-    var upgr = null
-    var skps = null
-    var dths = null
-    var year = null
-    var podfilterout = []
-    var podfilterin = []
-    for (let c = 1; c < args.length; c++) {
-        if (args[c] == "no") {
-            if (args[c+1] == "upgrades") {
-                upgr = false
-            }
-            if (args[c+1] == "skips" || args[c+1] == "skip") {
-                skps = false
-            }
-            if (args[c+1] == "death" || args[c+1] == "deaths") {
-                dths = false
-            }
-            for (let i =0; i<23; i++) {
-                var nname = racers[i].nickname
-                for (let y of nname) {
-                    y = "" + y
-                    y.replace(/\s/g, '')
-                    if (args[c+1].toLowerCase() == y) {
-                        podfilterout.push(i)
-                    }
-                }
-            }   
-        } else if(args[c] == "nu") {
-            upgr = false
-        } else if ((args[c] == "mu" || args[c] == "upgrades") && upgr == null) {
-            upgr = true
-        } else if ((args[c] == "skips" || args[c] == "skip") && skps == null  && args[c-1] !== "no") {
-            skps = true
-        } else if(args[c] == "ns" || args[c] == "ft" || args[c] == "full") {
-            skps = false
-        } else if(args[c] == "deathless") {
-            dths = false
-        } else if((args[c] == "death" || args[c] == "deaths") && dths == null) {
-            dths = true
-        } else if(args[c].startsWith("20") && args[c].length == 4) {
-            year = args[c]
-        } else {
-            for (let i =0; i<23; i++) {
-                var nname = racers[i].nickname
-                for (let y of nname) {
-                    y = "" + y
-                    y.replace(/\s/g, '')
-                    if (args[c].toLowerCase() == y && args[c-1] !== "no") {
-                        podfilterin.push(i)
-                    }
-                }
-            }   
-        }
-    }
-    console.log(podfilterin)
-    console.log(podfilterout)
-    //args = args.join().replace(/,/g, '').replace(/par/g, '').replace(/times/g, '').replace(/time/g, '').toString()
-    for (let i =0; i<25; i++) {
-        var nname = tracks[i].nickname
-        for (let y of nname) {
-            y = "" + y
-            y.replace(/\s/g, '')
-            if (args[0].toLowerCase() == y) {
-                var numb = i
-            }
-        }
-    }   
-
-    var pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>", "4th", "5th"]
-    if (numb !== null) {
-        const tourneyReport = new Discord.MessageEmbed()
-        .setColor('#0099ff')
-        .setTitle(tracks[numb].name + " | Tournament Times")
-        .setURL("https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing")
-        //.setDescription("MU, PC")
-        var tourneyfiltered = tourney.filter(element => element.track == tracks[numb].name) //filters out other tracks
-        if (skps == true) {
-            tourneyfiltered = tourneyfiltered.filter(element => element.force == "Skips")
-        }
-        if (skps == false) {
-            tourneyfiltered = tourneyfiltered.filter(element => element.force !== "Skips")
-        }
-        if (upgr == true) {
-            tourneyfiltered = tourneyfiltered.filter(element => element.force !== "NU")
-        }
-        if (upgr == false) {
-            tourneyfiltered = tourneyfiltered.filter(element => element.force == "NU")
-        }
-        if (dths == true) {
-            tourneyfiltered = tourneyfiltered.filter(element => element.totaldeaths > 0)
-        }
-        if (dths == false) {
-           tourneyfiltered = tourneyfiltered.filter(element => element.totaldeaths == 0)
-        }
-        if (year !== null) {
-            tourneyfiltered = tourneyfiltered.filter(element => element.year == year)
-        }
-        if (podfilterin.length > 0) {
-            for (i=0; i<podfilterin.length; i++) {
-                tourneyfiltered = tourneyfiltered.filter(element => element.pod == racers[podfilterin[i]].name)
-            }
-        }
-        if (podfilterout.length > 0) {
-            for (i=0; i<podfilterout.length; i++) {
-                tourneyfiltered = tourneyfiltered.filter(element => element.pod !== racers[podfilterout[i]].name)
-            }
-        }
-        var j = 0
-        var players = []
-        console.log(tourneyfiltered.length)
-        if (tourneyfiltered.length > 0) {
-            for (i=0; i<5;){
-                var skip = false
-                for (k = 0; k < players.length; k++) {
-                    if (tourneyfiltered[j].player + tourneyfiltered[j].force == players[k]) {
-                        skip = true
-                    }
-                }
-                if (skip == false && tourneyfiltered[j].hasOwnProperty("totaltime")) {
-                    var character = ""
-                    var deaths = ""
-                    var characterban = ""
-                    var link = ""
-                    var forc = "MU "
-                    if (tourneyfiltered[j].hasOwnProperty("force")) {
-                        if (tourneyfiltered[j].force == "Skips") {
-                            forc = "Skips "
-                        } else if (tourneyfiltered[j].force == "NU") {
-                            forc = "NU "
-                        }
-                    }
-                    if (tourneyfiltered[j].hasOwnProperty("url")) {
-                        link = tourneyfiltered[j].url
-                    }
-                    if (tourneyfiltered[j].hasOwnProperty("podtempban")) {
-                        characterban = "\n~~" + tourneyfiltered[j].podtempban + "~~"
-                    }
-                    if (tourneyfiltered[j].totaldeaths > 0) {
-                        deaths = ""
-                        if (tourneyfiltered[j].totaldeaths > 5) {
-                            deaths = ":skull:×"+tourneyfiltered[j].totaldeaths
-                        } else {
-                            for (d = 0; d< tourneyfiltered[j].totaldeaths; d++){
-                                deaths = deaths + ":skull:"
-                            }
-                        }
-                    }
-                    for (let n = 0; n<23; n++){
-                        if (tourneyfiltered[j].pod == racers[n].name) {
-                            if (racers[n].hasOwnProperty("flag")) {
-                                character = racers[n].flag
-                            } else {
-                                character = racers[n].name
-                            }
-                        }
-                    } 
-                    tourneyReport.addField(
-                        pos[i] + " " + tourneyfiltered[j].player, tourneyfiltered[j].year + ", " + tourneyfiltered[j].bracket +": "+tourneyfiltered[j].round + "\nRace " + tourneyfiltered[j].race + ", vs " + tourneyfiltered[j].opponent, true
-                    )
-                    tourneyReport.addField(
-                        tools.timefix(Number(tourneyfiltered[j].totaltime).toFixed(3))," " + character + "[ " + forc + "](" + link + ")" + deaths + characterban, true
-                    )
-                    tourneyReport.addField(
-                        '\u200B', '\u200B', true
-                    )
-                    //message.channel.send(tourneyfiltered[j].player + " - " + tools.timefix(tourneyfiltered[j].totaltime))
-                    players.push(tourneyfiltered[j].player + tourneyfiltered[j].force)
-                    i++
-                }
-                j++
-                if (j == tourneyfiltered.length) {
-                    i = 5
-                }
-            }
-            message.channel.send(tourneyReport)
-        } else {
-            message.channel.send("Sorry, I didn't find anything")
-        }
-    }
-}
-/////   !track   /////
-if(messageLow.startsWith(`${prefix}track`)){
-    var partime = false
-    if (args.includes("time") || args.includes("times") || args.includes("par")) {
-        partime = true
-    }
-    args = args.join().replace(/,/g, '').replace(/par/g, '').replace(/times/g, '').replace(/time/g, '').toString()
-
-    if(messageLow == (`${prefix}track`)) {
-        var numb = Math.floor(Math.random()*25)}
-    if(args == (`amc`) || args == (`amateur`)) {
-        var numb = Math.floor(Math.random()*7)}
-    if(args == (`spc`) || args==(`semi`)) {
-        var numb = Math.floor(Math.random()*7) + 7}
-    if(args == (`gal`)) {
-        var numb = Math.floor(Math.random()*7) + 14}
-    if(args == (`inv`)) {
-        var numb = Math.floor(Math.random()*4) + 21}
-    if(args.replace(/\s/g, '') == (`andoprime`)){
-        let planet = [2, 8, 17, 21]
-        var numb = planet[Math.floor(Math.random()*4)]}
-    if(args == (`aquilaris`)) {
-        let planet = [3, 7, 13]
-        var numb = planet[Math.floor(Math.random()*3)]}
-    if(args == (`baroonda`)) {
-        let planet = [12, 16, 19, 24]
-        var numb = planet[Math.floor(Math.random()*4)]}
-    if(args == (`malastare`)) {
-        let planet = [4, 9, 15]
-        var numb = planet[Math.floor(Math.random()*3)]}
-    if(args.replace(/\s/g, '') == (`mongazza`)){
-        let planet = [1, 6, 11]
-        var numb = planet[Math.floor(Math.random()*3)]}
-    if(args.replace(/\s/g, '') == (`oovoiv`)){
-        let planet = [5, 14, 23]
-        var numb = planet[Math.floor(Math.random()*3)]}
-    if(args.replace(/\s/g, '') == (`ordibanna`)) {
-        let planet = [10, 18, 22]
-        var numb = planet[Math.floor(Math.random()*3)]}
-    if(args == (`tatooine`)) {
-        let planet = [0, 20]
-        var numb = planet[Math.floor(Math.random()*2)]}
-    if(numb == null){
-        for (let i =0; i<25; i++) {
-            if (args == tracks[i].name.toLowerCase().replace(/\s/g, '')) {
-                var numb = i
-            } else {
-                var nname = tracks[i].nickname
-                for (let y of nname) {
-                    y = "" + y
-                    y.replace(/\s/g, '')
-                    if (args.toLowerCase() == y) {
-                        var numb = i
-                    }
-                }
-            }
-        }   
-    }
-    if(numb == null){ 
-        message.channel.send("Perhaps the archives are incomplete.")
-    } else if(partime == false) {
-        const trackEmbed = new Discord.MessageEmbed()
-        .setThumbnail(planets[tracks[numb].planet].img)
-        .setColor(planets[tracks[numb].planet].color)
-        .setImage(tracks[numb].img)
-        .setTitle(tracks[numb].name)
-    
-        var str = playerPicks[random5]
-        var description = planets[tracks[numb].planet].name + "\n" + circuits[tracks[numb].circuit].name + " Circuit: Race #" + tracks[numb].cirnum + "\n"  + "Track Favorite: " + tracks[numb].favorite
-        //if(tracks[numb].skip !== "") {
-        //    description = description + "\n" + "Click :track_next: to view skip"
-        //}
-        //if(tracks[numb].shortcut !== "") {
-        //    description = description + "\n" + "Click :fast_forward: to view shortcut"
-        //}
-        if((pickedPlayer !== undefined) && (random2 == 0)) {
-            //description =  description + "\n \n" +  str.replace("replaceme", pickedPlayer).replace("replaceme", pickedPlayer)
-        } else {
-            //description = description + "\n \n" + movieQuotes[random3]
-        }
-        trackEmbed.addField("Planet", planets[tracks[numb].planet].name, true)
-        trackEmbed.addField("Circuit", circuits[tracks[numb].circuit].name + " - Race " + tracks[numb].cirnum, true)
-        trackEmbed.addField("Favorite", tracks[numb].favorite, true)
-        let muurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-789k49lw=xqkrk919&var-2lgz978p=81p7we17" //mu
-        let nuurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-789k49lw=z194gjl4&var-2lgz978p=81p7we17" //nu
-        let skurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&&var-2lgz978p=p125ev1x" //sku
-        let settings = {method: "Get"}
-        async function getwrData() {
-            try {
-            const response1 = await fetch(muurl);
-            const data1 = await response1.json();
-            var mu = data1.data
-            const response2 = await fetch(nuurl);
-            const data2 = await response2.json();
-            var nu = data2.data
-            const response3 = await fetch(skurl);
-            const data3 = await response3.json();
-            var sk = data3.data
-            var character = ""
-            var name = ""
-            if (sk.hasOwnProperty("runs") && sk.runs.length > 0) {
-                if (sk.runs[0].hasOwnProperty("run")) {
-                    for (let j = 0; j<23; j++){
-                        if (sk.runs[0].run.values.j846d94l == racers[j].id) {
-                            if (racers[j].hasOwnProperty("flag")) {
-                                character = racers[j].flag
-                            } else {
-                                character = racers[j].name
-                            }
-                        }
-                    } 
-                    if (sk.players.data[0].hasOwnProperty("names")) {
-                        name = sk.players.data[0].names.international
-                    } else {
-                        name = sk.players.data[0].name
-                    }
-                    var vid = sk.runs[0].run.videos.links[0].uri
-                    trackEmbed.addField("Skips WR", character + " " + name + "\n[" + tools.timefix(sk.runs[0].run.times.primary_t) + "](" + vid + ")",true)
-                }
-            }
-            for (let j = 0; j<23; j++){
-                if (mu.runs[0].run.values.j846d94l == racers[j].id) {
-                    if (racers[j].hasOwnProperty("flag")) {
-                        character = racers[j].flag
-                    } else {
-                        character = racers[j].name
-                    }
-                }
-            } 
-            if (mu.players.data[0].hasOwnProperty("names")) {
-                name = mu.players.data[0].names.international
-            } else {
-                name = mu.players.data[0].name
-            }
-            var vid = mu.runs[0].run.videos.links[0].uri
-            trackEmbed.addField("MU WR", character + " " + name + "\n[" + tools.timefix(mu.runs[0].run.times.primary_t) + "](" + vid + ")", true)
-            for (let j = 0; j<23; j++){
-                if (nu.runs[0].run.values.j846d94l == racers[j].id) {
-                    if (racers[j].hasOwnProperty("flag")) {
-                        character = racers[j].flag
-                    } else {
-                        character = racers[j].name
-                    }
-                }
-            } 
-            if (nu.players.data[0].hasOwnProperty("names")) {
-                name = nu.players.data[0].names.international
-            } else {
-                name = nu.players.data[0].name
-            }
-            var vid = nu.runs[0].run.videos.links[0].uri
-            trackEmbed.addField("NU WR", character + " " + name + "\n[" + tools.timefix(nu.runs[0].run.times.primary_t) + "](" +  vid+ ")",true)
-            
-            
-            message.channel.send(trackEmbed).then(sentMessage => {
-            
-                sentMessage.react('⏱️').then(() => {
-                    const filter = (reaction, user) => {
-                        return ['⏱️'].includes(reaction.emoji.name) && user.id !== "545798436105224203";
-                    };
-                    sentMessage.awaitReactions(filter, { max: 1})
-                        .then(collected => {
-                            const reaction = collected.first();
-                            if (reaction.emoji.name === '⏱️' && reaction.users.id !== "545798436105224203") {
-                                const tracktimesEmbed = new Discord.MessageEmbed()
-                                .setColor(planets[tracks[numb].planet].color)
-                                .setTitle(tracks[numb].name + " | Par Times")
-                                .setURL("https://docs.google.com/spreadsheets/d/1TwDtG6eOyiQZEZ3iTbZaEmthe5zdf9YEGJ-1tfFfQKg/edit?usp=sharing")
-                                .addField("FT 3-Lap", ":gem: " + tracks[numb].partimes[0] + "\n:first_place: " + tracks[numb].partimes[1] + "\n:second_place: " + tracks[numb].partimes[2] + "\n:third_place: " + tracks[numb].partimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[numb].partimes[4], true)
-                                .addField("FT 1-Lap", ":gem: " + tracks[numb].parlaptimes[0] + "\n:first_place: " + tracks[numb].parlaptimes[1] + "\n:second_place: " + tracks[numb].parlaptimes[2] + "\n:third_place: " + tracks[numb].parlaptimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[numb].parlaptimes[4], true)
-                                if (tracks[numb].hasOwnProperty("parskiptimes")) {
-                                    tracktimesEmbed.addField("Skips 3-Lap", ":gem: " + tracks[numb].parskiptimes[0] + "\n:first_place: " + tracks[numb].parskiptimes[1] + "\n:second_place: " + tracks[numb].parskiptimes[2] + "\n:third_place: " + tracks[numb].parskiptimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[numb].parskiptimes[4], true)
-                                }
-                                sentMessage.channel.send(tracktimesEmbed);
-                            } 
-                        })
-                })
-            
-        }) 
-            } catch (error) {
-                console.log(error)
-            }
-            
-        }
-        getwrData()
-        /*message.channel.send(trackEmbed).then(sentMessage => {
-            if(tracks[numb].skip !== "") {
-                sentMessage.react(':stopwatch:').then(() => {
-                    const filter = (reaction, user) => {
-                        return [':stopwatch:'].includes(reaction.emoji.name) && user.id !== "545798436105224203";
-                    };
-                    sentMessage.awaitReactions(filter, { max: 1})
-                        .then(collected => {
-                            const reaction = collected.first();
-                            if (reaction.emoji.name === ':stopwatch:' && reaction.users.id !== "545798436105224203") {
-                                const tracktimesEmbed = new Discord.MessageEmbed()
-                                .setColor(planets[tracks[numb].planet].color)
-                                .setTitle("[" + tracks[numb].name + " | MU/No Skip Par Times](" + https://docs.google.com/spreadsheets/d/1TwDtG6eOyiQZEZ3iTbZaEmthe5zdf9YEGJ-1tfFfQKg/edit?usp=sharing +")")
-                                .addField("3-Lap", ":trophy: " + tracks[numb].partimes[0] + "\n:first_place: " + tracks[numb].partimes[1] + "\n:second_place: " + tracks[numb].partimes[2] + "\n:third_place: " + tracks[numb].partimes[3] + "\n:bumpythumb: " + tracks[numb].partimes[4], true)
-                                .addField("1-Lap", ":trophy: " + tracks[numb].parlaptimes[0] + "\n:first_place: " + tracks[numb].parlaptimes[1] + "\n:second_place: " + tracks[numb].parlaptimes[2] + "\n:third_place: " + tracks[numb].parlaptimes[3] + "\n:bumpythumb: " + tracks[numb].parlaptimes[4], true)
-                                sentMessage.channel.send(tracktimesEmbed);
-                            } 
-                        })
-                })
-            }
-        }) */
-        
-    } else if(partime == true) {
-        const tracktimesEmbed2 = new Discord.MessageEmbed()
-        .setColor(planets[tracks[numb].planet].color)
-        .setTitle(tracks[numb].name + " | Par Times")
-        .setURL("https://docs.google.com/spreadsheets/d/1TwDtG6eOyiQZEZ3iTbZaEmthe5zdf9YEGJ-1tfFfQKg/edit?usp=sharing")
-        .addField("FT 3-Lap", ":gem: " + tracks[numb].partimes[0] + "\n:first_place: " + tracks[numb].partimes[1] + "\n:second_place: " + tracks[numb].partimes[2] + "\n:third_place: " + tracks[numb].partimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[numb].partimes[4], true)
-        .addField("FT 1-Lap", ":gem: " + tracks[numb].parlaptimes[0] + "\n:first_place: " + tracks[numb].parlaptimes[1] + "\n:second_place: " + tracks[numb].parlaptimes[2] + "\n:third_place: " + tracks[numb].parlaptimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[numb].parlaptimes[4], true)
-        if (tracks[numb].hasOwnProperty("parskiptimes")) {
-            tracktimesEmbed2.addField("Skips 3-Lap", ":gem: " + tracks[numb].parskiptimes[0] + "\n:first_place: " + tracks[numb].parskiptimes[1] + "\n:second_place: " + tracks[numb].parskiptimes[2] + "\n:third_place: " + tracks[numb].parskiptimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[numb].parskiptimes[4], true)
-        }
-        message.channel.send(tracktimesEmbed2);
-    }
-
-
-
-        random = Math.floor(Math.random()*voiceGeneral.length)
-        //playSfx(message, voiceGeneral[random]);
-    }
-
-    
-/////    !racer     //////       
-
-if(messageLow.startsWith(`${prefix}racer`) && !messageLow.startsWith(`${prefix}racers`)) {
-    if(message.content == (`${prefix}racer`)) {
-        var numb = Math.floor(Math.random()*23)}
-    if(
-    message.content == (`${prefix}racer canon`)) {
-        let canon = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 19]
-        var numb = canon[Math.floor(Math.random()*18)]}
-    if(
-    message.content == (`${prefix}racer noncanon`)) {
-        let canon = [15, 18, 20, 21, 22]
-        var numb = canon[Math.floor(Math.random()*5)]}
-    if(
-        messageLow.startsWith(`${prefix}racer top`) || messageLow == (`${prefix}racer s`)) {
-        var list = []
-        for (let i = 0; i < racers.length; i++) {
-            
-            if(racers[i].mu_tier == 0){
-                console.log(racers[i].name)
-                list.push(racers[i].racernum - 1)
-            }
-        }
-
-        var numb = list[Math.floor(Math.random()*list.length)]
-
-    }
-    if(
-        messageLow.startsWith(`${prefix}racer high`) || messageLow == (`${prefix}racer a`)) {
-        var list = []
-        for (let i = 0; i < racers.length; i++) {
-            
-            if(racers[i].mu_tier == 1){
-                console.log(racers[i].name)
-                list.push(racers[i].racernum - 1)
-            }
-        }
-
-        var numb = list[Math.floor(Math.random()*list.length)]
-
-    }
-    if(
-        messageLow.startsWith(`${prefix}racer mid`) || messageLow == (`${prefix}racer b`)) {
-        var list = []
-        for (let i = 0; i < racers.length; i++) {
-            
-            if(racers[i].mu_tier == 2){
-                console.log(racers[i].name)
-                list.push(racers[i].racernum - 1)
-            }
-        }
-
-        var numb = list[Math.floor(Math.random()*list.length)]
-
-    }
-    if(
-        messageLow.startsWith(`${prefix}racer low`) || messageLow == (`${prefix}racer f`)) {
-        var list = []
-        for (let i = 0; i < racers.length; i++) {
-            
-            if(racers[i].mu_tier == 3){
-                console.log(racers[i].name)
-                list.push(racers[i].racernum - 1)
-            }
-        }
-
-        var numb = list[Math.floor(Math.random()*list.length)]
-
-    }
-    
-    if(
-    messageLow.startsWith(`${prefix}racer as`) || 
-    messageLow.startsWith(`${prefix}racer anakin`) || 
-    messageLow.startsWith(`${prefix}racer skywalker`)) {
-        var numb = 0}
-    if(
-    messageLow.startsWith(`${prefix}racer tp`) || 
-    messageLow.startsWith(`${prefix}racer teemto`) || 
-    messageLow.startsWith(`${prefix}racer pagalies`)) {
-        var numb = 1}
-    if(
-    messageLow.startsWith(`${prefix}racer seb`) || 
-    messageLow.startsWith(`${prefix}racer sb`) || 
-    messageLow.startsWith(`${prefix}racer sebulba`)) {
-        var numb = 2}
-    if(
-    messageLow.startsWith(`${prefix}racer rt`) || 
-    messageLow.startsWith(`${prefix}racer ratts`) || 
-    messageLow.startsWith(`${prefix}racer tyerell`)){
-        var numb = 3}
-    if(
-    messageLow.startsWith(`${prefix}racer ab`) || 
-    messageLow.startsWith(`${prefix}racer aldar`) || 
-    messageLow.startsWith(`${prefix}racer beedo`)) {
-        var numb = 4}
-    if(
-    messageLow.startsWith(`${prefix}racer mh`) || 
-    messageLow.startsWith(`${prefix}racer mawhonic`) || 
-    messageLow.startsWith(`${prefix}racer maw`)) {
-        var numb = 5}
-    if(
-    messageLow.startsWith(`${prefix}racer ar`) || 
-    messageLow.startsWith(`${prefix}racer ark`) || 
-    messageLow.startsWith(`${prefix}racer bumpy`) || 
-    messageLow.startsWith(`${prefix}racer roose`)) {
-        var numb = 6}
-    if(
-    messageLow.startsWith(`${prefix}racer ws`) || 
-    messageLow.startsWith(`${prefix}racer wan`) || 
-    messageLow.startsWith(`${prefix}racer sandage`) ||
-    messageLow.startsWith(`${prefix}racer sandwich`)) {
-        var numb = 7}
-    if(
-    messageLow.startsWith(`${prefix}racer mg`) || 
-    messageLow.startsWith(`${prefix}racer mars`) || 
-    messageLow.startsWith(`${prefix}racer guo`)) {
-        var numb = 8}
-    if(
-    messageLow.startsWith(`${prefix}racer ee`) || 
-    messageLow.startsWith(`${prefix}racer ebe`) || 
-    messageLow.startsWith(`${prefix}racer endocott`)) {
-        var numb = 9}
-    if(
-    messageLow.startsWith(`${prefix}racer db`) || 
-    messageLow.startsWith(`${prefix}racer dud`) || 
-    messageLow.startsWith(`${prefix}racer bolt`)) {
-        var numb = 10}
-    if(
-    messageLow.startsWith(`${prefix}racer g`) || 
-    messageLow.startsWith(`${prefix}racer gg`) ||  
-    messageLow.startsWith(`${prefix}racer gas`)) {
-        var numb = 11}
-    if(
-    messageLow.startsWith(`${prefix}racer ch`) || 
-    messageLow.startsWith(`${prefix}racer clegg`) || 
-    messageLow.startsWith(`${prefix}racer holdfast`)) {
-        var numb = 12}
-    if(
-    messageLow.startsWith(`${prefix}racer em`) || 
-    messageLow.startsWith(`${prefix}racer elan`) || 
-    messageLow.startsWith(`${prefix}racer mak`)) {
-        var numb = 13}
-    if(
-    messageLow.startsWith(`${prefix}racer nk`) || 
-    messageLow.startsWith(`${prefix}racer neva`) || 
-    messageLow.startsWith(`${prefix}racer kee`)) {
-        var numb = 14}
-    if(
-    messageLow.startsWith(`${prefix}racer bb`) || 
-    messageLow.startsWith(`${prefix}racer bozzie`) || 
-    messageLow.startsWith(`${prefix}racer baranta`)) {
-        var numb = 15}
-    if(
-    messageLow.startsWith(`${prefix}racer br`) || 
-    messageLow.startsWith(`${prefix}racer boles`) || 
-    messageLow.startsWith(`${prefix}racer roor`)) {
-        var numb = 16}
-    if(
-    messageLow.startsWith(`${prefix}racer om`) || 
-    messageLow.startsWith(`${prefix}racer ody`) || 
-    messageLow.startsWith(`${prefix}racer mandrell`)) {
-        var numb = 17}
-    if(
-    messageLow.startsWith(`${prefix}racer fs`) || 
-    messageLow.startsWith(`${prefix}racer fud`) || 
-    messageLow.startsWith(`${prefix}racer sang`)) {
-        var numb = 18}
-    if(
-    messageLow.startsWith(`${prefix}racer bq`) || 
-    messageLow.startsWith(`${prefix}racer ben`) || 
-    messageLow.startsWith(`${prefix}racer quadinaros`) || 
-    messageLow.startsWith(`${prefix}racer god`)) {
-        var numb = 19}
-    if(
-    messageLow.startsWith(`${prefix}racer sp`) || 
-    messageLow.startsWith(`${prefix}racer slide`) || 
-    messageLow.startsWith(`${prefix}racer paramita`)) {
-        var numb = 20}
-    if(
-    messageLow.startsWith(`${prefix}racer td`) || 
-    messageLow.startsWith(`${prefix}racer toy`) || 
-    messageLow.startsWith(`${prefix}racer dampner`)) {
-        var numb = 21}
-    if(
-    messageLow.startsWith(`${prefix}racer bn`) || 
-    messageLow.startsWith(`${prefix}racer bullseye`) || 
-    messageLow.startsWith(`${prefix}racer navior`)) {
-        var numb = 22}
-    
-    if(numb == undefined && messageLow.startsWith(`${prefix}racers`) == false){
-        message.channel.send("*Perhaps the archives are incomplete.*")
-        //playSfx(message, voiceError[Math.floor(Math.random()*voiceError.length)])
-    }
-    else{
-        var racerFooter = racers[numb].footer
-        var Tier = ["Top", "High", "Mid", "Low"]
-        const racerEmbed = new Discord.MessageEmbed()
-            .setThumbnail(racers[numb].img)
-            .setColor('#00DE45')
-            .setTitle(racers[numb].name)
-            .setDescription("(" + (numb + 1) + ") " + racers[numb].intro)
-            .addField("Tier", Tier[racers[numb].mu_tier], true)
-            if (racers[numb].hasOwnProperty("species")){
-                racerEmbed.addField("Species/Homeworld", racers[numb].species, true)
-            }
-            racerEmbed.addField("Pod", racers[numb].Pod, true)
-            racerEmbed.setImage(racers[numb].stats)
-        message.channel.send(racerEmbed);
-        //playSfx(message, racers[numb].announce)
-    }
-}
-
-if(messageLow.startsWith(`${prefix}racers`) && message.channel.type !== "dm"){
-    if(arr.length > 0){
-        if(messageLow == (`${prefix}racers`)){
-            
-            var assignRacers = ""
-            var arrayLength = arr.length;
-            for (var i = 0; i < arrayLength; i++) {
-                assignRacers = assignRacers + "**" + arr[i].displayName + "**" + " - " + "*" + racers[Math.floor(Math.random()*23)].name + "*\n"
-            }
-            message.channel.send(assignRacers)
-
-        }
-        if(messageLow == (`${prefix}racers canon`)){
-            
-            var assignRacers = ""
-            var arrayLength = arr.length;
-            
-            for (var i = 0; i < arrayLength; i++) {
-                let canon = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 19]
-            var numb = canon[Math.floor(Math.random()*18)]
-                assignRacers = assignRacers + "**" + arr[i].displayName + "**" + " - " + "*" + racers[numb].name + "*\n"
-            }
-            message.channel.send(assignRacers)
-        }
-        if(messageLow == (`${prefix}racers noncanon`)){
-            
-            var assignRacers = ""
-            var arrayLength = arr.length;
-            for (var i = 0; i < arrayLength; i++) {
-                let noncanon = [15, 18, 20, 21, 22]
-            var numb = noncanon[Math.floor(Math.random()*5)]
-                assignRacers = assignRacers + "**" + arr[i].displayName + "**" + " - " + "*" + racers[numb].name + "*\n"
-            }
-            message.channel.send(assignRacers)
-        }
-        if(
-            messageLow.startsWith(`${prefix}racers top`) || messageLow == (`${prefix}racers s`)) {
-            var list = []
-            var assignRacers = ""
-            var arrayLength = arr.length;
-            //for each member in voicechannel
-
-            for (var i = 0; i < arrayLength; i++) {
-                    //gather racers from given tier
-                if (list.length == 0){
-                    console.log("refill")
-                    for (let i = 0; i < racers.length; i++) {
-                        if(racers[i].mu_tier == 0){
-                            list.push(racers[i].racernum - 1)
-                        }
-                    }
-                }
-                //pick random racer
-                var num = Math.floor(Math.random()*list.length)
-                var numb = list[num]
-                assignRacers = assignRacers + "**" + arr[i].displayName + "**" + " - " + "*" + racers[numb].name + "*\n"
-                list.splice(num, 1)
-            }
-            message.channel.send(assignRacers)
-        }
-        if(
-            messageLow.startsWith(`${prefix}racers high`) || messageLow == (`${prefix}racers a`)) {
-            var list = []
-            var assignRacers = ""
-            var arrayLength = arr.length;
-
-
-            //for each member in voicechannel
-            for (var i = 0; i < arrayLength; i++) {
-            if(list.length == 0){
-                    //gather racers from given tier
-                for (let i = 0; i < racers.length; i++) {
-                    if(racers[i].mu_tier == 1){
-                        list.push(racers[i].racernum - 1)
-                    }
-                }
-            }
-                //pick random racer
-                var num = Math.floor(Math.random()*list.length)
-                var numb = list[num]
-                assignRacers = assignRacers + "**" + arr[i].displayName + "**" + " - " + "*" + racers[numb].name + "*\n"
-                list.splice(num, 1)
-            }
-            message.channel.send(assignRacers)
-        }
-        if(
-            messageLow.startsWith(`${prefix}racers mid`) || messageLow == (`${prefix}racers b`)) {
-            var list = []
-            var assignRacers = ""
-            var arrayLength = arr.length;
-            //for each member in voicechannel
-            for (var i = 0; i < arrayLength; i++) {
-                if (list.length == 0){
-                    //gather racers from given tier
-                    for (let i = 0; i < racers.length; i++) {
-                        if(racers[i].mu_tier == 2){
-                            list.push(racers[i].racernum - 1)
-                        }
-                    }
-                }
-                //pick random racer
-                var num = Math.floor(Math.random()*list.length)
-                var numb = list[num]
-                assignRacers = assignRacers + "**" + arr[i].displayName + "**" + " - " + "*" + racers[numb].name + "*\n"
-                list.splice(num, 1)
-            }
-            message.channel.send(assignRacers)
-        }
-        if(
-            messageLow.startsWith(`${prefix}racers low`) || messageLow == (`${prefix}racers f`)) {
-            var list = []
-            var assignRacers = ""
-            var arrayLength = arr.length;
-            //for each member in voicechannel
-            for (var i = 0; i < arrayLength; i++) {
-                if (list.length == 0){
-                //gather racers from given tier
-                    for (let i = 0; i < racers.length; i++) {
-                        if(racers[i].mu_tier == 3){
-                            list.push(racers[i].racernum - 1)
-                        }
-                    }
-                }
-                //pick random racer
-                var num = Math.floor(Math.random()*list.length)
-                var numb = list[num]
-                assignRacers = assignRacers + "**" + arr[i].displayName + "**" + " - " + "*" + racers[numb].name + "*\n"
-                list.splice(num,1)
-            }
-            message.channel.send(assignRacers)
-        }
-    } else {
-        message.channel.send("What you want? No one's in the voice channel.")
-    }
-    
-
-}
-
-/////   !weekly    //////
-if(message.content.startsWith(`${prefix}weekly`)) {
-    if (args.length > 0) {
-        if (args[0].startsWith("q")) {
-            //generate approval queue
-        } else if (args[0].startsWith("challenge")) {
-            //set challenge
-        } else {
-            //submission
-        }
-    } else {
-        //post leaderboard
-    }
-}
-
 if(message.channel.id == 545800310283829270) { //775134898633048084 weekly challenge 
     var time = ""
     var embtitle = ""
@@ -1509,358 +354,1362 @@ if(message.channel.id == 545800310283829270) { //775134898633048084 weekly chall
     }
 }
 
-/*
-Stats:
-X - Total Challenges
-X - Standard
-X - Skips
-X - NU
-X - Non 3-Lap
-X - Mirror Mode
-
-Trends:
-Most played pod:
-Most played track:
-Most played planet:
-Most played circuit:
-
-Achievements:
-Complete a challenge on every track: X/25
-Complete a challenge with every pod: X/23
-Complete a skip challenge for every track with a skip: X/12
-Complete a NU challenge with every pod: X/23
-Complete a challenge as every pod on every track: X/575
-*/
-
-/////   !challenge    //////
-    if(message.content.startsWith(`${prefix}stats`)) {
-        var keys = Object.keys(challengedata)
-        var best = []
-        for (var i=0; i<keys.length; i++) {
-            var k = keys[i];
-            if(challengedata[k].track == random2 && challengedata[k].racer == random1 && challengedata[k].laps == laps && challengedata[k].mirror == mirror && challengedata[k].nu == nu && challengedata[k].skips == skips){
-                best.push(challengedata[k])
-            }
-        }
-        if(array.length == 0)
-        return null;
-    var modeMap = {};
-    var maxEl = array[0], maxCount = 1;
-    for(var i = 0; i < array.length; i++)
-    {
-        var el = array[i];
-        if(modeMap[el] == null)
-            modeMap[el] = 1;
-        else
-            modeMap[el]++;  
-        if(modeMap[el] > maxCount)
-        {
-            maxEl = el;
-            maxCount = modeMap[el];
-        }
-    }
-    return maxEl;
-    }
-
-    if(message.content.startsWith(`${prefix}odds`)) {
-        var record = ""
-        var desc = "You have not customized your odds. The default odds are listed below. "
-        if (oddsdata !==null) {
-            var keys = Object.keys(oddsdata)
-            for (var i=0; i<keys.length; i++) {
-                var k = keys[i];
-                if(oddsdata[k].name == message.author.id){
-                    record = k
-                    i = keys.length
-                }
-            }
-        }
-        if (record !== "") {
-            desc = "Your custom odds are listed below. "
-            odds_skips = oddsdata[k].skips
-            odds_noupgrades = oddsdata[k].no_upgrades
-            odds_non3lap = oddsdata[k].non_3_lap
-            odds_mirrormode = oddsdata[k].mirror_mode
-        } else {
-            odds_skips = 25
-            odds_noupgrades = 15
-            odds_non3lap = 5
-            odds_mirrormode = 5
-        }
-        const oddsEmbed = new Discord.MessageEmbed()
-        .setTitle("Customize Your `!challenge` Odds")
-        .setDescription(desc + "Change your odds by replying to this message with 4 numbers separated by commas in order of Skips, No Upgrades, Non 3-lap, and Mirror Mode. These numbers will be divided by 100 to determine the chances Botto will give their conditions in a `!challenge`. \n Example: 15, 20, 10, 0")
-        .addField("Your Odds", "Skips - " + odds_skips +"%\nNo Upgrades - " + odds_noupgrades +"%\nNon 3-Lap - " + odds_non3lap +"%\nMirror Mode - " + odds_mirrormode +"%", true)
-        .addField("Default Odds", "Skips - 25%\nNo Upgrades - 15%\nNon 3-Lap - 5%\nMirror Mode - 5%", true)
-        .setFooter("Reset your odds to default by typing 'default'")
-        message.channel.send(oddsEmbed);
-        var collected = false
-        const oddscollector = new Discord.MessageCollector(message.channel, m => m.author.id === message.author.id, { time: 500000 });
-        oddscollector.on('collect', message => {
-            if (!isNaN(Number(message.content.replace(/,/g, '').replace(/\s/g, "").replace(/%/g, ""))) && collected == false) {
-                if (oddsdata !==null) {
-                    var keys = Object.keys(oddsdata)
-                    for (var i=0; i<keys.length; i++) {
-                        var k = keys[i];
-                        if(oddsdata[k].name == message.author.id){
-                            oddsref.child(k).remove()
-                        }
-                    }
-                }
-                var odds = message.content.replace(/\s/g, "").replace(/%/g, "").split(",")
-                if (odds.length == 4) {
-                    var data = {
-                        name: message.author.id,
-                        skips: odds[0],
-                        no_upgrades: odds[1],
-                        non_3_lap: odds[2],
-                        mirror_mode: odds[3]
-                    }
-                    oddsref.push(data);
-                    message.reply("*Your new odds have been saved!*")
-                    collected = true
-                } else {
-                    message.reply("*Only four numbers!*")
-                }
-            } else if (message.content == "default") {
-                if (oddsdata !==null) {
-                    var keys = Object.keys(oddsdata)
-                    for (var i=0; i<keys.length; i++) {
-                        var k = keys[i];
-                        if(oddsdata[k].name == message.author.id){
-                            oddsref.child(k).remove()
-                        }
-                    }
-                }
-                message.reply("*Your odds have been reset to the default*")
-                collected = true
-            }
-        })
-    }
-
-    if(message.content.startsWith(`${prefix}challenge`)) {
-        message.channel.send("Use slash commands to generate a challenge: `/challenge generate`")
-    }
-
-/////    ?help    //////
-
-
-    if(message.content.toLowerCase().startsWith(`?help`) || message.content.startsWith(`${prefix}command`)) {
-        message.channel.send("You don't need my help. Check out the slash commands by typing forward slash: `/`!")
-    }
-
-    if(message.content.startsWith(`${prefix}stat`)) {
-        const helpEmbed = new Discord.MessageEmbed()
-            .setColor('#00DE45')
-            .setImage("https://i.imgur.com/ZAQAjfB.png")
-            //.setThumbnail("https://i.imgur.com/jzPQv54.png")
-            .setTitle("Racer Stat Guide")
-            
-        message.channel.send(helpEmbed)
-    }
-
-
-//////      MISC     ////////
-
-
-if(messageLow.startsWith(`${prefix}chancecube`)){
-    var numb = Math.floor(Math.random()*2)
-    if(numb == 0){
-        message.channel.send(":blue_square:")
-    }
-    else{
-        message.channel.send(":red_square:")
-    }
-}
-
-if(messageLow.startsWith(`${prefix}drive`)){
-    message.channel.send("https://drive.google.com/drive/folders/1ScgPE1i1EpSYXT16a1ocxQiouMCcE9z1?usp=sharing")
-}
-if(message.content.startsWith(`${prefix}cleanup`) && message.channel.type !== "dm") {
-    message.channel.messages.fetch({limit:30}).then(messages => {
-        const botMessages = messages.filter(msg => msg.author.bot || msg.content.startsWith("!") || msg.content == "?help");
-        message.channel.bulkDelete(botMessages);
-        messagesDeleted = botMessages.array().length; // number of messages deleted
-
-        // Logging the number of messages deleted on both the channel and console.
-        message.channel.send("*I gotta lots of junk!* \n`" + messagesDeleted + " messages deleted`")
-            .then(msg => {
-                msg.delete({ timeout: 5000, reason: 'bot cleanup'})
-            })
-            .catch()
-        console.log('Deletion of messages successful. Total messages deleted: ' + messagesDeleted)
-    }).catch(err => {
-        console.log('Error while doing Bulk Delete');
-        console.log(err);
-    });
-}
-
-if(message.content.startsWith(`${prefix}github`) || message.content.startsWith(`${prefix}code`)){
-    message.channel.send("https://github.com/louriccia/Botto")
-}
-
-if(message.content.startsWith(`${prefix}guide`)){
-    message.channel.send("https://docs.google.com/document/d/1lxVkuT80ug0BX2LMJp5CXcMVPZneLK4unOetLU3WlQQ/edit?usp=sharing")
-}
-
-if(message.content.startsWith(`${prefix}img`) || message.content.startsWith(`${prefix}image`)){
-    message.channel.send("Racers: https://imgur.com/a/uqTaaIl")
-    message.channel.send("Tracks: https://imgur.com/a/im0C1Tx")
-    message.channel.send("Planets: https://imgur.com/a/G5yhapp")
-}
-
-
-//if(messageLow.includes("botto")){
-//    message.channel.send("*What you want? Message `?help` for a list of commands.*")
-//}
-
-
-
-
-if(message.content.startsWith(`${prefix}test`)){
-    const helpEmbed = new Discord.MessageEmbed()
-        .setImage("https://i.imgur.com/4a1LSYg.gif")
-        .setTitle("Beedo Skip")
-        .setFooter("Its acE", "https://vignette.wikia.nocookie.net/starwars/images/f/f6/EE_Endocott_Headshot.png/revision/latest?cb=20131009010605")
-    message.channel.send(helpEmbed)
-}
-
-
-if(message.content.startsWith(`${prefix}tier`)){  
-    const helpEmbed = new Discord.MessageEmbed()
-    if (args[0] == "nu") {
-        helpEmbed.setTitle("NU Racer Tier List")
-        helpEmbed.addField(":gem: Top", "Boles Roor\nBen Quadinaros\nSebulba")
-        helpEmbed.addField(":first_place: High", "Aldar Beedo\n'Bullseye' Navior\nMars Guo\nRatts Tyerell\nMawhonic")
-        helpEmbed.addField(":second_place: Mid", "Toy Dampner\nClegg Holdfast\nEbe Endocott\nFud Sang\nAnakin Skywalker\nSlide Paramita\nArk 'Bumpy' Roose")
-        helpEmbed.addField(":third_place: Low", "Neva Kee\nDud Bolt\nElan Mak\nBozzie Baranta\nOdy Mandrell\nGasgano\nTeemto Pagalies\nWan Sandage")
-    } else {
-        helpEmbed.setTitle("MU Racer Tier List")
-        helpEmbed.addField(":gem: Top", "Ben Quadinaros\nBoles Roor\nMars Guo\nAldar Beedo\nElan Mak\nMawhonic\n'Bullseye' Navior")
-        helpEmbed.addField(":first_place: High", "Clegg Holdfast\nNeva Kee\nRatts Tyerell\nToy Dampner\nArk 'Bumpy' Roose\nBozzie Baranta\nFud Sang")
-        helpEmbed.addField(":second_place: Mid", "Dud Bolt\nOdy Mandrell\nGasgano\nWan Sandage\nAnakin Skywalker")
-        helpEmbed.addField(":third_place: Low", "Slide Paramita\nSebulba\nEbe Endocott\nTeemto Pagalies")
-    }
-    message.channel.send(helpEmbed)
-}
-
-
-
-if (!message.guild) return; //anything that shouldn't be called in a dm goes after this
-
-if(message.content.startsWith(`${prefix}speedrunning`)){
-    let role = message.guild.roles.cache.get("535973118578130954");
-    let member = message.member;
-    if(message.member.roles.cache.find(r => r.name === "Speedrunning")){
-        member.roles.remove(role).catch(console.error)
-        message.channel.send("<@" + member.user + "> no longer has the speedrunning role")
-    } else {
-        member.roles.add(role).catch(console.error);
-        message.channel.send("<@" + member.user + "> now has the speedrunning role")
-    } 
-}
-
-if(message.content.startsWith(`${prefix}multiplayer`)){
-    let role = message.guild.roles.cache.get("474920988790751232");
-    let member = message.member;
-    if(message.member.roles.cache.find(r => r.name === "Multiplayer")){
-        member.roles.remove(role).catch(console.error)
-        message.channel.send("<@" + member.user + "> no longer has the multiplayer role")
-    } else {
-        member.roles.add(role).catch(console.error);
-        message.channel.send("<@" + member.user + "> now has the multiplayer role")
-    } 
-}
-
-if(message.content.startsWith(`${prefix}teams`)){
-    
-    var assignTeams = ""
-    if (isNaN(args)){
-        message.channel.send("Specify the number of teams after the command. Ex: `!teams 2`")
-    } 
-    if(args == undefined || args == ""){
-        message.channel.send("Specify the number of teams after the command. Ex: `!teams 2`")
-    }
-    else {
-        var teams = ""
-        var teamnum = args
-        var playernum = arr.length
-        var remainder = playernum%teamnum
-        for(let i = 0; i<teamnum; i++){
-            teams = teams + "**Team " + (i+1) + "**\n"
-            for(let j = 0; j<(Math.floor(playernum/teamnum)); j++){
-                var random = Math.floor(Math.random()*arr.length)
-                teams = teams + arr[random].displayName + "\n"
-                arr.splice(random,1)
-                if(remainder > 0){
-                var random = Math.floor(Math.random()*arr.length)
-                teams = teams + arr[random].displayName + "\n"
-                arr.splice(random,1)
-                remainder = remainder - 1
-                }
-
-            }
-            teams = teams + "\n"
-
-        }
-        message.channel.send(teams)
-    }
-}
-
-
-if (message.content === ('!join')) {
-    // Only try to join the sender's voice channel if they are in one themselves
-    if (message.member.voiceChannel) {
-        if(!message.guild.voice.connection)
-
-        {   var numb = Math.floor(Math.random()*voiceJoin.length)
-            message.member.voiceChannel.join()
-            .then(connection => { // Connection is an instance of VoiceConnection
-                const dispatcher = connection.playArbitraryInput(voiceJoin[numb]);
-                dispatcher.setVolume(0.2);
-                dispatcher.on('end', () => {
-                  connection.disconnect
-                });
-              })
-        }
-    } else {
-      message.reply('You need to join a voice channel first!');
-    }
-} 
-
-if (message.content === ('!leave')) {
-    // Only try to join the sender's voice channel if they are in one themselves
-    if (message.guild.voice.connection) {
-      message.guild.voice.connection.disconnect()
-    } else {
-      message.reply("What you want? I'm not in a voice channel.");
-    }
-} 
-
-function playSfx(message, filePath)
-{
-    if (message.channel.type !== "dm") {
-    const voicecon = client.guilds.cache.get("441839750555369474")
-    if (message.member.voiceChannel && (voicecon.voice.connection !== null)) {
-        message.member.voiceChannel.join()
-          .then(connection => { // Connection is an instance of VoiceConnection
-            const dispatcher = connection.playFile(filePath);
-            dispatcher.setVolume(0.2);
-            dispatcher.on('end', () => {
-              connection.disconnect
-            });
-            //dispatcher.on('error', e => {
-              // Catch any errors that may arise
-            //  console.log(e);
-            //});
-           
-          })
-          .catch(console.log);
-      }
-    }
-}
 })
 
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+    name: 'botto',
+    description: 'introduces botto and provides an invite link'
+}})
 
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+    name: 'challenge',
+    description: 'randomly generated challenges',
+    options: [
+        {
+            name: "generate",
+            description: "get a random pod/track challenge; 15-minute time limit; submit your time below",
+            type: 1
+        },
+        {
+            name: "odds",
+            description: "view and customize your personal challenge odds of rolling no upgrades, skips, etc.",
+            type: 1,
+            options: [
+                {
+                    name: "skips",
+                    description: "x/100 chance of getting a skip challenge",
+                    type: 4,
+                    required: false
+                },
+                {
+                    name: "no_upgrades",
+                    description: "x/100 chance of getting a no upgrades challenge",
+                    type: 4,
+                    required: false
+                },
+                {
+                    name: "non_3_lap",
+                    description: "x/100 chance of getting a non 3-lap challenge",
+                    type: 4,
+                    required: false
+                },
+                {
+                    name: "mirrored",
+                    description: "x/100 chance of getting a mirrored challenge",
+                    type: 4,
+                    required: false
+                },
+                {
+                    name: "reset",
+                    description: "if true, resets your challenge odds to default",
+                    type: 5,
+                    required: false
+                }
+            ]
+        },
+        {
+            name: "stats",
+            description: "view your career stats and achievement progress for random challenges",
+            type: 1
+        },
+        {
+            name: "about",
+            description: "learn more about how the random challenges work and how to submit a time",
+            type: 1
+        }
+    ]
+}})
+
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+    name: 'chancecube',
+    description: "Blue—it's the boy. Red—his mother"
+}})
+
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: { //this stays as a guild command
+    name: 'cleanup',
+    description: 'deletes bot spam within the past # messages (defaults to 30)',
+    options: [
+        {
+            name: "messages",
+            description: "the number of messages to scan through for bot spam",
+            type: 4,
+            required: false
+        }
+    ]
+}})
+
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+    name: 'convert',
+    description: 'convert seconds to --:--.--- format and vice versa; for people who are bad at quick math',
+    options: [
+        {
+            name: "time",
+            description: "the seconds or mm:ss.sss you wish to convert",
+            type: 3,
+            required: true
+        }
+    ]
+}})
+
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+    name: 'help',
+    description: 'helpful information about botto commands and other stuff',
+    options: [
+        {
+            name: "commands",
+            description: "get a list of Botto's commands and descriptions for how to use them",
+            type: 1
+        },
+        {
+            name: "abbreviations",
+            description: "get a list of commonly used abbreviations for Star Wars Episode I: Racer",
+            type: 1
+        }
+    ]
+}})
+
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+    name: 'links',
+    description: 'quickly get the most commonly shared links on the SWE1R Discord',
+    options: [
+        {
+            name: "botto",
+            description: "Botto related links",
+            type: 2,
+            options: [
+                {
+                    name: "github",
+                    description: "posts a link to Botto's github page",
+                    type: 1
+                },
+                {
+                    name: "graphics",
+                    description: "posts imgur links to the graphics that Botto uses",
+                    type: 1
+                },
+                {
+                    name: "invite",
+                    description: "posts a link to invite Botto to your Discord",
+                    type: 1
+                }
+            ]
+        },
+        {
+            name: "drive",
+            description: "posts a link to the community Google Drive",
+            type: 1
+        },
+        {
+            name: "mp_guide",
+            description: "posts a link to the online multiplayer guide",
+            type: 1
+        },
+        {
+            name: "stats",
+            description: "posts a link to the pod and track statistics sheet",
+            type: 1
+        },
+        {
+            name: "src_resources",
+            description: "posts a link to the SWE1R speedrun.com resources page",
+            type: 1
+        },
+        {
+            name: "rtss",
+            description: "posts a link to download rivatuner for limiting the game's framerate",
+            type: 1
+        },
+        {
+            name: "dgvoodoo",
+            description: "posts a link to download dgvoodoo for running the game in windowed mode",
+            type: 1
+        }
+    ]
+}})
+
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+    name: 'lookup',
+    description: 'get information for racers, tracks, and more',
+    options: [
+        {
+            name: "racer",
+            description: "get information for a specific racer",
+            type: 1,
+            options: [
+                {
+                    name: "name",
+                    description: "racer's first name or initials",
+                    type: 3,
+                    required: true
+                }
+            ]
+        },
+        {
+            name: "track",
+            description: "get information for a specific track",
+            type: 1,
+            options: [
+                {
+                    name: "name",
+                    description: "track name or abbreviation",
+                    type: 3,
+                    required: true
+                },
+            ]
+        },
+        {
+            name: "times",
+            description: "get par times or projected goal times for each track and racer",
+            type: 2,
+            options: [
+                {
+                    name: "par_times",
+                    description: "look up the speedrunning par times for a specific track",
+                    type: 1,
+                    options: [
+                        {
+                            name: "track",
+                            description: "track name or abbreviation",
+                            type: 3,
+                            required: true
+                        }
+                    ]
+                },
+                {
+                    name: "goal_times",
+                    description: "get projected goal times for each pod, track, and upgrade",
+                    type: 1,
+                    options: [
+                        {
+                            name: "track",
+                            description: "track name or abbreviation",
+                            type: 3,
+                            required: true
+                        },
+                        {
+                            name: "racer",
+                            description: "racer initials or first name",
+                            type: 3,
+                            required: true
+                        },
+                        {
+                            name: "accel.",
+                            description: "upgrade level for acceleration",
+                            type: 3,
+                            required: true,
+                            choices: [
+                                {
+                                    name: "0: Dual 20 PCX",
+                                    value: "0"
+                                },
+                                {
+                                    name: "1: 44 PCX",
+                                    value: "1"
+                                },
+                                {
+                                    name: "2: Dual 32 PCX",
+                                    value: "2"
+                                },
+                                {
+                                    name: "3: Quad 32 PCX",
+                                    value: "3"
+                                },
+                                {
+                                    name: "4: Quad 44",
+                                    value: "4"
+                                },
+                                {
+                                    name: "5: Mag 6",
+                                    value: "5"
+                                }
+                            ]
+                        },
+                        {
+                            name: "top_speed",
+                            description: "upgrade level for top speed",
+                            type: 3,
+                            required: true,
+                            choices: [
+                                {
+                                    name: "0: Plug 2",
+                                    value: "0"
+                                },
+                                {
+                                    name: "1: Plug 3",
+                                    value: "1"
+                                },
+                                {
+                                    name: "2: Plug 5",
+                                    value: "2"
+                                },
+                                {
+                                    name: "3: Plug 8",
+                                    value: "3"
+                                },
+                                {
+                                    name: "4: Block 5",
+                                    value: "4"
+                                },
+                                {
+                                    name: "5: Block 6",
+                                    value: "5"
+                                }
+                            ]
+                        },
+                        {
+                            name: "cooling",
+                            description: "upgrade level for cooling",
+                            type: 3,
+                            required: true,
+                            choices: [
+                                {
+                                    name: "0: Coolant",
+                                    value: "0"
+                                },
+                                {
+                                    name: "1: Stack-3",
+                                    value: "1"
+                                },
+                                {
+                                    name: "2: Stack-6",
+                                    value: "2"
+                                },
+                                {
+                                    name: "3: Rod",
+                                    value: "3"
+                                },
+                                {
+                                    name: "4: Dual",
+                                    value: "4"
+                                },
+                                {
+                                    name: "5: Turbo",
+                                    value: "5"
+                                }
+                            ]
+                        }
+                        
+                    ]
+                },
+            ]
+        },
+        {
+            name: "tier",
+            description: "get a list of all the podracers grouped into four tiers",
+            type: 1,
+            options: [
+                {
+                    name: "upgrades",
+                    description: "the upgrade level that determines each pod's tier (defaults to mu)",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "max upgrades",
+                            value: "mu"
+                        },
+                        {
+                            name: "no upgrades",
+                            value: "nu"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            name: "prices",
+            description: "look up prices for each upgrade and get a total cost; avoid getting swindled by Watto",
+            type: 1,
+            options: [
+                {
+                    name: "traction",
+                    description: "upgrade level for traction",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "0: R-20",
+                            value: "0"
+                        },
+                        {
+                            name: "1: R-60",
+                            value: "1"
+                        },
+                        {
+                            name: "2: R-80",
+                            value: "2"
+                        },
+                        {
+                            name: "3: R-100",
+                            value: "3"
+                        },
+                        {
+                            name: "4: R-300",
+                            value: "4"
+                        },
+                        {
+                            name: "5: R-600",
+                            value: "5"
+                        }
+                    ]
+                },
+                {
+                    name: "turning",
+                    description: "upgrade level for turning",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "0: Linkage",
+                            value: "0"
+                        },
+                        {
+                            name: "1: Shift Plate",
+                            value: "1"
+                        },
+                        {
+                            name: "2: Vectro-Jet",
+                            value: "2"
+                        },
+                        {
+                            name: "3: Coupling",
+                            value: "3"
+                        },
+                        {
+                            name: "4: Nozzle",
+                            value: "4"
+                        },
+                        {
+                            name: "5: Stabilizer",
+                            value: "5"
+                        }
+                    ]
+                },
+                {
+                    name: "accel.",
+                    description: "upgrade level for acceleration",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "0: Dual 20 PCX",
+                            value: "0"
+                        },
+                        {
+                            name: "1: 44 PCX",
+                            value: "1"
+                        },
+                        {
+                            name: "2: Dual 32 PCX",
+                            value: "2"
+                        },
+                        {
+                            name: "3: Quad 32 PCX",
+                            value: "3"
+                        },
+                        {
+                            name: "4: Quad 44",
+                            value: "4"
+                        },
+                        {
+                            name: "5: Mag 6",
+                            value: "5"
+                        }
+                    ]
+                },
+                {
+                    name: "top_speed",
+                    description: "upgrade level for top speed",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "0: Plug 2",
+                            value: "0"
+                        },
+                        {
+                            name: "1: Plug 3",
+                            value: "1"
+                        },
+                        {
+                            name: "2: Plug 5",
+                            value: "2"
+                        },
+                        {
+                            name: "3: Plug 8",
+                            value: "3"
+                        },
+                        {
+                            name: "4: Block 5",
+                            value: "4"
+                        },
+                        {
+                            name: "5: Block 6",
+                            value: "5"
+                        }
+                    ]
+                },
+                {
+                    name: "air_brake",
+                    description: "upgrade level for air brake",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "0: Mark II",
+                            value: "0"
+                        },
+                        {
+                            name: "1: Mark III",
+                            value: "1"
+                        },
+                        {
+                            name: "2: Mark IV",
+                            value: "2"
+                        },
+                        {
+                            name: "3: Mark V",
+                            value: "3"
+                        },
+                        {
+                            name: "4: Tri-Jet",
+                            value: "4"
+                        },
+                        {
+                            name: "5: Quadrijet",
+                            value: "5"
+                        }
+                    ]
+                },
+                {
+                    name: "cooling",
+                    description: "upgrade level for cooling",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "0: Coolant",
+                            value: "0"
+                        },
+                        {
+                            name: "1: Stack-3",
+                            value: "1"
+                        },
+                        {
+                            name: "2: Stack-6",
+                            value: "2"
+                        },
+                        {
+                            name: "3: Rod",
+                            value: "3"
+                        },
+                        {
+                            name: "4: Dual",
+                            value: "4"
+                        },
+                        {
+                            name: "5: Turbo",
+                            value: "5"
+                        }
+                    ]
+                },
+                {
+                    name: "repair",
+                    description: "upgrade level for repair",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "0: Single",
+                            value: "0"
+                        },
+                        {
+                            name: "1: Dual2",
+                            value: "1"
+                        },
+                        {
+                            name: "2: Quad",
+                            value: "2"
+                        },
+                        {
+                            name: "3: Cluster",
+                            value: "3"
+                        },
+                        {
+                            name: "4: Rotary",
+                            value: "4"
+                        },
+                        {
+                            name: "5: Cluster 2",
+                            value: "5"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            name: "cheats",
+            description: "get a full list of cheats for the game",
+            type: 1,
+            options: [
+                {
+                    name: "system",
+                    description: "which version of the game to get cheats for",
+                    type: 3,
+                    required: true,
+                    choices: [
+                        {
+                            name: "PC",
+                            value: "PC"
+                        },
+                        {
+                            name: "console",
+                            value: "console"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}})
+
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+    name: 'random',
+    description: 'get a random racer, track, etc.',
+    options: [
+        {
+            name: "racer",
+            description: "get a random racer",
+            type: 1,
+            options: [
+                {
+                    name: "tier",
+                    description: "get a random racer from a specific tier",
+                    type: 3,
+                    required: false,
+                    options: [
+                        {
+                            name: "any",
+                            value: "any"
+                        },
+                        {
+                            name: "0 Top",
+                            value: "0"
+                        },
+                        {
+                            name: "1 High",
+                            value: "1"
+                        },
+                        {
+                            name: "2 Mid",
+                            value: "2"
+                        },
+                        {
+                            name: "3 Low",
+                            value: "3"
+                        }
+                    ]
+                },
+                {
+                    name: "canon",
+                    description: "get canonical or non-canonical racers",
+                    type: 3,
+                    required: false,
+                    options: [
+                        {
+                            name: "any",
+                            value: "any"
+                        },
+                        {
+                            name: "canon",
+                            value: "canon"
+                        },
+                        {
+                            name: "non-canon",
+                            value: "non-canon"
+                        }
+                    ]
+                },
+                {
+                    name: "vc",
+                    description: "whether to roll for everyone in your voice channel",
+                    type: 5,
+                    required: false
+                }
+            ]
+        },
+        {
+            name: "track",
+            description: "get a random track",
+            type: 1,
+            options: [
+                {
+                    name: "circuit",
+                    description: "roll a random track from a specific circuit",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "Amateur Circuit",
+                            value: "Amateur"
+                        },
+                        {
+                            name: "Semi-Pro Circuit",
+                            value: "Semi-Pro"
+                        },
+                        {
+                            name: "Galactic Circuit",
+                            value: "Galactic"
+                        },
+                        {
+                            name: "Invitational Circuit",
+                            value: "Invitational"
+                        }
+                    ]
+                },
+                {
+                    name: "planet",
+                    description: "roll a random track from a specific planet",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "Ando Prime",
+                            value: "Ando Prime"
+                        },
+                        {
+                            name: "Aquilaris",
+                            value: "Aquilaris"
+                        },
+                        {
+                            name: "Baroonda",
+                            value: "Baroonda"
+                        },
+                        {
+                            name: "Malastare",
+                            value: "Malastare"
+                        },
+                        {
+                            name: "Mon Gazza",
+                            value: "Mon Gazza"
+                        },
+                        {
+                            name: "Oovo IV",
+                            value: "Oovo IV"
+                        },
+                        {
+                            name: "Ord Ibanna",
+                            value: "Ord Ibanna"
+                        },
+                        {
+                            name: "Tatooine",
+                            value: "Tatooine"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            name: "challenge",
+            description: "get a random pod/track challenge",
+            type: 1,
+        },
+        {
+            name: 'teams',
+            description: 'divides everyone in your voice channel into # number of teams',
+            type: 1,
+            options: [
+                {
+                    name: "teams",
+                    description: "the number of teams you wish to create",
+                    type: 4,
+                    required: true
+                }
+            ]
+        },
+        {
+            name: "number",
+            description: "get a random number",
+            type: 1,
+            options: [
+                {
+                    name: "max",
+                    description: "get a random number between 1 and this number",
+                    type: 4,
+                    required: true,
+                }
+            ]
+        }
+    ]
+}})
+
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: { //this stays as a guild command
+    name: 'role',
+    description: "get or remove the speedrunning or multiplayer role",
+    options: [
+        {
+            name: "speedrunning",
+            description: "get or drop the speedrunning role",
+            type: 2,
+            options: [
+                {
+                    name: "get",
+                    description: "get this role",
+                    type: 1
+                },
+                {
+                    name: "remove",
+                    description: "remove this role",
+                    type: 1
+                }
+            ]
+            
+        },
+        {
+            name: "multiplayer",
+            description: "get or drop the multiplayer role",
+            type: 2,
+            options: [
+                {
+                    name: "get",
+                    description: "get this role",
+                    type: 1
+                },
+                {
+                    name: "remove",
+                    description: "remove this role",
+                    type: 1
+                }
+            ]
+        }
+    ]
+}})
+
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+    name: 'src',
+    description: 'get top-5 leaderboards from speedrun.com',
+    options: [
+        {
+            name: "IL",
+            description: "get individual level top-5 leaderboards from speedrun.com",
+            type: 1, //sub command
+            options: [
+                {
+                    name: "track",
+                    description: "the name or abbreviation of the track",
+                    type: 3, //string
+                    required: true
+                },
+                {
+                    name: "skips",
+                    description: "filter by skip runs or full track runs",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "any",
+                            value: "any"
+                        },
+                        {
+                            name: "skips",
+                            value: "skips"
+                        },
+                        {
+                            name: "full track",
+                            value: "ft"
+                        }
+                    ]
+                },
+                {
+                    name: "upgrades",
+                    description: "filter by upgrade runs and no upgrade (nu) runs",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "any",
+                            value: "any"
+                        },
+                        {
+                            name: "upgrades",
+                            value: "mu" 
+                        },
+                        {
+                            name: "no upgrades",
+                            value: "nu"
+                        }
+                    ]
+                },
+                {
+                    name: "platform",
+                    description: "filter runs by platform",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "any",
+                            value: "any"
+                        },
+                        {
+                            name: "PC",
+                            value: "pc" 
+                        },
+                        {  
+                            name: "Nintendo 64",
+                            value: "n64"
+                        },
+                        {
+                            name: "Dreamcast",
+                            value: "dc"
+                        },
+                        {
+                            name: "Nintendo Switch",
+                            value: "switch"
+                        },
+                        {
+                            name: "PlayStation 4",
+                            value: "ps4"
+                        }
+                    ]
+                },
+                {
+                    name: "laps",
+                    description: "show 3-lap or 1-lap runs (defaults to 3-lap)",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "3-lap",
+                            value: "3"
+                        },
+                        {
+                            name: "1-lap (flap)",
+                            value: "1"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            name: "RTA",
+            description: "get real time attack top-5 leaderboards from speedrun.com",
+            type: 1, //sub command
+            options: [
+                {
+                    name: "category",
+                    description: "the name or abbreviation of the category",
+                    type: 3,//string
+                    required: true,
+                    choices: [
+                        {
+                            name: "Any%",
+                            value: "any%"
+                        },
+                        {
+                            name: "Semi-Pro Circuit",
+                            value: "spc"
+                        },
+                        {
+                            name: "Amateur Circuit",
+                            value: "amc"
+                        },
+                        {
+                            name: "100%",
+                            value: "100%"
+                        },
+                        {
+                            name: "All Tracks New Game+",
+                            value: "ng+"
+                        }
+                    ]
+                },
+                {
+                    name: "skips",
+                    description: "filter by skip runs or full track runs",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "any",
+                            value: "any"
+                        },
+                        {
+                            name: "skips",
+                            value: "skips"
+                        },
+                        {
+                            name: "full track",
+                            value: "ft"
+                        }
+                    ]
+                },
+                {
+                    name: "upgrades",
+                    description: "filter by upgrade runs (mu) and no upgrade runs (nu)",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "any",
+                            value: "any"
+                        },
+                        {
+                            name: "upgrades",
+                            value: "mu" 
+                        },
+                        {
+                            name: "no upgrades",
+                            value: "nu"
+                        }
+                    ]
+                },
+                {
+                    name: "platform",
+                    description: "filter runs by platform",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "any",
+                            value: "any"
+                        },
+                        {
+                            name: "PC",
+                            value: "pc" 
+                        },
+                        {  
+                            name: "Nintendo 64",
+                            value: "n64"
+                        },
+                        {
+                            name: "Dreamcast",
+                            value: "dc"
+                        },
+                        {
+                            name: "Nintendo Switch",
+                            value: "switch"
+                        },
+                        {
+                            name: "PlayStation 4",
+                            value: "ps4"
+                        }
+                    ]
+                }
+            ]
+        },
+        
+        
+    ]
+}})
+
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+    name: 'teams',
+    description: 'divides everyone in your voice channel into # number of teams',
+    options: [
+        {
+            name: "number",
+            description: "the number of teams you wish to create",
+            type: 4,
+            required: true
+        }
+    ]
+}})
+
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+    name: 'tourney',
+    description: 'get top-5 leaderboards for tournament runs of each track',
+    options: [
+        {
+            name: "track",
+            description: "name or abbreviation of the track",
+            type: 3,
+            required: true
+        },
+        {
+            name: "skips",
+            description: "filter by skip runs or full track runs",
+            type: 3,
+            required: false,
+            choices: [
+                {
+                    name: "any",
+                    value: "any"
+                },
+                {
+                    name: "skips",
+                    value: "skips"
+                },
+                {
+                    name: "full track",
+                    value: "ft"
+                }
+            ]
+        },
+        {
+            name: "upgrades",
+            description: "filter by upgrade runs (mu) or no upgrade runs (nu)",
+            type: 3,
+            required: false,
+            choices: [
+                {
+                    name: "any",
+                    value: "any"
+                },
+                {
+                    name: "upgrades",
+                    value: "mu" 
+                },
+                {
+                    name: "no upgrades",
+                    value: "nu"
+                }
+            ]
+        },
+        {
+            name: "pod",
+            description: "Filter runs by specific pods. Filter out pods with 'no' or '-'. Multiple entries accepted",
+            type: 3,
+            required: false,
+        },
+        {
+            name: "deaths",
+            description: "filter runs by deaths or deathless",
+            type: 3,
+            required: false,
+            choices: [
+                {
+                    name: "any",
+                    value: "any"
+                },
+                {
+                    name: "deaths",
+                    value: "deaths"
+                },
+                {
+                    name: "deathless",
+                    value: "deathless"
+                }
+            ]
+        },
+        {
+            name: "year",
+            description: "filter runs by the year the tournament was held",
+            type: 4,
+            required: false,
+            choices: [
+                {
+                    name: 2019,
+                    value: 2019
+                },
+                {
+                    name: 2020,
+                    value: 2020
+                }
+            ]
+        }
+    ]
+}})
+
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+    name: 'weekly',
+    description: 'view leaderboards and create submissions for the weekly challenge',
+    options: [
+        {
+            name: "leaderboard",
+            description: "get leaderboard for current weekly challenge",
+            type: 1
+        },
+        {
+            name: "challenge",
+            description: "view the current weekly challenge or post a new one",
+            type: 2,
+            options: [
+                {
+                    name: "view",
+                    description: "show the current weekly challenge",
+                    type: 1
+                },
+                {
+                    name: "post",
+                    description: "post a new weekly challenge",
+                    type: 1,
+                    options: [
+                        {
+                            name: "author",
+                            description: "the user who created the challenge",
+                            type: 6,
+                            required: true
+                        },
+                        {
+                            name: "title",
+                            description: "the name of the challenge",
+                            type: 3,
+                            required: true
+                        },
+                        {
+                            name: "blurb",
+                            description: "a creative description to contextualize the challenge in the lore",
+                            type: 3,
+                            required: true
+                        },
+                        {
+                            name: "pod",
+                            description: "the pod that must be used in the challenge",
+                            type: 3,
+                            required: true
+                        },
+                        {
+                            name: "upgrades",
+                            description: "the upgrades that must be used in this challenge",
+                            type: 3,
+                            required: true,
+                            choices: [
+                                {
+                                    name: "full upgrades",
+                                    value: "mu"
+                                },
+                                {
+                                    name: "no upgrades",
+                                    value: "nu"
+                                },
+                                {
+                                    name: "any",
+                                    value: "any"
+                                },
+                                {
+                                    name: "custom",
+                                    value: "custom"
+                                }
+                            ]
+                        },
+                        {
+                            name: "track",
+                            description: "the challenge track",
+                            type: 3,
+                            required: true
+                        },
+                        {
+                            name: "laps",
+                            description: "the number of laps for the challenge",
+                            type: 3,
+                            required: true,
+                            choices: [
+                                {
+                                    name: "1",
+                                    value: "1"
+                                },
+                                {
+                                    name: "2",
+                                    value: "2"
+                                },
+                                {
+                                    name: "3",
+                                    value: "3"
+                                },
+                                {
+                                    name: "4",
+                                    value: "4"
+                                },
+                                {
+                                    name: "5",
+                                    value: "5"
+                                },
+                                {
+                                    name: "flap",
+                                    value: "flap"
+                                }
+                            ]
+                        },
+                        {
+                            name: "skips",
+                            description: "the allowed route for this challenge",
+                            type: 3,
+                            required: true,
+                            choices: [
+                                {
+                                    name: "skips",
+                                    value: "skips"
+                                },
+                                {
+                                    name: "full track",
+                                    value: "ft"
+                                },
+                                {
+                                    name: "custom",
+                                    value: "custom"
+                                }
+                            ]
+                        },
+                        {
+                            name: "conditions",
+                            description: "any additional challenge conditions such as mirror mode, ai, specific routes and custom upgrades",
+                            type: 3,
+                            required: true,
+                        },
+                        {
+                            name: "duedate",
+                            description: "the last day of the challenge (ends at midnight ET), please use MM/DD/YYYY",
+                            type: 3,
+                            required: true
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            name: "submission",
+            description: "create a submission for the weekly challenge",
+            type: 1,
+            options: [
+                {
+                    name: "time",
+                    description: "the time achieved for this submission",
+                    type: 3,
+                    required: true
+                },
+                {
+                    name: "platform",
+                    description: "the platform used to complete the challenge",
+                    type: 3,
+                    required: true,
+                    choices: [
+                        {
+                            name: "PC",
+                            value: "pc" 
+                        },
+                        {  
+                            name: "Nintendo 64",
+                            value: "n64"
+                        },
+                        {
+                            name: "Dreamcast",
+                            value: "dc"
+                        },
+                        {
+                            name: "Nintendo Switch",
+                            value: "switch"
+                        },
+                        {
+                            name: "PlayStation 4",
+                            value: "ps4"
+                        }
+                    ]
+                },
+                {
+                    name: "proof",
+                    description: "the link to the video or image proof",
+                    type: 3,
+                    required: true
+                },
+                {
+                    name: "user",
+                    description: "the user who performed the run (if not yourself)",
+                    type: 6,
+                    required: false
+                }
+            ]
+        }
+    ]
+}})
 
 client.login(process.env.token);

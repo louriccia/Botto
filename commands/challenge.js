@@ -28,7 +28,7 @@ module.exports = {
             console.log("The read failed: " + errorObject.code);
         });
         //const myEmbed = new Discord.MessageEmbed()
-        if(args[0].name =="generate") {
+        if(args[0].name =="generate" || args[0].name =="challenge") {
             
             let member = interaction.member.user.id
             var vc = false
@@ -201,37 +201,35 @@ module.exports = {
             })
             client.channels.cache.get(interaction.channel_id).send(createEmbed("",null)).then(sentMessage => {
             //collect feedback
-                sentMessage.react('👍').then(()=> sentMessage.react('👎'));
-                var feedback = ""
-                const filter = (reaction, user) => {
-                    return (['👍', '👎'].includes(reaction.emoji.name) && user.id === interaction.member.user.id);
-                };              
-                sentMessage.awaitReactions(filter, 
-                    {time: 900000})
-                    .then(collected => {
-                        console.log(collected.first().emoji.name);
-                        const reaction = collected.first();
-                        if (reaction.emoji.name === '👍') {
-                            feedback = '👍'
-                        } else {
-                            feedback = '👎'
-                        }
-                        var feedbackdata = {
-                            user: user.id,
-                            name: user.username,
-                            feedback: feedback,
-                            date: sentMessage.createdTimestamp,
-                            racer: random1,
-                            track: random2,
-                            laps: laps,
-                            nu: nu,
-                            skips: skips,
-                            mirror: mirror
-                        }
-                        feedbackref.push(feedbackdata);
-                    })
-                    .catch(console.error)
-                    
+                sentMessage.react('👍').then(()=> sentMessage.react('👎')).then(() =>{
+                    var feedback = ""
+                    const filter = (reaction, user) => {
+                        return (['👍', '👎'].includes(reaction.emoji.name) && user.id === interaction.member.user.id);
+                    };   
+                    sentMessage.awaitReactions(filter, {time: 900000})
+                        .then(collected => {
+                            const reaction = collected.first();
+                            if (reaction.emoji.name === '👍') {
+                                feedback = '👍'
+                            } else {
+                                feedback = '👎'
+                            }
+                            var feedbackdata = {
+                                user: user.id,
+                                name: user.username,
+                                feedback: feedback,
+                                date: sentMessage.createdTimestamp,
+                                racer: random1,
+                                track: random2,
+                                laps: laps,
+                                nu: nu,
+                                skips: skips,
+                                mirror: mirror
+                            }
+                            feedbackref.push(feedbackdata);
+                        })
+                        .catch(console.error)
+                })
                 setTimeout(async function() { //5 minute warning
                     if(!collected){
                         try { 
@@ -459,7 +457,56 @@ module.exports = {
                 }
             })
         } else if(args[0].name=="stats") {
-                    /*
+        /*
+        Stats:
+        X - Total Challenges
+        X - Standard
+        X - Skips
+        X - NU
+        X - Non 3-Lap
+        X - Mirror Mode
+
+        Trends:
+        Most played pod:
+        Most played track:
+        Most played planet:
+        Most played circuit:
+
+        Achievements:
+        Complete a challenge on every track: X/25
+        Complete a challenge with every pod: X/23
+        Complete a skip challenge for every track with a skip: X/12
+        Complete a NU challenge with every pod: X/23
+        Complete a challenge as every pod on every track: X/575
+
+        var keys = Object.keys(challengedata)
+        var best = []
+        for (var i=0; i<keys.length; i++) {
+            var k = keys[i];
+            if(challengedata[k].track == random2 && challengedata[k].racer == random1 && challengedata[k].laps == laps && challengedata[k].mirror == mirror && challengedata[k].nu == nu && challengedata[k].skips == skips){
+                best.push(challengedata[k])
+            }
+        }
+        if(array.length == 0)
+        return null;
+        var modeMap = {};
+        var maxEl = array[0], maxCount = 1;
+        for(var i = 0; i < array.length; i++)
+        {
+            var el = array[i];
+            if(modeMap[el] == null)
+                modeMap[el] = 1;
+            else
+                modeMap[el]++;  
+            if(modeMap[el] > maxCount)
+            {
+                maxEl = el;
+                maxCount = modeMap[el];
+            }
+        }
+        return maxEl;
+        }
+
         client.api.interactions(interaction.id, interaction.token).callback.post({
             data: {
                 type: 4,

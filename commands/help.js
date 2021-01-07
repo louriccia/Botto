@@ -6,6 +6,9 @@ module.exports = {
         if(args[0].name =="abbreviations") {
             helpEmbed
             .setTitle("SWE1R Abbreviations")
+            .setAuthor("/help")
+            .setThumbnail("https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/259/white-question-mark_2754.png")
+            .setColor("CDD7DE")
             .setURL("https://www.speedrun.com/swe1r/thread/nf4bo")
             .addField(":large_blue_diamond: General",
             "Swe1r/SWR --- Star Wars Ep. I Racer\n" +
@@ -56,45 +59,29 @@ module.exports = {
             "Inferno --- INF")
         } else if(args[0].name=="commands") {
             helpEmbed
-            //.setColor('#00DE45')
-            //.setImage("https://i.imgur.com/ZAQAjfB.png")
-            //.setThumbnail("https://i.imgur.com/jzPQv54.png")
             .setTitle("Botto Command List")
-            .addField(":large_blue_diamond: General", "`?help` - list of commands\n" +
-            "`!cleanup` - deletes command and bot messages within the past 30 messages\n" +
-            "`!github` - reveals Botto github link\n" +
-            "`!img` - reveals links to racer/track graphics on imgur\n" +
-            "`!guide` - posts link to multiplayer setup guide\n" +
-            "`!drive` - posts link to Google Drive\n" +
-            "`!abb` - posts list of commonly used abbreviations", false)
-            .addField(":busts_in_silhouette: Roles", "`!multiplayer` - adds or removes multiplayer role\n" +
-            "`!speedrunning` - adds or removes speedrunning role", false)
-            .addField(":trophy: Speedrun.com Leaderboards", "`!src <track>` - shows top 5 3-lap times for given track\n" +
-            "`!src <category>` - shows top 5 times for given category (any,100,amc,spc,ng+)\n" +
-            "`!src <track/category> <mu/nu> <skips/ft> <pc/n64/dc/switch/ps4> <flap>` - filters leaderboard", false)
-            .addField(":checkered_flag: Tournament Leaderboards", "`!tourney <track>` - shows top 5 tournament times for given track\n" +
-            "`!tourney <track> <skips/ft> <mu/nu> <deaths/deathless> <pod/no pod> <year>` - filters leaderboard", false)
-            .addField(":game_die: Randomizers", "`!racer(s)` - random racer (adding “s” rolls for all players in voice channel)\n" +
-            "`!racer(s) canon` - random canon racer\n" +
-            "`!racer(s) noncanon` - random noncanon racer\n" +
-            "`!racer(s) <tier>` - random racer from given tier (low/f, mid/b, high/a, top/s)\n" +
-            "`!track` - random track\n" +
-            "`!track <circuit>` - random track from given circuit\n" +
-            "`!track <planet>` - random track from given planet\n" +
-            "`!challenge` - random racer + random track\n" +
-            "`!teams <n>` - randomly splits members in voice channel into *n* number of teams\n" +
-            "`!chancecube` - “let fate decide”\n" +
-            "`!random <n>` - generates random number between 1 and *n*", false)
-            .addField(":mag_right: Lookup", "`!racer <name/initials>` - look up specific racer\n" +
-            "`!track <name/acronym>` - look up specific track\n"+
-            "`!track <name/acronym> times` - look up par times for given track\n"+
-            "`!tier (nu)` - posts MU/NU pod tier list\n" +
-            "`!stat` - reveals racer stat guide\n", false)
+            .setAuthor("/help")
+            .setThumbnail("https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/259/white-question-mark_2754.png")
+            .setColor("CDD7DE")
+            .setDescription("Botto uses slash commands. Type a forward slash '/' to view a list of available commands and helpful descriptions for what they each do.")
+            .addField("/botto", "introduces botto and provides an invite link", false)
+            .addField("/challenge", "get randomly generated, 15-minute challenges", false)
+            .addField("/chancecube", "coinflip; 'Blue--it's the boy. Red--his mother'", false)
+            .addField("/cleanup [SWE1R Discord only]", "cleans up bot spam", false)
+            .addField("/convert", "converts seconds to --:--.--- and vice versa", false)
+            .addField("/help", "get helpful information about commands and abbreviations", false)
+            .addField("/links", "get the most common links shared in the SWE1R Discord", false)
+            .addField("/lookup", "get information for each track, racer, etc.", false)
+            .addField("/random", "roll random tracks, racers, and teams", false)
+            .addField("/role [SWE1R Discord only]", "add or remove the speedrunning and multiplayer roles", false)
+            .addField("/src", "get top-5 leaderboards from speedrun.com", false)
+            .addField("/tourney", "get top-5 leaderboards from past tournaments", false)
+            .addField("/weekly", "submit times and view leaderboards for the weekly challenge", false)
         }
         
         client.api.interactions(interaction.id, interaction.token).callback.post({
             data: {
-                type: 4,
+                type: 3,
                 data: {
                     //content: "Here's some help!",
                     embeds: [helpEmbed]
