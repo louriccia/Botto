@@ -76,7 +76,7 @@ client.ws.on('INTERACTION_CREATE', async interaction => {
             data: {
                 type: 4,
                 data: {
-                    content: "something went wrong"
+                    content: "`Error: Command failed to execute `\n" + error[Math.floor(Math.random()*error.length)]
                 }
             }
         })
@@ -245,12 +245,12 @@ client.on('voiceStateUpdate', (oldState, newState) => {
 client.on('message', message => {
     if(message.author.bot) return; //trumps any command from executing from a bot message
 
-    if (message.startsWith(`${prefix}guilds`)) {
+    if (message ==`${prefix}guilds`) {
     console.log(client.guilds.cache)
     //console.log(client.guilds.cache.get("697833083201650689"))
     }
 
-    if (message.startsWith(`${prefix}ping`)) {
+    if (message ==`${prefix}ping`) {
         //console.log(client.guilds.cache)
         client.channels.cache.get("444208252541075476").send("I'm alive! I've been up for `" + tools.timefix(client.uptime/1000) + "` since `" + client.readyAt + "`");
     }

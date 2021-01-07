@@ -4,8 +4,8 @@ module.exports = {
         const Discord = require('discord.js');
         const myEmbed = new Discord.MessageEmbed()
         var limit = 30
-        if(args[0].hasOwnProperty("options")){
-            limit = args[0].options[0].value
+        if(args[0].length>0){
+            limit = args[0].value
         }
         client.channels.cache.get(interaction.channel_id).messages.fetch({limit:limit}).then(messages => {
             const botMessages = messages.filter(msg => msg.author.bot || msg.content.startsWith("!") || msg.content == "?help");
