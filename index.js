@@ -593,7 +593,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                             required: true
                         },
                         {
-                            name: "accel.",
+                            name: "accel",
                             description: "upgrade level for acceleration",
                             type: 3,
                             required: true,
@@ -786,7 +786,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                     ]
                 },
                 {
-                    name: "accel.",
+                    name: "accel",
                     description: "upgrade level for acceleration",
                     type: 3,
                     required: false,
