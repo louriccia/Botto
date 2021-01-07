@@ -2,7 +2,7 @@ module.exports = {
     name: 'convert',
     execute(client, interaction, args) {
         output = ""
-        var time = args[0].options[0].value
+        var time = args[0].value
         if(time.includes(":")) {
             output = tools.timetoSeconds(time)
         } else{

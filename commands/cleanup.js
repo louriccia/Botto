@@ -3,7 +3,11 @@ module.exports = {
     execute(client, interaction, args) {
         const Discord = require('discord.js');
         const myEmbed = new Discord.MessageEmbed()
-        client.channels.cache.get(interaction.channel_id).messages.fetch({limit:30}).then(messages => {
+        var limit = 30
+        if(args[0].hasOwnProperty("options")){
+            limit = args[0].options[0].value
+        }
+        client.channels.cache.get(interaction.channel_id).messages.fetch({limit:limit}).then(messages => {
             const botMessages = messages.filter(msg => msg.author.bot || msg.content.startsWith("!") || msg.content == "?help");
             client.channels.cache.get(interaction.channel_id).bulkDelete(botMessages);
             messagesDeleted = botMessages.array().length; // number of messages deleted

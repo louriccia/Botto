@@ -67,16 +67,17 @@ module.exports = {
             .addField("/botto", "introduces botto and provides an invite link", false)
             .addField("/challenge", "get randomly generated, 15-minute challenges", false)
             .addField("/chancecube", "coinflip; 'Blue--it's the boy. Red--his mother'", false)
-            .addField("/cleanup [SWE1R Discord only]", "cleans up bot spam", false)
+            .addField("/cleanup*", "cleans up bot spam", false)
             .addField("/convert", "converts seconds to --:--.--- and vice versa", false)
             .addField("/help", "get helpful information about commands and abbreviations", false)
             .addField("/links", "get the most common links shared in the SWE1R Discord", false)
             .addField("/lookup", "get information for each track, racer, etc.", false)
             .addField("/random", "roll random tracks, racers, and teams", false)
-            .addField("/role [SWE1R Discord only]", "add or remove the speedrunning and multiplayer roles", false)
+            .addField("/role*", "add or remove the speedrunning and multiplayer roles", false)
             .addField("/src", "get top-5 leaderboards from speedrun.com", false)
             .addField("/tourney", "get top-5 leaderboards from past tournaments", false)
             .addField("/weekly", "submit times and view leaderboards for the weekly challenge", false)
+            .setFooter("*Only available on the SWE1R Discord")
         }
         
         client.api.interactions(interaction.id, interaction.token).callback.post({

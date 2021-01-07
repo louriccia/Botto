@@ -8,16 +8,16 @@ module.exports = {
         const myEmbed = new Discord.MessageEmbed()
             .setAuthor("/links")
             .setColor("00A4C4")
-            .setThumbnail("https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/259/link_1f517.png")
+            //.setThumbnail("https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/259/link_1f517.png")
         if(args[0].name =="botto") {
-            if(args[1].name =="github") {
+            if(args[0].options[0].name =="github") {
                 title = "Botto Github"
                 link = "https://github.com/louriccia/Botto"
                 desc = "Botto’s github repository. View this bot's code and follow its development."
-            } else if(args[1].name=="graphics") {
+            } else if(args[0].options[0].name=="graphics") {
                 title = "Botto Graphics"
                 desc = "Botto's image resources are available at the following links:\n[Racer stat graphics](https://imgur.com/a/uqTaaIl)\n[Track graphics](https://imgur.com/a/im0C1Tx)\n[Planet thumbnails](https://imgur.com/a/G5yhapp)"
-            } else if(args[1].name=="invite") {
+            } else if(args[0].options[0].name=="invite") {
                 title = "Botto Invite"
                 desc = "Use this link to add Botto to your own server"
                 link = "https://discord.com/api/oauth2/authorize?client_id=545798436105224203&permissions=0&scope=bot%20applications.commands"
@@ -35,7 +35,7 @@ module.exports = {
             desc = "The hidden vehicle stats for each racer and their values for each upgrade as well as track data"
             link = "https://docs.google.com/spreadsheets/d/1CPF8lfU_iDpLNIJsOWeU8Xg23BzQrxzi3-DEELAgxUA/edit?usp=sharing"
         } else if(args[0].name=="src_resources") {
-            title = "speedrun.com resources for Star Wars Racer"
+            title = "Speedrun.com Resources for Star Wars Racer"
             desc = "Download the autosplitter and game saves for 100% completion and every traction upgrade"
             link = "https://www.speedrun.com/swe1r/resources"
         } else if(args[0].name=="rtss") {
