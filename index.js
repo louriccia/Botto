@@ -62,7 +62,6 @@ ref.on("value", function(snapshot) {
     console.log("The read failed: " + errorObject.code);
   });
 
-const fetch = require('node-fetch');
 
 client.ws.on('INTERACTION_CREATE', async interaction => {
     const command = interaction.data.name.toLowerCase();
@@ -246,12 +245,12 @@ client.on('voiceStateUpdate', (oldState, newState) => {
 client.on('message', message => {
     if(message.author.bot) return; //trumps any command from executing from a bot message
 
-    if (messageLow.startsWith(`${prefix}guilds`)) {
+    if (message.startsWith(`${prefix}guilds`)) {
     console.log(client.guilds.cache)
     //console.log(client.guilds.cache.get("697833083201650689"))
     }
 
-    if (messageLow.startsWith(`${prefix}ping`)) {
+    if (message.startsWith(`${prefix}ping`)) {
         //console.log(client.guilds.cache)
         client.channels.cache.get("444208252541075476").send("I'm alive! I've been up for `" + tools.timefix(client.uptime/1000) + "` since `" + client.readyAt + "`");
     }
