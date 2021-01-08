@@ -163,6 +163,7 @@ module.exports = {
                         if(pool.indexOf(pool[i])>-1){
                             pool.splice(pool.indexOf(pool[i]), 1)
                             console.log(pool[i] + " was removed for being the wrong circuit")
+                            i=i-1
                         }
                     }
                     console.log(pool)
@@ -174,6 +175,7 @@ module.exports = {
                         if(pool.indexOf(pool[i])>-1){
                             pool.splice(pool.indexOf(pool[i]), 1)
                             console.log(pool[i] + " was removed for being the wrong planet")
+                            i=i-1
                         }
                     }
                     console.log(pool)
