@@ -39,19 +39,19 @@ module.exports = {
             }
             var pool = []
             for (let i = 0; i<racers.length; i++) {
-                if(tier == racers[i].mu_tier) {
-                    if(canon == racers[i].canon) {
+                if (tier == "" || tier == "any"){
+                    if(canon =="" || canon == "any") { //any
                         pool.push(i)
-                    } else if(canon =="") { //any
-                        pool.push(i)
-                    }
-                } else if (tier == ""){
-                    if(canon == racers[i].canon) {
-                        pool.push(i)
-                    } else if(canon =="") { //any
+                    } else if(canon == racers[i].canon) {
                         pool.push(i)
                     }
-                }
+                } else if(tier == racers[i].mu_tier) {
+                    if(canon =="" || canon == "any") { //any
+                        pool.push(i)
+                    } else if(canon == racers[i].canon) {
+                        pool.push(i)
+                    } 
+                } 
             }
             var poolsave = [...pool]
             if (vc) {
@@ -81,13 +81,13 @@ module.exports = {
                     } else if(!canon) {
                         desc = desc + "non-canonical "
                     }
-                    if(tier !== "") {
+                    if(tier !== "" && tier !== "any") {
                         desc = desc + Tiernames[tier].toLowerCase() + " tier pods"
                     } else {
                         desc = desc + "random pods"
                     }
                     const racerEmbed = new Discord.MessageEmbed()
-                        .setAuthor("/random racer")
+                        .setFooter("/random")
                         .setTitle("Random Racers")
                         .setDescription(desc)
                         .addField("Players", memlist, true)
@@ -174,6 +174,7 @@ module.exports = {
                 .setColor(planets[tracks[numb].planet].color)
                 .setImage(tracks[numb].img)
                 .setTitle(tracks[numb].name)
+                .setFooter("/random")
             trackEmbed.addField("Planet", planets[tracks[numb].planet].name, true)
             trackEmbed.addField("Circuit", circuits[tracks[numb].circuit].name + " - Race " + tracks[numb].cirnum, true)
             trackEmbed.addField("Favorite", tracks[numb].favorite, true)
@@ -293,6 +294,7 @@ module.exports = {
                 .setAuthor("/teams")
                 .setTitle("Random Teams")
                 .setDescription("Everyone in the voice channel has been split into **" + teamnum + "** teams")
+                
             var playernum = memarray.length
             var remainder = playernum%teamnum
             var members = ""
