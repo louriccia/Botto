@@ -34,7 +34,7 @@ module.exports = {
             return numb
         }
         const fetch = require('node-fetch');
-        var tools = require('./tools.js');
+        var tools = require('./../tools.js');
         const Discord = require('discord.js');
         const myEmbed = new Discord.MessageEmbed()
         if(args[0].name =="racer") {
