@@ -154,27 +154,25 @@ module.exports = {
             }
             console.log(circuit, planet)
             var pool = []
-            for(let i=0; i<tracks.length; i++) {
+            for(var i=0; i<tracks.length; i++) {
                 pool.push(i)
             }
             if(circuit !== "")  {
-                for(var i=0; i<pool.length; i++) {
+                for(var i=pool.length-1; i>=0; i--) {
                     if(tracks[pool[i]].circuit !== circuit){
                         if(pool.indexOf(i)>-1){
                             pool.splice(pool.indexOf(i), 1)
                             console.log(pool[i] + " was removed for being the wrong circuit")
-                            i = i-2
                         }
                     }
                 }
             }
             if(planet !== "")  {
-                for(var i=0; i<pool.length; i++) {
+                for(var i=pool.length-1; i>=0; i--) {
                     if(tracks[pool[i]].planet !== planet){
                         if(pool.indexOf(i)>-1){
                             pool.splice(pool.indexOf(i), 1)
                             console.log(pool[i] + " was removed for being the wrong planet")
-                            i = i-2
                         }
                     }
                 }
