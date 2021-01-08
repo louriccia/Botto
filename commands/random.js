@@ -37,6 +37,7 @@ module.exports = {
                     }
                 }
             }
+            console.log(canon)
             var pool = []
             for (let i = 0; i<racers.length; i++) {
                 if (tier == "" || tier == "any"){
@@ -106,7 +107,7 @@ module.exports = {
             } else {
                 var randomracer = pool[Math.floor(Math.random()*pool.length)]
                 const racerEmbed = new Discord.MessageEmbed()
-                    .setAuthor("/random racer")
+                    .setFooter("/random")
                     .setThumbnail(racers[randomracer].img)
                     .setColor('#00DE45')
                     .setTitle(racers[randomracer].name)
@@ -132,15 +133,15 @@ module.exports = {
             var planet = ""
             if (args[0].hasOwnProperty("options")) {
                 for (let i = 0; i<args[0].options.length; i++) {
-                    if (args[0].options[i].name == "circuit") { //any/top/high/mid/low
+                    if (args[0].options[i].name == "circuit") {
                         for(let j=0; j<circuits.length; j++) {
-                            if(args[0].options[j].value == circuits[j].name) {
+                            if(args[0].options[i].value == circuits[j].name) {
                                 circuit = j
                             }
                         }
                     } else if (args[0].options[i].name == "planet") {
                         for(let j=0; j<planets.length; j++) {
-                            if(args[0].options[j].value == planets[j].name) {
+                            if(args[0].options[i].value == planets[j].name) {
                                 planet = j
                             }
                         }
