@@ -294,26 +294,26 @@ module.exports = {
                 for(let i=0; i<args[0].options.length; i++){
                     var level = Number(args[0].options[i].value)
                     if(args[0].options[i].name == "traction"){
-                        priceEmbed.addField("Traction Upgrade " + (level + 1) + ": " + parts.names[level].antiskid, priceEmbed.addField(parts.prices[level].antiskid) + " Truguts", false)
-                        total = total + parts.prices[level].antiskid
+                        priceEmbed.addField("Traction Upgrade " + (level + 1) + ": " + parts[0].names[level].antiskid, parts[0].prices[level].antiskid + " Truguts", false)
+                        total = total + parts[0].prices[level].antiskid
                     } else if(args[0].options[i].name == "turning"){
-                        priceEmbed.addField("Turning Upgrade " + (level + 1) + ": " + parts.names[level].turn_response, priceEmbed.addField(parts.prices[level].turn_response) + " Truguts", false)
-                        total = total + parts.prices[level].turn_response
+                        priceEmbed.addField("Turning Upgrade " + (level + 1) + ": " + parts[0].names[level].turn_response, parts[0].prices[level].turn_response + " Truguts", false)
+                        total = total + parts[0].prices[level].turn_response
                     } else if(args[0].options[i].name == "accel."){
-                        priceEmbed.addField("Acceleration Upgrade " + (level + 1) + ": " + parts.names[level].acceleration, priceEmbed.addField(parts.prices[level].acceleration) + " Truguts", false)
-                        total = total + parts.prices[level].acceleration
+                        priceEmbed.addField("Acceleration Upgrade " + (level + 1) + ": " + parts[0].names[level].acceleration, parts[0].prices[level].acceleration + " Truguts", false)
+                        total = total + parts[0].prices[level].acceleration
                     } else if(args[0].options[i].name == "top_speed"){
-                        priceEmbed.addField("Top Speed Upgrade " + (level + 1) + ": " + parts.names[level].max_speed, priceEmbed.addField(parts.prices[level].max_speed) + " Truguts", false)
-                        total = total + parts.prices[level].max_speed
+                        priceEmbed.addField("Top Speed Upgrade " + (level + 1) + ": " + parts[0].names[level].max_speed, parts[0].prices[level].max_speed + " Truguts", false)
+                        total = total + parts[0].prices[level].max_speed
                     } else if(args[0].options[i].name == "air_brake"){
-                        priceEmbed.addField("Air Brake Upgrade " + (level + 1) + ": " + parts.names[level].air_brake_interval, priceEmbed.addField(parts.prices[level].air_brake_interval) + " Truguts", false)
-                        total = total + parts.prices[level].air_brake_interval
+                        priceEmbed.addField("Air Brake Upgrade " + (level + 1) + ": " + parts[0].names[level].air_brake_interval, parts[0].prices[level].air_brake_interval + " Truguts", false)
+                        total = total + parts[0].prices[level].air_brake_interval
                     } else if(args[0].options[i].name == "cooling"){
-                        priceEmbed.addField("Cooling Upgrade " + (level + 1) + ": " + parts.names[level].cool_rate, priceEmbed.addField(parts.prices[level].cool_rate) + " Truguts", false)
-                        total = total + parts.prices[level].cool_rate
+                        priceEmbed.addField("Cooling Upgrade " + (level + 1) + ": " + parts[0].names[level].cool_rate, parts[0].prices[level].cool_rate + " Truguts", false)
+                        total = total + parts[0].prices[level].cool_rate
                     } else if(args[0].options[i].name == "repair"){
-                        priceEmbed.addField("Repair Upgrade " + (level + 1) + ": " + parts.names[level].repair_rate, priceEmbed.addField(parts.prices[level].repair_rate) + " Truguts", false)
-                        total = total + parts.prices[level].repair_rate
+                        priceEmbed.addField("Repair Upgrade " + (level + 1) + ": " + parts[0].names[level].repair_rate, parts[0].prices[level].repair_rate + " Truguts", false)
+                        total = total + parts[0].prices[level].repair_rate
                     }
                 }
                 if(args[0].options.length>0){
