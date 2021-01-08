@@ -148,6 +148,7 @@ module.exports = {
                     }
                 }
             }
+            print(circuit, planet)
             var pool = []
             for(let i=0; i<tracks.length; i++) {
                 pool.push(i)
