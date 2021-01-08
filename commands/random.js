@@ -42,15 +42,19 @@ module.exports = {
             for (let i = 0; i<racers.length; i++) {
                 if (tier == "" || tier == "any"){
                     if(canon =="" || canon == "any") { //any
-                        pool.push(i)
+                        pool.push(i + " pushed for being any tier any canon")
+                        console.log(i)
                     } else if(canon == racers[i].canon) {
                         pool.push(i)
+                        console.log(i + " pushed for being any tier/ specified canon")
                     }
                 } else if(tier == racers[i].mu_tier) {
                     if(canon =="" || canon == "any") { //any
                         pool.push(i)
+                        console.log(i + " pushed for being specified tier any canon")
                     } else if(canon == racers[i].canon) {
-                        pool.push(i)
+                        pool.push(i + " pushed for being specified tier specified canon")
+                        console.log(i)
                     } 
                 } 
             }
