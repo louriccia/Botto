@@ -291,8 +291,8 @@ module.exports = {
                 .setTitle("Part Price Lookup")
                 .setFooter("/lookup")
             if(args[0].hasOwnProperty("options")){
-                for(let i=1; i<args[0].options.length; i++){
-                    var level = args[0].options[i].value
+                for(let i=0; i<args[0].options.length; i++){
+                    var level = Number(args[0].options[i].value)
                     if(args[0].options[i].name == "traction"){
                         priceEmbed.addField("Traction Upgrade " + (level + 1) + ": " + parts.names[level].antiskid, priceEmbed.addField(parts.prices[level].antiskid) + " Truguts", false)
                         total = total + parts.prices[level].antiskid
