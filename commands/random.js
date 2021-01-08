@@ -59,6 +59,9 @@ module.exports = {
                 } 
             }
             var poolsave = [...pool]
+            if(pool.length == 0){
+                return
+            }
             if (vc) {
                 if (!Member.voice.channel) {
                     client.api.interactions(interaction.id, interaction.token).callback.post({
@@ -184,7 +187,7 @@ module.exports = {
             if(pool.length == 0){
                 return
             }
-            var numb = Math.floor(Math.random()*pool.length)
+            var numb = pool[Math.floor(Math.random()*pool.length)]
             const trackEmbed = new Discord.MessageEmbed()
                 .setThumbnail(planets[tracks[numb].planet].img)
                 .setColor(planets[tracks[numb].planet].color)
