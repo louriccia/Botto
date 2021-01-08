@@ -4,7 +4,7 @@ module.exports = {
         const Discord = require('discord.js');
         const myEmbed = new Discord.MessageEmbed()
         var limit = 30
-        if(args[0].length>0){
+        if(args.length>0){
             limit = args[0].value
         }
         client.channels.cache.get(interaction.channel_id).messages.fetch({limit:limit}).then(messages => {

@@ -76,7 +76,7 @@ client.ws.on('INTERACTION_CREATE', async interaction => {
             data: {
                 type: 4,
                 data: {
-                    content: "`Error: Command failed to execute `\n" + error[Math.floor(Math.random()*error.length)]
+                    content: "`Error: Command failed to execute `\n" + errorMessage[Math.floor(Math.random()*errorMessage.length)]
                 }
             }
         })
