@@ -149,7 +149,7 @@ module.exports = {
             }
             var pool = []
             for(let i=0; i<tracks.length; i++) {
-                pool.push[i]
+                pool.push(i)
             }
             if(circuit !== "")  {
                 for(let i=0; i<pool.length; i++) {
@@ -278,7 +278,7 @@ module.exports = {
             getwrData()
             client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {
-                    type: 4,
+                    type: 2,
                     data: {
                         //content: "",
                         //embeds: [myEmbed]
