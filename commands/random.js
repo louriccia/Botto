@@ -162,7 +162,9 @@ module.exports = {
                     if(tracks[pool[i]].circuit !== circuit){
                         if(pool.indexOf(i)>-1){
                             pool.splice(pool.indexOf(i), 1)
+                            console.log(i + " was removed for being the wrong circuit")
                             i = i-1
+                            
                         }
                     }
                 }
@@ -172,6 +174,7 @@ module.exports = {
                     if(tracks[pool[i]].planet !== planet){
                         if(pool.indexOf(i)>-1){
                             pool.splice(pool.indexOf(i), 1)
+                            console.log(i + " was removed for being the wrong planet")
                             i = i-1
                         }
                     }
