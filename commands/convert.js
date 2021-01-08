@@ -1,6 +1,7 @@
 module.exports = {
     name: 'convert',
     execute(client, interaction, args) {
+        var tools = require('./tools.js');
         output = ""
         var time = args[0].value
         if(time.includes(":")) {

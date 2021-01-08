@@ -4,6 +4,7 @@ module.exports = {
         var data = require("./data.js");
         const Discord = require('discord.js');
         const fetch = require('node-fetch');
+        var tools = require('./tools.js');
         const Guild = client.guilds.cache.get(interaction.guild_id); // Getting the guild.
         const Member = Guild.members.cache.get(interaction.member.user.id); // Getting the member.
         var mems = client.channels.cache.get(Member.voice.channelID).members;

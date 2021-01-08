@@ -34,6 +34,7 @@ module.exports = {
             return numb
         }
         const fetch = require('node-fetch');
+        var tools = require('./tools.js');
         const Discord = require('discord.js');
         const myEmbed = new Discord.MessageEmbed()
         if(args[0].name =="racer") {
@@ -199,7 +200,7 @@ module.exports = {
             }
         } else if(args[0].name=="times") {
             if(args[0].options[0].name == "par_times"){
-                var input = args[0].options[0].value.toLowerCase()
+                var input = args[0].options[0].options[0].value.toLowerCase()
                 var numb = getTrack(input)
                 if(numb == null){ 
                     client.api.interactions(interaction.id, interaction.token).callback.post({
