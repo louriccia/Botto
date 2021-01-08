@@ -40,21 +40,21 @@ module.exports = {
             console.log(canon, tier)
             var pool = []
             for (let i = 0; i<racers.length; i++) {
-                if (tier == "" || tier == "any"){
-                    if(canon =="" || canon == "any") { //any
-                        pool.push(i + " pushed for being any tier any canon")
-                        console.log(i)
+                if (tier === "" || tier === "any"){
+                    if(canon ==="" || canon === "any") { //any
+                        pool.push(i)
+                        console.log(i + " pushed for being any tier any canon")
                     } else if(canon == racers[i].canon) {
                         pool.push(i)
                         console.log(i + " pushed for being any tier/ specified canon")
                     }
                 } else if(tier == racers[i].mu_tier) {
-                    if(canon =="" || canon == "any") { //any
+                    if(canon ==="" || canon === "any") { //any
                         pool.push(i)
                         console.log(i + " pushed for being specified tier any canon")
                     } else if(canon == racers[i].canon) {
-                        pool.push(i + " pushed for being specified tier specified canon")
-                        console.log(i)
+                        pool.push(i)
+                        console.log(i+ " pushed for being specified tier specified canon")
                     } 
                 } 
             }
@@ -160,14 +160,18 @@ module.exports = {
             if(circuit !== "")  {
                 for(let i=0; i<pool.length; i++) {
                     if(tracks[pool[i]].circuit !== circuit){
-                        pool.splice(i, 1)
+                        if(pool.indexOf(i)>-1){
+                            pool.splice(pool.indexOf(i), 1)
+                        }
                     }
                 }
             }
             if(planet !== "")  {
                 for(let i=0; i<pool.length; i++) {
                     if(tracks[pool[i]].planet !== planet){
-                        pool.splice(i, 1)
+                        if(pool.indexOf(i)>-1){
+                            pool.splice(pool.indexOf(i), 1)
+                        }
                     }
                 }
             }
