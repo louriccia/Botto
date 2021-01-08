@@ -331,7 +331,7 @@ module.exports = fixed = [
     `*${a} was about to be turned into orange goo.*`
 ]
 
-module.exports = error = [
+module.exports = errorMessage = [
     `*Uhhhh, that doesn't compute, uhh wait, uhh-- You're under arrest!*`,
     "*Mind tricks don't work on me! Only money.*",
     "*What, you think you're some kind of jedi waving your hand around like that?*",
