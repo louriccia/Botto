@@ -1,7 +1,6 @@
 module.exports = {
     name: 'random',
     execute(client, interaction, args) {
-        var data = require("./data.js");
         const Discord = require('discord.js');
         const fetch = require('node-fetch');
         var tools = require('./../tools.js');
