@@ -165,7 +165,7 @@ module.exports = {
                             console.log(pool[i] + " was removed for being the wrong circuit")
                         }
                     }
-                    print(pool)
+                    console.log(pool)
                 }
             }
             if(planet !== "")  {
@@ -176,7 +176,7 @@ module.exports = {
                             console.log(pool[i] + " was removed for being the wrong planet")
                         }
                     }
-                    print(pool)
+                    console.log(pool)
                 }
             }
             if(pool.length == 0){
