@@ -37,6 +37,7 @@ module.exports = {
                     }
                 }
             }
+            print(canon, tier)
             console.log(canon)
             var pool = []
             for (let i = 0; i<racers.length; i++) {
