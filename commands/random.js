@@ -138,6 +138,7 @@ module.exports = {
         } else if(args[0].name=="track") {
             var circuit = ""
             var planet = ""
+            var length = ""
             if (args[0].hasOwnProperty("options")) {
                 for (let i = 0; i<args[0].options.length; i++) {
                     if (args[0].options[i].name == "circuit") {
@@ -152,6 +153,8 @@ module.exports = {
                                 planet = j
                             }
                         }
+                    } else if (args[0].options[i].name == "length") {
+                        length = args[0].options[i].value
                     }
                 }
             }
@@ -160,28 +163,34 @@ module.exports = {
             for(var i=0; i<tracks.length; i++) {
                 pool.push(i)
             }
-            if(circuit !== "")  {
+            if(circuit !== "" && circuit !== "any")  {
                 for(var i=0; i<pool.length; i++) {
                     if(tracks[pool[i]].circuit !== circuit){
                         if(pool.indexOf(pool[i])>-1){
                             pool.splice(pool.indexOf(pool[i]), 1)
-                            console.log(pool[i] + " was removed for being the wrong circuit")
-                            i=i-1
+                            i=i-1 //note to self: don't be an idiot and forget stuff like this
                         }
                     }
-                    console.log(pool)
                 }
             }
-            if(planet !== "")  {
+            if(planet !== "" && planet !== "any")  {
                 for(var i=0; i<pool.length; i++) {
                     if(tracks[pool[i]].planet !== planet){
                         if(pool.indexOf(pool[i])>-1){
                             pool.splice(pool.indexOf(pool[i]), 1)
-                            console.log(pool[i] + " was removed for being the wrong planet")
                             i=i-1
                         }
                     }
-                    console.log(pool)
+                }
+            }
+            if(length !== "" && length !== "any")  {
+                for(var i=0; i<pool.length; i++) {
+                    if(tracks[pool[i]].lengthclass !== length.replace("Extra ", "").toLowerCase()){
+                        if(pool.indexOf(pool[i])>-1){
+                            pool.splice(pool.indexOf(pool[i]), 1)
+                            i=i-1
+                        }
+                    }
                 }
             }
             if(pool.length == 0){

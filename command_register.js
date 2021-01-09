@@ -629,7 +629,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                     description: "get a random racer from a specific tier",
                     type: 3,
                     required: false,
-                    options: [
+                    choices: [
                         {
                             name: "any",
                             value: "any"
@@ -657,7 +657,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                     description: "get canonical or non-canonical racers",
                     type: 3,
                     required: false,
-                    options: [
+                    choices: [
                         {
                             name: "any",
                             value: "any"
@@ -692,20 +692,24 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                     required: false,
                     choices: [
                         {
-                            name: "Amateur Circuit",
+                            name: "1 Amateur Circuit",
                             value: "Amateur"
                         },
                         {
-                            name: "Semi-Pro Circuit",
+                            name: "2 Semi-Pro Circuit",
                             value: "Semi-Pro"
                         },
                         {
-                            name: "Galactic Circuit",
+                            name: "3 Galactic Circuit",
                             value: "Galactic"
                         },
                         {
-                            name: "Invitational Circuit",
+                            name: "4 Invitational Circuit",
                             value: "Invitational"
+                        },
+                        {
+                            name: "0 any",
+                            value: "any"
                         }
                     ]
                 },
@@ -716,39 +720,67 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                     required: false,
                     choices: [
                         {
-                            name: "Ando Prime",
+                            name: "1 Ando Prime",
                             value: "Ando Prime"
                         },
                         {
-                            name: "Aquilaris",
+                            name: "2 Aquilaris",
                             value: "Aquilaris"
                         },
                         {
-                            name: "Baroonda",
+                            name: "3 Baroonda",
                             value: "Baroonda"
                         },
                         {
-                            name: "Malastare",
+                            name: "4 Malastare",
                             value: "Malastare"
                         },
                         {
-                            name: "Mon Gazza",
+                            name: "5 Mon Gazza",
                             value: "Mon Gazza"
                         },
                         {
-                            name: "Oovo IV",
+                            name: "6 Oovo IV",
                             value: "Oovo IV"
                         },
                         {
-                            name: "Ord Ibanna",
+                            name: "7 Ord Ibanna",
                             value: "Ord Ibanna"
                         },
                         {
-                            name: "Tatooine",
+                            name: "8 Tatooine",
                             value: "Tatooine"
+                        },
+                        {
+                            name: "0 any",
+                            value: "any"
                         }
                     ]
-                }
+                },
+                {
+                    name: "length",
+                    description: "roll a random track from a specific length",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "1 short",
+                            value: "short"
+                        },
+                        {
+                            name: "2 medium",
+                            value: "medium"
+                        },
+                        {
+                            name: "3 long",
+                            value: "long"
+                        },
+                        {
+                            name: "0 any",
+                            value: "any"
+                        }
+                    ]
+                },
             ]
         },
         {
