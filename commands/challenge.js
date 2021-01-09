@@ -232,7 +232,6 @@ module.exports = {
                             }
                             feedbackref.push(feedbackdata);
                         })
-                        .catch(console.error)
                 })
                 setTimeout(async function() { //5 minute warning
                     if(!collected){
