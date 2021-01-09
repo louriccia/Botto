@@ -99,7 +99,10 @@ module.exports = {
                     .addField("Circuit", circuits[tracks[numb].circuit].name + " - Race " + tracks[numb].cirnum, true)
                     .addField("Favorite", racers[tracks[numb].favorite].flag + " " + racers[tracks[numb].favorite].name, true)
                     .addField("Length", tracks[numb].lengthclass, true)
-                    .addField("Difficulty", difficulties[tracks[numb].difficulty])
+                    .addField("Difficulty", difficulties[tracks[numb].difficulty].name, true)
+                    .addField(
+                        '\u200B', '\u200B', true
+                    )
                 let muurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-789k49lw=xqkrk919&var-2lgz978p=81p7we17" //mu
                 let nuurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-789k49lw=z194gjl4&var-2lgz978p=81p7we17" //nu
                 let skurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&&var-2lgz978p=p125ev1x" //sku
