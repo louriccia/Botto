@@ -605,7 +605,7 @@ client.api.applications("545798436105224203").commands.post({data: {
                             value: "PC"
                         },
                         {
-                            name: "console",
+                            name: "Console",
                             value: "console"
                         }
                     ]
@@ -631,23 +631,23 @@ client.api.applications("545798436105224203").commands.post({data: {
                     required: false,
                     choices: [
                         {
-                            name: "any",
+                            name: "0 any",
                             value: "any"
                         },
                         {
-                            name: "0 Top",
+                            name: "1 Top",
                             value: "0"
                         },
                         {
-                            name: "1 High",
+                            name: "2 High",
                             value: "1"
                         },
                         {
-                            name: "2 Mid",
+                            name: "3 Mid",
                             value: "2"
                         },
                         {
-                            name: "3 Low",
+                            name: "4 Low",
                             value: "3"
                         }
                     ]
@@ -774,6 +774,38 @@ client.api.applications("545798436105224203").commands.post({data: {
                         {
                             name: "3 long",
                             value: "long"
+                        },
+                        {
+                            name: "0 any",
+                            value: "any"
+                        }
+                    ]
+                },
+                {
+                    name: "difficulty",
+                    description: "roll a random track from a specific difficulty",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "1 Beginner",
+                            value: "Beginner"
+                        },
+                        {
+                            name: "2 Easy",
+                            value: "Easy"
+                        },
+                        {
+                            name: "3 Average",
+                            value: "Average"
+                        },
+                        {
+                            name: "3 Hard",
+                            value: "Hard"
+                        },
+                        {
+                            name: "3 Brutal",
+                            value: "Brutal"
                         },
                         {
                             name: "0 any",
