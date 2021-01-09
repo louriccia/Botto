@@ -207,7 +207,7 @@ module.exports = {
                     const filter = (reaction, user) => {
                         return (['👍', '👎'].includes(reaction.emoji.name) && user.id !== "545798436105224203");
                     };   
-                    sentMessage.awaitReactions(filter, {time: 900000})
+                    sentMessage.awaitReactions(filter, {max: 10, time: 900000}) //apparently this needs a max??
                         .then(collected => {
                             const reaction = collected.first();
                             const user = reaction.users.cache.last()
