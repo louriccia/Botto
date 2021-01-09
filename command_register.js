@@ -692,6 +692,10 @@ client.api.applications("545798436105224203").commands.post({data: {
                     required: false,
                     choices: [
                         {
+                            name: "0 any",
+                            value: "any"
+                        },
+                        {
                             name: "1 Amateur Circuit",
                             value: "Amateur"
                         },
@@ -707,10 +711,6 @@ client.api.applications("545798436105224203").commands.post({data: {
                             name: "4 Invitational Circuit",
                             value: "Invitational"
                         },
-                        {
-                            name: "0 any",
-                            value: "any"
-                        }
                     ]
                 },
                 {
@@ -719,6 +719,10 @@ client.api.applications("545798436105224203").commands.post({data: {
                     type: 3,
                     required: false,
                     choices: [
+                        {
+                            name: "0 any",
+                            value: "any"
+                        },
                         {
                             name: "1 Ando Prime",
                             value: "Ando Prime"
@@ -750,10 +754,6 @@ client.api.applications("545798436105224203").commands.post({data: {
                         {
                             name: "8 Tatooine",
                             value: "Tatooine"
-                        },
-                        {
-                            name: "0 any",
-                            value: "any"
                         }
                     ]
                 },
@@ -763,6 +763,10 @@ client.api.applications("545798436105224203").commands.post({data: {
                     type: 3,
                     required: false,
                     choices: [
+                        {
+                            name: "0 any",
+                            value: "any"
+                        },
                         {
                             name: "1 short",
                             value: "short"
@@ -774,10 +778,6 @@ client.api.applications("545798436105224203").commands.post({data: {
                         {
                             name: "3 long",
                             value: "long"
-                        },
-                        {
-                            name: "0 any",
-                            value: "any"
                         }
                     ]
                 },
@@ -787,6 +787,10 @@ client.api.applications("545798436105224203").commands.post({data: {
                     type: 3,
                     required: false,
                     choices: [
+                        {
+                            name: "0 any",
+                            value: "any"
+                        },
                         {
                             name: "1 Beginner",
                             value: "Beginner"
@@ -800,16 +804,12 @@ client.api.applications("545798436105224203").commands.post({data: {
                             value: "Average"
                         },
                         {
-                            name: "3 Hard",
+                            name: "4 Hard",
                             value: "Hard"
                         },
                         {
-                            name: "3 Brutal",
+                            name: "5 Brutal",
                             value: "Brutal"
-                        },
-                        {
-                            name: "0 any",
-                            value: "any"
                         }
                     ]
                 },
