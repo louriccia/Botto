@@ -7,7 +7,7 @@ module.exports = {
         const Member = Guild.members.cache.get(interaction.member.user.id); // Getting the member.
         var content = ""
         if(args[0].name =="speedrunning") {
-            let role = message.guild.roles.cache.get("535973118578130954");
+            let role = Guild.roles.cache.get("535973118578130954");
             let member = Member;
             if(args[0].options[0].name == "get"){
                 member.roles.add(role).catch(console.error);
@@ -17,7 +17,7 @@ module.exports = {
                 content = "<@" + member.user + "> no longer has the speedrunning role"
             }
         } else if(args[0].name=="multiplayer") {
-            let role = message.guild.roles.cache.get("474920988790751232");
+            let role = Guild.roles.cache.get("474920988790751232");
             let member = Member;
             if(args[0].options[0].name == "get"){
                 member.roles.add(role).catch(console.error);
