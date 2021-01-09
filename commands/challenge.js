@@ -209,16 +209,17 @@ module.exports = {
                     sentMessage.awaitReactions(filter, {max: 1, time: 900000})
                         .then(collected => {
                             const reaction = collected.first();
+                            const user = reaction.users.cache.last()
                             console.log("I got a reaction!")
-                            console.log(reaction.users.cache[reaction.users.cache.length -1])
+                            console.log(reaction.users.cache.last())
                             if (reaction.emoji.name === '👍') {
                                 feedback = '👍'
                             } else {
                                 feedback = '👎'
                             }
                             var feedbackdata = {
-                                user: reaction.users.id,
-                                name: reaction.users.username,
+                                user: user.id,
+                                name: user.username,
                                 feedback: feedback,
                                 date: sentMessage.createdTimestamp,
                                 racer: random1,

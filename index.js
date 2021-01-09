@@ -114,7 +114,6 @@ client.on('guildMemberAdd', (guildMember) => { //join log
     if (guildMember.guild.id == "441839750555369474") {
         var random = Math.floor(Math.random()*welcomeMessages.length)
         var join = welcomeMessages[random]
-        console.log(join)
         client.channels.cache.get("441839751235108875").send(join.replace("replaceme", "<@" + guildMember.user + ">"));
         const guild = client.guilds.cache.get("441839750555369474");
         const role = guild.roles.cache.get("442316203835392001");
