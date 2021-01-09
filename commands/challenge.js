@@ -210,7 +210,7 @@ module.exports = {
                         .then(collected => {
                             const reaction = collected.first();
                             console.log("I got a reaction!")
-                            console.log(reaction.users)
+                            console.log(reaction.users.cache[reaction.users.cache.length -1])
                             if (reaction.emoji.name === '👍') {
                                 feedback = '👍'
                             } else {
