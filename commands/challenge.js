@@ -206,9 +206,10 @@ module.exports = {
                     const filter = (reaction, user) => {
                         return (['👍', '👎'].includes(reaction.emoji.name) && user.id !== "545798436105224203");
                     };   
-                    sentMessage.awaitReactions(filter, {time: 900000})
+                    sentMessage.awaitReactions(filter, {max: 1, time: 900000})
                         .then(collected => {
                             const reaction = collected.first();
+                            console.log("I got a reaction!")
                             console.log(reaction.users.fetch())
                             if (reaction.emoji.name === '👍') {
                                 feedback = '👍'
@@ -216,8 +217,8 @@ module.exports = {
                                 feedback = '👎'
                             }
                             var feedbackdata = {
-                                user: user.id,
-                                name: user.username,
+                                user: reaction.users.id,
+                                name: reaction.users.username,
                                 feedback: feedback,
                                 date: sentMessage.createdTimestamp,
                                 racer: random1,
