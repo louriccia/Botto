@@ -136,22 +136,23 @@ module.exports = {
             }
             function createEmbed(title, highlight) {
                 //tally likes and dislikes
+                var rating = ""
                 var like = 0, dislike = 0, keys = Object.keys(feedbackdata)
                 for (var i=0; i<keys.length; i++) {
                     var k = keys[i];
                     if(feedbackdata[k].track == random2 && feedbackdata[k].racer == random1 && feedbackdata[k].laps == laps && feedbackdata[k].mirror == mirror && feedbackdata[k].nu == nu && feedbackdata[k].skips == skips){
-                        if (feedbackdata[k].track == "👍") {
+                        if (feedbackdata[k].feedback == "👍") {
                             like = like +1
-                        } else if (feedbackdata[k].track == "👎") {
+                        } else if (feedbackdata[k].feedback == "👎") {
                             dislike = dislike +1
                         }
                     }
                 }
                 if (like > 0) {
-                    desc = "`👍" + like + "` " + desc 
+                    rating = "`👍" + like + "` " 
                 }
                 if (dislike > 0) {
-                    desc = "`👎" + dislike + "` " + desc 
+                    rating = rating + "`👎" + dislike + "` " 
                 }
                 var keys = Object.keys(challengedata), best = []
                 for (var i=0; i<keys.length; i++) {
@@ -184,7 +185,7 @@ module.exports = {
                     .setTitle(title + eTitle)
                     .setColor(eColor)
                     .setAuthor(eAuthor[0], eAuthor[1])
-                    .setDescription(desc)
+                    .setDescription(rating+desc)
                     .addField("Goal Times", eGoalTimes, true)
                     .addField("Best Times", besttimes, true)
                 return newEmbed
@@ -206,7 +207,7 @@ module.exports = {
                     const filter = (reaction, user) => {
                         return (['👍', '👎'].includes(reaction.emoji.name) && user.id !== "545798436105224203");
                     };   
-                    sentMessage.awaitReactions(filter, {max: 1, time: 900000})
+                    sentMessage.awaitReactions(filter, {time: 900000})
                         .then(collected => {
                             const reaction = collected.first();
                             const user = reaction.users.cache.last()
