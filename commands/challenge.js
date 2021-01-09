@@ -202,14 +202,14 @@ module.exports = {
             })
             client.channels.cache.get(interaction.channel_id).send(createEmbed("",null)).then(sentMessage => {
             //collect feedback
-                sentMessage.react('👍').then(()=> sentMessage.react('👎')).then(() =>{
+                sentMessage.react('👍').then(()=> sentMessage.react('👎')).then(async function (message) {
                     var feedback = ""
                     const filter = (reaction, user) => {
                         return (['👍', '👎'].includes(reaction.emoji.name) && user.id !== "545798436105224203");
                     };   
-                    sentMessage.awaitReactions(filter, {max: 1, time: 900000}) //apparently this needs a max??
-                        .then(collected => {
-                            const reaction = collected.first();
+                    const collector = sentMessage.createReactionCollector(filter, {time: 900000}) //apparently the max can only be 1??
+                        collector.on('collect', (reaction, reactionCollector) => {
+                            //const reaction = collected.first();
                             const user = reaction.users.cache.last()
                             console.log("I got a reaction!")
                             console.log(reaction.users.cache.last())
