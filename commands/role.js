@@ -4,7 +4,7 @@ module.exports = {
         const Discord = require('discord.js');
         const myEmbed = new Discord.MessageEmbed()
         const Guild = client.guilds.cache.get(interaction.guild_id); // Getting the guild.
-        const Member = Guild.members.cache.get(member); // Getting the member.
+        const Member = Guild.members.cache.get(interaction.member.user.id); // Getting the member.
         var content = ""
         if(args[0].name =="speedrunning") {
             let role = message.guild.roles.cache.get("535973118578130954");

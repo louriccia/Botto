@@ -84,19 +84,9 @@ client.ws.on('INTERACTION_CREATE', async interaction => {
 })
 
 async function getCommands() {
-    const commands = await client.api.applications("545798436105224203").guilds('441839750555369474').commands.get()
-    await client.api.applications("545798436105224203").guilds('441839750555369474').commands('793029819541094431').delete()
-    await client.api.applications("545798436105224203").guilds('441839750555369474').commands('793221590779035669').delete()
-    await client.api.applications("545798436105224203").guilds('441839750555369474').commands('793296176224534569').delete()
-    await client.api.applications("545798436105224203").guilds('441839750555369474').commands('793355643414904883').delete()
-    await client.api.applications("545798436105224203").guilds('441839750555369474').commands('793380212305559593').delete()
-    await client.api.applications("545798436105224203").guilds('441839750555369474').commands('793380887139975168').delete()
-    await client.api.applications("545798436105224203").guilds('441839750555369474').commands('793595843303047218').delete()
-    await client.api.applications("545798436105224203").guilds('441839750555369474').commands('793595843617488896').delete()
-    await client.api.applications("545798436105224203").guilds('441839750555369474').commands('793611518779719680').delete()
-    await client.api.applications("545798436105224203").guilds('441839750555369474').commands('793611955536658493').delete()
-    await client.api.applications("545798436105224203").guilds('441839750555369474').commands('793612692120141874').delete()
-    await client.api.applications("545798436105224203").guilds('441839750555369474').commands('796697600005767168').delete()
+    const guildcommands = await client.api.applications("545798436105224203").guilds('441839750555369474').commands.get()
+    const commands = await client.api.applications("545798436105224203").commands.get()
+    console.log(guildcommands)
     console.log(commands)
 }
 
