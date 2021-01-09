@@ -24,12 +24,14 @@ module.exports = {
                     numb = i
                     i = tracks.length
                 }
-                tracks[i].nickname.forEach(nick => {
-                    if(nick.toLowerCase() == input){
-                        numb = i
-                        i = tracks.length
-                    }
-                })     
+                if(i<tracks.length){
+                    tracks[i].nickname.forEach(nick => {
+                        if(nick.toLowerCase() == input){
+                            numb = i
+                            i = tracks.length
+                        }
+                    })    
+                }
             }
             return numb
         }
@@ -46,7 +48,7 @@ module.exports = {
                     .setFooter("/lookup")
                     .setThumbnail(racers[numb].img)
                     .setColor('#00DE45')
-                    .setTitle(racers[randomracer].flag + " " + racers[numb].name)
+                    .setTitle(racers[numb].flag + " " + racers[numb].name)
                     .setDescription("(" + (numb + 1) + ") " + racers[numb].intro)
                     .addField("Tier", Tier[racers[numb].mu_tier], true)
                 if (racers[numb].hasOwnProperty("species")){
