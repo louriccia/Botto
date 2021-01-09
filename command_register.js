@@ -1,9 +1,9 @@
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+client.api.applications("545798436105224203").commands.post({data: {
     name: 'botto',
     description: 'introduces botto and provides an invite link'
 }})
 
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+client.api.applications("545798436105224203").commands.post({data: {
     name: 'challenge',
     description: 'randomly generated challenges',
     options: [
@@ -62,7 +62,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
     ]
 }})
 
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+client.api.applications("545798436105224203").commands.post({data: {
     name: 'chancecube',
     description: "Blue—it's the boy. Red—his mother"
 }})
@@ -80,7 +80,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
     ]
 }})
 
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+client.api.applications("545798436105224203").commands.post({data: {
     name: 'convert',
     description: 'convert seconds to --:--.--- format and vice versa; for people who are bad at quick math',
     options: [
@@ -93,7 +93,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
     ]
 }})
 
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+client.api.applications("545798436105224203").commands.post({data: {
     name: 'help',
     description: 'helpful information about botto commands and other stuff',
     options: [
@@ -110,7 +110,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
     ]
 }})
 
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+client.api.applications("545798436105224203").commands.post({data: {
     name: 'links',
     description: 'quickly get the most commonly shared links on the SWE1R Discord',
     options: [
@@ -169,7 +169,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
     ]
 }})
 
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+client.api.applications("545798436105224203").commands.post({data: {
     name: 'lookup',
     description: 'get information for racers, tracks, and more',
     options: [
@@ -235,7 +235,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                             required: true
                         },
                         {
-                            name: "accel.",
+                            name: "accel",
                             description: "upgrade level for acceleration",
                             type: 3,
                             required: true,
@@ -428,7 +428,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                     ]
                 },
                 {
-                    name: "accel.",
+                    name: "accel",
                     description: "upgrade level for acceleration",
                     type: 3,
                     required: false,
@@ -615,7 +615,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
     ]
 }})
 
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+client.api.applications("545798436105224203").commands.post({data: {
     name: 'random',
     description: 'get a random racer, track, etc.',
     options: [
@@ -859,7 +859,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
     ]
 }})
 
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+client.api.applications("545798436105224203").commands.post({data: {
     name: 'src',
     description: 'get top-5 leaderboards from speedrun.com',
     options: [
@@ -1076,20 +1076,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
     ]
 }})
 
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
-    name: 'teams',
-    description: 'divides everyone in your voice channel into # number of teams',
-    options: [
-        {
-            name: "number",
-            description: "the number of teams you wish to create",
-            type: 4,
-            required: true
-        }
-    ]
-}})
-
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+client.api.applications("545798436105224203").commands.post({data: {
     name: 'tourney',
     description: 'get top-5 leaderboards for tournament runs of each track',
     options: [
@@ -1184,7 +1171,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
     ]
 }})
 
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
+client.api.applications("545798436105224203").commands.post({data: {
     name: 'weekly',
     description: 'view leaderboards and create submissions for the weekly challenge',
     options: [

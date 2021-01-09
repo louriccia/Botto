@@ -185,7 +185,7 @@ module.exports = {
             }
             if(length !== "" && length !== "any")  {
                 for(var i=0; i<pool.length; i++) {
-                    if(tracks[pool[i]].lengthclass !== length.replace("Extra ", "").toLowerCase()){
+                    if(tracks[pool[i]].lengthclass.replace("Extra ", "").toLowerCase() !== length){
                         if(pool.indexOf(pool[i])>-1){
                             pool.splice(pool.indexOf(pool[i]), 1)
                             i=i-1

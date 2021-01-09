@@ -3,32 +3,35 @@ module.exports = {
     execute(client, interaction, args) {
         const Discord = require('discord.js');
         const myEmbed = new Discord.MessageEmbed()
+        const Guild = client.guilds.cache.get(interaction.guild_id); // Getting the guild.
+        const Member = Guild.members.cache.get(member); // Getting the member.
+        var content = ""
         if(args[0].name =="speedrunning") {
             let role = message.guild.roles.cache.get("535973118578130954");
-            let member = message.member;
-            if(message.member.roles.cache.find(r => r.name === "Speedrunning")){
-                member.roles.remove(role).catch(console.error)
-                message.channel.send("<@" + member.user + "> no longer has the speedrunning role")
-            } else {
+            let member = Member;
+            if(args[0].options[0].name == "get"){
                 member.roles.add(role).catch(console.error);
-                message.channel.send("<@" + member.user + "> now has the speedrunning role")
+                content = "<@" + member.user + "> now has the speedrunning role"
+            } else if(args[0].options[0].name == "remove"){
+                member.roles.remove(role).catch(console.error)
+                content = "<@" + member.user + "> no longer has the speedrunning role"
             }
         } else if(args[0].name=="multiplayer") {
             let role = message.guild.roles.cache.get("474920988790751232");
-            let member = message.member;
-            if(message.member.roles.cache.find(r => r.name === "Multiplayer")){
-                member.roles.remove(role).catch(console.error)
-                message.channel.send("<@" + member.user + "> no longer has the multiplayer role")
-            } else {
+            let member = Member;
+            if(args[0].options[0].name == "get"){
                 member.roles.add(role).catch(console.error);
-                message.channel.send("<@" + member.user + "> now has the multiplayer role")
-            } 
+                content = "<@" + member.user + "> now has the multiplayer role"
+            } else if(args[0].options[0].name == "remove"){
+                member.roles.remove(role).catch(console.error)
+                content = "<@" + member.user + "> no longer has the multiplayer role"
+            }
         }
         client.api.interactions(interaction.id, interaction.token).callback.post({
             data: {
                 type: 3,
                 data: {
-                    //content: "",
+                    content: content,
                     //embeds: [myEmbed]
                 }
             }

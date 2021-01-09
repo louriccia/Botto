@@ -28,8 +28,12 @@ module.exports = {
             link = "https://drive.google.com/drive/folders/1ScgPE1i1EpSYXT16a1ocxQiouMCcE9z1?usp=sharing"
         } else if(args[0].name=="mp_guide") {
             title = "Online Multiplayer Setup Guide"
-            desc = "Everything you need to know to start podracing online"
+            desc = "Everything you need to know to start podracing online. Click the above link to see the extended guide."
             link = "https://docs.google.com/document/d/1lxVkuT80ug0BX2LMJp5CXcMVPZneLK4unOetLU3WlQQ/edit?usp=sharing"
+            myEmbed.addField("1. Patch SWEP1RCR.EXE", "[Download swe1r-patcher.zip from JayFoxRox's github](https://github.com/JayFoxRox/swe1r-patcher/releases) and copy dinput.dll and the textures folder into your game directory", false)
+            myEmbed.addField("2. Set Up a VLAN Connection", "[Download Radmin VPN](https://www.radmin-vpn.com/) and join the Star Wars Episode I: Racer gaming network.", false)
+            myEmbed.addField("3. Change Ethernet Adapter","Run `ipxconfig.exe` in your game files and change your Primary interface to Famatech RadminVPN", false)
+            myEmbed.addField("4. Create or Join a Session","Launch the game, select multiplayer, and create or join a session.",false)
         } else if(args[0].name=="stats") {
             title = "Pod Vehicle Statistics and Track Data"
             desc = "The hidden vehicle stats for each racer and their values for each upgrade as well as track data"

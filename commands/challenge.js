@@ -207,12 +207,11 @@ module.exports = {
                     const filter = (reaction, user) => {
                         return (['👍', '👎'].includes(reaction.emoji.name) && user.id !== "545798436105224203");
                     };   
-                    const collector = sentMessage.createReactionCollector(filter, {time: 900000}) //apparently the max can only be 1??
+                    const collector = sentMessage.createReactionCollector(filter, {time: 900000})
                         collector.on('collect', (reaction, reactionCollector) => {
-                            //const reaction = collected.first();
                             const user = reaction.users.cache.last()
-                            console.log("I got a reaction!")
-                            console.log(reaction.users.cache.last())
+                            //console.log("I got a reaction!")
+                            //console.log(reaction.users.cache.last())
                             if (reaction.emoji.name === '👍') {
                                 feedback = '👍'
                             } else {
