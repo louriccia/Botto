@@ -14,7 +14,7 @@ module.exports = {
                 isEquation = true
                 equation.push(time.substring(0, i))
                 equation.push(time[i])
-                time.slice(i+1, time.length)
+                time = time.slice(i+1, time.length)
             } else if (i == time.length-1){
                 equation.push(time)
             }
