@@ -1,4 +1,5 @@
 module.exports = {
+    
     timefix: function(time) {
         var myformat = new Intl.NumberFormat('en-US', { 
             minimumIntegerDigits: 2, 
@@ -21,6 +22,10 @@ module.exports = {
         }
     },
     timetoSeconds: function(time) {
+        var myformat = new Intl.NumberFormat('en-US', { 
+            minimumIntegerDigits: 2, 
+            minimumFractionDigits: 3 
+        });
         if (time.includes(":")){
             var split = time.split(':')
             if (split.length = 2) {
@@ -28,14 +33,14 @@ module.exports = {
                 if (Number(split[1]) >= 60) {
                     return null
                 } else {
-                    return Number(out).toFixed(3)
+                    return Number(myformat.format(out)).toFixed(3)
                 }
             } else {
                 return null
             }
             
         } else {
-            return Number(time).toFixed(3)
+            return Number(myformat.format(time)).toFixed(3)
         }
         
     },
