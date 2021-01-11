@@ -28,14 +28,14 @@ module.exports = {
                 if (Number(split[1]) >= 60) {
                     return null
                 } else {
-                    return out
+                    return Number(out).toFixed(3)
                 }
             } else {
                 return null
             }
             
         } else {
-            return time
+            return Number(time).toFixed(3)
         }
         
     },
