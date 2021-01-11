@@ -35,8 +35,8 @@ module.exports = {
             }
         } else{
             if(isEquation){
-                inputresult = " = *" + eval(args[0].value) + "*"
-                outputresult = " = *" + tools.timefix(eval(output)) + "*"
+                inputresult = " = **" + eval(args[0].value) + "**"
+                outputresult = " = **" + tools.timefix(eval(args[0].value)) + "**"
             }
             for(let i=0; i<equation.length; i++){ // returns formatted time
                 if(!mathSigns.includes(equation[i])){
@@ -50,8 +50,8 @@ module.exports = {
         const Discord = require('discord.js');
         const myEmbed = new Discord.MessageEmbed()
             .setAuthor("/convert")
-            .setTitle("Time Converter")
-            .setDescription("Input: **" + args[0].value + inputresult + "**\nOutput: **" + output + outputresult + "**")
+            //.setTitle("Time Converter")
+            .setDescription("`Input:` " + args[0].value + inputresult + "\n`Output:` " + output + outputresult)
         client.api.interactions(interaction.id, interaction.token).callback.post({
             data: {
                 type: 3,
