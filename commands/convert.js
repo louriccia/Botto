@@ -34,8 +34,8 @@ module.exports = {
                 }
             }
             if(isEquation){
-                inputresult = " = *" + tools.timefix(eval(output)) + "*"
-                outputresult = " = *" + myformat.format(eval(output)).toFixed(3) + "*"
+                inputresult = " = **" + tools.timefix(eval(output)) + "**"
+                outputresult = " = **" + myformat.format(eval(output)).toFixed(3) + "**"
             }
         } else{
             if(isEquation){
