@@ -39,7 +39,7 @@ module.exports = {
             }
         } else{
             if(isEquation){
-                inputresult = " = **" + eval(args[0].value) + "**"
+                inputresult = " = **" + myformat.format(eval(args[0].value)).toFixed(3) + "**"
                 outputresult = " = **" + tools.timefix(eval(args[0].value)) + "**"
             }
             for(let i=0; i<equation.length; i++){ // returns formatted time
