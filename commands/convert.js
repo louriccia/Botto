@@ -31,7 +31,7 @@ module.exports = {
             }
             if(isEquation){
                 inputresult = " = *" + tools.timefix(eval(output)) + "*"
-                outputresult = " = *" + eval(output) + "*"
+                outputresult = " = *" + eval(output).toFixed(3) + "*"
             }
         } else{
             if(isEquation){
