@@ -19,6 +19,7 @@ module.exports = {
                 equation.push(time)
             }
         }
+        console.log(equation)
         if(args[0].value.includes(":")) {
             for(let i=0; i<equation.length; i++){ //returns unformatted seconds
                 if(!mathSigns.includes(equation[i])){
