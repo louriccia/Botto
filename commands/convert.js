@@ -35,11 +35,11 @@ module.exports = {
             }
             if(isEquation){
                 inputresult = " = **" + tools.timefix(eval(output)) + "**"
-                outputresult = " = **" + myformat.format(eval(output)).toFixed(3) + "**"
+                outputresult = " = **" + eval(output).toFixed(3) + "**"
             }
         } else{
             if(isEquation){
-                inputresult = " = **" + myformat.format(eval(args[0].value)).toFixed(3) + "**"
+                inputresult = " = **" + eval(args[0].value).toFixed(3) + "**"
                 outputresult = " = **" + tools.timefix(eval(args[0].value)) + "**"
             }
             for(let i=0; i<equation.length; i++){ // returns formatted time
