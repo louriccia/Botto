@@ -9,6 +9,10 @@ module.exports = {
         var mathSigns= ["+", "-", "*", "/", "(", ")"]
         var inputresult = ""
         var outputresult = ""
+        var myformat = new Intl.NumberFormat('en-US', { 
+            minimumIntegerDigits: 2, 
+            minimumFractionDigits: 3 
+        });
         for(var i=0; i<time.length; i++){
             if(mathSigns.includes(time[i])){
                 isEquation = true
@@ -31,7 +35,7 @@ module.exports = {
             }
             if(isEquation){
                 inputresult = " = *" + tools.timefix(eval(output)) + "*"
-                outputresult = " = *" + eval(output).toFixed(3) + "*"
+                outputresult = " = *" + myformat.format(eval(output)).toFixed(3) + "*"
             }
         } else{
             if(isEquation){
