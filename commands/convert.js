@@ -51,7 +51,7 @@ module.exports = {
         const myEmbed = new Discord.MessageEmbed()
             .setAuthor("/convert")
             .setTitle("Time Converter")
-            .setDescription("Input: **" + args[0].value + "**\nOutput: **" + output + "**")
+            .setDescription("Input: **" + args[0].value + inputresult + "**\nOutput: **" + output + outputresult + "**")
         client.api.interactions(interaction.id, interaction.token).callback.post({
             data: {
                 type: 3,
