@@ -174,13 +174,11 @@ module.exports = movieQuotes = [
     "*You cannot beat Sebulba, he always wins! Hahaha*",
     "*Maybe next time you win, huh? Hahaha*",
     "*What? You think you're gonna beat Sebulba with that podracer of yours? Whahh!*",
-    "*Have you seen my `!chancecube`?*",
+    "*Have you seen my `/chancecube`?*",
     "*Better stop betting or I'll own you!*",
     "*Outlanders. They come here, how do they find me? They come here, they mess up my store-- Hey!*",
     "*They come here. They look around. They no buy. Why nobody buy? Eyyyyyyyy*",
     "*There's always a bigger fish.*",
-    "*Tilting is op*",
-    "*Really? You're playing as THAT podracer?*",
 ]        
 
 module.exports = mpQuotes = [
@@ -216,7 +214,8 @@ module.exports = mpQuotes = [
     "*Can anyone help me get set up?*",
     "*Crap, I forgot to change the track.*",
     "*Wait, why am I Teemto!?*",
-    "**"
+    "*Tilting is op*",
+    "*Really? You're playing as THAT podracer?*"
 ]
 
 module.exports = a = "replaceme";

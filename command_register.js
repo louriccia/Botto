@@ -82,11 +82,11 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
 
 client.api.applications("545798436105224203").commands.post({data: {
     name: 'convert',
-    description: 'convert seconds to --:--.--- format and vice versa; for people who are bad at quick math',
+    description: 'convert seconds to --:--.--- format and vice versa; supports basic arithmetic (+-*/)',
     options: [
         {
             name: "time",
-            description: "the seconds or mm:ss.sss you wish to convert",
+            description: "the time/equation you wish to convert or evaluate",
             type: 3,
             required: true
         }

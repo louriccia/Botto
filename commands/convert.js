@@ -28,13 +28,13 @@ module.exports = {
                 }
             }
             if(isEquation){
-                inputresult = " = *" + timefix(eval(output)) + "*"
+                inputresult = " = *" + tools.timefix(eval(output)) + "*"
                 outputresult = " = *" + eval(output) + "*"
             }
         } else{
             if(isEquation){
                 inputresult = " = *" + eval(args[0].value) + "*"
-                outputresult = " = *" + timefix(eval(output)) + "*"
+                outputresult = " = *" + tools.timefix(eval(output)) + "*"
             }
             for(let i=0; i<equation.length; i++){ // returns formatted time
                 if(!mathSigns.includes(equation[i])){
