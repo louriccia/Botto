@@ -9,12 +9,13 @@ module.exports = {
         var mathSigns= ["+", "-", "*", "/", "(", ")"]
         var inputresult = ""
         var outputresult = ""
-        for(let i=0; i<time.length; i++){
+        for(var i=0; i<time.length; i++){
             if(mathSigns.includes(time[i])){
                 isEquation = true
                 equation.push(time.substring(0, i))
                 equation.push(time[i])
                 time = time.slice(i+1, time.length)
+                i = 0
             } else if (i == time.length-1){
                 equation.push(time)
             }
