@@ -111,7 +111,19 @@ module.exports = {
                 desc = desc +"*The current record-holder for this challenge is... " + best[0].name + "!*"
             } else if (Math.random() < 0.50) {
                 var str = playerPicks[Math.floor(Math.random()*playerPicks.length)]
-                desc = desc + str.replace("replaceme", interaction.member.user.username)
+                if(!Member.voice.channel) {
+                    desc = desc + str.replace("replaceme", interaction.member.user.username)
+                } else {
+                    var mems = client.channels.cache.get(Member.voice.channelID).members;
+                    var memarray = [];
+                    var memlist = ""
+                    for (let [snowflake, guildMember] of mems){
+                        if(guildMember.displayName !== "Botto"){
+                            memarray.push(guildMember.displayName)
+                        }
+                    }
+                    desc = desc + str.replace("replaceme", memarray[Math.floor(Math.random()*memarray.length)])
+                }
             } else {
                 if (vc) {
                     desc = desc + mpQuotes[Math.floor(Math.random()*mpQuotes.length)]

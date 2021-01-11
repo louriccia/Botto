@@ -77,7 +77,7 @@ module.exports = {
                     })
                 } else {
                     var podlist = "";
-                    var desc = "Rolled "
+                    var desc = "Rolled random "
                     for(let i=0; i<memarray.length; i++) {
                         if(pool.length == 0){
                             pool = [...poolsave]
@@ -88,13 +88,13 @@ module.exports = {
                     }
                     if (canon) {
                         desc = desc + "canonical "
-                    } else if(!canon) {
+                    } else if(canon===false) {
                         desc = desc + "non-canonical "
                     }
                     if(tier !== "" && tier !== "any") {
                         desc = desc + Tiernames[tier].toLowerCase() + " tier pods"
                     } else {
-                        desc = desc + "random pods"
+                        desc = desc + " pods"
                     }
                     const racerEmbed = new Discord.MessageEmbed()
                         .setFooter("/random")
