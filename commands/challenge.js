@@ -162,7 +162,7 @@ module.exports = {
                     }
                 }
                 var besttimes = "Be the first to submit a time for this challenge!"
-                var pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>", "4th", "5th"]
+                var pos = ["<:P1:671601240228233216> ", "<:P2:671601321257992204> ", "<:P3:671601364794605570> ", "4th ", "5th "]
                 if(best.length > 0) {
                     besttimes =""
                     best.sort((a,b) => (a.time > b.time) ? 1 : -1)

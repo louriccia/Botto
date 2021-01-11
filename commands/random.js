@@ -43,40 +43,42 @@ module.exports = {
                 if (tier === "" || tier === "any"){
                     if(canon ==="" || canon === "any") { //any
                         pool.push(i)
-                        console.log(i + " pushed for being any tier any canon")
                     } else if(canon == racers[i].canon) {
                         pool.push(i)
-                        console.log(i + " pushed for being any tier/ specified canon")
                     }
                 } else if(tier == racers[i].mu_tier) {
                     if(canon ==="" || canon === "any") { //any
                         pool.push(i)
-                        console.log(i + " pushed for being specified tier any canon")
                     } else if(canon == racers[i].canon) {
                         pool.push(i)
-                        console.log(i+ " pushed for being specified tier specified canon")
                     } 
                 } 
             }
             var poolsave = [...pool]
             if(pool.length == 0){
-                return
+                client.api.interactions(interaction.id, interaction.token).callback.post({
+                    data: {
+                        type: 4,
+                        data: {
+                            content: "`Error: No racers meet that criteria`\n" + error[Math.floor(Math.random()*error.length)],
+                        }
+                    }
+                })
             }
             if (vc) {
                 if (!Member.voice.channel) {
                     client.api.interactions(interaction.id, interaction.token).callback.post({
                         data: {
-                            type: 3,
+                            type: 4,
                             data: {
-                                content: "To roll a random racer for everyone in the voice channel, you need to be in a voice channel.",
-                                //embeds: [racerEmbed]
+                                content: "`Error: To roll a random racer for everyone in the voice channel, you need to be in a voice channel.`\n" +error[Math.floor(Math.random()*error.length)],
                             }
                         }
                     })
                 } else {
                     var podlist = "";
                     var desc = "Rolled "
-                    for(let i=0; i<memarray; i++) {
+                    for(let i=0; i<memarray.length; i++) {
                         if(pool.length == 0){
                             pool = [...poolsave]
                         }
@@ -211,7 +213,14 @@ module.exports = {
                 }
             }
             if(pool.length == 0){
-                return
+                client.api.interactions(interaction.id, interaction.token).callback.post({
+                    data: {
+                        type: 4,
+                        data: {
+                            content: "`Error: No tracks meet that criteria`\n" + error[Math.floor(Math.random()*error.length)],
+                        }
+                    }
+                })
             }
             var numb = pool[Math.floor(Math.random()*pool.length)]
             const trackEmbed = new Discord.MessageEmbed()
@@ -344,33 +353,45 @@ module.exports = {
                 .setDescription("Everyone in the voice channel has been split into **" + teamnum + "** teams")
                 
             var playernum = memarray.length
-            var remainder = playernum%teamnum
-            var members = ""
-            for(let i = 0; i<teamnum; i++){
-                members = ""
-                for(let j = 0; j<(Math.floor(playernum/teamnum)); j++){
-                    var random = Math.floor(Math.random()*memarray.length)
-                    members = members + memarray[random] + "\n"
-                    memarray.splice(random,1)
-                    if(remainder > 0){
+            if (teamnum > playernum){
+                client.api.interactions(interaction.id, interaction.token).callback.post({
+                    data: {
+                        type: 3,
+                        data: {
+                            content: "`Error: That's too many teams!`\n" + error[Math.floor(Math.random()*error.length)],
+                            //embeds: [teamEmbed]
+                        }
+                    }
+                })
+            } else {
+                var remainder = playernum%teamnum
+                var members = ""
+                for(let i = 0; i<teamnum; i++){
+                    members = ""
+                    for(let j = 0; j<(Math.floor(playernum/teamnum)); j++){
                         var random = Math.floor(Math.random()*memarray.length)
                         members = members + memarray[random] + "\n"
                         memarray.splice(random,1)
-                        remainder = remainder - 1
-                    }
+                        if(remainder > 0){
+                            var random = Math.floor(Math.random()*memarray.length)
+                            members = members + memarray[random] + "\n"
+                            memarray.splice(random,1)
+                            remainder = remainder - 1
+                        }
 
-                }
-                teamEmbed.addField("Team " + (i + 1), members, true)
-            }
-            client.api.interactions(interaction.id, interaction.token).callback.post({
-                data: {
-                    type: 3,
-                    data: {
-                        //content: "",
-                        embeds: [teamEmbed]
                     }
+                    teamEmbed.addField("Team " + (i + 1), members, true)
                 }
-            })
+                client.api.interactions(interaction.id, interaction.token).callback.post({
+                    data: {
+                        type: 3,
+                        data: {
+                            //content: "",
+                            embeds: [teamEmbed]
+                        }
+                    }
+                })
+            }
         } else if(args[0].name=="number") {
             if (messageLow.startsWith(`${prefix}random`)) {
             
