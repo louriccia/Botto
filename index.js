@@ -82,7 +82,9 @@ async function getCommands() {
 
 getCommands()
 
-client.guilds.cache.get("441839750555369474").channels.cache.get("444208252541075476").messages.fetch({around: "798107558140706846", limit: 1})
+myguild = client.guilds.cache.get("441839750555369474")
+mychannel = myguild.channels.cache.get("444208252541075476")
+mychannel.messages.fetch({around: "798107558140706846", limit: 1})
   .then(messages => {
     console.log(messages.first().type)
   });
