@@ -261,7 +261,8 @@ module.exports = {
                             } else if (reaction.emoji.name === '↩️') {
                                 for(let i = 0; i<collection.length; i++) {
                                     if(collection[i].user == user.id){
-                                        oddsref.child(collection[i].record).remove()
+                                        ref.child(collection[i].record).remove()
+                                        best.splice(collection[i].index, 1)
                                         try {
                                             sentMessage.edit(createEmbed("", ""))
                                         } catch {}
@@ -354,13 +355,14 @@ module.exports = {
                                     skips: skips,
                                     mirror: mirror
                                 }
+                                best.push(submissiondata)
                                 var newPostRef = ref.push(submissiondata);
                                 var collectiondata = {
                                     record: newPostRef.key,
-                                    user: message.author.id
+                                    user: message.author.id,
+                                    index: best.length-1
                                 }
                                 collection.push(collectiondata)
-                                best.push(submissiondata)
                                 collected = true
                                 console.log(collection)
                             //edit original message
