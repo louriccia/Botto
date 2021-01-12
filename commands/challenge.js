@@ -491,6 +491,7 @@ module.exports = {
                 }
                 if (profiledata[member] !== undefined) {
                     profileref.child(member).update({
+                        winnings: winnings,
                         skips: odds_skips,
                         no_upgrades: odds_noupgrades,
                         non_3_lap: odds_non3lap,
@@ -500,9 +501,9 @@ module.exports = {
             }
             const oddsEmbed = new Discord.MessageEmbed()
                 .setThumbnail("https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/259/game-die_1f3b2.png")
-                .setAuthor(interaction.member.user.username + "'s Challenge Settings", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
-                .setTitle("Customize Your `/challenge` Settings")
-                .setDescription("**Challenge Condition Odds**\nCustomize your odds by using the `/challenge settings` command and inputting numbers for Skips, No Upgrades, Non 3-lap, and Mirror Mode odds." + 
+                .setAuthor(interaction.member.user.username, client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
+                .setTitle("Your `/challenge` Settings")
+                .setDescription(desc + "\n\n**Challenge Condition Odds**\nCustomize your odds by using the `/challenge settings` command and inputting numbers for Skips, No Upgrades, Non 3-lap, and Mirror Mode odds.\n" + 
                 "**Challenge Winnings**\nYou can earn a certain amount of truguts based on the goal time you beat for each challenge. Customize your winnings pattern in the `/challenge settings` command and choose how to split your potential winnings.")
                 .addField("Your Odds", "Skips - " + odds_skips +"%\nNo Upgrades - " + odds_noupgrades +"%\nNon 3-Lap - " + odds_non3lap +"%\nMirror Mode - " + odds_mirrormode +"%", true)
                 .addField("Your Winnings: " + winnings_map[winnings].name, winnings_map[winnings].text, true)
@@ -516,7 +517,7 @@ module.exports = {
                     }
                 }
             })
-        } else if(args[0].name=="stats") {
+        } else if(args[0].name=="profile") {
             let member = interaction.member.user.id
             /*
             Stats:
