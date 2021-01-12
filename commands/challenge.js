@@ -9,19 +9,19 @@ module.exports = {
         require('firebase/auth');
         require('firebase/database');
         var database = firebase.database();
-        var ref = database.ref('times');
+        var ref = database.ref('challenge/times');
         ref.on("value", function(snapshot) {
             challengedata = snapshot.val();
         }, function (errorObject) {
             console.log("The read failed: " + errorObject.code);
         });
-        var oddsref = database.ref('odds');
-        oddsref.on("value", function(snapshot) {
-            oddsdata = snapshot.val();
+        var profileref = database.ref('challenge/profiles');
+        profileref.on("value", function(snapshot) {
+            profiledata = snapshot.val();
         }, function (errorObject) {
             console.log("The read failed: " + errorObject.code);
         });
-        var feedbackref = database.ref('feedback');
+        var feedbackref = database.ref('challenge/feedback');
         feedbackref.on("value", function(snapshot) {
             feedbackdata = snapshot.val();
         }, function (errorObject) {
@@ -42,28 +42,29 @@ module.exports = {
         //calculate odds
             const Guild = client.guilds.cache.get(interaction.guild_id); // Getting the guild.
             const Member = Guild.members.cache.get(member); // Getting the member.
+            
             if (!Member.voice.channel) {
-                if (oddsdata !==null) {
-                    var keys = Object.keys(oddsdata)
-                    for (var i=0; i<keys.length; i++) {
-                        var k = keys[i];
-                        if(oddsdata[k].name == member){
-                            record = k
-                            i = keys.length
+                if (profiledata !==null) {
+                    if(profiledata[member] !== undefined){
+                        if (record !== "") {
+                            odds_skips = profiledata[member].skips/100
+                            odds_noupgrades = profiledata[member].no_upgrades/100
+                            odds_non3lap = profiledata[member].non_3_lap/100
+                            odds_mirrormode = profiledata[member].mirror_mode/100
+                        } else {
+                            odds_skips = 0.25
+                            odds_noupgrades = 0.15
+                            odds_non3lap = 0.05
+                            odds_mirrormode = 0.05
                         }
                     }
-                }
-                if (record !== "") {
-                    odds_skips = oddsdata[k].skips/100
-                    odds_noupgrades = oddsdata[k].no_upgrades/100
-                    odds_non3lap = oddsdata[k].non_3_lap/100
-                    odds_mirrormode = oddsdata[k].mirror_mode/100
                 } else {
                     odds_skips = 0.25
                     odds_noupgrades = 0.15
                     odds_non3lap = 0.05
                     odds_mirrormode = 0.05
                 }
+                
                 if (Math.random()<odds_noupgrades){
                     nutext = " with **NO UPGRADES**"
                     nu = true
@@ -389,116 +390,122 @@ module.exports = {
                     }   
                 })
             })
-        } else if(args[0].name=="odds") {
+        } else if(args[0].name=="settings") {
         //get input
-            console.log(args)
-            var odds_skips = undefined, odds_noupgrades = undefined, odds_non3lap = undefined, odds_mirrormode = undefined, odds_reset = undefined;
+            let member = interaction.member.user.id
+            var winnings = undefined, odds_skips = undefined, odds_noupgrades = undefined, odds_non3lap = undefined, odds_mirrormode = undefined, odds_reset = undefined;
             if (args[0].hasOwnProperty("options")) {
                 for (let i = 0; i<args[0].options.length; i++) {
-                    if (args[0].options[i].name == "skips") {
+                    if (args[0].options[i].name == "winnings") {
+                        winnings = args[0].options[i].value
+                    } else if (args[0].options[i].name == "skips_odds") {
                         odds_skips = args[0].options[i].value
-                    } else if (args[0].options[i].name == "no_upgrades") {
+                    } else if (args[0].options[i].name == "no_upgrades_odds") {
                         odds_noupgrades = args[0].options[i].value
-                    } else if (args[0].options[i].name == "non_3_lap") {
+                    } else if (args[0].options[i].name == "non_3_lap_odds") {
                         odds_non3lap = args[0].options[i].value
-                    } else if (args[0].options[i].name == "mirrored") {
+                    } else if (args[0].options[i].name == "mirrored_odds") {
                         odds_mirrormode = args[0].options[i].value
                     } else if (args[0].options[i].name == "reset") {
                         odds_reset = args[0].options[i].value
                     }
                 }
             }
-            var record = ""
-            var desc = "You have not customized your odds. The default odds are listed below. Customize your odds by using the `/challenge odds` command and inputting numbers for Skips, No Upgrades, Non 3-lap, and Mirror Mode. These numbers will be divided by 100 to determine the chances Botto will give their conditions in a `/challenge`."
-            var odds_default = {
+            var odds_text = ""
+            var desc = "You have not customized your odds. The default odds are listed below. "
+            var settings_default = {
+                winnings: 1,
                 skips: 25,
                 no_upgrades: 15,
                 non_3_lap: 5,
                 mirrored: 5
             }
-        //find odds record
-            if (oddsdata !==null) {
-                var keys = Object.keys(oddsdata)
-                for (var i=0; i<keys.length; i++) {
-                    var k = keys[i];
-                    if(oddsdata[k].name == interaction.member.user.id){
-                        record = k
-                        i = keys.length
+            var winnings_map = [
+                {name:"Fair", text:":gem: 36%\n:first_place: 32%\n:second_place: 27%\n:third_place: 5%\n<:bumpythumb:703107780860575875> 0%"}, 
+                {name:"Skilled", text:":gem: 55%\n:first_place: 27%\n:second_place: 14%\n:third_place: 5%\n<:bumpythumb:703107780860575875> 0%"}, 
+                {name:"Winner Takes All", text:":gem: 100%\n:first_place: 0%\n:second_place: 0%\n:third_place: 0%\n<:bumpythumb:703107780860575875> 0%"}
+            ]
+            if (odds_reset) { //resetting to default
+                if(profiledata[member] !== undefined) {
+                    desc = "You have successfully reset your settings to default. "
+                    profileref.child(member).update({
+                        winnings: settings_default.winnings,
+                        skips: settings_default.skips,
+                        no_upgrades: settings_default.no_upgrades,
+                        non_3_lap: settings_default.non_3_lap,
+                        mirror_mode: settings_default.mirrored
+                    })
+                }
+            } else if (winnings == undefined && odds_skips == undefined && odds_noupgrades == undefined && odds_non3lap == undefined && odds_mirrormode == undefined) { //no odds submitted
+                if(profiledata[member] !== undefined) {
+                    desc = "Your current settings are shown below. "
+                    winnings = profiledata[member].winnings
+                    odds_skips = profiledata[member].skips
+                    odds_noupgrades = profiledata[member].no_upgrades
+                    odds_non3lap = profiledata[member].non_3_lap
+                    odds_mirrormode = profiledata[member].mirror_mode
+                } else {
+                    desc = "You have not customized your settings. The default settings are shown below. "
+                    winnings = settings_default.winnings
+                    odds_skips = settings_default.skips
+                    odds_noupgrades = settings_default.no_upgrades
+                    odds_non3lap = settings_default.non_3_lap
+                    odds_mirrormode = settings_default.mirrored
+                }
+            } else { //at least one setting was updated
+                desc = "You have successfully updated your settings. Your custom odds are listed below. "
+                if (winnings == undefined) {
+                    if (profiledata[member].winnings !== undefined) {
+                        winnings = profiledata[member].winnings
+                    } else {
+                        winnings = settings_default.winnings
                     }
                 }
-            }
-            if (odds_reset) { //resetting to default
-                if(record !== "") {
-                    desc = "You have successfully reset your odds to the default. "
-                    oddsref.child(record).remove()
-                    odds_skips = odds_default.skips
-                    odds_noupgrades = odds_default.no_upgrades
-                    odds_non3lap = odds_default.non_3_lap
-                    odds_mirrormode = odds_default.mirrored
-                }
-            } else if (odds_skips == undefined && odds_noupgrades == undefined && odds_non3lap == undefined && odds_mirrormode == undefined) { //no odds submitted
-                if(record !== "") {
-                    desc = "Your custom odds are listed below. Customize your odds by using the `/challenge odds` command and inputting numbers for Skips, No Upgrades, Non 3-lap, and Mirror Mode. These numbers will be divided by 100 to determine the chances Botto will give their conditions in a `/challenge`."
-                    odds_skips = oddsdata[k].skips
-                    odds_noupgrades = oddsdata[k].no_upgrades
-                    odds_non3lap = oddsdata[k].non_3_lap
-                    odds_mirrormode = oddsdata[k].mirror_mode
-                } else {
-                    desc = "You have not customized your odds. The default odds are listed below. Customize your odds by using the `/challenge odds` command and inputting numbers for Skips, No Upgrades, Non 3-lap, and Mirror Mode. These numbers will be divided by 100 to determine the chances Botto will give their conditions in a `/challenge`."
-                    odds_skips = odds_default.skips
-                    odds_noupgrades = odds_default.no_upgrades
-                    odds_non3lap = odds_default.non_3_lap
-                    odds_mirrormode = odds_default.mirrored
-                }
-            } else { //at least one new odd submitted
-                desc = "You have successfully updated your custom odds. Your custom odds are listed below. "
                 if (odds_skips == undefined) {
-                    if (record !== "") {
-                        odds_skips = oddsdata[k].skips
+                    if (profiledata[member].skips !== undefined) {
+                        odds_skips = profiledata[member].skips
                     } else {
-                        odds_skips = odds_default.skips
+                        odds_skips = settings_default.skips
                     }
                 }
                 if (odds_noupgrades == undefined) {
-                    if (record !== "") {
-                        odds_noupgrades = oddsdata[k].no_upgrades
+                    if (profiledata[member].no_upgrades !== undefined) {
+                        odds_noupgrades = profiledata[member].no_upgrades
                     } else {
-                        odds_noupgrades = odds_default.no_upgrades
+                        odds_noupgrades = settings_default.no_upgrades
                     }
                 }
                 if (odds_non3lap == undefined) {
-                    if (record !== "") {
-                        odds_non3lap = oddsdata[k].non_3_lap
+                    if (profiledata[member].non_3_lap !== undefined) {
+                        odds_non3lap = profiledata[member].non_3_lap
                     } else {
-                        odds_non3lap = odds_default.non_3_lap
+                        odds_non3lap = settings_default.non_3_lap
                     }
                 }
                 if (odds_mirrormode == undefined) {
-                    if (record !== "") {
-                        odds_mirrormode = oddsdata[k].mirror_mode
+                    if (profiledata[member].mirror_mode !== undefined) {
+                        odds_mirrormode = profiledata[member].mirror_mode
                     } else {
-                        odds_mirrormode = odds_default.mirrored
+                        odds_mirrormode = settings_default.mirrored
                     }
                 }
-                var data = {
-                    name: interaction.member.user.id,
-                    skips: odds_skips,
-                    no_upgrades: odds_noupgrades,
-                    non_3_lap: odds_non3lap,
-                    mirror_mode: odds_mirrormode
+                if (profiledata[member] !== undefined) {
+                    profileref.child(member).update({
+                        skips: odds_skips,
+                        no_upgrades: odds_noupgrades,
+                        non_3_lap: odds_non3lap,
+                        mirror_mode: odds_mirrormode
+                    })
                 }
-                if (record !== "") {
-                    oddsref.child(record).remove() //delete old odds
-                }
-                oddsref.push(data);
             }
             const oddsEmbed = new Discord.MessageEmbed()
                 .setThumbnail("https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/259/game-die_1f3b2.png")
-                .setAuthor(interaction.member.user.username + "'s Odds", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
-                .setTitle("Customize Your `/challenge` Odds")
-                .setDescription(desc)
+                .setAuthor(interaction.member.user.username + "'s Challenge Settings", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
+                .setTitle("Customize Your `/challenge` Settings")
+                .setDescription("**Challenge Condition Odds**\nCustomize your odds by using the `/challenge settings` command and inputting numbers for Skips, No Upgrades, Non 3-lap, and Mirror Mode odds." + 
+                "**Challenge Winnings**\nYou can earn a certain amount of truguts based on the goal time you beat for each challenge. Customize your winnings pattern in the `/challenge settings` command and choose how to split your potential winnings.")
                 .addField("Your Odds", "Skips - " + odds_skips +"%\nNo Upgrades - " + odds_noupgrades +"%\nNon 3-Lap - " + odds_non3lap +"%\nMirror Mode - " + odds_mirrormode +"%", true)
-                .addField("Default Odds", "Skips - "+odds_default.skips+"%\nNo Upgrades - "+odds_default.no_upgrades+"%\nNon 3-Lap - "+odds_default.non_3_lap+"%\nMirror Mode - "+ odds_default.mirrored +"%", true)
+                .addField("Your Winnings: " + winnings_map[winnings].name, winnings_map[winnings].text, true)
                 .setColor("EA596E")
             client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {
@@ -510,66 +517,98 @@ module.exports = {
                 }
             })
         } else if(args[0].name=="stats") {
-        /*
-        Stats:
-        X - Total Challenges
-        X - Standard
-        X - Skips
-        X - NU
-        X - Non 3-Lap
-        X - Mirror Mode
+            let member = interaction.member.user.id
+            /*
+            Stats:
+            X - Total Challenges
+            X - Standard
+            X - Skips
+            X - No Upgrades
+            X - Non 3-Lap
+            X - Mirrored
 
-        Trends:
-        Most played pod:
-        Most played track:
-        Most played planet:
-        Most played circuit:
+            Gameplay Trends:
+            Most played pod:
+            Most played track:
+            Most played planet:
+            Most played circuit:
 
-        Achievements:
-        Complete a challenge on every track: X/25
-        Complete a challenge with every pod: X/23
-        Complete a skip challenge for every track with a skip: X/12
-        Complete a NU challenge with every pod: X/23
-        Complete a challenge as every pod on every track: X/575
+            Feedback Trends:
+            Most played pod:
+            Most played track:
+            Most played planet:
+            Most played circuit:
 
-        var keys = Object.keys(challengedata)
-        var best = []
-        for (var i=0; i<keys.length; i++) {
-            var k = keys[i];
-            if(challengedata[k].track == random2 && challengedata[k].racer == random1 && challengedata[k].laps == laps && challengedata[k].mirror == mirror && challengedata[k].nu == nu && challengedata[k].skips == skips){
-                best.push(challengedata[k])
+
+            Achievements:
+            Galaxy Famous - Complete a challenge on every track: X/25
+            Pod Champ - Complete a challenge with every pod: X/23
+            Crowd Favorite - Complete a challenge as the track favorite on every track: X/25
+            Lightspeed Skipper - Complete a Skip Challenge for every track with a skip: X/15
+            Slow 'n Steady: Complete a No Upgrades challenge with every pod: X/23
+            True Jedi: Complete a challenge with every pod on every track: X/575
+            Big-time Swindler: Earn or spend 1,000,000 total trugguts
+            */
+            var keys = Object.keys(challengedata)
+            var stats = {
+                total: 0,
+                standard: 0,
+                skips: 0,
+                no_upgrades: 0,
+                non_3_lap: 0,
+                mirrored: 0
             }
-        }
-        if(array.length == 0)
-        return null;
-        var modeMap = {};
-        var maxEl = array[0], maxCount = 1;
-        for(var i = 0; i < array.length; i++)
-        {
-            var el = array[i];
-            if(modeMap[el] == null)
-                modeMap[el] = 1;
-            else
-                modeMap[el]++;  
-            if(modeMap[el] > maxCount)
-            {
-                maxEl = el;
-                maxCount = modeMap[el];
-            }
-        }
-        return maxEl;
-        }
-
-        client.api.interactions(interaction.id, interaction.token).callback.post({
-            data: {
-                type: 4,
-                data: {
-                    //content: "",
-                    //embeds: [myEmbed]
+            for (var i=0; i<keys.length; i++) {
+                var k = keys[i];
+                if(challengedata[k].user == member){
+                    stats.total ++
+                    if(!challengedata[k].mirror && !challengedata[k].nu && !challengedata[k].skips && challengedata[k].laps == 3) {
+                        stats.standard ++
+                    } else {
+                        if (challengedata[k].skips){
+                            stats.skips ++
+                        } 
+                        if (challengedata[k].nu){
+                            stats.no_upgrades ++
+                        }
+                        if (challengedata[k].laps !== 3){
+                            stats.non_3_lap ++
+                        }
+                        if (challengedata[k].mirror){
+                            stats.mirrored ++
+                        }
+                    } 
                 }
             }
-        })
-        */
+            console.log(stats)
+            /*
+            if(array.length == 0)
+            return null;
+            var modeMap = {};
+            var maxEl = array[0], maxCount = 1;
+            for(var i = 0; i < array.length; i++) {
+                var el = array[i];
+                if(modeMap[el] == null)
+                    modeMap[el] = 1;
+                else
+                    modeMap[el]++;  
+                if(modeMap[el] > maxCount)
+                {
+                    maxEl = el;
+                    maxCount = modeMap[el];
+                }
+            }
+
+            client.api.interactions(interaction.id, interaction.token).callback.post({
+                data: {
+                    type: 4,
+                    data: {
+                        //content: "",
+                        //embeds: [myEmbed]
+                    }
+                }
+            })
+            */
         } else if(args[0].name=="about") {
             const challengeHelpEmbed = new Discord.MessageEmbed()
                 .setTitle("Random Challenges")

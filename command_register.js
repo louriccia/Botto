@@ -10,48 +10,82 @@ client.api.applications("545798436105224203").commands.post({data: {
         {
             name: "generate",
             description: "get a random pod/track challenge; 15-minute time limit; submit your time below",
-            type: 1
-        },
-        {
-            name: "odds",
-            description: "view and customize your personal challenge odds of rolling no upgrades, skips, etc.",
             type: 1,
             options: [
                 {
-                    name: "skips",
+                    name: "bribe_track",
+                    description: "request a specific track from Botto for 8400 Truguts",
+                    type: 3,
+                    requiredl: false
+                },
+                {
+                    name: "bribe_racer",
+                    description: "request a specific racer from Botto for 8400 Truguts",
+                    type: 3,
+                    requiredl: false
+                }
+            ]
+        },
+        {
+            name: "settings",
+            description: "customize your challenge settings including your winnings and odds of rolling nu, skips, etc.",
+            type: 1,
+            options: [
+                {
+                    name: "winnings",
+                    description: "the pattern of truguts earned based on your achieved goal time",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "1 Fair",
+                            value: "0"
+                        },
+                        {
+                            name: "2 Skilled",
+                            value: "1"
+                        },
+                        {
+                            name: "3 Winner Takes All",
+                            value: "2"
+                        },
+                    ]
+                },
+                {
+                    name: "skips_odds",
                     description: "x/100 chance of getting a skip challenge",
                     type: 4,
                     required: false
                 },
                 {
-                    name: "no_upgrades",
+                    name: "no_upgrades_odds",
                     description: "x/100 chance of getting a no upgrades challenge",
                     type: 4,
                     required: false
                 },
                 {
-                    name: "non_3_lap",
+                    name: "non_3_lap_odds",
                     description: "x/100 chance of getting a non 3-lap challenge",
                     type: 4,
                     required: false
                 },
                 {
-                    name: "mirrored",
+                    name: "mirrored_odds",
                     description: "x/100 chance of getting a mirrored challenge",
                     type: 4,
                     required: false
                 },
                 {
                     name: "reset",
-                    description: "if true, resets your challenge odds to default",
+                    description: "if true, resets your challenge settings to default",
                     type: 5,
                     required: false
                 }
             ]
         },
         {
-            name: "stats",
-            description: "view your career stats and achievement progress for random challenges",
+            name: "profile",
+            description: "view your career stats, total truguts, and achievement progress for random challenges",
             type: 1
         },
         {
