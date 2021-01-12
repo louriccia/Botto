@@ -8,6 +8,7 @@ module.exports = {
             limit = args[0].value
         }
         client.channels.cache.get(interaction.channel_id).messages.fetch({limit:limit}).then(messages => {
+            console.log(messages.first().type)
             const botMessages = messages.filter(msg => msg.author.bot || msg.content.startsWith("!") || msg.content == "?help");
             client.channels.cache.get(interaction.channel_id).bulkDelete(botMessages);
             messagesDeleted = botMessages.array().length; // number of messages deleted
