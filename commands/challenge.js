@@ -250,6 +250,7 @@ module.exports = {
                                 }
                                 feedbackref.push(feedbackdata);
                             } else if (reaction.emoji.name === '🎲' && !collected) {
+                                desc = movieQuotes[Math.floor(Math.random()*movieQuotes.length)]
                                 random1 = Math.floor(Math.random()*23)
                                 random2 = Math.floor(Math.random()*25)
                                 challengestart = Date.now()

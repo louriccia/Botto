@@ -62,6 +62,8 @@ ref.on("value", function(snapshot) {
     console.log("The read failed: " + errorObject.code);
   });
 
+firebase.database().ref().child('/challenge/'+'256236315144749059').update({name:"LightningPirate"})
+ref.child('256236315144749059').update({mirror_mode: 0})
 
 client.ws.on('INTERACTION_CREATE', async interaction => {
     const command = interaction.data.name.toLowerCase();
