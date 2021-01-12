@@ -242,19 +242,23 @@ client.on('message', message => {
     //console.log(client.guilds.cache.get("697833083201650689"))
     }
 
+    if (message ==`${prefix}test`) {
+        client.channels.fetch('444208252541075476')
+        .then(channel => {
+          channel.messages.fetch({around: "798107558140706846", limit: 1})
+          .then(messages => {m, 
+            console.log(messages.first().type)
+          });
+        })
+        .catch(console.error);
+    }
+
     if (message ==`${prefix}ping`) {
         //console.log(client.guilds.cache)
         client.channels.cache.get("444208252541075476").send("I'm alive! I've been up for `" + tools.timefix(client.uptime/1000) + "` since `" + client.readyAt + "`");
     }
 })
 
-client.channels.fetch('444208252541075476')
-  .then(channel => {
-    channel.messages.fetch({around: "798107558140706846", limit: 1})
-    .then(messages => {m, 
-      console.log(messages.first().type)
-    });
-  })
-  .catch(console.error);
-  
+
+
 client.login(process.env.token);
