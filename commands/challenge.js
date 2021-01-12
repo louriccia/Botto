@@ -39,9 +39,6 @@ module.exports = {
             var laps = 3, lap = [1,2,4,5]
             var laptext = "", mirrortext = "", nutext = "", skipstext = "", flag = "", record = ""
             var mirror = false, nu = false, skips = false
-            if (racers[random1].hasOwnProperty("flag")) {
-                flag = racers[random1].flag
-            }
         //calculate odds
             const Guild = client.guilds.cache.get(interaction.guild_id); // Getting the guild.
             const Member = Guild.members.cache.get(member); // Getting the member.
@@ -96,15 +93,7 @@ module.exports = {
                     best.push(challengedata[k])
                 }
             }
-        //calculate goal time
-            var speed = 1, speedmod = tracks[random2].avgspeedmod, length = tracks[random2].length
-            length = length * laps
-            if (nu) {
-                speed = racers[random1].avgspeed_nu
-            } else {
-                speed = racers[random1].avgspeed_mu
-            }
-            var goal = length/(speed*speedmod)
+
         //build description
             var desc = ""
             if(Math.random()<0.50 && best.length> 0) {
@@ -133,6 +122,18 @@ module.exports = {
             }
         //build embed
             function createEmbed(title, highlight) {
+            //calculate goal time
+                var speed = 1, speedmod = tracks[random2].avgspeedmod, length = tracks[random2].length
+                length = length * laps
+                if (nu) {
+                    speed = racers[random1].avgspeed_nu
+                } else {
+                    speed = racers[random1].avgspeed_mu
+                }
+                var goal = length/(speed*speedmod)
+                if (racers[random1].hasOwnProperty("flag")) {
+                    flag = racers[random1].flag
+                }
                 var eTitle = "", eColor = "", eAuthor = [], eGoalTimes = []
                 eTitle = "Race as **" + flag + " " + racers[random1].name + "** (" + (random1 + 1) + ")"+ nutext + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + laptext + skipstext + mirrortext
                 eColor = planets[tracks[random2].planet].color
