@@ -248,10 +248,13 @@ client.on('message', message => {
     }
 })
 
-var mychannel = client.channels.cache.get("444208252541075476")
-mychannel.messages.fetch({around: "798107558140706846", limit: 1})
-  .then(messages => {
-    console.log(messages.first().type)
-  });
-
+client.channels.fetch('444208252541075476')
+  .then(channel => {
+    channel.messages.fetch({around: "798107558140706846", limit: 1})
+    .then(messages => {m, 
+      console.log(messages.first().type)
+    });
+  })
+  .catch(console.error);
+  
 client.login(process.env.token);
