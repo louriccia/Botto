@@ -200,6 +200,9 @@ module.exports = {
                     .setDescription(rating+desc)
                     .addField("Goal Times", eGoalTimes, true)
                     .addField("Best Times", besttimes, true)
+                    if(!vc){
+                        newEmbed.setFooter("Click to reroll the challenge for 2100 Truguts", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/259/game-die_1f3b2.png")
+                    }
                 return newEmbed
             }
         //send embed
@@ -216,32 +219,56 @@ module.exports = {
             //collect feedback
                 sentMessage.react('👍').then(()=> sentMessage.react('👎')).then(async function (message) {
                     var feedback = ""
+                    if(!vc){
+                        sentMessage.react('🎲')
+                    }
                     const filter = (reaction, user) => {
-                        return (['👍', '👎'].includes(reaction.emoji.name) && user.id !== "545798436105224203");
+                        return (['👍', '👎', '↩️', '🎲'].includes(reaction.emoji.name) && user.id !== "545798436105224203");
                     };   
                     const collector = sentMessage.createReactionCollector(filter, {time: 900000})
                         collector.on('collect', (reaction, reactionCollector) => {
                             const user = reaction.users.cache.last()
                             //console.log("I got a reaction!")
                             //console.log(reaction.users.cache.last())
-                            if (reaction.emoji.name === '👍') {
-                                feedback = '👍'
-                            } else {
-                                feedback = '👎'
+                            if(['👍', '👎'].includes(reaction.emoji.name)) {
+                                if (reaction.emoji.name === '👍') {
+                                    feedback = '👍'
+                                } else {
+                                    feedback = '👎'
+                                }
+                                var feedbackdata = {
+                                    user: user.id,
+                                    name: user.username,
+                                    feedback: feedback,
+                                    date: sentMessage.createdTimestamp,
+                                    racer: random1,
+                                    track: random2,
+                                    laps: laps,
+                                    nu: nu,
+                                    skips: skips,
+                                    mirror: mirror
+                                }
+                                feedbackref.push(feedbackdata);
+                            } else if (reaction.emoji.name === '🎲' && !collected) {
+                                random1 = Math.floor(Math.random()*23)
+                                random2 = Math.floor(Math.random()*25)
+                                challengestart = Date.now()
+                                try {
+                                    sentMessage.edit(createEmbed(":game_die: Reroll: ", null))
+                                } catch {}
+                            } else if (reaction.emoji.name === '↩️') {
+                                for(let i = 0; i<collection.length; i++) {
+                                    if(collection[i].user == user.id){
+                                        oddsref.child(collection[i].record).remove()
+                                        try {
+                                            sentMessage.edit(createEmbed("", ""))
+                                        } catch {}
+                                        collected = false
+                                        collecting = true
+                                    }
+                                }
+                                
                             }
-                            var feedbackdata = {
-                                user: user.id,
-                                name: user.username,
-                                feedback: feedback,
-                                date: sentMessage.createdTimestamp,
-                                racer: random1,
-                                track: random2,
-                                laps: laps,
-                                nu: nu,
-                                skips: skips,
-                                mirror: mirror
-                            }
-                            feedbackref.push(feedbackdata);
                         })
                 })
                 setTimeout(async function() { //5 minute warning
@@ -270,7 +297,7 @@ module.exports = {
                 }, 900000)
             //collect times
                 const collector = new Discord.MessageCollector(client.channels.cache.get(interaction.channel_id), m => m,{ time: 900000 });
-                var collected = false, collecting = true
+                var collected = false, collecting = true, collection = []
                 collector.on('collect', message => {
                 //a new challenge appears
                     if(message.embeds.length > 0 && message.author.id == "545798436105224203") {
@@ -312,6 +339,7 @@ module.exports = {
                                 collected = true
                             } else {
                             //log time
+                                sentMessage.react('↩️')
                                 var submissiondata = {
                                     user: message.author.id,
                                     name: message.author.username,
@@ -324,9 +352,15 @@ module.exports = {
                                     skips: skips,
                                     mirror: mirror
                                 }
-                                ref.push(submissiondata);
+                                var newPostRef = ref.push(submissiondata);
+                                var collectiondata = {
+                                    record: newPostRef.key,
+                                    user: message.author.id
+                                }
+                                collection.push(collectiondata)
                                 best.push(submissiondata)
                                 collected = true
+                                console.log(collection)
                             //edit original message
                                 if(vc){
                                     try {
