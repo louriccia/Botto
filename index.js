@@ -82,12 +82,7 @@ async function getCommands() {
 
 getCommands()
 
-myguild = client.guilds.cache.get("441839750555369474")
-mychannel = myguild.channels.cache.get("444208252541075476")
-mychannel.messages.fetch({around: "798107558140706846", limit: 1})
-  .then(messages => {
-    console.log(messages.first().type)
-  });
+
 
 
 client.once('ready', () => {
@@ -252,5 +247,11 @@ client.on('message', message => {
         client.channels.cache.get("444208252541075476").send("I'm alive! I've been up for `" + tools.timefix(client.uptime/1000) + "` since `" + client.readyAt + "`");
     }
 })
+
+var mychannel = client.channels.cache.get("444208252541075476")
+mychannel.messages.fetch({around: "798107558140706846", limit: 1})
+  .then(messages => {
+    console.log(messages.first().type)
+  });
 
 client.login(process.env.token);
