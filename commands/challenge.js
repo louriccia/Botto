@@ -453,7 +453,7 @@ module.exports = {
                     odds_mirrormode = settings_default.mirrored
                 }
             } else { //at least one setting was updated
-                desc = "You have successfully updated your settings. Your custom odds are listed below. "
+                desc = "You have successfully updated your settings. Your new settings are shown below. "
                 if (winnings == undefined) {
                     if (profiledata[member].winnings !== undefined) {
                         winnings = profiledata[member].winnings
@@ -491,7 +491,7 @@ module.exports = {
                 }
                 if (profiledata[member] !== undefined) {
                     profileref.child(member).update({
-                        winnings: winnings,
+                        winnings: Number(winnings),
                         skips: odds_skips,
                         no_upgrades: odds_noupgrades,
                         non_3_lap: odds_non3lap,
