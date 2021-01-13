@@ -14,8 +14,9 @@ module.exports = {
         var desc = []
          //filters out other tracks
         for (let i = 0; i<args.length; i++) {
-            var input = args[i].value.toLowerCase()
+            
             if (args[i].name == "track") {
+                var input = args[i].value.toLowerCase()
                 for(let i = 0; i<tracks.length; i++){
                     if(input == tracks[i].name.toLowerCase() || input == tracks[i].name.toLowerCase().replace(/ /g, '')){
                         trak = i
@@ -33,6 +34,7 @@ module.exports = {
                 tourneyReport.setTitle(tracks[trak].name + " | Tournament Times")
                 var tourneyfiltered = tourney.filter(element => element.track == tracks[trak].name)
             } else if (args[i].name == "skips") {
+                var input = args[i].value.toLowerCase()
                 if(input == "skips"){
                     tourneyfiltered = tourneyfiltered.filter(element => element.force == "Skips")
                     desc.push("Skips")
@@ -41,6 +43,7 @@ module.exports = {
                     desc.push("Full Track")
                 }
             } else if (args[i].name == "upgrades") {
+                var input = args[i].value.toLowerCase()
                 if(input == "mu"){
                     tourneyfiltered = tourneyfiltered.filter(element => element.force !== "NU")
                     desc.push("Upgrades")
@@ -49,6 +52,7 @@ module.exports = {
                     desc.push("No Upgrades")
                 }
             } else if (args[i].name == "pod") {
+                var input = args[i].value.toLowerCase()
                 var podfilter = args[i].value.split(/[\s,]+/)
                 var filterin = true
                 for (var p = 0; p < podfilter.length; p++){
@@ -76,6 +80,7 @@ module.exports = {
                     }
                 }
             } else if (args[i].name == "deaths") {
+                var input = args[i].value.toLowerCase()
                 if(input == "deaths"){
                     tourneyfiltered = tourneyfiltered.filter(element => element.totaldeaths > 0)
                     desc.push("Deaths")
