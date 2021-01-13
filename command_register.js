@@ -1194,8 +1194,14 @@ client.api.applications("545798436105224203").commands.post({data: {
         },
         {
             name: "pod",
-            description: "Filter runs by specific pods. Filter out pods with 'no' or '-'. Multiple entries accepted",
+            description: "filter runs by a specific pod or filter out pods with 'no' in front; use racer's first name/initials",
             type: 3,
+            required: false,
+        },
+        {
+            name: "player",
+            description: "filter runs by player",
+            type: 6,
             required: false,
         },
         {
