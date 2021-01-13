@@ -60,7 +60,7 @@ module.exports = {
                     data: {
                         type: 4,
                         data: {
-                            content: "`Error: No racers meet that criteria`\n" + error[Math.floor(Math.random()*error.length)],
+                            content: "`Error: No racers meet that criteria`\n" + errorMessage[Math.floor(Math.random()*errorMessage.length)],
                         }
                     }
                 })
@@ -71,7 +71,7 @@ module.exports = {
                         data: {
                             type: 4,
                             data: {
-                                content: "`Error: To roll a random racer for everyone in the voice channel, you need to be in a voice channel.`\n" +error[Math.floor(Math.random()*error.length)],
+                                content: "`Error: To roll a random racer for everyone in the voice channel, you need to be in a voice channel.`\n" +errorMessage[Math.floor(Math.random()*errorMessage.length)],
                             }
                         }
                     })
@@ -217,7 +217,7 @@ module.exports = {
                     data: {
                         type: 4,
                         data: {
-                            content: "`Error: No tracks meet that criteria`\n" + error[Math.floor(Math.random()*error.length)],
+                            content: "`Error: No tracks meet that criteria`\n" + errorMessage[Math.floor(Math.random()*errorMessage.length)],
                         }
                     }
                 })
@@ -358,7 +358,7 @@ module.exports = {
                     data: {
                         type: 3,
                         data: {
-                            content: "`Error: That's too many teams!`\n" + error[Math.floor(Math.random()*error.length)],
+                            content: "`Error: That's too many teams!`\n" + errorMessage[Math.floor(Math.random()*errorMessage.length)],
                             //embeds: [teamEmbed]
                         }
                     }

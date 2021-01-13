@@ -71,7 +71,7 @@ module.exports = {
                     data: {
                         type: 4,
                         data: {
-                            content: "`Error: Racer not found `\n" + error[Math.floor(Math.random()*error.length)],
+                            content: "`Error: Racer not found `\n" + errorMessage[Math.floor(Math.random()*errorMessage.length)],
                             //embeds: [racerEmbed]
                         }
                     }
@@ -85,7 +85,7 @@ module.exports = {
                     data: {
                         type: 4,
                         data: {
-                            content: "`Error: Track not found `\n" + error[Math.floor(Math.random()*error.length)],
+                            content: "`Error: Track not found `\n" + errorMessage[Math.floor(Math.random()*errorMessage.length)],
                             //embeds: [racerEmbed]
                         }
                     }
@@ -214,7 +214,7 @@ module.exports = {
                         data: {
                             type: 4,
                             data: {
-                                content: "`Error: Track not found `\n" + error[Math.floor(Math.random()*error.length)],
+                                content: "`Error: Track not found `\n" + errorMessage[Math.floor(Math.random()*errorMessage.length)],
                                 //embeds: [racerEmbed]
                             }
                         }

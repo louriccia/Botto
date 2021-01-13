@@ -76,7 +76,7 @@ module.exports = {
                 tourneyfiltered = tourneyfiltered.filter(element => element.year == args[i].value)
             } else if (args[i].name == "player") {
                 var player = args[i].value
-                tourneyfiltered = tourneyfiltered.filter(element => element.playerid == player.id)
+                tourneyfiltered = tourneyfiltered.filter(element => element.playerid == player)
             }
         }      
         var pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>", "4th", "5th"]
@@ -155,7 +155,7 @@ module.exports = {
                     data: {
                         type: 4,
                         data: {
-                            content: "`Error: No tournament runs were found matching that criteria`\n" + error[Math.floor(Math.random()*error.length)],
+                            content: "`Error: No tournament runs were found matching that criteria`\n" + errorMessage[Math.floor(Math.random()*errorMessage.length)],
                             //embeds: [racerEmbed]
                         }
                     }
@@ -166,7 +166,7 @@ module.exports = {
                 data: {
                     type: 4,
                     data: {
-                        content: "`Error: Track not found`\n" + error[Math.floor(Math.random()*error.length)],
+                        content: "`Error: Track not found`\n" + errorMessage[Math.floor(Math.random()*errorMessage.length)],
                         //embeds: [racerEmbed]
                     }
                 }
