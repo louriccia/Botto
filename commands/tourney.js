@@ -60,9 +60,9 @@ module.exports = {
                         }
                         if (numb !== null){
                             if(filterin){
-                                tourneyfiltered = tourneyfiltered.filter(element => element.pod == racers[podfilterout[numb]].name)
+                                tourneyfiltered = tourneyfiltered.filter(element => element.pod == racers[numb].name)
                             } else {
-                                tourneyfiltered = tourneyfiltered.filter(element => element.pod !== racers[podfilterout[numb]].name)
+                                tourneyfiltered = tourneyfiltered.filter(element => element.pod !== racers[numb].name)
                             }
                         }
                     }
