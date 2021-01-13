@@ -9,9 +9,9 @@ module.exports = {
         var podfilterout = []
         var podfilterin = []
          //filters out other tracks
-        for (let i = 0; i<args[0].options.length; i++) {
-            var input = args[0].options[i].value.toLowerCase()
-            if (args[0].options[i].name == "track") {
+        for (let i = 0; i<args.length; i++) {
+            var input = args[i].value.toLowerCase()
+            if (args[i].name == "track") {
                 for(let i = 0; i<tracks.length; i++){
                     if(input == tracks[i].name.toLowerCase() || input == tracks[i].name.toLowerCase().replace(/ /g, '')){
                         trak = i
@@ -28,20 +28,20 @@ module.exports = {
                 }
                 tourneyReport.setTitle(tracks[trak].name + " | Tournament Times")
                 var tourneyfiltered = tourney.filter(element => element.track == tracks[trak].name)
-            } else if (args[0].options[i].name == "skips") {
+            } else if (args[i].name == "skips") {
                 if(input == "skips"){
                     tourneyfiltered = tourneyfiltered.filter(element => element.force == "Skips")
                 } else if (input == "ft"){
                     tourneyfiltered = tourneyfiltered.filter(element => element.force !== "Skips")
                 }
-            } else if (args[0].options[i].name == "upgrades") {
+            } else if (args[i].name == "upgrades") {
                 if(input == "mu"){
                     tourneyfiltered = tourneyfiltered.filter(element => element.force !== "NU")
                 } else if (input == "nu"){
                     tourneyfiltered = tourneyfiltered.filter(element => element.force == "NU")
                 }
-            } else if (args[0].options[i].name == "pod") {
-                var podfilter = args[0].options[i].value.split(/[\s,]+/)
+            } else if (args[i].name == "pod") {
+                var podfilter = args[i].value.split(/[\s,]+/)
                 var filterin = true
                 for (var p = 0; p < podfilter.length; p++){
                     if(podfilter[p] == "no"){
@@ -65,16 +65,16 @@ module.exports = {
                         }
                     }
                 }
-            } else if (args[0].options[i].name == "deaths") {
+            } else if (args[i].name == "deaths") {
                 if(input == "deaths"){
                     tourneyfiltered = tourneyfiltered.filter(element => element.totaldeaths > 0)
                 } else if (input == "deathless"){
                     tourneyfiltered = tourneyfiltered.filter(element => element.totaldeaths == 0)
                 }
-            } else if (args[0].options[i].name == "year") {
-                tourneyfiltered = tourneyfiltered.filter(element => element.year == args[0].options[i].value)
-            } else if (args[0].options[i].name == "player") {
-                var player = args[0].options[i].value
+            } else if (args[i].name == "year") {
+                tourneyfiltered = tourneyfiltered.filter(element => element.year == args[i].value)
+            } else if (args[i].name == "player") {
+                var player = args[i].value
                 tourneyfiltered = tourneyfiltered.filter(element => element.playerid == player.id)
             }
         }      
