@@ -6,10 +6,12 @@ module.exports = {
         const tourneyReport = new Discord.MessageEmbed()
             .setColor('#0099ff')
             .setURL("https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing")
+            .setFooter("/tourney")
         var trak = null
         var podfilterout = []
         var podfilterin = []
         var showall = false
+        var desc = []
          //filters out other tracks
         for (let i = 0; i<args.length; i++) {
             var input = args[i].value.toLowerCase()
@@ -33,14 +35,18 @@ module.exports = {
             } else if (args[i].name == "skips") {
                 if(input == "skips"){
                     tourneyfiltered = tourneyfiltered.filter(element => element.force == "Skips")
+                    desc.push("Skips")
                 } else if (input == "ft"){
                     tourneyfiltered = tourneyfiltered.filter(element => element.force !== "Skips")
+                    desc.push("Full Track")
                 }
             } else if (args[i].name == "upgrades") {
                 if(input == "mu"){
                     tourneyfiltered = tourneyfiltered.filter(element => element.force !== "NU")
+                    desc.push("Upgrades")
                 } else if (input == "nu"){
                     tourneyfiltered = tourneyfiltered.filter(element => element.force == "NU")
+                    desc.push("No Upgrades")
                 }
             } else if (args[i].name == "pod") {
                 var podfilter = args[i].value.split(/[\s,]+/)
@@ -61,8 +67,10 @@ module.exports = {
                         if (numb !== null){
                             if(filterin){
                                 tourneyfiltered = tourneyfiltered.filter(element => element.pod == racers[numb].name)
+                                desc.push(racers[numb].name + " Only")
                             } else {
                                 tourneyfiltered = tourneyfiltered.filter(element => element.pod !== racers[numb].name)
+                                desc.push("No " + racers[numb].name)
                             }
                         }
                     }
@@ -70,15 +78,20 @@ module.exports = {
             } else if (args[i].name == "deaths") {
                 if(input == "deaths"){
                     tourneyfiltered = tourneyfiltered.filter(element => element.totaldeaths > 0)
+                    desc.push("Deaths")
                 } else if (input == "deathless"){
                     tourneyfiltered = tourneyfiltered.filter(element => element.totaldeaths == 0)
+                    desc.push("Deathless")
                 }
             } else if (args[i].name == "year") {
                 tourneyfiltered = tourneyfiltered.filter(element => element.year == args[i].value)
+                desc.push(String(args[i].value))
             } else if (args[i].name == "player") {
                 var player = args[i].value
                 tourneyfiltered = tourneyfiltered.filter(element => element.playerid == player)
                 showall = true
+                let Member = Guild.members.cache.get(player)
+                tourneyReport.setAuthor(Member.user.username + "'s Best", client.guilds.resolve(interaction.guild_id).members.resolve(player).user.avatarURL())
             }
         }      
         var pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>", "4th", "5th"]
@@ -133,9 +146,10 @@ module.exports = {
                             }
                         } 
                         tourneyReport
-                            .addField(pos[i] + " " + tourneyfiltered[j].player, tourneyfiltered[j].year + ", " + tourneyfiltered[j].bracket +": "+tourneyfiltered[j].round + "\nRace " + tourneyfiltered[j].race + ", vs " + tourneyfiltered[j].opponent, true)
-                            .addField(tools.timefix(Number(tourneyfiltered[j].totaltime).toFixed(3))," " + character + "[ " + forc + "](" + link + ")" + deaths + characterban, true)
+                            .addField(pos[i] + " " + tourneyfiltered[j].player, tourneyfiltered[j].year + ", " + tourneyfiltered[j].bracket +": "+tourneyfiltered[j].round + "\n[Race " + tourneyfiltered[j].race + ", vs " + tourneyfiltered[j].opponent + "](" + link + ")", true)
+                            .addField(tools.timefix(Number(tourneyfiltered[j].totaltime).toFixed(3))," " + character + " " + force + " " + deaths + characterban, true)
                             .addField('\u200B', '\u200B', true)
+                            
                         players.push(tourneyfiltered[j].player + tourneyfiltered[j].force)
                         i++
                     }

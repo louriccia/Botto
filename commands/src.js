@@ -203,15 +203,10 @@ module.exports = {
                             country = ":flag_" + data.data.players.data[k].location.country.code.substring(0, 2) + ":"
                         }
                     }
-                    srcReport.addField(
-                        pos[k] + " " + name,  country + system, true
-                    )
-                    srcReport.addField(
-                        time," " + character + "[" + upgrades + skips + "](" + vid + ")", true
-                    )
-                    srcReport.addField(
-                        '\u200B', '\u200B', true
-                    )
+                    srcReport
+                        .addField(pos[k] + " " + name,  country + system, true)
+                        .addField(time," " + character + "[" + upgrades + skips + "](" + vid + ")", true)
+                        .addField('\u200B', '\u200B', true)
                 }
                 message.channel.send(srcReport)
             } catch (error) {
