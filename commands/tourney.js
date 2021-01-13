@@ -90,7 +90,8 @@ module.exports = {
                 var player = args[i].value
                 tourneyfiltered = tourneyfiltered.filter(element => element.playerid == player)
                 showall = true
-                let Member = Guild.members.cache.get(player)
+                const Guild = client.guilds.cache.get(interaction.guild_id);
+                const Member = Guild.members.cache.get(player)
                 tourneyReport.setAuthor(Member.user.username + "'s Best", client.guilds.resolve(interaction.guild_id).members.resolve(player).user.avatarURL())
             }
         }      
