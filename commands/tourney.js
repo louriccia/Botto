@@ -9,6 +9,7 @@ module.exports = {
         var trak = null
         var podfilterout = []
         var podfilterin = []
+        var showall = false
          //filters out other tracks
         for (let i = 0; i<args.length; i++) {
             var input = args[i].value.toLowerCase()
@@ -77,17 +78,19 @@ module.exports = {
             } else if (args[i].name == "player") {
                 var player = args[i].value
                 tourneyfiltered = tourneyfiltered.filter(element => element.playerid == player)
+                showall = true
             }
         }      
         var pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>", "4th", "5th"]
         if (trak !== null) {
             var j = 0
             var players = []
+            
             if (tourneyfiltered.length > 0) {
                 for (i=0; i<5;){
                     var skip = false
                     for (k = 0; k < players.length; k++) {
-                        if (tourneyfiltered[j].player + tourneyfiltered[j].force == players[k]) {
+                        if (tourneyfiltered[j].player + tourneyfiltered[j].force == players[k] && !showall) {
                             skip = true
                         }
                     }
