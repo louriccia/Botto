@@ -147,7 +147,7 @@ module.exports = {
                         } 
                         tourneyReport
                             .addField(pos[i] + " " + tourneyfiltered[j].player, tourneyfiltered[j].year + ", " + tourneyfiltered[j].bracket +": "+tourneyfiltered[j].round + "\n[Race " + tourneyfiltered[j].race + ", vs " + tourneyfiltered[j].opponent + "](" + link + ")", true)
-                            .addField(tools.timefix(Number(tourneyfiltered[j].totaltime).toFixed(3))," " + tourneyfiltered[j].character + " " + tourneyfiltered[j].force + " " + tourneyfiltered[j].deaths + tourneyfiltered[j].characterban, true)
+                            .addField(tools.timefix(Number(tourneyfiltered[j].totaltime).toFixed(3))," " + character + " " + forc + " " + deaths + characterban, true)
                             .addField('\u200B', '\u200B', true)
                             
                         players.push(tourneyfiltered[j].player + tourneyfiltered[j].force)
