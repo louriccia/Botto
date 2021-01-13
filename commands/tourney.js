@@ -1,6 +1,7 @@
 module.exports = {
     name: 'tourney',
     execute(client, interaction, args) {
+        const tools = require('./../tools.js');
         const Discord = require('discord.js');
         const tourneyReport = new Discord.MessageEmbed()
             .setColor('#0099ff')
