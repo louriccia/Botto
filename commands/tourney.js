@@ -4,7 +4,6 @@ module.exports = {
         const tools = require('./../tools.js');
         const Discord = require('discord.js');
         const tourneyReport = new Discord.MessageEmbed()
-            .setColor('#0099ff')
             .setURL("https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing")
             .setFooter("/tourney")
         var trak = null
@@ -31,7 +30,9 @@ module.exports = {
                         })    
                     }
                 }
-                tourneyReport.setTitle(tracks[trak].name + " | Tournament Times")
+                tourneyReport
+                    .setTitle(tracks[trak].name + " | Tournament Times")
+                    .setColor(planets[tracks[trak].planet].color)
                 var tourneyfiltered = tourney.filter(element => element.track == tracks[trak].name)
             } else if (args[i].name == "skips") {
                 var input = args[i].value.toLowerCase()
@@ -156,7 +157,7 @@ module.exports = {
                             .addField(pos[i] + " " + tourneyfiltered[j].player, tourneyfiltered[j].year + ", " + tourneyfiltered[j].bracket +": "+tourneyfiltered[j].round + "\n[Race " + tourneyfiltered[j].race + ", vs " + tourneyfiltered[j].opponent + "](" + link + ")", true)
                             .addField(tools.timefix(Number(tourneyfiltered[j].totaltime).toFixed(3))," " + character + " " + forc + " " + deaths + characterban, true)
                             .addField('\u200B', '\u200B', true)
-                            .setDescription(desc.join(', ') + "[" + tourneyfiltered.length + " Total Runs]")
+                            .setDescription(desc.join(', ') + " [" + tourneyfiltered.length + " Total Runs]")
                             
                         players.push(tourneyfiltered[j].player + tourneyfiltered[j].force)
                         i++
