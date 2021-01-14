@@ -129,7 +129,7 @@ module.exports = {
                 var src = data.data
                 const srcReport = new Discord.MessageEmbed()
                     .setColor('#0099ff')
-                    .setAuthor("speedrun.com", "https://www.speedrun.com/themes/Default/1st.png")
+                    .setAuthor("speedrun.com", "https://www.speedrun.com/themes/Default/1st.png", "https://www.speedrun.com/swe1r")
                     .setTitle(titl)
                     .setURL(src.weblink)
                     .setDescription(desc)
