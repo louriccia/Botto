@@ -2,8 +2,8 @@ module.exports = {
     name: 'src',
     execute(client, interaction, args) {
         const fetch = require('node-fetch');
+        const tools = require('./../tools.js');
         const Discord = require('discord.js');
-        const myEmbed = new Discord.MessageEmbed()
         var numb = null
         var catg = "" 
         var titl = ""
