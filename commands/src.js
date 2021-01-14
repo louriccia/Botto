@@ -47,7 +47,7 @@ module.exports = {
                     }
                 } else if (args[0].options[i].name == "platform") {
                     for (u = 0; u < sys.length; u++) {
-                        if (args[0].options[i].toLowerCase() == sys[u].name.toLowerCase()) {
+                        if (args[0].options[i].value.toLowerCase() == sys[u].name.toLowerCase()) {
                             plat = "&var-wl39wwl1=" + sys[u].id
                             platname = sys[u].name
                         }
@@ -90,7 +90,7 @@ module.exports = {
                     }
                 } else if (args[0].options[i].name == "platform") {
                     for (u = 0; u < sys.length; u++) {
-                        if (args[0].options[i].toLowerCase() == sys[u].name.toLowerCase()) {
+                        if (args[0].options[i].value.toLowerCase() == sys[u].name.toLowerCase()) {
                             plat = "&var-wl39wwl1=" + sys[u].id
                             platname = sys[u].name
                         }
@@ -133,6 +133,7 @@ module.exports = {
                     .setTitle(titl)
                     .setURL(src.weblink)
                     .setDescription(desc)
+                    .setFooter("/src")
                 var pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>", "4th", "5th"]
                 var numberofruns = data.data.runs.length
                 if (numberofruns > 5) {
