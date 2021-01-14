@@ -6,7 +6,7 @@ module.exports = {
         var desc = ""
         const Discord = require('discord.js');
         const myEmbed = new Discord.MessageEmbed()
-            .setAuthor("/links")
+            .setFooter("/links")
             .setColor("00A4C4")
             //.setThumbnail("https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/259/link_1f517.png")
         if(args[0].name =="botto") {

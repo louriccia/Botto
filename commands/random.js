@@ -348,7 +348,7 @@ module.exports = {
         } else if(args[0].name=="teams") {
             var teamnum = args[0].options[0].value
             const teamEmbed = new Discord.MessageEmbed()
-                .setAuthor("/teams")
+                .setFooter("/random")
                 .setTitle("Random Teams")
                 .setDescription("Everyone in the voice channel has been split into **" + teamnum + "** teams")
                 

@@ -76,7 +76,7 @@ module.exports = {
             .addField("/role*", "add or remove the speedrunning and multiplayer roles", false)
             .addField("/src", "get top-5 leaderboards from speedrun.com", false)
             .addField("/tourney", "get top-5 leaderboards from past tournaments", false)
-            .addField("/weekly", "submit times and view leaderboards for the weekly challenge", false)
+            .addField("/weekly", "submit times and view leaderboards for weekly challenges", false)
             .setFooter("*Only available on the SWE1R Discord")
         }
         
