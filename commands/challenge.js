@@ -598,19 +598,19 @@ module.exports = {
                             stats.mirrored ++
                         }
                     } 
+                    if(mostPod[String(challengedata[k].racer)] == null){
+                        mostPod[String(challengedata[k].racer)] = 1
+                    } else {
+                        mostPod[String(challengedata[k].racer)]++
+                    }
+                    if(mostPod[String(challengedata[k].racer)] > mostPod.count){
+                        mostPod.most = challengedata[k].racer;
+                        mostPod.count = mostPod[String(challengedata[k].racer)];
+                    }
 
                 }
-                if(mostPod[String(challengedata[k].racer)] == null){
-                    mostPod[String(challengedata[k].racer)] = 1
-                } else {
-                    mostPod[String(challengedata[k].racer)]++
-                }
-                /*
-                if(mostPod[String(challengedata[k].racer)] > mostPod.count){
-                    mostPod.most = challengedata[k].racer;
-                    mostPod.count = mostPod[String(challengedata[k].racer)];
-                }
-                */
+
+                
             }
             console.log(stats)
             console.log(mostPod)
