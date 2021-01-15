@@ -601,12 +601,12 @@ module.exports = {
 
                 }
                 if(mostPod[challengedata[k].racer] == null)
-                        modeMap[challengedata[k].racer] = 1;
+                        mostPod[challengedata[k].racer] = 1;
                     else
-                        modeMap[challengedata[k].racer]++;  
-                if(modeMap[challengedata[k].racer] > mostPod.count){
+                        mostPod[challengedata[k].racer]++;  
+                if(mostPod[challengedata[k].racer] > mostPod.count){
                     mostPod.most = challengedata[k].racer;
-                    mostPod.count = modeMap[challengedata[k].racer];
+                    mostPod.count = mostPod[challengedata[k].racer];
                 }
             }
             console.log(stats)
