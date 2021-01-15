@@ -561,8 +561,10 @@ module.exports = {
             }
             var mostPod = {}
             mostPod.most_count = 0
+            mostPod.most_name = null
             var mostTrack = {}
             mostTrack.most_count = 0
+            mostTrack.most_name = null
             for (var i=0; i<keys.length; i++) {
                 var k = keys[i];
                 if(challengedata[k].user == member){
@@ -589,8 +591,8 @@ module.exports = {
                         } else {
                             obj[prop]++
                         }
-                        if(obj[prop] > obj.count){
-                            obj.most_name = prop;
+                        if(obj[prop] > obj.most_count){
+                            obj.most_name = String(prop);
                             obj.most_count = obj[prop];
                         }
                     }
