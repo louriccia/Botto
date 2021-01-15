@@ -544,12 +544,29 @@ module.exports = {
             Achievements:
             Galaxy Famous - Complete a challenge on every track: X/25
             Pod Champ - Complete a challenge with every pod: X/23
-            Crowd Favorite - Complete a challenge as the track favorite on every track: X/25
             Lightspeed Skipper - Complete a Skip Challenge for every track with a skip: X/15
             Slow 'n Steady: Complete a No Upgrades challenge with every pod: X/23
+            Crowd Favorite - Complete a challenge as the track favorite on every track: X/25
             True Jedi: Complete a challenge with every pod on every track: X/575
-            Big-time Swindler: Earn or spend 1,000,000 total trugguts
+            Big-Time Swindler: Earn or spend 1,000,000 total trugguts
             */
+            function getMost(obj, prop){
+                var modeMap = {};
+                var maxEl = obj[0][prop], maxCount = 1;
+                for(var i = 0; i < obj.length; i++) {
+                    var el = obj[0][prop];
+                    if(modeMap[el] == null)
+                        modeMap[el] = 1;
+                    else
+                        modeMap[el]++;  
+                    if(modeMap[el] > maxCount)
+                    {
+                        maxEl = el;
+                        maxCount = modeMap[el];
+                    }
+                }
+                return([maxEl, maxCount])
+            }
             var keys = Object.keys(challengedata)
             var stats = {
                 total: 0,
@@ -559,6 +576,8 @@ module.exports = {
                 non_3_lap: 0,
                 mirrored: 0
             }
+            var mostPod = {}
+            mostPod.count = 0
             for (var i=0; i<keys.length; i++) {
                 var k = keys[i];
                 if(challengedata[k].user == member){
@@ -579,9 +598,19 @@ module.exports = {
                             stats.mirrored ++
                         }
                     } 
+
+                }
+                if(mostPod[challengedata[k].racer] == null)
+                        modeMap[challengedata[k].racer] = 1;
+                    else
+                        modeMap[challengedata[k].racer]++;  
+                if(modeMap[challengedata[k].racer] > mostPod.count){
+                    mostPod.most = challengedata[k].racer;
+                    mostPod.count = modeMap[challengedata[k].racer];
                 }
             }
             console.log(stats)
+            console.log(mostPod)
             /*
             if(array.length == 0)
             return null;

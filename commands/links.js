@@ -44,7 +44,7 @@ module.exports = {
             link = "https://www.speedrun.com/swe1r/resources"
         } else if(args[0].name=="rtss") {
             title = "RTSS Rivatuner Statistics Server Download"
-            desc = "Download and install Rivatuner to limit the game's framerate and get better sliding"
+            desc = "Download and install Rivatuner to limit the game's framerate and get better sliding and airtime"
             link = "https://www.guru3d.com/files-details/rtss-rivatuner-statistics-server-download.html"
         } else if(args[0].name=="dgvoodoo") {
             title = "dgVoodoo Download"
