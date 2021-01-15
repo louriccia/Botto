@@ -550,23 +550,6 @@ module.exports = {
             True Jedi: Complete a challenge with every pod on every track: X/575
             Big-Time Swindler: Earn or spend 1,000,000 total trugguts
             */
-            function getMost(obj, prop){
-                var modeMap = {};
-                var maxEl = obj[0][prop], maxCount = 1;
-                for(var i = 0; i < obj.length; i++) {
-                    var el = obj[0][prop];
-                    if(modeMap[el] == null)
-                        modeMap[el] = 1;
-                    else
-                        modeMap[el]++;  
-                    if(modeMap[el] > maxCount)
-                    {
-                        maxEl = el;
-                        maxCount = modeMap[el];
-                    }
-                }
-                return([maxEl, maxCount])
-            }
             var keys = Object.keys(challengedata)
             var stats = {
                 total: 0,
@@ -577,7 +560,9 @@ module.exports = {
                 mirrored: 0
             }
             var mostPod = {}
-            mostPod.count = 0
+            mostPod.most_count = 0
+            var mostTrack = {}
+            mostTrack.most_count = 0
             for (var i=0; i<keys.length; i++) {
                 var k = keys[i];
                 if(challengedata[k].user == member){
@@ -598,22 +583,26 @@ module.exports = {
                             stats.mirrored ++
                         }
                     } 
-                    if(mostPod[String(challengedata[k].racer)] == null){
-                        mostPod[String(challengedata[k].racer)] = 1
-                    } else {
-                        mostPod[String(challengedata[k].racer)]++
+                    function getMost(obj, prop){
+                        if(obj[prop] == null){
+                            obj[prop] = 1
+                        } else {
+                            obj[prop]++
+                        }
+                        if(obj[prop] > obj.count){
+                            obj.most_name = prop;
+                            obj.most_count = obj[prop];
+                        }
                     }
-                    if(mostPod[String(challengedata[k].racer)] > mostPod.count){
-                        mostPod.most = challengedata[k].racer;
-                        mostPod.count = mostPod[String(challengedata[k].racer)];
-                    }
-
+                    getMost(mostPod, challengedata[k].racer)
+                    getMost(mostTrack, challengedata[k].track)
                 }
 
                 
             }
             console.log(stats)
             console.log(mostPod)
+            console.log(mostTrack)
             /*
             if(array.length == 0)
             return null;
