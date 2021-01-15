@@ -50,6 +50,13 @@ module.exports = {
             title = "dgVoodoo Download"
             desc = "Download and set up dgVoodoo to run the game in windowed mode"
             link = "http://dege.freeweb.hu/dgVoodoo2/dgVoodoo2/"
+            myEmbed
+                .addField("1. Download DGVoodoo", "[Download dgVoodoo](http://dege.freeweb.hu/dgVoodoo2/dgVoodoo2/) and extract it into your game's folder, then move all the .dll files from the 'MS' folder into your Racer folder as well")
+                .addField("2. Replace your game’s ddraw.dll file.", "If you need a password, try “shitgoogle”")
+                .addField("3. Launch dgVoodooCpl.exe", "Make sure the path at the top points to your main game folder by clicking the “.\\” button.")
+                .addField("4. Enable Windowed Mode", "In the General tab, under Appearance, toggle Windowed. In the DirectX tab, under Behavior, uncheck “Application controlled fullscreen/windowed state” and “Disable Alt-Enter to toggle screen state” and under Miscellaneous, uncheck “dgVoodoo Watermark”")
+                .addField("[Optional] Double Cursor Fix", "If you have a double cursor, you can fix it by [downloading and running install.bat](https://www.vogons.org/download/file.php?id=46892&sid=2b7d505561d75c808816f7255f31bdbc).")
+                .addField("[Optional] Z-Fighting Issues Fix", "If you have z-fighting issues, (distant rocks/objects warbling in and out) open dgVoodoo.conf and set 'DepthBuffersBitDepth' to `= force32bit`")
         }
 
         myEmbed
