@@ -205,7 +205,7 @@ module.exports = {
                     .addField("Goal Times", eGoalTimes, true)
                     .addField("Best Times", besttimes, true)
                     if(!vc){
-                        newEmbed.setFooter("Click to reroll the challenge for 2100 Truguts", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/259/game-die_1f3b2.png")
+                        newEmbed.setFooter("Click to reroll the challenge for 1200 Truguts", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/259/game-die_1f3b2.png")
                     }
                 return newEmbed
             }
@@ -254,6 +254,25 @@ module.exports = {
                                 }
                                 feedbackref.push(feedbackdata);
                             } else if (reaction.emoji.name === '🎲' && !collected) {
+                                nutext = "", mirrortext = "", laps = 3, skipstext = ""
+                                if (Math.random()<odds_noupgrades){
+                                    nutext = " with **NO UPGRADES**"
+                                    nu = true
+                                }
+                                if (Math.random()<odds_mirrormode){
+                                    mirrortext = ", **MIRRORED!** "
+                                    mirror = true
+                                }
+                                if (Math.random()<odds_non3lap){
+                                    laps = lap[Math.floor(Math.random()*4)]
+                                    laptext = " for **" + laps + " lap(s)**"
+                                }
+                                if (tracks[random2].hasOwnProperty("parskiptimes")) {
+                                    if (Math.random()<odds_skips) {
+                                        skipstext = ", with **SKIPS**"
+                                        skips = true
+                                    }
+                                }
                                 desc = movieQuotes[Math.floor(Math.random()*movieQuotes.length)]
                                 random1 = Math.floor(Math.random()*23)
                                 random2 = Math.floor(Math.random()*25)
@@ -568,6 +587,12 @@ module.exports = {
             var mostTrack = {}
             mostTrack.most_count = 0
             mostTrack.most_name = null
+            var mostPlanet = {}
+            mostPlanet.most_count = 0
+            mostPlanet.most_name = null
+            var mostCircuit = {}
+            mostCircuit.most_count = 0
+            mostCircuit.most_name = null
             for (var i=0; i<keys.length; i++) {
                 var k = keys[i];
                 if(challengedata[k].user == member){
@@ -601,6 +626,8 @@ module.exports = {
                     }
                     getMost(mostPod, challengedata[k].racer)
                     getMost(mostTrack, challengedata[k].track)
+                    getMost(mostPlanet, tracks[challengedata[k].track].planet)
+                    getMost(mostCircuit, tracks[challengedata[k].track].circuit)
                 }
 
                 
@@ -608,6 +635,8 @@ module.exports = {
             console.log(stats)
             console.log(mostPod)
             console.log(mostTrack)
+            console.log(mostPlanet)
+            console.log(mostCircuit)
             /*
             if(array.length == 0)
             return null;
