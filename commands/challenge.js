@@ -308,19 +308,19 @@ module.exports = {
                     if(message.embeds.length > 0 && message.author.id == "545798436105224203") {
                         if (message.embeds[0].title.startsWith("Race")) {
                             if (vc) {
-                                if(collected){ //previous challenge closed after rolling a new challenge
+                                if(collected && collecting){ //previous challenge closed after rolling a new challenge
                                     try {
                                         sentMessage.edit(createEmbed(":white_check_mark: Completed: ", null)) 
                                     } catch {}
                                     collecting = false
-                                } else { //rerolling mp challenge
+                                } else if (!collected){ //rerolling mp challenge
                                     try {
                                         sentMessage.delete()
                                     } catch {}
                                     collected = true
                                     collecting = false
                                 }
-                            } else if (collected == false && message.embeds[0].author.name.replace("'s Challenge", "") == interaction.member.user.username) { //rerolling sp challenge
+                            } else if (!collected && message.embeds[0].author.name.replace("'s Challenge", "") == interaction.member.user.username) { //rerolling sp challenge
                                 collected = true
                                 collecting = false
                                 try {
@@ -592,7 +592,7 @@ module.exports = {
                             obj[prop]++
                         }
                         if(obj[prop] > obj.most_count){
-                            obj.most_name = String(prop);
+                            obj.most_name = prop;
                             obj.most_count = obj[prop];
                         }
                     }
