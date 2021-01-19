@@ -669,6 +669,7 @@ module.exports = {
                     getMost(mostTrack, challengedata[k].track)
                     getMost(mostPlanet, tracks[challengedata[k].track].planet)
                     getMost(mostCircuit, tracks[challengedata[k].track].circuit)
+                    
                 }
             }
             var keys = Object.keys(feedbackdata)
@@ -695,6 +696,12 @@ module.exports = {
             console.log(likeTrack)
             console.log(dislikePod)
             console.log(dislikeTrack)
+            console.log(gFamous)
+            console.log(pChamp)
+            console.log(lSkipper)
+            console.log(sSteady)
+            console.log(cFavorite)
+            console.log(tJedi)
             /*
             if(array.length == 0)
             return null;
