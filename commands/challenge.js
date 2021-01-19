@@ -572,6 +572,13 @@ module.exports = {
             True Jedi: Complete a challenge with every pod on every track: X/575
             Big-Time Swindler: Earn or spend 1,000,000 total trugguts
             */
+            var gFamous = {}
+            var pChamp = {}
+            var lSkipper = {}
+            var sSteady = {}
+            var cFavorite = {}
+            var tJedi = {}
+            var bSwindler = {}
             var keys = Object.keys(challengedata)
             var stats = {
                 total: 0,
@@ -619,6 +626,28 @@ module.exports = {
             for (var i=0; i<keys.length; i++) {
                 var k = keys[i];
                 if(challengedata[k].user == member){
+                    if(gFamous[challengedata[k].track] == null){
+                        gFamous[challengedata[k].track] = 1
+                    }
+                    if(pChamp[challengedata[k].racer] == null){
+                        pChamp[challengedata[k].racer] = 1
+                    }
+                    if(challengedata[k].skips){
+                        if(lSkipper[challengedata[k].track] == null){
+                            lSkipper[challengedata[k].track] = 1
+                        }
+                    }
+                    if(challengedata[k].nu){
+                        if(sSteady[challengedata[k].track] == null){
+                            sSteady[challengedata[k].track] = 1
+                        }
+                    }
+                    if(challengedata[k].racer == tracks[challengedata[k].track].favorite){
+                        if(cFavorite[challengedata[k].track] == null){
+                            cFavorite[challengedata[k].track] = 1
+                        }
+                    }
+                    tJedi[challengedata[k].track + " " + challengedata[k].racer] = 1
                     stats.total ++
                     if(!challengedata[k].mirror && !challengedata[k].nu && !challengedata[k].skips && challengedata[k].laps == 3) {
                         stats.standard ++
