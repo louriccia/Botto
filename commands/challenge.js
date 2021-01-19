@@ -46,17 +46,20 @@ module.exports = {
             if (!Member.voice.channel) {
                 if (profiledata !==null) {
                     if(profiledata[member] !== undefined){
-                        if (record !== "") {
-                            odds_skips = profiledata[member].skips/100
-                            odds_noupgrades = profiledata[member].no_upgrades/100
-                            odds_non3lap = profiledata[member].non_3_lap/100
-                            odds_mirrormode = profiledata[member].mirror_mode/100
-                        } else {
-                            odds_skips = 0.25
-                            odds_noupgrades = 0.15
-                            odds_non3lap = 0.05
-                            odds_mirrormode = 0.05
-                        }
+                        odds_skips = profiledata[member].skips/100
+                        odds_noupgrades = profiledata[member].no_upgrades/100
+                        odds_non3lap = profiledata[member].non_3_lap/100
+                        odds_mirrormode = profiledata[member].mirror_mode/100
+                    } else {
+                        profiledata[member].skips = 25
+                        profiledata[member].no_upgrades = 15
+                        profiledata[member].non_3_lap = 5
+                        profiledata[member].mirror_mode = 5
+                        profiledata[member].winnings = 1
+                        odds_skips = 0.25
+                        odds_noupgrades = 0.15
+                        odds_non3lap = 0.05
+                        odds_mirrormode = 0.05
                     }
                 } else {
                     odds_skips = 0.25
