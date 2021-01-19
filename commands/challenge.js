@@ -593,6 +593,29 @@ module.exports = {
             var mostCircuit = {}
             mostCircuit.most_count = 0
             mostCircuit.most_name = null
+            var likePod = {}
+            likePod.most_count = 0
+            likePod.most_name = null
+            var likeTrack = {}
+            likeTrack.most_count = 0
+            likeTrack.most_name = null
+            var dislikePod = {}
+            dislikePod.most_count = 0
+            dislikePod.most_name = null
+            var dislikeTrack = {}
+            dislikeTrack.most_count = 0
+            dislikeTrack.most_name = null
+            function getMost(obj, prop){
+                if(obj[prop] == null){
+                    obj[prop] = 1
+                } else {
+                    obj[prop]++
+                }
+                if(obj[prop] > obj.most_count){
+                    obj.most_name = prop;
+                    obj.most_count = obj[prop];
+                }
+            }
             for (var i=0; i<keys.length; i++) {
                 var k = keys[i];
                 if(challengedata[k].user == member){
@@ -613,30 +636,36 @@ module.exports = {
                             stats.mirrored ++
                         }
                     } 
-                    function getMost(obj, prop){
-                        if(obj[prop] == null){
-                            obj[prop] = 1
-                        } else {
-                            obj[prop]++
-                        }
-                        if(obj[prop] > obj.most_count){
-                            obj.most_name = prop;
-                            obj.most_count = obj[prop];
-                        }
-                    }
                     getMost(mostPod, challengedata[k].racer)
                     getMost(mostTrack, challengedata[k].track)
                     getMost(mostPlanet, tracks[challengedata[k].track].planet)
                     getMost(mostCircuit, tracks[challengedata[k].track].circuit)
                 }
-
-                
             }
+            var keys = Object.keys(feedbackdata)
+            for (var i=0; i<keys.length; i++) {
+                var k = keys[i];
+                if(feedbackdata[k].user == member){
+                    if(feedbackdata[k].feedback == "👍"){
+                        getMost(likePod, feedbackdata[k].racer)
+                        getMost(likeTrack, feedbackdata[k].track)
+                    } else if(feedbackdata[k].feedback == "👎"){
+                        getMost(dislikePod, feedbackdata[k].racer)
+                        getMost(dislikeTrack, feedbackdata[k].track)
+                    }
+                    
+                }
+            }
+
             console.log(stats)
             console.log(mostPod)
             console.log(mostTrack)
             console.log(mostPlanet)
             console.log(mostCircuit)
+            console.log(likePod)
+            console.log(likeTrack)
+            console.log(dislikePod)
+            console.log(dislikeTrack)
             /*
             if(array.length == 0)
             return null;
