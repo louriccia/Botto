@@ -255,6 +255,7 @@ module.exports = {
                                 feedbackref.push(feedbackdata);
                             } else if (reaction.emoji.name === '🎲' && !collected) {
                                 nutext = "", mirrortext = "", laps = 3, skipstext = ""
+                                nu = false, mirror = false, skips = false
                                 if (Math.random()<odds_noupgrades){
                                     nutext = " with **NO UPGRADES**"
                                     nu = true
