@@ -717,11 +717,11 @@ module.exports = {
                 "\n**Most Disliked Track:**\n" + tracks[dislikeTrack.most_name].name + " `👎" + dislikeTrack.most_count + "`", true)
                 .addField(":trophy: Achievements", "**Galaxy Famous** - Complete a challenge on every track: `" + Object.keys(gFamous).length + "/25`" + 
                 "\n**Pod Champ** - Complete a challenge with every pod: `" + Object.keys(pChamp).length + "/23`" +
-                "\n**Lightspeed Skipper** - Complete a Skip Challenge for every track with a skip: `" + Object.keys(lSkipper).length + "/15`" +
+                "\n**Lightspeed Skipper** - Complete a Skip challenge on every track with a skip: `" + Object.keys(lSkipper).length + "/15`" +
                 "\n**Slow 'n Steady** - Complete a No Upgrades challenge with every pod: `" + Object.keys(sSteady).length + "/23`" +
                 "\n**Crowd Favorite** - Complete a challenge as the track favorite on every track: `" + Object.keys(cFavorite).length + "/25`" +
                 "\n**True Jedi** - Complete a challenge with every pod on every track: `" + Object.keys(tJedi).length + "/575`" +
-                "\n**Big-Time Swindler** - Earn or spend 1,000,000 total trugguts: `" + "x" + "/1,000,000`", true)
+                "\n**Big-Time Swindler** - Earn or spend 1,000,000 total truguts: `" + "x" + "/1,000,000`", true)
             client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {
                     type: 3,
