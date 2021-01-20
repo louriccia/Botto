@@ -706,15 +706,15 @@ module.exports = {
             const profileEmbed = new Discord.MessageEmbed()
                 .setAuthor(interaction.member.user.username, client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
                 .setTitle("Random Challenge Career Profile")
-                .addField(":bar_chart: Challenge Stats", "Total: " + stats.total + "\nStandard: "+stats.standard + "\nSkips: " + stats.skips + "\nNo Upgrades: " + stats.no_upgrades + "\nNon 3-Lap: " + stats.non_3_lap + "\nMirrored: " + stats.mirrored, true)
-                .addField(":chart_with_upwards_trend: Gameplay Trends", "Most Played Pod: " + racers[mostPod.most_name].name + " `" + mostPod.most_count + "`" +
-                "\nMost Played Track: " + tracks[mostTrack.most_name].name + " `" + mostTrack.most_count + "`" +
-                "\nMost Played Planet: " + planets[mostPlanet.most_name].name + " `" + mostPlanet.most_count + "`" +
-                "\nMost Played Circuit: " + circuits[mostCircuit.most_name].name + " `" + mostCircuit.most_count + "`", true)
-                .addField(":pencil: Feedback Trends", "Most Liked Pod: " + racers[likePod.most_name].name + " `👍" + likePod.most_count + "`" +
-                "\nMost Liked Track: " + tracks[likeTrack.most_name].name + " `👍" + likeTrack.most_count + "`" +
-                "\nMost Disliked Pod: " + racers[dislikePod.most_name].name + " `👎" + dislikePod.most_count + "`" +
-                "\nMost Disliked Track: " + tracks[dislikeTrack.most_name].name + " `👎" + dislikeTrack.most_count + "`", true)
+                .addField(":bar_chart: Challenge Stats", "Total: `" + stats.total + "`\nStandard: `"+stats.standard + "`\nSkips: `" + stats.skips + "`\nNo Upgrades: `" + stats.no_upgrades + "`\nNon 3-Lap: `" + stats.non_3_lap + "`\nMirrored: `" + stats.mirrored + "`", true)
+                .addField(":chart_with_upwards_trend: Gameplay Trends", "Most Played Pod: \n" + racers[mostPod.most_name].flag + " " + racers[mostPod.most_name].name + " `" + mostPod.most_count + "`" +
+                "\nMost Played Track:\n" + tracks[mostTrack.most_name].name + " `" + mostTrack.most_count + "`" +
+                "\nMost Played Planet:\n" + planets[mostPlanet.most_name].name + " `" + mostPlanet.most_count + "`" +
+                "\nMost Played Circuit:\n" + circuits[mostCircuit.most_name].name + " `" + mostCircuit.most_count + "`", true)
+                .addField(":pencil: Feedback Trends", "Most Liked Pod: \n" + racers[likePod.most_name].flag+ " " + racers[likePod.most_name].name + " `👍" + likePod.most_count + "`" +
+                "\nMost Liked Track:\n" + tracks[likeTrack.most_name].name + " `👍" + likeTrack.most_count + "`" +
+                "\nMost Disliked Pod:\n" + racers[dislikePod.most_name].flag + " " + racers[dislikePod.most_name].name + " `👎" + dislikePod.most_count + "`" +
+                "\nMost Disliked Track:\n" + tracks[dislikeTrack.most_name].name + " `👎" + dislikeTrack.most_count + "`", true)
                 .addField(":trophy: Achievements", "**Galaxy Famous** - Complete a challenge on every track: `" + Object.keys(gFamous).length + "/25`" + 
                 "\n**Pod Champ** - Complete a challenge with every pod: `" + Object.keys(pChamp).length + "/23`" +
                 "\n**Lightspeed Skipper** - Complete a Skip Challenge for every track with a skip: `" + Object.keys(lSkipper).length + "/15`" +
