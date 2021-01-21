@@ -28,7 +28,11 @@ module.exports = {
                 if(!mathSigns.includes(equation[i])){
                     output = output + tools.timetoSeconds(equation[i])
                 } else {
-                    output = output + equation[i]
+                    if(equation[i] == "*"){
+                        output = output + '\\' + equation[i]
+                    } else {
+                        output = output + equation[i]
+                    }  
                 }
             }
             if(isEquation){
