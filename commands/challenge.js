@@ -788,11 +788,11 @@ module.exports = {
                     for (i=0; i<5;){
                         var skip = false
                         for (k = 0; k < players.length; k++) {
-                            if (challengefiltered[j].player + challengefiltered[j].force == players[k] && !showall) {
+                            if (challengefiltered[j].player + challengefiltered[j].skips + challengefiltered[j].racer + challengefiltered[j].nu + challengefiltered[j].laps == players[k] && !showall) {
                                 skip = true
                             }
                         }
-                        if (skip == false && challengefiltered[j].hasOwnProperty("totaltime")) {
+                        if (skip == false) {
                             var character = ""
                             var skps = "FT "
                             var upgr = " | MU"
@@ -823,9 +823,7 @@ module.exports = {
                                 .addField(pos[i] + " " + challengefiltered[j].name, skps + laps + mirr, true)
                                 .addField(tools.timefix(Number(challengefiltered[j].totaltime).toFixed(3))," " + character + upgr, true)
                                 .addField('\u200B', '\u200B', true)
-                                .setDescription(desc.join(', ') + " [" + challengefiltered.length + " Total Runs]")
-                                
-                            players.push(challengefiltered[j].player + challengefiltered[j].force)
+                            players.push(challengefiltered[j].player + challengefiltered[j].skips + challengefiltered[j].racer + challengefiltered[j].nu + challengefiltered[j].laps)
                             i++
                         }
                         j++
@@ -833,6 +831,7 @@ module.exports = {
                             i = 5
                         }
                     }
+                    challengeReport.setDescription(desc.join(', ') + " [" + challengefiltered.length + " Total Runs]")
                     client.api.interactions(interaction.id, interaction.token).callback.post({
                         data: {
                             type: 3,
