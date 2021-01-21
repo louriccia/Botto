@@ -776,7 +776,7 @@ module.exports = {
                     showall = true
                     const Guild = client.guilds.cache.get(interaction.guild_id);
                     const Member = Guild.members.cache.get(player)
-                    tourneyReport.setAuthor(Member.user.username + "'s Best", client.guilds.resolve(interaction.guild_id).members.resolve(player).user.avatarURL())
+                    challengeReport.setAuthor(Member.user.username + "'s Best", client.guilds.resolve(interaction.guild_id).members.resolve(player).user.avatarURL())
                 }
             }      
             var pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>", "4th", "5th"]
