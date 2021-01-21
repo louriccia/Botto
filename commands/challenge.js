@@ -181,7 +181,9 @@ module.exports = {
                 var pos = ["<:P1:671601240228233216> ", "<:P2:671601321257992204> ", "<:P3:671601364794605570> ", "4th ", "5th "]
                 if(best.length > 0) {
                     besttimes =""
-                    best.sort((a,b) => (a.time > b.time) ? 1 : -1)
+                    best.sort(function(a,b) {
+                        return a-b;
+                    })
                     var date = ""
                     if (highlight !== null) {
                         date = highlight
@@ -704,7 +706,6 @@ module.exports = {
                         .setColor(planets[tracks[trak].planet].color)
                     var challenge = Object.values(challengedata)
                     var challengefiltered = challenge.filter(element => element.track == trak)
-                    challengefiltered.sort((a,b) => (a.time > b.time) ? 1 : -1)
                 } else if (args[0].options[i].name == "skips") {
                     var input = args[0].options[i].value.toLowerCase()
                     if(input == "skips"){
@@ -779,7 +780,9 @@ module.exports = {
                     challengeReport.setAuthor(Member.user.username + "'s Best", client.guilds.resolve(interaction.guild_id).members.resolve(player).user.avatarURL())
                 }
             }      
-            challengefiltered.sort((a,b) => (a.time > b.time) ? 1 : -1)
+            challengefiltered.sort(function(a,b) {
+                return a-b;
+            })
             var pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>", "4th", "5th"]
             if (trak !== null) {
                 var j = 0
@@ -791,7 +794,6 @@ module.exports = {
                         for (k = 0; k < players.length; k++) {
                             if (challengefiltered[j].player + challengefiltered[j].skips + challengefiltered[j].racer + challengefiltered[j].nu + challengefiltered[j].laps == players[k] && !showall) {
                                 skip = true
-                                console.log("skipping " + challengefiltered[j].player)
                             }
                         }
                         if (skip == false) {
