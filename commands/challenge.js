@@ -807,11 +807,7 @@ module.exports = {
                             if (challengefiltered[j].mirror == true) {
                                 mirr = "| Mirrored "
                             }
-                            if (racers[n].flag !== "") {
-                                character = racers[n].flag
-                            } else {
-                                character = racers[n].name
-                            }
+                            character = racers[challengefiltered[j].racer].flag + " " + racers[challengefiltered[j].racer].name
                             if (challengefiltered[j].laps !== 3){
                                 laps = challengefiltered[j].laps + " Laps "
                             }
