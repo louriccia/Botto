@@ -12,7 +12,9 @@ module.exports = {
         for(var i=0; i<time.length; i++){
             if(mathSigns.includes(time[i])){
                 isEquation = true
-                equation.push(time.substring(0, i))
+                if(i> 0){
+                    equation.push(time.substring(0, i))
+                }
                 equation.push(time[i])
                 time = time.slice(i+1, time.length)
                 i = -1
