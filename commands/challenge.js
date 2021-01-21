@@ -182,7 +182,7 @@ module.exports = {
                 if(best.length > 0) {
                     besttimes =""
                     best.sort(function(a,b) {
-                        return a-b;
+                        return a.time-b.time;
                     })
                     var date = ""
                     if (highlight !== null) {
@@ -781,7 +781,7 @@ module.exports = {
                 }
             }      
             challengefiltered.sort(function(a,b) {
-                return a-b;
+                return a.time-b.time;
             })
             var pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>", "4th", "5th"]
             if (trak !== null) {
