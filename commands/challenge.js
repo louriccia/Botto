@@ -791,6 +791,7 @@ module.exports = {
                         for (k = 0; k < players.length; k++) {
                             if (challengefiltered[j].player + challengefiltered[j].skips + challengefiltered[j].racer + challengefiltered[j].nu + challengefiltered[j].laps == players[k] && !showall) {
                                 skip = true
+                                console.log("skipping " + challengefiltered[j].player)
                             }
                         }
                         if (skip == false) {
