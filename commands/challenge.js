@@ -714,7 +714,7 @@ module.exports = {
                         challengefiltered = challengefiltered.filter(element => element.skips == false)
                         desc.push("Full Track")
                     }
-                } else if (args[i].name == "upgrades") {
+                } else if (args[0].options[i].name == "upgrades") {
                     var input = args[0].options[i].value.toLowerCase()
                     if(input == "mu"){
                         challengefiltered = challengefiltered.filter(element => element.nu == false)
