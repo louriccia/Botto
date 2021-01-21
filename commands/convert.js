@@ -9,17 +9,13 @@ module.exports = {
         var mathSigns= ["+", "-", "*", "/", "(", ")"]
         var inputresult = ""
         var outputresult = ""
-        var myformat = new Intl.NumberFormat('en-US', { 
-            minimumIntegerDigits: 2, 
-            minimumFractionDigits: 3 
-        });
         for(var i=0; i<time.length; i++){
             if(mathSigns.includes(time[i])){
                 isEquation = true
                 equation.push(time.substring(0, i))
                 equation.push(time[i])
                 time = time.slice(i+1, time.length)
-                i = 0
+                i = -1
             } else if (i == time.length-1){
                 equation.push(time)
             }
