@@ -703,7 +703,8 @@ module.exports = {
                     challengeReport
                         .setTitle(tracks[trak].name + " | Challenge Times")
                         .setColor(planets[tracks[trak].planet].color)
-                    var challengefiltered = challengedata.filter(element => element.track == tracks[trak].name)
+                    var challenge = Object.values(challengedata)
+                    var challengefiltered = challenge.filter(element => element.track == tracks[trak].name)
                     challengefiltered.sort((a,b) => (a.time > b.time) ? 1 : -1)
                 } else if (args[0].options[i].name == "skips") {
                     var input = args[0].options[i].value.toLowerCase()
@@ -795,14 +796,14 @@ module.exports = {
                         if (skip == false && challengefiltered[j].hasOwnProperty("totaltime")) {
                             var character = ""
                             var skps = "FT "
-                            var upgr = "MU "
+                            var upgr = " | MU"
                             var mirr = ""
                             var laps = "3 Laps "
                             if (challengefiltered[j].skips == true) {
                                 skps = "Skips "
                             }
                             if (challengefiltered[j].nu == true) {
-                                upgr = "NU "
+                                upgr = " | NU"
                             }
                             if (challengefiltered[j].mirror == true) {
                                 mirr = "Mirrored "
@@ -820,8 +821,8 @@ module.exports = {
                                 laps = challengefiltered[j].laps + " Laps "
                             }
                             challengeReport
-                                .addField(pos[i] + " " + challengefiltered[j].name, upgr + skps + laps + mirr, true)
-                                .addField(tools.timefix(Number(challengefiltered[j].totaltime).toFixed(3))," " + character, true)
+                                .addField(pos[i] + " " + challengefiltered[j].name, skps + laps + mirr, true)
+                                .addField(tools.timefix(Number(challengefiltered[j].totaltime).toFixed(3))," " + character + upgr, true)
                                 .addField('\u200B', '\u200B', true)
                                 .setDescription(desc.join(', ') + " [" + challengefiltered.length + " Total Runs]")
                                 
