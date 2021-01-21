@@ -703,8 +703,7 @@ module.exports = {
                         .setTitle(tracks[trak].name + " | Challenge Times")
                         .setColor(planets[tracks[trak].planet].color)
                     var challenge = Object.values(challengedata)
-                    console.log(challenge[0])
-                    var challengefiltered = challenge.filter(element => element.track == tracks[trak].name)
+                    var challengefiltered = challenge.filter(element => element.track == trak)
                     challengefiltered.sort((a,b) => (a.time > b.time) ? 1 : -1)
                 } else if (args[0].options[i].name == "skips") {
                     var input = args[0].options[i].value.toLowerCase()
@@ -743,10 +742,10 @@ module.exports = {
                             }
                             if (numb !== null){
                                 if(filterin){
-                                    challengefiltered = challengefiltered.filter(element => element.racer == racers[numb].name)
+                                    challengefiltered = challengefiltered.filter(element => element.racer == numb)
                                     desc.push(racers[numb].name + " Only")
                                 } else {
-                                    challengefiltered = challengefiltered.filter(element => element.racer !== racers[numb].name)
+                                    challengefiltered = challengefiltered.filter(element => element.racer !== numb)
                                     desc.push("No " + racers[numb].name)
                                 }
                             }
