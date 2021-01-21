@@ -676,8 +676,7 @@ module.exports = {
             const tools = require('./../tools.js');
             const Discord = require('discord.js');
             const challengeReport = new Discord.MessageEmbed()
-                .setURL("https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing")
-                .setFooter("/tourney")
+                .setFooter("/challenge")
             var trak = null
             var showall = false
             var desc = []
@@ -704,6 +703,7 @@ module.exports = {
                         .setTitle(tracks[trak].name + " | Challenge Times")
                         .setColor(planets[tracks[trak].planet].color)
                     var challenge = Object.values(challengedata)
+                    console.log(challenge[0])
                     var challengefiltered = challenge.filter(element => element.track == tracks[trak].name)
                     challengefiltered.sort((a,b) => (a.time > b.time) ? 1 : -1)
                 } else if (args[0].options[i].name == "skips") {
