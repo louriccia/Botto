@@ -779,6 +779,7 @@ module.exports = {
                     challengeReport.setAuthor(Member.user.username + "'s Best", client.guilds.resolve(interaction.guild_id).members.resolve(player).user.avatarURL())
                 }
             }      
+            challengefiltered.sort((a,b) => (a.time > b.time) ? 1 : -1)
             var pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>", "4th", "5th"]
             if (trak !== null) {
                 var j = 0
