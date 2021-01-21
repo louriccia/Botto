@@ -794,34 +794,30 @@ module.exports = {
                         }
                         if (skip == false) {
                             var character = ""
-                            var skps = "FT "
+                            var skps = "FT | "
                             var upgr = " | MU"
                             var mirr = ""
                             var laps = "3 Laps "
                             if (challengefiltered[j].skips == true) {
-                                skps = "Skips "
+                                skps = "Skips | "
                             }
                             if (challengefiltered[j].nu == true) {
                                 upgr = " | NU"
                             }
                             if (challengefiltered[j].mirror == true) {
-                                mirr = "Mirrored "
+                                mirr = "| Mirrored "
                             }
-                            for (let n = 0; n<23; n++){
-                                if (challengefiltered[j].racer == racers[n].name) {
-                                    if (racers[n].flag !== "") {
-                                        character = racers[n].flag
-                                    } else {
-                                        character = racers[n].name
-                                    }
-                                }
-                            } 
+                            if (racers[n].flag !== "") {
+                                character = racers[n].flag
+                            } else {
+                                character = racers[n].name
+                            }
                             if (challengefiltered[j].laps !== 3){
                                 laps = challengefiltered[j].laps + " Laps "
                             }
                             challengeReport
                                 .addField(pos[i] + " " + challengefiltered[j].name, skps + laps + mirr, true)
-                                .addField(tools.timefix(Number(challengefiltered[j].totaltime).toFixed(3))," " + character + upgr, true)
+                                .addField(tools.timefix(Number(challengefiltered[j].time).toFixed(3))," " + character + upgr, true)
                                 .addField('\u200B', '\u200B', true)
                             players.push(challengefiltered[j].player + challengefiltered[j].skips + challengefiltered[j].racer + challengefiltered[j].nu + challengefiltered[j].laps)
                             i++
