@@ -542,44 +542,7 @@ module.exports = {
             })
         } else if(args[0].name=="profile") {
             let member = interaction.member.user.id
-            /*
-            Stats:
-            X - Total Challenges
-            X - Standard
-            X - Skips
-            X - No Upgrades
-            X - Non 3-Lap
-            X - Mirrored
-
-            Gameplay Trends:
-            Most played pod:
-            Most played track:
-            Most played planet:
-            Most played circuit:
-
-            Feedback Trends:
-            Most played pod:
-            Most played track:
-            Most played planet:
-            Most played circuit:
-
-
-            Achievements:
-            Galaxy Famous - Complete a challenge on every track: X/25
-            Pod Champ - Complete a challenge with every pod: X/23
-            Lightspeed Skipper - Complete a Skip Challenge for every track with a skip: X/15
-            Slow 'n Steady: Complete a No Upgrades challenge with every pod: X/23
-            Crowd Favorite - Complete a challenge as the track favorite on every track: X/25
-            True Jedi: Complete a challenge with every pod on every track: X/575
-            Big-Time Swindler: Earn or spend 1,000,000 total trugguts
-            */
-            var gFamous = {}
-            var pChamp = {}
-            var lSkipper = {}
-            var sSteady = {}
-            var cFavorite = {}
-            var tJedi = {}
-            var bSwindler = {}
+            var gFamous = {}, pChamp = {}, lSkipper = {}, sSteady = {}, cFavorite = {}, tJedi = {}
             var keys = Object.keys(challengedata)
             var stats = {
                 total: 0,
@@ -589,31 +552,10 @@ module.exports = {
                 non_3_lap: 0,
                 mirrored: 0
             }
-            var mostPod = {}
-            mostPod.most_count = 0
-            mostPod.most_name = null
-            var mostTrack = {}
-            mostTrack.most_count = 0
-            mostTrack.most_name = null
-            var mostPlanet = {}
-            mostPlanet.most_count = 0
-            mostPlanet.most_name = null
-            var mostCircuit = {}
-            mostCircuit.most_count = 0
-            mostCircuit.most_name = null
-            var likePod = {}
-            likePod.most_count = 0
-            likePod.most_name = null
-            var likeTrack = {}
-            likeTrack.most_count = 0
-            likeTrack.most_name = null
-            var dislikePod = {}
-            dislikePod.most_count = 0
-            dislikePod.most_name = null
-            var dislikeTrack = {}
-            dislikeTrack.most_count = 0
-            dislikeTrack.most_name = null
+            var mostPod = {}, mostTrack = {}, mostPlanet = {}, mostCircuit = {}, likePod = {}, likeTrack = {}, dislikePod = {}, dislikeTrack = {}
             function getMost(obj, prop){
+                obj.most_count = 0
+                obj.most_name = null
                 if(obj[prop] == null){
                     obj[prop] = 1
                 } else {
@@ -670,7 +612,6 @@ module.exports = {
                     getMost(mostTrack, challengedata[k].track)
                     getMost(mostPlanet, tracks[challengedata[k].track].planet)
                     getMost(mostCircuit, tracks[challengedata[k].track].circuit)
-                    
                 }
             }
             var keys = Object.keys(feedbackdata)
@@ -687,25 +628,10 @@ module.exports = {
                     
                 }
             }
-
-            console.log(stats)
-            console.log(mostPod)
-            console.log(mostTrack)
-            console.log(mostPlanet)
-            console.log(mostCircuit)
-            console.log(likePod)
-            console.log(likeTrack)
-            console.log(dislikePod)
-            console.log(dislikeTrack)
-            console.log(gFamous)
-            console.log(pChamp)
-            console.log(lSkipper)
-            console.log(sSteady)
-            console.log(cFavorite)
-            console.log(tJedi)
             const profileEmbed = new Discord.MessageEmbed()
                 .setAuthor(interaction.member.user.username, client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
                 .setTitle("Random Challenge Career Profile")
+                //add goal times achieved for the stat section
                 .addField(":bar_chart: Challenge Stats", "Total: `" + stats.total + "`\nStandard: `"+stats.standard + "`\nSkips: `" + stats.skips + "`\nNo Upgrades: `" + stats.no_upgrades + "`\nNon 3-Lap: `" + stats.non_3_lap + "`\nMirrored: `" + stats.mirrored + "`", true)
                 .addField(":chart_with_upwards_trend: Gameplay Trends", "**Most Played Pod:** \n" + racers[mostPod.most_name].flag + " " + racers[mostPod.most_name].name + " `" + mostPod.most_count + "`" +
                 "\n**Most Played Track:**\n" + tracks[mostTrack.most_name].name + " `" + mostTrack.most_count + "`" +
@@ -715,6 +641,7 @@ module.exports = {
                 "\n**Most Liked Track:**\n" + tracks[likeTrack.most_name].name + " `👍" + likeTrack.most_count + "`" +
                 "\n**Most Disliked Pod:**\n" + racers[dislikePod.most_name].flag + " " + racers[dislikePod.most_name].name + " `👎" + dislikePod.most_count + "`" +
                 "\n**Most Disliked Track:**\n" + tracks[dislikeTrack.most_name].name + " `👎" + dislikeTrack.most_count + "`", true)
+                //achievements should be checkmarked when completed
                 .addField(":trophy: Achievements", "**Galaxy Famous** - Complete a challenge on every track: `" + Object.keys(gFamous).length + "/25`" + 
                 "\n**Pod Champ** - Complete a challenge with every pod: `" + Object.keys(pChamp).length + "/23`" +
                 "\n**Lightspeed Skipper** - Complete a Skip challenge on every track with a skip: `" + Object.keys(lSkipper).length + "/15`" +
@@ -722,11 +649,11 @@ module.exports = {
                 "\n**Crowd Favorite** - Complete a challenge as the track favorite on every track: `" + Object.keys(cFavorite).length + "/25`" +
                 "\n**True Jedi** - Complete a challenge with every pod on every track: `" + Object.keys(tJedi).length + "/575`" +
                 "\n**Big-Time Swindler** - Earn or spend 1,000,000 total truguts: `" + "x" + "/1,000,000`", true)
+                .setFooter("/challenge")
             client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {
                     type: 3,
                     data: {
-                        //content: "",
                         embeds: [profileEmbed]
                     }
                 }
@@ -741,23 +668,202 @@ module.exports = {
                 data: {
                     type: 3,
                     data: {
-                        content: "",
                         embeds: [challengeHelpEmbed]
                     }
                 }
             })
-        }
-        /*
-        client.api.interactions(interaction.id, interaction.token).callback.post({
-            data: {
-                type: 4,
-                data: {
-                    //content: "",
-                    //embeds: [myEmbed]
+        } else if (args[0].name =="leaderboard") {
+            const tools = require('./../tools.js');
+            const Discord = require('discord.js');
+            const challengeReport = new Discord.MessageEmbed()
+                .setURL("https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing")
+                .setFooter("/tourney")
+            var trak = null
+            var showall = false
+            var desc = []
+            //filters out other tracks
+            for (let i = 0; i<args[0].options.length; i++) {
+                
+                if (args[0].options[i].name == "track") {
+                    var input = args[0].options[i].value.toLowerCase()
+                    for(let i = 0; i<tracks.length; i++){
+                        if(input == tracks[i].name.toLowerCase() || input == tracks[i].name.toLowerCase().replace(/ /g, '')){
+                            trak = i
+                            i = tracks.length
+                        }
+                        if(i<tracks.length){
+                            tracks[i].nickname.forEach(nick => {
+                                if(nick.toLowerCase() == input){
+                                    trak = i
+                                    i = tracks.length
+                                }
+                            })    
+                        }
+                    }
+                    challengeReport
+                        .setTitle(tracks[trak].name + " | Challenge Times")
+                        .setColor(planets[tracks[trak].planet].color)
+                    var challengefiltered = challengedata.filter(element => element.track == tracks[trak].name)
+                    challengefiltered.sort((a,b) => (a.time > b.time) ? 1 : -1)
+                } else if (args[0].options[i].name == "skips") {
+                    var input = args[0].options[i].value.toLowerCase()
+                    if(input == "skips"){
+                        challengefiltered = challengefiltered.filter(element => element.skips == true)
+                        desc.push("Skips")
+                    } else if (input == "ft"){
+                        challengefiltered = challengefiltered.filter(element => element.skips == false)
+                        desc.push("Full Track")
+                    }
+                } else if (args[i].name == "upgrades") {
+                    var input = args[0].options[i].value.toLowerCase()
+                    if(input == "mu"){
+                        challengefiltered = challengefiltered.filter(element => element.nu == false)
+                        desc.push("Upgrades")
+                    } else if (input == "nu"){
+                        challengefiltered = challengefiltered.filter(element => element.nu == true)
+                        desc.push("No Upgrades")
+                    }
+                } else if (args[0].options[i].name == "pod") {
+                    var input = args[0].options[i].value.toLowerCase()
+                    var podfilter = args[0].options[i].value.split(/[\s,]+/)
+                    var filterin = true
+                    for (var p = 0; p < podfilter.length; p++){
+                        if(podfilter[p] == "no"){
+                            filterin = false
+                        } else {
+                            var numb = null
+                            for(let q = 0; q<racers.length; q++){
+                                racers[q].nickname.forEach(nick => {
+                                    if(nick.toLowerCase() == podfilter[p].toLowerCase()){
+                                        numb = q
+                                        q = racers.length
+                                    }
+                                })     
+                            }
+                            if (numb !== null){
+                                if(filterin){
+                                    challengefiltered = challengefiltered.filter(element => element.racer == racers[numb].name)
+                                    desc.push(racers[numb].name + " Only")
+                                } else {
+                                    challengefiltered = challengefiltered.filter(element => element.racer !== racers[numb].name)
+                                    desc.push("No " + racers[numb].name)
+                                }
+                            }
+                        }
+                    }
+                } else if (args[0].options[i].name == "laps") {
+                    var input = args[0].options[i].value
+                    challengefiltered = challengefiltered.filter(element => element.laps == input)
+                    if(input == 1){
+                        desc.push("1 Lap")
+                    } else {
+                        desc.push( input + " Laps")
+                    }
+                    
+                } else if (args[0].options[i].name == "mirrored") {
+                    var input = args[0].options[i].value
+                    if(input == "mirrored"){
+                        challengefiltered = challengefiltered.filter(element => element.mirror == true)
+                        desc.push("Mirrored")
+                    } else if(input == "unmirrored"){
+                        challengefiltered = challengefiltered.filter(element => element.mirror == false)
+                        desc.push("Unmirrored")
+                    }
+                    
+                } else if (args[0].options[i].name == "player") {
+                    var player = args[0].options[i].value
+                    challengefiltered = challengefiltered.filter(element => element.user == player)
+                    showall = true
+                    const Guild = client.guilds.cache.get(interaction.guild_id);
+                    const Member = Guild.members.cache.get(player)
+                    tourneyReport.setAuthor(Member.user.username + "'s Best", client.guilds.resolve(interaction.guild_id).members.resolve(player).user.avatarURL())
                 }
+            }      
+            var pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>", "4th", "5th"]
+            if (trak !== null) {
+                var j = 0
+                var players = []
+                
+                if (challengefiltered.length > 0) {
+                    for (i=0; i<5;){
+                        var skip = false
+                        for (k = 0; k < players.length; k++) {
+                            if (challengefiltered[j].player + challengefiltered[j].force == players[k] && !showall) {
+                                skip = true
+                            }
+                        }
+                        if (skip == false && challengefiltered[j].hasOwnProperty("totaltime")) {
+                            var character = ""
+                            var skps = "FT "
+                            var upgr = "MU "
+                            var mirr = ""
+                            var laps = "3 Laps "
+                            if (challengefiltered[j].skips == true) {
+                                skps = "Skips "
+                            }
+                            if (challengefiltered[j].nu == true) {
+                                upgr = "NU "
+                            }
+                            if (challengefiltered[j].mirror == true) {
+                                mirr = "Mirrored "
+                            }
+                            for (let n = 0; n<23; n++){
+                                if (challengefiltered[j].racer == racers[n].name) {
+                                    if (racers[n].flag !== "") {
+                                        character = racers[n].flag
+                                    } else {
+                                        character = racers[n].name
+                                    }
+                                }
+                            } 
+                            if (challengefiltered[j].laps !== 3){
+                                laps = challengefiltered[j].laps + " Laps "
+                            }
+                            challengeReport
+                                .addField(pos[i] + " " + challengefiltered[j].name, upgr + skps + laps + mirr, true)
+                                .addField(tools.timefix(Number(challengefiltered[j].totaltime).toFixed(3))," " + character, true)
+                                .addField('\u200B', '\u200B', true)
+                                .setDescription(desc.join(', ') + " [" + challengefiltered.length + " Total Runs]")
+                                
+                            players.push(challengefiltered[j].player + challengefiltered[j].force)
+                            i++
+                        }
+                        j++
+                        if (j == challengefiltered.length) {
+                            i = 5
+                        }
+                    }
+                    client.api.interactions(interaction.id, interaction.token).callback.post({
+                        data: {
+                            type: 3,
+                            data: {
+                                //content: "",
+                                embeds: [challengeReport]
+                            }
+                        }
+                    })
+                } else {
+                    client.api.interactions(interaction.id, interaction.token).callback.post({
+                        data: {
+                            type: 4,
+                            data: {
+                                content: "`Error: No challenge runs were found matching that criteria`\n" + errorMessage[Math.floor(Math.random()*errorMessage.length)],
+                                //embeds: [racerEmbed]
+                            }
+                        }
+                    })
+                }
+            } else {
+                client.api.interactions(interaction.id, interaction.token).callback.post({
+                    data: {
+                        type: 4,
+                        data: {
+                            content: "`Error: Track not found`\n" + errorMessage[Math.floor(Math.random()*errorMessage.length)],
+                            //embeds: [racerEmbed]
+                        }
+                    }
+                })
             }
-        })
-        */
-    }
-    
+        }
+    }   
 }

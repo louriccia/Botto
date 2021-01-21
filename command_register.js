@@ -92,6 +92,119 @@ client.api.applications("545798436105224203").commands.post({data: {
             name: "about",
             description: "learn more about how the random challenges work and how to submit a time",
             type: 1
+        },
+        {
+            name: "leaderboard",
+            description: "get top-5 leaderboards for submitted challenge times",
+            type: 1,
+            options: [
+                {
+                    name: "track",
+                    description: "name or abbreviation of the track",
+                    type: 3,
+                    required: true
+                },
+                {
+                    name: "skips",
+                    description: "filter by skip runs or full track runs",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "any",
+                            value: "any"
+                        },
+                        {
+                            name: "skips",
+                            value: "skips"
+                        },
+                        {
+                            name: "full track",
+                            value: "ft"
+                        }
+                    ]
+                },
+                {
+                    name: "upgrades",
+                    description: "filter by upgrade runs (mu) or no upgrade runs (nu)",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "any",
+                            value: "any"
+                        },
+                        {
+                            name: "upgrades",
+                            value: "mu" 
+                        },
+                        {
+                            name: "no upgrades",
+                            value: "nu"
+                        }
+                    ]
+                },
+                {
+                    name: "pod",
+                    description: "filter runs by a specific pod or filter out pods with 'no' in front; use racer's first name/initials",
+                    type: 3,
+                    required: false,
+                },
+                {
+                    name: "player",
+                    description: "filter runs by player",
+                    type: 6,
+                    required: false,
+                },
+                {
+                    name: "mirrored",
+                    description: "filter by mirrored runs",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "any",
+                            value: "any"
+                        },
+                        {
+                            name: "unmirrored",
+                            value: "unmirrored" 
+                        },
+                        {
+                            name: "mirrored",
+                            value: "mirrored"
+                        }
+                    ]
+                },
+                {
+                    name: "laps",
+                    description: "filter by number of laps",
+                    type: 4,
+                    required: false,
+                    choices: [
+                        {
+                            name: 1,
+                            value: 1
+                        },
+                        {
+                            name: 2,
+                            value: 2 
+                        },
+                        {
+                            name: 3,
+                            value: 3
+                        },
+                        {
+                            name: 4,
+                            value: 4
+                        },
+                        {
+                            name: 5,
+                            value: 5
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }})

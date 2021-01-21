@@ -241,19 +241,15 @@ module.exports = {
                 
             } else if(args[0].options[0].name == "goal_times"){
                 /*
-                    calculate avg speed given upgrades
-
-                    calculate fast terrain section
+                    1. calculate avg speed given upgrades
+                    2. calculate starting boost time and distance (MULTILAP) || calculate full boost time and distance (FLAP)
+                    3. calculate fast terrain section
                         bite off fast terrain length in chunks starting with cooling and return heat cycle with avg speed
-
-                    calculate slow terrain section
+                    4. calculate slow terrain section
                         bite off slow terrain length in chunks starting with boosting and return heat cycle with avg speed
-
-                    fast lap:
-                        full boost time + (track length - full boost distance)/avg speed
-
-                    multi-lap:
-                        initial boost time +((track length-(fast distance + slow distance+initial boost distance))/avg speed)+fast time*laps+(slow distance/slow speed)*laps+((track length-(fast distance+slow distance))/avg speed)*(laps-1)
+                        a pod can only aford one full bost + a small leftover boost that is worth 1 second of cooling
+                    5. calculate the final time
+                        initial/full boost time +(track length-(fast distance + slow distance + initial/full boost distance))/avg speed)+(fast time+slow time)*(laps-1)+((track length-(fast distance+slow distance))/avg speed)*(laps-1)
                 */
             }
         } else if(args[0].name=="tier") {
