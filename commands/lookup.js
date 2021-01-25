@@ -284,7 +284,7 @@ module.exports = {
                             let y = ((x+offset1)*1.5*boost)/((x+offset1)*1.5+0.33)+((x+offset2)*4*1.32*topspeed)/(accel+(x+offset2)*4*1.32)
                             return y
                         }
-                        var step = 0.01
+                        var step = 0.0001
                         var totaldistance = integrate(startboost, 0, a, step, topspeed, accel, boost, null, null)
                         totaldistance = totaldistance + integrate(boostcharge, a, -c, step, topspeed, accel, boost, b, null)
                         totaldistance = totaldistance + integrate(firstboost, -c, e, step, topspeed, accel, boost, c, d)
