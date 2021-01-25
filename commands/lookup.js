@@ -240,13 +240,25 @@ module.exports = {
                 }
                 
             } else if(args[0].options[0].name == "goal_times"){
-                
+
+                    //0. get required values
+                        var accel = 0.9
+                        var topspeed = 650
+                        var thrust = 1.32
+                        var heatrate = 8
+                        var coolrate = 10
+                        var boost = 400
+                        var framerate = 40.5
                     //1. calculate avg speed given upgrades
 
-
-
+                        boostdistance =(boost/50)*(50*(100/heatrate)-11*Math.log(Math.abs(50*(100/heatrate)+11)))-(boost/50)*(50*(0)-11*Math.log(Math.abs(50*(0)+11))) 
+                        avgboost =boostdistance/(100/heatrate)
+                        e19 =1-(3333/(100*framerate*((3333/(100*framerate))+5))) 
+                        cooldistance =boost*math.log(math.abs(11*e19^(framerate*(100/heatrate))*heatrate+7500*e19^(framerate*(100/heatrate+100/coolrate))))/(ln(e19)*framerate)-boost*ln(abs(11*e19^(framerate*(100/heatrate))*heatrate+7500*e19^(framerate*(100/heatrate))))/(ln(e19)*framerate)
+                        avgcool =cooldistance/(100/coolrate)
+                        avgspeed =((100/heatrate)*(topspeed+avgboost)+(100/coolrate)*(topspeed+avgcool))/(100/heatrate+100/coolrate)
+                        console.log("Average speed: " + avgspeed)
                     //2. calculate starting boost time and distance (MULTILAP) || calculate full boost time and distance (FLAP)
-
                         function integrate (f, start, end, step, topspeed, accel, boost, offset1, offset2) {
                             let total = 0
                             step = step || 0.01
@@ -255,12 +267,7 @@ module.exports = {
                             }
                             return total
                         }
-
-                        var accel = 0.9
-                        var topspeed = 650
-                        var thrust = 1.32
-                        var heatrate = 8
-                        var boost = 400
+                        
                         var b2 = (290*accel)/((topspeed-290)*1.5*thrust)
                         var c2 = 0.75*topspeed
                         var d2 = (c2*accel)/((topspeed-c2)*1.5*thrust)
