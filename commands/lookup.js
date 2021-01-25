@@ -240,9 +240,57 @@ module.exports = {
                 }
                 
             } else if(args[0].options[0].name == "goal_times"){
-                /*
-                    1. calculate avg speed given upgrades
-                    2. calculate starting boost time and distance (MULTILAP) || calculate full boost time and distance (FLAP)
+                
+                    //1. calculate avg speed given upgrades
+
+
+
+                    //2. calculate starting boost time and distance (MULTILAP) || calculate full boost time and distance (FLAP)
+
+                        function integrate (f, start, end, step, topspeed, accel, boost, offset1, offset2) {
+                            let total = 0
+                            step = step || 0.01
+                            for (let x = start; x < end; x += step) {
+                                total += f(x + step / 2, topspeed, accel, boost, offset1, offset2) * step
+                            }
+                            return total
+                        }
+
+                        var accel = 0.9
+                        var topspeed = 650
+                        var thrust = 1.32
+                        var heatrate = 8
+                        var boost = 400
+                        var b2 = (290*accel)/((topspeed-290)*1.5*thrust)
+                        var c2 = 0.75*topspeed
+                        var d2 = (c2*accel)/((topspeed-c2)*1.5*thrust)
+                        var e2 = (d2+1)*1.5*thrust*topspeed/(accel+(d2+1)*1.5*thrust)
+                        var f2 = (e2*accel)/((topspeed-e2)*4*thrust)
+                        var a = (290*accel)/((topspeed-290)*4*thrust)
+                        var b = b2-a
+                        var c = -(d2+1)+b
+                        var d = c+f2
+                        var e = -c+(100/heatrate)
+                        var totaltime = e
+                        function startboost(x, topspeed, accel, boost, offset1, offset2){
+                            let y = x*4*1.32*topspeed/(accel+x*4*1.32)
+                            return y
+                        }
+                        function boostcharge(x, topspeed, accel, boost, offset1, offset2){
+                            let y = (x+offset1)*1.5*1.32*topspeed/(accel+(x+offset1)*1.5*1.32)
+                            return y
+                        }
+                        function firstboost(x, topspeed, accel, boost, offset1, offset2){
+                            let y = ((x+offset1)*1.5*boost)/((x+offset1)*1.5+0.33)+((x+offset2)*4*1.32*topspeed)/(accel+(x+offset2)*4*1.32)
+                            return y
+                        }
+                        var step = 0.01
+                        var totaldistance = integrate(startboost, 0, a, step, topspeed, accel, boost, null, null)
+                        totaldistance = totaldistance + integrate(boostcharge, a, -c, step, topspeed, accel, boost, b, null)
+                        totaldistance = totaldistance + integrate(firstboost, -c, e, step, topspeed, accel, boost, c, d)
+
+                        console.log("Total distance: " + totaldistance + "\nTotal time: " + totaltime)
+/*
                     3. calculate fast terrain section
                         bite off fast terrain length in chunks starting with cooling and return heat cycle with avg speed
                     4. calculate slow terrain section
