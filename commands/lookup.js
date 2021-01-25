@@ -257,7 +257,7 @@ module.exports = {
                         cooldistance =boost*Math.log(Math.abs(11*e19^(framerate*(100/heatrate))*heatrate+7500*e19^(framerate*(100/heatrate+100/coolrate))))/(Math.log(e19)*framerate)-boost*Math.log(Math.abs(11*e19^(framerate*(100/heatrate))*heatrate+7500*e19^(framerate*(100/heatrate))))/(Math.log(e19)*framerate)
                         avgcool =cooldistance/(100/coolrate)
                         avgspeed =((100/heatrate)*(topspeed+avgboost)+(100/coolrate)*(topspeed+avgcool))/(100/heatrate+100/coolrate)
-                        console.log("Average speed: " + avgspeed)
+                        console.log("boostdist: " + boostdistance + "\navgboost: " + avgboost + "\ne19: " + e19 + "\ncooldistance: " + cooldistance + "\navgcool: " + avgcool + "\nAverage speed: " + avgspeed)
                     //2. calculate starting boost time and distance (MULTILAP) || calculate full boost time and distance (FLAP)
                         function integrate (f, start, end, step, topspeed, accel, boost, offset1, offset2) {
                             let total = 0
