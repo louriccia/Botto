@@ -254,7 +254,7 @@ module.exports = {
                         boostdistance =(boost/50)*(50*(100/heatrate)-11*Math.log(Math.abs(50*(100/heatrate)+11)))-(boost/50)*(50*(0)-11*Math.log(Math.abs(50*(0)+11))) 
                         avgboost =boostdistance/(100/heatrate)
                         e19 =1-(3333/(100*framerate*((3333/(100*framerate))+5))) 
-                        cooldistance =boost*Math.log(Math.abs(11*heatrate*e19^(framerate*(100/heatrate))+7500*e19^(framerate*(100/heatrate+100/coolrate))))/(Math.log(e19)*framerate)-boost*Math.log(Math.abs(11*heatrate*e19^(framerate*(100/heatrate))+7500*e19^(framerate*(100/heatrate))))/(Math.log(e19)*framerate)
+                        cooldistance =boost*Math.log(Math.abs(11*e19**(framerate*(100/heatrate))*heatrate+7500*e19**(framerate*(100/heatrate+100/coolrate))))/(Math.log(e19)*framerate)-boost*Math.log(Math.abs(11*e19**(framerate*(100/heatrate))*heatrate+7500*e19**(framerate*(100/heatrate))))/(Math.log(e19)*framerate)
                         avgcool =cooldistance/(100/coolrate)
                         avgspeed =((100/heatrate)*(topspeed+avgboost)+(100/coolrate)*(topspeed+avgcool))/(100/heatrate+100/coolrate)
                         console.log("boostdist: " + boostdistance + "\navgboost: " + avgboost + "\ne19: " + e19 + "\ncooldistance: " + cooldistance + "\navgcool: " + avgcool + "\nAverage speed: " + avgspeed)
