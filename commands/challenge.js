@@ -194,7 +194,7 @@ module.exports = {
                         } else {
                             besttimes = besttimes + pos[i] + "" + tools.timefix(best[i].time) + " - " + best[i].name + "\n"
                         }
-                        if (i == 4) {
+                        if (i == 9) {
                             i = best.length
                         }
                     }
@@ -231,7 +231,7 @@ module.exports = {
                     const filter = (reaction, user) => {
                         return (['👍', '👎', '↩️', '🎲'].includes(reaction.emoji.name) && user.id !== "545798436105224203");
                     };   
-                    const collector = sentMessage.createReactionCollector(filter, {time: 900000})
+                    const collector = sentMessage.createReactionCollector(filter, {time: 1800000})
                         collector.on('collect', (reaction, reactionCollector) => {
                             const user = reaction.users.cache.last()
                             //console.log("I got a reaction!")
@@ -302,21 +302,21 @@ module.exports = {
                         })
                 })
                 setTimeout(async function() { //5 minute warning
-                    if(!collected){
+                    if(collecting){
                         try { 
                             await sentMessage.edit(createEmbed(":warning: 5 Minute Warning: ", null)) 
                         } catch {}
                     }
                 }, 600000)
                 setTimeout(async function() { //1 minute warning
-                    if(!collected){
+                    if(collecting){
                         try { 
                             await sentMessage.edit(createEmbed(":warning: 1 Minute Warning: ", null)) 
                         } catch {}
                     }
                 }, 840000)
                 setTimeout(async function() { //challenge closed
-                    if(!collected){
+                    if(collecting){
                         try { 
                             await sentMessage.edit(createEmbed(":negative_squared_cross_mark: Closed: ", null)) 
                         } catch (error) {
@@ -331,26 +331,28 @@ module.exports = {
                 collector.on('collect', message => {
                 //a new challenge appears
                     if(message.embeds.length > 0 && message.author.id == "545798436105224203") {
-                        if (message.embeds[0].title.startsWith("Race")) {
-                            if (vc) {
-                                if(collected && collecting){ //previous challenge closed after rolling a new challenge
-                                    try {
-                                        sentMessage.edit(createEmbed(":white_check_mark: Completed: ", null)) 
-                                    } catch {}
+                        if (message.embeds[0].title !== undefined) {
+                            if (message.embeds[0].title.startsWith("Race")) {
+                                if (vc) {
+                                    if(collected && collecting){ //previous challenge closed after rolling a new challenge
+                                        try {
+                                            sentMessage.edit(createEmbed(":white_check_mark: Completed: ", null)) 
+                                        } catch {}
+                                        collecting = false
+                                    } else if (!collected){ //rerolling mp challenge
+                                        try {
+                                            sentMessage.delete()
+                                        } catch {}
+                                        collected = true
+                                        collecting = false
+                                    }
+                                } else if (!collected && message.embeds[0].author.name.replace("'s Challenge", "") == interaction.member.user.username) { //rerolling sp challenge
+                                    collected = true
                                     collecting = false
-                                } else if (!collected){ //rerolling mp challenge
                                     try {
                                         sentMessage.delete()
                                     } catch {}
-                                    collected = true
-                                    collecting = false
                                 }
-                            } else if (!collected && message.embeds[0].author.name.replace("'s Challenge", "") == interaction.member.user.username) { //rerolling sp challenge
-                                collected = true
-                                collecting = false
-                                try {
-                                    sentMessage.delete()
-                                } catch {}
                             }
                         }
                 //submitting the time
@@ -543,7 +545,12 @@ module.exports = {
                 }
             })
         } else if(args[0].name=="profile") {
-            let member = interaction.member.user.id
+            var member = interaction.member.user.id
+            if (args[0].hasOwnProperty("options")) {
+                if(args[0].options[0].name == "user"){
+                    member = args[0].options[0].value
+                }
+            }
             var gFamous = {}, pChamp = {}, lSkipper = {}, sSteady = {}, cFavorite = {}, tJedi = {}
             var keys = Object.keys(challengedata)
             var stats = {
@@ -568,6 +575,7 @@ module.exports = {
                     obj.most_count = obj[prop];
                 }
             }
+            var hasraced = false
             for (var i=0; i<keys.length; i++) {
                 var k = keys[i];
                 if(challengedata[k].user == member){
@@ -610,6 +618,7 @@ module.exports = {
                             stats.mirrored ++
                         }
                     } 
+                    hasraced = true
                     getMost(mostPod, challengedata[k].racer)
                     getMost(mostTrack, challengedata[k].track)
                     getMost(mostPlanet, tracks[challengedata[k].track].planet)
@@ -617,40 +626,81 @@ module.exports = {
                 }
             }
             var keys = Object.keys(feedbackdata)
+            var hasliked = false
+            var hasdisliked = false
             for (var i=0; i<keys.length; i++) {
                 var k = keys[i];
                 if(feedbackdata[k].user == member){
                     if(feedbackdata[k].feedback == "👍"){
+                        hasliked = true
                         getMost(likePod, feedbackdata[k].racer)
                         getMost(likeTrack, feedbackdata[k].track)
                     } else if(feedbackdata[k].feedback == "👎"){
+                        hasdisliked = false
                         getMost(dislikePod, feedbackdata[k].racer)
                         getMost(dislikeTrack, feedbackdata[k].track)
                     }
                     
                 }
             }
+
             const profileEmbed = new Discord.MessageEmbed()
-                .setAuthor(interaction.member.user.username, client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
+                .setAuthor(client.guilds.resolve(interaction.guild_id).members.resolve(member).user.username, client.guilds.resolve(interaction.guild_id).members.resolve(member).user.avatarURL())
                 .setTitle("Random Challenge Career Profile")
                 //add goal times achieved for the stat section
-                .addField(":bar_chart: Challenge Stats", "Total: `" + stats.total + "`\nStandard: `"+stats.standard + "`\nSkips: `" + stats.skips + "`\nNo Upgrades: `" + stats.no_upgrades + "`\nNon 3-Lap: `" + stats.non_3_lap + "`\nMirrored: `" + stats.mirrored + "`", true)
-                .addField(":chart_with_upwards_trend: Gameplay Trends", "**Most Played Pod:** \n" + racers[mostPod.most_name].flag + " " + racers[mostPod.most_name].name + " `" + mostPod.most_count + "`" +
-                "\n**Most Played Track:**\n" + tracks[mostTrack.most_name].name + " `" + mostTrack.most_count + "`" +
-                "\n**Most Played Planet:**\n" + planets[mostPlanet.most_name].name + " `" + mostPlanet.most_count + "`" +
-                "\n**Most Played Circuit:**\n" + circuits[mostCircuit.most_name].name + " `" + mostCircuit.most_count + "`", true)
-                .addField(":pencil: Feedback Trends", "**Most Liked Pod:** \n" + racers[likePod.most_name].flag+ " " + racers[likePod.most_name].name + " `👍" + likePod.most_count + "`" +
-                "\n**Most Liked Track:**\n" + tracks[likeTrack.most_name].name + " `👍" + likeTrack.most_count + "`" +
-                "\n**Most Disliked Pod:**\n" + racers[dislikePod.most_name].flag + " " + racers[dislikePod.most_name].name + " `👎" + dislikePod.most_count + "`" +
-                "\n**Most Disliked Track:**\n" + tracks[dislikeTrack.most_name].name + " `👎" + dislikeTrack.most_count + "`", true)
-                //achievements should be checkmarked when completed
-                .addField(":trophy: Achievements", "**Galaxy Famous** - Complete a challenge on every track: `" + Object.keys(gFamous).length + "/25`" + 
-                "\n**Pod Champ** - Complete a challenge with every pod: `" + Object.keys(pChamp).length + "/23`" +
-                "\n**Lightspeed Skipper** - Complete a Skip challenge on every track with a skip: `" + Object.keys(lSkipper).length + "/15`" +
-                "\n**Slow 'n Steady** - Complete a No Upgrades challenge with every pod: `" + Object.keys(sSteady).length + "/23`" +
-                "\n**Crowd Favorite** - Complete a challenge as the track favorite on every track: `" + Object.keys(cFavorite).length + "/25`" +
-                "\n**True Jedi** - Complete a challenge with every pod on every track: `" + Object.keys(tJedi).length + "/575`" +
-                "\n**Big-Time Swindler** - Earn or spend 1,000,000 total truguts: `" + "x" + "/1,000,000`", true)
+                if(hasraced){
+                    profileEmbed
+                        .addField(":bar_chart: Challenge Stats", "Total: `" + stats.total + "`\nStandard: `"+stats.standard + "`\nSkips: `" + stats.skips + "`\nNo Upgrades: `" + stats.no_upgrades + "`\nNon 3-Lap: `" + stats.non_3_lap + "`\nMirrored: `" + stats.mirrored + "`", true)
+                        .addField(":chart_with_upwards_trend: Gameplay Trends", "**Most Played Pod:** \n" + racers[mostPod.most_name].flag + " " + racers[mostPod.most_name].name + " `" + mostPod.most_count + "`" +
+                        "\n**Most Played Track:**\n" + tracks[mostTrack.most_name].name + " `" + mostTrack.most_count + "`" +
+                        "\n**Most Played Planet:**\n" + planets[mostPlanet.most_name].name + " `" + mostPlanet.most_count + "`" +
+                        "\n**Most Played Circuit:**\n" + circuits[mostCircuit.most_name].name + " `" + mostCircuit.most_count + "`", true)
+                } else {
+                    profileEmbed
+                        .addField(":bar_chart: Challenge Stats", "No challenge data", true)
+                        .addField(":chart_with_upwards_trend: Gameplay Trends", "No gameplay data", true)
+                }
+                var feedbacktrend = ""
+                if(hasliked){
+                    feedbacktrend += "**Most Liked Pod:** \n" + racers[likePod.most_name].flag+ " " + racers[likePod.most_name].name + " `👍" + likePod.most_count + "`" +
+                    "\n**Most Liked Track:**\n" + tracks[likeTrack.most_name].name + " `👍" + likeTrack.most_count + "`\n"
+                }
+                if(hasdisliked){
+                    feedbacktrend += "**Most Disliked Pod:**\n" + racers[dislikePod.most_name].flag + " " + racers[dislikePod.most_name].name + " `👎" + dislikePod.most_count + "`" +
+                    "\n**Most Disliked Track:**\n" + tracks[dislikeTrack.most_name].name + " `👎" + dislikeTrack.most_count + "`"
+                }
+                if(feedbacktrend == ""){
+                    feedbacktrend = "No feedback data"
+                }
+                profileEmbed
+                .addField(":pencil: Feedback Trends", feedbacktrend, true)
+                var achieved = ["", "", "", "", "", "", ""]
+                if(Object.keys(gFamous).length == 25){
+                    achieved[0] = "white_check_mark "
+                }
+                if(Object.keys(pChamp).length == 23){
+                    achieved[1] = "white_check_mark "
+                }
+                if(Object.keys(lSkipper).length == 15){
+                    achieved[2] = "white_check_mark "
+                }
+                if(Object.keys(sSteady).length == 23){
+                    achieved[3] = "white_check_mark "
+                }
+                if(Object.keys(cFavorite).length == 25){
+                    achieved[4] = "white_check_mark "
+                }
+                if(Object.keys(tJedi).length == 575){
+                    achieved[5] = "white_check_mark "
+                }
+
+                profileEmbed.addField(":trophy: Achievements", achieved[0] + "**Galaxy Famous** - Complete a challenge on every track: `" + Object.keys(gFamous).length + "/25`" + 
+                "\n" + achieved[1] + "**Pod Champ** - Complete a challenge with every pod: `" + Object.keys(pChamp).length + "/23`" +
+                "\n" + achieved[2] + "**Lightspeed Skipper** - Complete a Skip challenge on every track with a skip: `" + Object.keys(lSkipper).length + "/15`" +
+                "\n" + achieved[3] + "**Slow 'n Steady** - Complete a No Upgrades challenge with every pod: `" + Object.keys(sSteady).length + "/23`" +
+                "\n" + achieved[4] + "**Crowd Favorite** - Complete a challenge as the track favorite on every track: `" + Object.keys(cFavorite).length + "/25`" +
+                "\n" + achieved[5] + "**True Jedi** - Complete a challenge with every pod on every track: `" + Object.keys(tJedi).length + "/575`" +
+                "\n" + "**Big-Time Swindler** - Earn or spend 1,000,000 total truguts: `" + "x" + "/1,000,000`", true)
                 .setFooter("/challenge")
             client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {

@@ -86,7 +86,13 @@ client.api.applications("545798436105224203").commands.post({data: {
         {
             name: "profile",
             description: "view your career stats, total truguts, and achievement progress for random challenges",
-            type: 1
+            type: 1,
+            options: {
+                name: "user",
+                description: "the user whose profile you would like to view, if not your own",
+                type: 3,
+                required: false
+            }
         },
         {
             name: "about",
