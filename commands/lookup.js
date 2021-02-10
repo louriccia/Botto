@@ -336,7 +336,7 @@ module.exports = {
                                 }
                             }
                         }
-                        
+                        console.log("Total fast length: " + totalfastlength + "\nTotal fast time: " + totalfasttime)
  
                     //4. calculate slow terrain section
                         //bite off slow terrain length in chunks starting with boosting and calculate full heat cycle
@@ -405,7 +405,7 @@ module.exports = {
                         }
                     //5. calculate the final time
                         var finaltime = totaltime+(tracklength-(totalfastlength + totalslowlength + totaldistance))/avgspeed+(totalfasttime+totalslowtime)*(laps-1)+((tracklength - (totalfastlength+totalslowlength))/avgspeed)*(laps-1)
-                        console.log(finaltime)
+                        console.log("Final Time: " + finaltime)
             }
         } else if(args[0].name=="tier") {
             const tierEmbed = new Discord.MessageEmbed()
