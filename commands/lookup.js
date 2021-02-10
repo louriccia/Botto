@@ -299,7 +299,7 @@ module.exports = {
 
                     //3. calculate fast terrain section
                         //bite off fast terrain length in chunks starting with cooling and calculate complete heat cycle
-                        var fastlength = 4565.069
+                        var fastlength = 4751.562
                         var totalfastlength = 0
                         var totalfasttime = 0
                         var fastspeed = 200
