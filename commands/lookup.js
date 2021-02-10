@@ -408,7 +408,11 @@ module.exports = {
                             slowlength = 0
                         }
                     //5. calculate the final time
-                        var finaltime = totaltime+(tracklength-(totalfastlength + totalslowlength + totaldistance))/avgspeed+(totalfasttime+totalslowtime)*(laps-1)+((tracklength - (totalfastlength+totalslowlength))/avgspeed)*(laps-1)
+                        var firstlaptime = totaltime+totalfasttime+totalslowtime+(tracklength-(totalfastlength + totalslowlength + totaldistance))/avgspeed
+                        console.log("First Lap Time: " + firstlaptime)
+                        var laptime = totalfasttime+totalslowtime+(tracklength - (totalfastlength+totalslowlength))/avgspeed
+                        console.log("Lap Time: " + laptime)
+                        var finaltime = firstlaptime + laptime*(laps-1)
                         console.log("Final Time: " + finaltime)
             }
         } else if(args[0].name=="tier") {
