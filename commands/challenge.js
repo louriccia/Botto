@@ -369,6 +369,9 @@ module.exports = {
                             if ((challengeend - challengestart) < time*1000) {
                                 message.reply("*I warn you. No funny business.*")
                                 collected = true
+                                if(!vc){
+                                    collecting = false
+                                }
                             } else {
                             //log time
                                 sentMessage.react('↩️')
@@ -393,6 +396,9 @@ module.exports = {
                                 }
                                 collection.push(collectiondata)
                                 collected = true
+                                if(!vc){
+                                    collecting = false
+                                }
                                 console.log(collection)
                             //edit original message
                                 if(vc){

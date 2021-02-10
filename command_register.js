@@ -91,7 +91,7 @@ client.api.applications("545798436105224203").commands.post({data: {
                     {
                     name: "user",
                     description: "the user whose profile you would like to view, if not your own",
-                    type: 3,
+                    type: 6,
                     required: false
                     }
             ]
