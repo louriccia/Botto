@@ -250,6 +250,7 @@ module.exports = {
                         var boost = 400
                         var framerate = 40.5
                         var tracklength = 65108.957
+                        var laps = 3
                     //1. calculate avg speed given upgrades
                         boostdistance =(boost/50)*(50*(100/heatrate)-11*Math.log(Math.abs(50*(100/heatrate)+11)))-(boost/50)*(50*(0)-11*Math.log(Math.abs(50*(0)+11))) 
                         avgboost =boostdistance/(100/heatrate)
