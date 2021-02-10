@@ -310,6 +310,7 @@ module.exports = {
                                 totalfastlength += ((topspeed+avgcool+fastspeed)*cooltime)
                                 totalfasttime+=(cooltime)
                                 fastlength -= (topspeed+avgcool+fastspeed)*cooltime
+                                console.log("pod on fast terrain longer than cool time, fast length: " + fastlength)
                             } else if(fastlength/(topspeed+avgcool+fastspeed) <= cooltime){ //if pod is on fast terrain shorter than cool time
                                 totalfastlength+=(fastlength)
                                 totalfasttime+=(fastlength/(topspeed+avgcool+fastspeed))
@@ -320,12 +321,14 @@ module.exports = {
                                 totalfastlength+=((topspeed+avgboost)*boosttime)
                                 totalfasttime+=(boosttime)
                                 fastlength = 0
+                                console.log("pod on fast terrain shorter than cool time, fast length: " + fastlength)
                             }
                             if(fastlength>0){
                                 if(fastlength/(topspeed+avgboost+fastspeed) > boosttime){ //if pod is on fast terrain longer than boost time
                                     totalfastlength+=((topspeed+avgboost+fastspeed)*boosttime)
                                     totalfasttime+=(boosttime)
                                     fastlength -= (topspeed+avgboost+fastspeed)*boosttime
+                                    console.log("pod on fast terrain longer than boost time, fast length: " + fastlength)
                                 } else if(fastlength/(topspeed+avgboost+fastspeed) <= boosttime){ //if pod is on fast terrain shorter than boost time
                                     totalfastlength+=(fastlength)
                                     totalfasttime+=(fastlength/(topspeed+avgboost+fastspeed))
@@ -333,6 +336,7 @@ module.exports = {
                                     totalfastlength+=((topspeed+avgboost)*(boosttime - fastlength/(topspeed+avgboost+fastspeed)))
                                     totalfasttime +=(boosttime - fastlength/(topspeed+avgboost+fastspeed)) 
                                     fastlength = 0
+                                    console.log("pod on fast terrain shorter than boost time, fast length: " + fastlength)
                                 }
                             }
                         }
