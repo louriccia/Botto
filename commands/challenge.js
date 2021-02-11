@@ -642,7 +642,7 @@ module.exports = {
                         getMost(likePod, feedbackdata[k].racer)
                         getMost(likeTrack, feedbackdata[k].track)
                     } else if(feedbackdata[k].feedback == "👎"){
-                        hasdisliked = false
+                        hasdisliked = true
                         getMost(dislikePod, feedbackdata[k].racer)
                         getMost(dislikeTrack, feedbackdata[k].track)
                     }
@@ -682,22 +682,22 @@ module.exports = {
                 .addField(":pencil: Feedback Trends", feedbacktrend, true)
                 var achieved = ["", "", "", "", "", "", ""]
                 if(Object.keys(gFamous).length == 25){
-                    achieved[0] = "white_check_mark "
+                    achieved[0] = ":white_check_mark: "
                 }
                 if(Object.keys(pChamp).length == 23){
-                    achieved[1] = "white_check_mark "
+                    achieved[1] = ":white_check_mark: "
                 }
                 if(Object.keys(lSkipper).length == 15){
-                    achieved[2] = "white_check_mark "
+                    achieved[2] = ":white_check_mark: "
                 }
                 if(Object.keys(sSteady).length == 23){
-                    achieved[3] = "white_check_mark "
+                    achieved[3] = ":white_check_mark: "
                 }
                 if(Object.keys(cFavorite).length == 25){
-                    achieved[4] = "white_check_mark "
+                    achieved[4] = ":white_check_mark: "
                 }
                 if(Object.keys(tJedi).length == 575){
-                    achieved[5] = "white_check_mark "
+                    achieved[5] = ":white_check_mark: "
                 }
 
                 profileEmbed.addField(":trophy: Achievements", achieved[0] + "**Galaxy Famous** - Complete a challenge on every track: `" + Object.keys(gFamous).length + "/25`" + 
