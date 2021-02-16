@@ -53,7 +53,7 @@ module.exports = {
                     } else {
                         var data = {
                             mirror_mode: 5,
-                            name: member.name,
+                            name: interaction.member.user.username,
                             no_upgrades: 15,
                             non_3_lap: 5,
                             skips: 25,
