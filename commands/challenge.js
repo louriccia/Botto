@@ -51,11 +51,15 @@ module.exports = {
                         odds_non3lap = profiledata[member].non_3_lap/100
                         odds_mirrormode = profiledata[member].mirror_mode/100
                     } else {
-                        profiledata[member].skips = 25
-                        profiledata[member].no_upgrades = 15
-                        profiledata[member].non_3_lap = 5
-                        profiledata[member].mirror_mode = 5
-                        profiledata[member].winnings = 1
+                        var data = {
+                            mirror_mode: 5,
+                            name: member.name,
+                            no_upgrades: 15,
+                            non_3_lap: 5,
+                            skips: 25,
+                            winnings: 1
+                        }
+                        profileref.child(member).setValue(data)
                         odds_skips = 0.25
                         odds_noupgrades = 0.15
                         odds_non3lap = 0.05
@@ -178,7 +182,7 @@ module.exports = {
                     }
                 }
                 var besttimes = "Be the first to submit a time for this challenge!"
-                var pos = ["<:P1:671601240228233216> ", "<:P2:671601321257992204> ", "<:P3:671601364794605570> ", "4th ", "5th "]
+                var pos = ["<:P1:671601240228233216> ", "<:P2:671601321257992204> ", "<:P3:671601364794605570> ", "4th ", "5th ", "6th ", "7th ", "8th ", "9th ", "10th "]
                 if(best.length > 0) {
                     besttimes =""
                     best.sort(function(a,b) {
