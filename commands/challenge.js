@@ -59,7 +59,7 @@ module.exports = {
                             skips: 25,
                             winnings: 1
                         }
-                        profileref.child(member).setValue(data)
+                        profileref.child(member).set(data)
                         odds_skips = 0.25
                         odds_noupgrades = 0.15
                         odds_non3lap = 0.05
