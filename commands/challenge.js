@@ -573,8 +573,8 @@ module.exports = {
             }
             var mostPod = {}, mostTrack = {}, mostPlanet = {}, mostCircuit = {}, likePod = {}, likeTrack = {}, dislikePod = {}, dislikeTrack = {}
             function getMost(obj, prop){
-                obj.most_count = 0
-                obj.most_name = null
+                //obj.most_count = 0
+                //obj.most_name = null
                 if(obj[prop] == null){
                     obj[prop] = 1
                 } else {
