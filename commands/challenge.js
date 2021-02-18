@@ -572,6 +572,22 @@ module.exports = {
                 mirrored: 0
             }
             var mostPod = {}, mostTrack = {}, mostPlanet = {}, mostCircuit = {}, likePod = {}, likeTrack = {}, dislikePod = {}, dislikeTrack = {}
+            mostPod.most_count = 0
+            mostPod.most_name = null
+            mostTrack.most_count = 0
+            mostTrack.most_name = null
+            mostPlanet.most_count = 0
+            mostPlanet.most_name = null
+            mostCircuit.most_count = 0
+            mostCircuit.most_name = null
+            likePod.most_count = 0
+            likePod.most_name = null
+            likeTrack.most_count = 0
+            likeTrack.most_name = null
+            dislikePod.most_count = 0
+            dislikePod.most_name = null
+            dislikeTrack.most_count = 0
+            dislikeTrack.most_name = null
             function getMost(obj, prop){
                 //obj.most_count = 0
                 //obj.most_name = null
