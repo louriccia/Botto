@@ -97,16 +97,16 @@ module.exports = {
                     .setColor(planets[tracks[numb].planet].color)
                     .setImage(tracks[numb].img)
                     .setTitle(tracks[numb].name)
-                    .addField("Planet", planets[tracks[numb].planet].name, true)
+                    .setDescription("(" + tracks[numb].nickname.join(", ") + ")")
+                    .addField("Planet / Host", planets[tracks[numb].planet].name + " / " + planets[tracks[numb].planet].host, true)
                     .addField("Circuit", circuits[tracks[numb].circuit].name + " - Race " + tracks[numb].cirnum, true)
-                    .addField("Favorite", racers[tracks[numb].favorite].flag + " " + racers[tracks[numb].favorite].name, true)
-                    .addField("Length", tracks[numb].lengthclass, true)
-                    .addField("Difficulty", difficulties[tracks[numb].difficulty].name, true)
-                    .addField("Abbreviation", tracks[numb].nickname.join(", "), true)
+                    .addField("Track Favorite", racers[tracks[numb].favorite].flag + " " + racers[tracks[numb].favorite].name, true)
+                    .addField("Difficulty / Length", difficulties[tracks[numb].difficulty].name + " / " + tracks[numb].lengthclass, true)
                 let muurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-789k49lw=xqkrk919&var-2lgz978p=81p7we17" //mu
                 let nuurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-789k49lw=z194gjl4&var-2lgz978p=81p7we17" //nu
                 let skurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&&var-2lgz978p=p125ev1x" //sku
                 let settings = {method: "Get"}
+                var wr3lap = ""
                 async function getwrData() {
                     try {
                     const response1 = await fetch(muurl);
@@ -137,7 +137,7 @@ module.exports = {
                                 name = sk.players.data[0].name
                             }
                             var vid = sk.runs[0].run.videos.links[0].uri
-                            trackEmbed.addField("Skips WR", character + " " + name + "\n[" + tools.timefix(sk.runs[0].run.times.primary_t) + "](" + vid + ")",true)
+                            wr3lap += character + " " + name + "[" + tools.timefix(sk.runs[0].run.times.primary_t) + "](" + vid + ") Skips\n"
                         }
                     }
                     for (let j = 0; j<23; j++){
@@ -155,7 +155,7 @@ module.exports = {
                         name = mu.players.data[0].name
                     }
                     var vid = mu.runs[0].run.videos.links[0].uri
-                    trackEmbed.addField("MU WR", character + " " + name + "\n[" + tools.timefix(mu.runs[0].run.times.primary_t) + "](" + vid + ")", true)
+                    wr3lap += character + " " + name + "[" + tools.timefix(mu.runs[0].run.times.primary_t) + "](" + vid + ") MU\n"
                     for (let j = 0; j<23; j++){
                         if (nu.runs[0].run.values.j846d94l == racers[j].id) {
                             if (racers[j].hasOwnProperty("flag")) {
@@ -171,7 +171,8 @@ module.exports = {
                         name = nu.players.data[0].name
                     }
                     var vid = nu.runs[0].run.videos.links[0].uri
-                    trackEmbed.addField("NU WR", character + " " + name + "\n[" + tools.timefix(nu.runs[0].run.times.primary_t) + "](" +  vid+ ")",true)
+                    wr3lap += character + " " + name + "[" + tools.timefix(nu.runs[0].run.times.primary_t) + "](" +  vid+ ") NU\n"
+                    trackEmbed.addField("3-Lap World Records",wr3lap,true)
 
                     client.channels.cache.get(interaction.channel_id).send(trackEmbed).then(sentMessage => {
                         sentMessage.react('⏱️').then(() => {

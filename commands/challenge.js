@@ -589,8 +589,6 @@ module.exports = {
             dislikeTrack.most_count = 0
             dislikeTrack.most_name = null
             function getMost(obj, prop){
-                //obj.most_count = 0
-                //obj.most_name = null
                 if(obj[prop] == null){
                     obj[prop] = 1
                 } else {
