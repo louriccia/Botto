@@ -98,10 +98,10 @@ module.exports = {
                     .setImage(tracks[numb].img)
                     .setTitle(tracks[numb].name)
                     .setDescription("(" + tracks[numb].nickname.join(", ") + ")")
-                    .addField("Planet / Host", planets[tracks[numb].planet].name + " / " + planets[tracks[numb].planet].host, true)
+                    .addField("Planet | Host", planets[tracks[numb].planet].name + " | " + planets[tracks[numb].planet].host, true)
                     .addField("Circuit", circuits[tracks[numb].circuit].name + " - Race " + tracks[numb].cirnum, true)
                     .addField("Track Favorite", racers[tracks[numb].favorite].flag + " " + racers[tracks[numb].favorite].name, true)
-                    .addField("Difficulty / Length", difficulties[tracks[numb].difficulty].name + " / " + tracks[numb].lengthclass, true)
+                    .addField("Difficulty | Length", difficulties[tracks[numb].difficulty].name + " | " + tracks[numb].lengthclass, true)
                 let muurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-789k49lw=xqkrk919&var-2lgz978p=81p7we17" //mu
                 let nuurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-789k49lw=z194gjl4&var-2lgz978p=81p7we17" //nu
                 let skurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&&var-2lgz978p=p125ev1x" //sku
@@ -137,7 +137,7 @@ module.exports = {
                                 name = sk.players.data[0].name
                             }
                             var vid = sk.runs[0].run.videos.links[0].uri
-                            wr3lap += character + " " + name + "[" + tools.timefix(sk.runs[0].run.times.primary_t) + "](" + vid + ") Skips\n"
+                            wr3lap += "**Skips** " + character + " " + name + " [" + tools.timefix(sk.runs[0].run.times.primary_t) + "](" + vid + ")\n"
                         }
                     }
                     for (let j = 0; j<23; j++){
@@ -155,7 +155,7 @@ module.exports = {
                         name = mu.players.data[0].name
                     }
                     var vid = mu.runs[0].run.videos.links[0].uri
-                    wr3lap += character + " " + name + "[" + tools.timefix(mu.runs[0].run.times.primary_t) + "](" + vid + ") MU\n"
+                    wr3lap += "**MU** " + character + " " + name + " [" + tools.timefix(mu.runs[0].run.times.primary_t) + "](" + vid + ")\n"
                     for (let j = 0; j<23; j++){
                         if (nu.runs[0].run.values.j846d94l == racers[j].id) {
                             if (racers[j].hasOwnProperty("flag")) {
@@ -171,7 +171,7 @@ module.exports = {
                         name = nu.players.data[0].name
                     }
                     var vid = nu.runs[0].run.videos.links[0].uri
-                    wr3lap += character + " " + name + "[" + tools.timefix(nu.runs[0].run.times.primary_t) + "](" +  vid+ ") NU\n"
+                    wr3lap += "**NU** " + character + " " + name + " [" + tools.timefix(nu.runs[0].run.times.primary_t) + "](" +  vid+ ")\n"
                     trackEmbed.addField("3-Lap World Records",wr3lap,true)
 
                     client.channels.cache.get(interaction.channel_id).send(trackEmbed).then(sentMessage => {
