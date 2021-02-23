@@ -211,7 +211,7 @@ module.exports = {
                     .addField("Goal Times", eGoalTimes, true)
                     .addField("Best Times", besttimes, true)
                     if(!vc){
-                        newEmbed.setFooter("Click to reroll the challenge for 1200 Truguts", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/259/game-die_1f3b2.png")
+                        //newEmbed.setFooter("Click to reroll the challenge for 1200 Truguts", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/259/game-die_1f3b2.png")
                     }
                 return newEmbed
             }
@@ -335,7 +335,7 @@ module.exports = {
                 collector.on('collect', message => {
                 //a new challenge appears
                     if(message.embeds.length > 0 && message.author.id == "545798436105224203") {
-                        if (message.embeds[0].title !== undefined) {
+                        if (![undefined, null, ""].includes(message.embeds[0].title)) {
                             if (message.embeds[0].title.startsWith("Race")) {
                                 if (vc) {
                                     if(collected && collecting){ //previous challenge closed after rolling a new challenge

@@ -56,6 +56,7 @@ module.exports = {
                 }
                 racerEmbed
                     .addField("Pod", racers[numb].Pod, true)
+                    .addField("Voice Actor", racers[numb].voice, true)
                     .setImage(racers[numb].stats)
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
@@ -98,10 +99,10 @@ module.exports = {
                     .setImage(tracks[numb].img)
                     .setTitle(tracks[numb].name)
                     .setDescription("(" + tracks[numb].nickname.join(", ") + ")")
-                    .addField("Planet | Host", planets[tracks[numb].planet].name + " | " + planets[tracks[numb].planet].host, true)
-                    .addField("Circuit", circuits[tracks[numb].circuit].name + " - Race " + tracks[numb].cirnum, true)
+                    .addField("Planet: " +planets[tracks[numb].planet].name,  "Host: " + planets[tracks[numb].planet].host, true)
+                    .addField("Circuit: "+circuits[tracks[numb].circuit].name ,  + "Race: " + tracks[numb].cirnum, true)
                     .addField("Track Favorite", racers[tracks[numb].favorite].flag + " " + racers[tracks[numb].favorite].name, true)
-                    .addField("Difficulty | Length", difficulties[tracks[numb].difficulty].name + " | " + tracks[numb].lengthclass, true)
+                    .addField("Difficulty: " + difficulties[tracks[numb].difficulty].name,  "Length: " + tracks[numb].lengthclass, true)
                 let muurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-789k49lw=xqkrk919&var-2lgz978p=81p7we17" //mu
                 let nuurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-789k49lw=z194gjl4&var-2lgz978p=81p7we17" //nu
                 let skurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&&var-2lgz978p=p125ev1x" //sku
