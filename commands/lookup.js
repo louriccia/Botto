@@ -93,18 +93,18 @@ module.exports = {
                 })
             } else {
                 const attachment = new Discord
-                    .MessageAttachment('./img/tracks/' + (numb-1) + '.png', (numb-1)+'.png');
+                    .MessageAttachment('./img/tracks/' + (numb+1) + '.png', (numb+1)+'.png');
                 const trackEmbed = new Discord.MessageEmbed()
                     .setThumbnail(planets[tracks[numb].planet].img)
                     .setFooter("/lookup")
                     .setColor(planets[tracks[numb].planet].color)
                     .attachFiles(attachment)
                     //.setImage(tracks[numb].img)
-                    .setImage('attachment://' + (numb-1) + '.png')
+                    .setImage('attachment://' + (numb+1) + '.png')
                     .setTitle(tracks[numb].name)
                     .setDescription("(" + tracks[numb].nickname.join(", ") + ")")
                     .addField("Planet: " +planets[tracks[numb].planet].name,  "Host: " + planets[tracks[numb].planet].host, true)
-                    .addField("Circuit: "+circuits[tracks[numb].circuit].name ,  "Race: " + tracks[numb].cirnum, true)
+                    .addField(circuits[tracks[numb].circuit].name + " Circuit" ,  "Race " + tracks[numb].cirnum, true)
                     .addField("Track Favorite", racers[tracks[numb].favorite].flag + " " + racers[tracks[numb].favorite].name, true)
                     .addField("Difficulty: " + difficulties[tracks[numb].difficulty].name,  "Length: " + tracks[numb].lengthclass, true)
                 let muurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-789k49lw=xqkrk919&var-2lgz978p=81p7we17" //mu
