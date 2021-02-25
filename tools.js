@@ -168,8 +168,7 @@ module.exports = {
         let skurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&&var-2lgz978p=p125ev1x" //sku
         let settings = {method: "Get"}
         var wr3lap = ""
-        async function getwrData() {
-            try {
+        try {
             const response1 = await fetch(muurl);
             const data1 = await response1.json();
             var mu = data1.data
@@ -261,7 +260,5 @@ module.exports = {
         } catch (error) {
             console.log(error)
         }
-        }
-        getwrData().bind(this)
     }
 }
