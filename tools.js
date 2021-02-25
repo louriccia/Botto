@@ -144,5 +144,122 @@ module.exports = {
             .addField("Max Turn", racers[numb].max_turn_rate + "°/s", true)
             .setImage(racers[numb].stats)
         return racerEmbed
+    },
+    getTrackEmbed: function(numb, client, channel) {
+        const attachment = new Discord
+            .MessageAttachment('./img/tracks/' + (numb+1) + '.png', (numb+1)+'.png');
+        const trackEmbed = new Discord.MessageEmbed()
+            .setThumbnail(planets[tracks[numb].planet].img)
+            .setFooter("/lookup")
+            .setColor(planets[tracks[numb].planet].color)
+            .attachFiles(attachment)
+            //.setImage(tracks[numb].img)
+            .setImage('attachment://' + (numb+1) + '.png')
+            .setTitle(tracks[numb].name)
+            .setDescription("(" + tracks[numb].nickname.join(", ") + ")")
+            .addField("Planet: " +planets[tracks[numb].planet].name,  "Host: " + planets[tracks[numb].planet].host, true)
+            .addField(circuits[tracks[numb].circuit].name + " Circuit" ,  "Race " + tracks[numb].cirnum, true)
+            .addField("Track Favorite", racers[tracks[numb].favorite].flag + " " + racers[tracks[numb].favorite].name, true)
+            .addField("Difficulty: " + difficulties[tracks[numb].difficulty].name,  "Length: " + tracks[numb].lengthclass, true)
+        let muurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-789k49lw=xqkrk919&var-2lgz978p=81p7we17" //mu
+        let nuurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-789k49lw=z194gjl4&var-2lgz978p=81p7we17" //nu
+        let skurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&&var-2lgz978p=p125ev1x" //sku
+        let settings = {method: "Get"}
+        var wr3lap = ""
+        async function getwrData() {
+            try {
+            const response1 = await fetch(muurl);
+            const data1 = await response1.json();
+            var mu = data1.data
+            const response2 = await fetch(nuurl);
+            const data2 = await response2.json();
+            var nu = data2.data
+            const response3 = await fetch(skurl);
+            const data3 = await response3.json();
+            var sk = data3.data
+            var character = ""
+            var name = ""
+            if (sk.hasOwnProperty("runs") && sk.runs.length > 0) {
+                if (sk.runs[0].hasOwnProperty("run")) {
+                    for (let j = 0; j<23; j++){
+                        if (sk.runs[0].run.values.j846d94l == racers[j].id) {
+                            if (racers[j].hasOwnProperty("flag")) {
+                                character = racers[j].flag
+                            } else {
+                                character = racers[j].name
+                            }
+                        }
+                    } 
+                    if (sk.players.data[0].hasOwnProperty("names")) {
+                        name = sk.players.data[0].names.international
+                    } else {
+                        name = sk.players.data[0].name
+                    }
+                    var vid = sk.runs[0].run.videos.links[0].uri
+                    wr3lap += "**Skips** " + character + " " + name + " [" + tools.timefix(sk.runs[0].run.times.primary_t) + "](" + vid + ")\n"
+                }
+            }
+            for (let j = 0; j<23; j++){
+                if (mu.runs[0].run.values.j846d94l == racers[j].id) {
+                    if (racers[j].hasOwnProperty("flag")) {
+                        character = racers[j].flag
+                    } else {
+                        character = racers[j].name
+                    }
+                }
+            } 
+            if (mu.players.data[0].hasOwnProperty("names")) {
+                name = mu.players.data[0].names.international
+            } else {
+                name = mu.players.data[0].name
+            }
+            var vid = mu.runs[0].run.videos.links[0].uri
+            wr3lap += "**MU** " + character + " " + name + " [" + tools.timefix(mu.runs[0].run.times.primary_t) + "](" + vid + ")\n"
+            for (let j = 0; j<23; j++){
+                if (nu.runs[0].run.values.j846d94l == racers[j].id) {
+                    if (racers[j].hasOwnProperty("flag")) {
+                        character = racers[j].flag
+                    } else {
+                        character = racers[j].name
+                    }
+                }
+            } 
+            if (nu.players.data[0].hasOwnProperty("names")) {
+                name = nu.players.data[0].names.international
+            } else {
+                name = nu.players.data[0].name
+            }
+            var vid = nu.runs[0].run.videos.links[0].uri
+            wr3lap += "**NU** " + character + " " + name + " [" + tools.timefix(nu.runs[0].run.times.primary_t) + "](" +  vid+ ")\n"
+            trackEmbed.addField("3-Lap World Records",wr3lap,true)
+            
+            client.channels.cache.get(channel).send(trackEmbed).then(sentMessage => {
+                sentMessage.react('⏱️').then(() => {
+                    const filter = (reaction, user) => {
+                        return ['⏱️'].includes(reaction.emoji.name) && user.id !== "545798436105224203";
+                    };
+                    sentMessage.awaitReactions(filter, { max: 1})
+                        .then(collected => {
+                            const reaction = collected.first();
+                            if (reaction.emoji.name === '⏱️' && reaction.users.id !== "545798436105224203") {
+                                const tracktimesEmbed = new Discord.MessageEmbed()
+                                    .setColor(planets[tracks[numb].planet].color)
+                                    .setTitle(tracks[numb].name + " | Par Times")
+                                    .setURL("https://docs.google.com/spreadsheets/d/1TwDtG6eOyiQZEZ3iTbZaEmthe5zdf9YEGJ-1tfFfQKg/edit?usp=sharing")
+                                    .addField("FT 3-Lap", ":gem: " + tracks[numb].partimes[0] + "\n:first_place: " + tracks[numb].partimes[1] + "\n:second_place: " + tracks[numb].partimes[2] + "\n:third_place: " + tracks[numb].partimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[numb].partimes[4], true)
+                                    .addField("FT 1-Lap", ":gem: " + tracks[numb].parlaptimes[0] + "\n:first_place: " + tracks[numb].parlaptimes[1] + "\n:second_place: " + tracks[numb].parlaptimes[2] + "\n:third_place: " + tracks[numb].parlaptimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[numb].parlaptimes[4], true)
+                                if (tracks[numb].hasOwnProperty("parskiptimes")) {
+                                    tracktimesEmbed.addField("Skips 3-Lap", ":gem: " + tracks[numb].parskiptimes[0] + "\n:first_place: " + tracks[numb].parskiptimes[1] + "\n:second_place: " + tracks[numb].parskiptimes[2] + "\n:third_place: " + tracks[numb].parskiptimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[numb].parskiptimes[4], true)
+                                }
+                                sentMessage.channel.send(tracktimesEmbed);
+                            } 
+                        })
+                    })
+                }) 
+        } catch (error) {
+            console.log(error)
+        }
+        }
+        getwrData()
     }
 }
