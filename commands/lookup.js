@@ -81,7 +81,7 @@ module.exports = {
                     }
                 })
             } else {
-                getTrackEmbed(numb, client, interaction.channel_id, "/lookup")
+                tools.getTrackEmbed(numb, client, interaction.channel_id, "/lookup")
             }
         } else if(args[0].name=="times") {
             if(args[0].options[0].name == "par_times"){
