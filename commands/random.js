@@ -116,10 +116,10 @@ module.exports = {
             } else {
                 var randomracer = pool[Math.floor(Math.random()*pool.length)]
                 var Tier = ["Top", "High", "Mid", "Low"]
-                var boost = racers[numb].boost_thrust
-                var heatrate = racers[numb].heat_rate
-                var coolrate = tools.upgradeCooling(racers[numb].cool_rate, 5)
-                var topspeed = tools.upgradeTopSpeed(racers[numb].max_speed, 5)
+                var boost = racers[randomracer].boost_thrust
+                var heatrate = racers[randomracer].heat_rate
+                var coolrate = tools.upgradeCooling(racers[randomracer].cool_rate, 5)
+                var topspeed = tools.upgradeTopSpeed(racers[randomracer].max_speed, 5)
                 var avgspeed = tools.avgSpeed(topspeed,boost,heatrate,coolrate)
                 const racerEmbed = new Discord.MessageEmbed()
                     .setFooter("/random")
