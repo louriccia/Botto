@@ -63,8 +63,8 @@ module.exports = {
                     .addField("Pod", racers[numb].Pod, true)
                     .addField("Voice Actor", racers[numb].voice, true)
                     .addField("Tier", Tier[racers[numb].mu_tier], true)
-                    .addField("Avg. Speed", Math.round(avgspeed))
-                    .addField("Max Turn", racers[numb].max_turn_rate + "°/s")
+                    .addField("Avg. Speed", Math.round(avgspeed), true)
+                    .addField("Max Turn", racers[numb].max_turn_rate + "°/s", true)
                     .setImage(racers[numb].stats)
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
