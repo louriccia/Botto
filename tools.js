@@ -198,7 +198,7 @@ module.exports = {
                         name = sk.players.data[0].name
                     }
                     var vid = sk.runs[0].run.videos.links[0].uri
-                    wr3lap += "**Skips** " + character + " " + name + " [" + tools.timefix(sk.runs[0].run.times.primary_t) + "](" + vid + ")\n"
+                    wr3lap += "**Skips** " + character + " " + name + " [" + this.timefix(sk.runs[0].run.times.primary_t) + "](" + vid + ")\n"
                 }
             }
             for (let j = 0; j<23; j++){
@@ -216,7 +216,7 @@ module.exports = {
                 name = mu.players.data[0].name
             }
             var vid = mu.runs[0].run.videos.links[0].uri
-            wr3lap += "**MU** " + character + " " + name + " [" + tools.timefix(mu.runs[0].run.times.primary_t) + "](" + vid + ")\n"
+            wr3lap += "**MU** " + character + " " + name + " [" + this.timefix(mu.runs[0].run.times.primary_t) + "](" + vid + ")\n"
             for (let j = 0; j<23; j++){
                 if (nu.runs[0].run.values.j846d94l == racers[j].id) {
                     if (racers[j].hasOwnProperty("flag")) {
@@ -232,7 +232,7 @@ module.exports = {
                 name = nu.players.data[0].name
             }
             var vid = nu.runs[0].run.videos.links[0].uri
-            wr3lap += "**NU** " + character + " " + name + " [" + tools.timefix(nu.runs[0].run.times.primary_t) + "](" +  vid+ ")\n"
+            wr3lap += "**NU** " + character + " " + name + " [" + this.timefix(nu.runs[0].run.times.primary_t) + "](" +  vid+ ")\n"
             trackEmbed.addField("3-Lap World Records",wr3lap,true)
             
             client.channels.cache.get(channel).send(trackEmbed).then(sentMessage => {
