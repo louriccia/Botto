@@ -46,22 +46,19 @@ module.exports = {
             var numb = getRacer(input)
             if(numb !== null){
                 var Tier = ["Top", "High", "Mid", "Low"]
+                var boost = racers[numb].boost_thrust
+                var heatrate = racers[numb].heat_rate
+                var coolrate = tools.upgradeCooling(racers[numb].cool_rate, 5)
+                var topspeed = tools.upgradeTopSpeed(racers[numb].max_speed, 5)
+                var avgspeed = tools.avgSpeed(topspeed,boost,heatrate,coolrate)
                 const racerEmbed = new Discord.MessageEmbed()
                     .setFooter("/lookup")
                     .setThumbnail(racers[numb].img)
                     .setColor('#00DE45')
                     .setTitle(racers[numb].flag + " " + racers[numb].name)
                     .setDescription("(" + (numb + 1) + ") " + racers[numb].intro)
-                if (racers[numb].hasOwnProperty("species")){
-                    racerEmbed.addField("Species: " + racers[numb].species, "Homeworld: " + racers[numb].homeworld, true)
-                }
-                var boost = racers[numb].boost_thrust
-                var heatrate = racers[numb].heat_rate
-                var coolrate = tools.upgradeCooling(racers[numb].cool_rate, 5)
-                var topspeed = tools.upgradeTopSpeed(racers[numb].max_speed, 5)
-                var avgspeed = tools.avgSpeed(topspeed,boost,heatrate,coolrate)
-                racerEmbed
                     .addField("Pod", racers[numb].Pod, false)
+                    .addField("Species: " + racers[numb].species, "Homeworld: " + racers[numb].homeworld, true)
                     .addField("Favorite", tracks[racers[numb].favorite].name, true)
                     .addField("Voice Actor", racers[numb].voice, true)
                     .addField("Tier", Tier[racers[numb].mu_tier], true)
