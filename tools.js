@@ -125,10 +125,10 @@ module.exports = {
         var Tier = ["Top", "High", "Mid", "Low"]
         var boost = racers[numb].boost_thrust
         var heatrate = racers[numb].heat_rate
-        var coolrate = upgradeCooling(racers[numb].cool_rate, 5)
-        var topspeed = upgradeTopSpeed(racers[numb].max_speed, 5)
-        var avgspeedmu = avgSpeed(topspeed,boost,heatrate,coolrate)
-        var avgspeednu = avgSpeed(racers[numb].max_speed,boost,heatrate,racers[numb].cool_rate)
+        var coolrate = this.upgradeCooling(racers[numb].cool_rate, 5)
+        var topspeed = this.upgradeTopSpeed(racers[numb].max_speed, 5)
+        var avgspeedmu = this.avgSpeed(topspeed,boost,heatrate,coolrate)
+        var avgspeednu = this.avgSpeed(racers[numb].max_speed,boost,heatrate,racers[numb].cool_rate)
         const racerEmbed = new Discord.MessageEmbed()
             .setThumbnail(racers[numb].img)
             .setColor('#00DE45')
