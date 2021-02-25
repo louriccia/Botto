@@ -120,7 +120,8 @@ module.exports = {
                 var heatrate = racers[randomracer].heat_rate
                 var coolrate = tools.upgradeCooling(racers[randomracer].cool_rate, 5)
                 var topspeed = tools.upgradeTopSpeed(racers[randomracer].max_speed, 5)
-                var avgspeed = tools.avgSpeed(topspeed,boost,heatrate,coolrate)
+                var avgspeedmu = tools.avgSpeed(topspeed,boost,heatrate,coolrate)
+                var avgspeednu = tools.avgSpeed(racers[randomracer].max_speed,boost,heatrate,racers[randomracer].cool_rate)
                 const racerEmbed = new Discord.MessageEmbed()
                     .setFooter("/random")
                     .setThumbnail(racers[randomracer].img)
@@ -132,8 +133,8 @@ module.exports = {
                     .addField("Favorite", tracks[racers[randomracer].favorite].name, true)
                     .addField("Voice Actor", racers[randomracer].voice, true)
                     .addField("Tier", Tier[racers[randomracer].mu_tier], true)
-                    .addField("Avg. Speed", Math.round(avgspeed), true)
-                    .addField("Max Turn", racers[randomracer].max_turn_rate + "°/s", true)
+                    .addField("Avgerage Speed", Math.round(avgspeednu) + " | " + Math.round(avgspeedmu), true)
+                    .addField("Max Turn Rate", racers[randomracer].max_turn_rate + "°/s", true)
                     .setImage(racers[randomracer].stats)
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
