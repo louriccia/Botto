@@ -122,6 +122,7 @@ module.exports = {
         return avgspeed
     },
     getRacerEmbed: function(numb) {
+        const Discord = require('discord.js');
         var Tier = ["Top", "High", "Mid", "Low"]
         var boost = racers[numb].boost_thrust
         var heatrate = racers[numb].heat_rate
