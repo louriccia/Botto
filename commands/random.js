@@ -132,8 +132,8 @@ module.exports = {
                     .addField("Species: " + racers[randomracer].species, "Homeworld: " + racers[randomracer].homeworld, true)
                     .addField("Favorite", tracks[racers[randomracer].favorite].name, true)
                     .addField("Voice Actor", racers[randomracer].voice, true)
-                    .addField("Tier (NU | MU)", Tier[racers[randomracer].nu_tier] + " | " + Tier[racers[randomracer].mu_tier], true)
-                    .addField("Avg. Speed (NU | MU)", Math.round(avgspeednu) + " | " + Math.round(avgspeedmu), true)
+                    .addField("Tier", Tier[racers[randomracer].nu_tier] + " | " + Tier[racers[randomracer].mu_tier], true)
+                    .addField("Average Speed", Math.round(avgspeednu) + " | " + Math.round(avgspeedmu), true)
                     .addField("Max Turn Rate", racers[randomracer].max_turn_rate + "°/s", true)
                     .setImage(racers[randomracer].stats)
                 client.api.interactions(interaction.id, interaction.token).callback.post({
