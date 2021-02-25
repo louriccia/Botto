@@ -51,7 +51,7 @@ module.exports = {
                     .setTitle(racers[numb].flag + " " + racers[numb].name)
                     .setDescription("(" + (numb + 1) + ") " + racers[numb].intro)
                 if (racers[numb].hasOwnProperty("species")){
-                    racerEmbed.addField("Species/Homeworld", racers[numb].species, true)
+                    racerEmbed.addField("Species: " + racers[numb].species, "Homeworld: " + racers[numb].homeworld, true)
                 }
                 var boost = racers[numb].boost_thrust
                 var heatrate = racers[numb].heat_rate

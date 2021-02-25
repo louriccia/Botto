@@ -134,9 +134,10 @@ module.exports = {
                 var speed = 1, speedmod = tracks[random2].avgspeedmod, length = tracks[random2].length
                 length = length * laps
                 if (nu) {
-                    speed = racers[random1].avgspeed_nu
+                    speed = tools.avgSpeed(racers[random1].max_speed, racers[random1].boost_thrust, racers[random1].heat_rate, racers[random1].cool_rate)
+                    
                 } else {
-                    speed = racers[random1].avgspeed_mu
+                    speed = tools.avgSpeed(tools.upgradeTopSpeed(racers[random1].max_speed, 5), racers[random1].boost_thrust, racers[random1].heat_rate, tools.upgradeCooling(racers[random1].cool_rate), 5)
                 }
                 var goal = length/(speed*speedmod)
                 if (racers[random1].hasOwnProperty("flag")) {
