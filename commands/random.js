@@ -115,27 +115,8 @@ module.exports = {
                 }
             } else {
                 var randomracer = pool[Math.floor(Math.random()*pool.length)]
-                var Tier = ["Top", "High", "Mid", "Low"]
-                var boost = racers[randomracer].boost_thrust
-                var heatrate = racers[randomracer].heat_rate
-                var coolrate = tools.upgradeCooling(racers[randomracer].cool_rate, 5)
-                var topspeed = tools.upgradeTopSpeed(racers[randomracer].max_speed, 5)
-                var avgspeedmu = tools.avgSpeed(topspeed,boost,heatrate,coolrate)
-                var avgspeednu = tools.avgSpeed(racers[randomracer].max_speed,boost,heatrate,racers[randomracer].cool_rate)
-                const racerEmbed = new Discord.MessageEmbed()
-                    .setFooter("/random")
-                    .setThumbnail(racers[randomracer].img)
-                    .setColor('#00DE45')
-                    .setTitle(racers[randomracer].flag + " " + racers[randomracer].name)
-                    .setDescription("(" + (randomracer + 1) + ") " + racers[randomracer].intro)
-                    .addField("Pod", racers[randomracer].Pod, false)
-                    .addField("Species: " + racers[randomracer].species, "Homeworld: " + racers[randomracer].homeworld, true)
-                    .addField("Favorite", tracks[racers[randomracer].favorite].name, true)
-                    .addField("Voice Actor", racers[randomracer].voice, true)
-                    .addField("Tier", Tier[racers[randomracer].nu_tier] + " | " + Tier[racers[randomracer].mu_tier], true)
-                    .addField("Average Speed", Math.round(avgspeednu) + " | " + Math.round(avgspeedmu), true)
-                    .addField("Max Turn Rate", racers[randomracer].max_turn_rate + "°/s", true)
-                    .setImage(racers[randomracer].stats)
+                var racerEmbed = tools.getRacerEmbed(randomracer)
+                    racerEmbed.setFooter("/random")   
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
                         type: 3,

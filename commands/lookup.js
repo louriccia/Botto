@@ -45,27 +45,8 @@ module.exports = {
             var input = args[0].options[0].value.toLowerCase()
             var numb = getRacer(input)
             if(numb !== null){
-                var Tier = ["Top", "High", "Mid", "Low"]
-                var boost = racers[numb].boost_thrust
-                var heatrate = racers[numb].heat_rate
-                var coolrate = tools.upgradeCooling(racers[numb].cool_rate, 5)
-                var topspeed = tools.upgradeTopSpeed(racers[numb].max_speed, 5)
-                var avgspeedmu = tools.avgSpeed(topspeed,boost,heatrate,coolrate)
-                var avgspeednu = tools.avgSpeed(racers[numb].max_speed,boost,heatrate,racers[numb].cool_rate)
-                const racerEmbed = new Discord.MessageEmbed()
-                    .setFooter("/lookup")
-                    .setThumbnail(racers[numb].img)
-                    .setColor('#00DE45')
-                    .setTitle(racers[numb].flag + " " + racers[numb].name)
-                    .setDescription("(" + (numb + 1) + ") " + racers[numb].intro)
-                    .addField("Pod", racers[numb].Pod, false)
-                    .addField("Species: " + racers[numb].species, "Homeworld: " + racers[numb].homeworld, true)
-                    .addField("Favorite", tracks[racers[numb].favorite].name, true)
-                    .addField("Voice Actor", racers[numb].voice, true)
-                    .addField("Tier", Tier[racers[numb].nu_tier] + " | " + Tier[racers[numb].mu_tier], true)
-                    .addField("Average Speed", Math.round(avgspeednu) + " | " + Math.round(avgspeedmu), true)
-                    .addField("Max Turn", racers[numb].max_turn_rate + "°/s", true)
-                    .setImage(racers[numb].stats)
+                racerEmbed = tools.getRacerEmbed(numb)
+                racerEmbed.setFooter("/lookup")
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
                         type: 3,

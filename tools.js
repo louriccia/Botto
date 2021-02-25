@@ -120,5 +120,28 @@ module.exports = {
         var avgcool = cooldistance/(100/coolrate)
         var avgspeed = ((100/heatrate)*(topspeed+avgboost)+(100/coolrate)*(topspeed+avgcool))/(100/heatrate+100/coolrate)
         return avgspeed
+    },
+    getRacerEmbed: function(numb) {
+        var Tier = ["Top", "High", "Mid", "Low"]
+        var boost = racers[numb].boost_thrust
+        var heatrate = racers[numb].heat_rate
+        var coolrate = upgradeCooling(racers[numb].cool_rate, 5)
+        var topspeed = upgradeTopSpeed(racers[numb].max_speed, 5)
+        var avgspeedmu = avgSpeed(topspeed,boost,heatrate,coolrate)
+        var avgspeednu = avgSpeed(racers[numb].max_speed,boost,heatrate,racers[numb].cool_rate)
+        const racerEmbed = new Discord.MessageEmbed()
+            .setThumbnail(racers[numb].img)
+            .setColor('#00DE45')
+            .setTitle(racers[numb].flag + " " + racers[numb].name)
+            .setDescription("(" + (numb + 1) + ") " + racers[numb].intro)
+            .addField("Pod", racers[numb].Pod, false)
+            .addField("Species: " + racers[numb].species, "Homeworld: " + racers[numb].homeworld, true)
+            .addField("Favorite", tracks[racers[numb].favorite].name, true)
+            .addField("Voice Actor", racers[numb].voice, true)
+            .addField("Tier", Tier[racers[numb].nu_tier] + " | " + Tier[racers[numb].mu_tier], true)
+            .addField("Average Speed", Math.round(avgspeednu) + " | " + Math.round(avgspeedmu), true)
+            .addField("Max Turn", racers[numb].max_turn_rate + "°/s", true)
+            .setImage(racers[numb].stats)
+        return racerEmbed
     }
 }
