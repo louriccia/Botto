@@ -117,16 +117,18 @@ module.exports = {
                 var randomracer = pool[Math.floor(Math.random()*pool.length)]
                 const racerEmbed = new Discord.MessageEmbed()
                     .setFooter("/random")
-                    .setThumbnail(racers[randomracer].img)
+                    .setThumbnail(racers[numb].img)
                     .setColor('#00DE45')
-                    .setTitle(racers[randomracer].flag + " " + racers[randomracer].name)
-                    .setDescription("(" + (randomracer + 1) + ") " + racers[randomracer].intro)
-                    .addField("Tier", Tiernames[racers[randomracer].mu_tier], true)
-                    if (racers[randomracer].hasOwnProperty("species")){
-                        racerEmbed.addField("Species/Homeworld", racers[randomracer].species, true)
-                    }
-                    racerEmbed.addField("Pod", racers[randomracer].Pod, true)
-                    racerEmbed.setImage(racers[randomracer].stats)
+                    .setTitle(racers[numb].flag + " " + racers[numb].name)
+                    .setDescription("(" + (numb + 1) + ") " + racers[numb].intro)
+                    .addField("Pod", racers[numb].Pod, false)
+                    .addField("Species: " + racers[numb].species, "Homeworld: " + racers[numb].homeworld, true)
+                    .addField("Favorite", tracks[racers[numb].favorite].name, true)
+                    .addField("Voice Actor", racers[numb].voice, true)
+                    .addField("Tier", Tier[racers[numb].mu_tier], true)
+                    .addField("Avg. Speed", Math.round(avgspeed), true)
+                    .addField("Max Turn", racers[numb].max_turn_rate + "°/s", true)
+                    .setImage(racers[numb].stats)
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
                         type: 3,
