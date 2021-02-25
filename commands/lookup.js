@@ -51,7 +51,7 @@ module.exports = {
                     .setThumbnail(racers[numb].img)
                     .setColor('#00DE45')
                     .setTitle(racers[numb].flag + " " + racers[numb].name)
-                    .setDescription("(" + (numb + 1) + ") " + racers[numb].intro + "\n\nPod: " + racers[numb].Pod)
+                    .setDescription("(" + (numb + 1) + ") " + racers[numb].intro)
                 if (racers[numb].hasOwnProperty("species")){
                     racerEmbed.addField("Species: " + racers[numb].species, "Homeworld: " + racers[numb].homeworld, true)
                 }
@@ -61,6 +61,7 @@ module.exports = {
                 var topspeed = tools.upgradeTopSpeed(racers[numb].max_speed, 5)
                 var avgspeed = tools.avgSpeed(topspeed,boost,heatrate,coolrate)
                 racerEmbed
+                    .addField("Pod", racers[numb].Pod, false)
                     .addField("Favorite", tracks[racers[numb].favorite].name, true)
                     .addField("Voice Actor", racers[numb].voice, true)
                     .addField("Tier", Tier[racers[numb].mu_tier], true)
