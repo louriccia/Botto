@@ -147,6 +147,7 @@ module.exports = {
     },
     getTrackEmbed: function(numb, client, channel, footer) {
         const Discord = require('discord.js');
+        const fetch = require('node-fetch');
         const attachment = new Discord
             .MessageAttachment('./img/tracks/' + (numb+1) + '.png', (numb+1)+'.png');
         const trackEmbed = new Discord.MessageEmbed()
