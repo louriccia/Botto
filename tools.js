@@ -145,12 +145,13 @@ module.exports = {
             .setImage(racers[numb].stats)
         return racerEmbed
     },
-    getTrackEmbed: function(numb, client, channel) {
+    getTrackEmbed: function(numb, client, channel, footer) {
+        const Discord = require('discord.js');
         const attachment = new Discord
             .MessageAttachment('./img/tracks/' + (numb+1) + '.png', (numb+1)+'.png');
         const trackEmbed = new Discord.MessageEmbed()
             .setThumbnail(planets[tracks[numb].planet].img)
-            .setFooter("/lookup")
+            .setFooter(footer)
             .setColor(planets[tracks[numb].planet].color)
             .attachFiles(attachment)
             //.setImage(tracks[numb].img)
