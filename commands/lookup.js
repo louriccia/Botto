@@ -53,12 +53,11 @@ module.exports = {
                 if (racers[numb].hasOwnProperty("species")){
                     racerEmbed.addField("Species/Homeworld", racers[numb].species, true)
                 }
-                boostdistance = (racers[numb].boost_thrust/50)*(50*(100/racers[numb].heat_rate)-11*Math.log(Math.abs(50*(100/racers[numb].heat_rate)+11)))-(racers[numb].boost_thrust/50)*(50*(0)-11*Math.log(Math.abs(50*(0)+11))) 
-                avgboost = boostdistance/(100/racers[numb].heat_rate)
-                e19 = 1-(3333/(100*45*((3333/(100*45))+5))) 
-                cooldistance = racers[numb].boost_thrust*Math.log(Math.abs(11*e19**(45*(100/racers[numb].heat_rate))*racers[numb].heat_rate+7500*e19**(45*(100/racers[numb].heat_rate+100/racers[numb].cool_rate))))/(Math.log(e19)*45)-racers[numb].boost_thrust*Math.log(Math.abs(11*e19**(45*(100/racers[numb].heat_rate))*racers[numb].heat_rate+7500*e19**(45*(100/racers[numb].heat_rate))))/(Math.log(e19)*45)
-                avgcool = cooldistance/(100/racers[numb].cool_rate)
-                avgspeed = ((100/racers[numb].heat_rate)*(racers[numb].top_speed+avgboost)+(100/racers[numb].cool_rate)*(racers[numb].top_speed+avgcool))/(100/racers[numb].heat_rate+100/racers[numb].cool_rate)
+                var boost = racers[numb].boost_thrust
+                var heatrate = racers[numb].heat_rate
+                var coolrate = tools.upgradeCooling(racers[numb].cool_rate, 5)
+                var topspeed = tools.upgradeTopSpeed(racers[numb].max_speed, 5)
+                var avgspeed = tools.avgSpeed(topspeed,boost,heatrate,coolrate)
                 racerEmbed
                     .addField("Pod", racers[numb].Pod, true)
                     .addField("Voice Actor", racers[numb].voice, true)

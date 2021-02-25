@@ -75,5 +75,50 @@ module.exports = {
             }
         }
         return time
+    }, 
+    upgradeTraction: function(base, upg) {
+        return Math.min(1, base + upg*0.05)
+    }, 
+    upgradeTurning: function(base, upg) {
+        if(upg < 5){
+            return base + upg*116
+        } else {
+            return base + (upg-1)*116+114
+        }
+    }, 
+    upgradeAcceleration: function(base, upg) {
+        return base - 0.14*base*upg
+    }, 
+    upgradeTopSpeed: function(base, upg) {
+        return Math.min(base + 40*upg, 650)
+    }, 
+    upgradeAirBrake: function(base, upg) {
+        var brake = base
+        if(upg > 0){
+            brake = brake - base*0.08
+        }
+        if(upg > 1){
+            brake = brake - base*0.09*upg
+        }
+        return brake
+    }, 
+    upgradeCooling: function(base, upg) {
+        return(base+upg*1.6)
+    }, 
+    upgradeRepair: function(base, upg) {
+        if(upg < 5){
+            return(Math.min(1, base+upg*0.1))
+        } else {
+            return(Math.min(1, base+(upg-1)*0.1 + 0.05))
+        }
+    }, 
+    avgSpeed: function(topspeed, boost, heatrate, coolrate) {
+        var boostdistance = (boost/50)*(50*(100/heatrate)-11*Math.log(Math.abs(50*(100/heatrate)+11)))-(boost/50)*(50*(0)-11*Math.log(Math.abs(50*(0)+11))) 
+        var avgboost = boostdistance/(100/heatrate)
+        var e19 = 1-(3333/(100*45*((3333/(100*45))+5))) 
+        var cooldistance = boost*Math.log(Math.abs(11*e19**(45*(100/heatrate))*heatrate+7500*e19**(45*(100/heatrate+100/coolrate))))/(Math.log(e19)*45)-boost*Math.log(Math.abs(11*e19**(45*(100/heatrate))*heatrate+7500*e19**(45*(100/heatrate))))/(Math.log(e19)*45)
+        var avgcool = cooldistance/(100/coolrate)
+        var avgspeed = ((100/heatrate)*(topspeed+avgboost)+(100/coolrate)*(topspeed+avgcool))/(100/heatrate+100/coolrate)
+        return avgspeed
     }
 }
