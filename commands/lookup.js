@@ -8,12 +8,14 @@ module.exports = {
                     numb = i
                     i = racers.length
                 }
-                racers[i].nickname.forEach(nick => {
-                    if(nick.toLowerCase() == input){
-                        numb = i
-                        i = racers.length
-                    }
-                })     
+                if(i<racers.length){
+                    racers[i].nickname.forEach(nick => {
+                        if(nick.toLowerCase() == input){
+                            numb = i
+                            i = racers.length
+                        }
+                    })  
+                }
             }
             return numb
         }
