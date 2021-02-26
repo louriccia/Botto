@@ -159,10 +159,12 @@ module.exports = {
             .setImage('attachment://' + (numb+1) + '.png')
             .setTitle(tracks[numb].name)
             .setDescription("(" + tracks[numb].nickname.join(", ") + ")")
-            .addField(circuits[tracks[numb].circuit].name + " Circuit" ,  "Race " + tracks[numb].cirnum, false)
-            .addField("Planet: " +planets[tracks[numb].planet].name,  "Host: " + planets[tracks[numb].planet].host, true)
+            .addField(circuits[tracks[numb].circuit].name + " Circuit" ,  "Race " + tracks[numb].cirnum, true)
+            .addField("Planet",  planets[tracks[numb].planet].name, true)
+            .addField("Host", planets[tracks[numb].planet].host, true)
             .addField("Track Favorite", racers[tracks[numb].favorite].flag + " " + racers[tracks[numb].favorite].name, true)
-            .addField("Difficulty: " + difficulties[tracks[numb].difficulty].name,  "Length: " + tracks[numb].lengthclass, true)
+            .addField("Difficulty",difficulties[tracks[numb].difficulty].name, true)
+            .addField("Length",tracks[numb].lengthclass, true)
         let muurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-789k49lw=xqkrk919&var-2lgz978p=81p7we17" //mu
         let nuurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-789k49lw=z194gjl4&var-2lgz978p=81p7we17" //nu
         let skurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&&var-2lgz978p=p125ev1x" //sku
@@ -258,12 +260,12 @@ module.exports = {
                             }
                         } 
                         if (!tourneyfiltered[j].hasOwnProperty("force") && tourney_mu == "") {
-                            tourney_mu = "[" + newLocal.timefix(tourneyfiltered[j].totaltime) + "](" + link + ") **|MU**\n" + character + " " + tourneyfiltered[j].player
+                            tourney_mu = "[" + newLocal.timefix(tourneyfiltered[j].totaltime) + "](" + link + ") **| MU**\n" + character + " " + tourneyfiltered[j].player
                         } else {
                             if (tourneyfiltered[j].force == "Skips" && tourney_sk == "") {
-                                tourney_sk = "[" + newLocal.timefix(tourneyfiltered[j].totaltime) + "](" + link + ") **|Skips**\n" + character + " " + tourneyfiltered[j].player
+                                tourney_sk = "[" + newLocal.timefix(tourneyfiltered[j].totaltime) + "](" + link + ") **| Skips**\n" + character + " " + tourneyfiltered[j].player
                             } else if (tourneyfiltered[j].force == "NU" && tourney_nu == "") {
-                                tourney_nu = "[" + newLocal.timefix(tourneyfiltered[j].totaltime) + "](" + link + ") **|NU**\n" + character + " " + tourneyfiltered[j].player
+                                tourney_nu = "[" + newLocal.timefix(tourneyfiltered[j].totaltime) + "](" + link + ") **| NU**\n" + character + " " + tourneyfiltered[j].player
                             }
                         }                       
                     }
