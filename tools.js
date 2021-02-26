@@ -260,9 +260,9 @@ module.exports = {
                         if (!tourneyfiltered[j].hasOwnProperty("force") && tourney_mu == "") {
                             tourney_mu = "[" + newLocal.timefix(tourneyfiltered[j].totaltime) + "](" + link + ") " + character + " " + tourneyfiltered[j].player + " **(MU)**"
                         } else {
-                            if (tourney[j].force == "Skips" && tourney_sk == "") {
+                            if (tourneyfiltered[j].force == "Skips" && tourney_sk == "") {
                                 tourney_sk = "[" + newLocal.timefix(tourneyfiltered[j].totaltime) + "](" + link + ") " + character + " " + tourneyfiltered[j].player + " **(Skips)**"
-                            } else if (tourney[j].force == "NU" && tourney_nu == "") {
+                            } else if (tourneyfiltered[j].force == "NU" && tourney_nu == "") {
                                 tourney_nu = "[" + newLocal.timefix(tourneyfiltered[j].totaltime) + "](" + link + ") " + character + " " + tourneyfiltered[j].player + " **(NU)**"
                             }
                         }                       
