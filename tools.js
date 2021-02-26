@@ -168,6 +168,7 @@ module.exports = {
         let skurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&&var-2lgz978p=p125ev1x" //sku
         let settings = {method: "Get"}
         var wr3lap = ""
+        const newLocal = this;
         async function getwrData() {
             try {
             const response1 = await fetch(muurl);
@@ -198,7 +199,7 @@ module.exports = {
                         name = sk.players.data[0].name
                     }
                     var vid = sk.runs[0].run.videos.links[0].uri
-                    wr3lap += "**Skips** " + character + " " + name + " [" + this.timefix(sk.runs[0].run.times.primary_t) + "](" + vid + ")\n"
+                    wr3lap += "**Skips** " + character + " " + name + " [" + newLocal.timefix(sk.runs[0].run.times.primary_t) + "](" + vid + ")\n"
                 }
             }
             for (let j = 0; j<23; j++){
@@ -216,7 +217,7 @@ module.exports = {
                 name = mu.players.data[0].name
             }
             var vid = mu.runs[0].run.videos.links[0].uri
-            wr3lap += "**MU** " + character + " " + name + " [" + this.timefix(mu.runs[0].run.times.primary_t) + "](" + vid + ")\n"
+            wr3lap += "**MU** " + character + " " + name + " [" + newLocal.timefix(mu.runs[0].run.times.primary_t) + "](" + vid + ")\n"
             for (let j = 0; j<23; j++){
                 if (nu.runs[0].run.values.j846d94l == racers[j].id) {
                     if (racers[j].hasOwnProperty("flag")) {
@@ -232,7 +233,8 @@ module.exports = {
                 name = nu.players.data[0].name
             }
             var vid = nu.runs[0].run.videos.links[0].uri
-            wr3lap += "**NU** " + character + " " + name + " [" + this.timefix(nu.runs[0].run.times.primary_t) + "](" +  vid+ ")\n"
+
+            wr3lap += "**NU** " + character + " " + name + " [" + newLocal.timefix(nu.runs[0].run.times.primary_t) + "](" +  vid+ ")\n"
             trackEmbed.addField("3-Lap World Records",wr3lap,true)
             
             client.channels.cache.get(channel).send(trackEmbed).then(sentMessage => {

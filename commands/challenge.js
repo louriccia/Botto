@@ -105,6 +105,9 @@ module.exports = {
         //build description
             var desc = ""
             if(Math.random()<0.50 && best.length> 0) {
+                best.sort(function(a,b) {
+                    return a.time-b.time;
+                })
                 desc = desc +"*The current record-holder for this challenge is... " + best[0].name + "!*"
             } else if (Math.random() < 0.50) {
                 var str = playerPicks[Math.floor(Math.random()*playerPicks.length)]
