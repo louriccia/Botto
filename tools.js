@@ -240,7 +240,7 @@ module.exports = {
             var tourney_nu = ""
             var tourney_sk = ""
             if (tourney.length > 0) {
-                for(i=0; i<tourney.length; i++){
+                for(j=0; j<tourney.length; j++){
                     if (tourney[j].hasOwnProperty("totaltime")) {
                         var link = ""
                         if (tourney[j].hasOwnProperty("url")) {
@@ -267,7 +267,7 @@ module.exports = {
                         }                       
                     }
                     if(![tourney_mu, tourney_nu, tourney_sk].includes("")) {
-                        i = tourney.length
+                        j = tourney.length
                     }
                 }
             }
