@@ -240,15 +240,16 @@ module.exports = {
             var tourney_nu = ""
             var tourney_sk = ""
             if (tourney.length > 0) {
-                for(j=0; j<tourney.length; j++){
-                    if (tourney[j].hasOwnProperty("totaltime")) {
+                var tourneyfiltered = tourney.filter(element => element.track == tracks[numb].name)
+                for(j=0; j<tourneyfiltered.length; j++){
+                    if (tourneyfiltered[j].hasOwnProperty("totaltime")) {
                         var link = ""
-                        if (tourney[j].hasOwnProperty("url")) {
-                            link = tourney[j].url
+                        if (tourneyfiltered[j].hasOwnProperty("url")) {
+                            link = tourneyfiltered[j].url
                         }
                         var character = ""
                         for (let n = 0; n<23; n++){
-                            if (tourney[j].pod == racers[n].name) {
+                            if (tourneyfiltered[j].pod == racers[n].name) {
                                 if (racers[n].flag !== "") {
                                     character = racers[n].flag
                                 } else {
@@ -256,18 +257,18 @@ module.exports = {
                                 }
                             }
                         } 
-                        if (!tourney[j].hasOwnProperty("force") && tourney_mu == "") {
-                            tourney_mu = "[" + tourney[j].time + "](" + link + ") " + character + " " + tourney[j].player + " **(MU)**"
+                        if (!tourneyfiltered[j].hasOwnProperty("force") && tourney_mu == "") {
+                            tourney_mu = "[" + tourneyfiltered[j].totaltime + "](" + link + ") " + character + " " + tourneyfiltered[j].player + " **(MU)**"
                         } else {
                             if (tourney[j].force == "Skips" && tourney_sk == "") {
-                                tourney_sk = "[" + tourney[j].time + "](" + link + ") " + character + " " + tourney[j].player + " **(Skips)**"
+                                tourney_sk = "[" + tourneyfiltered[j].totaltime + "](" + link + ") " + character + " " + tourneyfiltered[j].player + " **(Skips)**"
                             } else if (tourney[j].force == "NU" && tourney_nu == "") {
-                                tourney_nu = "[" + tourney[j].time + "](" + link + ") " + character + " " + tourney[j].player + " **(NU)**"
+                                tourney_nu = "[" + tourneyfiltered[j].totaltime + "](" + link + ") " + character + " " + tourneyfiltered[j].player + " **(NU)**"
                             }
                         }                       
                     }
                     if(![tourney_mu, tourney_nu, tourney_sk].includes("")) {
-                        j = tourney.length
+                        j = tourneyfiltered.length
                     }
                 }
             }
