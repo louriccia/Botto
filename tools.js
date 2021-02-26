@@ -199,7 +199,7 @@ module.exports = {
                         name = sk.players.data[0].name
                     }
                     var vid = sk.runs[0].run.videos.links[0].uri
-                    wr3lap += "**Skips** " + character + " " + name + " [" + newLocal.timefix(sk.runs[0].run.times.primary_t) + "](" + vid + ")\n"
+                    wr3lap += "[" + newLocal.timefix(sk.runs[0].run.times.primary_t) + "](" + vid + ") " + character + " " + name + " **(Skips)**\n"
                 }
             }
             for (let j = 0; j<23; j++){
@@ -217,7 +217,7 @@ module.exports = {
                 name = mu.players.data[0].name
             }
             var vid = mu.runs[0].run.videos.links[0].uri
-            wr3lap += "**MU** " + character + " " + name + " [" + newLocal.timefix(mu.runs[0].run.times.primary_t) + "](" + vid + ")\n"
+            wr3lap += "[" + newLocal.timefix(mu.runs[0].run.times.primary_t) + "](" + vid + ") " + character + " " + name + " **(MU)**\n"
             for (let j = 0; j<23; j++){
                 if (nu.runs[0].run.values.j846d94l == racers[j].id) {
                     if (racers[j].hasOwnProperty("flag")) {
@@ -234,9 +234,44 @@ module.exports = {
             }
             var vid = nu.runs[0].run.videos.links[0].uri
 
-            wr3lap += "**NU** " + character + " " + name + " [" + newLocal.timefix(nu.runs[0].run.times.primary_t) + "](" +  vid+ ")\n"
+            wr3lap += "[" + newLocal.timefix(nu.runs[0].run.times.primary_t) + "](" +  vid+ ") " + character + " " + name + " **(NU)**\n"
             trackEmbed.addField("3-Lap World Records",wr3lap,true)
-            
+            var tourney_mu = ""
+            var tourney_nu = ""
+            var tourney_sk = ""
+            if (tourney.length > 0) {
+                for(i=0; i<tourney.length; i++){
+                    if (tourney[j].hasOwnProperty("totaltime")) {
+                        var link = ""
+                        if (tourney[j].hasOwnProperty("url")) {
+                            link = tourney[j].url
+                        }
+                        var character = ""
+                        for (let n = 0; n<23; n++){
+                            if (tourney[j].pod == racers[n].name) {
+                                if (racers[n].flag !== "") {
+                                    character = racers[n].flag
+                                } else {
+                                    character = racers[n].name
+                                }
+                            }
+                        } 
+                        if (!tourney[j].hasOwnProperty("force") && tourney_mu == "") {
+                            tourney_mu = "[" + tourney[j].time + "](" + link + ") " + character + " " + tourney[j].player + " **(" + forc + ")**"
+                        } else {
+                            if (tourney[j].force == "Skips" && tourney_sk == "") {
+                                tourney_sk = "[" + tourney[j].time + "](" + link + ") " + character + " " + tourney[j].player + " **(" + forc + ")**"
+                            } else if (tourney[j].force == "NU" && tourney_nu == "") {
+                                tourney_nu = "[" + tourney[j].time + "](" + link + ") " + character + " " + tourney[j].player + " **(" + forc + ")**"
+                            }
+                        }                       
+                    }
+                    if(![tourney_mu, tourney_nu, tourney_sk].includes("")) {
+                        i = tourney.length
+                    }
+                }
+            }
+            trackEmbed.addField("Tourney Records", tourney_sk + "\n" + tourney_mu + "\n" + tourney_nu, true)
             client.channels.cache.get(channel).send(trackEmbed).then(sentMessage => {
                 sentMessage.react('⏱️').then(() => {
                     const filter = (reaction, user) => {

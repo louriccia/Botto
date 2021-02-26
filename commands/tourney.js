@@ -13,7 +13,6 @@ module.exports = {
         var desc = []
          //filters out other tracks
         for (let i = 0; i<args.length; i++) {
-            
             if (args[i].name == "track") {
                 var input = args[i].value.toLowerCase()
                 for(let i = 0; i<tracks.length; i++){
