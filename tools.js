@@ -257,12 +257,12 @@ module.exports = {
                             }
                         } 
                         if (!tourney[j].hasOwnProperty("force") && tourney_mu == "") {
-                            tourney_mu = "[" + tourney[j].time + "](" + link + ") " + character + " " + tourney[j].player + " **(" + forc + ")**"
+                            tourney_mu = "[" + tourney[j].time + "](" + link + ") " + character + " " + tourney[j].player + " **(MU)**"
                         } else {
                             if (tourney[j].force == "Skips" && tourney_sk == "") {
-                                tourney_sk = "[" + tourney[j].time + "](" + link + ") " + character + " " + tourney[j].player + " **(" + forc + ")**"
+                                tourney_sk = "[" + tourney[j].time + "](" + link + ") " + character + " " + tourney[j].player + " **(Skips)**"
                             } else if (tourney[j].force == "NU" && tourney_nu == "") {
-                                tourney_nu = "[" + tourney[j].time + "](" + link + ") " + character + " " + tourney[j].player + " **(" + forc + ")**"
+                                tourney_nu = "[" + tourney[j].time + "](" + link + ") " + character + " " + tourney[j].player + " **(NU)**"
                             }
                         }                       
                     }
