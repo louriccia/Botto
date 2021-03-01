@@ -326,7 +326,7 @@ module.exports = {
                     console.log("First Lap Time: " + firstlaptime)
                     var lap_fast = getFast(tracks[track].lap.fast)
                     var lap_slow = getSlow(tracks[track].lap.slow)
-                    var laptime = lap_fast[1]+lap_slow[1]+tracks[track].lap.underheat+tracks[track].lap.underspeed +(tracks[track].lap.length - (lap_fast[0]+lap_slow[0]+tracks[track].lap.underheat*topspeed + totalslowtime+tracks[track].lap.underspeed*topspeed*.75))/avgspeed
+                    var laptime = lap_fast[1]+lap_slow[1]+tracks[track].lap.underheat+tracks[track].lap.underspeed +(tracks[track].lap.length - (lap_fast[0]+lap_slow[0]+tracks[track].lap.underheat*topspeed +tracks[track].lap.underspeed*topspeed*.75))/avgspeed
                     console.log("Lap Time: " + laptime)
                     var finaltime = firstlaptime + laptime*(laps-1)
                     console.log("Final Time: " + finaltime)
