@@ -322,7 +322,7 @@ module.exports = {
                     //5. calculate the final time
                     var first_lap_fast = getFast(tracks[track].first_lap.fast)
                     var first_lap_slow = getSlow(tracks[track].first_lap.slow)
-                    var firstlaptime = totaltime+first_lap_fast[1]+first_lap_slow[1]+tracks[track].first_lap.underheat+tracks[track].first_lap.underspeed + (tracks[track].first_lap.length-(first_lap_fast[0] + first_lap_slow[0] + totaldistance +tracks[track].first_lap.underheat*topspeed + totalslowtime+tracks[track].first_lap.underspeed*topspeed*.75))/avgspeed
+                    var firstlaptime = totaltime+first_lap_fast[1]+first_lap_slow[1]+tracks[track].first_lap.underheat+tracks[track].first_lap.underspeed + (tracks[track].first_lap.length-(first_lap_fast[0] + first_lap_slow[0] + totaldistance +tracks[track].first_lap.underheat*topspeed +tracks[track].first_lap.underspeed*topspeed*.75))/avgspeed
                     console.log("First Lap Time: " + firstlaptime)
                     var lap_fast = getFast(tracks[track].lap.fast)
                     var lap_slow = getSlow(tracks[track].lap.slow)
