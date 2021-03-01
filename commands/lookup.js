@@ -244,8 +244,6 @@ module.exports = {
                         }   
                         return [totalfastlength, totalfasttime]
                     }
-                    
-                    console.log("Total fast length: " + totalfastlength + "\nTotal fast time: " + totalfasttime)
 
                     //4. calculate slow terrain section
                     //bite off slow terrain length in chunks starting with boosting and calculate full heat cycle
