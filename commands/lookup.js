@@ -254,62 +254,64 @@ module.exports = {
                         for(var i = 0; i < slowarray.length; i++){
                             var slowlength = slowarray[i]
                             //boosting
-                            if(slowlength/((topspeed+avgboost)*slowmod) > boosttime){ //if there is more slow terrain than the pod can boost through
-                                totalslowlength+=((topspeed+avgboost)*slowmod)*boosttime
-                                totalslowtime += boosttime
-                                slowlength -= (topspeed+avgboost)*slowmod*boosttime
-                            //short cool
-                                if(slowlength/((topspeed+avgcool)*slowmod) > 1){ //if the remaining slow terrain would allow for another short boost
-                                    totalslowlength+=(topspeed+avgcool)*slowmod*1
-                                    totalslowtime += 1
-                                    slowlength -= (topspeed+avgcool)*slowmod*1
-                                //short boost
-                                    if(slowlength/((topspeed+avgboost)*slowmod) > coolrate/heatrate){ //if the pod will still be on slow terrain after the short boost
-                                        totalslowlength+=(topspeed+avgboost)*slowmod*(coolrate/heatrate)
-                                        totalslowtime += coolrate/heatrate
-                                        slowlength-=(topspeed+avgboost)*slowmod*(coolrate/heatrate)
-                                    //cooling
-                                        if(slowlength/((topspeed+avgboost)*slowmod) > cooltime){ //if the remaining slow terrain is longer than the pod's cool time
-                                        //underheating
-                                            totalslowlength += slowlength
-                                            totalslowtime += slowlength/((topspeed+avgcool)*slowmod)
-                                            slowlength = 0
+                            if(slowlength> 0){
+                                if(slowlength/((topspeed+avgboost)*slowmod) > boosttime){ //if there is more slow terrain than the pod can boost through
+                                    totalslowlength+=((topspeed+avgboost)*slowmod)*boosttime
+                                    totalslowtime += boosttime
+                                    slowlength -= (topspeed+avgboost)*slowmod*boosttime
+                                //short cool
+                                    if(slowlength/((topspeed+avgcool)*slowmod) > 1){ //if the remaining slow terrain would allow for another short boost
+                                        totalslowlength+=(topspeed+avgcool)*slowmod*1
+                                        totalslowtime += 1
+                                        slowlength -= (topspeed+avgcool)*slowmod*1
+                                    //short boost
+                                        if(slowlength/((topspeed+avgboost)*slowmod) > coolrate/heatrate){ //if the pod will still be on slow terrain after the short boost
+                                            totalslowlength+=(topspeed+avgboost)*slowmod*(coolrate/heatrate)
+                                            totalslowtime += coolrate/heatrate
+                                            slowlength-=(topspeed+avgboost)*slowmod*(coolrate/heatrate)
+                                        //cooling
+                                            if(slowlength/((topspeed+avgboost)*slowmod) > cooltime){ //if the remaining slow terrain is longer than the pod's cool time
+                                            //underheating
+                                                totalslowlength += slowlength
+                                                totalslowtime += slowlength/((topspeed+avgcool)*slowmod)
+                                                slowlength = 0
+                                            } else {
+                                                totalslowlength += slowlength
+                                                totalslowtime += slowlength/((topspeed+avgcool)*slowmod)
+                                            //remaining cooling on regular terrain
+                                                totalslowlength += (topspeed+avgcool)*(cooltime - slowlength/((topspeed+avgcool)*slowmod))
+                                                totalslowtime += cooltime - slowlength/((topspeed+avgcool)*slowmod)
+                                                slowlength = 0
+                                            }
                                         } else {
                                             totalslowlength += slowlength
-                                            totalslowtime += slowlength/((topspeed+avgcool)*slowmod)
-                                        //remaining cooling on regular terrain
-                                            totalslowlength += (topspeed+avgcool)*(cooltime - slowlength/((topspeed+avgcool)*slowmod))
-                                            totalslowtime += cooltime - slowlength/((topspeed+avgcool)*slowmod)
+                                            totalslowtime += slowlength/((topspeed+avgboost)*slowmod)
+                                        //next cool
+                                            totalslowlength += (topspeed+avgcool)*cooltime
+                                            totalslowtime +=cooltime
                                             slowlength = 0
                                         }
                                     } else {
+                                    //remaining slow terrain
                                         totalslowlength += slowlength
-                                        totalslowtime += slowlength/((topspeed+avgboost)*slowmod)
-                                    //next cool
-                                        totalslowlength += (topspeed+avgcool)*cooltime
-                                        totalslowtime +=cooltime
+                                        totalslowtime += slowlength/((topspeed+avgcool)*slowmod)
+                                    //remaining cooling on normal terrain
+                                        totalslowlength += (topspeed+avgcool)*(cooltime - slowlength/((topspeed+avgcool)*slowmod))
+                                        totalslowtime += cooltime - slowlength/((topspeed+avgcool)*slowmod)
                                         slowlength = 0
                                     }
-                                } else {
-                                //remaining slow terrain
-                                    totalslowlength += slowlength
-                                    totalslowtime += slowlength/((topspeed+avgcool)*slowmod)
-                                //remaining cooling on normal terrain
-                                    totalslowlength += (topspeed+avgcool)*(cooltime - slowlength/((topspeed+avgcool)*slowmod))
-                                    totalslowtime += cooltime - slowlength/((topspeed+avgcool)*slowmod)
+                                } else { //if there is less slow terrain than a pod's full boost
+                                //remaining boost on slow terrain
+                                    totalslowlength += slowlength;
+                                    totalslowtime += slowlength/((topspeed+avgboost)*slowmod)
+                                //remaining boosting on non slow terrain
+                                    totalslowlength+=((topspeed+avgboost)*(boosttime - slowlength/((topspeed+avgboost)*slowmod)))
+                                    totalslowtime+=(boosttime - slowlength/((topspeed+avgboost)*slowmod)) 
+                                //next cool
+                                    totalslowlength += (topspeed+avgcool)*cooltime
+                                    totalslowtime +=cooltime
                                     slowlength = 0
                                 }
-                            } else { //if there is less slow terrain than a pod's full boost
-                            //remaining boost on slow terrain
-                                totalslowlength += slowlength;
-                                totalslowtime += slowlength/((topspeed+avgboost)*slowmod)
-                            //remaining boosting on non slow terrain
-                                totalslowlength+=((topspeed+avgboost)*(boosttime - slowlength/((topspeed+avgboost)*slowmod)))
-                                totalslowtime+=(boosttime - slowlength/((topspeed+avgboost)*slowmod)) 
-                            //next cool
-                                totalslowlength += (topspeed+avgcool)*cooltime
-                                totalslowtime +=cooltime
-                                slowlength = 0
                             }
                         }
                         return [totalslowlength, totalslowtime]
