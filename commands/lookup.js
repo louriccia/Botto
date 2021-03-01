@@ -155,7 +155,7 @@ module.exports = {
                     var tracklength = tracks[track].length
                     var laps = 3
                     //1. calculate avg speed given upgrades
-                    avgSpeed(topspeed, boost, heatrate*4, coolrate*4)
+                    avgspeed = tools.avgSpeed(topspeed, boost, heatrate*4, coolrate*4)
                     console.log("Average Speed: " + avgspeed)
                     //2. calculate starting boost time and distance (MULTILAP) || calculate full boost time and distance (FLAP)
                     function integrate (f, start, end, step, topspeed, accel, boost, offset1, offset2) {
