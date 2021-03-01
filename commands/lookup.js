@@ -151,11 +151,14 @@ module.exports = {
                     var heatrate = racers[racer].heat_rate
                     var coolrate = tools.upgradeCooling(racers[racer].cool_rate, cooling)
                     var boost = racers[racer].boost_thrust
-                    var framerate = 40.5
-                    var tracklength = tracks[track].length
                     var laps = 3
                     //1. calculate avg speed given upgrades
-                    avgspeed = tools.avgSpeed(topspeed, boost, heatrate*4, coolrate*4)
+                    var boostdistance = (boost/50)*(50*(100/heatrate)-11*Math.log(Math.abs(50*(100/heatrate)+11)))-(boost/50)*(50*(0)-11*Math.log(Math.abs(50*(0)+11))) 
+                    var avgboost = boostdistance/(100/heatrate)
+                    var e19 = 1-(3333/(100*45*((3333/(100*45))+5))) 
+                    var cooldistance = boost*Math.log(Math.abs(11*e19**(45*(100/heatrate))*heatrate+7500*e19**(45*(100/heatrate+100/coolrate))))/(Math.log(e19)*45)-boost*Math.log(Math.abs(11*e19**(45*(100/heatrate))*heatrate+7500*e19**(45*(100/heatrate))))/(Math.log(e19)*45)
+                    var avgcool = cooldistance/(100/coolrate)
+                    var avgspeed = ((100/heatrate)*(topspeed+avgboost)+(100/coolrate)*(topspeed+avgcool))/(100/heatrate+100/coolrate)
                     console.log("Average Speed: " + avgspeed)
                     //2. calculate starting boost time and distance (MULTILAP) || calculate full boost time and distance (FLAP)
                     function integrate (f, start, end, step, topspeed, accel, boost, offset1, offset2) {
