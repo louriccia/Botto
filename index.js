@@ -260,113 +260,18 @@ client.on('message', message => {
 
 
 client.api.applications("545798436105224203").commands.post({data: {
-    name: 'challenge',
-    description: 'randomly generated challenges',
+    name: 'src',
+    description: 'get top-5 leaderboards from speedrun.com',
     options: [
         {
-            name: "generate",
-            description: "get a random pod/track challenge; 15-minute time limit; submit your time below",
-            type: 1,
-            options: [
-                {
-                    name: "bribe_track",
-                    description: "request a specific track from Botto for 8400 Truguts",
-                    type: 3,
-                    requiredl: false
-                },
-                {
-                    name: "bribe_racer",
-                    description: "request a specific racer from Botto for 8400 Truguts",
-                    type: 3,
-                    requiredl: false
-                }
-            ]
-        },
-        {
-            name: "settings",
-            description: "customize your challenge settings including your winnings and odds of rolling nu, skips, etc.",
-            type: 1,
-            options: [
-                {
-                    name: "winnings",
-                    description: "the pattern of truguts earned based on your achieved goal time",
-                    type: 3,
-                    required: false,
-                    choices: [
-                        {
-                            name: "1 Fair",
-                            value: "0"
-                        },
-                        {
-                            name: "2 Skilled",
-                            value: "1"
-                        },
-                        {
-                            name: "3 Winner Takes All",
-                            value: "2"
-                        },
-                    ]
-                },
-                {
-                    name: "skips_odds",
-                    description: "x/100 chance of getting a skip challenge",
-                    type: 4,
-                    required: false
-                },
-                {
-                    name: "no_upgrades_odds",
-                    description: "x/100 chance of getting a no upgrades challenge",
-                    type: 4,
-                    required: false
-                },
-                {
-                    name: "non_3_lap_odds",
-                    description: "x/100 chance of getting a non 3-lap challenge",
-                    type: 4,
-                    required: false
-                },
-                {
-                    name: "mirrored_odds",
-                    description: "x/100 chance of getting a mirrored challenge",
-                    type: 4,
-                    required: false
-                },
-                {
-                    name: "reset",
-                    description: "if true, resets your challenge settings to default",
-                    type: 5,
-                    required: false
-                }
-            ]
-        },
-        {
-            name: "profile",
-            description: "view your career stats, total truguts, and achievement progress for random challenges",
-            type: 1,
-            options: [
-                    {
-                    name: "user",
-                    description: "the user whose profile you would like to view, if not your own",
-                    type: 6,
-                    required: false
-                    }
-            ]
-
-        },
-        {
-            name: "about",
-            description: "learn more about how the random challenges work and how to submit a time",
-            type: 1
-        },
-        {
-            name: "leaderboard",
-            description: "get top-5 leaderboards for submitted challenge times",
-            type: 1,
+            name: "IL",
+            description: "get individual level top-5 leaderboards from speedrun.com",
+            type: 1, //sub command
             options: [
                 {
                     name: "track",
-                    description: "name or abbreviation of the track",
-                    type: 3,
+                    description: "the name or abbreviation of the track",
+                    type: 3, //string
                     required: true
                 },
                 {
@@ -391,7 +296,7 @@ client.api.applications("545798436105224203").commands.post({data: {
                 },
                 {
                     name: "upgrades",
-                    description: "filter by upgrade runs (mu) or no upgrade runs (nu)",
+                    description: "filter by upgrade runs and no upgrade (nu) runs",
                     type: 3,
                     required: false,
                     choices: [
@@ -410,20 +315,8 @@ client.api.applications("545798436105224203").commands.post({data: {
                     ]
                 },
                 {
-                    name: "pod",
-                    description: "filter runs by a specific pod or filter out pods with 'no' in front; use racer's first name/initials",
-                    type: 3,
-                    required: false,
-                },
-                {
-                    name: "player",
-                    description: "filter runs by player",
-                    type: 6,
-                    required: false,
-                },
-                {
-                    name: "mirrored",
-                    description: "filter by mirrored runs",
+                    name: "platform",
+                    description: "filter runs by platform",
                     type: 3,
                     required: false,
                     choices: [
@@ -432,45 +325,158 @@ client.api.applications("545798436105224203").commands.post({data: {
                             value: "any"
                         },
                         {
-                            name: "unmirrored",
-                            value: "unmirrored" 
+                            name: "PC",
+                            value: "pc" 
+                        },
+                        {  
+                            name: "Nintendo 64",
+                            value: "n64"
                         },
                         {
-                            name: "mirrored",
-                            value: "mirrored"
+                            name: "Dreamcast",
+                            value: "dc"
+                        },
+                        {
+                            name: "Nintendo Switch",
+                            value: "switch"
+                        },
+                        {
+                            name: "PlayStation 4",
+                            value: "ps4"
+                        },
+                        {
+                            name: "XboxOne",
+                            value: "xbox"
                         }
                     ]
                 },
                 {
                     name: "laps",
-                    description: "filter by number of laps",
-                    type: 4,
+                    description: "show 3-lap or 1-lap runs (defaults to 3-lap)",
+                    type: 3,
                     required: false,
                     choices: [
                         {
-                            name: 1,
-                            value: 1
+                            name: "3-lap",
+                            value: "3"
                         },
                         {
-                            name: 2,
-                            value: 2 
-                        },
-                        {
-                            name: 3,
-                            value: 3
-                        },
-                        {
-                            name: 4,
-                            value: 4
-                        },
-                        {
-                            name: 5,
-                            value: 5
+                            name: "1-lap (flap)",
+                            value: "1"
                         }
                     ]
                 }
             ]
-        }
+        },
+        {
+            name: "RTA",
+            description: "get real time attack top-5 leaderboards from speedrun.com",
+            type: 1, //sub command
+            options: [
+                {
+                    name: "category",
+                    description: "the name or abbreviation of the category",
+                    type: 3,//string
+                    required: true,
+                    choices: [
+                        {
+                            name: "Any%",
+                            value: "any%"
+                        },
+                        {
+                            name: "Semi-Pro Circuit",
+                            value: "spc"
+                        },
+                        {
+                            name: "Amateur Circuit",
+                            value: "amc"
+                        },
+                        {
+                            name: "100%",
+                            value: "100%"
+                        },
+                        {
+                            name: "All Tracks New Game+",
+                            value: "ng+"
+                        }
+                    ]
+                },
+                {
+                    name: "skips",
+                    description: "filter by skip runs or full track runs",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "any",
+                            value: "any"
+                        },
+                        {
+                            name: "skips",
+                            value: "skips"
+                        },
+                        {
+                            name: "full track",
+                            value: "ft"
+                        }
+                    ]
+                },
+                {
+                    name: "upgrades",
+                    description: "filter by upgrade runs (mu) and no upgrade runs (nu)",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "any",
+                            value: "any"
+                        },
+                        {
+                            name: "upgrades",
+                            value: "mu" 
+                        },
+                        {
+                            name: "no upgrades",
+                            value: "nu"
+                        }
+                    ]
+                },
+                {
+                    name: "platform",
+                    description: "filter runs by platform",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "any",
+                            value: "any"
+                        },
+                        {
+                            name: "PC",
+                            value: "pc" 
+                        },
+                        {  
+                            name: "Nintendo 64",
+                            value: "n64"
+                        },
+                        {
+                            name: "Dreamcast",
+                            value: "dc"
+                        },
+                        {
+                            name: "Nintendo Switch",
+                            value: "switch"
+                        },
+                        {
+                            name: "PlayStation 4",
+                            value: "ps4"
+                        }
+                    ]
+                }
+            ]
+        },
+        
+        
     ]
 }})
 

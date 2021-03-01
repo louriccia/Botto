@@ -5,15 +5,18 @@ module.exports = {
         const fetch = require('node-fetch');
         var tools = require('./../tools.js');
         const Guild = client.guilds.cache.get(interaction.guild_id); // Getting the guild.
-        const Member = Guild.members.cache.get(interaction.member.user.id); // Getting the member.
-        if (Member.voice.channel) {
-            var mems = client.channels.cache.get(Member.voice.channelID).members;
-            var memarray = [];
-            var memlist = ""
-            for (let [snowflake, guildMember] of mems){
-                if(guildMember.displayName !== "Botto"){
-                    memarray.push(guildMember.displayName)
-                    memlist = memlist + guildMember.displayName + "\n"
+        const Channel = client.channels.cache.get(interaction.channel_id);
+        if(Channel.type !== "dm"){
+            const Member = Guild.members.cache.get(interaction.member.user.id); // Getting the member.
+            if (Member.voice.channel) {
+                var mems = client.channels.cache.get(Member.voice.channelID).members;
+                var memarray = [];
+                var memlist = ""
+                for (let [snowflake, guildMember] of mems){
+                    if(guildMember.displayName !== "Botto"){
+                        memarray.push(guildMember.displayName)
+                        memlist = memlist + guildMember.displayName + "\n"
+                    }
                 }
             }
         }

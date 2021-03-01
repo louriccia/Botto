@@ -1131,6 +1131,10 @@ client.api.applications("545798436105224203").commands.post({data: {
                         {
                             name: "PlayStation 4",
                             value: "ps4"
+                        },
+                        {
+                            name: "XboxOne",
+                            value: "xbox"
                         }
                     ]
                 },

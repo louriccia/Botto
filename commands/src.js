@@ -12,7 +12,7 @@ module.exports = {
         var plat = ""
         var platname = ""
         var desc = ""
-        var sys = [{"name" : "PC", "id": "zqoe6ply"}, {"name":"N64", "id":"013kndq5"},{"name" : "DC", "id" : "rqv25716"}, {"name":"Switch", "id":"jqz7nnkl"},{"name":"PS4", "id":"klrw33w1"}]
+        var sys = [{"name" : "PC", "id": "8gej2n93"}, {"name":"N64", "id":"w89rwelk"},{"name" : "DC", "id" : "v06d394z"}, {"name":"Switch", "id":"7m6ylw9p"},{"name":"PS4", "id":"nzelkr6q"}, {"name":"Xbox","id":"o7e2mx6w"}]
         for (let i = 0; i<args[0].options.length; i++) {
             if(args[0].name == "il") {
                 if (args[0].options[i].name == "track") {
@@ -35,20 +35,20 @@ module.exports = {
                     titl = tracks[numb].name + " | 3-Lap"
                 } else if (args[0].options[i].name == "skips") {
                     if(args[0].options[i].value == "skips"){
-                        skps = "&var-2lgz978p=p125ev1x"
+                        skps = "&var-789x6p58=rqvg3prq"
                     } else if(args[0].options[i].value == "ft"){
-                        skps = "&var-2lgz978p=81p7we17"
+                        skps = "&var-789x6p58=013d38rl"
                     }
                 } else if (args[0].options[i].name == "upgrades") {
                     if(args[0].options[i].value == "mu"){
-                        upgr = "&var-789k49lw=xqkrk919"
+                        upgr = "&var-rn1z02dl=klrvnpoq"
                     } else if(args[0].options[i].value == "nu"){
-                        upgr = "&var-789k49lw=z194gjl4"
+                        upgr = "&var-rn1z02dl=21d9rzpq"
                     }
                 } else if (args[0].options[i].name == "platform") {
                     for (u = 0; u < sys.length; u++) {
                         if (args[0].options[i].value.toLowerCase() == sys[u].name.toLowerCase()) {
-                            plat = "&var-wl39wwl1=" + sys[u].id
+                            plat = "&platform=" + sys[u].id
                             platname = sys[u].name
                         }
                     }
@@ -91,7 +91,7 @@ module.exports = {
                 } else if (args[0].options[i].name == "platform") {
                     for (u = 0; u < sys.length; u++) {
                         if (args[0].options[i].value.toLowerCase() == sys[u].name.toLowerCase()) {
-                            plat = "&var-wl39wwl1=" + sys[u].id
+                            plat = "&platform=" + sys[u].id
                             platname = sys[u].name
                         }
                     }
@@ -99,16 +99,16 @@ module.exports = {
             }
         }      
         
-        if (upgr == "&var-789k49lw=z194gjl4" || upgr == "&var-789k45lw=9qjzj014") {
+        if (upgr == "&var-rn1z02dl=21d9rzpq" || upgr == "&var-789k45lw=9qjzj014") {
             desc = "No Upgrades, "
-        } else if (upgr == "&var-789k45lw=gq7nen1p" || upgr == "&var-789k49lw=xqkrk919") {
+        } else if (upgr == "&var-789k45lw=gq7nen1p" || upgr == "&var-rn1z02dl=klrvnpoq") {
             desc = "Upgrades, "
         } else {
             desc = "Any Upgrades, "
         }
-        if (skps == "&var-2lgz978p=81p7we17" ||  skps == "&var-onv6p08m=5lmxzy1v") {
+        if (skps == "&var-789x6p58=013d38rl" ||  skps == "&var-onv6p08m=5lmxzy1v") {
             desc = desc + "Full Track, "
-        } else if (skps == "&var-onv6p08m=21gjrx1z" ||  skps == "&var-2lgz978p=p125ev1x"){
+        } else if (skps == "&var-onv6p08m=21gjrx1z" ||  skps == "&var-789x6p58=rqvg3prq"){
             desc = desc + "Skips, "
         } else {
             desc = desc + "Skips/Full Track, "
@@ -158,7 +158,7 @@ module.exports = {
                     } else {
                         name = src.players.data[k].name
                     }
-                    if (src.runs[k].run.values["789k49lw"] == "z194gjl4" || src.runs[k].run.values["789k45lw"] == "9qjzj014") {
+                    if (src.runs[k].run.values["rn1z02dl"] == "21d9rzpq" || src.runs[k].run.values["789k45lw"] == "9qjzj014") {
                         if (numb == null) {
                             upgrades = "NU"
                         }else {
@@ -166,7 +166,7 @@ module.exports = {
                         }
                         
                     }
-                    if (src.runs[k].run.values["2lgz978p"] == "p125ev1x" || src.runs[k].run.values["onv6p08m"] == "21gjrx1z") {
+                    if (src.runs[k].run.values["789x6p58"] == "rqvg3prq" || src.runs[k].run.values["onv6p08m"] == "21gjrx1z") {
                         skips = " / Skips"
                     }
                     for (let j = 0; j<23; j++){
@@ -178,8 +178,8 @@ module.exports = {
                             }
                         }
                     } 
-                    for (let j = 0; j<5; j++) {
-                        if (src.runs[k].run.values.wl39wwl1 == sys[j].id) {
+                    for (let j = 0; j<sys.length; j++) {
+                        if (src.runs[k].run.system.platform == sys[j].id) {
                             system = "   " + sys[j].name
                         }
                     }
