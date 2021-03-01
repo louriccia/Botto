@@ -331,6 +331,15 @@ module.exports = {
                     console.log("Lap Time: " + laptime)
                     var finaltime = firstlaptime + laptime*(laps-1)
                     console.log("Final Time: " + finaltime)
+                    client.api.interactions(interaction.id, interaction.token).callback.post({
+                        data: {
+                            type: 3,
+                            data: {
+                                content: tools.timefix(finaltime),
+                                //embeds: [cheatEmbed]
+                            }
+                        }
+                    })
                 }
                     
             }
