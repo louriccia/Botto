@@ -120,180 +120,205 @@ module.exports = {
                 }
                 
             } else if(args[0].options[0].name == "goal_times"){
-
-                    //0. get required values
-                        var accel = 0.9
-                        var topspeed = 650
-                        var thrust = 1.32
-                        var heatrate = 8
-                        var coolrate = 10
-                        var boost = 400
-                        var framerate = 40.5
-                        var tracklength = 65000.642
-                        var laps = 3
-                    //1. calculate avg speed given upgrades
-                        boostdistance =(boost/50)*(50*(100/heatrate)-11*Math.log(Math.abs(50*(100/heatrate)+11)))-(boost/50)*(50*(0)-11*Math.log(Math.abs(50*(0)+11))) 
-                        avgboost =boostdistance/(100/heatrate)
-                        e19 =1-(3333/(100*framerate*((3333/(100*framerate))+5))) 
-                        cooldistance =boost*Math.log(Math.abs(11*e19**(framerate*(100/heatrate))*heatrate+7500*e19**(framerate*(100/heatrate+100/coolrate))))/(Math.log(e19)*framerate)-boost*Math.log(Math.abs(11*e19**(framerate*(100/heatrate))*heatrate+7500*e19**(framerate*(100/heatrate))))/(Math.log(e19)*framerate)
-                        avgcool =cooldistance/(100/coolrate)
-                        avgspeed =((100/heatrate)*(topspeed+avgboost)+(100/coolrate)*(topspeed+avgcool))/(100/heatrate+100/coolrate)
-                        console.log("Average Speed: " + avgspeed)
-                    //2. calculate starting boost time and distance (MULTILAP) || calculate full boost time and distance (FLAP)
-                        function integrate (f, start, end, step, topspeed, accel, boost, offset1, offset2) {
-                            let total = 0
-                            step = step || 0.01
-                            for (let x = start; x < end; x += step) {
-                                total += f(x + step / 2, topspeed, accel, boost, offset1, offset2) * step
+                for (let i = 0; i<args[0].options[0].options.length; i++) {
+                    if (args[0].options[0].options[i].name == "track") {
+                        var track = getTrack(args[0].options[0].options[i].value.toLowerCase())
+                    } else if (args[0].options[0].options[i].name  == "racer") {
+                        var racer = getRacer(args[0].options[0].options[i].value.toLowerCase())
+                    } else if (args[0].options[0].options[i].name  == "accel") {
+                        var accel = Number(args[0].options[0].options[i].value)
+                    } else if (args[0].options[0].options[i].name  == "top_speed") {
+                        var top_speed = Number(args[0].options[0].options[i].value)
+                    } else if (args[0].options[0].options[i].name  == "cooling") {
+                        var cooling = Number(args[0].options[0].options[i].value)
+                    }
+                }
+                if([track, racer, accel, top_speed, cooling].includes(undefined)){
+                    client.api.interactions(interaction.id, interaction.token).callback.post({
+                        data: {
+                            type: 4,
+                            data: {
+                                content: "`Error: Missing arguments`\n" + errorMessage[Math.floor(Math.random()*errorMessage.length)],
+                                //embeds: [racerEmbed]
                             }
-                            return total
                         }
-                        var b2 = (290*accel)/((topspeed-290)*1.5*thrust)
-                        var c2 = 0.75*topspeed
-                        var d2 = (c2*accel)/((topspeed-c2)*1.5*thrust)
-                        var e2 = (d2+1)*1.5*thrust*topspeed/(accel+(d2+1)*1.5*thrust)
-                        var f2 = (e2*accel)/((topspeed-e2)*4*thrust)
-                        var a = (290*accel)/((topspeed-290)*4*thrust)
-                        var b = b2-a
-                        var c = -(d2+1)+b
-                        var d = c+f2
-                        var e = -c+(100/heatrate)
-                        var totaltime = e
-                        function startboost(x, topspeed, accel, boost, offset1, offset2){
-                            let y = x*4*1.32*topspeed/(accel+x*4*1.32)
-                            return y
+                    })
+                } else {
+                    //0. get required values
+                    var accel = 0.9
+                    var topspeed = 650
+                    var thrust = 1.32
+                    var heatrate = 8
+                    var coolrate = 10
+                    var boost = 400
+                    var framerate = 40.5
+                    var tracklength = 65000.642
+                    var laps = 3
+                    //1. calculate avg speed given upgrades
+                    boostdistance =(boost/50)*(50*(100/heatrate)-11*Math.log(Math.abs(50*(100/heatrate)+11)))-(boost/50)*(50*(0)-11*Math.log(Math.abs(50*(0)+11))) 
+                    avgboost =boostdistance/(100/heatrate)
+                    e19 =1-(3333/(100*framerate*((3333/(100*framerate))+5))) 
+                    cooldistance =boost*Math.log(Math.abs(11*e19**(framerate*(100/heatrate))*heatrate+7500*e19**(framerate*(100/heatrate+100/coolrate))))/(Math.log(e19)*framerate)-boost*Math.log(Math.abs(11*e19**(framerate*(100/heatrate))*heatrate+7500*e19**(framerate*(100/heatrate))))/(Math.log(e19)*framerate)
+                    avgcool =cooldistance/(100/coolrate)
+                    avgspeed =((100/heatrate)*(topspeed+avgboost)+(100/coolrate)*(topspeed+avgcool))/(100/heatrate+100/coolrate)
+                    console.log("Average Speed: " + avgspeed)
+                    //2. calculate starting boost time and distance (MULTILAP) || calculate full boost time and distance (FLAP)
+                    function integrate (f, start, end, step, topspeed, accel, boost, offset1, offset2) {
+                        let total = 0
+                        step = step || 0.01
+                        for (let x = start; x < end; x += step) {
+                            total += f(x + step / 2, topspeed, accel, boost, offset1, offset2) * step
                         }
-                        function boostcharge(x, topspeed, accel, boost, offset1, offset2){
-                            let y = (x+offset1)*1.5*1.32*topspeed/(accel+(x+offset1)*1.5*1.32)
-                            return y
-                        }
-                        function firstboost(x, topspeed, accel, boost, offset1, offset2){
-                            let y = ((x+offset1)*1.5*boost)/((x+offset1)*1.5+0.33)+((x+offset2)*4*1.32*topspeed)/(accel+(x+offset2)*4*1.32)
-                            return y
-                        }
-                        var step = 0.0001
-                        var totaldistance = integrate(startboost, 0, a, step, topspeed, accel, boost, null, null)
-                        totaldistance = totaldistance + integrate(boostcharge, a, -c, step, topspeed, accel, boost, b, null)
-                        totaldistance = totaldistance + integrate(firstboost, -c, e, step, topspeed, accel, boost, c, d)
-                        console.log("Total distance: " + totaldistance + "\nTotal time: " + totaltime)
+                        return total
+                    }
+                    var b2 = (290*accel)/((topspeed-290)*1.5*thrust)
+                    var c2 = 0.75*topspeed
+                    var d2 = (c2*accel)/((topspeed-c2)*1.5*thrust)
+                    var e2 = (d2+1)*1.5*thrust*topspeed/(accel+(d2+1)*1.5*thrust)
+                    var f2 = (e2*accel)/((topspeed-e2)*4*thrust)
+                    var a = (290*accel)/((topspeed-290)*4*thrust)
+                    var b = b2-a
+                    var c = -(d2+1)+b
+                    var d = c+f2
+                    var e = -c+(100/heatrate)
+                    var totaltime = e
+                    function startboost(x, topspeed, accel, boost, offset1, offset2){
+                        let y = x*4*1.32*topspeed/(accel+x*4*1.32)
+                        return y
+                    }
+                    function boostcharge(x, topspeed, accel, boost, offset1, offset2){
+                        let y = (x+offset1)*1.5*1.32*topspeed/(accel+(x+offset1)*1.5*1.32)
+                        return y
+                    }
+                    function firstboost(x, topspeed, accel, boost, offset1, offset2){
+                        let y = ((x+offset1)*1.5*boost)/((x+offset1)*1.5+0.33)+((x+offset2)*4*1.32*topspeed)/(accel+(x+offset2)*4*1.32)
+                        return y
+                    }
+                    var step = 0.0001
+                    var totaldistance = integrate(startboost, 0, a, step, topspeed, accel, boost, null, null)
+                    totaldistance = totaldistance + integrate(boostcharge, a, -c, step, topspeed, accel, boost, b, null)
+                    totaldistance = totaldistance + integrate(firstboost, -c, e, step, topspeed, accel, boost, c, d)
+                    console.log("Total distance: " + totaldistance + "\nTotal time: " + totaltime)
 
                     //3. calculate fast terrain section
-                        //bite off fast terrain length in chunks starting with cooling and calculate complete heat cycle
-                        var fastlength = 4751.562
-                        var totalfastlength = 0
-                        var totalfasttime = 0
-                        var fastspeed = 200
-                        var cooltime = 100/coolrate
-                        var boosttime = 100/heatrate
-                        while(fastlength>0){
-                            if(fastlength/(topspeed+avgcool+fastspeed) > cooltime){ //if pod is on fast terrain longer than cool time
-                                totalfastlength += ((topspeed+avgcool+fastspeed)*cooltime)
-                                totalfasttime+=(cooltime)
-                                fastlength -= (topspeed+avgcool+fastspeed)*cooltime
-                                console.log("pod on fast terrain longer than cool time, fast length: " + fastlength)
-                            } else if(fastlength/(topspeed+avgcool+fastspeed) <= cooltime){ //if pod is on fast terrain shorter than cool time
-                                totalfastlength+=(fastlength)
-                                totalfasttime+=(fastlength/(topspeed+avgcool+fastspeed))
-                                //remaining cooling
-                                totalfastlength+=((topspeed+avgcool)*(cooltime - fastlength/(topspeed+avgcool+fastspeed)))
-                                totalfasttime+=(cooltime - fastlength/(topspeed+avgcool+fastspeed)) 
-                                //next boost
-                                totalfastlength+=((topspeed+avgboost)*boosttime)
+                    //bite off fast terrain length in chunks starting with cooling and calculate complete heat cycle
+                    var fastlength = 4751.562
+                    var totalfastlength = 0
+                    var totalfasttime = 0
+                    var fastspeed = 200
+                    var cooltime = 100/coolrate
+                    var boosttime = 100/heatrate
+                    while(fastlength>0){
+                        if(fastlength/(topspeed+avgcool+fastspeed) > cooltime){ //if pod is on fast terrain longer than cool time
+                            totalfastlength += ((topspeed+avgcool+fastspeed)*cooltime)
+                            totalfasttime+=(cooltime)
+                            fastlength -= (topspeed+avgcool+fastspeed)*cooltime
+                            console.log("pod on fast terrain longer than cool time, fast length: " + fastlength)
+                        } else if(fastlength/(topspeed+avgcool+fastspeed) <= cooltime){ //if pod is on fast terrain shorter than cool time
+                            totalfastlength+=(fastlength)
+                            totalfasttime+=(fastlength/(topspeed+avgcool+fastspeed))
+                            //remaining cooling
+                            totalfastlength+=((topspeed+avgcool)*(cooltime - fastlength/(topspeed+avgcool+fastspeed)))
+                            totalfasttime+=(cooltime - fastlength/(topspeed+avgcool+fastspeed)) 
+                            //next boost
+                            totalfastlength+=((topspeed+avgboost)*boosttime)
+                            totalfasttime+=(boosttime)
+                            fastlength = 0
+                            console.log("pod on fast terrain shorter than cool time, fast length: " + fastlength)
+                        }
+                        if(fastlength>0){
+                            if(fastlength/(topspeed+avgboost+fastspeed) > boosttime){ //if pod is on fast terrain longer than boost time
+                                totalfastlength+=((topspeed+avgboost+fastspeed)*boosttime)
                                 totalfasttime+=(boosttime)
+                                fastlength -= (topspeed+avgboost+fastspeed)*boosttime
+                                console.log("pod on fast terrain longer than boost time, fast length: " + fastlength)
+                            } else if(fastlength/(topspeed+avgboost+fastspeed) <= boosttime){ //if pod is on fast terrain shorter than boost time
+                                totalfastlength+=(fastlength)
+                                totalfasttime+=(fastlength/(topspeed+avgboost+fastspeed))
+                                //remaining boosting
+                                totalfastlength+=((topspeed+avgboost)*(boosttime - fastlength/(topspeed+avgboost+fastspeed)))
+                                totalfasttime +=(boosttime - fastlength/(topspeed+avgboost+fastspeed)) 
                                 fastlength = 0
-                                console.log("pod on fast terrain shorter than cool time, fast length: " + fastlength)
-                            }
-                            if(fastlength>0){
-                                if(fastlength/(topspeed+avgboost+fastspeed) > boosttime){ //if pod is on fast terrain longer than boost time
-                                    totalfastlength+=((topspeed+avgboost+fastspeed)*boosttime)
-                                    totalfasttime+=(boosttime)
-                                    fastlength -= (topspeed+avgboost+fastspeed)*boosttime
-                                    console.log("pod on fast terrain longer than boost time, fast length: " + fastlength)
-                                } else if(fastlength/(topspeed+avgboost+fastspeed) <= boosttime){ //if pod is on fast terrain shorter than boost time
-                                    totalfastlength+=(fastlength)
-                                    totalfasttime+=(fastlength/(topspeed+avgboost+fastspeed))
-                                    //remaining boosting
-                                    totalfastlength+=((topspeed+avgboost)*(boosttime - fastlength/(topspeed+avgboost+fastspeed)))
-                                    totalfasttime +=(boosttime - fastlength/(topspeed+avgboost+fastspeed)) 
-                                    fastlength = 0
-                                    console.log("pod on fast terrain shorter than boost time, fast length: " + fastlength)
-                                }
+                                console.log("pod on fast terrain shorter than boost time, fast length: " + fastlength)
                             }
                         }
-                        console.log("Total fast length: " + totalfastlength + "\nTotal fast time: " + totalfasttime)
- 
+                    }
+                    console.log("Total fast length: " + totalfastlength + "\nTotal fast time: " + totalfasttime)
+
                     //4. calculate slow terrain section
-                        //bite off slow terrain length in chunks starting with boosting and calculate full heat cycle
-                        //a pod can only afford one full boost + a small leftover boost that is worth 1 second of cooling
-                        var slowlength = 0
-                        var totalslowlength = 0
-                        var totalslowtime = 0
-                        var slowmod = 0.75
+                    //bite off slow terrain length in chunks starting with boosting and calculate full heat cycle
+                    //a pod can only afford one full boost + a small leftover boost that is worth 1 second of cooling
+                    var slowlength = 0
+                    var totalslowlength = 0
+                    var totalslowtime = 0
+                    var slowmod = 0.75
                     //boosting
-                        if(slowlength/((topspeed+avgboost)*slowmod) > boosttime){ //if there is more slow terrain than the pod can boost through
-                            totalslowlength+=((topspeed+avgboost)*slowmod)*boosttime
-                            totalslowtime += boosttime
-                            slowlength -= (topspeed+avgboost)*slowmod*boosttime
-                        //short cool
-                            if(slowlength/((topspeed+avgcool)*slowmod) > 1){ //if the remaining slow terrain would allow for another short boost
-                                totalslowlength+=(topspeed+avgcool)*slowmod*1
-                                totalslowtime += 1
-                                slowlength -= (topspeed+avgcool)*slowmod*1
-                            //short boost
-                                if(slowlength/((topspeed+avgboost)*slowmod) > coolrate/heatrate){ //if the pod will still be on slow terrain after the short boost
-                                    totalslowlength+=(topspeed+avgboost)*slowmod*(coolrate/heatrate)
-                                    totalslowtime += coolrate/heatrate
-                                    slowlength-=(topspeed+avgboost)*slowmod*(coolrate/heatrate)
-                                //cooling
-                                    if(slowlength/((topspeed+avgboost)*slowmod) > cooltime){ //if the remaining slow terrain is longer than the pod's cool time
-                                    //underheating
-                                        totalslowlength += slowlength
-                                        totalslowtime += slowlength/((topspeed+avgcool)*slowmod)
-                                        slowlength = 0
-                                    } else {
-                                        totalslowlength += slowlength
-                                        totalslowtime += slowlength/((topspeed+avgcool)*slowmod)
-                                    //remaining cooling on regular terrain
-                                        totalslowlength += (topspeed+avgcool)*(cooltime - slowlength/((topspeed+avgcool)*slowmod))
-                                        totalslowtime += cooltime - slowlength/((topspeed+avgcool)*slowmod)
-                                        slowlength = 0
-                                    }
+                    if(slowlength/((topspeed+avgboost)*slowmod) > boosttime){ //if there is more slow terrain than the pod can boost through
+                        totalslowlength+=((topspeed+avgboost)*slowmod)*boosttime
+                        totalslowtime += boosttime
+                        slowlength -= (topspeed+avgboost)*slowmod*boosttime
+                    //short cool
+                        if(slowlength/((topspeed+avgcool)*slowmod) > 1){ //if the remaining slow terrain would allow for another short boost
+                            totalslowlength+=(topspeed+avgcool)*slowmod*1
+                            totalslowtime += 1
+                            slowlength -= (topspeed+avgcool)*slowmod*1
+                        //short boost
+                            if(slowlength/((topspeed+avgboost)*slowmod) > coolrate/heatrate){ //if the pod will still be on slow terrain after the short boost
+                                totalslowlength+=(topspeed+avgboost)*slowmod*(coolrate/heatrate)
+                                totalslowtime += coolrate/heatrate
+                                slowlength-=(topspeed+avgboost)*slowmod*(coolrate/heatrate)
+                            //cooling
+                                if(slowlength/((topspeed+avgboost)*slowmod) > cooltime){ //if the remaining slow terrain is longer than the pod's cool time
+                                //underheating
+                                    totalslowlength += slowlength
+                                    totalslowtime += slowlength/((topspeed+avgcool)*slowmod)
+                                    slowlength = 0
                                 } else {
                                     totalslowlength += slowlength
-                                    totalslowtime += slowlength/((topspeed+avgboost)*slowmod)
-                                //next cool
-                                    totalslowlength += (topspeed+avgcool)*cooltime
-                                    totalslowtime +=cooltime
+                                    totalslowtime += slowlength/((topspeed+avgcool)*slowmod)
+                                //remaining cooling on regular terrain
+                                    totalslowlength += (topspeed+avgcool)*(cooltime - slowlength/((topspeed+avgcool)*slowmod))
+                                    totalslowtime += cooltime - slowlength/((topspeed+avgcool)*slowmod)
                                     slowlength = 0
                                 }
                             } else {
-                            //remaining slow terrain
                                 totalslowlength += slowlength
-                                totalslowtime += slowlength/((topspeed+avgcool)*slowmod)
-                            //remaining cooling on normal terrain
-                                totalslowlength += (topspeed+avgcool)*(cooltime - slowlength/((topspeed+avgcool)*slowmod))
-                                totalslowtime += cooltime - slowlength/((topspeed+avgcool)*slowmod)
+                                totalslowtime += slowlength/((topspeed+avgboost)*slowmod)
+                            //next cool
+                                totalslowlength += (topspeed+avgcool)*cooltime
+                                totalslowtime +=cooltime
                                 slowlength = 0
                             }
-                        } else { //if there is less slow terrain than a pod's full boost
-                        //remaining boost on slow terrain
-                            totalslowlength += slowlength;
-                            totalslowtime += slowlength/((topspeed+avgboost)*slowmod)
-                        //remaining boosting on non slow terrain
-                            totalslowlength+=((topspeed+avgboost)*(boosttime - slowlength/((topspeed+avgboost)*slowmod)))
-                            totalslowtime+=(boosttime - slowlength/((topspeed+avgboost)*slowmod)) 
-                        //next cool
-                            totalslowlength += (topspeed+avgcool)*cooltime
-                            totalslowtime +=cooltime
+                        } else {
+                        //remaining slow terrain
+                            totalslowlength += slowlength
+                            totalslowtime += slowlength/((topspeed+avgcool)*slowmod)
+                        //remaining cooling on normal terrain
+                            totalslowlength += (topspeed+avgcool)*(cooltime - slowlength/((topspeed+avgcool)*slowmod))
+                            totalslowtime += cooltime - slowlength/((topspeed+avgcool)*slowmod)
                             slowlength = 0
                         }
+                    } else { //if there is less slow terrain than a pod's full boost
+                    //remaining boost on slow terrain
+                        totalslowlength += slowlength;
+                        totalslowtime += slowlength/((topspeed+avgboost)*slowmod)
+                    //remaining boosting on non slow terrain
+                        totalslowlength+=((topspeed+avgboost)*(boosttime - slowlength/((topspeed+avgboost)*slowmod)))
+                        totalslowtime+=(boosttime - slowlength/((topspeed+avgboost)*slowmod)) 
+                    //next cool
+                        totalslowlength += (topspeed+avgcool)*cooltime
+                        totalslowtime +=cooltime
+                        slowlength = 0
+                    }
                     //5. calculate the final time
-                        var firstlaptime = totaltime+totalfasttime+totalslowtime+(tracklength-(totalfastlength + totalslowlength + totaldistance))/avgspeed
-                        console.log("First Lap Time: " + firstlaptime)
-                        var laptime = totalfasttime+totalslowtime+(tracklength - (totalfastlength+totalslowlength))/avgspeed
-                        console.log("Lap Time: " + laptime)
-                        var finaltime = firstlaptime + laptime*(laps-1)
-                        console.log("Final Time: " + finaltime)
+                    var firstlaptime = totaltime+totalfasttime+totalslowtime+(tracklength-(totalfastlength + totalslowlength + totaldistance))/avgspeed
+                    console.log("First Lap Time: " + firstlaptime)
+                    var laptime = totalfasttime+totalslowtime+(tracklength - (totalfastlength+totalslowlength))/avgspeed
+                    console.log("Lap Time: " + laptime)
+                    var finaltime = firstlaptime + laptime*(laps-1)
+                    console.log("Final Time: " + finaltime)
+                }
+                    
             }
         } else if(args[0].name=="tier") {
             const tierEmbed = new Discord.MessageEmbed()

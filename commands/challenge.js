@@ -495,6 +495,17 @@ module.exports = {
                 }
             } else { //at least one setting was updated
                 desc = "You have successfully updated your settings. Your new settings are shown below. "
+                if (profiledata[member] == undefined){
+                    var data = {
+                        mirror_mode: 5,
+                        name: interaction.member.user.username,
+                        no_upgrades: 15,
+                        non_3_lap: 5,
+                        skips: 25,
+                        winnings: 1
+                    }
+                    profileref.child(member).set(data)
+                }
                 if (winnings == undefined) {
                     if (profiledata[member].winnings !== undefined) {
                         winnings = profiledata[member].winnings
