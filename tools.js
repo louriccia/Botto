@@ -290,14 +290,14 @@ module.exports = {
             var avg_mudeaths = getAvg(mudeaths)
             var avg_nudeaths = getAvg(nudeaths)
             var avg_skdeaths = getAvg(skdeaths)
-            trackEmbed.addField("Max Upgrades", "[**3-Lap WR**](" + mu.weblink + ")\n" + wrmu + "[**1-Lap WR**](" +mu1.weblink + ")\n" + wrmu1+ "\n[**Tourney Record**](https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing)\n" + tourney_mu + "\n" + avg_mudeaths,true)
-            trackEmbed.addField("No Upgrades", "[**3-Lap WR**](" + nu.weblink + ")\n" + wrnu + "[**1-Lap WR**](" +nu1.weblink + ")\n" + wrnu1+ "\n[**Tourney Record**](https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing)\n" + tourney_nu + "\n" + avg_nudeaths,true)
+            trackEmbed.addField("Max Upgrades", "[**3-Lap WR**](" + /*mu.weblink +*/ ")\n" + wrmu + "[**1-Lap WR**](" + /*mu1.weblink + */  ")\n" + wrmu1+ "\n[**Tourney Record**](https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing)\n" + tourney_mu + "\n" + avg_mudeaths,true)
+            trackEmbed.addField("No Upgrades", "[**3-Lap WR**](" + /*nu.weblink +*/ ")\n" + wrnu + "[**1-Lap WR**](" + /*nu1.weblink + */")\n" + wrnu1+ "\n[**Tourney Record**](https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing)\n" + tourney_nu + "\n" + avg_nudeaths,true)
             if(wrsk !== "" || wrsk1 !== "" || tourney_sk !== "") {
                 if(wrsk !== ""){
-                    wrsk = "[**3-Lap WR**](" + sk.weblink + ")\n" + wrsk
+                    wrsk = "[**3-Lap WR**](" + /*sk.weblink +*/  ")\n" + wrsk
                 }
                 if(wrsk1 !== ""){
-                    wrsk1 = "[**1-Lap WR**](" + sk1.weblink + ")\n" + wrsk1
+                    wrsk1 = "[**1-Lap WR**](" + /*sk1.weblink +*/  ")\n" + wrsk1
                 }
                 if(tourney_sk !== ""){
                     tourney_sk = "[**Tourney Record**](https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing)\n" + tourney_sk
