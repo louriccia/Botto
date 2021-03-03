@@ -205,7 +205,7 @@ module.exports = {
                         name = sk.players.data[0].name
                     }
                     var vid = sk.runs[0].run.videos.links[0].uri
-                    wrsk = "[" + newLocal.timefix(sk.runs[0].run.times.primary_t) + "](" + vid + ")\n" + character + " " + name
+                    wrsk = character + "[" + newLocal.timefix(sk.runs[0].run.times.primary_t) + "](" + vid + ")\n" + name
                 }
             }
             for (let j = 0; j<23; j++){
@@ -223,7 +223,7 @@ module.exports = {
                 name = mu.players.data[0].name
             }
             var vid = mu.runs[0].run.videos.links[0].uri
-            wrmu += "[" + newLocal.timefix(mu.runs[0].run.times.primary_t) + "](" + vid + ")\n" + character + " " + name
+            wrmu += character +"[" + newLocal.timefix(mu.runs[0].run.times.primary_t) + "](" + vid + ")\n" + name
             for (let j = 0; j<23; j++){
                 if (nu.runs[0].run.values.j846d94l == racers[j].id) {
                     if (racers[j].hasOwnProperty("flag")) {
@@ -240,7 +240,7 @@ module.exports = {
             }
             var vid = nu.runs[0].run.videos.links[0].uri
 
-            wrnu += "[" + newLocal.timefix(nu.runs[0].run.times.primary_t) + "](" +  vid+ ")\n" + character + " " + name
+            wrnu += character + "[" + newLocal.timefix(nu.runs[0].run.times.primary_t) + "](" +  vid+ ")\n" + name
             
             var tourney_mu = ""
             var tourney_nu = ""
@@ -264,12 +264,12 @@ module.exports = {
                             }
                         } 
                         if (!tourneyfiltered[j].hasOwnProperty("force") && tourney_mu == "") {
-                            tourney_mu = "[" + newLocal.timefix(tourneyfiltered[j].totaltime) + "](" + link + ")\n" + character + " " + tourneyfiltered[j].player
+                            tourney_mu = character + "[" + newLocal.timefix(tourneyfiltered[j].totaltime) + "](" + link + ")\n" + tourneyfiltered[j].player
                         } else {
                             if (tourneyfiltered[j].force == "Skips" && tourney_sk == "") {
-                                tourney_sk = "[" + newLocal.timefix(tourneyfiltered[j].totaltime) + "](" + link + ")\n" + character + " " + tourneyfiltered[j].player
+                                tourney_sk = character + "[" + newLocal.timefix(tourneyfiltered[j].totaltime) + "](" + link + ")\n" + tourneyfiltered[j].player
                             } else if (tourneyfiltered[j].force == "NU" && tourney_nu == "") {
-                                tourney_nu = "[" + newLocal.timefix(tourneyfiltered[j].totaltime) + "](" + link + ")\n" + character + " " + tourneyfiltered[j].player
+                                tourney_nu = character + "[" + newLocal.timefix(tourneyfiltered[j].totaltime) + "](" + link + ")\n"+ tourneyfiltered[j].player
                             }
                         }                       
                     }
@@ -278,8 +278,8 @@ module.exports = {
                     }
                 }
             }
-            trackEmbed.addField("Max Upgrades (MU)", "[**3-Lap WR**](" + mu.weblink + ")\n" + wrmu + "\n[**Tourney Record**](https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing)\n" + tourney_mu,true)
-            trackEmbed.addField("No Upgrades (NU)", "[**3-Lap WR**](" + nu.weblink + ")\n" + wrnu + "\n[**Tourney Record**](https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing)\n" + tourney_nu,true)
+            trackEmbed.addField("Max Upgrades", "[**3-Lap WR**](" + mu.weblink + ")\n" + wrmu + "\n[**Tourney Record**](https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing)\n" + tourney_mu,true)
+            trackEmbed.addField("No Upgrades", "[**3-Lap WR**](" + nu.weblink + ")\n" + wrnu + "\n[**Tourney Record**](https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing)\n" + tourney_nu,true)
             if(wrsk !== "" || tourney_sk !== "") {
                 trackEmbed.addField("Skips", "[**3-Lap WR**](" + sk.weblink + ")\n" + wrsk + "\n[**Tourney Record**](https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing)\n" + tourney_sk,true)
             }
