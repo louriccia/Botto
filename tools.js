@@ -167,13 +167,13 @@ module.exports = {
             .addField("Track Favorite", racers[tracks[numb].favorite].flag + " " + racers[tracks[numb].favorite].name, true)
             .addField("Difficulty",difficulties[tracks[numb].difficulty].name, true)
             .addField("Length",tracks[numb].lengthclass, true)
-        let muurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-rn1z02dl=klrvnpoq&var-789x6p58=013d38rl" //mu
-        let nuurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-rn1z02dl=21d9rzpq&var-789x6p58=013d38rl" //nu
-        let skurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&&var-789x6p58=rqvg3prq" //sku
+        let muurl = 'https://www.speedrun.com/api/v1/leaderboards/9d8wr6dn/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-rn1z02dl=klrvnpoq&var-789x6p58=013d38rl" //mu
+        let nuurl = 'https://www.speedrun.com/api/v1/leaderboards/9d8wr6dn/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-rn1z02dl=21d9rzpq&var-789x6p58=013d38rl" //nu
+        let skurl = 'https://www.speedrun.com/api/v1/leaderboards/9d8wr6dn/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&&var-789x6p58=rqvg3prq" //sku
+        let muurl1 = 'https://www.speedrun.com/api/v1/leaderboards/9d8wr6dn/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-rn1z02dl=klrvnpoq&var-789x6p58=013d38rl" //mu
+        let nuurl1 = 'https://www.speedrun.com/api/v1/leaderboards/9d8wr6dn/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-rn1z02dl=21d9rzpq&var-789x6p58=013d38rl" //nu
+        let skurl1 = 'https://www.speedrun.com/api/v1/leaderboards/9d8wr6dn/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&&var-789x6p58=rqvg3prq" //sku
         let settings = {method: "Get"}
-        var wrmu = ""
-        var wrnu = ""
-        var wrsk = ""
         const newLocal = this;
         async function getwrData() {
             try {
@@ -186,12 +186,20 @@ module.exports = {
             const response3 = await fetch(skurl);
             const data3 = await response3.json();
             var sk = data3.data
-            var character = ""
-            var name = ""
-            if (sk.hasOwnProperty("runs") && sk.runs.length > 0) {
-                if (sk.runs[0].hasOwnProperty("run")) {
+            const response4 = await fetch(muurl1);
+            const data4 = await response4.json();
+            var mu1 = data4.data
+            const response5 = await fetch(nuurl1);
+            const data5 = await response5.json();
+            var nu1 = data5.data
+            const response6 = await fetch(skurl1);
+            const data6 = await response6.json();
+            var sk1 = data6.data
+            function getRecord(record){
+                if(record.runs[0].hasOwnProperty("run")){
+                    var character = "", name = ""
                     for (let j = 0; j<23; j++){
-                        if (sk.runs[0].run.values.j846d94l == racers[j].id) {
+                        if (record.runs[0].run.values.j846d94l == racers[j].id) {
                             if (racers[j].hasOwnProperty("flag")) {
                                 character = racers[j].flag
                             } else {
@@ -199,52 +207,25 @@ module.exports = {
                             }
                         }
                     } 
-                    if (sk.players.data[0].hasOwnProperty("names")) {
-                        name = sk.players.data[0].names.international
+                    if (record.players.data[0].hasOwnProperty("names")) {
+                        name = record.players.data[0].names.international
                     } else {
-                        name = sk.players.data[0].name
+                        name = record.players.data[0].name
                     }
-                    var vid = sk.runs[0].run.videos.links[0].uri
-                    wrsk = character + "[" + newLocal.timefix(sk.runs[0].run.times.primary_t) + "](" + vid + ")\n" + name
+                    var vid = record.runs[0].run.videos.links[0].uri
+                    return character + "  [" + newLocal.timefix(record.runs[0].run.times.primary_t) + "](" + vid + ")\n" + name
+                } else {
+                    return ""
                 }
             }
-            for (let j = 0; j<23; j++){
-                if (mu.runs[0].run.values.j846d94l == racers[j].id) {
-                    if (racers[j].hasOwnProperty("flag")) {
-                        character = racers[j].flag
-                    } else {
-                        character = racers[j].name
-                    }
-                }
-            } 
-            if (mu.players.data[0].hasOwnProperty("names")) {
-                name = mu.players.data[0].names.international
-            } else {
-                name = mu.players.data[0].name
-            }
-            var vid = mu.runs[0].run.videos.links[0].uri
-            wrmu += character +"[" + newLocal.timefix(mu.runs[0].run.times.primary_t) + "](" + vid + ")\n" + name
-            for (let j = 0; j<23; j++){
-                if (nu.runs[0].run.values.j846d94l == racers[j].id) {
-                    if (racers[j].hasOwnProperty("flag")) {
-                        character = racers[j].flag
-                    } else {
-                        character = racers[j].name
-                    }
-                }
-            } 
-            if (nu.players.data[0].hasOwnProperty("names")) {
-                name = nu.players.data[0].names.international
-            } else {
-                name = nu.players.data[0].name
-            }
-            var vid = nu.runs[0].run.videos.links[0].uri
-
-            wrnu += character + "[" + newLocal.timefix(nu.runs[0].run.times.primary_t) + "](" +  vid+ ")\n" + name
-            
-            var tourney_mu = ""
-            var tourney_nu = ""
-            var tourney_sk = ""
+            var wrsk = getRecord(sk)
+            var wrsk1 = getRecord(sk1)
+            var wrmu = getRecord(mu)
+            var wrmu1 = getRecord(mu1)
+            var wrnu = getRecord(nu)
+            var wrnu1 = getRecord(nu1)            
+            var tourney_mu = "", tourney_nu = "", tourney_sk = ""
+            var mudeaths = [], nudeaths = [], skdeaths = []
             if (tourney.length > 0) {
                 var tourneyfiltered = tourney.filter(element => element.track == tracks[numb].name)
                 for(j=0; j<tourneyfiltered.length; j++){
@@ -263,13 +244,22 @@ module.exports = {
                                 }
                             }
                         } 
-                        if (!tourneyfiltered[j].hasOwnProperty("force") && tourney_mu == "") {
-                            tourney_mu = character + "[" + newLocal.timefix(tourneyfiltered[j].totaltime) + "](" + link + ")\n" + tourneyfiltered[j].player
+                        if (!tourneyfiltered[j].hasOwnProperty("force")) {
+                            mudeaths.push(tourneyfiltered[j].totaldeaths)
+                            if(tourney_mu == ""){
+                                tourney_mu = character + "  [" + newLocal.timefix(tourneyfiltered[j].totaltime) + "](" + link + ")\n" + tourneyfiltered[j].player
+                            }
                         } else {
-                            if (tourneyfiltered[j].force == "Skips" && tourney_sk == "") {
-                                tourney_sk = character + "[" + newLocal.timefix(tourneyfiltered[j].totaltime) + "](" + link + ")\n" + tourneyfiltered[j].player
-                            } else if (tourneyfiltered[j].force == "NU" && tourney_nu == "") {
-                                tourney_nu = character + "[" + newLocal.timefix(tourneyfiltered[j].totaltime) + "](" + link + ")\n"+ tourneyfiltered[j].player
+                            if (tourneyfiltered[j].force == "Skips") {
+                                skdeaths.push(tourneyfiltered[j].totaldeaths)
+                                if(tourney_sk == ""){
+                                    tourney_sk = character + "  [" + newLocal.timefix(tourneyfiltered[j].totaltime) + "](" + link + ")\n" + tourneyfiltered[j].player
+                                }
+                            } else if (tourneyfiltered[j].force == "NU") {
+                                nudeaths.push(tourneyfiltered[j].totaldeaths)
+                                if(tourney_nu == ""){
+                                    tourney_nu = character + "  [" + newLocal.timefix(tourneyfiltered[j].totaltime) + "](" + link + ")\n"+ tourneyfiltered[j].player
+                                }
                             }
                         }                       
                     }
@@ -278,10 +268,33 @@ module.exports = {
                     }
                 }
             }
-            trackEmbed.addField("Max Upgrades", "[**3-Lap WR**](" + mu.weblink + ")\n" + wrmu + "\n[**Tourney Record**](https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing)\n" + tourney_mu,true)
-            trackEmbed.addField("No Upgrades", "[**3-Lap WR**](" + nu.weblink + ")\n" + wrnu + "\n[**Tourney Record**](https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing)\n" + tourney_nu,true)
-            if(wrsk !== "" || tourney_sk !== "") {
-                trackEmbed.addField("Skips", "[**3-Lap WR**](" + sk.weblink + ")\n" + wrsk + "\n[**Tourney Record**](https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing)\n" + tourney_sk,true)
+            function getAvg(array){
+                array_total = 0
+                for(var i = 0; i < array.length; i++) {
+                    array_total += array[i];
+                } 
+                if(array_total > 0){
+                    return "**Average Deaths**\n" + (array_total/array.length).toFixed(2)
+                } else {
+                    return ""
+                }
+            }
+            var avg_mudeaths = getAvg(mudeaths)
+            var avg_nudeaths = getAvg(nudeaths)
+            var avg_skdeaths = getAvg(skdeaths)
+            trackEmbed.addField("Max Upgrades", "[**3-Lap WR**](" + mu.weblink + ")\n" + wrmu + "[**1-Lap WR**](" +mu1.weblink + ")\n" + wrmu1+ "\n[**Tourney Record**](https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing)\n" + tourney_mu + "\n" + avg_mudeaths,true)
+            trackEmbed.addField("No Upgrades", "[**3-Lap WR**](" + nu.weblink + ")\n" + wrnu + "[**1-Lap WR**](" +nu1.weblink + ")\n" + wrnu1+ "\n[**Tourney Record**](https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing)\n" + tourney_nu + "\n" + avg_nudeaths,true)
+            if(wrsk !== "" || wrsk1 !== "" || tourney_sk !== "") {
+                if(wrsk !== ""){
+                    wrsk = "[**3-Lap WR**](" + sk.weblink + ")\n" + wrsk
+                }
+                if(wrsk1 !== ""){
+                    wrsk1 = "[**1-Lap WR**](" + sk1.weblink + ")\n" + wrsk1
+                }
+                if(tourney_sk !== ""){
+                    tourney_sk = "[**Tourney Record**](https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing)\n" + tourney_sk
+                }
+                trackEmbed.addField("Skips", wrsk + "\n" + wrsk1 + "\n" + tourney_sk + "\n" + avg_skdeaths,true)
             }
             client.channels.cache.get(channel).send(trackEmbed).then(sentMessage => {
                 sentMessage.react('⏱️').then(() => {
