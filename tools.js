@@ -168,7 +168,7 @@ module.exports = {
             .addField("Difficulty",difficulties[tracks[numb].difficulty].name, true)
             .addField("Length",tracks[numb].lengthclass, true)
         const newLocal = this;
-        
+        var mu = {}, nu = {}, sk = {}, mu1 = {}, nu1 = {}, sk1 = {}
         client.channels.cache.get(channel).send(trackEmbed).then(sentMessage => {
             let muurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-rn1z02dl=klrvnpoq&var-789x6p58=013d38rl" //mu
             let nuurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-rn1z02dl=21d9rzpq&var-789x6p58=013d38rl" //nu
@@ -181,22 +181,22 @@ module.exports = {
                 try {
                 const response1 = await fetch(muurl);
                 const data1 = await response1.json();
-                var mu = data1.data
+                mu = data1.data
                 const response2 = await fetch(nuurl);
                 const data2 = await response2.json();
-                var nu = data2.data
+                nu = data2.data
                 const response3 = await fetch(skurl);
                 const data3 = await response3.json();
-                var sk = data3.data
+                sk = data3.data
                 const response4 = await fetch(muurl1);
                 const data4 = await response4.json();
-                var mu1 = data4.data
+                mu1 = data4.data
                 const response5 = await fetch(nuurl1);
                 const data5 = await response5.json();
-                var nu1 = data5.data
+                nu1 = data5.data
                 const response6 = await fetch(skurl1);
                 const data6 = await response6.json();
-                var sk1 = data6.data
+                sk1 = data6.data
                 } catch (error) {
                     console.log(error)
                 }
