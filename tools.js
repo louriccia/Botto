@@ -271,9 +271,6 @@ module.exports = {
                             }
                         }                       
                     }
-                    if(![tourney_mu, tourney_nu, tourney_sk].includes("")) {
-                        j = tourneyfiltered.length
-                    }
                 }
             }
             function getAvg(array){
@@ -290,8 +287,14 @@ module.exports = {
             var avg_mudeaths = getAvg(mudeaths)
             var avg_nudeaths = getAvg(nudeaths)
             var avg_skdeaths = getAvg(skdeaths)
-            trackEmbed.addField("Max Upgrades", "[**3-Lap WR**](" + mu.weblink + ")\n" + wrmu + "[**1-Lap WR**](" + mu1.weblink +   ")\n" + wrmu1+ "\n[**Tourney Record**](https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing)\n" + tourney_mu + "\n" + avg_mudeaths,true)
-            trackEmbed.addField("No Upgrades", "[**3-Lap WR**](" + nu.weblink + ")\n" + wrnu + "[**1-Lap WR**](" + nu1.weblink + ")\n" + wrnu1+ "\n[**Tourney Record**](https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing)\n" + tourney_nu + "\n" + avg_nudeaths,true)
+            if(tourney_mu !== ""){
+                tourney_mu = "[**Tourney Record**](https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing)\n" + tourney_mu
+            }
+            if(tourney_nu !== ""){
+                tourney_nu = "[**Tourney Record**](https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing)\n" + tourney_nu
+            }
+            trackEmbed.addField("Max Upgrades", "[**3-Lap WR**](" + mu.weblink + ")\n" + wrmu + "\n[**1-Lap WR**](" + mu1.weblink +   ")\n" + wrmu1+ "\n" + tourney_mu + "\n" + avg_mudeaths,true)
+            trackEmbed.addField("No Upgrades", "[**3-Lap WR**](" + nu.weblink + ")\n" + wrnu + "\n[**1-Lap WR**](" + nu1.weblink + ")\n" + wrnu1+ "\n" + tourney_nu + "\n" + avg_nudeaths,true)
             if(wrsk !== "" || wrsk1 !== "" || tourney_sk !== "") {
                 if(wrsk !== ""){
                     wrsk = "[**3-Lap WR**](" + sk.weblink +  ")\n" + wrsk
