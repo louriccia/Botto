@@ -134,7 +134,7 @@ module.exports = {
         //build embed
             function createEmbed(title, highlight) {
             //calculate goal time
-                var speed = 1, speedmod = tracks[random2].avgspeedmod, length = tracks[random2].length
+                var speed = 1, speedmod = tracks[random2].avgspeedmod, length = tracks[random2].lap.length
                 length = length * laps
                 if (nu) {
                     speed = tools.avgSpeed(racers[random1].max_speed, racers[random1].boost_thrust, racers[random1].heat_rate, racers[random1].cool_rate)

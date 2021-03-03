@@ -237,7 +237,7 @@ module.exports = {
             var vid = nu.runs[0].run.videos.links[0].uri
 
             wr3lap += "[" + newLocal.timefix(nu.runs[0].run.times.primary_t) + "](" +  vid+ ") **| NU**\n" + character + " " + name +"\n"
-            trackEmbed.addField("3-Lap World Records",wr3lap,true)
+            trackEmbed.addField("[3-Lap World Records](" + mu.weblink + ")",wr3lap,true)
             var tourney_mu = ""
             var tourney_nu = ""
             var tourney_sk = ""
@@ -274,7 +274,7 @@ module.exports = {
                     }
                 }
             }
-            trackEmbed.addField("Tourney Records", tourney_sk + "\n" + tourney_mu + "\n" + tourney_nu, true)
+            trackEmbed.addField("[Tourney Records](https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing)", tourney_sk + "\n" + tourney_mu + "\n" + tourney_nu, true)
             client.channels.cache.get(channel).send(trackEmbed).then(sentMessage => {
                 sentMessage.react('⏱️').then(() => {
                     const filter = (reaction, user) => {
