@@ -198,24 +198,28 @@ module.exports = {
             function getRecord(record){
                 if(record !== undefined){
                     if(record.hasOwnProperty("runs")){
-                        if(record.runs[0].hasOwnProperty("run")){
-                            var character = "", name = ""
-                            for (let j = 0; j<23; j++){
-                                if (record.runs[0].run.values.j846d94l == racers[j].id) {
-                                    if (racers[j].hasOwnProperty("flag")) {
-                                        character = racers[j].flag
-                                    } else {
-                                        character = racers[j].name
+                        if(record.runs.length> 0){
+                            if(record.runs[0].hasOwnProperty("run")){
+                                var character = "", name = ""
+                                for (let j = 0; j<23; j++){
+                                    if (record.runs[0].run.values.j846d94l == racers[j].id) {
+                                        if (racers[j].hasOwnProperty("flag")) {
+                                            character = racers[j].flag
+                                        } else {
+                                            character = racers[j].name
+                                        }
                                     }
+                                } 
+                                if (record.players.data[0].hasOwnProperty("names")) {
+                                    name = record.players.data[0].names.international
+                                } else {
+                                    name = record.players.data[0].name
                                 }
-                            } 
-                            if (record.players.data[0].hasOwnProperty("names")) {
-                                name = record.players.data[0].names.international
+                                var vid = record.runs[0].run.videos.links[0].uri
+                                return character + "  [" + newLocal.timefix(record.runs[0].run.times.primary_t) + "](" + vid + ")\n" + name
                             } else {
-                                name = record.players.data[0].name
+                                return ""
                             }
-                            var vid = record.runs[0].run.videos.links[0].uri
-                            return character + "  [" + newLocal.timefix(record.runs[0].run.times.primary_t) + "](" + vid + ")\n" + name
                         } else {
                             return ""
                         }
