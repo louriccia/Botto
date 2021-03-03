@@ -131,6 +131,7 @@ module.exports = {
         var avgspeedmu = this.avgSpeed(topspeed,boost,heatrate,coolrate)
         var avgspeednu = this.avgSpeed(racers[numb].max_speed,boost,heatrate,racers[numb].cool_rate)
         const racerEmbed = new Discord.MessageEmbed()
+            .setURL("https://docs.google.com/spreadsheets/d/1CPF8lfU_iDpLNIJsOWeU8Xg23BzQrxzi3-DEELAgxUA/edit#gid=0")
             .setThumbnail(racers[numb].img)
             .setColor('#00DE45')
             .setTitle(racers[numb].flag + " " + racers[numb].name)
@@ -155,6 +156,7 @@ module.exports = {
             .setFooter(footer)
             .setColor(planets[tracks[numb].planet].color)
             .attachFiles(attachment)
+            .setURL("https://docs.google.com/spreadsheets/d/1CPF8lfU_iDpLNIJsOWeU8Xg23BzQrxzi3-DEELAgxUA/edit#gid=1682683709")
             //.setImage(tracks[numb].img)
             .setImage('attachment://' + (numb+1) + '.png')
             .setTitle(tracks[numb].name)
@@ -169,7 +171,9 @@ module.exports = {
         let nuurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-rn1z02dl=21d9rzpq&var-789x6p58=013d38rl" //nu
         let skurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&&var-789x6p58=rqvg3prq" //sku
         let settings = {method: "Get"}
-        var wr3lap = ""
+        var wrmu = ""
+        var wrnu = ""
+        var wrsk = ""
         const newLocal = this;
         async function getwrData() {
             try {
@@ -201,7 +205,7 @@ module.exports = {
                         name = sk.players.data[0].name
                     }
                     var vid = sk.runs[0].run.videos.links[0].uri
-                    wr3lap += "[" + newLocal.timefix(sk.runs[0].run.times.primary_t) + "](" + vid + ") **| Skips**\n" + character + " " + name  +"\n"
+                    wrsk = "[" + newLocal.timefix(sk.runs[0].run.times.primary_t) + "](" + vid + ")\n" + character + " " + name
                 }
             }
             for (let j = 0; j<23; j++){
@@ -219,7 +223,7 @@ module.exports = {
                 name = mu.players.data[0].name
             }
             var vid = mu.runs[0].run.videos.links[0].uri
-            wr3lap += "[" + newLocal.timefix(mu.runs[0].run.times.primary_t) + "](" + vid + ") **| MU**\n" + character + " " + name +"\n"
+            wrmu += "[" + newLocal.timefix(mu.runs[0].run.times.primary_t) + "](" + vid + ")\n" + character + " " + name
             for (let j = 0; j<23; j++){
                 if (nu.runs[0].run.values.j846d94l == racers[j].id) {
                     if (racers[j].hasOwnProperty("flag")) {
@@ -236,8 +240,8 @@ module.exports = {
             }
             var vid = nu.runs[0].run.videos.links[0].uri
 
-            wr3lap += "[" + newLocal.timefix(nu.runs[0].run.times.primary_t) + "](" +  vid+ ") **| NU**\n" + character + " " + name +"\n"
-            trackEmbed.addField("[3-Lap World Records](" + mu.weblink + ")",wr3lap,true)
+            wrnu += "[" + newLocal.timefix(nu.runs[0].run.times.primary_t) + "](" +  vid+ ")\n" + character + " " + name
+            
             var tourney_mu = ""
             var tourney_nu = ""
             var tourney_sk = ""
@@ -260,12 +264,12 @@ module.exports = {
                             }
                         } 
                         if (!tourneyfiltered[j].hasOwnProperty("force") && tourney_mu == "") {
-                            tourney_mu = "[" + newLocal.timefix(tourneyfiltered[j].totaltime) + "](" + link + ") **| MU**\n" + character + " " + tourneyfiltered[j].player
+                            tourney_mu = "[" + newLocal.timefix(tourneyfiltered[j].totaltime) + "](" + link + ")\n" + character + " " + tourneyfiltered[j].player
                         } else {
                             if (tourneyfiltered[j].force == "Skips" && tourney_sk == "") {
-                                tourney_sk = "[" + newLocal.timefix(tourneyfiltered[j].totaltime) + "](" + link + ") **| Skips**\n" + character + " " + tourneyfiltered[j].player
+                                tourney_sk = "[" + newLocal.timefix(tourneyfiltered[j].totaltime) + "](" + link + ")\n" + character + " " + tourneyfiltered[j].player
                             } else if (tourneyfiltered[j].force == "NU" && tourney_nu == "") {
-                                tourney_nu = "[" + newLocal.timefix(tourneyfiltered[j].totaltime) + "](" + link + ") **| NU**\n" + character + " " + tourneyfiltered[j].player
+                                tourney_nu = "[" + newLocal.timefix(tourneyfiltered[j].totaltime) + "](" + link + ")\n" + character + " " + tourneyfiltered[j].player
                             }
                         }                       
                     }
@@ -274,7 +278,11 @@ module.exports = {
                     }
                 }
             }
-            trackEmbed.addField("[Tourney Records](https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing)", tourney_sk + "\n" + tourney_mu + "\n" + tourney_nu, true)
+            trackEmbed.addField("Max Upgrades (MU)", "[**3-Lap WR**](" + mu.weblink + ")\n" + wrmu + "\n[**Tourney Record**](https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing)\n" + tourney_mu,true)
+            trackEmbed.addField("No Upgrades (NU)", "[**3-Lap WR**](" + nu.weblink + ")\n" + wrnu + "\n[**Tourney Record**](https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing)\n" + tourney_nu,true)
+            if(wrsk !== "" || tourney_sk !== "") {
+                trackEmbed.addField("Skips", "[**3-Lap WR**](" + sk.weblink + ")\n" + wrsk + "\n[**Tourney Record**](https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing)\n" + tourney_sk,true)
+            }
             client.channels.cache.get(channel).send(trackEmbed).then(sentMessage => {
                 sentMessage.react('⏱️').then(() => {
                     const filter = (reaction, user) => {
