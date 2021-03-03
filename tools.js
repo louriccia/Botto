@@ -167,12 +167,12 @@ module.exports = {
             .addField("Track Favorite", racers[tracks[numb].favorite].flag + " " + racers[tracks[numb].favorite].name, true)
             .addField("Difficulty",difficulties[tracks[numb].difficulty].name, true)
             .addField("Length",tracks[numb].lengthclass, true)
-        let muurl = 'https://www.speedrun.com/api/v1/leaderboards/9d8wr6dn/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-rn1z02dl=klrvnpoq&var-789x6p58=013d38rl" //mu
-        let nuurl = 'https://www.speedrun.com/api/v1/leaderboards/9d8wr6dn/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-rn1z02dl=21d9rzpq&var-789x6p58=013d38rl" //nu
-        let skurl = 'https://www.speedrun.com/api/v1/leaderboards/9d8wr6dn/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&&var-789x6p58=rqvg3prq" //sku
-        let muurl1 = 'https://www.speedrun.com/api/v1/leaderboards/9d8wr6dn/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-rn1z02dl=klrvnpoq&var-789x6p58=013d38rl" //mu
-        let nuurl1 = 'https://www.speedrun.com/api/v1/leaderboards/9d8wr6dn/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-rn1z02dl=21d9rzpq&var-789x6p58=013d38rl" //nu
-        let skurl1 = 'https://www.speedrun.com/api/v1/leaderboards/9d8wr6dn/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&&var-789x6p58=rqvg3prq" //sku
+        let muurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-rn1z02dl=klrvnpoq&var-789x6p58=013d38rl" //mu
+        let nuurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-rn1z02dl=21d9rzpq&var-789x6p58=013d38rl" //nu
+        let skurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&&var-789x6p58=rqvg3prq" //sku
+        let muurl1 = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/9d8wr6dn?top=1&embed=players&var-rn1z02dl=klrvnpoq&var-789x6p58=013d38rl" //mu
+        let nuurl1 = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/9d8wr6dn?top=1&embed=players&var-rn1z02dl=21d9rzpq&var-789x6p58=013d38rl" //nu
+        let skurl1 = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/9d8wr6dn?top=1&embed=players&&var-789x6p58=rqvg3prq" //sku
         let settings = {method: "Get"}
         const newLocal = this;
         async function getwrData() {
@@ -282,7 +282,7 @@ module.exports = {
                     array_total += array[i];
                 } 
                 if(array_total > 0){
-                    return "**Average Deaths**\n" + (array_total/array.length).toFixed(2)
+                    return "**Avg. Deaths**\n" + (array_total/array.length).toFixed(2)
                 } else {
                     return ""
                 }
@@ -290,14 +290,14 @@ module.exports = {
             var avg_mudeaths = getAvg(mudeaths)
             var avg_nudeaths = getAvg(nudeaths)
             var avg_skdeaths = getAvg(skdeaths)
-            trackEmbed.addField("Max Upgrades", "[**3-Lap WR**](" + /*mu.weblink +*/ ")\n" + wrmu + "[**1-Lap WR**](" + /*mu1.weblink + */  ")\n" + wrmu1+ "\n[**Tourney Record**](https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing)\n" + tourney_mu + "\n" + avg_mudeaths,true)
-            trackEmbed.addField("No Upgrades", "[**3-Lap WR**](" + /*nu.weblink +*/ ")\n" + wrnu + "[**1-Lap WR**](" + /*nu1.weblink + */")\n" + wrnu1+ "\n[**Tourney Record**](https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing)\n" + tourney_nu + "\n" + avg_nudeaths,true)
+            trackEmbed.addField("Max Upgrades", "[**3-Lap WR**](" + mu.weblink + ")\n" + wrmu + "[**1-Lap WR**](" + mu1.weblink +   ")\n" + wrmu1+ "\n[**Tourney Record**](https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing)\n" + tourney_mu + "\n" + avg_mudeaths,true)
+            trackEmbed.addField("No Upgrades", "[**3-Lap WR**](" + nu.weblink + ")\n" + wrnu + "[**1-Lap WR**](" + nu1.weblink + ")\n" + wrnu1+ "\n[**Tourney Record**](https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing)\n" + tourney_nu + "\n" + avg_nudeaths,true)
             if(wrsk !== "" || wrsk1 !== "" || tourney_sk !== "") {
                 if(wrsk !== ""){
-                    wrsk = "[**3-Lap WR**](" + /*sk.weblink +*/  ")\n" + wrsk
+                    wrsk = "[**3-Lap WR**](" + sk.weblink +  ")\n" + wrsk
                 }
                 if(wrsk1 !== ""){
-                    wrsk1 = "[**1-Lap WR**](" + /*sk1.weblink +*/  ")\n" + wrsk1
+                    wrsk1 = "[**1-Lap WR**](" + sk1.weblink +  ")\n" + wrsk1
                 }
                 if(tourney_sk !== ""){
                     tourney_sk = "[**Tourney Record**](https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing)\n" + tourney_sk
