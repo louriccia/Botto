@@ -1,0 +1,216 @@
+module.exports = {
+    name: 'scrape',
+    execute(client, interaction, args) {
+        const fetch = require('node-fetch');
+        const fs = require('fs');
+        const rp = require('request-promise');
+        const $ = require('cheerio');
+        const charts = [];
+        const all = [];
+
+        var firebase = require("firebase/app");
+        require('firebase/auth');
+        require('firebase/database');
+        var database = firebase.database();
+        var cs_ref = database.ref('records/cs');
+        cs_ref.on("value", function(snapshot) {
+            cs_data = snapshot.val();
+        }, function (errorObject) {
+            console.log("The read failed: " + errorObject.code);
+        });
+        var src_ref = database.ref('records/src');
+        src_ref.on("value", function(snapshot) {
+            src_data = snapshot.val();
+        }, function (errorObject) {
+            console.log("The read failed: " + errorObject.code);
+        });
+
+
+        //src scraper
+        let url = 'https://www.speedrun.com/api/v1/runs?game=m1mmex12&embed=players&max=200'
+        let settings = { method: "Get" }
+        async function getsrcData(url) {
+            //try {
+            const response = await fetch(url);
+            const data = await response.json();
+            var src = data.data
+            var runs = []
+            for (let i = 0; i < src.length; i++) {
+                var name = ""
+                var video = ""
+                var user = ""
+                if (src[i].players.data.length > 0) {
+                    if (src[i].players.data[0].hasOwnProperty("names")) {
+                        name = src[i].players.data[0].names.international
+                    } else {
+                        name = src[i].players.data[0].name
+                    }
+                    user = src[i].players.data[0].weblink
+                } else {
+                    name = "deleted"
+                }
+                if (src[i].hasOwnProperty("videos")) {
+                    if (src[i].videos !== null) {
+                        if (src[i].videos.hasOwnProperty("links")) {
+                            if (src[i].videos.links.length > 0) {
+                                video = src[i].videos.links[0].uri
+                            }
+                        }
+                    }
+                }
+                var run = {
+                    name: name,
+                    user: user,
+                    cat: src[i].category,
+                    track: src[i].level,
+                    racer: src[i].values.j846d94l,
+                    date: src[i].submitted,
+                    system: src[i].system.platform,
+                    time: src[i].times.primary_t,
+                    proof: video,
+                    record: src[i].weblink
+                }
+                src_ref.push(run)
+            }
+            return runs
+        }
+
+        const forLoop = async _ => {
+            var bulk = []
+            for (let index = 0; index < 20; index++) {
+                const offset = 200 * index
+                const link = url + "&offset=" + offset
+                console.log(link)
+                const get = await getsrcData(link)
+                if (!get.length > 0) {
+                    index = 20
+                }
+                //bulk.push(get)
+            }
+            console.log('got src times')
+        }
+        forLoop()
+
+        //cyberscore scraper
+        const url1 = 'https://www.cyberscore.me.uk/game/191';
+        function getTimes(url) {
+            return rp(url)
+                .then(function (html) {
+                    var table = $('.zebra', html)
+                    var times = []
+                    $('tr', table).each((i, elem) => {
+                        var text = $('td', elem).text().split(/\n/)
+                        var date = ""
+                        if (text[0].startsWith("First submission") || text[0].startsWith("Updated")) {
+                            date = text[0].replace("First submission", "").replace("Updated", "").trim()
+                            var data = {
+                                time: text[1].slice(0, -2).replace(/\t/g, ""),
+                                date: date.replace(" ", "T") + "Z"
+                            }
+                            times.push(data)
+                        }
+                    })
+                    return times
+                })
+        }
+
+        function getRunData(url) {
+            return rp("https://www.cyberscore.me.uk" + url)
+                .then(function (html) {
+                    var runs = []
+                    var table = $('.scoreboard', html)
+                    var text0 = $('.groupname', html).text().split("–")
+                    var cat = ""
+                    var track = text0[text0.length - 1].trim()
+                    if (text0[0].startsWith("3-Lap")) {
+                        cat = "3lap"
+                    } else if (text0[0].startsWith("Best")) {
+                        cat = "flap"
+                    }
+                    console.log('getting ' + cat + " times for " + track)
+                    $('tr', table).each((i, elem) => {
+                        var text = $('.name', elem).text().split(/\n/)
+                        var text2 = text[4].split("on")
+                        var text3 = $('.data', elem).text().trim().split(/\n/)
+                        var links = $('a', elem)
+                        var records = links[links.length - 1].attribs.href
+                        var proof = links[links.length - 2].attribs.href
+                        if (proof.startsWith("/proofs")) {
+                            proof = "https://www.cyberscore.me.uk" + proof
+                        } else if (proof.startsWith("/user")) {
+                            proof = ""
+                        }
+                        var data = {
+                            name: text[1].match(/“([\w ]+)”/g).toString().replace("“", "").replace("”", ""),
+                            user: 'https://www.cyberscore.me.uk' + $('.name > a', elem).attr('href'), //.attribs.href,
+                            cat: cat,
+                            track: track,
+                            racer: text2[0].replace("Using ", "").trim(),
+                            date: text[3].replace(" –", "").trim(),
+                            system: text2[1].trim(),
+                            time: text3[0],
+                            proof: proof, //.attribs.href
+                            records: records
+                        }
+                        runs.push(data)
+
+                    })
+                    Promise.all(runs)
+                        .then(result => {
+                            var arr = []
+                            for (i = 0; i < result.length; i++) {
+                                arr.push(getTimes('https://www.cyberscore.me.uk' + result[i].records))
+                            }
+                            //getTimes('https://www.cyberscore.me.uk' + data.records)
+                            Promise.all(arr).then(async function (times) {
+                                var all_runs = []
+                                for (var i = 0; i < times.length; i++) {
+                                    for (var j = 0; j < times[i].length; j++) {
+                                        var data = { ...runs[i] }
+                                        data.time = times[i][j].time
+                                        data.date = times[i][j].date
+                                        cs_ref.push(data)
+                                        runs[i].proof = ""
+                                    }
+                                }
+                                return all_runs
+
+                            })
+                                .catch(function (err) {
+                                    console.log('error getting times')
+                                });
+                        })
+                })
+                .catch(function (err) {
+                    console.log('error getting run data')
+                });
+        }
+
+        const getit = url => {
+            return new Promise(resolve => getRunData(url).then(data => {
+                resolve()
+            }))
+        }
+
+        rp(url1)
+            .then(function (html) {
+                for (let i = 0; i < 50; i++) {
+                    charts.push($('.chartname > a', html)[i].attribs.href)
+                }
+                Promise.all(charts)
+                    .then(async function (chart) {
+                        const forLoop = async _ => {
+                            console.log('start')
+                            for (let c = 0; c < charts.length; c++) {
+                                const get = charts[c]
+                                const get1 = await getit(charts[c])
+                                all.push(get1)
+                            }
+                            console.log('end')
+                        }
+                        forLoop()
+                    });
+            })
+    }
+
+}
