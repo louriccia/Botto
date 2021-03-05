@@ -91,7 +91,7 @@ client.once('ready', () => {
     client.user.setActivity("/help"); 
     //client.users.cache.get("256236315144749059").send("Ready!")
     client.channels.cache.get("444208252541075476").send("Ready!");
-    client.commands.get("scrape").execute(client, interaction, args);
+    client.commands.get("scrape").execute();
 })
 
 client.on("error", (e) => {
