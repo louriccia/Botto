@@ -231,7 +231,7 @@ module.exports = {
                         .then(result => {
                             var arr = []
                             for (i = 0; i < result.length; i++) {
-                                arr.push(getTimes(result[i].records))
+                                arr.push(getTimes(result[i].record))
                             }
                             //getTimes('https://www.cyberscore.me.uk' + data.records)
                             Promise.all(arr).then(async function (times) {
