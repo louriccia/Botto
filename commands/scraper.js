@@ -25,112 +25,126 @@ module.exports = {
             console.log("The read failed: " + errorObject.code);
         });
         cs_ref.remove()
-        src_ref.remove()
+        //src_ref.remove()
 
         //src scraper
         let url = 'https://www.speedrun.com/api/v1/runs?game=m1mmex12&embed=players&max=200'
         let settings = { method: "Get" }
+        var src_count = 0
         async function getsrcData(url) {
             //try {
             const response = await fetch(url);
             const data = await response.json();
             var src = data.data
             var runs = []
+            
             for (let i = 0; i < src.length; i++) {
-                var name = ""
-                var video = ""
-                var user = ""
-                var racer = ""
-                if (src[i].players.data.length > 0) {
-                    if (src[i].players.data[0].hasOwnProperty("names")) {
-                        name = src[i].players.data[0].names.international
-                        user = src[i].players.data[0].weblink
-                    } else {
-                        name = src[i].players.data[0].name
+                var rcrds = Object.values(src_data)
+                var exists = false
+                for(let k =0; k<rcrds.length; k++){
+                    if(rcrds[k].record == src[i].weblink){
+                        exists = true
+                        k = rcrds.length
                     }
-                } else {
-                    name = "deleted"
                 }
-                if (src[i].hasOwnProperty("videos")) {
-                    if (src[i].videos !== null) {
-                        if (src[i].videos.hasOwnProperty("links")) {
-                            if (src[i].videos.links.length > 0) {
-                                video = src[i].videos.links[0].uri
+                if(!exists){
+                    var name = ""
+                    var video = ""
+                    var user = ""
+                    var racer = ""
+                    if (src[i].players.data.length > 0) {
+                        if (src[i].players.data[0].hasOwnProperty("names")) {
+                            name = src[i].players.data[0].names.international
+                            user = src[i].players.data[0].weblink
+                        } else {
+                            name = src[i].players.data[0].name
+                        }
+                    } else {
+                        name = "deleted"
+                    }
+                    if (src[i].hasOwnProperty("videos")) {
+                        if (src[i].videos !== null) {
+                            if (src[i].videos.hasOwnProperty("links")) {
+                                if (src[i].videos.links.length > 0) {
+                                    video = src[i].videos.links[0].uri
+                                }
                             }
                         }
                     }
-                }
-                if (src[i].values.hasOwnProperty("j846d94l")){
-                    racer = src[i].values.j846d94l
-                    for(let i = 0; i<racers.length; i++){
-                        if(racer == racers[i].id){
-                            racer = i
+                    if (src[i].values.hasOwnProperty("j846d94l")){
+                        racer = src[i].values.j846d94l
+                        for(let i = 0; i<racers.length; i++){
+                            if(racer == racers[i].id){
+                                racer = i
+                            }
                         }
                     }
-                }
-                var track = src[i].level
-                if(![null, ""].includes(track)){
-                    for(let i = 0; i<tracks.length; i++){
-                        if(track == tracks[i].id){
-                            track = i
+                    var track = src[i].level
+                    if(![null, ""].includes(track)){
+                        for(let i = 0; i<tracks.length; i++){
+                            if(track == tracks[i].id){
+                                track = i
+                            }
                         }
                     }
-                }
-                var skips = ""
-                if(src[i].values.hasOwnProperty("789x6p58")){
-                    if(src[i].values["789x6p58"] == "rqvg3prq") {
-                        skips = true
-                    } else if(src[i].values["789x6p58"] == "013d38rl") {
-                        skips = false
+                    var skips = ""
+                    if(src[i].values.hasOwnProperty("789x6p58")){
+                        if(src[i].values["789x6p58"] == "rqvg3prq") {
+                            skips = true
+                        } else if(src[i].values["789x6p58"] == "013d38rl") {
+                            skips = false
+                        }
+                    } else if (src[i].values.hasOwnProperty("onv6p08m")){
+                        if(src[i].values["onv6p08m"] == "21gjrx1z") {
+                            skips = true
+                        } else if(src[i].values["onv6p08m"] == "5lmxzy1v") {
+                            skips = false
+                        }
                     }
-                } else if (src[i].values.hasOwnProperty("onv6p08m")){
-                    if(src[i].values["onv6p08m"] == "21gjrx1z") {
-                        skips = true
-                    } else if(src[i].values["onv6p08m"] == "5lmxzy1v") {
-                        skips = false
+                    var upgrades = ""
+                    if(src[i].values.hasOwnProperty("rn1z02dl")){
+                        if(src[i].values["rn1z02dl"] == "klrvnpoq") {
+                            upgrades = true
+                        } else if(src[i].values["rn1z02dl"] == "21d9rzpq") {
+                            upgrades = false
+                        }
+                    } else if (src[i].values.hasOwnProperty("789k45lw")){
+                        if(src[i].values["789k45lw"] == "gq7nen1p") {
+                            upgrades = true
+                        } else if(src[i].values["789k45lw"] == "9qjzj014") {
+                            upgrades = false
+                        }
                     }
-                }
-                var upgrades = ""
-                if(src[i].values.hasOwnProperty("rn1z02dl")){
-                    if(src[i].values["rn1z02dl"] == "klrvnpoq") {
-                        upgrades = true
-                    } else if(src[i].values["rn1z02dl"] == "21d9rzpq") {
-                        upgrades = false
+                    var sys = {"8gej2n93": "PC", "w89rwelk": "N64","v06d394z": "DC", "7m6ylw9p": "Switch","nzelkr6q":"PS4", "o7e2mx6w":"Xbox"}
+                    var system = src[i].system.platform
+                    if(system !== null && system !== undefined){system = sys[system]}
+                    var cats = {"xk9634k0": "Any%", "mkeoyg6d": "Semi-Pro Circuit", "7dg8ywp2": "Amateur Circuit", "n2yqxo7k": "100%", "w20zml5d": "All Tracks NG+", "824owmd5": "3Lap", "9d8wr6dn": "1Lap"}
+                    var cat = src[i].category
+                    if(cat !== null && cat !== undefined){cat = cats[cat]}
+                    if(cat == undefined){ cat = null}
+                    var time = src[i].times.primary_t
+                    var status = src[i].status.status
+                    var run = {
+                        name: name,
+                        user: user,
+                        cat: cat,
+                        track: track,
+                        racer: racer,
+                        upgrades: upgrades,
+                        skips: skips,
+                        date: src[i].submitted,
+                        platform: system,
+                        time: time,
+                        proof: video,
+                        record: src[i].weblink
                     }
-                } else if (src[i].values.hasOwnProperty("789k45lw")){
-                    if(src[i].values["789k45lw"] == "gq7nen1p") {
-                        upgrades = true
-                    } else if(src[i].values["789k45lw"] == "9qjzj014") {
-                        upgrades = false
+                    if(status !== "rejected"){
+                        src_ref.push(run)
+                        src_count += 1
                     }
+                    runs.push(run)
                 }
-                var sys = {"8gej2n93": "PC", "w89rwelk": "N64","v06d394z": "DC", "7m6ylw9p": "Switch","nzelkr6q":"PS4", "o7e2mx6w":"Xbox"}
-                var system = src[i].system.platform
-                if(system !== null && system !== undefined){system = sys[system]}
-                var cats = {"xk9634k0": "Any%", "mkeoyg6d": "Semi-Pro Circuit", "7dg8ywp2": "Amateur Circuit", "n2yqxo7k": "100%", "w20zml5d": "All Tracks NG+", "824owmd5": "3Lap", "9d8wr6dn": "1Lap"}
-                var cat = src[i].category
-                if(cat !== null && cat !== undefined){cat = cats[cat]}
-                if(cat == undefined){ cat = null}
-                var time = src[i].times.primary_t
-                var status = src[i].status.status
-                var run = {
-                    name: name,
-                    user: user,
-                    cat: cat,
-                    track: track,
-                    racer: racer,
-                    upgrades: upgrades,
-                    skips: skips,
-                    date: src[i].submitted,
-                    platform: system,
-                    time: time,
-                    proof: video,
-                    record: src[i].weblink
-                }
-                if(status !== "rejected"){
-                    src_ref.push(run)
-                }
-                runs.push(run)
+                
             }
             return runs
         }
@@ -147,7 +161,7 @@ module.exports = {
                 }
                 //bulk.push(get)
             }
-            console.log('got ' + Object.keys(src_data).length + ' records from src')
+            console.log('updated ' + src_count + ' records from src')
         }
         forLoop()
 
@@ -243,6 +257,7 @@ module.exports = {
                                         data.date = times[i][j].date
                                         cs_ref.push(data)
                                         runs[i].proof = ""
+                                        runs[i].racer = ""
                                     }
                                 }
                                 return all_runs
