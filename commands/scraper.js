@@ -2,7 +2,6 @@ module.exports = {
     name: 'scrape',
     execute(client, interaction, args) {
         const fetch = require('node-fetch');
-        const fs = require('fs');
         const rp = require('request-promise');
         const $ = require('cheerio');
         const charts = [];
@@ -77,7 +76,8 @@ module.exports = {
                     }
                 }
                 var sys = {"8gej2n93": "PC", "w89rwelk": "N64","v06d394z": "DC", "7m6ylw9p": "Switch","nzelkr6q":"PS4", "o7e2mx6w":"Xbox"}
-                var system = sys[src[i].system.platform]
+                var system = src[i].system.platform
+                if(system !== null && system !== undefined){system = sys[system]}
                 var cats = {"xk9634k0": "Any%", "mkeoyg6d": "Semi-Pro Circuit", "7dg8ywp2": "Amateur Circuit", "n2yqxo7k": "100%", "w20zml5d": "All Tracks NG+", "824owmd5": "3Lap", "9d8wr6dn": "1Lap"}
                 var cat = cats[src[i].category]
                 var time = src[i].times.primary_t
@@ -88,7 +88,7 @@ module.exports = {
                     track: track,
                     racer: racer,
                     date: src[i].submitted,
-                    system: system,
+                    platform: system,
                     time: time,
                     proof: video,
                     record: src[i].weblink
