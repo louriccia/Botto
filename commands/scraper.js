@@ -24,7 +24,8 @@ module.exports = {
         }, function (errorObject) {
             console.log("The read failed: " + errorObject.code);
         });
-
+        cs_ref.remove()
+        src_ref.remove()
 
         //src scraper
         let url = 'https://www.speedrun.com/api/v1/runs?game=m1mmex12&embed=players&max=200'
