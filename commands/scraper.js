@@ -152,7 +152,7 @@ module.exports = {
                     var cat = ""
                     var track = text0[text0.length - 1].trim().replace("’", "'")
                     for(let i = 0; i<tracks.length; i++){
-                        if(track.toLowerCase() == tracks[i].name.toLowerCase()){
+                        if(String(track).toLowerCase() == tracks[i].name.toLowerCase()){
                             track = i
                         }
                     }
