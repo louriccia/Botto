@@ -150,7 +150,7 @@ module.exports = {
                     var table = $('.scoreboard', html)
                     var text0 = $('.groupname', html).text().split("–")
                     var cat = ""
-                    var track = text0[text0.length - 1].trim()
+                    var track = text0[text0.length - 1].trim().replace("’", "'")
                     for(let i = 0; i<tracks.length; i++){
                         if(track.toLowerCase() == tracks[i].name.toLowerCase()){
                             track = i
@@ -222,9 +222,9 @@ module.exports = {
                                 });
                         })
                 })
-                .catch(function (err) {
-                    console.log('error getting run data')
-                });
+                //.catch(function (err) {
+                //    console.log('error getting run data')
+                //});
         }
 
         const getit = url => {
