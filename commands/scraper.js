@@ -43,10 +43,10 @@ module.exports = {
                 if (src[i].players.data.length > 0) {
                     if (src[i].players.data[0].hasOwnProperty("names")) {
                         name = src[i].players.data[0].names.international
+                        user = src[i].players.data[0].weblink
                     } else {
                         name = src[i].players.data[0].name
                     }
-                    user = src[i].players.data[0].weblink
                 } else {
                     name = "deleted"
                 }
