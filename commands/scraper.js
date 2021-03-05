@@ -82,6 +82,7 @@ module.exports = {
                 var cat = src[i].category
                 if(cat !== null && cat !== undefined){cat = cats[cat]}
                 var time = src[i].times.primary_t
+                var status = src[i].status.status
                 var run = {
                     name: name,
                     user: user,
@@ -94,7 +95,9 @@ module.exports = {
                     proof: video,
                     record: src[i].weblink
                 }
-                src_ref.push(run)
+                if(status !== "rejected"){
+                    src_ref.push(run)
+                }
                 runs.push(run)
             }
             return runs
