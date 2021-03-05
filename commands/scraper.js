@@ -61,20 +61,39 @@ module.exports = {
                 }
                 if (src[i].values.hasOwnProperty("j846d94l")){
                     racer = src[i].values.j846d94l
+                    for(let i = 0; i<racers.length; i++){
+                        if(racer == racers[i].id){
+                            racer = i
+                        }
+                    }
                 }
+                var track = src[i].level
+                if(![null, ""].includes(track)){
+                    for(let i = 0; i<tracks.length; i++){
+                        if(track == tracks[i].id){
+                            track = i
+                        }
+                    }
+                }
+                var sys = {"8gej2n93": "PC", "w89rwelk": "N64","v06d394z": "DC", "7m6ylw9p": "Switch","nzelkr6q":"PS4", "o7e2mx6w":"Xbox"}
+                var system = sys[src[i].system.platform]
+                var cats = {"xk9634k0": "Any%", "mkeoyg6d": "Semi-Pro Circuit", "7dg8ywp2": "Amateur Circuit", "n2yqxo7k": "100%", "w20zml5d": "All Tracks NG+", "824owmd5": "3Lap", "9d8wr6dn": "1Lap"}
+                var cat = cats[src[i].category]
+                var time = src[i].times.primary_t
                 var run = {
                     name: name,
                     user: user,
-                    cat: src[i].category,
-                    track: src[i].level,
+                    cat: cat,
+                    track: track,
                     racer: racer,
                     date: src[i].submitted,
-                    system: src[i].system.platform,
-                    time: src[i].times.primary_t,
+                    system: system,
+                    time: time,
                     proof: video,
                     record: src[i].weblink
                 }
                 src_ref.push(run)
+                runs.push(run)
             }
             return runs
         }
@@ -126,10 +145,15 @@ module.exports = {
                     var text0 = $('.groupname', html).text().split("–")
                     var cat = ""
                     var track = text0[text0.length - 1].trim()
+                    for(let i = 0; i<tracks.length; i++){
+                        if(track.toLowerCase() == tracks[i].name.toLowerCase()){
+                            track = i
+                        }
+                    }
                     if (text0[0].startsWith("3-Lap")) {
-                        cat = "3lap"
+                        cat = "3Lap"
                     } else if (text0[0].startsWith("Best")) {
-                        cat = "flap"
+                        cat = "1Lap"
                     }
                     console.log('getting ' + cat + " times for " + track)
                     $('tr', table).each((i, elem) => {
@@ -144,15 +168,22 @@ module.exports = {
                         } else if (proof.startsWith("/user")) {
                             proof = ""
                         }
+                        var racer = text2[0].replace("Using ", "").trim().replace("Barranta", "Baranta").replace("Endacott", "Endocott").replace("Jin", "Jinn").replace("Rats Tyrell", "Ratts Tyerell").replace("‘Bullseye’", "'Bullseye'").replace("Bumpy", "'Bumpy'").replace("Parimiter", "Paramita")
+                        for(let i = 0; i<racers.length; i++){
+                            if(racer.toLowerCase() == racers[i].name.toLowerCase()){
+                                racer = i
+                            }
+                        }
+                        var time = tools.timetoSeconds(text3[0])
                         var data = {
                             name: text[1].match(/“([\w ]+)”/g).toString().replace("“", "").replace("”", ""),
                             user: 'https://www.cyberscore.me.uk' + $('.name > a', elem).attr('href'), //.attribs.href,
                             cat: cat,
                             track: track,
-                            racer: text2[0].replace("Using ", "").trim(),
+                            racer: racer,
                             date: text[3].replace(" –", "").trim(),
-                            system: text2[1].trim(),
-                            time: text3[0],
+                            system: text2[1].trim().replace("Dreamcast", "DC").replace("Nintendo 64", "N64").replace("PlayStation 4", "PS4").replace("Xbox One", "Xbox").replace("PlayStation 5", "PS4").replace("Xbox Series X|S", "Xbox"),
+                            time: time,
                             proof: proof, //.attribs.href
                             records: records
                         }
