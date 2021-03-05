@@ -81,6 +81,7 @@ module.exports = {
                 var cats = {"xk9634k0": "Any%", "mkeoyg6d": "Semi-Pro Circuit", "7dg8ywp2": "Amateur Circuit", "n2yqxo7k": "100%", "w20zml5d": "All Tracks NG+", "824owmd5": "3Lap", "9d8wr6dn": "1Lap"}
                 var cat = src[i].category
                 if(cat !== null && cat !== undefined){cat = cats[cat]}
+                if(cat == undefined){ cat = null}
                 var time = src[i].times.primary_t
                 var status = src[i].status.status
                 var run = {
