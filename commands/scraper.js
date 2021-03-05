@@ -198,7 +198,7 @@ module.exports = {
                         var text2 = text[4].split("on")
                         var text3 = $('.data', elem).text().trim().split(/\n/)
                         var links = $('a', elem)
-                        var records = links[links.length - 1].attribs.href
+                        var records = "https://www.cyberscore.me.uk" + links[links.length - 1].attribs.href
                         var proof = links[links.length - 2].attribs.href
                         if (proof.startsWith("/proofs")) {
                             proof = "https://www.cyberscore.me.uk" + proof
@@ -222,7 +222,7 @@ module.exports = {
                             system: text2[1].trim().replace("Dreamcast", "DC").replace("Nintendo 64", "N64").replace("PlayStation 4", "PS4").replace("Xbox One", "Xbox").replace("PlayStation 5", "PS4").replace("Xbox Series X|S", "Xbox"),
                             time: time,
                             proof: proof, //.attribs.href
-                            records: records
+                            record: records
                         }
                         runs.push(data)
 
@@ -239,7 +239,7 @@ module.exports = {
                                 for (var i = 0; i < times.length; i++) {
                                     for (var j = 0; j < times[i].length; j++) {
                                         var data = { ...runs[i] }
-                                        data.time = times[i][j].time
+                                        data.time = tools.timetoSeconds(times[i][j].time)
                                         data.date = times[i][j].date
                                         cs_ref.push(data)
                                         runs[i].proof = ""
