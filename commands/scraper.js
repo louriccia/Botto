@@ -39,6 +39,7 @@ module.exports = {
                 var name = ""
                 var video = ""
                 var user = ""
+                var racer = ""
                 if (src[i].players.data.length > 0) {
                     if (src[i].players.data[0].hasOwnProperty("names")) {
                         name = src[i].players.data[0].names.international
@@ -58,12 +59,15 @@ module.exports = {
                         }
                     }
                 }
+                if (src[i].values.hasOwnProperty("j846d94l")){
+                    racer = src[i].values.j846d94l
+                }
                 var run = {
                     name: name,
                     user: user,
                     cat: src[i].category,
                     track: src[i].level,
-                    racer: src[i].values.j846d94l,
+                    racer: racer,
                     date: src[i].submitted,
                     system: src[i].system.platform,
                     time: src[i].times.primary_t,
