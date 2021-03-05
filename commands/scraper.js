@@ -176,7 +176,7 @@ module.exports = {
                         }
                         var racer = text2[0].replace("Using ", "").trim().replace("Barranta", "Baranta").replace("Endacott", "Endocott").replace("Jin", "Jinn").replace("Rats Tyrell", "Ratts Tyerell").replace("‘Bullseye’", "'Bullseye'").replace("Bumpy", "'Bumpy'").replace("Parimiter", "Paramita")
                         for(let i = 0; i<racers.length; i++){
-                            if(racer.toLowerCase() == racers[i].name.toLowerCase()){
+                            if(String(racer).toLowerCase() == racers[i].name.toLowerCase()){
                                 racer = i
                             }
                         }
