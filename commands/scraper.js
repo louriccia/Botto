@@ -6,6 +6,7 @@ module.exports = {
         const $ = require('cheerio');
         const charts = [];
         const all = [];
+        var tools = require('./../tools.js');
 
         var firebase = require("firebase/app");
         require('firebase/auth');
@@ -75,6 +76,34 @@ module.exports = {
                         }
                     }
                 }
+                var skips = ""
+                if(src[i].values.hasOwnProperty("789x6p58")){
+                    if(src[i].values["789x6p58"] == "rqvg3prq") {
+                        skips = true
+                    } else if(src[i].values["789x6p58"] == "013d38rl") {
+                        skips = false
+                    }
+                } else if (src[i].values.hasOwnProperty("onv6p08m")){
+                    if(src[i].values["onv6p08m"] == "21gjrx1z") {
+                        skips = true
+                    } else if(src[i].values["onv6p08m"] == "5lmxzy1v") {
+                        skips = false
+                    }
+                }
+                var upgrades = ""
+                if(src[i].values.hasOwnProperty("rn1z02dl")){
+                    if(src[i].values["rn1z02dl"] == "klrvnpoq") {
+                        upgrades = true
+                    } else if(src[i].values["rn1z02dl"] == "21d9rzpq") {
+                        upgrades = false
+                    }
+                } else if (src[i].values.hasOwnProperty("789k45lw")){
+                    if(src[i].values["789k45lw"] == "gq7nen1p") {
+                        upgrades = true
+                    } else if(src[i].values["789k45lw"] == "9qjzj014") {
+                        upgrades = false
+                    }
+                }
                 var sys = {"8gej2n93": "PC", "w89rwelk": "N64","v06d394z": "DC", "7m6ylw9p": "Switch","nzelkr6q":"PS4", "o7e2mx6w":"Xbox"}
                 var system = src[i].system.platform
                 if(system !== null && system !== undefined){system = sys[system]}
@@ -90,6 +119,8 @@ module.exports = {
                     cat: cat,
                     track: track,
                     racer: racer,
+                    upgrades: upgrades,
+                    skips: skips,
                     date: src[i].submitted,
                     platform: system,
                     time: time,
