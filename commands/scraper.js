@@ -147,7 +147,7 @@ module.exports = {
                 }
                 //bulk.push(get)
             }
-            console.log('got src times')
+            console.log('got ' + Object.keys(src_data).length + ' records from src')
         }
         forLoop()
 
@@ -278,7 +278,7 @@ module.exports = {
                                 const get1 = await getit(charts[c])
                                 all.push(get1)
                             }
-                            console.log('end')
+                            console.log('got ' + Object.keys(cs_data).length + ' records from cyberscore')
                         }
                         forLoop()
                     });
