@@ -12,26 +12,14 @@ module.exports = {
         require('firebase/auth');
         require('firebase/database');
         var database = firebase.database();
-        var cs_ref = database.ref('records/cs');
-        cs_ref.on("value", function(snapshot) {
-            cs_data = snapshot.val();
-        }, function (errorObject) {
-            console.log("The read failed: " + errorObject.code);
-        });
-        var src_ref = database.ref('records/src');
-        src_ref.on("value", function(snapshot) {
-            src_data = snapshot.val();
-        }, function (errorObject) {
-            console.log("The read failed: " + errorObject.code);
-        });
         var combined_ref = database.ref('records/combined');
-        src_ref.on("value", function(snapshot) {
+        combined_ref.on("value", function(snapshot) {
             combined_data = snapshot.val();
         }, function (errorObject) {
             console.log("The read failed: " + errorObject.code);
         });
         var associations_ref = database.ref('records/associations');
-        src_ref.on("value", function(snapshot) {
+        associations_ref.on("value", function(snapshot) {
             associations_data = snapshot.val();
         }, function (errorObject) {
             console.log("The read failed: " + errorObject.code);
