@@ -24,7 +24,7 @@ module.exports = {
         }, function (errorObject) {
             console.log("The read failed: " + errorObject.code);
         });
-
+        combined_ref.remove()
         //src scraper
         let url = 'https://www.speedrun.com/api/v1/runs?game=m1mmex12&embed=players&max=200'
         let settings = { method: "Get" }
@@ -37,15 +37,19 @@ module.exports = {
             var runs = []
 
             for (let i = 0; i < src.length; i++) {
-                /*var rcrds = Object.values(combined_data)
                 var exists = false
-                for (let k = 0; k < rcrds.length; k++) {
-                    if (rcrds[k].record == src[i].weblink) {
-                        exists = true
-                        k = rcrds.length
+                if(combined_data !== undefined && combined_data !== null){
+                    var rcrds = Object.values(combined_data)
+                    for (let k = 0; k < rcrds.length; k++) {
+                        if (rcrds[k].record == src[i].weblink) {
+                            exists = true
+                            k = rcrds.length
+                        }
                     }
+                } else {
+                    exists = true
                 }
-                if (!exists) {*/
+                if (!exists) {
                     var name = ""
                     var video = ""
                     var user = ""
@@ -141,7 +145,9 @@ module.exports = {
                         src_count += 1
                     }
                     runs.push(run)
-                //}
+                } else {
+                    //if it does exist, check for changes and update old record with values of new record
+                }
 
             }
             return runs
@@ -256,34 +262,39 @@ module.exports = {
                                         //filter combined by track and category
                                         var filtered_data = combined_data.filter(e => e.cat == data.cat && e.track == data.track)
                                         //check for association
-                                        /*
-                                        for (var k = 0; k < Object.keys(associations_data); k ++){
-                                            if association found, then filter by player
-                                            if(){
-                                               filtered_data = filtered_data.filter(e => e.player == data.player)
+                                        var keys = Object.keys(associations_data)
+                                        var associated = false
+                                        for (var k = 0; k < keys.length; k ++){
+                                            //if association found, then filter by player
+                                            var key = keys[k]
+                                            if(data.name == associations_data[k].cs){
+                                               filtered_data = filtered_data.filter(e => e.name == data.name || e.name == associations_data[k].src)
+                                               associated = true
                                             }
                                         }
-                                        */
                                         //loop through combined
                                         var keys = Object.keys(filtered_data)
-                                        /*
+                                        var exists = false
                                         for(var k = 0; k < keys.length; k++){
                                             var key = keys[k]
                                             //account for different versions of yt urls
-                                            if(filtered_data[key].proof == data.proof){
-                                                
+                                            //if no association, create association
+                                            if(filtered_data[key].proof == data.proof && !associated){
+                                                var association = {
+                                                    src: filtered_data[key].name,
+                                                    cs: data.name
+                                                }
+                                                associations_ref.push(association)
                                             }
                                             if(filtered_data[key].time == data.time){
-
+                                                exists = true
+                                                //if cs date is earlier, update combined data
                                             }
                                         }
-                                        */
-                                        //check for identical times
-                                        //check for identical proofs
-                                        //if no association, create association
-                                        //if cs date is earlier, update combined data
                                         //if no match found, push record
-                                        combined_ref.push(data)
+                                        if(!exists){
+                                            combined_ref.push(data)
+                                        }
                                         //remove proof/racer data for following runs
                                         runs[i].proof = ""
                                         runs[i].racer = ""
