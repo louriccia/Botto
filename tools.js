@@ -27,7 +27,7 @@ module.exports = {
             minimumFractionDigits: 3 
         });
         if(time !== undefined){
-            if (time.includes(":")){
+            if (String(time).includes(":")){
                 var split = time.split(':')
                 if (split.length = 2) {
                     var out = Number(split[0]*60)+Number(split[1])
