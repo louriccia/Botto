@@ -24,8 +24,20 @@ module.exports = {
         }, function (errorObject) {
             console.log("The read failed: " + errorObject.code);
         });
+        var combined_ref = database.ref('records/combined');
+        src_ref.on("value", function(snapshot) {
+            combined_data = snapshot.val();
+        }, function (errorObject) {
+            console.log("The read failed: " + errorObject.code);
+        });
+        var associations_ref = database.ref('records/associations');
+        src_ref.on("value", function(snapshot) {
+            associations_data = snapshot.val();
+        }, function (errorObject) {
+            console.log("The read failed: " + errorObject.code);
+        });
         cs_ref.remove()
-        //src_ref.remove()
+        src_ref.remove()
 
         //src scraper
         let url = 'https://www.speedrun.com/api/v1/runs?game=m1mmex12&embed=players&max=200'
@@ -39,7 +51,7 @@ module.exports = {
             var runs = []
             
             for (let i = 0; i < src.length; i++) {
-                var rcrds = Object.values(src_data)
+                var rcrds = Object.values(combined_data)
                 var exists = false
                 for(let k =0; k<rcrds.length; k++){
                     if(rcrds[k].record == src[i].weblink){
@@ -122,7 +134,7 @@ module.exports = {
                     var cat = src[i].category
                     if(cat !== null && cat !== undefined){cat = cats[cat]}
                     if(cat == undefined){ cat = null}
-                    var time = src[i].times.primary_t
+                    var time = tools.timetoSeconds(src[i].times.primary_t)
                     var status = src[i].status.status
                     var run = {
                         name: name,
@@ -139,7 +151,7 @@ module.exports = {
                         record: src[i].weblink
                     }
                     if(status !== "rejected"){
-                        src_ref.push(run)
+                        combined_ref.push(run)
                         src_count += 1
                     }
                     runs.push(run)
@@ -255,6 +267,16 @@ module.exports = {
                                         var data = { ...runs[i] }
                                         data.time = tools.timetoSeconds(times[i][j].time)
                                         data.date = times[i][j].date
+                                        var rcrds = Object.values(combined_data)
+                                        //check for association
+                                            //if association found, then filter by player
+                                        //filter combined by track and category
+                                        //loop through combined
+                                            //check for identical times
+                                                //check for identical proofs
+                                                    //if no association, create association
+                                                //if cs date is earlier, update combined data
+                                        //if no match found, push record
                                         cs_ref.push(data)
                                         runs[i].proof = ""
                                         runs[i].racer = ""
@@ -293,7 +315,10 @@ module.exports = {
                                 const get1 = await getit(charts[c])
                                 all.push(get1)
                             }
-                            console.log('got ' + Object.keys(cs_data).length + ' records from cyberscore')
+                            if(cs_data !== null){
+                                console.log('got ' + Object.keys(cs_data).length + ' records from cyberscore')
+                            }
+                            
                         }
                         forLoop()
                     });
