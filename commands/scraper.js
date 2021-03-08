@@ -322,9 +322,8 @@ module.exports = {
                                 const get1 = await getit(charts[c])
                                 all.push(get1)
                             }
-                            if (cs_data !== null) {
-                                console.log('got ' + Object.keys(cs_data).length + ' records from cyberscore')
-                            }
+                            
+                            //console.log('got ' + Object.keys(cs_data).length + ' records from cyberscore')
 
                         }
                         forLoop()
