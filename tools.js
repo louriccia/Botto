@@ -26,22 +26,27 @@ module.exports = {
             minimumIntegerDigits: 2, 
             minimumFractionDigits: 3 
         });
-        if (time.includes(":")){
-            var split = time.split(':')
-            if (split.length = 2) {
-                var out = Number(split[0]*60)+Number(split[1])
-                if (Number(split[1]) >= 60) {
-                    return null
+        if(time !== undefined){
+            if (time.includes(":")){
+                var split = time.split(':')
+                if (split.length = 2) {
+                    var out = Number(split[0]*60)+Number(split[1])
+                    if (Number(split[1]) >= 60) {
+                        return null
+                    } else {
+                        return Number(myformat.format(out)).toFixed(3)
+                    }
                 } else {
-                    return Number(myformat.format(out)).toFixed(3)
+                    return null
                 }
+                
             } else {
-                return null
+                return Number(myformat.format(time)).toFixed(3)
             }
-            
         } else {
-            return Number(myformat.format(time)).toFixed(3)
+            return null
         }
+        
         
     },
     findTime: function(str) {
