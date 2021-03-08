@@ -13,19 +13,17 @@ module.exports = {
         require('firebase/database');
         var database = firebase.database();
         var combined_ref = database.ref('records/combined');
-        combined_ref.on("value", function(snapshot) {
+        combined_ref.on("value", function (snapshot) {
             combined_data = snapshot.val();
         }, function (errorObject) {
             console.log("The read failed: " + errorObject.code);
         });
         var associations_ref = database.ref('records/associations');
-        associations_ref.on("value", function(snapshot) {
+        associations_ref.on("value", function (snapshot) {
             associations_data = snapshot.val();
         }, function (errorObject) {
             console.log("The read failed: " + errorObject.code);
         });
-        cs_ref.remove()
-        src_ref.remove()
 
         //src scraper
         let url = 'https://www.speedrun.com/api/v1/runs?game=m1mmex12&embed=players&max=200'
@@ -37,17 +35,17 @@ module.exports = {
             const data = await response.json();
             var src = data.data
             var runs = []
-            
+
             for (let i = 0; i < src.length; i++) {
                 var rcrds = Object.values(combined_data)
                 var exists = false
-                for(let k =0; k<rcrds.length; k++){
-                    if(rcrds[k].record == src[i].weblink){
+                for (let k = 0; k < rcrds.length; k++) {
+                    if (rcrds[k].record == src[i].weblink) {
                         exists = true
                         k = rcrds.length
                     }
                 }
-                if(!exists){
+                if (!exists) {
                     var name = ""
                     var video = ""
                     var user = ""
@@ -71,57 +69,57 @@ module.exports = {
                             }
                         }
                     }
-                    if (src[i].values.hasOwnProperty("j846d94l")){
+                    if (src[i].values.hasOwnProperty("j846d94l")) {
                         racer = src[i].values.j846d94l
-                        for(let i = 0; i<racers.length; i++){
-                            if(racer == racers[i].id){
+                        for (let i = 0; i < racers.length; i++) {
+                            if (racer == racers[i].id) {
                                 racer = i
                             }
                         }
                     }
                     var track = src[i].level
-                    if(![null, ""].includes(track)){
-                        for(let i = 0; i<tracks.length; i++){
-                            if(track == tracks[i].id){
+                    if (![null, ""].includes(track)) {
+                        for (let i = 0; i < tracks.length; i++) {
+                            if (track == tracks[i].id) {
                                 track = i
                             }
                         }
                     }
                     var skips = ""
-                    if(src[i].values.hasOwnProperty("789x6p58")){
-                        if(src[i].values["789x6p58"] == "rqvg3prq") {
+                    if (src[i].values.hasOwnProperty("789x6p58")) {
+                        if (src[i].values["789x6p58"] == "rqvg3prq") {
                             skips = true
-                        } else if(src[i].values["789x6p58"] == "013d38rl") {
+                        } else if (src[i].values["789x6p58"] == "013d38rl") {
                             skips = false
                         }
-                    } else if (src[i].values.hasOwnProperty("onv6p08m")){
-                        if(src[i].values["onv6p08m"] == "21gjrx1z") {
+                    } else if (src[i].values.hasOwnProperty("onv6p08m")) {
+                        if (src[i].values["onv6p08m"] == "21gjrx1z") {
                             skips = true
-                        } else if(src[i].values["onv6p08m"] == "5lmxzy1v") {
+                        } else if (src[i].values["onv6p08m"] == "5lmxzy1v") {
                             skips = false
                         }
                     }
                     var upgrades = ""
-                    if(src[i].values.hasOwnProperty("rn1z02dl")){
-                        if(src[i].values["rn1z02dl"] == "klrvnpoq") {
+                    if (src[i].values.hasOwnProperty("rn1z02dl")) {
+                        if (src[i].values["rn1z02dl"] == "klrvnpoq") {
                             upgrades = true
-                        } else if(src[i].values["rn1z02dl"] == "21d9rzpq") {
+                        } else if (src[i].values["rn1z02dl"] == "21d9rzpq") {
                             upgrades = false
                         }
-                    } else if (src[i].values.hasOwnProperty("789k45lw")){
-                        if(src[i].values["789k45lw"] == "gq7nen1p") {
+                    } else if (src[i].values.hasOwnProperty("789k45lw")) {
+                        if (src[i].values["789k45lw"] == "gq7nen1p") {
                             upgrades = true
-                        } else if(src[i].values["789k45lw"] == "9qjzj014") {
+                        } else if (src[i].values["789k45lw"] == "9qjzj014") {
                             upgrades = false
                         }
                     }
-                    var sys = {"8gej2n93": "PC", "w89rwelk": "N64","v06d394z": "DC", "7m6ylw9p": "Switch","nzelkr6q":"PS4", "o7e2mx6w":"Xbox"}
+                    var sys = { "8gej2n93": "PC", "w89rwelk": "N64", "v06d394z": "DC", "7m6ylw9p": "Switch", "nzelkr6q": "PS4", "o7e2mx6w": "Xbox" }
                     var system = src[i].system.platform
-                    if(system !== null && system !== undefined){system = sys[system]}
-                    var cats = {"xk9634k0": "Any%", "mkeoyg6d": "Semi-Pro Circuit", "7dg8ywp2": "Amateur Circuit", "n2yqxo7k": "100%", "w20zml5d": "All Tracks NG+", "824owmd5": "3Lap", "9d8wr6dn": "1Lap"}
+                    if (system !== null && system !== undefined) { system = sys[system] }
+                    var cats = { "xk9634k0": "Any%", "mkeoyg6d": "Semi-Pro Circuit", "7dg8ywp2": "Amateur Circuit", "n2yqxo7k": "100%", "w20zml5d": "All Tracks NG+", "824owmd5": "3Lap", "9d8wr6dn": "1Lap" }
                     var cat = src[i].category
-                    if(cat !== null && cat !== undefined){cat = cats[cat]}
-                    if(cat == undefined){ cat = null}
+                    if (cat !== null && cat !== undefined) { cat = cats[cat] }
+                    if (cat == undefined) { cat = null }
                     var time = tools.timetoSeconds(src[i].times.primary_t)
                     var status = src[i].status.status
                     var run = {
@@ -138,13 +136,13 @@ module.exports = {
                         proof: video,
                         record: src[i].weblink
                     }
-                    if(status !== "rejected"){
+                    if (status !== "rejected") {
                         combined_ref.push(run)
                         src_count += 1
                     }
                     runs.push(run)
                 }
-                
+
             }
             return runs
         }
@@ -196,8 +194,8 @@ module.exports = {
                     var text0 = $('.groupname', html).text().split("–")
                     var cat = ""
                     var track = text0[text0.length - 1].trim().replace("’", "'")
-                    for(let i = 0; i<tracks.length; i++){
-                        if(String(track).toLowerCase() == tracks[i].name.toLowerCase()){
+                    for (let i = 0; i < tracks.length; i++) {
+                        if (String(track).toLowerCase() == tracks[i].name.toLowerCase()) {
                             track = i
                         }
                     }
@@ -220,8 +218,8 @@ module.exports = {
                             proof = ""
                         }
                         var racer = text2[0].replace("Using ", "").trim().replace("Barranta", "Baranta").replace("Endacott", "Endocott").replace("Jin", "Jinn").replace("Rats Tyrell", "Ratts Tyerell").replace("‘Bullseye’", "'Bullseye'").replace("Bumpy", "'Bumpy'").replace("Parimiter", "Paramita")
-                        for(let i = 0; i<racers.length; i++){
-                            if(String(racer).toLowerCase() == racers[i].name.toLowerCase()){
+                        for (let i = 0; i < racers.length; i++) {
+                            if (String(racer).toLowerCase() == racers[i].name.toLowerCase()) {
                                 racer = i
                             }
                         }
@@ -255,17 +253,38 @@ module.exports = {
                                         var data = { ...runs[i] }
                                         data.time = tools.timetoSeconds(times[i][j].time)
                                         data.date = times[i][j].date
-                                        var rcrds = Object.values(combined_data)
-                                        //check for association
-                                            //if association found, then filter by player
                                         //filter combined by track and category
+                                        var filtered_data = combined_data.filter(e => e.cat == data.cat && e.track == data.track)
+                                        //check for association
+                                        /*
+                                        for (var k = 0; k < Object.keys(associations_data); k ++){
+                                            if association found, then filter by player
+                                            if(){
+                                               filtered_data = filtered_data.filter(e => e.player == data.player)
+                                            }
+                                        }
+                                        */
                                         //loop through combined
-                                            //check for identical times
-                                                //check for identical proofs
-                                                    //if no association, create association
-                                                //if cs date is earlier, update combined data
+                                        var keys = Object.keys(filtered_data)
+                                        /*
+                                        for(var k = 0; k < keys.length; k++){
+                                            var key = keys[k]
+                                            //account for different versions of yt urls
+                                            if(filtered_data[key].proof == data.proof){
+                                                
+                                            }
+                                            if(filtered_data[key].time == data.time){
+
+                                            }
+                                        }
+                                        */
+                                        //check for identical times
+                                        //check for identical proofs
+                                        //if no association, create association
+                                        //if cs date is earlier, update combined data
                                         //if no match found, push record
-                                        cs_ref.push(data)
+                                        combined_ref.push(data)
+                                        //remove proof/racer data for following runs
                                         runs[i].proof = ""
                                         runs[i].racer = ""
                                     }
@@ -278,9 +297,9 @@ module.exports = {
                                 });
                         })
                 })
-                //.catch(function (err) {
-                //    console.log('error getting run data')
-                //});
+            //.catch(function (err) {
+            //    console.log('error getting run data')
+            //});
         }
 
         const getit = url => {
@@ -303,10 +322,10 @@ module.exports = {
                                 const get1 = await getit(charts[c])
                                 all.push(get1)
                             }
-                            if(cs_data !== null){
+                            if (cs_data !== null) {
                                 console.log('got ' + Object.keys(cs_data).length + ' records from cyberscore')
                             }
-                            
+
                         }
                         forLoop()
                     });
