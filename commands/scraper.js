@@ -37,7 +37,7 @@ module.exports = {
             var runs = []
 
             for (let i = 0; i < src.length; i++) {
-                var rcrds = Object.values(combined_data)
+                /*var rcrds = Object.values(combined_data)
                 var exists = false
                 for (let k = 0; k < rcrds.length; k++) {
                     if (rcrds[k].record == src[i].weblink) {
@@ -45,7 +45,7 @@ module.exports = {
                         k = rcrds.length
                     }
                 }
-                if (!exists) {
+                if (!exists) {*/
                     var name = ""
                     var video = ""
                     var user = ""
@@ -141,7 +141,7 @@ module.exports = {
                         src_count += 1
                     }
                     runs.push(run)
-                }
+                //}
 
             }
             return runs
