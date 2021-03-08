@@ -46,8 +46,6 @@ module.exports = {
                             k = rcrds.length
                         }
                     }
-                } else {
-                    exists = true
                 }
                 if (!exists) {
                     var name = ""
