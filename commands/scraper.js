@@ -160,9 +160,9 @@ module.exports = {
                 const link = url + "&offset=" + offset
                 console.log(link)
                 const get = await getsrcData(link)
-                if (!get.length > 0) {
-                    index = 20
-                }
+                //if (!get.length > 0) {
+                //    index = 20
+                //}
                 //bulk.push(get)
             }
             console.log('updated ' + src_count + ' records from src')
