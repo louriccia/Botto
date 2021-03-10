@@ -232,17 +232,17 @@ module.exports = {
                 return newEmbed
             }
         //send embed
-        /*
-            client.api.interactions(interaction.id, interaction.token).callback.post({
-                data: {
-                    type: 2,
+            if(interaction.name !== "fake"){
+                client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
-                        //content: "",
-                        //embeds: [challengeEmbed]
+                        type: 2,
+                        data: {
+                            //content: "",
+                            //embeds: [challengeEmbed]
+                        }
                     }
-                }
-            })
-            */
+                })
+            }
             client.channels.cache.get(interaction.channel_id).send(createEmbed("",null)).then(sentMessage => {
             //collect feedback
                 sentMessage.react('👍').then(()=> sentMessage.react('👎')).then(async function (message) {
@@ -309,6 +309,16 @@ module.exports = {
                                     sentMessage.edit(createEmbed(":game_die: Reroll: ", null))
                                 } catch {}
                                 */
+                                
+                                
+                                
+                                
+                                var fakeinteraction = {}
+                                fakeinteraction.name = "fake"
+                                fakeinteraction.member.user.id = interaction.member.user.id
+                                fakeinteraction.guild_id = interaction.guild_id
+                                fakeinteraction.member.user.username = interaction.member.user.username
+                                fakeinteraction.channel_id = interaction.channel_id
                                 collected = true
                                 collecting = false
                                 const rerollEmbed = new Discord.MessageEmbed()
@@ -318,7 +328,7 @@ module.exports = {
                                 try {
                                     sentMessage.delete()
                                 } catch {}
-                                client.commands.get("challenge").execute(client, interaction, args);
+                                client.commands.get("challenge").execute(client, fakeinteraction, args);
                             } else if (reaction.emoji.name === '↩️') {
                                 for(let i = 0; i<collection.length; i++) {
                                     if(collection[i].user == user.id){
