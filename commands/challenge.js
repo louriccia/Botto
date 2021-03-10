@@ -212,7 +212,7 @@ module.exports = {
                     }
                 }
                 if(title == ":white_check_mark: Completed: ") {
-                    eColor = "3B88C3"
+                    eColor = "77B255"
                 } else if (title == ":warning: 5 Minute Warning: " || title == ":warning: 1 Minute Warning: "){
                     eColor = "FAA61A"
                 } else if (title == ":negative_squared_cross_mark: Closed: "){
@@ -259,6 +259,17 @@ module.exports = {
                             const user = reaction.users.cache.last()
                             //console.log("I got a reaction!")
                             //console.log(reaction.users.cache.last())
+                            var fakeinteraction = {
+                                name: "fake",
+                                member: {
+                                    user: {
+                                        id: interaction.member.user.id,
+                                        username: interaction.member.user.username
+                                    }
+                                },
+                                guild_id: interaction.guild_id,
+                                channel_id: interaction.channel_id
+                            }
                             if(['👍', '👎'].includes(reaction.emoji.name)) {
                                 if (reaction.emoji.name === '👍') {
                                     feedback = '👍'
@@ -282,17 +293,7 @@ module.exports = {
                                     sentMessage.edit(createEmbed())
                                 } catch {}
                             } else if (reaction.emoji.name === '🔄' && !collected) {
-                                var fakeinteraction = {
-                                    name: "fake",
-                                    member: {
-                                        user: {
-                                            id: interaction.member.user.id,
-                                            username: interaction.member.user.username
-                                        }
-                                    },
-                                    guild_id: interaction.guild_id,
-                                    channel_id: interaction.channel_id
-                                }
+                                
                                 collected = true
                                 collecting = false
                                 const rerollEmbed = new Discord.MessageEmbed()
@@ -322,15 +323,19 @@ module.exports = {
                                 }
                                 
                             } else if (reaction.emoji.name === '▶️' && collected) {
-                                client.commands.get("challenge").execute(client, interaction, args);
+                                client.commands.get("challenge").execute(client, fakeinteraction, args);
                             }
                         })
                 })
+                var warning = ""
+                if(!vc){
+                    warning = "<@" + member + ">"
+                }
                 setTimeout(async function() { //5 minute warning
                     if(collecting){
                         title = ":warning: 5 Minute Warning: "
                         try { 
-                            await sentMessage.edit("<@" + member + ">", createEmbed()) 
+                            await sentMessage.edit(warning, createEmbed()) 
                         } catch {}
                     }
                 }, 600000)
@@ -338,7 +343,7 @@ module.exports = {
                     if(collecting){
                         title = ":warning: 1 Minute Warning: "
                         try { 
-                            await sentMessage.edit("<@" + member + ">", createEmbed()) 
+                            await sentMessage.edit(warning, createEmbed()) 
                         } catch {}
                     }
                 }, 840000)
@@ -443,6 +448,8 @@ module.exports = {
                                     title = ":white_check_mark: Completed: "
                                     highlight = submissiondata.date
                                     try {
+                                        sentMessage.reactions.resolve("🔄").users.remove("545798436105224203")
+                                        sentMessage.reactions.resolve("🔄").users.remove(member)
                                         sentMessage.edit(createEmbed())
                                     } catch {}
                                 }
