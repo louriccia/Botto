@@ -215,6 +215,8 @@ module.exports = {
                     eColor = "3B88C3"
                 } else if (title == ":warning: 5 Minute Warning: " || "title == :warning: 1 Minute Warning: "){
                     eColor = "FAA61A"
+                } else if (title == ":negative_squared_cross_mark: Closed: "){
+                    eColor = "2F3136"
                 }
                 const newEmbed = new Discord.MessageEmbed()
                     .setTitle(title + eTitle)
@@ -246,7 +248,7 @@ module.exports = {
                         sentMessage.react('🔄')
                     }
                     const filter = (reaction, user) => {
-                        return (['👍', '👎', '↩️', '🔄'].includes(reaction.emoji.name) && user.id !== "545798436105224203");
+                        return (['👍', '👎', '↩️', '🔄'].includes(reaction.emoji.name) && user.id !== "545798436105224203" && ((user.id == member && !vc) || vc));
                     };   
                     const collector = sentMessage.createReactionCollector(filter, {time: 1800000})
                         collector.on('collect', (reaction, reactionCollector) => {
@@ -273,6 +275,7 @@ module.exports = {
                                 }
                                 feedbackref.push(feedbackdata);
                             } else if (reaction.emoji.name === '🔄' && !collected) {
+                                /*
                                 nutext = "", mirrortext = "", laps = 3, skipstext = ""
                                 nu = false, mirror = false, skips = false
                                 if (Math.random()<odds_noupgrades){
@@ -302,6 +305,17 @@ module.exports = {
                                 try {
                                     sentMessage.edit(createEmbed(":game_die: Reroll: ", null))
                                 } catch {}
+                                */
+                                collected = true
+                                collecting = false
+                                const rerollEmbed = new Discord.MessageEmbed()
+                                    .setAuthor(eAuthor[0] + " Rerolled:", eAuthor[1])
+                                    .setTitle(eTitle)
+                                sentMessage.channel.send(rerollEmbed)
+                                try {
+                                    sentMessage.delete()
+                                } catch {}
+                                client.commands.get("challenge").execute(client, interaction, args);
                             } else if (reaction.emoji.name === '↩️') {
                                 for(let i = 0; i<collection.length; i++) {
                                     if(collection[i].user == user.id){
@@ -337,7 +351,7 @@ module.exports = {
                 setTimeout(async function() { //challenge closed
                     if(collecting){
                         try { 
-                            await sentMessage.edit(createEmbed(":negative_squared_cross_mark: Closed: ", null)) 
+                            await sentMessage.edit("", createEmbed(":negative_squared_cross_mark: Closed: ", null)) 
                             sentMessage.reactions.resolve("🔄").users.remove("545798436105224203")
                             sentMessage.reactions.resolve("🔄").users.remove(member)
                         } catch (error) {
