@@ -285,7 +285,7 @@ module.exports = {
                         sentMessage.react('🔄')
                     }
                     const filter = (reaction, user) => {
-                        return (['👍', '👎', '↩️', '🔄'].includes(reaction.emoji.name) && user.id !== "545798436105224203" && ((user.id == member && !vc) || vc));
+                        return (['👍', '👎', '↩️', '🔄', '▶️'].includes(reaction.emoji.name) && user.id !== "545798436105224203" && ((user.id == member && !vc) || vc));
                     };   
                     const collector = sentMessage.createReactionCollector(filter, {time: 1800000})
                         collector.on('collect', (reaction, reactionCollector) => {
