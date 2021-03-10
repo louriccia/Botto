@@ -213,7 +213,7 @@ module.exports = {
                 }
                 if(title == ":white_check_mark: Completed: ") {
                     eColor = "3B88C3"
-                } else if (title == ":warning: 5 Minute Warning: " || "title == :warning: 1 Minute Warning: "){
+                } else if (title == ":warning: 5 Minute Warning: " || title == ":warning: 1 Minute Warning: "){
                     eColor = "FAA61A"
                 } else if (title == ":negative_squared_cross_mark: Closed: "){
                     eColor = "2F3136"
