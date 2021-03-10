@@ -232,6 +232,7 @@ module.exports = {
                 return newEmbed
             }
         //send embed
+        /*
             client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {
                     type: 2,
@@ -241,6 +242,7 @@ module.exports = {
                     }
                 }
             })
+            */
             client.channels.cache.get(interaction.channel_id).send(createEmbed("",null)).then(sentMessage => {
             //collect feedback
                 sentMessage.react('👍').then(()=> sentMessage.react('👎')).then(async function (message) {
@@ -310,7 +312,7 @@ module.exports = {
                                 collected = true
                                 collecting = false
                                 const rerollEmbed = new Discord.MessageEmbed()
-                                    .setAuthor(eAuthor[0] + " Rerolled:", eAuthor[1])
+                                    .setAuthor("Rerolled", eAuthor[1])
                                     .setTitle(eTitle)
                                 sentMessage.channel.send(rerollEmbed)
                                 try {
