@@ -132,6 +132,7 @@ module.exports = {
                 }
             }
         //build embed
+            var eAuthor = [], eTitle = ""
             function createEmbed(title, highlight) {
             //calculate goal time
                 var speed = 1, speedmod = tracks[random2].avgspeedmod, length = tracks[random2].lap.length
@@ -146,7 +147,7 @@ module.exports = {
                 if (racers[random1].hasOwnProperty("flag")) {
                     flag = racers[random1].flag
                 }
-                var eTitle = "", eColor = "", eAuthor = [], eGoalTimes = []
+                var eColor = "", eGoalTimes = []
                 eTitle = "Race as **" + flag + " " + racers[random1].name + "** (" + (random1 + 1) + ")"+ nutext + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + laptext + skipstext + mirrortext
                 eColor = planets[tracks[random2].planet].color
                 if(vc) {
