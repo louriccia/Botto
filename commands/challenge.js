@@ -132,8 +132,8 @@ module.exports = {
                 }
             }
         //build embed
-            var eAuthor = [], eTitle = ""
-            function createEmbed(title, highlight) {
+            var eAuthor = [], eTitle = "", title = "", highlight = ""
+            function createEmbed() {
             //calculate goal time
                 var speed = 1, speedmod = tracks[random2].avgspeedmod, length = tracks[random2].lap.length
                 length = length * laps
@@ -218,7 +218,7 @@ module.exports = {
                 } else if (title == ":negative_squared_cross_mark: Closed: "){
                     eColor = "2F3136"
                 } else {
-                    planets[tracks[random2].planet].color
+                    eColor = planets[tracks[random2].planet].color
                 }
                 const newEmbed = new Discord.MessageEmbed()
                     .setTitle(title + eTitle)
@@ -244,7 +244,7 @@ module.exports = {
                     }
                 })
             }
-            client.channels.cache.get(interaction.channel_id).send(createEmbed("",null)).then(sentMessage => {
+            client.channels.cache.get(interaction.channel_id).send(createEmbed()).then(sentMessage => {
             //collect feedback
                 sentMessage.react('👍').then(()=> sentMessage.react('👎')).then(async function (message) {
                     var feedback = ""
@@ -278,6 +278,9 @@ module.exports = {
                                     mirror: mirror
                                 }
                                 feedbackref.push(feedbackdata);
+                                try {
+                                    sentMessage.edit(createEmbed())
+                                } catch {}
                             } else if (reaction.emoji.name === '🔄' && !collected) {
                                 var fakeinteraction = {
                                     name: "fake",
@@ -293,8 +296,9 @@ module.exports = {
                                 collected = true
                                 collecting = false
                                 const rerollEmbed = new Discord.MessageEmbed()
-                                    .setAuthor("Rerolled", eAuthor[1])
-                                    .setTitle(eTitle)
+                                    //.setAuthor("Rerolled", eAuthor[1])
+                                    .setTitle("~~"+eTitle+"~~")
+                                    .setColor("2F3136")
                                 sentMessage.channel.send(rerollEmbed)
                                 try {
                                     sentMessage.delete()
@@ -306,7 +310,11 @@ module.exports = {
                                         ref.child(collection[i].record).remove()
                                         best.splice(collection[i].index, 1)
                                         try {
-                                            sentMessage.edit(createEmbed("", ""))
+                                            sentMessage.edit(createEmbed())
+                                            sentMessage.reactions.resolve("↩️").users.remove("545798436105224203")
+                                            sentMessage.reactions.resolve("▶️").users.remove("545798436105224203")
+                                            sentMessage.reactions.resolve("↩️").users.remove(member)
+                                            sentMessage.reactions.resolve("▶️").users.remove(member)
                                         } catch {}
                                         collected = false
                                         collecting = true
@@ -320,22 +328,25 @@ module.exports = {
                 })
                 setTimeout(async function() { //5 minute warning
                     if(collecting){
+                        title = ":warning: 5 Minute Warning: "
                         try { 
-                            await sentMessage.edit("<@" + member + ">", createEmbed(":warning: 5 Minute Warning: ", null)) 
+                            await sentMessage.edit("<@" + member + ">", createEmbed()) 
                         } catch {}
                     }
                 }, 600000)
                 setTimeout(async function() { //1 minute warning
                     if(collecting){
+                        title = ":warning: 1 Minute Warning: "
                         try { 
-                            await sentMessage.edit("<@" + member + ">", createEmbed(":warning: 1 Minute Warning: ", null)) 
+                            await sentMessage.edit("<@" + member + ">", createEmbed()) 
                         } catch {}
                     }
                 }, 840000)
                 setTimeout(async function() { //challenge closed
                     if(collecting){
+                        title = ":negative_squared_cross_mark: Closed: "
                         try { 
-                            await sentMessage.edit("", createEmbed(":negative_squared_cross_mark: Closed: ", null)) 
+                            await sentMessage.edit("", createEmbed()) 
                             sentMessage.reactions.resolve("🔄").users.remove("545798436105224203")
                             sentMessage.reactions.resolve("🔄").users.remove(member)
                         } catch (error) {
@@ -354,8 +365,9 @@ module.exports = {
                             if (message.embeds[0].title.startsWith("Race")) {
                                 if (vc) {
                                     if(collected && collecting){ //previous challenge closed after rolling a new challenge
+                                        title = ":white_check_mark: Completed: "
                                         try {
-                                            sentMessage.edit(createEmbed(":white_check_mark: Completed: ", null)) 
+                                            sentMessage.edit(createEmbed()) 
                                             sentMessage.reactions.resolve("🔄").users.remove("545798436105224203")
                                             sentMessage.reactions.resolve("🔄").users.remove(member)
                                         } catch {}
@@ -423,12 +435,15 @@ module.exports = {
                                 console.log(collection)
                             //edit original message
                                 if(vc){
+                                    highlight = submissiondata.date
                                     try {
-                                        sentMessage.edit(createEmbed("", submissiondata.date))
+                                        sentMessage.edit(createEmbed())
                                     } catch {}
                                 } else {
+                                    title = ":white_check_mark: Completed: "
+                                    highlight = submissiondata.date
                                     try {
-                                    sentMessage.edit(createEmbed(":white_check_mark: Completed: ", submissiondata.date))
+                                        sentMessage.edit(createEmbed())
                                     } catch {}
                                 }
                                 
