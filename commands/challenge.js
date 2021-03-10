@@ -37,7 +37,18 @@ module.exports = {
             if (profiledata[member] !== undefined){
                 if(profiledata[member].current !== undefined){
                     if (profiledata[member].current.completed == false && profiledata[member].current.start + 900000 > challengestart){
-                        client.channels.cache.get(interaction.channel_id).send("Challenge still active. Use 🔄 to roll a new challenge.")
+                        client.channels.cache.get(interaction.channel_id).send("Previous challenge still active. Click 🔄 to roll a new challenge.")
+                        if(interaction.name !== "fake"){
+                            client.api.interactions(interaction.id, interaction.token).callback.post({
+                                data: {
+                                    type: 2,
+                                    data: {
+                                        //content: "",
+                                        //embeds: [challengeEmbed]
+                                    }
+                                }
+                            })
+                        }
                         return
                     }
                 }
@@ -437,6 +448,12 @@ module.exports = {
                                 }
                             } else {
                             //log time
+                                try{
+                                    sentMessage.reactions.resolve("🔄").users.remove("545798436105224203")
+                                    sentMessage.reactions.resolve("🔄").users.remove(member)
+                                } catch {
+                                    
+                                }
                                 sentMessage.react('↩️').then(sentMessage.react('▶️'))
                                 var submissiondata = {
                                     user: message.author.id,
@@ -474,8 +491,6 @@ module.exports = {
                                     highlight = submissiondata.date
                                     profileref.child(member).child("current").update({completed: true})
                                     try {
-                                        sentMessage.reactions.resolve("🔄").users.remove("545798436105224203")
-                                        sentMessage.reactions.resolve("🔄").users.remove(member)
                                         sentMessage.edit(createEmbed())
                                     } catch {}
                                 }
