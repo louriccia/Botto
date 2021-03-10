@@ -181,6 +181,7 @@ module.exports = movieQuotes = [
     "*Outlanders. They come here, how do they find me? They come here, they mess up my store-- Hey!*",
     "*They come here. They look around. They no buy. Why nobody buy? Eyyyyyyyy*",
     "*There's always a bigger fish.*",
+    "*This is tense!*"
 ]        
 
 module.exports = mpQuotes = [
@@ -235,7 +236,8 @@ module.exports = playerPicks = [
     `*You won't walk away from this one, ${a}, you slave scum.*`,
     `*Come on, let's go and play ball. Keep racing, ${a}. You're gonna be bug squash!*`,
     `*I don't want you to race ${a}, it's awful. I die every time Botto makes you do it.*`,
-    `*I believe ${a} may have been conceived by the midichlorians.*`
+    `*I believe ${a} may have been conceived by the midichlorians.*`,
+    `*I sense much fear in you, ${a}.*`
     
 ]
 

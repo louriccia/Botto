@@ -196,16 +196,25 @@ module.exports = {
                     if (highlight !== null) {
                         date = highlight
                     }
+                    var already = []
                     for (var i=0; i<best.length; i++){
-                        if(best[i].date == date) {
-                            besttimes = besttimes + pos[i] + "" + tools.timefix(best[i].time) + " - " + best[i].name + " <a:newrecord:672640831882133524>\n"
-                        } else {
-                            besttimes = besttimes + pos[i] + "" + tools.timefix(best[i].time) + " - " + best[i].name + "\n"
+                        if(!already.includes(best[i].name)){
+                            if(best[i].date == date) {
+                                besttimes = besttimes + pos[i] + "" + tools.timefix(best[i].time) + " - " + best[i].name + " <a:newrecord:672640831882133524>\n"
+                            } else {
+                                besttimes = besttimes + pos[i] + "" + tools.timefix(best[i].time) + " - " + best[i].name + "\n"
+                            }
+                            already.push(best[i].name)
                         }
-                        if (i == 9) {
+                        if (i-already.length == 9) {
                             i = best.length
                         }
                     }
+                }
+                if(title == ":white_check_mark: Completed: ") {
+                    eColor = "3B88C3"
+                } else if (title == ":warning: 5 Minute Warning: " || "title == :warning: 1 Minute Warning: "){
+                    eColor = "FAA61A"
                 }
                 const newEmbed = new Discord.MessageEmbed()
                     .setTitle(title + eTitle)
@@ -234,10 +243,10 @@ module.exports = {
                 sentMessage.react('👍').then(()=> sentMessage.react('👎')).then(async function (message) {
                     var feedback = ""
                     if(!vc){
-                        sentMessage.react('🎲')
+                        sentMessage.react('🔄')
                     }
                     const filter = (reaction, user) => {
-                        return (['👍', '👎', '↩️', '🎲'].includes(reaction.emoji.name) && user.id !== "545798436105224203");
+                        return (['👍', '👎', '↩️', '🔄'].includes(reaction.emoji.name) && user.id !== "545798436105224203");
                     };   
                     const collector = sentMessage.createReactionCollector(filter, {time: 1800000})
                         collector.on('collect', (reaction, reactionCollector) => {
@@ -263,7 +272,7 @@ module.exports = {
                                     mirror: mirror
                                 }
                                 feedbackref.push(feedbackdata);
-                            } else if (reaction.emoji.name === '🎲' && !collected) {
+                            } else if (reaction.emoji.name === '🔄' && !collected) {
                                 nutext = "", mirrortext = "", laps = 3, skipstext = ""
                                 nu = false, mirror = false, skips = false
                                 if (Math.random()<odds_noupgrades){
@@ -306,20 +315,22 @@ module.exports = {
                                     }
                                 }
                                 
+                            } else if (reaction.emoji.name === '▶️' && collected) {
+                                client.commands.get("challenge").execute(client, interaction, args);
                             }
                         })
                 })
                 setTimeout(async function() { //5 minute warning
                     if(collecting){
                         try { 
-                            await sentMessage.edit(createEmbed(":warning: 5 Minute Warning: ", null)) 
+                            await sentMessage.edit("<@" + member + ">", createEmbed(":warning: 5 Minute Warning: ", null)) 
                         } catch {}
                     }
                 }, 600000)
                 setTimeout(async function() { //1 minute warning
                     if(collecting){
                         try { 
-                            await sentMessage.edit(createEmbed(":warning: 1 Minute Warning: ", null)) 
+                            await sentMessage.edit("<@" + member + ">", createEmbed(":warning: 1 Minute Warning: ", null)) 
                         } catch {}
                     }
                 }, 840000)
@@ -327,6 +338,8 @@ module.exports = {
                     if(collecting){
                         try { 
                             await sentMessage.edit(createEmbed(":negative_squared_cross_mark: Closed: ", null)) 
+                            sentMessage.reactions.resolve("🔄").users.remove("545798436105224203")
+                            sentMessage.reactions.resolve("🔄").users.remove(member)
                         } catch (error) {
                             // log all errors
                             console.error(error)
@@ -345,6 +358,8 @@ module.exports = {
                                     if(collected && collecting){ //previous challenge closed after rolling a new challenge
                                         try {
                                             sentMessage.edit(createEmbed(":white_check_mark: Completed: ", null)) 
+                                            sentMessage.reactions.resolve("🔄").users.remove("545798436105224203")
+                                            sentMessage.reactions.resolve("🔄").users.remove(member)
                                         } catch {}
                                         collecting = false
                                     } else if (!collected){ //rerolling mp challenge
@@ -382,7 +397,7 @@ module.exports = {
                                 }
                             } else {
                             //log time
-                                sentMessage.react('↩️')
+                                sentMessage.react('↩️').then(sentMessage.react('▶️'))
                                 var submissiondata = {
                                     user: message.author.id,
                                     name: message.author.username,

@@ -3,36 +3,44 @@ module.exports = {
     execute(client, interaction, args) {
         function getRacer(input){
             var numb = null
-            for(let i = 0; i<racers.length; i++){
-                if(input == racers[i].name.toLowerCase() || input == racers[i].name.toLowerCase().replace(/ /g, '')){
-                    numb = i
-                    i = racers.length
-                }
-                if(i<racers.length){
-                    racers[i].nickname.forEach(nick => {
-                        if(nick.toLowerCase() == input){
-                            numb = i
-                            i = racers.length
-                        }
-                    })  
+            if(Number(input)<26 && Number(input) > 0){
+                numb = Number(input) -1
+            } else {
+                for(let i = 0; i<racers.length; i++){
+                    if(input == racers[i].name.toLowerCase() || input == racers[i].name.toLowerCase().replace(/ /g, '')){
+                        numb = i
+                        i = racers.length
+                    }
+                    if(i<racers.length){
+                        racers[i].nickname.forEach(nick => {
+                            if(nick.toLowerCase() == input){
+                                numb = i
+                                i = racers.length
+                            }
+                        })  
+                    }
                 }
             }
             return numb
         }
         function getTrack(input){
             var numb = null
-            for(let i = 0; i<tracks.length; i++){
-                if(input == tracks[i].name.toLowerCase() || input == tracks[i].name.toLowerCase().replace(/ /g, '')){
-                    numb = i
-                    i = tracks.length
-                }
-                if(i<tracks.length){
-                    tracks[i].nickname.forEach(nick => {
-                        if(nick.toLowerCase() == input){
-                            numb = i
-                            i = tracks.length
-                        }
-                    })    
+            if(Number(input)<26 && Number(input) > 0){
+                numb = Number(input) -1
+            } else {
+                for(let i = 0; i<tracks.length; i++){
+                    if(input == tracks[i].name.toLowerCase() || input == tracks[i].name.toLowerCase().replace(/ /g, '')){
+                        numb = i
+                        i = tracks.length
+                    }
+                    if(i<tracks.length){
+                        tracks[i].nickname.forEach(nick => {
+                            if(nick.toLowerCase() == input){
+                                numb = i
+                                i = tracks.length
+                            }
+                        })    
+                    }
                 }
             }
             return numb
