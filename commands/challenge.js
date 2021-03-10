@@ -37,7 +37,7 @@ module.exports = {
             if (profiledata[member] !== undefined){
                 if(profiledata[member].current !== undefined){
                     if (profiledata[member].current.completed == false && profiledata[member].current.start + 900000 > challengestart){
-                        client.channels.cache.get(interaction.channel_id).send("Previous challenge still active. Click 🔄 to roll a new challenge.")
+                        client.channels.cache.get(interaction.channel_id).send("Previous challenge still active. Click 🔄 to reroll.")
                         if(interaction.name !== "fake"){
                             client.api.interactions(interaction.id, interaction.token).callback.post({
                                 data: {
@@ -290,8 +290,6 @@ module.exports = {
                     const collector = sentMessage.createReactionCollector(filter, {time: 1800000})
                         collector.on('collect', (reaction, reactionCollector) => {
                             const user = reaction.users.cache.last()
-                            //console.log("I got a reaction!")
-                            //console.log(reaction.users.cache.last())
                             var fakeinteraction = {
                                 name: "fake",
                                 member: {
@@ -360,6 +358,10 @@ module.exports = {
                                 }
                                 
                             } else if (reaction.emoji.name === '▶️' && collected) {
+                                try{
+                                    sentMessage.reactions.resolve("▶️").users.remove("545798436105224203")
+                                    sentMessage.reactions.resolve("▶️").users.remove(member)
+                                } catch {}
                                 client.commands.get("challenge").execute(client, fakeinteraction, args);
                             }
                         })
@@ -451,10 +453,11 @@ module.exports = {
                                 try{
                                     sentMessage.reactions.resolve("🔄").users.remove("545798436105224203")
                                     sentMessage.reactions.resolve("🔄").users.remove(member)
+                                    sentMessage.react('↩️').then(sentMessage.react('▶️'))
                                 } catch {
                                     
                                 }
-                                sentMessage.react('↩️').then(sentMessage.react('▶️'))
+                                
                                 var submissiondata = {
                                     user: message.author.id,
                                     name: message.author.username,
