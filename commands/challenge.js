@@ -93,6 +93,18 @@ module.exports = {
             } else {
                 vc = true
             }
+            var current = {
+                start: challengestart,
+                completed: false,
+                channel: interaction.channel_id,
+                racer: random1,
+                track: random2,
+                laps: laps,
+                nu: nu,
+                skips: skips,
+                mirror: mirror
+            }
+            profileref.child(member).child("current").set(current)
         //get best runs
             var keys = Object.keys(challengedata), best = []
             for (var i=0; i<keys.length; i++) {
@@ -101,7 +113,6 @@ module.exports = {
                     best.push(challengedata[k])
                 }
             }
-
         //build description
             var desc = ""
             if(Math.random()<0.50 && best.length> 0) {
@@ -213,7 +224,7 @@ module.exports = {
                 }
                 if(title == ":white_check_mark: Completed: ") {
                     eColor = "77B255"
-                } else if (title == ":warning: 5 Minute Warning: " || title == ":warning: 1 Minute Warning: "){
+                } else if (title == ":warning: 5 Minute Warning: " || title == "<a:countdown:672640791369482251> 1 Minute Warning: "){
                     eColor = "FAA61A"
                 } else if (title == ":negative_squared_cross_mark: Closed: "){
                     eColor = "2F3136"
@@ -301,6 +312,7 @@ module.exports = {
                                     .setTitle("~~"+eTitle+"~~")
                                     .setColor("2F3136")
                                 sentMessage.channel.send(rerollEmbed)
+                                profileref.child(member).child("current").update({completed: true})
                                 try {
                                     sentMessage.delete()
                                 } catch {}
@@ -310,6 +322,8 @@ module.exports = {
                                     if(collection[i].user == user.id){
                                         ref.child(collection[i].record).remove()
                                         best.splice(collection[i].index, 1)
+                                        title = ""
+                                        highlight = ""
                                         try {
                                             sentMessage.edit(createEmbed())
                                             sentMessage.reactions.resolve("↩️").users.remove("545798436105224203")
@@ -341,7 +355,7 @@ module.exports = {
                 }, 600000)
                 setTimeout(async function() { //1 minute warning
                     if(collecting){
-                        title = ":warning: 1 Minute Warning: "
+                        title = "<a:countdown:672640791369482251> 1 Minute Warning: "
                         try { 
                             await sentMessage.edit(warning, createEmbed()) 
                         } catch {}
@@ -373,8 +387,6 @@ module.exports = {
                                         title = ":white_check_mark: Completed: "
                                         try {
                                             sentMessage.edit(createEmbed()) 
-                                            sentMessage.reactions.resolve("🔄").users.remove("545798436105224203")
-                                            sentMessage.reactions.resolve("🔄").users.remove(member)
                                         } catch {}
                                         collecting = false
                                     } else if (!collected){ //rerolling mp challenge
@@ -447,6 +459,7 @@ module.exports = {
                                 } else {
                                     title = ":white_check_mark: Completed: "
                                     highlight = submissiondata.date
+                                    profileref.child(member).child("current").update({completed: true})
                                     try {
                                         sentMessage.reactions.resolve("🔄").users.remove("545798436105224203")
                                         sentMessage.reactions.resolve("🔄").users.remove(member)
