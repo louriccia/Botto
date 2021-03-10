@@ -34,10 +34,12 @@ module.exports = {
             var vc = false
             var challengestart = Date.now()
 
-            if (challengedata[member].current !== undefined){
-                if (challengedata[member].current.completed == false && challengedata[member].current.start + 900000 > challengestart){
-                    client.channels.cache.get(interaction.channel_id).send("Challenge still active. Use 🔄 to roll a new challenge.")
-                    return
+            if (profiledata[member] !== undefined){
+                if(profiledata[member].current !== undefined){
+                    if (profiledata[member].current.completed == false && profiledata[member].current.start + 900000 > challengestart){
+                        client.channels.cache.get(interaction.channel_id).send("Challenge still active. Use 🔄 to roll a new challenge.")
+                        return
+                    }
                 }
             }
             
