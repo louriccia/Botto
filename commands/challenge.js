@@ -149,7 +149,6 @@ module.exports = {
                 }
                 var eColor = "", eGoalTimes = []
                 eTitle = "Race as **" + flag + " " + racers[random1].name + "** (" + (random1 + 1) + ")"+ nutext + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + laptext + skipstext + mirrortext
-                eColor = planets[tracks[random2].planet].color
                 if(vc) {
                     eAuthor = ["Multiplayer Challenge", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/160/twitter/259/chequered-flag_1f3c1.png"]
                 } else {
@@ -218,6 +217,8 @@ module.exports = {
                     eColor = "FAA61A"
                 } else if (title == ":negative_squared_cross_mark: Closed: "){
                     eColor = "2F3136"
+                } else {
+                    planets[tracks[random2].planet].color
                 }
                 const newEmbed = new Discord.MessageEmbed()
                     .setTitle(title + eTitle)
@@ -278,41 +279,6 @@ module.exports = {
                                 }
                                 feedbackref.push(feedbackdata);
                             } else if (reaction.emoji.name === '🔄' && !collected) {
-                                /*
-                                nutext = "", mirrortext = "", laps = 3, skipstext = ""
-                                nu = false, mirror = false, skips = false
-                                if (Math.random()<odds_noupgrades){
-                                    nutext = " with **NO UPGRADES**"
-                                    nu = true
-                                }
-                                if (Math.random()<odds_mirrormode){
-                                    mirrortext = ", **MIRRORED!** "
-                                    mirror = true
-                                }
-                                if (Math.random()<odds_non3lap){
-                                    laps = lap[Math.floor(Math.random()*4)]
-                                    laptext = " for **" + laps + " lap(s)**"
-                                }
-                                if (tracks[random2].hasOwnProperty("parskiptimes")) {
-                                    if (Math.random()<odds_skips) {
-                                        skipstext = ", with **SKIPS**"
-                                        skips = true
-                                    }
-                                }
-                                desc = movieQuotes[Math.floor(Math.random()*movieQuotes.length)]
-                                random1 = Math.floor(Math.random()*23)
-                                random2 = Math.floor(Math.random()*25)
-                                challengestart = Date.now()
-                                eTitle = "Race as **" + flag + " " + racers[random1].name + "** (" + (random1 + 1) + ")"+ nutext + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + laptext + skipstext + mirrortext
-                                eColor = planets[tracks[random2].planet].color
-                                try {
-                                    sentMessage.edit(createEmbed(":game_die: Reroll: ", null))
-                                } catch {}
-                                */
-                                
-                                
-                                
-                                
                                 var fakeinteraction = {
                                     name: "fake",
                                     member: {
