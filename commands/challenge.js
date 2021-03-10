@@ -33,6 +33,15 @@ module.exports = {
             let member = interaction.member.user.id
             var vc = false
             var challengestart = Date.now()
+
+            if (challengedata[member].current !== undefined){
+                if (challengedata[member].current.completed == false && challengedata[member].current.start + 900000 > challengestart){
+                    client.channels.cache.get(interaction.channel_id).send("Challenge still active. Use 🔄 to roll a new challenge.")
+                    return
+                }
+            }
+            
+
             var random1 = Math.floor(Math.random()*23)
             var random2 = Math.floor(Math.random()*25)
             var random3 = Math.floor(Math.random()*movieQuotes.length)
@@ -325,6 +334,7 @@ module.exports = {
                                         title = ""
                                         highlight = ""
                                         try {
+                                            profileref.child(member).child("current").update({completed: false})
                                             sentMessage.edit(createEmbed())
                                             sentMessage.reactions.resolve("↩️").users.remove("545798436105224203")
                                             sentMessage.reactions.resolve("▶️").users.remove("545798436105224203")
@@ -364,6 +374,7 @@ module.exports = {
                 setTimeout(async function() { //challenge closed
                     if(collecting){
                         title = ":negative_squared_cross_mark: Closed: "
+                        profileref.child(member).child("current").update({completed: true})
                         try { 
                             await sentMessage.edit("", createEmbed()) 
                             sentMessage.reactions.resolve("🔄").users.remove("545798436105224203")
