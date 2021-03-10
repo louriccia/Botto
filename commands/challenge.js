@@ -313,12 +313,17 @@ module.exports = {
                                 
                                 
                                 
-                                var fakeinteraction = {}
-                                fakeinteraction.name = "fake"
-                                fakeinteraction.member.user.id = interaction.member.user.id
-                                fakeinteraction.guild_id = interaction.guild_id
-                                fakeinteraction.member.user.username = interaction.member.user.username
-                                fakeinteraction.channel_id = interaction.channel_id
+                                var fakeinteraction = {
+                                    name: "fake",
+                                    member: {
+                                        user: {
+                                            id: interaction.member.user.id,
+                                            username: interaction.member.user.username
+                                        }
+                                    },
+                                    guild_id: interaction.guild_id,
+                                    channel_id: interaction.channel_id
+                                }
                                 collected = true
                                 collecting = false
                                 const rerollEmbed = new Discord.MessageEmbed()
