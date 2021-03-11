@@ -289,10 +289,11 @@ module.exports = {
                     for (var i=0; i<best.length; i++){
                         if((!vc && !already.includes(best[i].name) || best[i].name == interaction.member.user.username) || (vc && !already.includes(best[i].name))){
                             if(best[i].date == date) {
-                                besttimes = besttimes + pos[i-already.length] + "" + tools.timefix(best[i].time) + " - " + best[i].name + " <a:newrecord:672640831882133524>\n"
+                                besttimes = besttimes + pos[0] + "" + tools.timefix(best[i].time) + " - " + best[i].name + " <a:newrecord:672640831882133524>\n"
                             } else {
-                                besttimes = besttimes + pos[i-already.length] + "" + tools.timefix(best[i].time) + " - " + best[i].name + "\n"
+                                besttimes = besttimes + pos[0] + "" + tools.timefix(best[i].time) + " - " + best[i].name + "\n"
                             }
+                            pos.splice(0, 1)
                             already.push(best[i].name)
                         }
                         if (i-already.length == 9) {
