@@ -96,6 +96,40 @@ client.once('ready', () => {
     } catch {
         console.error(error);
     }
+    var profileref = database.ref('challenge/profiles');
+    profileref.on("value", function(snapshot) {
+        profiledata = snapshot.val();
+    }, function (errorObject) {
+        console.log("The read failed: " + errorObject.code);
+    });
+    var keys = Object.keys(profiledata)
+    for(var i = 0; i < keys.length; i++){
+        var k = keys[i]
+        if(profiledata[k].current !== undefined){
+            if(profiledata[k].current.completed == false){
+                var recovery_channel = client.channels.cache.get(profiledata[k].current.channel)
+                if(profiledata[k].current.message !== undefined){
+                    recovery_channel.messages.fetch(profiledata[k].message) //delete old challenge message
+                    .then(msg => {msg.delete()}).catch(err=> console.log(err));
+                }
+                if(profiledata[k].current.start + 1200000 > Date.now()){
+                    var fakeinteraction = {
+                        name: "fake",
+                        recovery: true,
+                        member: {
+                            user: {
+                                id: profiledata[k],
+                                username: profiledata[k].name
+                            }
+                        },
+                        guild_id: recovery_channel.guild.id,
+                        channel_id: profiledata[k].channel
+                    }
+                    client.commands.get("challenge").execute(client, fakeinteraction, [{name: "generate"}]);
+                }
+            }
+        }
+    }
     
 })
 

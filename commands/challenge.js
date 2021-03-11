@@ -95,27 +95,44 @@ module.exports = {
                     odds_non3lap = 0.05
                     odds_mirrormode = 0.05
                 }
-                
                 if (Math.random()<odds_noupgrades){
-                    nutext = " with **NO UPGRADES**"
                     nu = true
                 }
                 if (Math.random()<odds_mirrormode){
                     mirrortext = ", **MIRRORED!** "
-                    mirror = true
                 }
                 if (Math.random()<odds_non3lap){
                     laps = lap[Math.floor(Math.random()*4)]
-                    laptext = " for **" + laps + " lap(s)**"
                 }
                 if (tracks[random2].hasOwnProperty("parskiptimes")) {
                     if (Math.random()<odds_skips) {
-                        skipstext = ", with **SKIPS**"
                         skips = true
                     }
                 }
             } else {
                 vc = true
+            }
+            if(interaction.name =="fake"){
+                if(interaction.recovery == true){
+                    random1 = profiledata[member].current.racer
+                    random2 = profiledata[member].current.track
+                    nu = profiledata[member].current.nu
+                    mirror = profiledata[member].current.mirror
+                    laps = profiledata[member].current.laps
+                    skips = profiledata[member].current.skips
+                }
+            }
+            if(nu){
+                nutext = " with **NO UPGRADES**"
+            }
+            if(skips){
+                skipstext = ", with **SKIPS**"
+            }
+            if(laps !== 3){
+                laptext = " for **" + laps + " lap(s)**"
+            }
+            if(mirror){
+                mirror = true
             }
             var current = {
                 start: challengestart,
@@ -286,6 +303,7 @@ module.exports = {
             }
             client.channels.cache.get(interaction.channel_id).send(createEmbed()).then(sentMessage => {
             //collect feedback
+                profileref.child(member).child("current").update({message: sentMessage.id})
                 sentMessage.react('👍').then(()=> sentMessage.react('👎')).then(async function (message) {
                     var feedback = ""
                     if(!vc){
@@ -299,6 +317,7 @@ module.exports = {
                             const user = reaction.users.cache.last()
                             var fakeinteraction = {
                                 name: "fake",
+                                recovery: false,
                                 member: {
                                     user: {
                                         id: interaction.member.user.id,
@@ -338,7 +357,7 @@ module.exports = {
                                 eTitle = "~~"+eTitle+"~~"
                                 profileref.child(member).child("current").update({completed: true})
                                 try {
-                                    sentMessage.edit(createEmbed())
+                                    sentMessage.edit("", createEmbed())
                                     sentMessage.reactions.removeAll().catch()
                                 } catch {}
                                 client.commands.get("challenge").execute(client, fakeinteraction, args);
@@ -434,7 +453,7 @@ module.exports = {
                                     title = ":arrows_counterclockwise: Rerolled: "
                                     profileref.child(member).child("current").update({completed: true})
                                     try {
-                                        sentMessage.edit(createEmbed())
+                                        sentMessage.edit("", createEmbed())
                                         sentMessage.reactions.removeAll().catch()
                                         /*
                                         sentMessage.reactions.resolve("↩️").users.remove("545798436105224203")
