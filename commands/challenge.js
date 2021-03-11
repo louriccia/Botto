@@ -249,7 +249,7 @@ module.exports = {
                     }
                     var already = []
                     for (var i=0; i<best.length; i++){
-                        if(!already.includes(best[i].name)){
+                        if((!vc && !already.includes(best[i].name) || best[i].name == interaction.member.user.username) || (vc && !already.includes(best[i].name))){
                             if(best[i].date == date) {
                                 besttimes = besttimes + pos[i] + "" + tools.timefix(best[i].time) + " - " + best[i].name + " <a:newrecord:672640831882133524>\n"
                             } else {
