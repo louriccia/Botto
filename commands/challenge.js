@@ -303,22 +303,24 @@ module.exports = {
                 }
                 var achievements = []
                 if(Object.keys(gFamous).length < 25 && gFamous[random2] == undefined){
-                    achievements.push("**Galaxy Famous** `" + Object.keys(gFamous).length + "/25`")
+                    achievements.push("<@&801270792242724864> `" + Object.keys(gFamous).length + "/25`")
                 }
                 if(Object.keys(pChamp).length < 23 && pChamp[random1] == undefined){
-                    achievements.push("**Pod Champ** `" + Object.keys(pChamp).length + "/23`")
+                    achievements.push("<@&801270792242724864> `" + Object.keys(pChamp).length + "/23`")
                 }
                 if(Object.keys(lSkipper).length < 15 && skips && lSkipper[random2] == undefined){
-                    achievements.push("**Lightspeed Skipper** `" + Object.keys(lSkipper).length + "/15`")
+                    achievements.push("<@&801270792242724864> `" + Object.keys(lSkipper).length + "/15`")
                 }
                 if(Object.keys(sSteady).length < 23 && nu && sSteady[random2] == undefined){
-                    achievements.push("**Slow 'n Steady** `" + Object.keys(sSteady).length + "/23`")
+                    achievements.push("<@&801270792242724864> `" + Object.keys(sSteady).length + "/23`")
                 }
                 if(Object.keys(cFavorite).length < 25 && random1 == tracks[random2].favorite && cFavorite[random2] == undefined){
-                    achievements.push("**Crowd Favorite** `" + Object.keys(cFavorite).length + "/25`")
+                    achievements.push("**<@&801270792242724864>** `" + Object.keys(cFavorite).length + "/25`")
                 }
                 if(Object.keys(tJedi).length < 575 && tJedi[random2 + " " + random1] == undefined){
-                    achievements.push("**Crowd Favorite** `" + Object.keys(tJedi).length + "/575`")
+                    //achievements.push("**True Jedi** `" + Object.keys(tJedi).length + "/575`")
+                    achievements.push("<@&801270792242724864> `" + Object.keys(tJedi).length + "/575`")
+                    
                 }
                 const newEmbed = new Discord.MessageEmbed()
                     .setTitle(title + eTitle )
