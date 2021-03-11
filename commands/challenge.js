@@ -29,12 +29,12 @@ module.exports = {
         });
 
         var achievements = {
-            galaxy_famous: {name: "Galaxy Famous",         description: "Complete a challenge on every track",                         role: "<@&819514261289828362>", limit: 25, collection: {}},
-            pod_champ: {name: "Pod Champ",             description: "Complete a challenge with every pod",                         role: "<@&819514029218463774>", limit: 23, collection: {}},
-            light_skipper: {name: "Lightspeed Skipper",    description: "Complete a Skip challenge on every track with a skip",        role: "<@&819514330985922621>", limit: 15, collection: {}},
-            slow_steady: {name: "Slow 'n Steady",        description: "Complete a No Upgrades challenge with every pod",             role: "<@&819514431472926721>", limit: 23, collection: {}},
-            crowd_favorite: {name: "Crowd Favorite",        description: "Complete a challenge as the track favorite on every track",   role: "<@&819514487852761138>", limit: 25, collection: {}},
-            true_jedi: {name: "True Jedi",             description: "Complete a challenge with every pod on every track",          role: "<@&819514600827519008>", limit: 575, collection: {}}
+            galaxy_famous: {name: "Galaxy Famous",         description: "Complete a challenge on every track",                         role: "819514261289828362", limit: 25, collection: {}},
+            pod_champ: {name: "Pod Champ",             description: "Complete a challenge with every pod",                         role: "819514029218463774", limit: 23, collection: {}},
+            light_skipper: {name: "Lightspeed Skipper",    description: "Complete a Skip challenge on every track with a skip",        role: "819514330985922621", limit: 15, collection: {}},
+            slow_steady: {name: "Slow 'n Steady",        description: "Complete a No Upgrades challenge with every pod",             role: "819514431472926721", limit: 23, collection: {}},
+            crowd_favorite: {name: "Crowd Favorite",        description: "Complete a challenge as the track favorite on every track",   role: "819514487852761138", limit: 25, collection: {}},
+            true_jedi: {name: "True Jedi",             description: "Complete a challenge with every pod on every track",          role: "819514600827519008", limit: 575, collection: {}}
         }
 
         //const myEmbed = new Discord.MessageEmbed()
@@ -313,12 +313,12 @@ module.exports = {
                 var achievement_message = []
                 var galaxyFamous = achievements.galaxy_famous.name, podChamp = achievements.pod_champ.name, lightSkipper = achievements.light_skipper.name, slowSteady = achievements.slow_steady.name, crowdFavorite = achievements.crowd_favorite.name, trueJedi = achievements.true_jedi.name
                 if(interaction.guild_id == "441839750555369474"){
-                    galaxyFamous = achievements.galaxy_famous.role
-                    podChamp = achievements.pod_champ.role
-                    lightSkipper = achievements.light_skipper.role
-                    slowSteady = achievements.slow_steady.role
-                    crowdFavorite = achievements.crowd_favorite.role
-                    trueJedi = achievements.true_jedi.role
+                    galaxyFamous = "<@&" + achievements.galaxy_famous.role + ">"
+                    podChamp = "<@&" + achievements.pod_champ.role + ">"
+                    lightSkipper = "<@&" + achievements.light_skipper.role + ">"
+                    slowSteady = "<@&" + achievements.slow_steady.role + ">"
+                    crowdFavorite = "<@&" + achievements.crowd_favorite.role + ">"
+                    trueJedi = "<@&" + achievements.true_jedi.role + ">"
                 }
                 if(!vc){
                     if(Object.keys(achievements.galaxy_famous.collection).length < achievements.galaxy_famous.limit && achievements.galaxy_famous.collection[random2] == undefined){
@@ -361,9 +361,10 @@ module.exports = {
                                 .setDescription(achievements[a].description)
                                 .setColor("FFB900")
                                 .setTitle("**:trophy: " + achievements[a].name + "**")
-                                if(interaction.guild_id == "441839750555369474"){
-                                    congratsEmbed.setTitle("**" + achievements[a].role + "**")
-                                }
+                            if(interaction.guild_id == "441839750555369474"){
+                                congratsEmbed.setTitle("**<@&" + achievements[a].role + ">**")
+                                Member.roles.add(achievements[a].role).catch(error=>console.log(error))
+                            }
                             client.channels.cache.get(interaction.channel_id).send(congratsEmbed)
                         }
                     }
