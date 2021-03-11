@@ -27,6 +27,16 @@ module.exports = {
         }, function (errorObject) {
             console.log("The read failed: " + errorObject.code);
         });
+
+        var achievements = {
+            galaxy_famous: {name: "Galaxy Famous",         description: "Complete a challenge on every track",                         role: "<@&819514261289828362>", limit: 25, collection: {}},
+            pod_champ: {name: "Pod Champ",             description: "Complete a challenge with every pod",                         role: "<@&819514029218463774>", limit: 23, collection: {}},
+            light_skipper: {name: "Lightspeed Skipper",    description: "Complete a Skip challenge on every track with a skip",        role: "<@&819514330985922621>", limit: 15, collection: {}},
+            slow_steady: {name: "Slow 'n Steady",        description: "Complete a No Upgrades challenge with every pod",             role: "<@&819514431472926721>", limit: 23, collection: {}},
+            crowd_favorite: {name: "Crowd Favorite",        description: "Complete a challenge as the track favorite on every track",   role: "<@&819514487852761138>", limit: 25, collection: {}},
+            true_jedi: {name: "True Jedi",             description: "Complete a challenge with every pod on every track",          role: "<@&819514600827519008>", limit: 575, collection: {}}
+        }
+
         //const myEmbed = new Discord.MessageEmbed()
         if(args[0].name =="generate" || args[0].name =="challenge") {
             
@@ -145,14 +155,42 @@ module.exports = {
                 skips: skips,
                 mirror: mirror
             }
-            profileref.child(member).child("current").set(current)
-        //get best runs
+            if(!vc){
+                profileref.child(member).child("current").set(current)
+            }
+        //get best runs/achievement progress
             var keys = Object.keys(challengedata), best = []
             for (var i=0; i<keys.length; i++) {
                 var k = keys[i];
+                var keys = Object.keys(challengedata)
+                if(challengedata[k].user == member){
+                    if(achievements.galaxy_famous.collection[challengedata[k].track] == null){
+                        achievements.galaxy_famous.collection[challengedata[k].track] = 1
+                    }
+                    if(achievements.pod_champ.collection[challengedata[k].racer] == null){
+                        achievements.pod_champ.collection[challengedata[k].racer] = 1
+                    }
+                    if(challengedata[k].skips){
+                        if(achievements.light_skipper.collection[challengedata[k].track] == null){
+                            achievements.light_skipper.collection[challengedata[k].track] = 1
+                        }
+                    }
+                    if(challengedata[k].nu){
+                        if(achievements.slow_steady.collection[challengedata[k].track] == null){
+                            achievements.slow_steady.collection[challengedata[k].track] = 1
+                        }
+                    }
+                    if(challengedata[k].racer == tracks[challengedata[k].track].favorite){
+                        if(achievements.crowd_favorite.collection[challengedata[k].track] == null){
+                            achievements.crowd_favorite.collection[challengedata[k].track] = 1
+                        }
+                    }
+                    achievements.true_jedi.collection[challengedata[k].track + " " + challengedata[k].racer] = 1
+                }
                 if(challengedata[k].track == random2 && challengedata[k].racer == random1 && challengedata[k].laps == laps && challengedata[k].mirror == mirror && challengedata[k].nu == nu && challengedata[k].skips == skips){
                     best.push(challengedata[k])
                 }
+
             }
         //build description
             var desc = ""
@@ -271,64 +309,64 @@ module.exports = {
                 } else {
                     eColor = planets[tracks[random2].planet].color
                 }
-                //ckeck acievement progress
-                var keys = Object.keys(challengedata)
-                var gFamous = {}, pChamp = {}, lSkipper = {}, sSteady = {}, cFavorite = {}, tJedi = {}
-                for (var i=0; i<keys.length; i++) {
-                    var k = keys[i];
-                    if(challengedata[k].user == member){
-                        if(gFamous[challengedata[k].track] == null){
-                            gFamous[challengedata[k].track] = 1
-                        }
-                        if(pChamp[challengedata[k].racer] == null){
-                            pChamp[challengedata[k].racer] = 1
-                        }
-                        if(challengedata[k].skips){
-                            if(lSkipper[challengedata[k].track] == null){
-                                lSkipper[challengedata[k].track] = 1
-                            }
-                        }
-                        if(challengedata[k].nu){
-                            if(sSteady[challengedata[k].track] == null){
-                                sSteady[challengedata[k].track] = 1
-                            }
-                        }
-                        if(challengedata[k].racer == tracks[challengedata[k].track].favorite){
-                            if(cFavorite[challengedata[k].track] == null){
-                                cFavorite[challengedata[k].track] = 1
-                            }
-                        }
-                        tJedi[challengedata[k].track + " " + challengedata[k].racer] = 1
-                    }
-                }
-                var achievements = []
-                var galaxyFamous = "Galaxy Famous", podChamp = "Pod Champ", lightSkipper = "Lightspeed Skipper", slowSteady = "Slow 'n Steady", crowdFavorite = "Crowd Favorite", trueJedi = "True Jedi"
+                //prepare achievement progress
+                var achievement_message = []
+                var galaxyFamous = achievements.galaxy_famous.name, podChamp = achievements.pod_champ.name, lightSkipper = achievements.light_skipper.name, slowSteady = achievements.slow_steady.name, crowdFavorite = achievements.crowd_favorite.name, trueJedi = achievements.true_jedi.name
                 if(interaction.guild_id == "441839750555369474"){
-                    galaxyFamous = "<@&819514261289828362>"
-                    podChamp = "<@&819514029218463774>"
-                    lightSkipper = "<@&819514330985922621>"
-                    slowSteady = "<@&819514431472926721>"
-                    crowdFavorite = "<@&819514487852761138>"
-                    trueJedi = "<@&819514600827519008>"
+                    galaxyFamous = achievements.galaxy_famous.role
+                    podChamp = achievements.pod_champ.role
+                    lightSkipper = achievements.light_skipper.role
+                    slowSteady = achievements.slow_steady.role
+                    crowdFavorite = achievements.crowd_favorite.role
+                    trueJedi = achievements.true_jedi.role
                 }
-                if(Object.keys(gFamous).length < 25 && gFamous[random2] == undefined){
-                    achievements.push("**" + galaxyFamous + "** `" + Object.keys(gFamous).length + "/25`")
-                }
-                if(Object.keys(pChamp).length < 23 && pChamp[random1] == undefined){
-                    achievements.push("**" + podChamp + "** `" + Object.keys(pChamp).length + "/23`")
-                }
-                if(Object.keys(lSkipper).length < 15 && skips && lSkipper[random2] == undefined){
-                    achievements.push("**" + lightSkipper + "** `" + Object.keys(lSkipper).length + "/15`")
-                }
-                if(Object.keys(sSteady).length < 23 && nu && sSteady[random2] == undefined){
-                    achievements.push("**" + slowSteady + "** `" + Object.keys(sSteady).length + "/23`")
-                }
-                if(Object.keys(cFavorite).length < 25 && random1 == tracks[random2].favorite && cFavorite[random2] == undefined){
-                    achievements.push("**" + crowdFavorite + "** `" + Object.keys(cFavorite).length + "/25`")
-                }
-                if(Object.keys(tJedi).length < 575 && tJedi[random2 + " " + random1] == undefined){
-                    achievements.push("**" + trueJedi + "** `" + Object.keys(tJedi).length + "/575`")
-                    
+                if(!vc){
+                    if(Object.keys(achievements.galaxy_famous.collection).length < achievements.galaxy_famous.limit && achievements.galaxy_famous.collection[random2] == undefined){
+                        achievement_message.push("**" + galaxyFamous + "** `" + Object.keys(achievements.galaxy_famous.collection).length + "/25`")
+                    }
+                    if(Object.keys(achievements.pod_champ.collection).length < achievements.pod_champ.limit && achievements.pod_champ.collection[random1] == undefined){
+                        achievement_message.push("**" + podChamp + "** `" + Object.keys(achievements.pod_champ.collection).length + "/23`")
+                    }
+                    if(Object.keys(achievements.light_skipper.collection).length < achievements.light_skipper.limit && skips && achievements.light_skipper.collection[random2] == undefined){
+                        achievement_message.push("**" + lightSkipper + "** `" + Object.keys(achievements.light_skipper.collection).length + "/15`")
+                    }
+                    if(Object.keys(achievements.slow_steady.collection).length < achievements.slow_steady.limit && nu && achievements.slow_steady.collection[random2] == undefined){
+                        achievement_message.push("**" + slowSteady + "** `" + Object.keys(achievements.slow_steady.collection).length + "/23`")
+                    }
+                    if(Object.keys(achievements.crowd_favorite.collection).length < achievements.crowd_favorite.limit && random1 == tracks[random2].favorite && achievements.crowd_favorite.collection[random2] == undefined){
+                        achievement_message.push("**" + crowdFavorite + "** `" + Object.keys(achievements.crowd_favorite.collection).length + "/25`")
+                    }
+                    if(Object.keys(achievements.true_jedi.collection).length < achievements.true_jedi.limit && achievements.true_jedi.collection[random2 + " " + random1] == undefined){
+                        achievement_message.push("**" + trueJedi + "** `" + Object.keys(achievements.true_jedi.collection).length + "/575`")
+                    }
+                    if(profiledata[member].achievements == undefined){
+                        var ach = {
+                            galaxy_famous: false,
+                            pod_champ: false,
+                            light_skipper: false,
+                            slow_steady: false,
+                            crowd_favorite: false,
+                            true_jedi: false,
+                            big_spender: false
+                        }
+                        profileref.child(member).child("achievements").set(ach)
+                    }
+                    var achvs = Object.keys(achievements)
+                    for (var i = 0; i < achvs.length; i ++){
+                        var a = achvs[i]
+                        if(Object.keys(achievements[a].collection).length == achievements[a].limit && profiledata[member].achievements[a] == false){
+                            profileref.child(member).child("achievements").child(a).set(true)
+                            var congratsEmbed = new Discord.MessageEmbed()
+                                .setAuthor(interaction.member.user.username + " got an achievement!", eAuthor[1])
+                                .setDescription(achievements[a].description)
+                                .setColor("FFB900")
+                                .setTitle("**:trophy: " + achievements[a].name + "**")
+                                if(interaction.guild_id == "441839750555369474"){
+                                    congratsEmbed.setTitle("**" + achievements[a].role + "**")
+                                }
+                            client.channels.cache.get(interaction.channel_id).send(congratsEmbed)
+                        }
+                    }
                 }
                 const newEmbed = new Discord.MessageEmbed()
                     .setTitle(title + eTitle )
@@ -336,7 +374,7 @@ module.exports = {
                     if(![":arrows_counterclockwise: Rerolled: ", ":negative_squared_cross_mark: Closed: "].includes(title)){
                         newEmbed  
                             .setAuthor(eAuthor[0], eAuthor[1])
-                            .setDescription(rating+desc+ "\n" + achievements.join(", "))
+                            .setDescription(rating+desc+ "\n" + achievement_message.join(", "))
                             .addField("Goal Times", eGoalTimes, true)
                             .addField("Best Times", besttimes, true)
                     } else {
@@ -484,6 +522,14 @@ module.exports = {
                         }
                     }
                 }, 900000)
+                setTimeout(async function() { //clean up reactions
+                    try { 
+                        await sentMessage.reactions.removeAll().catch()
+                    } catch (error) {
+                        // log all errors
+                        console.error(error)
+                    }
+                }, 1200000)
             //collect times
                 const collector = new Discord.MessageCollector(client.channels.cache.get(interaction.channel_id), m => m,{ time: 900000 }); //messages
                 var collected = false, collecting = true, collection = []
@@ -748,7 +794,6 @@ module.exports = {
                     member = args[0].options[0].value
                 }
             }
-            var gFamous = {}, pChamp = {}, lSkipper = {}, sSteady = {}, cFavorite = {}, tJedi = {}
             var keys = Object.keys(challengedata)
             var stats = {
                 total: 0,
@@ -790,28 +835,28 @@ module.exports = {
             for (var i=0; i<keys.length; i++) {
                 var k = keys[i];
                 if(challengedata[k].user == member){
-                    if(gFamous[challengedata[k].track] == null){
-                        gFamous[challengedata[k].track] = 1
+                    if(achievements.galaxy_famous.collection[challengedata[k].track] == null){
+                        achievements.galaxy_famous.collection[challengedata[k].track] = 1
                     }
-                    if(pChamp[challengedata[k].racer] == null){
-                        pChamp[challengedata[k].racer] = 1
+                    if(achievements.pod_champ.collection[challengedata[k].racer] == null){
+                        achievements.pod_champ.collection[challengedata[k].racer] = 1
                     }
                     if(challengedata[k].skips){
-                        if(lSkipper[challengedata[k].track] == null){
-                            lSkipper[challengedata[k].track] = 1
+                        if(achievements.light_skipper.collection[challengedata[k].track] == null){
+                            achievements.light_skipper.collection[challengedata[k].track] = 1
                         }
                     }
                     if(challengedata[k].nu){
-                        if(sSteady[challengedata[k].track] == null){
-                            sSteady[challengedata[k].track] = 1
+                        if(achievements.slow_steady.collection[challengedata[k].track] == null){
+                            achievements.slow_steady.collection[challengedata[k].track] = 1
                         }
                     }
                     if(challengedata[k].racer == tracks[challengedata[k].track].favorite){
-                        if(cFavorite[challengedata[k].track] == null){
-                            cFavorite[challengedata[k].track] = 1
+                        if(achievements.crowd_favorite.collection[challengedata[k].track] == null){
+                            achievements.crowd_favorite.collection[challengedata[k].track] = 1
                         }
                     }
-                    tJedi[challengedata[k].track + " " + challengedata[k].racer] = 1
+                    achievements.true_jedi.collection[challengedata[k].track + " " + challengedata[k].racer] = 1
                     stats.total ++
                     if(!challengedata[k].mirror && !challengedata[k].nu && !challengedata[k].skips && challengedata[k].laps == 3) {
                         stats.standard ++
@@ -886,31 +931,31 @@ module.exports = {
                 profileEmbed
                 .addField(":pencil: Feedback Trends", feedbacktrend, true)
                 var achieved = ["", "", "", "", "", "", ""]
-                if(Object.keys(gFamous).length == 25){
+                if(Object.keys(achievements.galaxy_famous.collection).length == 25){
                     achieved[0] = ":white_check_mark: "
                 }
-                if(Object.keys(pChamp).length == 23){
+                if(Object.keys(achievements.pod_champ.collection).length == 23){
                     achieved[1] = ":white_check_mark: "
                 }
-                if(Object.keys(lSkipper).length == 15){
+                if(Object.keys(achievements.light_skipper.collection).length == 15){
                     achieved[2] = ":white_check_mark: "
                 }
-                if(Object.keys(sSteady).length == 23){
+                if(Object.keys(achievements.slow_steady.collection).length == 23){
                     achieved[3] = ":white_check_mark: "
                 }
-                if(Object.keys(cFavorite).length == 25){
+                if(Object.keys(achievements.crowd_favorite.collection).length == 25){
                     achieved[4] = ":white_check_mark: "
                 }
-                if(Object.keys(tJedi).length == 575){
+                if(Object.keys(achievements.true_jedi.collection).length == 575){
                     achieved[5] = ":white_check_mark: "
                 }
 
-                profileEmbed.addField(":trophy: Achievements", achieved[0] + "**Galaxy Famous** - Complete a challenge on every track: `" + Object.keys(gFamous).length + "/25`" + 
-                "\n" + achieved[1] + "**Pod Champ** - Complete a challenge with every pod: `" + Object.keys(pChamp).length + "/23`" +
-                "\n" + achieved[2] + "**Lightspeed Skipper** - Complete a Skip challenge on every track with a skip: `" + Object.keys(lSkipper).length + "/15`" +
-                "\n" + achieved[3] + "**Slow 'n Steady** - Complete a No Upgrades challenge with every pod: `" + Object.keys(sSteady).length + "/23`" +
-                "\n" + achieved[4] + "**Crowd Favorite** - Complete a challenge as the track favorite on every track: `" + Object.keys(cFavorite).length + "/25`" +
-                "\n" + achieved[5] + "**True Jedi** - Complete a challenge with every pod on every track: `" + Object.keys(tJedi).length + "/575`" +
+                profileEmbed.addField(":trophy: Achievements", achieved[0] + "**Galaxy Famous** - Complete a challenge on every track: `" + Object.keys(achievements.galaxy_famous.collection).length + "/25`" + 
+                "\n" + achieved[1] + "**Pod Champ** - Complete a challenge with every pod: `" + Object.keys(achievements.pod_champ.collection).length + "/23`" +
+                "\n" + achieved[2] + "**Lightspeed Skipper** - Complete a Skip challenge on every track with a skip: `" + Object.keys(achievements.light_skipper.collection).length + "/15`" +
+                "\n" + achieved[3] + "**Slow 'n Steady** - Complete a No Upgrades challenge with every pod: `" + Object.keys(achievements.slow_steady.collection).length + "/23`" +
+                "\n" + achieved[4] + "**Crowd Favorite** - Complete a challenge as the track favorite on every track: `" + Object.keys(achievements.crowd_favorite.collection).length + "/25`" +
+                "\n" + achieved[5] + "**True Jedi** - Complete a challenge with every pod on every track: `" + Object.keys(achievements.true_jedi.collection).length + "/575`" +
                 "\n" + "**Big-Time Swindler** - Earn or spend 1,000,000 total truguts: `" + "x" + "/1,000,000`", true)
                 .setFooter("/challenge")
             client.api.interactions(interaction.id, interaction.token).callback.post({
