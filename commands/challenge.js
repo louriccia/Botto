@@ -263,6 +263,8 @@ module.exports = {
                             .setDescription(rating+desc)
                             .addField("Goal Times", eGoalTimes, true)
                             .addField("Best Times", besttimes, true)
+                    } else {
+                        newEmbed.setTitle(title + "~~" + eTitle + "~~")
                     }
                     
                     if(!vc){
@@ -337,10 +339,7 @@ module.exports = {
                                 profileref.child(member).child("current").update({completed: true})
                                 try {
                                     sentMessage.edit(createEmbed())
-                                    sentMessage.reactions.resolve("↩️").users.remove("545798436105224203")
-                                    sentMessage.reactions.resolve("▶️").users.remove("545798436105224203")
-                                    sentMessage.reactions.resolve("↩️").users.remove(member)
-                                    sentMessage.reactions.resolve("▶️").users.remove(member)
+                                    sentMessage.reactions.removeAll().catch()
                                 } catch {}
                                 client.commands.get("challenge").execute(client, fakeinteraction, args);
                             } else if (reaction.emoji.name === '↩️') { //undo
@@ -397,13 +396,10 @@ module.exports = {
                 setTimeout(async function() { //challenge closed
                     if(collecting){
                         title = ":negative_squared_cross_mark: Closed: "
-                        eTitle = "~~"+eTitle+"~~"
                         profileref.child(member).child("current").update({completed: true})
                         try { 
                             await sentMessage.edit("", createEmbed()) 
-                            sentMessage.reactions.resolve("🔄").users.remove("545798436105224203")
-                            sentMessage.reactions.resolve("🔄").users.remove(member)
-                            sentMessage.react('▶️')
+                            await sentMessage.reactions.removeAll().catch()
                         } catch (error) {
                             // log all errors
                             console.error(error)
@@ -436,14 +432,16 @@ module.exports = {
                                     collected = true
                                     collecting = false
                                     title = ":arrows_counterclockwise: Rerolled: "
-                                    eTitle = "~~"+eTitle+"~~"
                                     profileref.child(member).child("current").update({completed: true})
                                     try {
                                         sentMessage.edit(createEmbed())
+                                        sentMessage.reactions.removeAll().catch()
+                                        /*
                                         sentMessage.reactions.resolve("↩️").users.remove("545798436105224203")
                                         sentMessage.reactions.resolve("▶️").users.remove("545798436105224203")
                                         sentMessage.reactions.resolve("↩️").users.remove(member)
                                         sentMessage.reactions.resolve("▶️").users.remove(member)
+                                        */
                                     } catch {}
                                 }
                             }
