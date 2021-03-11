@@ -273,6 +273,7 @@ module.exports = {
                 }
                 //ckeck acievement progress
                 var keys = Object.keys(challengedata)
+                var gFamous = {}, pChamp = {}, lSkipper = {}, sSteady = {}, cFavorite = {}, tJedi = {}
                 for (var i=0; i<keys.length; i++) {
                     var k = keys[i];
                     if(challengedata[k].user == member){
