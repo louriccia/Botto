@@ -271,13 +271,61 @@ module.exports = {
                 } else {
                     eColor = planets[tracks[random2].planet].color
                 }
+                //ckeck acievement progress
+                var keys = Object.keys(challengedata)
+                for (var i=0; i<keys.length; i++) {
+                    var k = keys[i];
+                    if(challengedata[k].user == member){
+                        if(gFamous[challengedata[k].track] == null){
+                            gFamous[challengedata[k].track] = 1
+                        }
+                        if(pChamp[challengedata[k].racer] == null){
+                            pChamp[challengedata[k].racer] = 1
+                        }
+                        if(challengedata[k].skips){
+                            if(lSkipper[challengedata[k].track] == null){
+                                lSkipper[challengedata[k].track] = 1
+                            }
+                        }
+                        if(challengedata[k].nu){
+                            if(sSteady[challengedata[k].track] == null){
+                                sSteady[challengedata[k].track] = 1
+                            }
+                        }
+                        if(challengedata[k].racer == tracks[challengedata[k].track].favorite){
+                            if(cFavorite[challengedata[k].track] == null){
+                                cFavorite[challengedata[k].track] = 1
+                            }
+                        }
+                        tJedi[challengedata[k].track + " " + challengedata[k].racer] = 1
+                    }
+                }
+                var achievements = []
+                if(Object.keys(gFamous).length < 25 && gFamous[random2] == undefined){
+                    achievements.push("**Galaxy Famous** `" + Object.keys(gFamous).length + "/25`")
+                }
+                if(Object.keys(pChamp).length < 23 && pChamp[random1] == undefined){
+                    achievements.push("**Pod Champ** `" + Object.keys(pChamp).length + "/23`")
+                }
+                if(Object.keys(lSkipper).length < 15 && skips && lSkipper[random2] == undefined){
+                    achievements.push("**Lightspeed Skipper** `" + Object.keys(lSkipper).length + "/15`")
+                }
+                if(Object.keys(sSteady).length < 23 && nu && sSteady[random2] == undefined){
+                    achievements.push("**Slow 'n Steady** `" + Object.keys(sSteady).length + "/23`")
+                }
+                if(Object.keys(cFavorite).length < 25 && random1 == tracks[random2].favorite && cFavorite[random2] == undefined){
+                    achievements.push("**Crowd Favorite** `" + Object.keys(cFavorite).length + "/25`")
+                }
+                if(Object.keys(tJedi).length < 575 && tJedi[random2 + " " + random1] == undefined){
+                    achievements.push("**Crowd Favorite** `" + Object.keys(tJedi).length + "/575`")
+                }
                 const newEmbed = new Discord.MessageEmbed()
-                    .setTitle(title + eTitle)
+                    .setTitle(title + eTitle )
                     .setColor(eColor)
                     if(![":arrows_counterclockwise: Rerolled: ", ":negative_squared_cross_mark: Closed: "].includes(title)){
                         newEmbed  
                             .setAuthor(eAuthor[0], eAuthor[1])
-                            .setDescription(rating+desc)
+                            .setDescription(rating+desc+ "\n" + achievements.join(", "))
                             .addField("Goal Times", eGoalTimes, true)
                             .addField("Best Times", besttimes, true)
                     } else {
