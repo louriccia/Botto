@@ -37,6 +37,7 @@ module.exports = {
             if (profiledata[member] !== undefined){
                 if(profiledata[member].current !== undefined){
                     if (profiledata[member].current.completed == false && profiledata[member].current.start + 900000 > challengestart){
+                        /* reroll event
                         client.channels.cache.get(interaction.channel_id).send("Previous challenge still active. Click 🔄 to reroll.")
                         if(interaction.name !== "fake"){
                             client.api.interactions(interaction.id, interaction.token).callback.post({
@@ -50,6 +51,7 @@ module.exports = {
                             })
                         }
                         return
+                        */
                     }
                 }
             }
@@ -165,14 +167,13 @@ module.exports = {
                 }
             }
         //build embed
-            var eAuthor = [], eTitle = "", title = "", highlight = ""
+            var eAuthor = [], eTitle = "", title = "", highlight = "", eGoalTimes = []
             function createEmbed() {
             //calculate goal time
                 var speed = 1, speedmod = tracks[random2].avgspeedmod, length = tracks[random2].lap.length
                 length = length * laps
                 if (nu) {
                     speed = tools.avgSpeed(racers[random1].max_speed, racers[random1].boost_thrust, racers[random1].heat_rate, racers[random1].cool_rate)
-                    
                 } else {
                     speed = tools.avgSpeed(tools.upgradeTopSpeed(racers[random1].max_speed, 5), racers[random1].boost_thrust, racers[random1].heat_rate, tools.upgradeCooling(racers[random1].cool_rate, 5))
                 }
@@ -180,7 +181,7 @@ module.exports = {
                 if (racers[random1].hasOwnProperty("flag")) {
                     flag = racers[random1].flag
                 }
-                var eColor = "", eGoalTimes = []
+                var eColor = ""
                 eTitle = "Race as **" + flag + " " + racers[random1].name + "** (" + (random1 + 1) + ")"+ nutext + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + laptext + skipstext + mirrortext
                 if(vc) {
                     eAuthor = ["Multiplayer Challenge", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/160/twitter/259/chequered-flag_1f3c1.png"]
@@ -248,7 +249,7 @@ module.exports = {
                     eColor = "77B255"
                 } else if (title == ":warning: 5 Minute Warning: " || title == "<a:countdown:672640791369482251> 1 Minute Warning: "){
                     eColor = "FAA61A"
-                } else if (title == ":negative_squared_cross_mark: Closed: "){
+                } else if (title == ":negative_squared_cross_mark: Closed: " || title == ":arrows_counterclockwise: Rerolled: "){
                     eColor = "2F3136"
                 } else {
                     eColor = planets[tracks[random2].planet].color
@@ -256,10 +257,14 @@ module.exports = {
                 const newEmbed = new Discord.MessageEmbed()
                     .setTitle(title + eTitle)
                     .setColor(eColor)
-                    .setAuthor(eAuthor[0], eAuthor[1])
-                    .setDescription(rating+desc)
-                    .addField("Goal Times", eGoalTimes, true)
-                    .addField("Best Times", besttimes, true)
+                    if(![":arrows_counterclockwise: Rerolled: ", ":negative_squared_cross_mark: Closed: "].includes(title)){
+                        newEmbed  
+                            .setAuthor(eAuthor[0], eAuthor[1])
+                            .setDescription(rating+desc)
+                            .addField("Goal Times", eGoalTimes, true)
+                            .addField("Best Times", besttimes, true)
+                    }
+                    
                     if(!vc){
                         //newEmbed.setFooter("Click to reroll the challenge for 1200 Truguts", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/259/game-die_1f3b2.png")
                     }
@@ -287,7 +292,7 @@ module.exports = {
                     const filter = (reaction, user) => {
                         return (['👍', '👎', '↩️', '🔄', '▶️'].includes(reaction.emoji.name) && user.id !== "545798436105224203" && ((user.id == member && !vc) || vc));
                     };   
-                    const collector = sentMessage.createReactionCollector(filter, {time: 1800000})
+                    const collector = sentMessage.createReactionCollector(filter, {time: 1800000}) //reactions
                         collector.on('collect', (reaction, reactionCollector) => {
                             const user = reaction.users.cache.last()
                             var fakeinteraction = {
@@ -301,7 +306,7 @@ module.exports = {
                                 guild_id: interaction.guild_id,
                                 channel_id: interaction.channel_id
                             }
-                            if(['👍', '👎'].includes(reaction.emoji.name)) {
+                            if(['👍', '👎'].includes(reaction.emoji.name)) { //feedback
                                 if (reaction.emoji.name === '👍') {
                                     feedback = '👍'
                                 } else {
@@ -323,7 +328,7 @@ module.exports = {
                                 try {
                                     sentMessage.edit(createEmbed())
                                 } catch {}
-                            } else if (reaction.emoji.name === '🔄' && !collected) {
+                            } else if (reaction.emoji.name === '🔄' && !collected) { //reroll
                                 
                                 collected = true
                                 collecting = false
@@ -337,7 +342,7 @@ module.exports = {
                                     sentMessage.delete()
                                 } catch {}
                                 client.commands.get("challenge").execute(client, fakeinteraction, args);
-                            } else if (reaction.emoji.name === '↩️') {
+                            } else if (reaction.emoji.name === '↩️') { //undo
                                 for(let i = 0; i<collection.length; i++) {
                                     if(collection[i].user == user.id){
                                         ref.child(collection[i].record).remove()
@@ -357,9 +362,11 @@ module.exports = {
                                     }
                                 }
                                 
-                            } else if (reaction.emoji.name === '▶️' && collected) {
+                            } else if (reaction.emoji.name === '▶️' && collected) { //next challenge
                                 try{
+                                    sentMessage.reactions.resolve("↩️").users.remove("545798436105224203")
                                     sentMessage.reactions.resolve("▶️").users.remove("545798436105224203")
+                                    sentMessage.reactions.resolve("↩️").users.remove(member)
                                     sentMessage.reactions.resolve("▶️").users.remove(member)
                                 } catch {}
                                 client.commands.get("challenge").execute(client, fakeinteraction, args);
@@ -389,11 +396,13 @@ module.exports = {
                 setTimeout(async function() { //challenge closed
                     if(collecting){
                         title = ":negative_squared_cross_mark: Closed: "
+                        eTitle = "~~"+eTitle+"~~"
                         profileref.child(member).child("current").update({completed: true})
                         try { 
                             await sentMessage.edit("", createEmbed()) 
                             sentMessage.reactions.resolve("🔄").users.remove("545798436105224203")
                             sentMessage.reactions.resolve("🔄").users.remove(member)
+                            sentMessage.react('▶️')
                         } catch (error) {
                             // log all errors
                             console.error(error)
@@ -401,7 +410,7 @@ module.exports = {
                     }
                 }, 900000)
             //collect times
-                const collector = new Discord.MessageCollector(client.channels.cache.get(interaction.channel_id), m => m,{ time: 900000 });
+                const collector = new Discord.MessageCollector(client.channels.cache.get(interaction.channel_id), m => m,{ time: 900000 }); //messages
                 var collected = false, collecting = true, collection = []
                 collector.on('collect', message => {
                 //a new challenge appears
@@ -409,7 +418,7 @@ module.exports = {
                         if (![undefined, null, ""].includes(message.embeds[0].title)) {
                             if (message.embeds[0].title.startsWith("Race")) {
                                 if (vc) {
-                                    if(collected && collecting){ //previous challenge closed after rolling a new challenge
+                                    if(collected && collecting){ //previous mp challenge closed after rolling a new challenge
                                         title = ":white_check_mark: Completed: "
                                         try {
                                             sentMessage.edit(createEmbed()) 
@@ -425,8 +434,15 @@ module.exports = {
                                 } else if (!collected && message.embeds[0].author.name.replace("'s Challenge", "") == interaction.member.user.username) { //rerolling sp challenge
                                     collected = true
                                     collecting = false
+                                    title = ":arrows_counterclockwise: Rerolled: "
+                                    eTitle = "~~"+eTitle+"~~"
+                                    profileref.child(member).child("current").update({completed: true})
                                     try {
-                                        sentMessage.delete()
+                                        sentMessage.edit(createEmbed())
+                                        sentMessage.reactions.resolve("↩️").users.remove("545798436105224203")
+                                        sentMessage.reactions.resolve("▶️").users.remove("545798436105224203")
+                                        sentMessage.reactions.resolve("↩️").users.remove(member)
+                                        sentMessage.reactions.resolve("▶️").users.remove(member)
                                     } catch {}
                                 }
                             }
