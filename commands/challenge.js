@@ -332,14 +332,15 @@ module.exports = {
                                 
                                 collected = true
                                 collecting = false
-                                const rerollEmbed = new Discord.MessageEmbed()
-                                    //.setAuthor("Rerolled", eAuthor[1])
-                                    .setTitle("~~"+eTitle+"~~")
-                                    .setColor("2F3136")
-                                sentMessage.channel.send(rerollEmbed)
+                                title = ":arrows_counterclockwise: Rerolled: "
+                                eTitle = "~~"+eTitle+"~~"
                                 profileref.child(member).child("current").update({completed: true})
                                 try {
-                                    sentMessage.delete()
+                                    sentMessage.edit(createEmbed())
+                                    sentMessage.reactions.resolve("↩️").users.remove("545798436105224203")
+                                    sentMessage.reactions.resolve("▶️").users.remove("545798436105224203")
+                                    sentMessage.reactions.resolve("↩️").users.remove(member)
+                                    sentMessage.reactions.resolve("▶️").users.remove(member)
                                 } catch {}
                                 client.commands.get("challenge").execute(client, fakeinteraction, args);
                             } else if (reaction.emoji.name === '↩️') { //undo
