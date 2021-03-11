@@ -118,7 +118,7 @@ client.once('ready', () => {
                         recovery: true,
                         member: {
                             user: {
-                                id: profiledata[k],
+                                id: k,
                                 username: profiledata[k].name
                             }
                         },
