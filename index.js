@@ -125,6 +125,7 @@ client.once('ready', () => {
                         guild_id: recovery_channel.guild.id,
                         channel_id: profiledata[k].channel
                     }
+                    console.log(fakeinteraction)
                     client.commands.get("challenge").execute(client, fakeinteraction, [{name: "generate"}]);
                 }
             }
