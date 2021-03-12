@@ -530,13 +530,13 @@ module.exports = {
         
 
         //5. account for pod stats
-        if(track == 16 || track == 19){ //scale to bullseye
-            uh_mod = uh_mod*(1+(120-racers[racer].max_turn_rate)/40)
-            us_mod = us_mod*(1+(120-racers[racer].max_turn_rate)/40)
-        } else { //scale to ben
-            uh_mod = uh_mod*(1+(89-racers[racer].max_turn_rate)/40)
-            us_mod = us_mod*(1+(89-racers[racer].max_turn_rate)/40)
+        var scaler = 89//scale to ben
+        if(track == 16 || track == 19){ 
+            scaler = 120//scale to bullseye
         }
+        uh_mod = uh_mod*(1+(scaler-racers[racer].max_turn_rate)/30)
+        us_mod = us_mod*(1+(scaler-racers[racer].max_turn_rate)/30)
+        length_mod = length_mod*(1+(scaler-racers[racer].max_turn_rate)/800)
 
         //6. calculate the final time
         var first_lap_fast = getFast(tracks[track].first_lap.fast)
