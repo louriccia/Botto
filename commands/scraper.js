@@ -194,10 +194,10 @@ module.exports = {
             return rp("https://www.cyberscore.me.uk" + url)
                 .then(function (html) {
                     var runs = []
-                    var table = $('.scoreboard', html)
-                    var text0 = $('.groupname', html).text().split("–")
+                    var table = $('.charts-show-scoreboard', html)
+                    var text0 = $('.gamename', html).text().split("→")[2].replace(/\n/, "").trim().split("–")
                     var cat = ""
-                    var track = text0[text0.length - 1].trim().replace("’", "'")
+                    var track = text0[text0.length-1].trim()
                     for (let i = 0; i < tracks.length; i++) {
                         if (String(track).toLowerCase() == tracks[i].name.toLowerCase()) {
                             track = i
@@ -210,38 +210,43 @@ module.exports = {
                     }
                     console.log('getting ' + cat + " times for " + track)
                     $('tr', table).each((i, elem) => {
-                        var text = $('.name', elem).text().split(/\n/)
-                        var text2 = text[4].split("on")
-                        var text3 = $('.data', elem).text().trim().split(/\n/)
-                        var links = $('a', elem)
-                        var records = "https://www.cyberscore.me.uk" + links[links.length - 1].attribs.href
-                        var proof = links[links.length - 2].attribs.href
-                        if (proof.startsWith("/proofs")) {
-                            proof = "https://www.cyberscore.me.uk" + proof
-                        } else if (proof.startsWith("/user")) {
-                            proof = ""
-                        }
-                        var racer = text2[0].replace("Using ", "").trim().replace("Barranta", "Baranta").replace("Endacott", "Endocott").replace("Jin", "Jinn").replace("Rats Tyrell", "Ratts Tyerell").replace("‘Bullseye’", "'Bullseye'").replace("Bumpy", "'Bumpy'").replace("Parimiter", "Paramita")
-                        for (let i = 0; i < racers.length; i++) {
-                            if (String(racer).toLowerCase() == racers[i].name.toLowerCase()) {
-                                racer = i
+                        if($('.details', elem).text() !== ''){
+                            var name = $('.user-identification', elem).text().replace(/\n/, "").trim()//.split(/\n/)
+                            var details = $('.details', elem).text().replace(/\n/, "").split('–')
+                            var racer = details[1].split("on")[0].replace("Using ", "").trim()
+                            var platform = details[1].split("on")[1].trim()
+                            var date = details[0].trim()
+                            var time = $('.data', elem).text().trim().split(/\n/)[0]
+                            var links = $('a', elem)
+                            var user = "https://www.cyberscore.me.uk" + links[1].attribs.href
+                            var record = links[links.length - 1].attribs.href
+                            var proof = links[links.length - 2].attribs.href
+                            if (proof.startsWith("/proofs")) {
+                                proof = "https://www.cyberscore.me.uk" + proof
+                            } else if (proof.startsWith("/user")) {
+                                proof = ""
                             }
-                        }
-                        var time = tools.timetoSeconds(text3[0])
-                        var data = {
-                            name: text[1].match(/“([\w ]+)”/g).toString().replace("“", "").replace("”", ""),
-                            user: 'https://www.cyberscore.me.uk' + $('.name > a', elem).attr('href'), //.attribs.href,
-                            cat: cat,
-                            track: track,
-                            racer: racer,
-                            date: text[3].replace(" –", "").trim(),
-                            system: text2[1].trim().replace("Dreamcast", "DC").replace("Nintendo 64", "N64").replace("PlayStation 4", "PS4").replace("Xbox One", "Xbox").replace("PlayStation 5", "PS4").replace("Xbox Series X|S", "Xbox"),
-                            time: time,
-                            proof: proof, //.attribs.href
-                            record: records
-                        }
-                        runs.push(data)
-
+                            racer = racer.replace("Barranta", "Baranta").replace("Endacott", "Endocott").replace("Jin", "Jinn").replace("Rats Tyrell", "Ratts Tyerell").replace("‘Bullseye’", "'Bullseye'").replace("Bumpy", "'Bumpy'").replace("Parimiter", "Paramita")
+                            for (let i = 0; i < racers.length; i++) {
+                                if (String(racer).toLowerCase() == racers[i].name.toLowerCase()) {
+                                    racer = i
+                                }
+                            }
+                            var time = tools.timetoSeconds(time)
+                            var data = {
+                                name: name,
+                                user: user, //.attribs.href,
+                                cat: cat,
+                                track: track,
+                                racer: racer,
+                                date: date,
+                                system: platform,
+                                time: time,
+                                proof: proof, //.attribs.href
+                                record: record
+                            }
+                            runs.push(data)
+                    }
                     })
                     Promise.all(runs)
                         .then(result => {
