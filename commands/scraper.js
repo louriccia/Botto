@@ -197,7 +197,7 @@ module.exports = {
                     var table = $('.charts-show-scoreboard', html)
                     var text0 = $('.gamename', html).text().split("→")[2].replace(/\n/, "").trim().split("–")
                     var cat = ""
-                    var track = text0[text0.length-1].trim()
+                    var track = text0[text0.length-1].trim().replace("’", "'")
                     for (let i = 0; i < tracks.length; i++) {
                         if (String(track).toLowerCase() == tracks[i].name.toLowerCase()) {
                             track = i
