@@ -265,11 +265,16 @@ module.exports = {
                     ]
                 }
                 for(var i = 0; i < goal_earnings.length; i++){
-                    if(goal_earnings[i] == 0){
-                        goal_earnings[i] = ""
+                    if(!vc){
+                        if(goal_earnings[i] == 0){
+                            goal_earnings[i] = ""
+                        } else {
+                            goal_earnings[i] = "  `+💿" + goal_earnings[i] + "`"
+                        }
                     } else {
-                        goal_earnings[i] = "  `+💿" + goal_earnings[i] + "`"
+                        goal_earnings[i] = ""
                     }
+                    
                 }
                 eGoalTimes = goal_symbols[0] + " " + tools.timefix(goals[0]) + goal_earnings[0] + "\n" +
                             goal_symbols[1] + " " + tools.timefix(goals[1]) + goal_earnings[1] + "\n" +
@@ -729,14 +734,16 @@ module.exports = {
                 }
             } else if (winnings == undefined && odds_skips == undefined && odds_noupgrades == undefined && odds_non3lap == undefined && odds_mirrormode == undefined) { //no odds submitted
                 if(profiledata[member] !== undefined) {
-                    desc = "Your current settings are shown below. "
+                    desc = "Your current settings are shown below. " + "\n\n**Challenge Condition Odds**\nCustomize your odds by using the `/challenge settings` command and inputting numbers for Skips, No Upgrades, Non 3-lap, and Mirror Mode odds.\n" + 
+                    "**Challenge Winnings**\nYou can earn a certain amount of truguts based on the goal time you beat for each challenge. Customize your winnings pattern in the `/challenge settings` command and choose how to split your potential winnings."
                     winnings = profiledata[member].winnings
                     odds_skips = profiledata[member].skips
                     odds_noupgrades = profiledata[member].no_upgrades
                     odds_non3lap = profiledata[member].non_3_lap
                     odds_mirrormode = profiledata[member].mirror_mode
                 } else {
-                    desc = "You have not customized your settings. The default settings are shown below. "
+                    desc = "You have not customized your settings. The default settings are shown below. " + "\n\n**Challenge Condition Odds**\nCustomize your odds by using the `/challenge settings` command and inputting numbers for Skips, No Upgrades, Non 3-lap, and Mirror Mode odds.\n" + 
+                    "**Challenge Winnings**\nYou can earn a certain amount of truguts based on the goal time you beat for each challenge. Customize your winnings pattern in the `/challenge settings` command and choose how to split your potential winnings."
                     winnings = settings_default.winnings
                     odds_skips = settings_default.skips
                     odds_noupgrades = settings_default.no_upgrades
@@ -805,8 +812,7 @@ module.exports = {
                 .setThumbnail("https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/259/game-die_1f3b2.png")
                 .setAuthor(interaction.member.user.username, client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
                 .setTitle("Your `/challenge` Settings")
-                .setDescription(desc + "\n\n**Challenge Condition Odds**\nCustomize your odds by using the `/challenge settings` command and inputting numbers for Skips, No Upgrades, Non 3-lap, and Mirror Mode odds.\n" + 
-                "**Challenge Winnings**\nYou can earn a certain amount of truguts based on the goal time you beat for each challenge. Customize your winnings pattern in the `/challenge settings` command and choose how to split your potential winnings.")
+                .setDescription(desc)
                 .addField("Your Odds", "Skips - " + odds_skips +"%\nNo Upgrades - " + odds_noupgrades +"%\nNon 3-Lap - " + odds_non3lap +"%\nMirror Mode - " + odds_mirrormode +"%", true)
                 .addField("Your Winnings: " + winnings_map[winnings].name, winnings_map[winnings].text, true)
                 .setColor("EA596E")
