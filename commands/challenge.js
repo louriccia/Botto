@@ -225,14 +225,18 @@ module.exports = {
             var eAuthor = [], eTitle = "", title = "", highlight = "", eGoalTimes = []
             function createEmbed() {
             //calculate goal time
-                var speed = 1, speedmod = tracks[random2].avgspeedmod, length = tracks[random2].lap.length
-                length = length * laps
+                var upg = 5
                 if (nu) {
-                    speed = tools.avgSpeed(racers[random1].max_speed, racers[random1].boost_thrust, racers[random1].heat_rate, racers[random1].cool_rate)
-                } else {
-                    speed = tools.avgSpeed(tools.upgradeTopSpeed(racers[random1].max_speed, 5), racers[random1].boost_thrust, racers[random1].heat_rate, tools.upgradeCooling(racers[random1].cool_rate, 5))
+                    upg = 0
                 }
-                var goal = length/(speed*speedmod)
+                var goals = [
+                    tools.getGoalTime(random2, random1, upg, upg, upg, laps, 1.01, 1.01, 1.01, 1),
+                    tools.getGoalTime(random2, random1, upg, upg, upg, laps, 1.02, 1.02, 1.02, 1.5),
+                    tools.getGoalTime(random2, random1, upg, upg, upg, laps, 1.05, 1.05, 1.05, 2),
+                    tools.getGoalTime(random2, random1, upg, upg, upg, laps, 1.10, 1.10, 1.10, 3),
+                    tools.getGoalTime(random2, random1, upg, upg, upg, laps, 1.15, 1.15, 1.15, 5)
+                ]
+                
                 if (racers[random1].hasOwnProperty("flag")) {
                     flag = racers[random1].flag
                 }
@@ -244,7 +248,7 @@ module.exports = {
                     eAuthor = [interaction.member.user.username + "'s Challenge", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL()]
                 }
                 if(!skips) {
-                    eGoalTimes = ":gem: " + tools.timefix(goal*multipliers[0].ft_multiplier) + "\n:first_place: " + tools.timefix(goal*multipliers[1].ft_multiplier) + "\n:second_place: " + tools.timefix(goal*multipliers[2].ft_multiplier) + "\n:third_place: " + tools.timefix(goal*multipliers[3].ft_multiplier) + "\n<:bumpythumb:703107780860575875> " + tools.timefix(goal*multipliers[4].ft_multiplier)
+                    eGoalTimes = ":gem: " + tools.timefix(goals[0]) + "\n:first_place: " + tools.timefix(goals[1]) + "\n:second_place: " + tools.timefix(goals[2]) + "\n:third_place: " + tools.timefix(goals[3]) + "\n<:bumpythumb:703107780860575875> " + tools.timefix(goals[4])
                 } else {
                     eGoalTimes = ":gem: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[0])*multipliers[0].skips_multiplier) + "\n:first_place: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[1])*multipliers[1].skips_multiplier) + "\n:second_place: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[2])*multipliers[2].skips_multiplier) + "\n:third_place: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[3])*multipliers[3].skips_multiplier) + "\n<:bumpythumb:703107780860575875> " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[4])*multipliers[4].skips_multiplier)
                 }
@@ -296,7 +300,7 @@ module.exports = {
                             pos.splice(0, 1)
                             already.push(best[i].name)
                         }
-                        if (i-already.length == 9) {
+                        if (pos.length == 0) {
                             i = best.length
                         }
                     }
@@ -791,6 +795,8 @@ module.exports = {
             })
         } else if(args[0].name=="profile") {
             var member = interaction.member.user.id
+            const Guild = client.guilds.cache.get(interaction.guild_id); // Getting the guild.
+            const Member = Guild.members.cache.get(member); // Getting the member.
             if (args[0].hasOwnProperty("options")) {
                 if(args[0].options[0].name == "user"){
                     member = args[0].options[0].value
@@ -901,7 +907,23 @@ module.exports = {
                     
                 }
             }
-
+            var achvs = Object.keys(achievements)
+            for (var i = 0; i < achvs.length; i ++){
+                var a = achvs[i]
+                if(Object.keys(achievements[a].collection).length == achievements[a].limit && profiledata[member].achievements[a] == false){
+                    profileref.child(member).child("achievements").child(a).set(true)
+                    var congratsEmbed = new Discord.MessageEmbed()
+                        .setAuthor(interaction.member.user.username + " got an achievement!", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
+                        .setDescription(achievements[a].description + " `" + Object.keys(achievements[a].collection).length + "/" + achievements[a].limit) + "`"
+                        .setColor("FFB900")
+                        .setTitle("**:trophy: " + achievements[a].name + "**")
+                    if(interaction.guild_id == "441839750555369474"){
+                        congratsEmbed.setTitle("**<@&" + achievements[a].role + ">**")
+                        Member.roles.add(achievements[a].role).catch(error=>console.log(error))
+                    }
+                    client.channels.cache.get(interaction.channel_id).send(congratsEmbed)
+                }
+            }
             const profileEmbed = new Discord.MessageEmbed()
                 .setAuthor(client.guilds.resolve(interaction.guild_id).members.resolve(member).user.username, client.guilds.resolve(interaction.guild_id).members.resolve(member).user.avatarURL())
                 .setTitle("Random Challenge Career Profile")
