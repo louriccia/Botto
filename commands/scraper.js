@@ -20,6 +20,7 @@ module.exports = {
             console.log("The read failed: " + errorObject.code);
         });
         var associations_ref = database.ref('records/associations');
+        var associations_data = {}
         associations_ref.on("value", function (snapshot) {
             associations_data = snapshot.val();
         }, function (errorObject) {
@@ -266,14 +267,16 @@ module.exports = {
                                         //filter combined by track and category
                                         var filtered_data = Object.values(combined_data).filter(e => e.cat == data.cat && e.track == data.track)
                                         //check for association
-                                        var keys = Object.keys(associations_data)
-                                        var associated = false
-                                        for (var k = 0; k < keys.length; k ++){
-                                            //if association found, then filter by player
-                                            var key = keys[k]
-                                            if(data.name == associations_data[k].cs){
-                                               filtered_data = filtered_data.filter(e => e.name == data.name || e.name == associations_data[k].src)
-                                               associated = true
+                                        if(associations_data !== null){
+                                            var keys = Object.keys(associations_data)
+                                            var associated = false
+                                            for (var k = 0; k < keys.length; k ++){
+                                                //if association found, then filter by player
+                                                var key = keys[k]
+                                                if(data.name == associations_data[k].cs){
+                                                filtered_data = filtered_data.filter(e => e.name == data.name || e.name == associations_data[k].src)
+                                                associated = true
+                                                }
                                             }
                                         }
                                         //loop through combined
