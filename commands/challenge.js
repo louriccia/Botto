@@ -268,13 +268,13 @@ module.exports = {
                     if(goal_earnings[i] == 0){
                         goal_earnings[i] = ""
                     } else {
-                        goal_earnings[i] = " +:coin:" + goal_earnings[i]
+                        goal_earnings[i] = "  `+💿" + goal_earnings[i]
                     }
                 }
-                eGoalTimes = goal_symbols[0] + " " + tools.timefix(goals[0]) + goal_earnings[0] + "\n" +
-                            goal_symbols[1] + " " + tools.timefix(goals[1]) + goal_earnings[1] + "\n" +
-                            goal_symbols[2] + " " + tools.timefix(goals[2]) + goal_earnings[2] + "\n" +
-                            goal_symbols[3] + " " + tools.timefix(goals[3]) + goal_earnings[3] + "\n" +
+                eGoalTimes = goal_symbols[0] + " " + tools.timefix(goals[0]) + goal_earnings[0] + "`\n" +
+                            goal_symbols[1] + " " + tools.timefix(goals[1]) + goal_earnings[1] + "`\n" +
+                            goal_symbols[2] + " " + tools.timefix(goals[2]) + goal_earnings[2] + "`\n" +
+                            goal_symbols[3] + " " + tools.timefix(goals[3]) + goal_earnings[3] + "`\n" +
                             goal_symbols[4] + " " + tools.timefix(goals[4]) + goal_earnings[4]
                 //tally likes and dislikes
                 var rating = ""
