@@ -27,6 +27,7 @@ module.exports = {
             console.log("The read failed: " + errorObject.code);
         });
         combined_ref.remove()
+        associations_ref.remove()
         //src scraper
         let url = 'https://www.speedrun.com/api/v1/runs?game=m1mmex12&embed=players&max=200'
         let settings = { method: "Get" }
@@ -274,7 +275,7 @@ module.exports = {
                                                 //if association found, then filter by player
                                                 var key = keys[k]
                                                 if(data.name == associations_data[key].cs){
-                                                filtered_data = filtered_data.filter(e => e.name == data.name || e.name == associations_data[key].src)
+                                                    filtered_data = filtered_data.filter(e => e.name == data.name || e.name == associations_data[key].src)
                                                 associated = true
                                                 }
                                             }
@@ -284,7 +285,7 @@ module.exports = {
                                         for(var k = 0; k < filtered_data.length; k++){
                                             //account for different versions of yt urls
                                             //if no association, create association
-                                            if(filtered_data[k].proof == data.proof && !associated){
+                                            if(filtered_data[k].proof == data.proof && data.proof !== "" && !associated){
                                                 var association = {
                                                     src: filtered_data[k].name,
                                                     cs: data.name
