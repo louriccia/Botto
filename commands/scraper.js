@@ -306,9 +306,9 @@ module.exports = {
                                 return all_runs
 
                             })
-                                .catch(function (err) {
+                                /*.catch(function (err) {
                                     console.log('error getting times')
-                                });
+                                });*/
                         })
                 })
             //.catch(function (err) {
