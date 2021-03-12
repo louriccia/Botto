@@ -97,6 +97,7 @@ client.once('ready', () => {
         console.error(error);
     }
     var profileref = database.ref('challenge/profiles');
+    var profiledata = {}
     profileref.on("value", function(snapshot) {
         profiledata = snapshot.val();
     }, function (errorObject) {
