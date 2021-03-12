@@ -536,8 +536,9 @@ module.exports = {
         }
         uh_mod = uh_mod*(1+(scaler-racers[racer].max_turn_rate)/30)
         us_mod = us_mod*(1+(scaler-racers[racer].max_turn_rate)/30)
-        length_mod = length_mod*(1+(scaler-racers[racer].max_turn_rate)/800)
-
+        if(racers[racer].max_turn_rate < scaler){
+            length_mod = length_mod*(1+(scaler-racers[racer].max_turn_rate)/600)
+        }
         //6. calculate the final time
         var first_lap_fast = getFast(tracks[track].first_lap.fast)
         var first_lap_slow = getSlow(tracks[track].first_lap.slow)
