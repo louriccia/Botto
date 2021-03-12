@@ -267,14 +267,14 @@ module.exports = {
                                         //filter combined by track and category
                                         var filtered_data = Object.values(combined_data).filter(e => e.cat == data.cat && e.track == data.track)
                                         //check for association
-                                        if(associations_data !== null){
+                                        if(associations_data !== null && associations_data !== undefined){
                                             var keys = Object.keys(associations_data)
                                             var associated = false
                                             for (var k = 0; k < keys.length; k ++){
                                                 //if association found, then filter by player
                                                 var key = keys[k]
-                                                if(data.name == associations_data[k].cs){
-                                                filtered_data = filtered_data.filter(e => e.name == data.name || e.name == associations_data[k].src)
+                                                if(data.name == associations_data[key].cs){
+                                                filtered_data = filtered_data.filter(e => e.name == data.name || e.name == associations_data[key].src)
                                                 associated = true
                                                 }
                                             }
