@@ -230,11 +230,11 @@ module.exports = {
                     upg = 0
                 }
                 var goals = [
-                    tools.getGoalTime(random2, random1, upg, upg, upg, laps, 1.025, 1.05, 1.05, .25*tracks[random2].difficulty),
-                    tools.getGoalTime(random2, random1, upg, upg, upg, laps, 1.05, 1.10, 1.10, .3*tracks[random2].difficulty),
-                    tools.getGoalTime(random2, random1, upg, upg, upg, laps, 1.09, 1.15, 1.15, .50*tracks[random2].difficulty),
-                    tools.getGoalTime(random2, random1, upg, upg, upg, laps, 1.15, 1.30, 1.30, 1*tracks[random2].difficulty),
-                    tools.getGoalTime(random2, random1, upg, upg, upg, laps, 1.23, 1.45, 1.45, 1.5*tracks[random2].difficulty)
+                    tools.getGoalTime(random2, random1, upg, upg, upg, laps, 1.025, 1.05, 1.05, 0.25 + .25*tracks[random2].difficulty),
+                    tools.getGoalTime(random2, random1, upg, upg, upg, laps, 1.05, 1.10, 1.10, 0.3 + .3*tracks[random2].difficulty),
+                    tools.getGoalTime(random2, random1, upg, upg, upg, laps, 1.09, 1.15, 1.15, 0.5 + .50*tracks[random2].difficulty),
+                    tools.getGoalTime(random2, random1, upg, upg, upg, laps, 1.15, 1.30, 1.30, 0.5 + 1*tracks[random2].difficulty),
+                    tools.getGoalTime(random2, random1, upg, upg, upg, laps, 1.23, 1.45, 1.45, 0.5 + 1.5*tracks[random2].difficulty)
                 ]
                 
                 if (racers[random1].hasOwnProperty("flag")) {
