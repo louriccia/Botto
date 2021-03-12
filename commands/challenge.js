@@ -230,7 +230,7 @@ module.exports = {
                     upg = 0
                 }
                 var goals = [
-                    tools.getGoalTime(random2, random1, upg, upg, upg, laps, 1.00, 1.01, 1.01, .25*tracks[random2].difficulty),
+                    tools.getGoalTime(random2, random1, upg, upg, upg, laps, 1.01, 1.01, 1.01, .25*tracks[random2].difficulty),
                     tools.getGoalTime(random2, random1, upg, upg, upg, laps, 1.02, 1.02, 1.02, .3*tracks[random2].difficulty),
                     tools.getGoalTime(random2, random1, upg, upg, upg, laps, 1.05, 1.05, 1.05, .50*tracks[random2].difficulty),
                     tools.getGoalTime(random2, random1, upg, upg, upg, laps, 1.10, 1.10, 1.10, 1*tracks[random2].difficulty),

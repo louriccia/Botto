@@ -521,9 +521,24 @@ module.exports = {
             return [totalslowlength, totalslowtime]
         }
         
+        //The faster the base speed, the more likely to lose it to turns (this may be less of a factor since cooling is worse with NU)
+            //Mu vs nu on intense switchback sections
+        //The better the turning the better chance of maintaining base speed
+            //This is where bullseye beats ben on gvg/fmr
+        //The faster the cooling the more chance of underheating
+            //Bullseye Underheating as well
+        
 
+        //5. account for pod stats
+        if(track == 16 || track == 19){ //scale to bullseye
+            uh_mod = uh_mod*(1+(120-racers[racer].max_turn_rate)/40)
+            us_mod = us_mod*(1+(120-racers[racer].max_turn_rate)/40)
+        } else { //scale to ben
+            uh_mod = uh_mod*(1+(89-racers[racer].max_turn_rate)/40)
+            us_mod = us_mod*(1+(89-racers[racer].max_turn_rate)/40)
+        }
 
-        //5. calculate the final time
+        //6. calculate the final time
         var first_lap_fast = getFast(tracks[track].first_lap.fast)
         var first_lap_slow = getSlow(tracks[track].first_lap.slow)
         console.log("first lap fast: " + first_lap_fast +"\nfirst lap slow: " + first_lap_slow)
