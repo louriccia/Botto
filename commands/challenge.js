@@ -294,6 +294,8 @@ module.exports = {
                         if((!vc && !already.includes(best[i].name) || best[i].name == interaction.member.user.username) || (vc && !already.includes(best[i].name))){
                             if(best[i].date == date) {
                                 besttimes = besttimes + pos[0] + "" + tools.timefix(best[i].time) + " - " + best[i].name + " <a:newrecord:672640831882133524>\n"
+                            } else if (date == "" && best[i].name == interaction.member.user.username && !vc) {
+                                besttimes = besttimes + pos[0] + "**" + tools.timefix(best[i].time) + " - " + best[i].name + "**\n"
                             } else {
                                 besttimes = besttimes + pos[0] + "" + tools.timefix(best[i].time) + " - " + best[i].name + "\n"
                             }
