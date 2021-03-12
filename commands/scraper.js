@@ -264,7 +264,7 @@ module.exports = {
                                         data.time = tools.timetoSeconds(times[i][j].time)
                                         data.date = times[i][j].date
                                         //filter combined by track and category
-                                        var filtered_data = combined_data.filter(e => e.cat == data.cat && e.track == data.track)
+                                        var filtered_data = Object.values(combined_data).filter(e => e.cat == data.cat && e.track == data.track)
                                         //check for association
                                         var keys = Object.keys(associations_data)
                                         var associated = false
@@ -277,20 +277,18 @@ module.exports = {
                                             }
                                         }
                                         //loop through combined
-                                        var keys = Object.keys(filtered_data)
                                         var exists = false
-                                        for(var k = 0; k < keys.length; k++){
-                                            var key = keys[k]
+                                        for(var k = 0; k < filtered_data.length; k++){
                                             //account for different versions of yt urls
                                             //if no association, create association
-                                            if(filtered_data[key].proof == data.proof && !associated){
+                                            if(filtered_data[k].proof == data.proof && !associated){
                                                 var association = {
-                                                    src: filtered_data[key].name,
+                                                    src: filtered_data[k].name,
                                                     cs: data.name
                                                 }
                                                 associations_ref.push(association)
                                             }
-                                            if(filtered_data[key].time == data.time){
+                                            if(filtered_data[k].time == data.time){
                                                 exists = true
                                                 //if cs date is earlier, update combined data
                                             }
