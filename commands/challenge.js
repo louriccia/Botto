@@ -247,11 +247,33 @@ module.exports = {
                 } else {
                     eAuthor = [interaction.member.user.username + "'s Challenge", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL()]
                 }
-                if(!skips) {
-                    eGoalTimes = ":gem: " + tools.timefix(goals[0]) + "\n:first_place: " + tools.timefix(goals[1]) + "\n:second_place: " + tools.timefix(goals[2]) + "\n:third_place: " + tools.timefix(goals[3]) + "\n<:bumpythumb:703107780860575875> " + tools.timefix(goals[4])
-                } else {
-                    eGoalTimes = ":gem: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[0])*multipliers[0].skips_multiplier) + "\n:first_place: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[1])*multipliers[1].skips_multiplier) + "\n:second_place: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[2])*multipliers[2].skips_multiplier) + "\n:third_place: " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[3])*multipliers[3].skips_multiplier) + "\n<:bumpythumb:703107780860575875> " + tools.timefix(tools.timetoSeconds(tracks[random2].parskiptimes[4])*multipliers[4].skips_multiplier)
+                var goal_symbols = [":gem:", ":first_place:", ":second_place:" ,":third_place:", "<:bumpythumb:703107780860575875>"]
+                var goal_earnings = [
+                    circuits[tracks[random2].circuit].winnings[profiledata[member].winnings][0], 
+                    circuits[tracks[random2].circuit].winnings[profiledata[member].winnings][1], 
+                    circuits[tracks[random2].circuit].winnings[profiledata[member].winnings][2], 
+                    circuits[tracks[random2].circuit].winnings[profiledata[member].winnings][3], 
+                    0
+                ]
+                if(skips){
+                    goals = [
+                        tools.timetoSeconds(tracks[random2].parskiptimes[0])*multipliers[0].skips_multiplier,
+                        tools.timetoSeconds(tracks[random2].parskiptimes[1])*multipliers[1].skips_multiplier,
+                        tools.timetoSeconds(tracks[random2].parskiptimes[2])*multipliers[2].skips_multiplier,
+                        tools.timetoSeconds(tracks[random2].parskiptimes[3])*multipliers[3].skips_multiplier,
+                        tools.timetoSeconds(tracks[random2].parskiptimes[4])*multipliers[4].skips_multiplier
+                    ]
                 }
+                for(var i = 0; i < goal_earnings.length; i++){
+                    if(goal_earnings[i] == 0){
+                        goal_earnings[i] = ""
+                    }
+                }
+                eGoalTimes = goal_symbols[0] + " " + tools.timefix(goals[0]) + " `+:coin:" + goal_earnings[0] + "`\n" +
+                            goal_symbols[1] + " " + tools.timefix(goals[1]) + " `+🪙" + goal_earnings[1] + "`\n" +
+                            goal_symbols[2] + " " + tools.timefix(goals[2]) + " `+🪙" + goal_earnings[2] + "`\n" +
+                            goal_symbols[3] + " " + tools.timefix(goals[3]) + " `+🪙" + goal_earnings[3] + "`\n" +
+                            goal_symbols[4] + " " + tools.timefix(goals[4]) + " `+🪙" + goal_earnings[4] + "`"
                 //tally likes and dislikes
                 var rating = ""
                 var like = 0, dislike = 0, keys = Object.keys(feedbackdata)
