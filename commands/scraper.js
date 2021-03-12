@@ -219,7 +219,7 @@ module.exports = {
                             var time = $('.data', elem).text().trim().split(/\n/)[0]
                             var links = $('a', elem)
                             var user = "https://www.cyberscore.me.uk" + links[1].attribs.href
-                            var record = links[links.length - 1].attribs.href
+                            var record = 'https://www.cyberscore.me.uk' + links[links.length - 1].attribs.href
                             var proof = links[links.length - 2].attribs.href
                             if (proof.startsWith("/proofs")) {
                                 proof = "https://www.cyberscore.me.uk" + proof
