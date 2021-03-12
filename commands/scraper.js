@@ -13,6 +13,7 @@ module.exports = {
         require('firebase/database');
         var database = firebase.database();
         var combined_ref = database.ref('records/combined');
+        var combined_data = {}
         combined_ref.on("value", function (snapshot) {
             combined_data = snapshot.val();
         }, function (errorObject) {
