@@ -608,13 +608,14 @@ module.exports = {
                         }
                         tools.timetoSeconds(message.content)
                         if(time !== "" && collecting){
+                            /*
                             if ((challengeend - challengestart) < time*1000) {
                                 message.reply("*I warn you. No funny business.*")
                                 collected = true
                                 if(!vc){
                                     collecting = false
                                 }
-                            } else {
+                            } else {*/
                             //log time
                                 try{
                                     sentMessage.reactions.resolve("🔄").users.remove("545798436105224203")
@@ -671,7 +672,7 @@ module.exports = {
                                         message.delete()
                                     } catch {}
                                 }
-                            }
+                            //}
                         }
                     }   
                 })
