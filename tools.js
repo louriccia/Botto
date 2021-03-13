@@ -36,6 +36,9 @@ module.exports = {
                     } else {
                         return Number(myformat.format(out)).toFixed(3)
                     }
+                } else if (split.length = 3){
+                    var out = Number(split[0]*60*60)+Number(split[1]*60)+Number(split[2])
+                    return Number(myformat.format(out)).toFixed(3)
                 } else {
                     return null
                 }

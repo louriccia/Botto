@@ -92,7 +92,7 @@ client.once('ready', () => {
     //client.users.cache.get("256236315144749059").send("Ready!")
     client.channels.cache.get("444208252541075476").send("Ready!");
     try{
-        client.commands.get("scrape").execute();
+        //client.commands.get("scrape").execute();
     } catch {
         console.error(error);
     }

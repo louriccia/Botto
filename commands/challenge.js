@@ -322,7 +322,7 @@ module.exports = {
                     for (var i=0; i<best.length; i++){
                         if((!vc && !already.includes(best[i].name) || best[i].name == interaction.member.user.username) || (vc && !already.includes(best[i].name))){
                             if(best[i].date == date) {
-                                besttimes = besttimes + pos[0] + "" + tools.timefix(best[i].time) + " - " + best[i].name + " <a:newrecord:672640831882133524>\n"
+                                besttimes = besttimes + pos[0] + "**" + tools.timefix(best[i].time) + " - " + best[i].name + " <a:newrecord:672640831882133524>**\n"
                             } else if (date == "" && best[i].name == interaction.member.user.username && !vc) {
                                 besttimes = besttimes + pos[0] + "**" + tools.timefix(best[i].time) + " - " + best[i].name + "**\n"
                             } else {
@@ -392,7 +392,7 @@ module.exports = {
                         var a = achvs[i]
                         if(Object.keys(achievements[a].collection).length == achievements[a].limit && profiledata[member].achievements[a] == false){
                             profileref.child(member).child("achievements").child(a).set(true)
-                            var congratsEmbed = new Discord.MessageEmbed()
+                            const congratsEmbed = new Discord.MessageEmbed()
                                 .setAuthor(interaction.member.user.username + " got an achievement!", eAuthor[1])
                                 .setDescription(achievements[a].description + " `" + Object.keys(achievements[a].collection).length + "/" + achievements[a].limit) + "`"
                                 .setColor("FFB900")
@@ -938,6 +938,18 @@ module.exports = {
                     }
                     
                 }
+            }
+            if(profiledata[member].achievements == undefined){
+                var ach = {
+                    galaxy_famous: false,
+                    pod_champ: false,
+                    light_skipper: false,
+                    slow_steady: false,
+                    crowd_favorite: false,
+                    true_jedi: false,
+                    big_spender: false
+                }
+                profileref.child(member).child("achievements").set(ach)
             }
             var achvs = Object.keys(achievements)
             for (var i = 0; i < achvs.length; i ++){

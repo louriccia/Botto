@@ -243,7 +243,7 @@ module.exports = {
                                 track: track,
                                 racer: racer,
                                 date: date,
-                                system: platform,
+                                platform: platform,
                                 time: time,
                                 proof: proof, //.attribs.href
                                 record: record
