@@ -77,6 +77,7 @@ client.ws.on('INTERACTION_CREATE', async interaction => {
             }
         })
     }
+    profiledata = snapshot.val();
 })
 
 async function getCommands() {
