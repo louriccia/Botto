@@ -956,7 +956,7 @@ module.exports = {
                 var a = achvs[i]
                 if(Object.keys(achievements[a].collection).length == achievements[a].limit && profiledata[member].achievements[a] == false){
                     profileref.child(member).child("achievements").child(a).set(true)
-                    var congratsEmbed = new Discord.MessageEmbed()
+                    const congratsEmbed = new Discord.MessageEmbed()
                         .setAuthor(interaction.member.user.username + " got an achievement!", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
                         .setDescription(achievements[a].description + " `" + Object.keys(achievements[a].collection).length + "/" + achievements[a].limit) + "`"
                         .setColor("FFB900")
