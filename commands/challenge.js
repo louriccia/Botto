@@ -661,7 +661,7 @@ module.exports = {
                                     highlight = submissiondata.date
                                     profileref.child(member).child("current").update({completed: true})
                                     try {
-                                        sentMessage.edit(createEmbed())
+                                        sentMessage.edit("",createEmbed())
                                     } catch {}
                                 }
                                 
@@ -979,33 +979,21 @@ module.exports = {
                 }
                 profileEmbed
                 .addField(":pencil: Feedback Trends", feedbacktrend, true)
-                var achieved = ["", "", "", "", "", "", ""]
-                if(Object.keys(achievements.galaxy_famous.collection).length == 25){
-                    achieved[0] = ":white_check_mark: "
+                var achievement_field = ""
+                var achvs = Object.keys(achievements)
+                for(var i = 0; i < achievements.length; i ++){
+                    var a = achvs[i]
+                    if(Object.keys(achievements[a].collection).length >= achievements[a].limit){
+                        achievement_field += ":white_check_mark: "
+                    }
+                    if(interaction.guild_id == "441839750555369474"){
+                        achievement_field += "**<@&" + achievements[a].role + ">** - " + achievements[a].description + ": `" + Object.keys(achievements[a].collection).length + "/" + achievements[a].limit + "`\n"
+                    } else {
+                        achievement_field += "**" + achievements[a].name + "** - " + achievements[a].description + ": `" + Object.keys(achievements[a].collection).length + "/" + achievements[a].limit + "`\n"
+                    }
                 }
-                if(Object.keys(achievements.pod_champ.collection).length == 23){
-                    achieved[1] = ":white_check_mark: "
-                }
-                if(Object.keys(achievements.light_skipper.collection).length == 15){
-                    achieved[2] = ":white_check_mark: "
-                }
-                if(Object.keys(achievements.slow_steady.collection).length == 23){
-                    achieved[3] = ":white_check_mark: "
-                }
-                if(Object.keys(achievements.crowd_favorite.collection).length == 25){
-                    achieved[4] = ":white_check_mark: "
-                }
-                if(Object.keys(achievements.true_jedi.collection).length == 575){
-                    achieved[5] = ":white_check_mark: "
-                }
-                console.log(achievements.slow_steady.collection)
-                profileEmbed.addField(":trophy: Achievements", achieved[0] + "**Galaxy Famous** - Complete a challenge on every track: `" + Object.keys(achievements.galaxy_famous.collection).length + "/25`" + 
-                "\n" + achieved[1] + "**Pod Champ** - Complete a challenge with every pod: `" + Object.keys(achievements.pod_champ.collection).length + "/23`" +
-                "\n" + achieved[2] + "**Lightspeed Skipper** - Complete a Skip challenge on every track with a skip: `" + Object.keys(achievements.light_skipper.collection).length + "/15`" +
-                "\n" + achieved[3] + "**Slow 'n Steady** - Complete a No Upgrades challenge with every pod: `" + Object.keys(achievements.slow_steady.collection).length + "/23`" +
-                "\n" + achieved[4] + "**Crowd Favorite** - Complete a challenge as the track favorite on every track: `" + Object.keys(achievements.crowd_favorite.collection).length + "/25`" +
-                "\n" + achieved[5] + "**True Jedi** - Complete a challenge with every pod on every track: `" + Object.keys(achievements.true_jedi.collection).length + "/575`" +
-                "\n" + "**Big-Time Swindler** - Earn or spend 1,000,000 total truguts: `" + "x" + "/1,000,000`", true)
+                achievement_field += "**Big-Time Swindler** - Earn or spend 1,000,000 total truguts: `" + "x" + "/1,000,000`"
+                profileEmbed.addField(":trophy: Achievements", achievement_field, true)
                 .setFooter("/challenge")
             client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {
