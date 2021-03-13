@@ -176,8 +176,8 @@ module.exports = {
                         }
                     }
                     if(challengedata[k].nu){
-                        if(achievements.slow_steady.collection[challengedata[k].track] == null){
-                            achievements.slow_steady.collection[challengedata[k].track] = 1
+                        if(achievements.slow_steady.collection[challengedata[k].racer] == null){
+                            achievements.slow_steady.collection[challengedata[k].racer] = 1
                         }
                     }
                     if(challengedata[k].racer == tracks[challengedata[k].track].favorite){
