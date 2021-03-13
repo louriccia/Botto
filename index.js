@@ -77,7 +77,7 @@ client.ws.on('INTERACTION_CREATE', async interaction => {
             }
         })
     }
-    profiledata = snapshot.val();
+
 })
 
 async function getCommands() {
@@ -103,7 +103,41 @@ client.once('ready', () => {
     } catch {
         console.error(error);
     }
-    
+    var profileref = database.ref('challenge/profiles');
+    var keys = Object.keys(profiledata)
+    for(var i = 0; i < keys.length; i++){
+        var k = keys[i]
+        if(profiledata[k].current !== undefined){
+            if(profiledata[k].current.completed == false){
+                var recovery_channel = client.channels.cache.get(profiledata[k].current.channel)
+                profileref.child(k).child("current").child("completed").set(true)
+                if(profiledata[k].current.message !== undefined){
+                    recovery_channel.messages.fetch(profiledata[k].current.message) //delete old challenge message
+                    .then(msg => {msg.delete()}).catch(err=> console.log(err));
+                }
+                if(profiledata[k].current.start + 1200000 > Date.now()){
+                    try{
+                        var fakeinteraction = {
+                            name: "fake",
+                            recovery: true,
+                            member: {
+                                user: {
+                                    id: k,
+                                    username: profiledata[k].name
+                                }
+                            },
+                            guild_id: recovery_channel.guild.id,
+                            channel_id: profiledata[k].current.channel
+                        }
+                        console.log(fakeinteraction)
+                        client.commands.get("challenge").execute(client, fakeinteraction, [{name: "generate"}]);
+                    } catch{
+
+                    }
+                }
+            }
+        }
+    }
 })
 
 client.on("error", (e) => {
@@ -272,41 +306,7 @@ client.on('message', message => {
 })
 
 
-var profileref = database.ref('challenge/profiles');
-    var keys = Object.keys(profiledata)
-    for(var i = 0; i < keys.length; i++){
-        var k = keys[i]
-        if(profiledata[k].current !== undefined){
-            if(profiledata[k].current.completed == false){
-                var recovery_channel = client.channels.cache.get(profiledata[k].current.channel)
-                profileref.child(k).child("current").child("completed").set(true)
-                if(profiledata[k].current.message !== undefined){
-                    recovery_channel.messages.fetch(profiledata[k].current.message) //delete old challenge message
-                    .then(msg => {msg.delete()}).catch(err=> console.log(err));
-                }
-                if(profiledata[k].current.start + 1200000 > Date.now()){
-                    try{
-                        var fakeinteraction = {
-                            name: "fake",
-                            recovery: true,
-                            member: {
-                                user: {
-                                    id: k,
-                                    username: profiledata[k].name
-                                }
-                            },
-                            guild_id: recovery_channel.guild.id,
-                            channel_id: profiledata[k].current.channel
-                        }
-                        console.log(fakeinteraction)
-                        client.commands.get("challenge").execute(client, fakeinteraction, [{name: "generate"}]);
-                    } catch{
 
-                    }
-                }
-            }
-        }
-    }
 
 
 
