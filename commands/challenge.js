@@ -164,28 +164,18 @@ module.exports = {
                 var k = keys[i];
                 var keys = Object.keys(challengedata)
                 if(challengedata[k].user == member){
-                    if(achievements.galaxy_famous.collection[challengedata[k].track] === undefined){
-                        achievements.galaxy_famous.collection[challengedata[k].track] = 1
-                    }
-                    if(achievements.pod_champ.collection[challengedata[k].racer] === undefined){
-                        achievements.pod_champ.collection[challengedata[k].racer] = 1
-                    }
+                    achievements.galaxy_famous.collection[String(challengedata[k].track)] = 1
+                    achievements.pod_champ.collection[String(challengedata[k].racer)] = 1
                     if(challengedata[k].skips){
-                        if(achievements.light_skipper.collection[challengedata[k].track] === undefined){
-                            achievements.light_skipper.collection[challengedata[k].track] = 1
-                        }
+                        achievements.light_skipper.collection[String(challengedata[k].track)] = 1
                     }
                     if(challengedata[k].nu){
-                        if(achievements.slow_steady.collection[challengedata[k].racer] === undefined){
-                            achievements.slow_steady.collection[challengedata[k].racer] = 1
-                        }
+                        achievements.slow_steady.collection[String(challengedata[k].racer)] = 1
                     }
-                    if(challengedata[k].racer == tracks[challengedata[k].track].favorite){
-                        if(achievements.crowd_favorite.collection[challengedata[k].track] === undefined){
-                            achievements.crowd_favorite.collection[challengedata[k].track] = 1
-                        }
+                    if(challengedata[k].racer == tracks[String(challengedata[k].track)].favorite){
+                        achievements.crowd_favorite.collection[String(challengedata[k].track)] = 1
                     }
-                    achievements.true_jedi.collection[challengedata[k].track + " " + challengedata[k].racer] = 1
+                    achievements.true_jedi.collection[String(challengedata[k].track + " " + challengedata[k].racer)] = 1
                 }
                 if(challengedata[k].track == random2 && challengedata[k].racer == random1 && challengedata[k].laps == laps && challengedata[k].mirror == mirror && challengedata[k].nu == nu && challengedata[k].skips == skips){
                     best.push(challengedata[k])
@@ -875,28 +865,18 @@ module.exports = {
             for (var i=0; i<keys.length; i++) {
                 var k = keys[i];
                 if(challengedata[k].user == member){
-                    if(achievements.galaxy_famous.collection[challengedata[k].track] == null){
-                        achievements.galaxy_famous.collection[challengedata[k].track] = 1
-                    }
-                    if(achievements.pod_champ.collection[challengedata[k].racer] == null){
-                        achievements.pod_champ.collection[challengedata[k].racer] = 1
-                    }
+                    achievements.galaxy_famous.collection[String(challengedata[k].track)] = 1
+                    achievements.pod_champ.collection[String(challengedata[k].racer)] = 1
                     if(challengedata[k].skips){
-                        if(achievements.light_skipper.collection[challengedata[k].track] == null){
-                            achievements.light_skipper.collection[challengedata[k].track] = 1
-                        }
+                        achievements.light_skipper.collection[String(challengedata[k].track)] = 1
                     }
                     if(challengedata[k].nu){
-                        if(achievements.slow_steady.collection[challengedata[k].racer] == null){
-                            achievements.slow_steady.collection[challengedata[k].racer] = 1
-                        }
+                        achievements.slow_steady.collection[String(challengedata[k].racer)] = 1
                     }
-                    if(challengedata[k].racer == tracks[challengedata[k].track].favorite){
-                        if(achievements.crowd_favorite.collection[challengedata[k].track] == null){
-                            achievements.crowd_favorite.collection[challengedata[k].track] = 1
-                        }
+                    if(challengedata[k].racer == tracks[String(challengedata[k].track)].favorite){
+                        achievements.crowd_favorite.collection[String(challengedata[k].track)] = 1
                     }
-                    achievements.true_jedi.collection[challengedata[k].track + " " + challengedata[k].racer] = 1
+                    achievements.true_jedi.collection[String(challengedata[k].track + " " + challengedata[k].racer)] = 1
                     stats.total ++
                     if(!challengedata[k].mirror && !challengedata[k].nu && !challengedata[k].skips && challengedata[k].laps == 3) {
                         stats.standard ++
@@ -1017,7 +997,7 @@ module.exports = {
                 if(Object.keys(achievements.true_jedi.collection).length == 575){
                     achieved[5] = ":white_check_mark: "
                 }
-
+                console.log(achievements.slow_steady.collection)
                 profileEmbed.addField(":trophy: Achievements", achieved[0] + "**Galaxy Famous** - Complete a challenge on every track: `" + Object.keys(achievements.galaxy_famous.collection).length + "/25`" + 
                 "\n" + achieved[1] + "**Pod Champ** - Complete a challenge with every pod: `" + Object.keys(achievements.pod_champ.collection).length + "/23`" +
                 "\n" + achieved[2] + "**Lightspeed Skipper** - Complete a Skip challenge on every track with a skip: `" + Object.keys(achievements.light_skipper.collection).length + "/15`" +
