@@ -164,25 +164,25 @@ module.exports = {
                 var k = keys[i];
                 var keys = Object.keys(challengedata)
                 if(challengedata[k].user == member){
-                    if(achievements.galaxy_famous.collection[challengedata[k].track] == null){
-                        achievements.galaxy_famous.collection[challengedata[k].track] = 1
+                    if(achievements.galaxy_famous.collection[String(challengedata[k].track)] === null){
+                        achievements.galaxy_famous.collection[String(challengedata[k].track)] = 1
                     }
-                    if(achievements.pod_champ.collection[challengedata[k].racer] == null){
-                        achievements.pod_champ.collection[challengedata[k].racer] = 1
+                    if(achievements.pod_champ.collection[String(challengedata[k].racer)] === null){
+                        achievements.pod_champ.collection[String(challengedata[k].racer)] = 1
                     }
                     if(challengedata[k].skips){
-                        if(achievements.light_skipper.collection[challengedata[k].track] == null){
-                            achievements.light_skipper.collection[challengedata[k].track] = 1
+                        if(achievements.light_skipper.collection[String(challengedata[k].track)] === null){
+                            achievements.light_skipper.collection[String(challengedata[k].track)] = 1
                         }
                     }
                     if(challengedata[k].nu){
-                        if(achievements.slow_steady.collection[challengedata[k].racer] == null){
-                            achievements.slow_steady.collection[challengedata[k].racer] = 1
+                        if(achievements.slow_steady.collection[String(challengedata[k].racer)] === null){
+                            achievements.slow_steady.collection[String(challengedata[k].racer)] = 1
                         }
                     }
                     if(challengedata[k].racer == tracks[challengedata[k].track].favorite){
-                        if(achievements.crowd_favorite.collection[challengedata[k].track] == null){
-                            achievements.crowd_favorite.collection[challengedata[k].track] = 1
+                        if(achievements.crowd_favorite.collection[String(challengedata[k].track)] === null){
+                            achievements.crowd_favorite.collection[String(challengedata[k].track)] = 1
                         }
                     }
                     achievements.true_jedi.collection[challengedata[k].track + " " + challengedata[k].racer] = 1
