@@ -366,7 +366,7 @@ module.exports = {
         var cooldistance = boost*Math.log(Math.abs(11*e19**(45*(100/heatrate))*heatrate+7500*e19**(45*(100/heatrate+100/coolrate))))/(Math.log(e19)*45)-boost*Math.log(Math.abs(11*e19**(45*(100/heatrate))*heatrate+7500*e19**(45*(100/heatrate))))/(Math.log(e19)*45)
         var avgcool = cooldistance/(100/coolrate)
         var avgspeed = ((100/heatrate)*(topspeed+avgboost)+(100/coolrate)*(topspeed+avgcool))/(100/heatrate+100/coolrate)
-        console.log("Average Speed: " + avgspeed)
+        //console.log("Average Speed: " + avgspeed)
         //2. calculate starting boost time and distance (MULTILAP) || calculate full boost time and distance (FLAP)
         function integrate (f, start, end, step, topspeed, accel, boost, offset1, offset2) {
             let total = 0
@@ -403,7 +403,7 @@ module.exports = {
         var totaldistance = integrate(startboost, 0, a, step, topspeed, accel, boost, null, null)
         totaldistance = totaldistance + integrate(boostcharge, a, -c, step, topspeed, accel, boost, b, null)
         totaldistance = totaldistance + integrate(firstboost, -c, e, step, topspeed, accel, boost, c, d)
-        console.log("Total distance: " + totaldistance + "\nTotal time: " + totaltime)
+        //console.log("Total distance: " + totaldistance + "\nTotal time: " + totaltime)
 
         //3. calculate fast terrain section
         //bite off fast terrain length in chunks starting with cooling and calculate complete heat cycle                  
@@ -542,15 +542,15 @@ module.exports = {
         //6. calculate the final time
         var first_lap_fast = getFast(tracks[track].first_lap.fast)
         var first_lap_slow = getSlow(tracks[track].first_lap.slow)
-        console.log("first lap fast: " + first_lap_fast +"\nfirst lap slow: " + first_lap_slow)
+        //console.log("first lap fast: " + first_lap_fast +"\nfirst lap slow: " + first_lap_slow)
         var firstlaptime = totaltime+first_lap_fast[1]+first_lap_slow[1]+tracks[track].first_lap.underheat*uh_mod+tracks[track].first_lap.underspeed*us_mod + (tracks[track].first_lap.length*length_mod-(first_lap_fast[0] + first_lap_slow[0] + totaldistance +tracks[track].first_lap.underheat*uh_mod*topspeed +tracks[track].first_lap.underspeed*us_mod*topspeed*.75))/avgspeed
-        console.log("First Lap Time: " + firstlaptime)
+        //console.log("First Lap Time: " + firstlaptime)
         var lap_fast = getFast(tracks[track].lap.fast)
         var lap_slow = getSlow(tracks[track].lap.slow)
         var laptime = lap_fast[1]+lap_slow[1]+tracks[track].lap.underheat*uh_mod+tracks[track].lap.underspeed*us_mod +(tracks[track].lap.length*length_mod - (lap_fast[0]+lap_slow[0]+tracks[track].lap.underheat*uh_mod*topspeed +tracks[track].lap.underspeed*us_mod*topspeed*.75))/avgspeed
-        console.log("Lap Time: " + laptime)
+        //console.log("Lap Time: " + laptime)
         var finaltime = firstlaptime + laptime*(laps-1)
-        console.log("Final Time: " + finaltime)
+        //console.log("Final Time: " + finaltime)
         finaltime += deaths*(3+accel)
         return finaltime
     }
