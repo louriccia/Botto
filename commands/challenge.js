@@ -981,7 +981,7 @@ module.exports = {
                 .addField(":pencil: Feedback Trends", feedbacktrend, true)
                 var achievement_field = ""
                 var achvs = Object.keys(achievements)
-                for(var i = 0; i < achievements.length; i ++){
+                for(var i = 0; i < achvs.length; i ++){
                     var a = achvs[i]
                     if(Object.keys(achievements[a].collection).length >= achievements[a].limit){
                         achievement_field += ":white_check_mark: "
