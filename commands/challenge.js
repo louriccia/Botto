@@ -394,7 +394,7 @@ module.exports = {
                             profileref.child(member).child("achievements").child(a).set(true)
                             const congratsEmbed = new Discord.MessageEmbed()
                                 .setAuthor(interaction.member.user.username + " got an achievement!", eAuthor[1])
-                                .setDescription(achievements[a].description + " `" + Object.keys(achievements[a].collection).length + "/" + achievements[a].limit) + "`"
+                                .setDescription(achievements[a].description + " `" + String(Object.keys(achievements[a].collection).length) + "/" + String(achievements[a].limit)) + "`"
                                 .setColor("FFB900")
                                 .setTitle("**:trophy: " + achievements[a].name + "**")
                             if(interaction.guild_id == "441839750555369474"){
@@ -958,7 +958,7 @@ module.exports = {
                     profileref.child(member).child("achievements").child(a).set(true)
                     const congratsEmbed = new Discord.MessageEmbed()
                         .setAuthor(interaction.member.user.username + " got an achievement!", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
-                        .setDescription(achievements[a].description + " `" + Object.keys(achievements[a].collection).length + "/" + achievements[a].limit) + "`"
+                        .setDescription(achievements[a].description + " `" + String(Object.keys(achievements[a].collection).length) + "/" + String(achievements[a].limit)) + "`"
                         .setColor("FFB900")
                         .setTitle("**:trophy: " + achievements[a].name + "**")
                     if(interaction.guild_id == "441839750555369474"){
