@@ -7,7 +7,7 @@ module.exports = {
         var tools = require('./../tools.js');
         var admin = require('firebase-admin');
         var database = admin.database();
-        
+        var firebase = require("firebase/app");
         var ref = database.ref('challenge/times');
         ref.on("value", function(snapshot) {
             challengedata = snapshot.val();
