@@ -37,9 +37,10 @@ var firebaseConfig = {
     appId: process.env.FIREBASE_APP_ID,
     measurementId: process.env.FIREBASE_MEASUREMENT_ID
 };
-firebase.initializeApp(firebaseConfig);
+//firebase.initializeApp(firebaseConfig);
 
-var database = firebase.database();
+//var database = firebase.database();
+var database = admin.database();
 var logref = database.ref('log');
 var errorlogref = database.ref('log/error');
 var weeklychallenges = database.ref('weekly/challenges');
