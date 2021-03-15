@@ -5,6 +5,7 @@ module.exports = {
     execute(client, interaction, args) {
         const Discord = require('discord.js');
         var tools = require('./../tools.js');
+        var admin = require('firebase-admin');
         var database = admin.database();
         
         var ref = database.ref('challenge/times');
