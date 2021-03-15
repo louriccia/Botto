@@ -16,6 +16,17 @@ for (const file of commandFiles) {
 var firebase = require("firebase/app");
 require('firebase/auth');
 require('firebase/database');
+const FieldValue = require('firebase-admin').firestore.FieldValue
+const admin = require('firebase-admin');
+
+admin.initializeApp({
+    credential: admin.credential.cert({
+        "projectId": process.env.project_id,
+        "private_key": process.env.private_key,
+        "client_email": process.env.client_email
+    })
+})
+
 var firebaseConfig = {
     apiKey: process.env.FIREBASE_API_KEY,
     authDomain: process.env.FIREBASE_AUTH_DOMAIN,
