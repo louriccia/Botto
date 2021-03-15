@@ -52,9 +52,9 @@ ref.on("value", function(snapshot) {
 }, function (errorObject) {
     console.log("The read failed: " + errorObject);
 });
-var oddsref = database.ref('challenge/profiles');
-oddsref.on("value", function(snapshot) {
-    oddsdata = snapshot.val();
+var profileref = database.ref('challenge/profiles');
+profiledata.on("value", function(snapshot) {
+    profiledata = snapshot.val();
 }, function (errorObject) {
     console.log("The read failed: " + errorObject.code);
 });
@@ -109,8 +109,6 @@ client.once('ready', () => {
     } catch {
         console.error(error);
     }
-    var profileref = database.ref('challenge/profiles');
-    
     profileref.get().then(function(snapshot) {
         var profiledata = snapshot.val()
         var keys = Object.keys(profiledata)
