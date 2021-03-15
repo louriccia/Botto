@@ -15,6 +15,7 @@
   "dependencies": {
     "discord.js": "^12.x",
     "firebase": "^7.24.0",
+    "firebase-admin": "9.5.0",
     "node-fetch": "^2.6.1",
     "ytdl-core": "^4.x",
     "cheerio": "^1.0.0-rc.5",
