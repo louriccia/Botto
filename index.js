@@ -24,7 +24,8 @@ admin.initializeApp({
         "projectId": process.env.project_id,
         "private_key": process.env.private_key,
         "client_email": process.env.client_email
-    })
+    }),
+    databaseURL: "https://botto-efbfd.firebaseio.com"
 })
 
 var firebaseConfig = {
