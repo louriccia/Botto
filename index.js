@@ -22,8 +22,8 @@ const admin = require('firebase-admin');
 admin.initializeApp({
     credential: admin.credential.cert({
         "projectId": process.env.project_id,
-        "private_key": process.env.private_key.replace(/\\n/g, '\n'),
-        "client_email": process.env.client_email
+        "privateKey": process.env.private_key.replace(/\\n/g, '\n'),
+        "clientEmail": process.env.client_email
     }),
     databaseURL: "https://botto-efbfd.firebaseio.com"
 })
