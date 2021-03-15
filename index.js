@@ -64,12 +64,6 @@ feedbackref.on("value", function(snapshot) {
 }, function (errorObject) {
     console.log("The read failed: " + errorObject.code);
 });
-var profileref = database.ref('challenge/profiles');
-profileref.on("value", function(snapshot) {
-    profiledata = snapshot.val();
-}, function (errorObject) {
-    console.log("The read failed: " + errorObject.code);
-});
 
 client.ws.on('INTERACTION_CREATE', async interaction => {
     const command = interaction.data.name.toLowerCase();
