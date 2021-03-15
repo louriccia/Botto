@@ -16,8 +16,7 @@ for (const file of commandFiles) {
 var firebase = require("firebase/app");
 require('firebase/auth');
 require('firebase/database');
-const FieldValue = require('firebase-admin').firestore.FieldValue
-const admin = require('firebase-admin');
+var admin = require('firebase-admin');
 
 admin.initializeApp({
     credential: admin.credential.cert({
@@ -50,7 +49,7 @@ var ref = database.ref('challenge/times');
 ref.on("value", function(snapshot) {
     challengedata = snapshot.val();
 }, function (errorObject) {
-    console.log("The read failed: " + errorObject.code);
+    console.log("The read failed: " + errorObject);
 });
 var oddsref = database.ref('challenge/profiles');
 oddsref.on("value", function(snapshot) {
@@ -116,6 +115,12 @@ client.once('ready', () => {
         console.error(error);
     }
     var profileref = database.ref('challenge/profiles');
+    profileref.on("value", function(snapshot) {
+        profiledata = snapshot.val();
+    }, function (errorObject) {
+        console.log("The read failed: " + errorObject.code);
+    });
+    
     var keys = Object.keys(profiledata)
     for(var i = 0; i < keys.length; i++){
         var k = keys[i]
