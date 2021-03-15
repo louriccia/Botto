@@ -53,7 +53,7 @@ ref.on("value", function(snapshot) {
     console.log("The read failed: " + errorObject);
 });
 var profileref = database.ref('challenge/profiles');
-profiledata.on("value", function(snapshot) {
+profileref.on("value", function(snapshot) {
     profiledata = snapshot.val();
 }, function (errorObject) {
     console.log("The read failed: " + errorObject.code);
