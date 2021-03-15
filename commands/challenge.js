@@ -5,20 +5,17 @@ module.exports = {
     execute(client, interaction, args) {
         const Discord = require('discord.js');
         var tools = require('./../tools.js');
-        /*
-        var firebase = require("firebase/app");
-        require('firebase/auth');
-        require('firebase/database');
-        var database = firebase.database();
+        var database = admin.database();
+        
         var ref = database.ref('challenge/times');
         ref.on("value", function(snapshot) {
             challengedata = snapshot.val();
         }, function (errorObject) {
-            console.log("The read failed: " + errorObject.code);
+            console.log("The read failed: " + errorObject);
         });
-        var profileref = database.ref('challenge/profiles');
-        profileref.on("value", function(snapshot) {
-            profiledata = snapshot.val();
+        var oddsref = database.ref('challenge/profiles');
+        oddsref.on("value", function(snapshot) {
+            oddsdata = snapshot.val();
         }, function (errorObject) {
             console.log("The read failed: " + errorObject.code);
         });
@@ -28,7 +25,7 @@ module.exports = {
         }, function (errorObject) {
             console.log("The read failed: " + errorObject.code);
         });
-        */
+        
 
         var achievements = {
             galaxy_famous: { name: "Galaxy Famous", description: "Complete a challenge on every track", role: "819514261289828362", limit: 25, collection: {} },
