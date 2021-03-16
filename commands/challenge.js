@@ -615,8 +615,8 @@ module.exports = {
                                 title = ":negative_squared_cross_mark: Closed: "
                                 profileref.child(member).child("current").update({ completed: true })
                                 try {
-                                    await sentMessage.edit("", createEmbed())
-                                    await sentMessage.reactions.removeAll().catch()
+                                    sentMessage.edit("", createEmbed())
+                                    sentMessage.reactions.removeAll().catch()
                                 } catch (error) {
                                     console.error(error)
                                 }
