@@ -226,10 +226,7 @@ module.exports = {
                     tools.getGoalTime(random2, random1, upg, upg, upg, laps, 1.12, 1.30, 1.30, 0.5 + 1 * tracks[random2].difficulty),
                     tools.getGoalTime(random2, random1, upg, upg, upg, laps, 1.18, 1.45, 1.45, 0.5 + 1.5 * tracks[random2].difficulty)
                 ]
-
-                if (racers[random1].hasOwnProperty("flag")) {
-                    flag = racers[random1].flag
-                }
+                flag = racers[random1].flag
                 var eColor = ""
                 eTitle = "Race as **" + flag + " " + racers[random1].name + "** (" + (random1 + 1) + ")" + nutext + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + laptext + skipstext + mirrortext
                 if (vc) {
@@ -388,8 +385,8 @@ module.exports = {
                                 .setColor("FFB900")
                                 .setTitle("**:trophy: " + achievements[a].name + "**")
                             if (interaction.guild_id == "441839750555369474") {
-                                //congratsEmbed.setTitle("**<@&" + achievements[a].role + ">**")
                                 Member.roles.add(achievements[a].role).catch(error => console.log(error))
+                                congratsEmbed.setDescription("**<@&" + achievements[a].role + ">** - " + achievements[a].description)
                             }
                             client.channels.cache.get(interaction.channel_id).send(congratsEmbed)
                         }
@@ -608,14 +605,22 @@ module.exports = {
                         }
                         tools.timetoSeconds(message.content)
                         if (time !== "" && collecting) {
-                            /*
-                            if ((challengeend - challengestart) < time*1000) {
+                            
+                            if ((challengeend - challengestart) < time*1000 && interaction.name !=="fake") {
                                 message.reply("*I warn you. No funny business.*")
                                 collected = true
                                 if(!vc){
                                     collecting = false
                                 }
-                            } else {*/
+                                title = ":negative_squared_cross_mark: Closed: "
+                                profileref.child(member).child("current").update({ completed: true })
+                                try {
+                                    await sentMessage.edit("", createEmbed())
+                                    await sentMessage.reactions.removeAll().catch()
+                                } catch (error) {
+                                    console.error(error)
+                                }
+                            } else {
                             //log time
                             try {
                                 sentMessage.reactions.resolve("🔄").users.remove("545798436105224203")
@@ -624,7 +629,6 @@ module.exports = {
                             } catch {
 
                             }
-
                             var submissiondata = {
                                 user: message.author.id,
                                 name: message.author.username,
@@ -650,7 +654,6 @@ module.exports = {
                                 collecting = false
                             }
                             console.log(collection)
-                            //edit original message
                             if (vc) {
                                 highlight = submissiondata.date
                                 try {
@@ -664,15 +667,12 @@ module.exports = {
                                     sentMessage.edit("", createEmbed())
                                 } catch { }
                             }
-
-                            //maybe find a way to undo a submission
-                            //delete message
                             if (message.guild) {
                                 try {
                                     message.delete()
                                 } catch { }
                             }
-                            //}
+                            }
                         }
                     }
                 })
@@ -920,33 +920,35 @@ module.exports = {
 
                 }
             }
-            if (profiledata[member].achievements == undefined) {
-                var ach = {
-                    galaxy_famous: false,
-                    pod_champ: false,
-                    light_skipper: false,
-                    slow_steady: false,
-                    crowd_favorite: false,
-                    true_jedi: false,
-                    big_spender: false
-                }
-                profileref.child(member).child("achievements").set(ach)
-            }
-            var achvs = Object.keys(achievements)
-            for (var i = 0; i < achvs.length; i++) {
-                var a = achvs[i]
-                if (Object.keys(achievements[a].collection).length == achievements[a].limit && profiledata[member].achievements[a] == false) {
-                    profileref.child(member).child("achievements").child(a).set(true)
-                    const congratsEmbed = new Discord.MessageEmbed()
-                        .setAuthor(interaction.member.user.username + " got an achievement!", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
-                        //.setDescription(achievements[a].description + " `" + String(Object.keys(achievements[a].collection).length) + "/" + String(achievements[a].limit)) + "`"
-                        .setColor("FFB900")
-                        .setTitle("**:trophy: " + achievements[a].name + "**")
-                    if (interaction.guild_id == "441839750555369474") {
-                        congratsEmbed.setTitle("**<@&" + achievements[a].role + ">**")
-                        Member.roles.add(achievements[a].role).catch(error => console.log(error))
+            if(member == interaction.member.user.id){
+                if (profiledata[member].achievements == undefined) {
+                    var ach = {
+                        galaxy_famous: false,
+                        pod_champ: false,
+                        light_skipper: false,
+                        slow_steady: false,
+                        crowd_favorite: false,
+                        true_jedi: false,
+                        big_spender: false
                     }
-                    client.channels.cache.get(interaction.channel_id).send(congratsEmbed)
+                    profileref.child(member).child("achievements").set(ach)
+                }
+                var achvs = Object.keys(achievements)
+                for (var i = 0; i < achvs.length; i++) {
+                    var a = achvs[i]
+                    if (Object.keys(achievements[a].collection).length == achievements[a].limit && profiledata[member].achievements[a] == false) {
+                        profileref.child(member).child("achievements").child(a).set(true)
+                        const congratsEmbed = new Discord.MessageEmbed()
+                            .setAuthor(interaction.member.user.username + " got an achievement!", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
+                            //.setDescription(achievements[a].description + " `" + String(Object.keys(achievements[a].collection).length) + "/" + String(achievements[a].limit)) + "`"
+                            .setColor("FFB900")
+                            .setTitle("**:trophy: " + achievements[a].name + "**")
+                        if (interaction.guild_id == "441839750555369474") {
+                            congratsEmbed.setTitle("**<@&" + achievements[a].role + ">**")
+                            Member.roles.add(achievements[a].role).catch(error => console.log(error))
+                        }
+                        client.channels.cache.get(interaction.channel_id).send(congratsEmbed)
+                    }
                 }
             }
             const profileEmbed = new Discord.MessageEmbed()
@@ -1130,7 +1132,12 @@ module.exports = {
             if (trak !== null) {
                 var j = 0
                 var players = []
-
+                var runs = Object.keys(challengefiltered)
+                var pod_collection = {}
+                for(var i = 0; i < runs.length; i ++){
+                    var run = runs[i]
+                    pod_collection[challengefiltered[run].racer] = 1
+                }
                 if (challengefiltered.length > 0) {
                     for (i = 0; i < 5;) {
                         var skip = false
@@ -1170,7 +1177,7 @@ module.exports = {
                             i = 5
                         }
                     }
-                    challengeReport.setDescription(desc.join(', ') + " [" + challengefiltered.length + " Total Runs]")
+                    challengeReport.setDescription(desc.join(', ') + " `[" + challengefiltered.length + " Total Runs]` `[" + Object.keys(pod_collection).length + "/23 Racers]`")
                     client.api.interactions(interaction.id, interaction.token).callback.post({
                         data: {
                             type: 3,
