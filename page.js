@@ -29,6 +29,19 @@ ref.on("value", function(snapshot) {
 }, function (errorObject) {
     console.log("The read failed: " + errorObject.code);
 });*/
+
+const express = require('express')
+const app = express();
+const port = 8000;
+
+app.get('/', (req, res) => {
+  res.send('Hello World!')
+});
+
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}!`)
+});
+
 var secondaryAppConfig = {
     apiKey: "AIzaSyCEJX5k_LmFjPxV-1IQYZNESC3apL62onM",
     authDomain: "botto-efbfd.firebaseapp.com",
@@ -39,6 +52,7 @@ var secondaryAppConfig = {
     appId: "1:131908843411:web:9b64e1375087fb07f91a66",
     measurementId: "G-BQHFL0GVF1"
 };
+const firebase = require("firebase/app");
 const app2 = firebase.initializeApp(secondaryAppConfig, "secondary");
 const database = firebase.database(app2);
 console.log(firebase)
