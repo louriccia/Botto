@@ -75,7 +75,7 @@ ref.on("value", function(snapshot) {
 }, function (errorObject) {
     console.log("The read failed: " + errorObject.code);
 });
-console.log(times)
+//console.log(times)
 console.log("work")
 
 
