@@ -110,6 +110,7 @@ client.once('ready', () => {
         console.error(error);
     }
     profileref.get().then(function(snapshot) {
+        console.log("checking for incomplete challenges...")
         var profiledata = snapshot.val()
         var keys = Object.keys(profiledata)
         for(var i = 0; i < keys.length; i++){
