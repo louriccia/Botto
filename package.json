@@ -8,7 +8,7 @@
   },
   "main": "index.js",
   "scripts": {
-    "start": "page.js"
+    "start": "node page.js"
   },
   "author": "",
   "license": "ISC",
