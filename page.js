@@ -53,8 +53,21 @@ var secondaryAppConfig = {
     measurementId: "G-BQHFL0GVF1"
 };
 const firebase = require("firebase/app");
+require('firebase/auth');
+require('firebase/database');
+var admin = require('firebase-admin');
+admin.initializeApp({
+  credential: admin.credential.cert({
+      "projectId": process.env.FIREBASE_PROJECT_ID,
+      "privateKey": process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+      "clientEmail": process.env.FIREBASE_CLIENT_EMAIL
+  }),
+  databaseURL: "https://botto-efbfd.firebaseio.com"
+})
+
 const app2 = firebase.initializeApp(secondaryAppConfig, "secondary");
-const database = firebase.database(app2);
+var database = admin.database(app2);
+//const database = firebase.database(app2);
 console.log(firebase)
 var ref = database.ref("challenge/times")
 ref.on("value", function(snapshot) {
