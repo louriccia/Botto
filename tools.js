@@ -29,22 +29,23 @@ module.exports = {
         if(time !== undefined){
             if (String(time).includes(":")){
                 var split = time.split(':')
+                console.log(split)
                 if (split.length = 2) {
                     var out = Number(split[0]*60)+Number(split[1])
                     if (Number(split[1]) >= 60) {
                         return null
                     } else {
-                        return Number(myformat.format(out)).toFixed(3)
+                        return Number(out).toFixed(3)
                     }
                 } else if (split.length = 3){
                     var out = Number(split[0]*60*60)+Number(split[1]*60)+Number(split[2])
-                    return Number(myformat.format(out)).toFixed(3)
+                    return Number(out).toFixed(3)
                 } else {
                     return null
                 }
                 
             } else {
-                return Number(myformat.format(time)).toFixed(3)
+                return Number(time).toFixed(3)
             }
         } else {
             return null
