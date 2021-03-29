@@ -26,5 +26,7 @@ sfx/rali022a.wav
 sfx/rali023a.wav
 sfx/rali024a.wav
 **/node_modules/
+**/junkyard/
+page.js
 'npm-debug.log' 
 botto-efbfd-firebase-adminsdk-w3p4k-bd24b6d0c9.json

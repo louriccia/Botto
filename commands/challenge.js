@@ -109,7 +109,7 @@ module.exports = {
                     nu = true
                 }
                 if (Math.random() < odds_mirrormode) {
-                    mirrortext = ", **MIRRORED!** "
+                    mirrortext = ", **MIRRORED!**"
                 }
                 if (Math.random() < odds_non3lap) {
                     laps = lap[Math.floor(Math.random() * 4)]
@@ -136,7 +136,7 @@ module.exports = {
                 nutext = " with **NO UPGRADES**"
             }
             if (skips) {
-                skipstext = ", with **SKIPS**"
+                skipstext = " with **SKIPS**"
             }
             if (laps !== 3) {
                 laptext = " for **" + laps + " lap(s)**"

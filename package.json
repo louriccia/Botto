@@ -13,14 +13,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.17.1",
+    "cheerio": "^1.0.0-rc.5",
     "discord.js": "^12.x",
+    "express": "^4.17.1",
     "firebase": "^7.24.0",
     "firebase-admin": "9.5.0",
     "node-fetch": "^2.6.1",
-    "ytdl-core": "^4.x",
-    "cheerio": "^1.0.0-rc.5",
     "request": "^2.88.2",
-    "request-promise": "^4.2.6"
+    "request-promise": "^4.2.6",
+    "ytdl-core": "^4.x"
   }
 }
