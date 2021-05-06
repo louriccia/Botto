@@ -60,7 +60,7 @@ module.exports = {
             .setDescription("`Input:` " + args[0].value + inputresult + "\n`Output:` " + output + outputresult)
         client.api.interactions(interaction.id, interaction.token).callback.post({
             data: {
-                type: 3,
+                type: 4,
                 data: {
                     //content: "",
                     embeds: [myEmbed]

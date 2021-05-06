@@ -57,7 +57,7 @@ module.exports = {
                 racerEmbed.setFooter("/lookup")
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
-                        type: 3,
+                        type: 4,
                         data: {
                             //content: "",
                             embeds: [racerEmbed]
@@ -118,7 +118,7 @@ module.exports = {
                     }
                     client.api.interactions(interaction.id, interaction.token).callback.post({
                         data: {
-                            type: 3,
+                            type: 4,
                             data: {
                                 //content: "",
                                 embeds: [tracktimesEmbed2]
