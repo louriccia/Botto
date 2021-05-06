@@ -55,7 +55,7 @@ module.exports = {
                         }
                     }
                 })
-                client.api.interactions(interaction.id, interaction.token).callback.patch({
+                client.api.interactions(interaction.id, interaction.token).patch({
                     data: {
                         type: 1,
                         data: {
