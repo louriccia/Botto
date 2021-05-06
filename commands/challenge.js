@@ -414,7 +414,7 @@ module.exports = {
             if (interaction.name !== "fake") {
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
-                        type: 2,
+                        type: 1,
                         data: {
                             //content: "",
                             //embeds: [challengeEmbed]
@@ -811,7 +811,7 @@ module.exports = {
                 .setColor("EA596E")
             client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {
-                    type: 3,
+                    type: 4,
                     data: {
                         content: "",
                         embeds: [oddsEmbed]
@@ -1183,7 +1183,7 @@ module.exports = {
                     challengeReport.setDescription(desc.join(', ') + " `[" + challengefiltered.length + " Total Runs]` `[" + Object.keys(pod_collection).length + "/23 Racers]`")
                     client.api.interactions(interaction.id, interaction.token).callback.post({
                         data: {
-                            type: 3,
+                            type: 4,
                             data: {
                                 //content: "",
                                 embeds: [challengeReport]
