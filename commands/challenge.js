@@ -44,7 +44,7 @@ module.exports = {
             var vc = false
             var challengestart = Date.now()
             //send embed
-            //if (interaction.name !== "fake") {
+            if (interaction.name !== "fake") {
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
                         type: 4,
@@ -54,7 +54,7 @@ module.exports = {
                         }
                     }
                 })
-            //}
+            }
             if (profiledata[member] !== undefined) {
                 if (profiledata[member].current !== undefined) {
                     if (profiledata[member].current.completed == false && profiledata[member].current.start + 900000 > challengestart) {
