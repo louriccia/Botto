@@ -47,11 +47,11 @@ module.exports = {
             if (interaction.name !== "fake") {
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
-                        type: 4,
-                        data: {
+                        type: 1
+                        /*data: {
                             //content: "",
                             //embeds: [challengeEmbed]
-                        }
+                        }*/
                     }
                 })
             }
