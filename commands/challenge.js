@@ -1001,7 +1001,7 @@ module.exports = {
                 .setFooter("/challenge")
             client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {
-                    type: 5,
+                    type: 6,
                     data: {
                         embeds: [profileEmbed]
                     }
@@ -1016,7 +1016,7 @@ module.exports = {
                 .addField("Spending Truguts", "You can spend truguts on 'rerolling' challenges that you wish to skip. Truguts can also be used to bribe Botto for a specific track or racer as part of the `/challenge generate` command.", true)
             client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {
-                    type: 3,
+                    type: 6,
                     data: {
                         embeds: [challengeHelpEmbed]
                     }
