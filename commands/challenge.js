@@ -1011,14 +1011,15 @@ module.exports = {
             const challengeHelpEmbed = new Discord.MessageEmbed()
                 .setTitle("Random Challenges")
                 .setDescription("When you type `/challenge generate` or `/random challenge`, Botto will challenge you to race a random pod on a random track with random conditions. The default conditions are max upgrades, 3-lap, full track. You have 15 minutes to submit a time for the challenge which you may do by entering it in the same text channel as the challenge.")
-                .addField("Challenge Settings", "Use the `/challenge settings` command to customize your challenge settings and modify the chances that Botto will roll a No Upgrades, Skips, Non 3-lap, or Mirrored challenge. You can select a challenge winnings pattern which determines how many truguts your submitted time will earn.", true)
-                .addField("Earning Truguts", "Truguts are awarded depending on how fast your submitted time is compared to the given goal times and how your winnings are set up. Bonuses are available for beating other players' best times, beating your own time, rating challenges, and completing non-standard challenges (odds must be below 25%).", true)
-                .addField("Spending Truguts", "You can spend truguts on 'rerolling' challenges that you wish to skip. Truguts can also be used to bribe Botto for a specific track or racer as part of the `/challenge generate` command.", true)
+                .addField("Challenge Settings", "Use the `/challenge settings` command to customize your challenge settings and modify the chances that Botto will roll a No Upgrades, Skips, Non 3-lap, or Mirrored challenge. You can select a challenge winnings pattern which determines how many truguts your submitted time will earn.", false)
+                .addField("Earning Truguts", "Truguts are awarded depending on how fast your submitted time is compared to the given goal times and how your winnings are set up. Bonuses are available for beating other players' best times, beating your own time, rating challenges, and completing non-standard challenges (odds must be below 25%).", false)
+                .addField("Spending Truguts", "You can spend truguts on 'rerolling' challenges that you wish to skip. Truguts can also be used to bribe Botto for a specific track or racer as part of the `/challenge generate` command.", false)
             client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {
                     type: 4,
                     data: {
-                        embeds: [challengeHelpEmbed]
+                        embeds: [challengeHelpEmbed],
+                        flags: 64
                     }
                 }
             })
