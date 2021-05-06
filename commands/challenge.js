@@ -45,9 +45,19 @@ module.exports = {
             var challengestart = Date.now()
             //send embed
             if (interaction.name !== "fake") {
+                console.log( client.api.interactions(interaction.id, interaction.token))
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
                         type: 5,
+                        data: {
+                            content: ""
+                            //embeds: [challengeEmbed]
+                        }
+                    }
+                })
+                client.api.interactions(interaction.id, interaction.token).callback.patch({
+                    data: {
+                        type: 1,
                         data: {
                             content: ""
                             //embeds: [challengeEmbed]
