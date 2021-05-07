@@ -54,7 +54,7 @@ module.exports = {
                             //embeds: [challengeEmbed]
                         }
                     }
-                })
+                }).then( intr => {console.log(intr)})
 
             }
             if (profiledata[member] !== undefined) {
