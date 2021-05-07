@@ -54,7 +54,7 @@ module.exports = {
                             //embeds: [challengeEmbed]
                         }
                     }
-                }).then( intr => {client.api.interactions(interaction.id, interaction.token).callback.delete})
+                }).then( intr => {client.api.interactions(interaction.id, interaction.token).messages.delete})
 
             }
             if (profiledata[member] !== undefined) {
