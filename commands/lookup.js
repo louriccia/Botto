@@ -341,7 +341,7 @@ module.exports = {
                     console.log("Final Time: " + finaltime)
                     client.api.interactions(interaction.id, interaction.token).callback.post({
                         data: {
-                            type: 3,
+                            type: 4,
                             data: {
                                 content: tools.timefix(finaltime),
                                 //embeds: [cheatEmbed]
@@ -378,7 +378,7 @@ module.exports = {
             }
             client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {
-                    type: 3,
+                    type: 4,
                     data: {
                         //content: """,
                         embeds: [tierEmbed]
@@ -421,7 +421,7 @@ module.exports = {
                 }
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
-                        type: 3,
+                        type: 4,
                         data: {
                             //content: """,
                             embeds: [priceEmbed]
@@ -462,7 +462,7 @@ module.exports = {
             }
             client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {
-                    type: 3,
+                    type: 4,
                     data: {
                         //content: "",
                         embeds: [cheatEmbed]

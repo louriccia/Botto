@@ -54,7 +54,7 @@ module.exports = {
                             //embeds: [challengeEmbed]
                         }
                     }
-                }).then( intr => {client.api.interactions(interaction.id, interaction.token).messages.delete})
+                })
 
             }
             if (profiledata[member] !== undefined) {
@@ -816,7 +816,8 @@ module.exports = {
                     type: 4,
                     data: {
                         content: "",
-                        embeds: [oddsEmbed]
+                        embeds: [oddsEmbed],
+                        flags: 64
                     }
                 }
             })

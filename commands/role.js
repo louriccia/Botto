@@ -29,7 +29,7 @@ module.exports = {
         }
         client.api.interactions(interaction.id, interaction.token).callback.post({
             data: {
-                type: 3,
+                type: 4,
                 data: {
                     content: content,
                     //embeds: [myEmbed]
