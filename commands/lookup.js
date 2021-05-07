@@ -88,6 +88,16 @@ module.exports = {
                     }
                 })
             } else {
+                
+                client.api.interactions(interaction.id, interaction.token).callback.post({
+                    data: {
+                        type: 4,
+                        data: {
+                            content: " "
+                            //embeds: [racerEmbed]
+                        }
+                    }
+                })
                 tools.getTrackEmbed(numb, client, interaction.channel_id, "/lookup")
             }
         } else if(args[0].name=="times") {

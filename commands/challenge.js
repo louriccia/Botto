@@ -480,8 +480,9 @@ module.exports = {
                             eTitle = "~~" + eTitle + "~~"
                             profileref.child(member).child("current").update({ completed: true })
                             try {
-                                sentMessage.edit("", createEmbed())
+                                
                                 sentMessage.reactions.removeAll().catch()
+                                sentMessage.edit("", createEmbed()).then(sentMessage.delete({ timeout: 5000, reason: 'bot cleanup'}))
                             } catch { }
                             client.commands.get("challenge").execute(client, fakeinteraction, args);
                         } else if (reaction.emoji.name === '↩️') { //undo

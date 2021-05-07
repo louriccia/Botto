@@ -107,7 +107,7 @@ module.exports = {
                         .addField('\u200B', '\u200B', true)
                     client.api.interactions(interaction.id, interaction.token).callback.post({
                         data: {
-                            type: 3,
+                            type: 4,
                             data: {
                                 //content: "",
                                 embeds: [racerEmbed]
@@ -120,7 +120,7 @@ module.exports = {
                 var racerEmbed = tools.getRacerEmbed(randomracer) 
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
-                        type: 3,
+                        type: 4,
                         data: {
                             //content: "",
                             embeds: [racerEmbed]
@@ -214,16 +214,17 @@ module.exports = {
                 })
             }
             var numb = pool[Math.floor(Math.random()*pool.length)]
-            tools.getTrackEmbed(numb, client, interaction.channel_id, "/random")
+            
             client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {
-                    type: 2,
+                    type: 4,
                     data: {
-                        //content: "",
+                        content: " "
                         //embeds: [myEmbed]
                     }
                 }
             })
+            tools.getTrackEmbed(numb, client, interaction.channel_id, "/random")
         } else if(args[0].name=="challenge") {
             client.commands.get("challenge").execute(client, interaction, args);
         } else if(args[0].name=="teams") {
@@ -236,7 +237,7 @@ module.exports = {
             if (teamnum > playernum){
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
-                        type: 3,
+                        type: 4,
                         data: {
                             content: "`Error: That's too many teams!`\n" + errorMessage[Math.floor(Math.random()*errorMessage.length)],
                             //embeds: [teamEmbed]
@@ -264,7 +265,7 @@ module.exports = {
                 }
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
-                        type: 3,
+                        type: 4,
                         data: {
                             //content: "",
                             embeds: [teamEmbed]
@@ -278,7 +279,7 @@ module.exports = {
                 var randomnum = (Math.floor(Math.random()*args[0].options[0].value) + 1)
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
-                        type: 3,
+                        type: 4,
                         data: {
                             content: randomnum,
                             //embeds: [myEmbed]
