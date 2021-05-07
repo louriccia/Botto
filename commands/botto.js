@@ -15,10 +15,10 @@ module.exports = {
         client.api.interactions(interaction.id, interaction.token).callback.post({
             data: {
                 type: 1,
-                data: {
+                /*data: {
                     //content: "",
                     embeds: [myEmbed]
-                }
+                }*/
             }
         })
     }
