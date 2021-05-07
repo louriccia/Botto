@@ -100,7 +100,6 @@ module.exports = {
                         desc = desc + " pods"
                     }
                     const racerEmbed = new Discord.MessageEmbed()
-                        .setFooter("/random")
                         .setTitle("Random Racers")
                         .setDescription(desc)
                         .addField("Players", memlist, true)
@@ -118,8 +117,7 @@ module.exports = {
                 }
             } else {
                 var randomracer = pool[Math.floor(Math.random()*pool.length)]
-                var racerEmbed = tools.getRacerEmbed(randomracer)
-                    racerEmbed.setFooter("/random")   
+                var racerEmbed = tools.getRacerEmbed(randomracer) 
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
                         type: 3,
@@ -231,7 +229,6 @@ module.exports = {
         } else if(args[0].name=="teams") {
             var teamnum = args[0].options[0].value
             const teamEmbed = new Discord.MessageEmbed()
-                .setFooter("/random")
                 .setTitle("Random Teams")
                 .setDescription("Everyone in the voice channel has been split into **" + teamnum + "** teams")
                 

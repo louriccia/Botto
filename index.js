@@ -93,7 +93,7 @@ async function getCommands() {
     console.log(commands)
 }
 
-//getCommands()
+getCommands()
 
 
 

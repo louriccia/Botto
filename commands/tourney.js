@@ -5,7 +5,6 @@ module.exports = {
         const Discord = require('discord.js');
         const tourneyReport = new Discord.MessageEmbed()
             .setURL("https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing")
-            .setFooter("/tourney")
         var trak = null
         var podfilterout = []
         var podfilterin = []

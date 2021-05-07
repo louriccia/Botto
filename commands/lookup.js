@@ -54,7 +54,6 @@ module.exports = {
             var numb = getRacer(input)
             if(numb !== null){
                 racerEmbed = tools.getRacerEmbed(numb)
-                racerEmbed.setFooter("/lookup")
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
                         type: 4,
@@ -109,7 +108,6 @@ module.exports = {
                     const tracktimesEmbed2 = new Discord.MessageEmbed()
                         .setColor(planets[tracks[numb].planet].color)
                         .setTitle(tracks[numb].name + " | Par Times")
-                        .setFooter("/lookup")
                         .setURL("https://docs.google.com/spreadsheets/d/1TwDtG6eOyiQZEZ3iTbZaEmthe5zdf9YEGJ-1tfFfQKg/edit?usp=sharing")
                         .addField("FT 3-Lap", ":gem: " + tracks[numb].partimes[0] + "\n:first_place: " + tracks[numb].partimes[1] + "\n:second_place: " + tracks[numb].partimes[2] + "\n:third_place: " + tracks[numb].partimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[numb].partimes[4], true)
                         .addField("FT 1-Lap", ":gem: " + tracks[numb].parlaptimes[0] + "\n:first_place: " + tracks[numb].parlaptimes[1] + "\n:second_place: " + tracks[numb].parlaptimes[2] + "\n:third_place: " + tracks[numb].parlaptimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[numb].parlaptimes[4], true)
@@ -362,7 +360,6 @@ module.exports = {
             if(mu) {
                 tierEmbed
                     .setTitle("MU Racer Tier List")
-                    .setFooter("/lookup")
                     .addField(":gem: Top", "Ben Quadinaros\nBoles Roor\nMars Guo\nAldar Beedo\nElan Mak\nMawhonic\n'Bullseye' Navior")
                     .addField(":first_place: High", "Clegg Holdfast\nNeva Kee\nRatts Tyerell\nToy Dampner\nArk 'Bumpy' Roose\nBozzie Baranta\nFud Sang")
                     .addField(":second_place: Mid", "Dud Bolt\nOdy Mandrell\nGasgano\nWan Sandage\nAnakin Skywalker")
@@ -370,7 +367,6 @@ module.exports = {
             } else {
                 tierEmbed
                     .setTitle("NU Racer Tier List")
-                    .setFooter("/lookup")
                     .addField(":gem: Top", "Boles Roor\nBen Quadinaros\nSebulba")
                     .addField(":first_place: High", "Aldar Beedo\n'Bullseye' Navior\nMars Guo\nRatts Tyerell\nMawhonic")
                     .addField(":second_place: Mid", "Toy Dampner\nClegg Holdfast\nEbe Endocott\nFud Sang\nAnakin Skywalker\nSlide Paramita\nArk 'Bumpy' Roose")
@@ -389,7 +385,6 @@ module.exports = {
             var total = 0
             const priceEmbed = new Discord.MessageEmbed()
                 .setTitle("Part Price Lookup")
-                .setFooter("/lookup")
             if(args[0].hasOwnProperty("options")){
                 for(let i=0; i<args[0].options.length; i++){
                     var level = Number(args[0].options[i].value)
@@ -434,7 +429,6 @@ module.exports = {
             if(args[0].options[0].value == "PC"){
                 cheatEmbed
                     .setTitle("PC Cheats")
-                    .setFooter("/lookup")
                     .addField("1000 Truguts", "Press Left Shift + F4 + 4 at Watto's Shop; repeatable up to 5 times", false)
                     .addField("Cy Yunga","Press Left Control + C + Y on the racer select screen", false)
                     .addField("Jinn Reeso","Press Right Control + N + K on the racer select screen", false) 
@@ -446,7 +440,6 @@ module.exports = {
             } else {
                 cheatEmbed  
                     .setTitle("Console Cheats")
-                    .setFooter("/lookup")
                     .setDescription("To enter cheats, go to the new profile page and hold RT/R2/ZR and enter the codes below using L1/Bumper/L. Once entered, select end and a confirmation should appear.")
                     .addField("Unlock All Cheat Codes","RRTANGENTABACUS",false)
                     .addField("Unlock Mirror Mode","RRTHEBEAST",false)

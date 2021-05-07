@@ -1001,7 +1001,6 @@ module.exports = {
             }
             achievement_field += "**Big-Time Swindler** - Earn or spend 1,000,000 total truguts: `" + "x" + "/1,000,000`"
             profileEmbed.addField(":trophy: Achievements", achievement_field, true)
-                .setFooter("/challenge")
             client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {
                     type: 4,
@@ -1030,7 +1029,6 @@ module.exports = {
             const tools = require('./../tools.js');
             const Discord = require('discord.js');
             const challengeReport = new Discord.MessageEmbed()
-                .setFooter("/challenge")
             var trak = null
             var showall = false
             var desc = []

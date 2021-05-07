@@ -133,7 +133,6 @@ module.exports = {
                     .setTitle(titl)
                     .setURL(src.weblink)
                     .setDescription(desc)
-                    .setFooter("/src")
                 var pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>", "4th", "5th"]
                 var numberofruns = data.data.runs.length
                 if (numberofruns > 5) {
