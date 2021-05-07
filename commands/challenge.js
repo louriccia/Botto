@@ -49,8 +49,7 @@ module.exports = {
                     data: {
                         type: 4,
                         data: {
-                            content: "Challenge generated",
-                            flags: 64
+                            content: "\u200B"
                             //embeds: [challengeEmbed]
                         }
                     }
