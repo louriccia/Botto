@@ -14,11 +14,11 @@ module.exports = {
             .setThumbnail(client.user.avatarURL())
         client.api.interactions(interaction.id, interaction.token).callback.post({
             data: {
-                type: 1,
-                /*data: {
+                type: 4,
+                data: {
                     //content: "",
                     embeds: [myEmbed]
-                }*/
+                }
             }
         })
     }

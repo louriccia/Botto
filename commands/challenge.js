@@ -47,22 +47,15 @@ module.exports = {
             if (interaction.name !== "fake") {
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
-                        type: 5,
+                        type: 4,
                         data: {
-                            content: ""
+                            content: "Challenge generated",
+                            flags: 64
                             //embeds: [challengeEmbed]
                         }
                     }
                 })
-                client.api.interactions(interaction.id, interaction.token).callback.post({
-                    data: {
-                        type: 1,
-                        data: {
-                            //content: ""
-                            //embeds: [challengeEmbed]
-                        }
-                    }
-                })
+
             }
             if (profiledata[member] !== undefined) {
                 if (profiledata[member].current !== undefined) {
