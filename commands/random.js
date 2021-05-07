@@ -219,7 +219,7 @@ module.exports = {
                 data: {
                     type: 4,
                     data: {
-                        content: " "
+                        content: "\u200B"
                         //embeds: [myEmbed]
                     }
                 }
