@@ -1005,100 +1005,116 @@ client.api.applications("545798436105224203").commands.post({data: {
     ]
 }})
 
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: {
-    name: 'role',
-    description: "add or remove roles",
-    options: [
-        {
-            name: "add",
-            description: "select a role to add",
-            type: 3,
-            required: true,
-            choices: [
-                {
-                    name: "Multiplayer",
-                    value: "474920988790751232"
-                },
-                {
-                    name: "Tournament",
-                    value: "841059665474617353"
-                },
-                {
-                    name: "Speedrunning",
-                    value: "535973118578130954"
-                },
-                {
-                    name: "PC Player",
-                    value: "841404897018380388"
-                },
-                {
-                    name: "Switch Player",
-                    value: "841405226282909716"
-                },
-                {
-                    name: "PlayStation Player",
-                    value: "841405077470445669"
-                },
-                {
-                    name: "Xbox Player",
-                    value: "841404991784091690"
-                },
-                {
-                    name: "Dreamcast Player",
-                    value: "841405394441338890"
-                },
-                {
-                    name: "N64 Player",
-                    value: "602246101323612181"
-                }
-            ]
-        },
-        {
-            name: "remove",
-            description: "select a role to remove",
-            type: 3,
-            required: true,
-            choices: [
-                {
-                    name: "Multiplayer",
-                    value: "474920988790751232"
-                },
-                {
-                    name: "Tournament",
-                    value: "841059665474617353"
-                },
-                {
-                    name: "Speedrunning",
-                    value: "535973118578130954"
-                },
-                {
-                    name: "PC Player",
-                    value: "841404897018380388"
-                },
-                {
-                    name: "Switch Player",
-                    value: "841405226282909716"
-                },
-                {
-                    name: "PlayStation Player",
-                    value: "841405077470445669"
-                },
-                {
-                    name: "Xbox Player",
-                    value: "841404991784091690"
-                },
-                {
-                    name: "Dreamcast Player",
-                    value: "841405394441338890"
-                },
-                {
-                    name: "N64 Player",
-                    value: "602246101323612181"
-                }
-            ]
-        }
-    ]
-}})
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({
+    data: {
+        name: 'role',
+        description: "add or remove roles",
+        options: [
+            {
+                name: "add",
+                description: "add a role",
+                type: 1,
+                options: [
+                    {
+                        name: "role",
+                        description: "select a role to add",
+                        type: 3,
+                        required: true,
+                        choices: [
+                            {
+                                name: "Multiplayer",
+                                value: "474920988790751232"
+                            },
+                            {
+                                name: "Tournament",
+                                value: "841059665474617353"
+                            },
+                            {
+                                name: "Speedrunning",
+                                value: "535973118578130954"
+                            },
+                            {
+                                name: "PC Player",
+                                value: "841404897018380388"
+                            },
+                            {
+                                name: "Switch Player",
+                                value: "841405226282909716"
+                            },
+                            {
+                                name: "PlayStation Player",
+                                value: "841405077470445669"
+                            },
+                            {
+                                name: "Xbox Player",
+                                value: "841404991784091690"
+                            },
+                            {
+                                name: "Dreamcast Player",
+                                value: "841405394441338890"
+                            },
+                            {
+                                name: "N64 Player",
+                                value: "602246101323612181"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                name: "remove",
+                description: "remove a role",
+                type: 1,
+                options: [
+                    {
+                        name: "role",
+                        description: "select a role to remove",
+                        type: 3,
+                        required: true,
+                        choices: [
+                            {
+                                name: "Multiplayer",
+                                value: "474920988790751232"
+                            },
+                            {
+                                name: "Tournament",
+                                value: "841059665474617353"
+                            },
+                            {
+                                name: "Speedrunning",
+                                value: "535973118578130954"
+                            },
+                            {
+                                name: "PC Player",
+                                value: "841404897018380388"
+                            },
+                            {
+                                name: "Switch Player",
+                                value: "841405226282909716"
+                            },
+                            {
+                                name: "PlayStation Player",
+                                value: "841405077470445669"
+                            },
+                            {
+                                name: "Xbox Player",
+                                value: "841404991784091690"
+                            },
+                            {
+                                name: "Dreamcast Player",
+                                value: "841405394441338890"
+                            },
+                            {
+                                name: "N64 Player",
+                                value: "602246101323612181"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+})
 
 client.api.applications("545798436105224203").commands.post({data: {
     name: 'src',
