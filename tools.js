@@ -162,7 +162,7 @@ module.exports = {
             .MessageAttachment('./img/tracks/' + (numb+1) + '.png', (numb+1)+'.png');
         const trackEmbed = new Discord.MessageEmbed()
             .setThumbnail(planets[tracks[numb].planet].img)
-            .setFooter(footer)
+            //.setFooter(footer)
             .setColor(planets[tracks[numb].planet].color)
             .attachFiles(attachment)
             .setURL("https://docs.google.com/spreadsheets/d/1CPF8lfU_iDpLNIJsOWeU8Xg23BzQrxzi3-DEELAgxUA/edit#gid=1682683709")

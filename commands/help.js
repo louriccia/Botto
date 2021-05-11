@@ -85,7 +85,8 @@ module.exports = {
                 type: 4,
                 data: {
                     //content: "Here's some help!",
-                    embeds: [helpEmbed]
+                    embeds: [helpEmbed],
+                    flags: 64
                 }
             }
         })

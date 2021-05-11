@@ -481,7 +481,7 @@ module.exports = {
                             try {
                                 
                                 sentMessage.reactions.removeAll().catch()
-                                sentMessage.edit("", createEmbed()).then(sentMessage.delete({ timeout: 5000, reason: 'bot cleanup'}))
+                                sentMessage.edit("", createEmbed()).then(sentMessage.delete({ timeout: 10000, reason: 'bot cleanup'}))
                             } catch { }
                             client.commands.get("challenge").execute(client, fakeinteraction, args);
                         } else if (reaction.emoji.name === '↩️') { //undo
