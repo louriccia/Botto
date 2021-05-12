@@ -177,8 +177,6 @@ client.once('ready', () => {
 
         const role = emojis[key]
         reactions.push(emoji)
-
-        const role = emojis[key]
         emojiText += `${emoji} = ${role}\n`
     }
 
