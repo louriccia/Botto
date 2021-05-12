@@ -176,29 +176,24 @@ client.once('ready', () => {
         reactions.push(emoji)
         emojiText += `${emoji} = ${role}\n`
     }
-
-    var messageID = '841842025032056853'
-
-    try{
-        client.channels.fetch(channelId).then(c => {
-            c.messages.fetch(messageID)
-                .then(msg => {
-                    msg.edit('Add/remove reactions or use the `/role` command to manage your roles\n\n' + emojiText)
-                        .then(m => {
-                            addReactions(m, reactions)
-                        })
+    var messageID = ""
+    client.channels.fetch(channelId).then(c => {
+        c.messages.fetch({ limit: 1 }).then(messages => {
+            let lastMessage = messages.first();
+            if (lastMessage.author.bot) {
+                lastMessage.edit('Add/remove reactions or use the `/role` command to manage your roles\n\n' + emojiText)
+                    .then(m => {
+                        addReactions(m, reactions)
+                    })
+                messageID = lastMessage.id
+            } else {
+                c.send('Add/remove reactions or use the `/role` command to manage your roles\n\n' + emojiText).then(m => {
+                    addReactions(m, reactions)
+                    messageID = m.id
                 })
-    
+            }
         })
-    } catch {
-        client.channels.fetch(channelId).then(c => {
-            c.send('Add/remove reactions or use the `/role` command to manage your roles\n\n' + emojiText).then(m => {
-                addReactions(m, reactions)
-                messageID = m.id
-            })
-        })
-    }
-    
+    })
 
     const handleReaction = (reaction, user, add) => {
         if (user.id === '545798436105224203') {
@@ -222,19 +217,19 @@ client.once('ready', () => {
             member.roles.remove(role)
         }
     }
-    
+
     client.on('messageReactionAdd', (reaction, user) => {
-        if (reaction.message.id === messageID){ //message id goes here
-            handleReaction(reaction,user,true)
+        if (reaction.message.id === messageID) { //message id goes here
+            handleReaction(reaction, user, true)
         }
     })
 
     client.on('messageReactionRemove', (reaction, user) => {
-        if (reaction.message.id === messageID){ //message id goes here
-            handleReaction(reaction,user,false)
+        if (reaction.message.id === messageID) { //message id goes here
+            handleReaction(reaction, user, false)
         }
     })
-    
+
 
 })
 
