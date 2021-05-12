@@ -213,7 +213,7 @@ client.once('ready', () => {
             return
         }
 
-        const role = guild.roles.cahce.find(role => role.name === roleName)
+        const role = guild.roles.cache.find(role => role.name === roleName)
         const member = guild.members.cache.find(member => member.id === user.id)
 
         if (add) {
