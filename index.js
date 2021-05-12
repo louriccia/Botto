@@ -147,7 +147,7 @@ client.once('ready', () => {
     });
 
     //set up role claim message
-    const channelId = '444208252541075476'
+    const channelId = '442116200147714049'
 
     const getEmoji = (emojiName) =>
         client.emojis.cache.find((emoji) => emoji.name === emojiName)
