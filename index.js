@@ -147,7 +147,7 @@ client.once('ready', () => {
     });
 
     //set up role claim message
-    const channelId = '841824106676224041'
+    const channelId = '444208252541075476'
 
     const getEmoji = (emojiName) =>
         client.emojis.cache.find((emoji) => emoji.name === emojiName)
@@ -161,8 +161,15 @@ client.once('ready', () => {
     }
 
     const emojis = {
-        trugut: 'Host Eligible',
-        slidedab: 'Bot-Commander'
+        checkered_flag: 'Multiplayer',
+        crossed_swords: 'Tournament',
+        trophy: 'Speedrunning',
+        cd: 'PC Player',
+        regional_indicator_n: 'N64 Player',
+        regional_indicator_d: 'Dreamcast Player',
+        regional_indicator_s: 'Switch Player',
+        regional_indicator_p: 'PlayStation Player',
+        regional_indicator_x: 'Xbox Player'
     }
 
     const reactions = []
@@ -174,20 +181,20 @@ client.once('ready', () => {
 
         const role = emojis[key]
         reactions.push(emoji)
-        emojiText += `${emoji} = ${role}\n`
+        emojiText += `${emoji} - ${role}\n`
     }
     var messageID = ""
     client.channels.fetch(channelId).then(c => {
         c.messages.fetch({ limit: 1 }).then(messages => {
             let lastMessage = messages.first();
             if (lastMessage.author.bot) {
-                lastMessage.edit('Add/remove reactions or use the `/role` command to manage your roles\n\n' + emojiText)
+                lastMessage.edit(':busts_in_silhouette: **Self-Roles** \nAdd/remove reactions or use the `/role` command to manage your roles.\n\n' + emojiText)
                     .then(m => {
                         addReactions(m, reactions)
                     })
                 messageID = lastMessage.id
             } else {
-                c.send('Add/remove reactions or use the `/role` command to manage your roles\n\n' + emojiText).then(m => {
+                c.send(':busts_in_silhouette: **Self-Roles** \nAdd/remove reactions or use the `/role` command to manage your roles.\n\n' + emojiText).then(m => {
                     addReactions(m, reactions)
                     messageID = m.id
                 })
