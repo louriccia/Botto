@@ -233,6 +233,7 @@ client.once('ready', () => {
         if (reaction.message.id === messageID){ //message id goes here
             handleReaction(reaction,user,false)
         }
+    })
     
 
 })
