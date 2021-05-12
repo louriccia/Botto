@@ -149,15 +149,13 @@ client.once('ready', () => {
     //set up role claim message
     const channelId = '841824106676224041'
 
-    const channel = client.channels.fetch(channelId)
-
     const getEmoji = (emojiName) =>
         client.emojis.cache.find((emoji) => emoji.name === emojiName)
 
     const addReactions = (message, reactions) => {
         message.react(reactions[0])
         reactions.shift()
-        if(reactions.length > 0) {
+        if (reactions.length > 0) {
             setTimeout(() => addReactions(message, reactions), 750)
         }
     }
@@ -179,8 +177,10 @@ client.once('ready', () => {
         emojiText += `${emoji} = ${role}\n`
     }
 
-    channel.send('Add or remove reactions or use the `/role` command to manage your roles\n\n' + emojiText).then(m => {
-        addReactions(m, reactions)
+    client.channels.fetch(channelId).then(c => {
+        c.send('Add or remove reactions or use the `/role` command to manage your roles\n\n' + emojiText).then(m => {
+            addReactions(m, reactions)
+        })
     })
 
     const handleReaction = (reaction, user, add) => {
