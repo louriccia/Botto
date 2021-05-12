@@ -161,22 +161,22 @@ client.once('ready', () => {
     }
 
     const emojis = {
-        checkered_flag: 'Multiplayer',
-        crossed_swords: 'Tournament',
-        trophy: 'Speedrunning',
-        cd: 'PC Player',
-        regional_indicator_n: 'N64 Player',
-        regional_indicator_d: 'Dreamcast Player',
-        regional_indicator_s: 'Switch Player',
-        regional_indicator_p: 'PlayStation Player',
-        regional_indicator_x: 'Xbox Player'
+        "🏁": 'Multiplayer',
+        "⚔️": 'Tournament',
+        "🏆": 'Speedrunning',
+        "💿": 'PC Player',
+        "🇳": 'N64 Player',
+        "🇩": 'Dreamcast Player',
+        "🇸": 'Switch Player',
+        "🇵": 'PlayStation Player',
+        "🇽": 'Xbox Player'
     }
 
     const reactions = []
 
     let emojiText = ''
     for (const key in emojis) {
-        const emoji = key //getEmoji(key)
+        const emoji = getEmoji(key)
         reactions.push(emoji)
 
         const role = emojis[key]
