@@ -176,7 +176,7 @@ client.once('ready', () => {
 
     let emojiText = ''
     for (const key in emojis) {
-        const emoji = getEmoji(key)
+        const emoji = key//getEmoji(key)
         reactions.push(emoji)
 
         const role = emojis[key]
