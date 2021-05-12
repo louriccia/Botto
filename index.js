@@ -164,12 +164,12 @@ client.once('ready', () => {
         "🏁": 'Multiplayer',
         "⚔️": 'Tournament',
         "🏆": 'Speedrunning',
-        "💿": 'PC Player',
-        "🇳": 'N64 Player',
-        "🇩": 'Dreamcast Player',
-        "🇸": 'Switch Player',
-        "🇵": 'PlayStation Player',
-        "🇽": 'Xbox Player'
+        "💿": '💿 PC Player',
+        "🇳": '🕹️ N64 Player',
+        "🇩": '🕹️ Dreamcast Player',
+        "🇸": '🎮 Switch Player',
+        "🇵": '🎮 PlayStation Player',
+        "🇽": '🎮 Xbox Player'
     }
 
     const reactions = []
