@@ -7,7 +7,6 @@ var tourneylookup = require("./tourneydata.js");
 var tools = require('./tools.js');
 client.commands = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
-const roleClaim = require('./role-claim')
 
 for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
