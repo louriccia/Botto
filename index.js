@@ -150,7 +150,7 @@ client.once('ready', () => {
     //set up role claim message
     const channelId = '841824106676224041'
 
-    const channel = await client.channels.fetch(channelId)
+    const channel = client.channels.fetch(channelId)
 
     const getEmoji = (emojiName) =>
         client.emojis.cache.find((emoji) => emoji.name === emojiName)
