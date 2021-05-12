@@ -7,6 +7,7 @@ var tourneylookup = require("./tourneydata.js");
 var tools = require('./tools.js');
 client.commands = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+const roleClaim = require('./role-claim')
 
 for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
@@ -146,6 +147,79 @@ client.once('ready', () => {
         }
     });
 
+    //set up role claim message
+    const channelId = '841824106676224041'
+
+    const channel = await client.channels.fetch(channelId)
+
+    const getEmoji = (emojiName) =>
+        client.emojis.cache.find((emoji) => emoji.name === emojiName)
+
+    const addReactions = (message, reactions) => {
+        message.react(reactions[0])
+        reactions.shift()
+        if(reactions.length > 0) {
+            setTimeout(() => addReactions(message, reactions), 750)
+        }
+    }
+
+    const emojis = {
+        trugut: 'Host Eligible',
+        slidedab: 'Bot-Commander'
+    }
+
+    const reactions = []
+
+    let emojiText = ''
+    for (const key in emojis) {
+        const emoji = getEmoji(key)
+        reactions.push(emoji)
+
+        const role = emojis[key]
+        reactions.push(emoji)
+
+        const role = emojis[key]
+        emojiText += `${emoji} = ${role}\n`
+    }
+
+    channel.send('Add or remove reactions or use the `/role` command to manage your roles\n\n' + emojiText).then(m => {
+        addReactions(m, reactions)
+    })
+
+    const handleReaction = (reaction, user, add) => {
+        if (user.id === '545798436105224203') {
+            return
+        }
+
+        const emoji = reaction._emoji.name
+
+        const { guild } = reaction.message
+        const roleName = emojis[emoji]
+        if (!roleName) {
+            return
+        }
+
+        const role = guild.roles.cahce.find(role => role.name === roleName)
+        const member = guild.members.cache.find(member => member.id === user.id)
+
+        if (add) {
+            member.roles.add(role)
+        } else {
+            member.roles.remove(role)
+        }
+    }
+    /*
+    client.on('messageReactionAdd', (reaction, user) => {
+        if (reaction.message.id === ""){ //message id goes here
+            handleReaction(reaction,user,true)
+        }
+    })
+
+    client.on('messageReactionRemove', (reaction, user) => {
+        if (reaction.message.id === ""){ //message id goes here
+            handleReaction(reaction,user,false)
+        }
+    */
 
 })
 
@@ -314,121 +388,5 @@ client.on('message', message => {
         message.channel.send(myEmbed)
     }
 })
-
-
-
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({
-    data: {
-        name: 'role',
-        description: "add or remove roles",
-        options: [
-            {
-                name: "add",
-                description: "add a role",
-                type: 1,
-                options: [
-                    {
-                        name: "role",
-                        description: "select a role to add",
-                        type: 3,
-                        required: true,
-                        choices: [
-                            {
-                                name: "Multiplayer",
-                                value: "474920988790751232"
-                            },
-                            {
-                                name: "Tournament",
-                                value: "841059665474617353"
-                            },
-                            {
-                                name: "Speedrunning",
-                                value: "535973118578130954"
-                            },
-                            {
-                                name: "PC Player",
-                                value: "841404897018380388"
-                            },
-                            {
-                                name: "Switch Player",
-                                value: "841405226282909716"
-                            },
-                            {
-                                name: "PlayStation Player",
-                                value: "841405077470445669"
-                            },
-                            {
-                                name: "Xbox Player",
-                                value: "841404991784091690"
-                            },
-                            {
-                                name: "Dreamcast Player",
-                                value: "841405394441338890"
-                            },
-                            {
-                                name: "N64 Player",
-                                value: "602246101323612181"
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                name: "remove",
-                description: "remove a role",
-                type: 1,
-                options: [
-                    {
-                        name: "role",
-                        description: "select a role to remove",
-                        type: 3,
-                        required: true,
-                        choices: [
-                            {
-                                name: "Multiplayer",
-                                value: "474920988790751232"
-                            },
-                            {
-                                name: "Tournament",
-                                value: "841059665474617353"
-                            },
-                            {
-                                name: "Speedrunning",
-                                value: "535973118578130954"
-                            },
-                            {
-                                name: "PC Player",
-                                value: "841404897018380388"
-                            },
-                            {
-                                name: "Switch Player",
-                                value: "841405226282909716"
-                            },
-                            {
-                                name: "PlayStation Player",
-                                value: "841405077470445669"
-                            },
-                            {
-                                name: "Xbox Player",
-                                value: "841404991784091690"
-                            },
-                            {
-                                name: "Dreamcast Player",
-                                value: "841405394441338890"
-                            },
-                            {
-                                name: "N64 Player",
-                                value: "602246101323612181"
-                            }
-                        ]
-                    }
-                ]
-            }
-        ]
-    }
-})
-
-
-
 
 client.login(process.env.token);
