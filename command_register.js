@@ -16,13 +16,209 @@ client.api.applications("545798436105224203").commands.post({data: {
                     name: "bribe_track",
                     description: "request a specific track from Botto for 8400 Truguts",
                     type: 3,
-                    requiredl: false
+                    required: false,
+                    choices: [
+                        {
+                            name: "The Boonta Training Course",
+                            value: "0"
+                        },
+                        {
+                            name: "Mon Gazza Speedway",
+                            value: "1"
+                        },
+                        {
+                            name: "Beedo's Wild Ride",
+                            value: "2"
+                        },
+                        {
+                            name: "Aquilaris Classic",
+                            value: "3"
+                        },
+                        {
+                            name: "Malastare 100",
+                            value: "4"
+                        },
+                        {
+                            name: "Vengeance",
+                            value: "5"
+                        },
+                        {
+                            name: "Spice Mine Rune",
+                            value: "6"
+                        },
+                        {
+                            name: "Sunken City",
+                            value: "7"
+                        },
+                        {
+                            name: "Howler Gorge",
+                            value: "8"
+                        },
+                        {
+                            name: "Dug Derby",
+                            value: "9"
+                        },
+                        {
+                            name: "Scrapper's Run",
+                            value: "10"
+                        },
+                        {
+                            name: "Zugga Challenge",
+                            value: "11"
+                        },
+                        {
+                            name: "Baroo Coast",
+                            value: "12"
+                        },
+                        {
+                            name: "Bumpy's Breakers",
+                            value: "13"
+                        },
+                        {
+                            name: "Executioner",
+                            value: "14"
+                        },
+                        {
+                            name: "Sebulba's Legacy",
+                            value: "15"
+                        },
+                        {
+                            name: "Grabvine Gateway",
+                            value: "16"
+                        },
+                        {
+                            name: "Andobi Mountain Run",
+                            value: "17"
+                        },
+                        {
+                            name: "Dethro's Revenge",
+                            value: "18"
+                        },
+                        {
+                            name: "Fire Mountain Rally",
+                            value: "19"
+                        },
+                        {
+                            name: "The Boonta Classic",
+                            value: "20"
+                        },
+                        {
+                            name: "Ando Prime Centrum",
+                            value: "21"
+                        },
+                        {
+                            name: "Abyss",
+                            value: "22"
+                        },
+                        {
+                            name: "The Gauntlet",
+                            value: "23"
+                        },
+                        {
+                            name: "Inferno",
+                            value: "24"
+                        }
+                    ]
                 },
                 {
                     name: "bribe_racer",
                     description: "request a specific racer from Botto for 8400 Truguts",
                     type: 3,
-                    requiredl: false
+                    required: false,
+                    choices: [
+                        {
+                            name: "Anakin Skywalker",
+                            value: "0"
+                        },
+                        {
+                            name: "Teemto Pagalies",
+                            value: "1"
+                        },
+                        {
+                            name: "Sebulba",
+                            value: "2"
+                        },
+                        {
+                            name: "Ratts Tyerell",
+                            value: "3"
+                        },
+                        {
+                            name: "Aldar Beedo",
+                            value: "4"
+                        },
+                        {
+                            name: "Mawhonic",
+                            value: "5"
+                        },
+                        {
+                            name: "Ark 'Bumpy' Roose",
+                            value: "6"
+                        },
+                        {
+                            name: "Wan Sandage",
+                            value: "7"
+                        },
+                        {
+                            name: "Mars Guo",
+                            value: "8"
+                        },
+                        {
+                            name: "Ebe Endocott",
+                            value: "9"
+                        },
+                        {
+                            name: "Dud Bolt",
+                            value: "10"
+                        },
+                        {
+                            name: "Gasgano",
+                            value: "11"
+                        },
+                        {
+                            name: "Clegg Holdfast",
+                            value: "12"
+                        },
+                        {
+                            name: "Elan Mak",
+                            value: "13"
+                        },
+                        {
+                            name: "Neva Kee",
+                            value: "14"
+                        },
+                        {
+                            name: "Bozzie Baranta",
+                            value: "15"
+                        },
+                        {
+                            name: "Boles Roor",
+                            value: "16"
+                        },
+                        {
+                            name: "Ody Mandrell",
+                            value: "17"
+                        },
+                        {
+                            name: "Fud Sang",
+                            value: "18"
+                        },
+                        {
+                            name: "Ben Quadinaros",
+                            value: "19"
+                        },
+                        {
+                            name: "Slide Paramita",
+                            value: "20"
+                        },
+                        {
+                            name: "Toy Dampner",
+                            value: "21"
+                        },
+                        {
+                            name: "'Bullseye' Navior",
+                            value: "22"
+                        }
+                    ]
                 }
             ]
         },

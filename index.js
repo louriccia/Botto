@@ -191,13 +191,14 @@ client.once('ready', () => {
                 lastMessage.edit(':busts_in_silhouette: **Self-Roles** \nAdd/remove reactions or use the `/role` command to manage your roles.\n\n' + emojiText)
                     .then(m => {
                         addReactions(m, reactions)
+                        messageID = lastMessage.id
                     })
-                messageID = lastMessage.id
             } else {
-                c.send(':busts_in_silhouette: **Self-Roles** \nAdd/remove reactions or use the `/role` command to manage your roles.\n\n' + emojiText).then(m => {
-                    addReactions(m, reactions)
-                    messageID = m.id
-                })
+                c.send(':busts_in_silhouette: **Self-Roles** \nAdd/remove reactions or use the `/role` command to manage your roles.\n\n' + emojiText)
+                    .then(m => {
+                        addReactions(m, reactions)
+                        messageID = m.id
+                    })
             }
         })
     })
@@ -405,5 +406,416 @@ client.on('message', message => {
         message.channel.send(myEmbed)
     }
 })
+
+client.api.applications("545798436105224203").commands.post({data: {
+    name: 'challenge',
+    description: 'randomly generated challenges',
+    options: [
+        {
+            name: "generate",
+            description: "get a random pod/track challenge; 15-minute time limit; submit your time below",
+            type: 1,
+            options: [
+                {
+                    name: "bribe_track",
+                    description: "request a specific track from Botto for 8400 Truguts",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "The Boonta Training Course",
+                            value: "0"
+                        },
+                        {
+                            name: "Mon Gazza Speedway",
+                            value: "1"
+                        },
+                        {
+                            name: "Beedo's Wild Ride",
+                            value: "2"
+                        },
+                        {
+                            name: "Aquilaris Classic",
+                            value: "3"
+                        },
+                        {
+                            name: "Malastare 100",
+                            value: "4"
+                        },
+                        {
+                            name: "Vengeance",
+                            value: "5"
+                        },
+                        {
+                            name: "Spice Mine Rune",
+                            value: "6"
+                        },
+                        {
+                            name: "Sunken City",
+                            value: "7"
+                        },
+                        {
+                            name: "Howler Gorge",
+                            value: "8"
+                        },
+                        {
+                            name: "Dug Derby",
+                            value: "9"
+                        },
+                        {
+                            name: "Scrapper's Run",
+                            value: "10"
+                        },
+                        {
+                            name: "Zugga Challenge",
+                            value: "11"
+                        },
+                        {
+                            name: "Baroo Coast",
+                            value: "12"
+                        },
+                        {
+                            name: "Bumpy's Breakers",
+                            value: "13"
+                        },
+                        {
+                            name: "Executioner",
+                            value: "14"
+                        },
+                        {
+                            name: "Sebulba's Legacy",
+                            value: "15"
+                        },
+                        {
+                            name: "Grabvine Gateway",
+                            value: "16"
+                        },
+                        {
+                            name: "Andobi Mountain Run",
+                            value: "17"
+                        },
+                        {
+                            name: "Dethro's Revenge",
+                            value: "18"
+                        },
+                        {
+                            name: "Fire Mountain Rally",
+                            value: "19"
+                        },
+                        {
+                            name: "The Boonta Classic",
+                            value: "20"
+                        },
+                        {
+                            name: "Ando Prime Centrum",
+                            value: "21"
+                        },
+                        {
+                            name: "Abyss",
+                            value: "22"
+                        },
+                        {
+                            name: "The Gauntlet",
+                            value: "23"
+                        },
+                        {
+                            name: "Inferno",
+                            value: "24"
+                        }
+                    ]
+                },
+                {
+                    name: "bribe_racer",
+                    description: "request a specific racer from Botto for 8400 Truguts",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "Anakin Skywalker",
+                            value: "0"
+                        },
+                        {
+                            name: "Teemto Pagalies",
+                            value: "1"
+                        },
+                        {
+                            name: "Sebulba",
+                            value: "2"
+                        },
+                        {
+                            name: "Ratts Tyerell",
+                            value: "3"
+                        },
+                        {
+                            name: "Aldar Beedo",
+                            value: "4"
+                        },
+                        {
+                            name: "Mawhonic",
+                            value: "5"
+                        },
+                        {
+                            name: "Ark 'Bumpy' Roose",
+                            value: "6"
+                        },
+                        {
+                            name: "Wan Sandage",
+                            value: "7"
+                        },
+                        {
+                            name: "Mars Guo",
+                            value: "8"
+                        },
+                        {
+                            name: "Ebe Endocott",
+                            value: "9"
+                        },
+                        {
+                            name: "Dud Bolt",
+                            value: "10"
+                        },
+                        {
+                            name: "Gasgano",
+                            value: "11"
+                        },
+                        {
+                            name: "Clegg Holdfast",
+                            value: "12"
+                        },
+                        {
+                            name: "Elan Mak",
+                            value: "13"
+                        },
+                        {
+                            name: "Neva Kee",
+                            value: "14"
+                        },
+                        {
+                            name: "Bozzie Baranta",
+                            value: "15"
+                        },
+                        {
+                            name: "Boles Roor",
+                            value: "16"
+                        },
+                        {
+                            name: "Ody Mandrell",
+                            value: "17"
+                        },
+                        {
+                            name: "Fud Sang",
+                            value: "18"
+                        },
+                        {
+                            name: "Ben Quadinaros",
+                            value: "19"
+                        },
+                        {
+                            name: "Slide Paramita",
+                            value: "20"
+                        },
+                        {
+                            name: "Toy Dampner",
+                            value: "21"
+                        },
+                        {
+                            name: "'Bullseye' Navior",
+                            value: "22"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            name: "settings",
+            description: "customize your challenge settings including your winnings and odds of rolling nu, skips, etc.",
+            type: 1,
+            options: [
+                {
+                    name: "winnings",
+                    description: "the pattern of truguts earned based on your achieved goal time",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "1 Fair",
+                            value: "0"
+                        },
+                        {
+                            name: "2 Skilled",
+                            value: "1"
+                        },
+                        {
+                            name: "3 Winner Takes All",
+                            value: "2"
+                        },
+                    ]
+                },
+                {
+                    name: "skips_odds",
+                    description: "x/100 chance of getting a skip challenge",
+                    type: 4,
+                    required: false
+                },
+                {
+                    name: "no_upgrades_odds",
+                    description: "x/100 chance of getting a no upgrades challenge",
+                    type: 4,
+                    required: false
+                },
+                {
+                    name: "non_3_lap_odds",
+                    description: "x/100 chance of getting a non 3-lap challenge",
+                    type: 4,
+                    required: false
+                },
+                {
+                    name: "mirrored_odds",
+                    description: "x/100 chance of getting a mirrored challenge",
+                    type: 4,
+                    required: false
+                },
+                {
+                    name: "reset",
+                    description: "if true, resets your challenge settings to default",
+                    type: 5,
+                    required: false
+                }
+            ]
+        },
+        {
+            name: "profile",
+            description: "view your career stats, total truguts, and achievement progress for random challenges",
+            type: 1,
+            options: [
+                    {
+                    name: "user",
+                    description: "the user whose profile you would like to view, if not your own",
+                    type: 6,
+                    required: false
+                    }
+            ]
+
+        },
+        {
+            name: "about",
+            description: "learn more about how the random challenges work and how to submit a time",
+            type: 1
+        },
+        {
+            name: "leaderboard",
+            description: "get top-5 leaderboards for submitted challenge times",
+            type: 1,
+            options: [
+                {
+                    name: "track",
+                    description: "name or abbreviation of the track",
+                    type: 3,
+                    required: true
+                },
+                {
+                    name: "skips",
+                    description: "filter by skip runs or full track runs",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "any",
+                            value: "any"
+                        },
+                        {
+                            name: "skips",
+                            value: "skips"
+                        },
+                        {
+                            name: "full track",
+                            value: "ft"
+                        }
+                    ]
+                },
+                {
+                    name: "upgrades",
+                    description: "filter by upgrade runs (mu) or no upgrade runs (nu)",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "any",
+                            value: "any"
+                        },
+                        {
+                            name: "upgrades",
+                            value: "mu" 
+                        },
+                        {
+                            name: "no upgrades",
+                            value: "nu"
+                        }
+                    ]
+                },
+                {
+                    name: "pod",
+                    description: "filter runs by a specific pod or filter out pods with 'no' in front; use racer's first name/initials",
+                    type: 3,
+                    required: false,
+                },
+                {
+                    name: "player",
+                    description: "filter runs by player",
+                    type: 6,
+                    required: false,
+                },
+                {
+                    name: "mirrored",
+                    description: "filter by mirrored runs",
+                    type: 3,
+                    required: false,
+                    choices: [
+                        {
+                            name: "any",
+                            value: "any"
+                        },
+                        {
+                            name: "unmirrored",
+                            value: "unmirrored" 
+                        },
+                        {
+                            name: "mirrored",
+                            value: "mirrored"
+                        }
+                    ]
+                },
+                {
+                    name: "laps",
+                    description: "filter by number of laps",
+                    type: 4,
+                    required: false,
+                    choices: [
+                        {
+                            name: 1,
+                            value: 1
+                        },
+                        {
+                            name: 2,
+                            value: 2 
+                        },
+                        {
+                            name: 3,
+                            value: 3
+                        },
+                        {
+                            name: 4,
+                            value: 4
+                        },
+                        {
+                            name: 5,
+                            value: 5
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}})
 
 client.login(process.env.token);
