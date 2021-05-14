@@ -4,7 +4,7 @@ module.exports = {
         function getRacer(input){
             var numb = null
             if(Number(input)<26 && Number(input) > 0){
-                numb = Number(input) -1
+                numb = Number(input)
             } else {
                 for(let i = 0; i<racers.length; i++){
                     if(input == racers[i].name.toLowerCase() || input == racers[i].name.toLowerCase().replace(/ /g, '')){
@@ -26,7 +26,7 @@ module.exports = {
         function getTrack(input){
             var numb = null
             if(Number(input)<26 && Number(input) > 0){
-                numb = Number(input) -1
+                numb = Number(input)
             } else {
                 for(let i = 0; i<tracks.length; i++){
                     if(input == tracks[i].name.toLowerCase() || input == tracks[i].name.toLowerCase().replace(/ /g, '')){

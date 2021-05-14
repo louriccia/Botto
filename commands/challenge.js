@@ -1,4 +1,5 @@
 const { filter } = require('../tourneydata.js');
+const tourney = require('./tourney.js');
 
 module.exports = {
     name: 'challenge',
@@ -35,6 +36,147 @@ module.exports = {
             slow_steady: { name: "Slow 'n Steady", description: "Complete a No Upgrades challenge with every pod", role: "819514431472926721", limit: 23, collection: {} },
             crowd_favorite: { name: "Crowd Favorite", description: "Complete a challenge as the track favorite on every track", role: "819514487852761138", limit: 25, collection: {} },
             true_jedi: { name: "True Jedi", description: "Complete a challenge with every pod on every track", role: "819514600827519008", limit: 575, collection: {} }
+        }
+
+        var truguts = {
+            mp: 100,
+            non_standard: 200,
+            beat_opponent: 150,
+            personal_best: 1000,
+            first: 500,
+            rated: 50,
+            bribe_track: 8400,
+            bribe_racer: 8400,
+            hint: 100
+        }
+
+        function getGoalTimes(track, racer, skips, nu, laps) {
+            var upg = 5
+            if(nu) {
+                upg = 0
+            }
+            if(skips) {
+                return [
+                    tools.timetoSeconds(tracks[track].parskiptimes[0]) * multipliers[0].skips_multiplier,
+                    tools.timetoSeconds(tracks[track].parskiptimes[1]) * multipliers[1].skips_multiplier,
+                    tools.timetoSeconds(tracks[track].parskiptimes[2]) * multipliers[2].skips_multiplier,
+                    tools.timetoSeconds(tracks[track].parskiptimes[3]) * multipliers[3].skips_multiplier,
+                    tools.timetoSeconds(tracks[track].parskiptimes[4]) * multipliers[4].skips_multiplier
+                ]
+            } else {
+                return [
+                    tools.getGoalTime(track, racer, upg, upg, upg, laps, 1.02, 1.05, 1.05, 0.25 + .25 * tracks[track].difficulty),
+                    tools.getGoalTime(track, racer, upg, upg, upg, laps, 1.04, 1.10, 1.10, 0.3 + .3 * tracks[track].difficulty),
+                    tools.getGoalTime(track, racer, upg, upg, upg, laps, 1.07, 1.15, 1.15, 0.5 + .50 * tracks[track].difficulty),
+                    tools.getGoalTime(track, racer, upg, upg, upg, laps, 1.12, 1.30, 1.30, 0.5 + 1 * tracks[track].difficulty),
+                    tools.getGoalTime(track, racer, upg, upg, upg, laps, 1.18, 1.45, 1.45, 0.5 + 1.5 * tracks[track].difficulty)
+                ]
+            }
+        }
+
+        function trugutsEarned(player) {
+            var keys = Object.keys(challengedata)
+            var report = {
+                earnings: 0,
+                mp: 0,
+                non_standard: 0,
+                beat: 0,
+                pb: 0,
+                first: 0,
+                rated: 0
+            }
+            for (var i = 0; i < keys.length; i++) {
+                var k = keys[i];
+                if(challengedata[k].user == player) {
+                    var goals = getGoalTimes(challengedata[k].track, challengedata[k].racer, challengedata[k].skips, challengedata[k].nu, challengedata[k].laps)
+                    var winnings = 1
+                    if(challengedata[k].settings !== undefined){
+                        winnings = challengedata[k].settings.winnings
+                    }
+                    var goal_earnings = [
+                        circuits[tracks[challengedata[k].track].circuit].winnings[winnings][0],
+                        circuits[tracks[challengedata[k].track].circuit].winnings[winnings][1],
+                        circuits[tracks[challengedata[k].track].circuit].winnings[winnings][2],
+                        circuits[tracks[challengedata[k].track].circuit].winnings[winnings][3],
+                        0
+                    ]
+                    var winnings = 0
+                    for (var j = goals.length - 1; j > -1; j--) {
+                        if (challengedata[k].time < goals[j]){
+                            winnings = goal_earnings[j]
+                        }
+                    }
+                    report.earnings += winnings
+                    if(challengedata[k].settings == undefined){
+                        if(challengedata[k].skips){
+                            report.non_standard ++
+                        }
+                        if(challengedata[k].mirror){
+                            report.non_standard ++
+                        }
+                        if(challengedata[k].laps !== 3){
+                            report.non_standard ++
+                        }
+                        if(challengedata[k].nu){
+                            report.non_standard ++
+                        }
+                    } else {
+                        if(challengedata[k].skips && challengedata[k].settings.skips <= 25){
+                            report.non_standard ++
+                        }
+                        if(challengedata[k].mirror && challengedata[k].settings.mirror_mode <= 25){
+                            report.non_standard ++
+                        }
+                        if(challengedata[k].laps !== 3 && challengedata[k].settings.non_3_lap <= 25){
+                            report.non_standard ++
+                        }
+                        if(challengedata[k].nu && challengedata[k].settings.no_upgrades <= 25){
+                            report.non_standard ++
+                        }
+                    }
+                    
+                    if(challengedata[k].mp == true){
+                        report.mp++
+                    }
+                    var first = true
+                    var pb = false
+                    for(var p = 0; p<keys.length; p++){
+                        var n = keys[p]
+                        if(challengedata[p].track == challenge[k].track && challenge[p].racer == challenge[k].racer && challenge[p].skips == challenge[k].skips && challenge[p].nu == challenge[k].nu && challenge[p].laps == challenge[k].laps && challenge[p].mirror == challenge[k].mirror ){
+                            if(challengedata[p].date < challengedata[k].date){
+                                first = false
+                                if(challengedata[p].user == player){
+                                    pb = true
+                                    if(challengedata[p].time < challengedata[k].time){
+                                        pb = false
+                                    }
+                                }
+                            }
+                            if(challengedata[p].user !== player && challengedata[p].time > challengedata[k].time && challengedata[p].date < challengedata[k].date){
+                                report.beat ++
+                            }
+                        }
+                    }
+                    if(first){
+                        report.first ++
+                    }
+                    if(pb){
+                        report.pb ++
+                    }
+                }
+            }
+            var feedback = {}
+            var keys = Object.keys(feedbackdata)
+            for (var i =0; i <keys; i++) {
+                var k = keys[i]
+                if(feedbackdata[k].user == player){
+                    feedback[feedbackdata[k].track + " " + feedbackdata[k].racer + " " + feedbackdata[k].skips + " " + feedbackdata[k].nu + " " + feedbackdata[k].laps + " " + feedbackdata[k].mirror]
+                }
+            }
+            var fb = Object.keys(feedback)
+            report.rated += fb.length
+            console.log(report)
+            return report
         }
 
         //const myEmbed = new Discord.MessageEmbed()
@@ -89,7 +231,18 @@ module.exports = {
             const Guild = client.guilds.cache.get(interaction.guild_id); // Getting the guild.
             const Member = Guild.members.cache.get(member); // Getting the member.
 
-            if (!Member.voice.channel) {
+            var memarray = []
+            if(Member.voice.channel){
+                var mems = client.channels.cache.get(Member.voice.channelID).members;
+                for (let [snowflake, guildMember] of mems){
+                    if(guildMember.displayName !== "Botto"){
+                        memarray.push(guildMember.displayName)
+                    }
+                }
+            }
+            if (Member.voice.channel && memarray.length > 1) {
+                vc = true
+            } else {
                 if (profiledata !== null) {
                     if (profiledata[member] !== undefined) {
                         odds_skips = profiledata[member].skips / 100
@@ -131,8 +284,6 @@ module.exports = {
                         skips = true
                     }
                 }
-            } else {
-                vc = true
             }
             if (interaction.name == "fake") {
                 if (interaction.recovery == true) {
@@ -170,6 +321,7 @@ module.exports = {
             if (!vc) {
                 profileref.child(member).child("current").set(current)
             }
+            trugutsEarned(member)
             //get best runs/achievement progress
             var keys = Object.keys(challengedata), best = []
             for (var i = 0; i < keys.length; i++) {
@@ -227,17 +379,9 @@ module.exports = {
             var eAuthor = [], eTitle = "", title = "", highlight = "", eGoalTimes = []
             function createEmbed() {
                 //calculate goal time
-                var upg = 5
-                if (nu) {
-                    upg = 0
-                }
-                var goals = [
-                    tools.getGoalTime(random2, random1, upg, upg, upg, laps, 1.02, 1.05, 1.05, 0.25 + .25 * tracks[random2].difficulty),
-                    tools.getGoalTime(random2, random1, upg, upg, upg, laps, 1.04, 1.10, 1.10, 0.3 + .3 * tracks[random2].difficulty),
-                    tools.getGoalTime(random2, random1, upg, upg, upg, laps, 1.07, 1.15, 1.15, 0.5 + .50 * tracks[random2].difficulty),
-                    tools.getGoalTime(random2, random1, upg, upg, upg, laps, 1.12, 1.30, 1.30, 0.5 + 1 * tracks[random2].difficulty),
-                    tools.getGoalTime(random2, random1, upg, upg, upg, laps, 1.18, 1.45, 1.45, 0.5 + 1.5 * tracks[random2].difficulty)
-                ]
+                
+                var goals = getGoalTimes(random2, random1, skips, nu, laps)
+                    
                 flag = racers[random1].flag
                 var eColor = ""
                 eTitle = "Race as **" + flag + " " + racers[random1].name + "** (" + (random1 + 1) + ")" + nutext + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + laptext + skipstext + mirrortext
@@ -254,15 +398,6 @@ module.exports = {
                     circuits[tracks[random2].circuit].winnings[profiledata[member].winnings][3],
                     0
                 ]
-                if (skips) {
-                    goals = [
-                        tools.timetoSeconds(tracks[random2].parskiptimes[0]) * multipliers[0].skips_multiplier,
-                        tools.timetoSeconds(tracks[random2].parskiptimes[1]) * multipliers[1].skips_multiplier,
-                        tools.timetoSeconds(tracks[random2].parskiptimes[2]) * multipliers[2].skips_multiplier,
-                        tools.timetoSeconds(tracks[random2].parskiptimes[3]) * multipliers[3].skips_multiplier,
-                        tools.timetoSeconds(tracks[random2].parskiptimes[4]) * multipliers[4].skips_multiplier
-                    ]
-                }
                 for (var i = 0; i < goal_earnings.length; i++) {
                     if (!vc) {
                         if (goal_earnings[i] == 0) {
@@ -643,7 +778,15 @@ module.exports = {
                                 laps: laps,
                                 nu: nu,
                                 skips: skips,
-                                mirror: mirror
+                                mirror: mirror,
+                                mp: vc,
+                                settings: {
+                                    winnings: profiledata[member].winnings,
+                                    no_upgrades: profiledata[member].no_upgrades,
+                                    non_3_lap: profiledata[member].non_3_lap,
+                                    skips: profiledata[member].skips,
+                                    mirror_mode: profiledata[member].mirror_mode
+                                }
                             }
                             best.push(submissiondata)
                             var newPostRef = ref.push(submissiondata);

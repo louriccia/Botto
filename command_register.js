@@ -305,9 +305,111 @@ client.api.applications("545798436105224203").commands.post({data: {
             options: [
                 {
                     name: "track",
-                    description: "name or abbreviation of the track",
+                    description: "name of the track",
                     type: 3,
-                    required: true
+                    required: true,
+                    choices: [
+                        {
+                            name: "The Boonta Training Course",
+                            value: "0"
+                        },
+                        {
+                            name: "Mon Gazza Speedway",
+                            value: "1"
+                        },
+                        {
+                            name: "Beedo's Wild Ride",
+                            value: "2"
+                        },
+                        {
+                            name: "Aquilaris Classic",
+                            value: "3"
+                        },
+                        {
+                            name: "Malastare 100",
+                            value: "4"
+                        },
+                        {
+                            name: "Vengeance",
+                            value: "5"
+                        },
+                        {
+                            name: "Spice Mine Rune",
+                            value: "6"
+                        },
+                        {
+                            name: "Sunken City",
+                            value: "7"
+                        },
+                        {
+                            name: "Howler Gorge",
+                            value: "8"
+                        },
+                        {
+                            name: "Dug Derby",
+                            value: "9"
+                        },
+                        {
+                            name: "Scrapper's Run",
+                            value: "10"
+                        },
+                        {
+                            name: "Zugga Challenge",
+                            value: "11"
+                        },
+                        {
+                            name: "Baroo Coast",
+                            value: "12"
+                        },
+                        {
+                            name: "Bumpy's Breakers",
+                            value: "13"
+                        },
+                        {
+                            name: "Executioner",
+                            value: "14"
+                        },
+                        {
+                            name: "Sebulba's Legacy",
+                            value: "15"
+                        },
+                        {
+                            name: "Grabvine Gateway",
+                            value: "16"
+                        },
+                        {
+                            name: "Andobi Mountain Run",
+                            value: "17"
+                        },
+                        {
+                            name: "Dethro's Revenge",
+                            value: "18"
+                        },
+                        {
+                            name: "Fire Mountain Rally",
+                            value: "19"
+                        },
+                        {
+                            name: "The Boonta Classic",
+                            value: "20"
+                        },
+                        {
+                            name: "Ando Prime Centrum",
+                            value: "21"
+                        },
+                        {
+                            name: "Abyss",
+                            value: "22"
+                        },
+                        {
+                            name: "The Gauntlet",
+                            value: "23"
+                        },
+                        {
+                            name: "Inferno",
+                            value: "24"
+                        }
+                    ]
                 },
                 {
                     name: "skips",
@@ -532,9 +634,103 @@ client.api.applications("545798436105224203").commands.post({data: {
             options: [
                 {
                     name: "name",
-                    description: "racer's first name or initials",
+                    description: "racer's name",
                     type: 3,
-                    required: true
+                    required: true,
+                    choices: [
+                        {
+                            name: "Anakin Skywalker",
+                            value: "0"
+                        },
+                        {
+                            name: "Teemto Pagalies",
+                            value: "1"
+                        },
+                        {
+                            name: "Sebulba",
+                            value: "2"
+                        },
+                        {
+                            name: "Ratts Tyerell",
+                            value: "3"
+                        },
+                        {
+                            name: "Aldar Beedo",
+                            value: "4"
+                        },
+                        {
+                            name: "Mawhonic",
+                            value: "5"
+                        },
+                        {
+                            name: "Ark 'Bumpy' Roose",
+                            value: "6"
+                        },
+                        {
+                            name: "Wan Sandage",
+                            value: "7"
+                        },
+                        {
+                            name: "Mars Guo",
+                            value: "8"
+                        },
+                        {
+                            name: "Ebe Endocott",
+                            value: "9"
+                        },
+                        {
+                            name: "Dud Bolt",
+                            value: "10"
+                        },
+                        {
+                            name: "Gasgano",
+                            value: "11"
+                        },
+                        {
+                            name: "Clegg Holdfast",
+                            value: "12"
+                        },
+                        {
+                            name: "Elan Mak",
+                            value: "13"
+                        },
+                        {
+                            name: "Neva Kee",
+                            value: "14"
+                        },
+                        {
+                            name: "Bozzie Baranta",
+                            value: "15"
+                        },
+                        {
+                            name: "Boles Roor",
+                            value: "16"
+                        },
+                        {
+                            name: "Ody Mandrell",
+                            value: "17"
+                        },
+                        {
+                            name: "Fud Sang",
+                            value: "18"
+                        },
+                        {
+                            name: "Ben Quadinaros",
+                            value: "19"
+                        },
+                        {
+                            name: "Slide Paramita",
+                            value: "20"
+                        },
+                        {
+                            name: "Toy Dampner",
+                            value: "21"
+                        },
+                        {
+                            name: "'Bullseye' Navior",
+                            value: "22"
+                        }
+                    ]
                 }
             ]
         },
@@ -545,9 +741,111 @@ client.api.applications("545798436105224203").commands.post({data: {
             options: [
                 {
                     name: "name",
-                    description: "track name or abbreviation",
+                    description: "track name",
                     type: 3,
-                    required: true
+                    required: true,
+                    choices: [
+                        {
+                            name: "The Boonta Training Course",
+                            value: "0"
+                        },
+                        {
+                            name: "Mon Gazza Speedway",
+                            value: "1"
+                        },
+                        {
+                            name: "Beedo's Wild Ride",
+                            value: "2"
+                        },
+                        {
+                            name: "Aquilaris Classic",
+                            value: "3"
+                        },
+                        {
+                            name: "Malastare 100",
+                            value: "4"
+                        },
+                        {
+                            name: "Vengeance",
+                            value: "5"
+                        },
+                        {
+                            name: "Spice Mine Rune",
+                            value: "6"
+                        },
+                        {
+                            name: "Sunken City",
+                            value: "7"
+                        },
+                        {
+                            name: "Howler Gorge",
+                            value: "8"
+                        },
+                        {
+                            name: "Dug Derby",
+                            value: "9"
+                        },
+                        {
+                            name: "Scrapper's Run",
+                            value: "10"
+                        },
+                        {
+                            name: "Zugga Challenge",
+                            value: "11"
+                        },
+                        {
+                            name: "Baroo Coast",
+                            value: "12"
+                        },
+                        {
+                            name: "Bumpy's Breakers",
+                            value: "13"
+                        },
+                        {
+                            name: "Executioner",
+                            value: "14"
+                        },
+                        {
+                            name: "Sebulba's Legacy",
+                            value: "15"
+                        },
+                        {
+                            name: "Grabvine Gateway",
+                            value: "16"
+                        },
+                        {
+                            name: "Andobi Mountain Run",
+                            value: "17"
+                        },
+                        {
+                            name: "Dethro's Revenge",
+                            value: "18"
+                        },
+                        {
+                            name: "Fire Mountain Rally",
+                            value: "19"
+                        },
+                        {
+                            name: "The Boonta Classic",
+                            value: "20"
+                        },
+                        {
+                            name: "Ando Prime Centrum",
+                            value: "21"
+                        },
+                        {
+                            name: "Abyss",
+                            value: "22"
+                        },
+                        {
+                            name: "The Gauntlet",
+                            value: "23"
+                        },
+                        {
+                            name: "Inferno",
+                            value: "24"
+                        }
+                    ]
                 },
             ]
         },
@@ -565,7 +863,109 @@ client.api.applications("545798436105224203").commands.post({data: {
                             name: "track",
                             description: "track name or abbreviation",
                             type: 3,
-                            required: true
+                            required: true,
+                            choices: [
+                                {
+                                    name: "The Boonta Training Course",
+                                    value: "0"
+                                },
+                                {
+                                    name: "Mon Gazza Speedway",
+                                    value: "1"
+                                },
+                                {
+                                    name: "Beedo's Wild Ride",
+                                    value: "2"
+                                },
+                                {
+                                    name: "Aquilaris Classic",
+                                    value: "3"
+                                },
+                                {
+                                    name: "Malastare 100",
+                                    value: "4"
+                                },
+                                {
+                                    name: "Vengeance",
+                                    value: "5"
+                                },
+                                {
+                                    name: "Spice Mine Rune",
+                                    value: "6"
+                                },
+                                {
+                                    name: "Sunken City",
+                                    value: "7"
+                                },
+                                {
+                                    name: "Howler Gorge",
+                                    value: "8"
+                                },
+                                {
+                                    name: "Dug Derby",
+                                    value: "9"
+                                },
+                                {
+                                    name: "Scrapper's Run",
+                                    value: "10"
+                                },
+                                {
+                                    name: "Zugga Challenge",
+                                    value: "11"
+                                },
+                                {
+                                    name: "Baroo Coast",
+                                    value: "12"
+                                },
+                                {
+                                    name: "Bumpy's Breakers",
+                                    value: "13"
+                                },
+                                {
+                                    name: "Executioner",
+                                    value: "14"
+                                },
+                                {
+                                    name: "Sebulba's Legacy",
+                                    value: "15"
+                                },
+                                {
+                                    name: "Grabvine Gateway",
+                                    value: "16"
+                                },
+                                {
+                                    name: "Andobi Mountain Run",
+                                    value: "17"
+                                },
+                                {
+                                    name: "Dethro's Revenge",
+                                    value: "18"
+                                },
+                                {
+                                    name: "Fire Mountain Rally",
+                                    value: "19"
+                                },
+                                {
+                                    name: "The Boonta Classic",
+                                    value: "20"
+                                },
+                                {
+                                    name: "Ando Prime Centrum",
+                                    value: "21"
+                                },
+                                {
+                                    name: "Abyss",
+                                    value: "22"
+                                },
+                                {
+                                    name: "The Gauntlet",
+                                    value: "23"
+                                },
+                                {
+                                    name: "Inferno",
+                                    value: "24"
+                                }
+                            ]
                         }
                     ]
                 },
@@ -576,15 +976,211 @@ client.api.applications("545798436105224203").commands.post({data: {
                     options: [
                         {
                             name: "track",
-                            description: "track name or abbreviation",
+                            description: "track name",
                             type: 3,
-                            required: true
+                            required: true,
+                            choices: [
+                                {
+                                    name: "The Boonta Training Course",
+                                    value: "0"
+                                },
+                                {
+                                    name: "Mon Gazza Speedway",
+                                    value: "1"
+                                },
+                                {
+                                    name: "Beedo's Wild Ride",
+                                    value: "2"
+                                },
+                                {
+                                    name: "Aquilaris Classic",
+                                    value: "3"
+                                },
+                                {
+                                    name: "Malastare 100",
+                                    value: "4"
+                                },
+                                {
+                                    name: "Vengeance",
+                                    value: "5"
+                                },
+                                {
+                                    name: "Spice Mine Rune",
+                                    value: "6"
+                                },
+                                {
+                                    name: "Sunken City",
+                                    value: "7"
+                                },
+                                {
+                                    name: "Howler Gorge",
+                                    value: "8"
+                                },
+                                {
+                                    name: "Dug Derby",
+                                    value: "9"
+                                },
+                                {
+                                    name: "Scrapper's Run",
+                                    value: "10"
+                                },
+                                {
+                                    name: "Zugga Challenge",
+                                    value: "11"
+                                },
+                                {
+                                    name: "Baroo Coast",
+                                    value: "12"
+                                },
+                                {
+                                    name: "Bumpy's Breakers",
+                                    value: "13"
+                                },
+                                {
+                                    name: "Executioner",
+                                    value: "14"
+                                },
+                                {
+                                    name: "Sebulba's Legacy",
+                                    value: "15"
+                                },
+                                {
+                                    name: "Grabvine Gateway",
+                                    value: "16"
+                                },
+                                {
+                                    name: "Andobi Mountain Run",
+                                    value: "17"
+                                },
+                                {
+                                    name: "Dethro's Revenge",
+                                    value: "18"
+                                },
+                                {
+                                    name: "Fire Mountain Rally",
+                                    value: "19"
+                                },
+                                {
+                                    name: "The Boonta Classic",
+                                    value: "20"
+                                },
+                                {
+                                    name: "Ando Prime Centrum",
+                                    value: "21"
+                                },
+                                {
+                                    name: "Abyss",
+                                    value: "22"
+                                },
+                                {
+                                    name: "The Gauntlet",
+                                    value: "23"
+                                },
+                                {
+                                    name: "Inferno",
+                                    value: "24"
+                                }
+                            ]
                         },
                         {
                             name: "racer",
                             description: "racer initials or first name",
                             type: 3,
-                            required: true
+                            required: true,
+                            choices: [
+                                {
+                                    name: "Anakin Skywalker",
+                                    value: "0"
+                                },
+                                {
+                                    name: "Teemto Pagalies",
+                                    value: "1"
+                                },
+                                {
+                                    name: "Sebulba",
+                                    value: "2"
+                                },
+                                {
+                                    name: "Ratts Tyerell",
+                                    value: "3"
+                                },
+                                {
+                                    name: "Aldar Beedo",
+                                    value: "4"
+                                },
+                                {
+                                    name: "Mawhonic",
+                                    value: "5"
+                                },
+                                {
+                                    name: "Ark 'Bumpy' Roose",
+                                    value: "6"
+                                },
+                                {
+                                    name: "Wan Sandage",
+                                    value: "7"
+                                },
+                                {
+                                    name: "Mars Guo",
+                                    value: "8"
+                                },
+                                {
+                                    name: "Ebe Endocott",
+                                    value: "9"
+                                },
+                                {
+                                    name: "Dud Bolt",
+                                    value: "10"
+                                },
+                                {
+                                    name: "Gasgano",
+                                    value: "11"
+                                },
+                                {
+                                    name: "Clegg Holdfast",
+                                    value: "12"
+                                },
+                                {
+                                    name: "Elan Mak",
+                                    value: "13"
+                                },
+                                {
+                                    name: "Neva Kee",
+                                    value: "14"
+                                },
+                                {
+                                    name: "Bozzie Baranta",
+                                    value: "15"
+                                },
+                                {
+                                    name: "Boles Roor",
+                                    value: "16"
+                                },
+                                {
+                                    name: "Ody Mandrell",
+                                    value: "17"
+                                },
+                                {
+                                    name: "Fud Sang",
+                                    value: "18"
+                                },
+                                {
+                                    name: "Ben Quadinaros",
+                                    value: "19"
+                                },
+                                {
+                                    name: "Slide Paramita",
+                                    value: "20"
+                                },
+                                {
+                                    name: "Toy Dampner",
+                                    value: "21"
+                                },
+                                {
+                                    name: "'Bullseye' Navior",
+                                    value: "22"
+                                }
+                            ]
                         },
                         {
                             name: "accel",
@@ -983,23 +1579,23 @@ client.api.applications("545798436105224203").commands.post({data: {
                     required: false,
                     choices: [
                         {
-                            name: "0 any",
+                            name: "any",
                             value: "any"
                         },
                         {
-                            name: "1 Top",
+                            name: "Top",
                             value: "0"
                         },
                         {
-                            name: "2 High",
+                            name: "High",
                             value: "1"
                         },
                         {
-                            name: "3 Mid",
+                            name: "Mid",
                             value: "2"
                         },
                         {
-                            name: "4 Low",
+                            name: "Low",
                             value: "3"
                         }
                     ]
@@ -1044,23 +1640,23 @@ client.api.applications("545798436105224203").commands.post({data: {
                     required: false,
                     choices: [
                         {
-                            name: "0 any",
+                            name: "any",
                             value: "any"
                         },
                         {
-                            name: "1 Amateur Circuit",
+                            name: "Amateur Circuit",
                             value: "Amateur"
                         },
                         {
-                            name: "2 Semi-Pro Circuit",
+                            name: "Semi-Pro Circuit",
                             value: "Semi-Pro"
                         },
                         {
-                            name: "3 Galactic Circuit",
+                            name: "Galactic Circuit",
                             value: "Galactic"
                         },
                         {
-                            name: "4 Invitational Circuit",
+                            name: "Invitational Circuit",
                             value: "Invitational"
                         },
                     ]
@@ -1072,39 +1668,39 @@ client.api.applications("545798436105224203").commands.post({data: {
                     required: false,
                     choices: [
                         {
-                            name: "0 any",
+                            name: "any",
                             value: "any"
                         },
                         {
-                            name: "1 Ando Prime",
+                            name: "Ando Prime",
                             value: "Ando Prime"
                         },
                         {
-                            name: "2 Aquilaris",
+                            name: "Aquilaris",
                             value: "Aquilaris"
                         },
                         {
-                            name: "3 Baroonda",
+                            name: "Baroonda",
                             value: "Baroonda"
                         },
                         {
-                            name: "4 Malastare",
+                            name: "Malastare",
                             value: "Malastare"
                         },
                         {
-                            name: "5 Mon Gazza",
+                            name: "Mon Gazza",
                             value: "Mon Gazza"
                         },
                         {
-                            name: "6 Oovo IV",
+                            name: "Oovo IV",
                             value: "Oovo IV"
                         },
                         {
-                            name: "7 Ord Ibanna",
+                            name: "Ord Ibanna",
                             value: "Ord Ibanna"
                         },
                         {
-                            name: "8 Tatooine",
+                            name: "Tatooine",
                             value: "Tatooine"
                         }
                     ]
@@ -1116,19 +1712,19 @@ client.api.applications("545798436105224203").commands.post({data: {
                     required: false,
                     choices: [
                         {
-                            name: "0 any",
+                            name: "any",
                             value: "any"
                         },
                         {
-                            name: "1 short",
+                            name: "short",
                             value: "short"
                         },
                         {
-                            name: "2 medium",
+                            name: "medium",
                             value: "medium"
                         },
                         {
-                            name: "3 long",
+                            name: "long",
                             value: "long"
                         }
                     ]
@@ -1140,27 +1736,27 @@ client.api.applications("545798436105224203").commands.post({data: {
                     required: false,
                     choices: [
                         {
-                            name: "0 any",
+                            name: "any",
                             value: "any"
                         },
                         {
-                            name: "1 Beginner",
+                            name: "Beginner",
                             value: "Beginner"
                         },
                         {
-                            name: "2 Easy",
+                            name: "Easy",
                             value: "Easy"
                         },
                         {
-                            name: "3 Average",
+                            name: "Average",
                             value: "Average"
                         },
                         {
-                            name: "4 Hard",
+                            name: "Hard",
                             value: "Hard"
                         },
                         {
-                            name: "5 Brutal",
+                            name: "Brutal",
                             value: "Brutal"
                         }
                     ]
@@ -1323,9 +1919,111 @@ client.api.applications("545798436105224203").commands.post({data: {
             options: [
                 {
                     name: "track",
-                    description: "the name or abbreviation of the track",
+                    description: "the name of the track",
                     type: 3, //string
-                    required: true
+                    required: true,
+                    choices: [
+                        {
+                            name: "The Boonta Training Course",
+                            value: "0"
+                        },
+                        {
+                            name: "Mon Gazza Speedway",
+                            value: "1"
+                        },
+                        {
+                            name: "Beedo's Wild Ride",
+                            value: "2"
+                        },
+                        {
+                            name: "Aquilaris Classic",
+                            value: "3"
+                        },
+                        {
+                            name: "Malastare 100",
+                            value: "4"
+                        },
+                        {
+                            name: "Vengeance",
+                            value: "5"
+                        },
+                        {
+                            name: "Spice Mine Rune",
+                            value: "6"
+                        },
+                        {
+                            name: "Sunken City",
+                            value: "7"
+                        },
+                        {
+                            name: "Howler Gorge",
+                            value: "8"
+                        },
+                        {
+                            name: "Dug Derby",
+                            value: "9"
+                        },
+                        {
+                            name: "Scrapper's Run",
+                            value: "10"
+                        },
+                        {
+                            name: "Zugga Challenge",
+                            value: "11"
+                        },
+                        {
+                            name: "Baroo Coast",
+                            value: "12"
+                        },
+                        {
+                            name: "Bumpy's Breakers",
+                            value: "13"
+                        },
+                        {
+                            name: "Executioner",
+                            value: "14"
+                        },
+                        {
+                            name: "Sebulba's Legacy",
+                            value: "15"
+                        },
+                        {
+                            name: "Grabvine Gateway",
+                            value: "16"
+                        },
+                        {
+                            name: "Andobi Mountain Run",
+                            value: "17"
+                        },
+                        {
+                            name: "Dethro's Revenge",
+                            value: "18"
+                        },
+                        {
+                            name: "Fire Mountain Rally",
+                            value: "19"
+                        },
+                        {
+                            name: "The Boonta Classic",
+                            value: "20"
+                        },
+                        {
+                            name: "Ando Prime Centrum",
+                            value: "21"
+                        },
+                        {
+                            name: "Abyss",
+                            value: "22"
+                        },
+                        {
+                            name: "The Gauntlet",
+                            value: "23"
+                        },
+                        {
+                            name: "Inferno",
+                            value: "24"
+                        }
+                    ]
                 },
                 {
                     name: "skips",
@@ -1541,7 +2239,109 @@ client.api.applications("545798436105224203").commands.post({data: {
             name: "track",
             description: "name or abbreviation of the track",
             type: 3,
-            required: true
+            required: true,
+            choices: [
+                {
+                    name: "The Boonta Training Course",
+                    value: "0"
+                },
+                {
+                    name: "Mon Gazza Speedway",
+                    value: "1"
+                },
+                {
+                    name: "Beedo's Wild Ride",
+                    value: "2"
+                },
+                {
+                    name: "Aquilaris Classic",
+                    value: "3"
+                },
+                {
+                    name: "Malastare 100",
+                    value: "4"
+                },
+                {
+                    name: "Vengeance",
+                    value: "5"
+                },
+                {
+                    name: "Spice Mine Rune",
+                    value: "6"
+                },
+                {
+                    name: "Sunken City",
+                    value: "7"
+                },
+                {
+                    name: "Howler Gorge",
+                    value: "8"
+                },
+                {
+                    name: "Dug Derby",
+                    value: "9"
+                },
+                {
+                    name: "Scrapper's Run",
+                    value: "10"
+                },
+                {
+                    name: "Zugga Challenge",
+                    value: "11"
+                },
+                {
+                    name: "Baroo Coast",
+                    value: "12"
+                },
+                {
+                    name: "Bumpy's Breakers",
+                    value: "13"
+                },
+                {
+                    name: "Executioner",
+                    value: "14"
+                },
+                {
+                    name: "Sebulba's Legacy",
+                    value: "15"
+                },
+                {
+                    name: "Grabvine Gateway",
+                    value: "16"
+                },
+                {
+                    name: "Andobi Mountain Run",
+                    value: "17"
+                },
+                {
+                    name: "Dethro's Revenge",
+                    value: "18"
+                },
+                {
+                    name: "Fire Mountain Rally",
+                    value: "19"
+                },
+                {
+                    name: "The Boonta Classic",
+                    value: "20"
+                },
+                {
+                    name: "Ando Prime Centrum",
+                    value: "21"
+                },
+                {
+                    name: "Abyss",
+                    value: "22"
+                },
+                {
+                    name: "The Gauntlet",
+                    value: "23"
+                },
+                {
+                    name: "Inferno",
+                    value: "24"
+                }
+            ]
         },
         {
             name: "skips",
@@ -1633,7 +2433,7 @@ client.api.applications("545798436105224203").commands.post({data: {
         }
     ]
 }})
-
+/*
 client.api.applications("545798436105224203").commands.post({data: {
     name: 'weekly',
     description: 'view leaderboards and create submissions for the weekly challenge',
@@ -1710,7 +2510,109 @@ client.api.applications("545798436105224203").commands.post({data: {
                             name: "track",
                             description: "the challenge track",
                             type: 3,
-                            required: true
+                            required: true,
+                            choices: [
+                                {
+                                    name: "The Boonta Training Course",
+                                    value: "0"
+                                },
+                                {
+                                    name: "Mon Gazza Speedway",
+                                    value: "1"
+                                },
+                                {
+                                    name: "Beedo's Wild Ride",
+                                    value: "2"
+                                },
+                                {
+                                    name: "Aquilaris Classic",
+                                    value: "3"
+                                },
+                                {
+                                    name: "Malastare 100",
+                                    value: "4"
+                                },
+                                {
+                                    name: "Vengeance",
+                                    value: "5"
+                                },
+                                {
+                                    name: "Spice Mine Rune",
+                                    value: "6"
+                                },
+                                {
+                                    name: "Sunken City",
+                                    value: "7"
+                                },
+                                {
+                                    name: "Howler Gorge",
+                                    value: "8"
+                                },
+                                {
+                                    name: "Dug Derby",
+                                    value: "9"
+                                },
+                                {
+                                    name: "Scrapper's Run",
+                                    value: "10"
+                                },
+                                {
+                                    name: "Zugga Challenge",
+                                    value: "11"
+                                },
+                                {
+                                    name: "Baroo Coast",
+                                    value: "12"
+                                },
+                                {
+                                    name: "Bumpy's Breakers",
+                                    value: "13"
+                                },
+                                {
+                                    name: "Executioner",
+                                    value: "14"
+                                },
+                                {
+                                    name: "Sebulba's Legacy",
+                                    value: "15"
+                                },
+                                {
+                                    name: "Grabvine Gateway",
+                                    value: "16"
+                                },
+                                {
+                                    name: "Andobi Mountain Run",
+                                    value: "17"
+                                },
+                                {
+                                    name: "Dethro's Revenge",
+                                    value: "18"
+                                },
+                                {
+                                    name: "Fire Mountain Rally",
+                                    value: "19"
+                                },
+                                {
+                                    name: "The Boonta Classic",
+                                    value: "20"
+                                },
+                                {
+                                    name: "Ando Prime Centrum",
+                                    value: "21"
+                                },
+                                {
+                                    name: "Abyss",
+                                    value: "22"
+                                },
+                                {
+                                    name: "The Gauntlet",
+                                    value: "23"
+                                },
+                                {
+                                    name: "Inferno",
+                                    value: "24"
+                                }
+                            ]
                         },
                         {
                             name: "laps",
@@ -1835,4 +2737,4 @@ client.api.applications("545798436105224203").commands.post({data: {
         }
     ]
 }})
-
+*/
