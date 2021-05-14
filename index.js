@@ -407,10 +407,7 @@ client.on('message', message => {
     }
 })
 
-client.api.applications("545798436105224203").commands.post({data: {
-    name: 'botto',
-    description: 'introduces botto and provides an invite link'
-}})
+
 
 client.api.applications("545798436105224203").commands.post({data: {
     name: 'challenge',
@@ -925,112 +922,7 @@ client.api.applications("545798436105224203").commands.post({data: {
     ]
 }})
 
-client.api.applications("545798436105224203").commands.post({data: {
-    name: 'chancecube',
-    description: "Blue—it's the boy. Red—his mother"
-}})
-
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({data: { //this stays as a guild command
-    name: 'cleanup',
-    description: 'deletes bot spam within the past # messages (defaults to 30)',
-    options: [
-        {
-            name: "messages",
-            description: "the number of messages to scan through for bot spam",
-            type: 4,
-            required: false
-        }
-    ]
-}})
-
-client.api.applications("545798436105224203").commands.post({data: {
-    name: 'convert',
-    description: 'convert seconds to --:--.--- format and vice versa; supports basic arithmetic (+-*/)',
-    options: [
-        {
-            name: "time",
-            description: "the time/equation you wish to convert or evaluate",
-            type: 3,
-            required: true
-        }
-    ]
-}})
-
-client.api.applications("545798436105224203").commands.post({data: {
-    name: 'help',
-    description: 'helpful information about botto commands and other stuff',
-    options: [
-        {
-            name: "commands",
-            description: "get a list of Botto's commands and descriptions for how to use them",
-            type: 1
-        },
-        {
-            name: "abbreviations",
-            description: "get a list of commonly used abbreviations for Star Wars Episode I: Racer",
-            type: 1
-        }
-    ]
-}})
-
-client.api.applications("545798436105224203").commands.post({data: {
-    name: 'links',
-    description: 'quickly get the most commonly shared links on the SWE1R Discord',
-    options: [
-        {
-            name: "botto",
-            description: "Botto related links",
-            type: 2,
-            options: [
-                {
-                    name: "github",
-                    description: "posts a link to Botto's github page",
-                    type: 1
-                },
-                {
-                    name: "graphics",
-                    description: "posts imgur links to the graphics that Botto uses",
-                    type: 1
-                },
-                {
-                    name: "invite",
-                    description: "posts a link to invite Botto to your Discord",
-                    type: 1
-                }
-            ]
-        },
-        {
-            name: "drive",
-            description: "posts a link to the community Google Drive",
-            type: 1
-        },
-        {
-            name: "mp_guide",
-            description: "posts a link to the online multiplayer guide",
-            type: 1
-        },
-        {
-            name: "stats",
-            description: "posts a link to the pod and track statistics sheet",
-            type: 1
-        },
-        {
-            name: "src_resources",
-            description: "posts a link to the SWE1R speedrun.com resources page",
-            type: 1
-        },
-        {
-            name: "rtss",
-            description: "posts a link to download rivatuner for limiting the game's framerate",
-            type: 1
-        },
-        {
-            name: "dgvoodoo",
-            description: "posts a link to download dgvoodoo for running the game in windowed mode",
-            type: 1
-        }
-    ]
-}})
+console.log("challenge")
 
 client.api.applications("545798436105224203").commands.post({data: {
     name: 'lookup',
@@ -1971,7 +1863,7 @@ client.api.applications("545798436105224203").commands.post({data: {
         }
     ]
 }})
-
+console.log("lookup")
 client.api.applications("545798436105224203").commands.post({data: {
     name: 'random',
     description: 'get a random racer, track, etc.',
@@ -2205,117 +2097,8 @@ client.api.applications("545798436105224203").commands.post({data: {
         }
     ]
 }})
+console.log("random")
 
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({
-    data: {
-        name: 'role',
-        description: "add or remove roles",
-        options: [
-            {
-                name: "add",
-                description: "add a role",
-                type: 1,
-                options: [
-                    {
-                        name: "role",
-                        description: "select a role to add",
-                        type: 3,
-                        required: true,
-                        choices: [
-                            {
-                                name: "Multiplayer",
-                                value: "474920988790751232"
-                            },
-                            {
-                                name: "Tournament",
-                                value: "841059665474617353"
-                            },
-                            {
-                                name: "Speedrunning",
-                                value: "535973118578130954"
-                            },
-                            {
-                                name: "PC Player",
-                                value: "841404897018380388"
-                            },
-                            {
-                                name: "Switch Player",
-                                value: "841405226282909716"
-                            },
-                            {
-                                name: "PlayStation Player",
-                                value: "841405077470445669"
-                            },
-                            {
-                                name: "Xbox Player",
-                                value: "841404991784091690"
-                            },
-                            {
-                                name: "Dreamcast Player",
-                                value: "841405394441338890"
-                            },
-                            {
-                                name: "N64 Player",
-                                value: "602246101323612181"
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                name: "remove",
-                description: "remove a role",
-                type: 1,
-                options: [
-                    {
-                        name: "role",
-                        description: "select a role to remove",
-                        type: 3,
-                        required: true,
-                        choices: [
-                            {
-                                name: "Multiplayer",
-                                value: "474920988790751232"
-                            },
-                            {
-                                name: "Tournament",
-                                value: "841059665474617353"
-                            },
-                            {
-                                name: "Speedrunning",
-                                value: "535973118578130954"
-                            },
-                            {
-                                name: "PC Player",
-                                value: "841404897018380388"
-                            },
-                            {
-                                name: "Switch Player",
-                                value: "841405226282909716"
-                            },
-                            {
-                                name: "PlayStation Player",
-                                value: "841405077470445669"
-                            },
-                            {
-                                name: "Xbox Player",
-                                value: "841404991784091690"
-                            },
-                            {
-                                name: "Dreamcast Player",
-                                value: "841405394441338890"
-                            },
-                            {
-                                name: "N64 Player",
-                                value: "602246101323612181"
-                            }
-                        ]
-                    }
-                ]
-            }
-        ]
-    }
-})
 
 client.api.applications("545798436105224203").commands.post({data: {
     name: 'src',
@@ -2639,7 +2422,7 @@ client.api.applications("545798436105224203").commands.post({data: {
         
     ]
 }})
-
+console.log("src")
 client.api.applications("545798436105224203").commands.post({data: {
     name: 'tourney',
     description: 'get top-5 leaderboards for tournament runs of each track',
@@ -2842,5 +2625,5 @@ client.api.applications("545798436105224203").commands.post({data: {
         }
     ]
 }})
-
+console.log("tourney")
 client.login(process.env.token);
