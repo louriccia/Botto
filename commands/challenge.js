@@ -142,7 +142,7 @@ module.exports = {
                     var pb = false
                     for(var p = 0; p<keys.length; p++){
                         var n = keys[p]
-                        if(challengedata[n].track == challenge[k].track && challenge[n].racer == challenge[k].racer && challenge[n].skips == challenge[k].skips && challenge[n].nu == challenge[k].nu && challenge[n].laps == challenge[k].laps && challenge[n].mirror == challenge[k].mirror ){
+                        if(challengedata[n].track == challengedata[k].track && challengedata[n].racer == challengedata[k].racer && challengedata[n].skips == challengedata[k].skips && challengedata[n].nu == challengedata[k].nu && challengedata[n].laps == challengedata[k].laps && challengedata[n].mirror == challengedata[k].mirror ){
                             if(challengedata[n].date < challengedata[k].date){
                                 first = false
                                 if(challengedata[n].user == player){
