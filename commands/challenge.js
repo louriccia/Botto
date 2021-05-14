@@ -83,7 +83,8 @@ module.exports = {
                 beat: 0,
                 pb: 0,
                 first: 0,
-                rated: 0
+                rated: 0,
+                total: 0
             }
             for (var i = 0; i < keys.length; i++) {
                 var k = keys[i];
@@ -170,11 +171,12 @@ module.exports = {
             for (var i =0; i <keys; i++) {
                 var k = keys[i]
                 if(feedbackdata[k].user == player){
-                    feedback[feedbackdata[k].track + " " + feedbackdata[k].racer + " " + feedbackdata[k].skips + " " + feedbackdata[k].nu + " " + feedbackdata[k].laps + " " + feedbackdata[k].mirror]
+                    feedback[feedbackdata[k].track + " " + feedbackdata[k].racer + " " + feedbackdata[k].skips + " " + feedbackdata[k].nu + " " + feedbackdata[k].laps + " " + feedbackdata[k].mirror] = 0
                 }
             }
             var fb = Object.keys(feedback)
             report.rated += fb.length
+            report.total = report.earnings + report.mp*truguts.mp + report.non_standard*truguts.non_standard+report.beat*truguts.beat_opponent+report.pb*truguts.personal_best+report.first*truguts.first+report.rated*truguts.rated
             console.log(report)
             return report
         }
