@@ -182,11 +182,12 @@ module.exports = {
             return response
         }
         sendResponse().then(message=> {
-            const djsMessage = new Discord.Message(client, message, client.channels.cache.get(response.channel_id))
-            console.log(djsMessage)
-        })
+            const sentMessage = new Discord.Message(client, message, client.channels.cache.get(message.channel_id))
+            //console.log(djsMessage)
         
-        client.channels.cache.get(channel).send(trackEmbed).then(sentMessage => {
+        /*})
+        
+        client.channels.cache.get(channel).send(trackEmbed).then(sentMessage => {*/
             let muurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-rn1z02dl=klrvnpoq&var-789x6p58=013d38rl" //mu
             let nuurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-rn1z02dl=21d9rzpq&var-789x6p58=013d38rl" //nu
             let skurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&&var-789x6p58=rqvg3prq" //sku
