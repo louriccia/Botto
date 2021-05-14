@@ -154,7 +154,7 @@ module.exports = {
             .setImage(racers[numb].stats)
         return racerEmbed
     },
-    getTrackEmbed: function(numb, client, channel, footer) {
+    getTrackEmbed: function(numb, client, channel, interaction) {
         const Discord = require('discord.js');
         const fetch = require('node-fetch');
         const attachment = new Discord
@@ -177,6 +177,15 @@ module.exports = {
             .addField("Length",tracks[numb].lengthclass, true)
         const newLocal = this;
         var mu = {}, nu = {}, sk = {}, mu1 = {}, nu1 = {}, sk1 = {}
+        async function sendResponse() {
+            const response = await client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({data: {content: trackEmbed}})
+            return response
+        }
+        sendResponse().then(message=> {
+            const djsMessage = new Discord.Message(client, message, client.channels.cache.get(response.channel_id))
+            console.log(djsMessage)
+        })
+        
         client.channels.cache.get(channel).send(trackEmbed).then(sentMessage => {
             let muurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-rn1z02dl=klrvnpoq&var-789x6p58=013d38rl" //mu
             let nuurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-rn1z02dl=21d9rzpq&var-789x6p58=013d38rl" //nu
