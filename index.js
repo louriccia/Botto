@@ -416,7 +416,7 @@ client.api.applications("545798436105224203").commands.post({data: {
     description: 'get top-5 leaderboards from speedrun.com',
     options: [
         {
-            name: "IL",
+            name: "il",
             description: "get individual level top-5 leaderboards from speedrun.com",
             type: 1, //sub command
             options: [
@@ -623,7 +623,7 @@ client.api.applications("545798436105224203").commands.post({data: {
             ]
         },
         {
-            name: "RTA",
+            name: "rta",
             description: "get real time attack top-5 leaderboards from speedrun.com",
             type: 1, //sub command
             options: [
@@ -733,7 +733,7 @@ client.api.applications("545798436105224203").commands.post({data: {
         
     ]
 }})
-/*
+
 console.log("src")
 client.api.applications("545798436105224203").commands.post({data: {
     name: 'tourney',
@@ -937,6 +937,5 @@ client.api.applications("545798436105224203").commands.post({data: {
         }
     ]
 }})
-console.log("tourney")
-*/
+
 client.login(process.env.token);
