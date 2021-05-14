@@ -42,12 +42,14 @@ module.exports = {
             mp: 100,
             non_standard: 200,
             beat_opponent: 150,
-            personal_best: 1000,
-            first: 500,
+            personal_best: 500,
+            first: 200,
             rated: 50,
             bribe_track: 8400,
             bribe_racer: 8400,
-            hint: 100
+            hint: 100,
+            reroll: 1200,
+            reroll_discount: 600
         }
 
         function getGoalTimes(track, racer, skips, nu, laps) {
@@ -141,6 +143,7 @@ module.exports = {
                     }
                     var first = true
                     var pb = false
+                    var beat = []
                     for(var p = 0; p<keys.length; p++){
                         var n = keys[p]
                         if(challengedata[n].track == challengedata[k].track && challengedata[n].racer == challengedata[k].racer && challengedata[n].skips == challengedata[k].skips && challengedata[n].nu == challengedata[k].nu && challengedata[n].laps == challengedata[k].laps && challengedata[n].mirror == challengedata[k].mirror ){
@@ -153,11 +156,12 @@ module.exports = {
                                     }
                                 }
                             }
-                            if(challengedata[n].user !== player && challengedata[n].time > challengedata[k].time && challengedata[n].date < challengedata[k].date){
-                                report.beat ++
+                            if(challengedata[n].user !== player && challengedata[n].time > challengedata[k].time && challengedata[n].date < challengedata[k].date && !beat.includes(challengedata[n].user)){
+                                beat.push(challengedata[n].user)
                             }
                         }
                     }
+                    report.beat += beat.length
                     if(first){
                         report.first ++
                     }
@@ -802,7 +806,6 @@ module.exports = {
                             if (!vc) {
                                 collecting = false
                             }
-                            console.log(collection)
                             if (vc) {
                                 highlight = submissiondata.date
                                 try {
@@ -976,7 +979,7 @@ module.exports = {
                     member = args[0].options[0].value
                 }
             }
-            trugutsEarned(member)
+            //trugutsEarned(member)
             var keys = Object.keys(challengedata)
             var stats = {
                 total: 0,
