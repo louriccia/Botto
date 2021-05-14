@@ -323,7 +323,7 @@ module.exports = {
             if (!vc) {
                 profileref.child(member).child("current").set(current)
             }
-            trugutsEarned(member)
+            
             //get best runs/achievement progress
             var keys = Object.keys(challengedata), best = []
             for (var i = 0; i < keys.length; i++) {
@@ -968,6 +968,7 @@ module.exports = {
             })
         } else if (args[0].name == "profile") {
             var member = interaction.member.user.id
+            trugutsEarned(member)
             const Guild = client.guilds.cache.get(interaction.guild_id); // Getting the guild.
             const Member = Guild.members.cache.get(member); // Getting the member.
             if (args[0].hasOwnProperty("options")) {
