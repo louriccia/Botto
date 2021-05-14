@@ -921,7 +921,7 @@ client.api.applications("545798436105224203").commands.post({data: {
         }
     ]
 }})
-
+/*
 console.log("challenge")
 
 client.api.applications("545798436105224203").commands.post({data: {
@@ -2626,4 +2626,5 @@ client.api.applications("545798436105224203").commands.post({data: {
     ]
 }})
 console.log("tourney")
+*/
 client.login(process.env.token);
