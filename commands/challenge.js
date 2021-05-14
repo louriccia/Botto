@@ -142,17 +142,17 @@ module.exports = {
                     var pb = false
                     for(var p = 0; p<keys.length; p++){
                         var n = keys[p]
-                        if(challengedata[p].track == challenge[k].track && challenge[p].racer == challenge[k].racer && challenge[p].skips == challenge[k].skips && challenge[p].nu == challenge[k].nu && challenge[p].laps == challenge[k].laps && challenge[p].mirror == challenge[k].mirror ){
-                            if(challengedata[p].date < challengedata[k].date){
+                        if(challengedata[n].track == challenge[k].track && challenge[n].racer == challenge[k].racer && challenge[n].skips == challenge[k].skips && challenge[n].nu == challenge[k].nu && challenge[n].laps == challenge[k].laps && challenge[n].mirror == challenge[k].mirror ){
+                            if(challengedata[n].date < challengedata[k].date){
                                 first = false
-                                if(challengedata[p].user == player){
+                                if(challengedata[n].user == player){
                                     pb = true
-                                    if(challengedata[p].time < challengedata[k].time){
+                                    if(challengedata[n].time < challengedata[k].time){
                                         pb = false
                                     }
                                 }
                             }
-                            if(challengedata[p].user !== player && challengedata[p].time > challengedata[k].time && challengedata[p].date < challengedata[k].date){
+                            if(challengedata[n].user !== player && challengedata[n].time > challengedata[k].time && challengedata[n].date < challengedata[k].date){
                                 report.beat ++
                             }
                         }
