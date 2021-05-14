@@ -178,7 +178,7 @@ module.exports = {
         const newLocal = this;
         var mu = {}, nu = {}, sk = {}, mu1 = {}, nu1 = {}, sk1 = {}
         async function sendResponse() {
-            const response = await client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({data: {content: trackEmbed}})
+            const response = await client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({data: {embeds: [trackEmbed]}})
             return response
         }
         sendResponse().then(message=> {
