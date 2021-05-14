@@ -217,14 +217,12 @@ module.exports = {
             
             client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {
-                    type: 4,
+                    type: 5,
                     data: {
-                        content: "\u200B"
-                        //embeds: [myEmbed]
                     }
                 }
             })
-            tools.getTrackEmbed(numb, client, interaction.channel_id, "/random")
+            tools.getTrackEmbed(numb, client, interaction.channel_id, interaction)
         } else if(args[0].name=="challenge") {
             client.commands.get("challenge").execute(client, interaction, args);
         } else if(args[0].name=="teams") {
