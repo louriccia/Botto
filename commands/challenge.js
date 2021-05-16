@@ -520,8 +520,8 @@ module.exports = {
                     if (Object.keys(achievements.slow_steady.collection).length < achievements.slow_steady.limit && nu && achievements.slow_steady.collection[random1] == undefined) {
                         achievement_message.push("**" + slowSteady + "** `" + Object.keys(achievements.slow_steady.collection).length + "/23`")
                     }
-                    if (Object.keys(achievements.mirror_dimension.collection).length < achievements.mirror_dimension.limit && skips && achievements.mirror_dimension.collection[random2] == undefined) {
-                        achievement_message.push("**" + mirrorDimension + "** `" + Object.keys(achievements.mirror_dimension.collection).length + "/15`")
+                    if (Object.keys(achievements.mirror_dimension.collection).length < achievements.mirror_dimension.limit && achievements.mirror_dimension.collection[random2] == undefined) {
+                        achievement_message.push("**" + mirrorDimension + "** `" + Object.keys(achievements.mirror_dimension.collection).length + "/25`")
                     }
                     if (Object.keys(achievements.crowd_favorite.collection).length < achievements.crowd_favorite.limit && random1 == tracks[random2].favorite && achievements.crowd_favorite.collection[random2] == undefined) {
                         achievement_message.push("**" + crowdFavorite + "** `" + Object.keys(achievements.crowd_favorite.collection).length + "/25`")
@@ -535,6 +535,7 @@ module.exports = {
                             pod_champ: false,
                             light_skipper: false,
                             slow_steady: false,
+                            mirror_dimension: false,
                             crowd_favorite: false,
                             true_jedi: false,
                             big_spender: false
@@ -1099,6 +1100,7 @@ module.exports = {
                         pod_champ: false,
                         light_skipper: false,
                         slow_steady: false,
+                        mirror_dimension: false,
                         crowd_favorite: false,
                         true_jedi: false,
                         big_spender: false
