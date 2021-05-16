@@ -196,9 +196,9 @@ module.exports = {
             if (interaction.name !== "fake") {
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
-                        type: 4,
+                        type: 5,
                         data: {
-                            content: "\u200B"
+                            //content: "\u200B"
                             //embeds: [challengeEmbed]
                         }
                     }
@@ -545,7 +545,7 @@ module.exports = {
                     var achvs = Object.keys(achievements)
                     for (var i = 0; i < achvs.length; i++) {
                         var a = achvs[i]
-                        if (Object.keys(achievements[a].collection).length == achievements[a].limit && profiledata[member].achievements[a] == false) {
+                        if (Object.keys(achievements[a].collection).length >= achievements[a].limit && profiledata[member].achievements[a] == false) {
                             profileref.child(member).child("achievements").child(a).set(true)
                             const congratsEmbed = new Discord.MessageEmbed()
                                 .setAuthor(interaction.member.user.username + " got an achievement!", eAuthor[1])
@@ -572,14 +572,13 @@ module.exports = {
                 } else {
                     newEmbed.setTitle(title + "~~" + eTitle + "~~")
                 }
-
-                if (!vc) {
-                    //newEmbed.setFooter("Click to reroll the challenge for 1200 Truguts", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/259/game-die_1f3b2.png")
-                }
                 return newEmbed
             }
-
-            client.channels.cache.get(interaction.channel_id).send(createEmbed()).then(sentMessage => {
+            async function sendResponse() {
+                const response = await client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({data: {embeds: [createEmbed()]}})
+                return response
+            }
+            sendResponse().then(sentMessage => {
                 //collect feedback
                 profileref.child(member).child("current").update({ message: sentMessage.id })
                 sentMessage.react('👍').then(() => sentMessage.react('👎')).then(async function (message) {
