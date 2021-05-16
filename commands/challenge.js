@@ -792,7 +792,7 @@ module.exports = {
                             try {
                                 sentMessage.reactions.resolve("🔄").users.remove("545798436105224203")
                                 sentMessage.reactions.resolve("🔄").users.remove(member)
-                                sentMessage.react('▶️').then(sentMessage.react('↩️')).then(sentMessage.react('👍').then(sentMessage.react('👎')))
+                                sentMessage.react('▶️').then(sentMessage.react('↩️')).then(sentMessage.react('👍')).then(sentMessage.react('👎'))
                             } catch {
 
                             }
