@@ -503,7 +503,7 @@ module.exports = {
                     podChamp = "<@&" + achievements.pod_champ.role + ">"
                     lightSkipper = "<@&" + achievements.light_skipper.role + ">"
                     slowSteady = "<@&" + achievements.slow_steady.role + ">"
-                    mirrorDimension = "@&" + achievements.mirror_dimension.role + ">"
+                    mirrorDimension = "<@&" + achievements.mirror_dimension.role + ">"
                     crowdFavorite = "<@&" + achievements.crowd_favorite.role + ">"
                     trueJedi = "<@&" + achievements.true_jedi.role + ">"
                 }
