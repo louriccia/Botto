@@ -520,7 +520,7 @@ module.exports = {
                     if (Object.keys(achievements.slow_steady.collection).length < achievements.slow_steady.limit && nu && achievements.slow_steady.collection[random1] == undefined) {
                         achievement_message.push("**" + slowSteady + "** `" + Object.keys(achievements.slow_steady.collection).length + "/23`")
                     }
-                    if (Object.keys(achievements.mirror_dimension.collection).length < achievements.mirror_dimension.limit && achievements.mirror_dimension.collection[random2] == undefined) {
+                    if (Object.keys(achievements.mirror_dimension.collection).length < achievements.mirror_dimension.limit && mirror && achievements.mirror_dimension.collection[random2] == undefined) {
                         achievement_message.push("**" + mirrorDimension + "** `" + Object.keys(achievements.mirror_dimension.collection).length + "/25`")
                     }
                     if (Object.keys(achievements.crowd_favorite.collection).length < achievements.crowd_favorite.limit && random1 == tracks[random2].favorite && achievements.crowd_favorite.collection[random2] == undefined) {
@@ -589,8 +589,8 @@ module.exports = {
                     sentMessage = new Discord.Message(client, sentMessage, client.channels.cache.get(sentMessage.channel_id))
                 }
                 profileref.child(member).child("current").update({ message: sentMessage.id })
-                sentMessage.react('👍').then(() => sentMessage.react('👎')).then(async function (message) {
-                    var feedback = ""
+                sentMessage.then(async function (message) {
+                    var feedback = "" //.react('👍').then(() => sentMessage.react('👎'))
                     if (!vc) {
                         sentMessage.react('🔄')
                     }
@@ -792,7 +792,7 @@ module.exports = {
                             try {
                                 sentMessage.reactions.resolve("🔄").users.remove("545798436105224203")
                                 sentMessage.reactions.resolve("🔄").users.remove(member)
-                                sentMessage.react('↩️').then(sentMessage.react('▶️'))
+                                sentMessage.react('▶️').then(sentMessage.react('↩️')).then(sentMessage.react('👍').then(sentMessage.react('👎')))
                             } catch {
 
                             }
