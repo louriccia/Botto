@@ -337,6 +337,7 @@ module.exports = {
             //build embed
             var eAuthor = [], eTitle = "", title = "", highlight = "", eGoalTimes = [], best = []
             function createEmbed() {
+                best = []
                 //get best runs/achievement progress
                 var keys = Object.keys(challengedata)
                 for (var i = 0; i < keys.length; i++) {
