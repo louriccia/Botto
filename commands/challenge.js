@@ -310,7 +310,12 @@ module.exports = {
                 skipstext = " with **SKIPS**"
             }
             if (laps !== 3) {
-                laptext = " for **" + laps + " lap(s)**"
+                if (laps == 1){
+                    laptext = " for **" + laps + " lap(s)**"
+                } else {
+                    laptext = " for **" + laps + " lap(s)**"
+                }
+                
             }
             if (mirror) {
                 mirror = true
@@ -343,6 +348,9 @@ module.exports = {
                     }
                     if (challengedata[k].nu) {
                         achievements.slow_steady.collection[String(challengedata[k].racer)] = 1
+                    }
+                    if (challengedata[k].mirror) {
+                        achievements.mirror_dimension.collection[String(challengedata[k].track)] = 1
                     }
                     if (challengedata[k].racer == tracks[String(challengedata[k].track)].favorite) {
                         achievements.crowd_favorite.collection[String(challengedata[k].track)] = 1
@@ -1030,6 +1038,9 @@ module.exports = {
                     }
                     if (challengedata[k].nu) {
                         achievements.slow_steady.collection[String(challengedata[k].racer)] = 1
+                    }
+                    if (challengedata[k].mirror) {
+                        achievements.mirror_dimension.collection[String(challengedata[k].track)] = 1
                     }
                     if (challengedata[k].racer == tracks[String(challengedata[k].track)].favorite) {
                         achievements.crowd_favorite.collection[String(challengedata[k].track)] = 1
