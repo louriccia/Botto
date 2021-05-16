@@ -34,6 +34,7 @@ module.exports = {
             pod_champ: { name: "Pod Champ", description: "Complete a challenge with every pod", role: "819514029218463774", limit: 23, collection: {} },
             light_skipper: { name: "Lightspeed Skipper", description: "Complete a Skip challenge on every track with a skip", role: "819514330985922621", limit: 12, collection: {} },
             slow_steady: { name: "Slow 'n Steady", description: "Complete a No Upgrades challenge with every pod", role: "819514431472926721", limit: 23, collection: {} },
+            mirror_dimension: {name: "Mirror Dimension", description: "Complete a Mirrored challenge on every track", role: "843573636119134219", limit: 25, collection: {}},
             crowd_favorite: { name: "Crowd Favorite", description: "Complete a challenge as the track favorite on every track", role: "819514487852761138", limit: 25, collection: {} },
             true_jedi: { name: "True Jedi", description: "Complete a challenge with every pod on every track", role: "819514600827519008", limit: 575, collection: {} }
         }
@@ -1187,21 +1188,7 @@ module.exports = {
             for (let i = 0; i < args[0].options.length; i++) {
 
                 if (args[0].options[i].name == "track") {
-                    var input = args[0].options[i].value.toLowerCase()
-                    for (let i = 0; i < tracks.length; i++) {
-                        if (input == tracks[i].name.toLowerCase() || input == tracks[i].name.toLowerCase().replace(/ /g, '')) {
-                            trak = i
-                            i = tracks.length
-                        }
-                        if (i < tracks.length) {
-                            tracks[i].nickname.forEach(nick => {
-                                if (nick.toLowerCase() == input) {
-                                    trak = i
-                                    i = tracks.length
-                                }
-                            })
-                        }
-                    }
+                    trak = Number(args[0].options[i].value)
                     challengeReport
                         .setTitle(tracks[trak].name + " | Challenge Times")
                         .setColor(planets[tracks[trak].planet].color)
