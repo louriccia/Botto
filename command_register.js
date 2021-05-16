@@ -43,7 +43,7 @@ client.api.applications("545798436105224203").commands.post({data: {
                             value: "5"
                         },
                         {
-                            name: "Spice Mine Rune",
+                            name: "Spice Mine Run",
                             value: "6"
                         },
                         {
@@ -334,7 +334,7 @@ client.api.applications("545798436105224203").commands.post({data: {
                             value: "5"
                         },
                         {
-                            name: "Spice Mine Rune",
+                            name: "Spice Mine Run",
                             value: "6"
                         },
                         {
@@ -770,7 +770,7 @@ client.api.applications("545798436105224203").commands.post({data: {
                             value: "5"
                         },
                         {
-                            name: "Spice Mine Rune",
+                            name: "Spice Mine Run",
                             value: "6"
                         },
                         {
@@ -890,7 +890,7 @@ client.api.applications("545798436105224203").commands.post({data: {
                                     value: "5"
                                 },
                                 {
-                                    name: "Spice Mine Rune",
+                                    name: "Spice Mine Run",
                                     value: "6"
                                 },
                                 {
@@ -1005,7 +1005,7 @@ client.api.applications("545798436105224203").commands.post({data: {
                                     value: "5"
                                 },
                                 {
-                                    name: "Spice Mine Rune",
+                                    name: "Spice Mine Run",
                                     value: "6"
                                 },
                                 {
@@ -1948,7 +1948,7 @@ client.api.applications("545798436105224203").commands.post({data: {
                             value: "5"
                         },
                         {
-                            name: "Spice Mine Rune",
+                            name: "Spice Mine Run",
                             value: "6"
                         },
                         {
@@ -2266,7 +2266,7 @@ client.api.applications("545798436105224203").commands.post({data: {
                     value: "5"
                 },
                 {
-                    name: "Spice Mine Rune",
+                    name: "Spice Mine Run",
                     value: "6"
                 },
                 {
@@ -2537,7 +2537,7 @@ client.api.applications("545798436105224203").commands.post({data: {
                                     value: "5"
                                 },
                                 {
-                                    name: "Spice Mine Rune",
+                                    name: "Spice Mine Run",
                                     value: "6"
                                 },
                                 {

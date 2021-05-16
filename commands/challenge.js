@@ -281,6 +281,7 @@ module.exports = {
                 }
                 if (Math.random() < odds_mirrormode) {
                     mirrortext = ", **MIRRORED!**"
+                    mirror = true
                 }
                 if (Math.random() < odds_non3lap) {
                     laps = lap[Math.floor(Math.random() * 4)]
