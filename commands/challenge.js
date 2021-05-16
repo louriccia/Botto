@@ -10,31 +10,31 @@ module.exports = {
         var database = admin.database();
         var firebase = require("firebase/app");
         var ref = database.ref('challenge/times');
-        ref.on("value", function(snapshot) {
+        ref.on("value", function (snapshot) {
             challengedata = snapshot.val();
         }, function (errorObject) {
             console.log("The read failed: " + errorObject);
         });
         var profileref = database.ref('challenge/profiles');
-        profileref.on("value", function(snapshot) {
+        profileref.on("value", function (snapshot) {
             profiledata = snapshot.val();
         }, function (errorObject) {
             console.log("The read failed: " + errorObject.code);
         });
         var feedbackref = database.ref('challenge/feedback');
-        feedbackref.on("value", function(snapshot) {
+        feedbackref.on("value", function (snapshot) {
             feedbackdata = snapshot.val();
         }, function (errorObject) {
             console.log("The read failed: " + errorObject.code);
         });
-        
+
 
         var achievements = {
             galaxy_famous: { name: "Galaxy Famous", description: "Complete a challenge on every track", role: "819514261289828362", limit: 25, collection: {} },
             pod_champ: { name: "Pod Champ", description: "Complete a challenge with every pod", role: "819514029218463774", limit: 23, collection: {} },
             light_skipper: { name: "Lightspeed Skipper", description: "Complete a Skip challenge on every track with a skip", role: "819514330985922621", limit: 12, collection: {} },
             slow_steady: { name: "Slow 'n Steady", description: "Complete a No Upgrades challenge with every pod", role: "819514431472926721", limit: 23, collection: {} },
-            mirror_dimension: {name: "Mirror Dimension", description: "Complete a Mirrored challenge on every track", role: "843573636119134219", limit: 25, collection: {}},
+            mirror_dimension: { name: "Mirror Dimension", description: "Complete a Mirrored challenge on every track", role: "843573636119134219", limit: 25, collection: {} },
             crowd_favorite: { name: "Crowd Favorite", description: "Complete a challenge as the track favorite on every track", role: "819514487852761138", limit: 25, collection: {} },
             true_jedi: { name: "True Jedi", description: "Complete a challenge with every pod on every track", role: "819514600827519008", limit: 575, collection: {} }
         }
@@ -55,10 +55,10 @@ module.exports = {
 
         function getGoalTimes(track, racer, skips, nu, laps) {
             var upg = 5
-            if(nu) {
+            if (nu) {
                 upg = 0
             }
-            if(skips) {
+            if (skips) {
                 return [
                     tools.timetoSeconds(tracks[track].parskiptimes[0]) * multipliers[0].skips_multiplier,
                     tools.timetoSeconds(tracks[track].parskiptimes[1]) * multipliers[1].skips_multiplier,
@@ -91,10 +91,10 @@ module.exports = {
             }
             for (var i = 0; i < keys.length; i++) {
                 var k = keys[i];
-                if(challengedata[k].user == player) {
+                if (challengedata[k].user == player) {
                     var goals = getGoalTimes(challengedata[k].track, challengedata[k].racer, challengedata[k].skips, challengedata[k].nu, challengedata[k].laps)
                     var winnings = 1
-                    if(challengedata[k].settings !== undefined){
+                    if (challengedata[k].settings !== undefined) {
                         winnings = challengedata[k].settings.winnings
                     }
                     var goal_earnings = [
@@ -106,82 +106,82 @@ module.exports = {
                     ]
                     var winnings = 0
                     for (var j = goals.length - 1; j > -1; j--) {
-                        if (challengedata[k].time < goals[j]){
+                        if (challengedata[k].time < goals[j]) {
                             winnings = goal_earnings[j]
                         }
                     }
                     report.earnings += winnings
-                    if(challengedata[k].settings == undefined){
-                        if(challengedata[k].skips){
-                            report.non_standard ++
+                    if (challengedata[k].settings == undefined) {
+                        if (challengedata[k].skips) {
+                            report.non_standard++
                         }
-                        if(challengedata[k].mirror){
-                            report.non_standard ++
+                        if (challengedata[k].mirror) {
+                            report.non_standard++
                         }
-                        if(challengedata[k].laps !== 3){
-                            report.non_standard ++
+                        if (challengedata[k].laps !== 3) {
+                            report.non_standard++
                         }
-                        if(challengedata[k].nu){
-                            report.non_standard ++
+                        if (challengedata[k].nu) {
+                            report.non_standard++
                         }
                     } else {
-                        if(challengedata[k].skips && challengedata[k].settings.skips <= 25){
-                            report.non_standard ++
+                        if (challengedata[k].skips && challengedata[k].settings.skips <= 25) {
+                            report.non_standard++
                         }
-                        if(challengedata[k].mirror && challengedata[k].settings.mirror_mode <= 25){
-                            report.non_standard ++
+                        if (challengedata[k].mirror && challengedata[k].settings.mirror_mode <= 25) {
+                            report.non_standard++
                         }
-                        if(challengedata[k].laps !== 3 && challengedata[k].settings.non_3_lap <= 25){
-                            report.non_standard ++
+                        if (challengedata[k].laps !== 3 && challengedata[k].settings.non_3_lap <= 25) {
+                            report.non_standard++
                         }
-                        if(challengedata[k].nu && challengedata[k].settings.no_upgrades <= 25){
-                            report.non_standard ++
+                        if (challengedata[k].nu && challengedata[k].settings.no_upgrades <= 25) {
+                            report.non_standard++
                         }
                     }
-                    
-                    if(challengedata[k].mp == true){
+
+                    if (challengedata[k].mp == true) {
                         report.mp++
                     }
                     var first = true
                     var pb = false
                     var beat = []
-                    for(var p = 0; p<keys.length; p++){
+                    for (var p = 0; p < keys.length; p++) {
                         var n = keys[p]
-                        if(challengedata[n].track == challengedata[k].track && challengedata[n].racer == challengedata[k].racer && challengedata[n].skips == challengedata[k].skips && challengedata[n].nu == challengedata[k].nu && challengedata[n].laps == challengedata[k].laps && challengedata[n].mirror == challengedata[k].mirror ){
-                            if(challengedata[n].date < challengedata[k].date){
+                        if (challengedata[n].track == challengedata[k].track && challengedata[n].racer == challengedata[k].racer && challengedata[n].skips == challengedata[k].skips && challengedata[n].nu == challengedata[k].nu && challengedata[n].laps == challengedata[k].laps && challengedata[n].mirror == challengedata[k].mirror) {
+                            if (challengedata[n].date < challengedata[k].date) {
                                 first = false
-                                if(challengedata[n].user == player){
+                                if (challengedata[n].user == player) {
                                     pb = true
-                                    if(challengedata[n].time < challengedata[k].time){
+                                    if (challengedata[n].time < challengedata[k].time) {
                                         pb = false
                                     }
                                 }
                             }
-                            if(challengedata[n].user !== player && challengedata[n].time > challengedata[k].time && challengedata[n].date < challengedata[k].date && !beat.includes(challengedata[n].user)){
+                            if (challengedata[n].user !== player && challengedata[n].time > challengedata[k].time && challengedata[n].date < challengedata[k].date && !beat.includes(challengedata[n].user)) {
                                 beat.push(challengedata[n].user)
                             }
                         }
                     }
                     report.beat += beat.length
-                    if(first){
-                        report.first ++
+                    if (first) {
+                        report.first++
                     }
-                    if(pb){
-                        report.pb ++
+                    if (pb) {
+                        report.pb++
                     }
                 }
             }
             var feedback = {}
             var keys = Object.keys(feedbackdata)
-            for (var i =0; i <keys; i++) {
+            for (var i = 0; i < keys; i++) {
                 var k = keys[i]
-                if(feedbackdata[k].user == player){
+                if (feedbackdata[k].user == player) {
                     feedback[feedbackdata[k].track + " " + feedbackdata[k].racer + " " + feedbackdata[k].skips + " " + feedbackdata[k].nu + " " + feedbackdata[k].laps + " " + feedbackdata[k].mirror] = 0
                 }
             }
             var fb = Object.keys(feedback)
             report.rated += fb.length
-            report.total = report.earnings + report.mp*truguts.mp + report.non_standard*truguts.non_standard+report.beat*truguts.beat_opponent+report.pb*truguts.personal_best+report.first*truguts.first+report.rated*truguts.rated
+            report.total = report.earnings + report.mp * truguts.mp + report.non_standard * truguts.non_standard + report.beat * truguts.beat_opponent + report.pb * truguts.personal_best + report.first * truguts.first + report.rated * truguts.rated
             console.log(report)
             return report
         }
@@ -239,10 +239,10 @@ module.exports = {
             const Member = Guild.members.cache.get(member); // Getting the member.
 
             var memarray = []
-            if(Member.voice.channel){
+            if (Member.voice.channel) {
                 var mems = client.channels.cache.get(Member.voice.channelID).members;
-                for (let [snowflake, guildMember] of mems){
-                    if(guildMember.displayName !== "Botto"){
+                for (let [snowflake, guildMember] of mems) {
+                    if (guildMember.displayName !== "Botto") {
                         memarray.push(guildMember.displayName)
                     }
                 }
@@ -310,12 +310,12 @@ module.exports = {
                 skipstext = " with **SKIPS**"
             }
             if (laps !== 3) {
-                if (laps == 1){
+                if (laps == 1) {
                     laptext = " for **" + laps + " lap(s)**"
                 } else {
                     laptext = " for **" + laps + " lap(s)**"
                 }
-                
+
             }
             if (mirror) {
                 mirror = true
@@ -334,70 +334,70 @@ module.exports = {
             if (!vc) {
                 profileref.child(member).child("current").set(current)
             }
-            
-            //get best runs/achievement progress
-            var keys = Object.keys(challengedata), best = []
-            for (var i = 0; i < keys.length; i++) {
-                var k = keys[i];
-                var keys = Object.keys(challengedata)
-                if (challengedata[k].user == member) {
-                    achievements.galaxy_famous.collection[String(challengedata[k].track)] = 1
-                    achievements.pod_champ.collection[String(challengedata[k].racer)] = 1
-                    if (challengedata[k].skips) {
-                        achievements.light_skipper.collection[String(challengedata[k].track)] = 1
-                    }
-                    if (challengedata[k].nu) {
-                        achievements.slow_steady.collection[String(challengedata[k].racer)] = 1
-                    }
-                    if (challengedata[k].mirror) {
-                        achievements.mirror_dimension.collection[String(challengedata[k].track)] = 1
-                    }
-                    if (challengedata[k].racer == tracks[String(challengedata[k].track)].favorite) {
-                        achievements.crowd_favorite.collection[String(challengedata[k].track)] = 1
-                    }
-                    achievements.true_jedi.collection[String(challengedata[k].track + " " + challengedata[k].racer)] = 1
-                }
-                if (challengedata[k].track == random2 && challengedata[k].racer == random1 && challengedata[k].laps == laps && challengedata[k].mirror == mirror && challengedata[k].nu == nu && challengedata[k].skips == skips) {
-                    best.push(challengedata[k])
-                }
-
-            }
-            //build description
-            var desc = ""
-            if (Math.random() < 0.50 && best.length > 0) {
-                best.sort(function (a, b) {
-                    return a.time - b.time;
-                })
-                desc = desc + "*The current record-holder for this challenge is... " + best[0].name + "!*"
-            } else if (Math.random() < 0.50) {
-                var str = playerPicks[Math.floor(Math.random() * playerPicks.length)]
-                if (!Member.voice.channel) {
-                    desc = desc + str.replace("replaceme", interaction.member.user.username)
-                } else {
-                    var mems = client.channels.cache.get(Member.voice.channelID).members;
-                    var memarray = [];
-                    var memlist = ""
-                    for (let [snowflake, guildMember] of mems) {
-                        if (guildMember.displayName !== "Botto") {
-                            memarray.push(guildMember.displayName)
-                        }
-                    }
-                    desc = desc + str.replace("replaceme", memarray[Math.floor(Math.random() * memarray.length)])
-                }
-            } else {
-                if (vc) {
-                    desc = desc + mpQuotes[Math.floor(Math.random() * mpQuotes.length)]
-                } else {
-                    desc = desc + movieQuotes[random3]
-                }
-            }
             //build embed
             var eAuthor = [], eTitle = "", title = "", highlight = "", eGoalTimes = []
             function createEmbed() {
+                //get best runs/achievement progress
+                var keys = Object.keys(challengedata), best = []
+                for (var i = 0; i < keys.length; i++) {
+                    var k = keys[i];
+                    var keys = Object.keys(challengedata)
+                    if (challengedata[k].user == member) {
+                        achievements.galaxy_famous.collection[String(challengedata[k].track)] = 1
+                        achievements.pod_champ.collection[String(challengedata[k].racer)] = 1
+                        if (challengedata[k].skips) {
+                            achievements.light_skipper.collection[String(challengedata[k].track)] = 1
+                        }
+                        if (challengedata[k].nu) {
+                            achievements.slow_steady.collection[String(challengedata[k].racer)] = 1
+                        }
+                        if (challengedata[k].mirror) {
+                            achievements.mirror_dimension.collection[String(challengedata[k].track)] = 1
+                        }
+                        if (challengedata[k].racer == tracks[String(challengedata[k].track)].favorite) {
+                            achievements.crowd_favorite.collection[String(challengedata[k].track)] = 1
+                        }
+                        achievements.true_jedi.collection[String(challengedata[k].track + " " + challengedata[k].racer)] = 1
+                    }
+                    if (challengedata[k].track == random2 && challengedata[k].racer == random1 && challengedata[k].laps == laps && challengedata[k].mirror == mirror && challengedata[k].nu == nu && challengedata[k].skips == skips) {
+                        best.push(challengedata[k])
+                    }
+
+                }
+                //build description
+                var desc = ""
+                if (Math.random() < 0.50 && best.length > 0) {
+                    best.sort(function (a, b) {
+                        return a.time - b.time;
+                    })
+                    desc = desc + "*The current record-holder for this challenge is... " + best[0].name + "!*"
+                } else if (Math.random() < 0.50) {
+                    var str = playerPicks[Math.floor(Math.random() * playerPicks.length)]
+                    if (!Member.voice.channel) {
+                        desc = desc + str.replace("replaceme", interaction.member.user.username)
+                    } else {
+                        var mems = client.channels.cache.get(Member.voice.channelID).members;
+                        var memarray = [];
+                        var memlist = ""
+                        for (let [snowflake, guildMember] of mems) {
+                            if (guildMember.displayName !== "Botto") {
+                                memarray.push(guildMember.displayName)
+                            }
+                        }
+                        desc = desc + str.replace("replaceme", memarray[Math.floor(Math.random() * memarray.length)])
+                    }
+                } else {
+                    if (vc) {
+                        desc = desc + mpQuotes[Math.floor(Math.random() * mpQuotes.length)]
+                    } else {
+                        desc = desc + movieQuotes[random3]
+                    }
+                }
+
                 //calculate goal time
-                
+
                 var goals = getGoalTimes(random2, random1, skips, nu, laps)
-                    
+
                 flag = racers[random1].flag
                 var eColor = ""
                 eTitle = "Race as **" + flag + " " + racers[random1].name + "** (" + (random1 + 1) + ")" + nutext + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + laptext + skipstext + mirrortext
@@ -576,21 +576,21 @@ module.exports = {
             }
             async function sendResponse() {
                 var response = null
-                if(interaction.name == "fake"){
+                if (interaction.name == "fake") {
                     response = client.channels.cache.get(interaction.channel_id).send(createEmbed())
                 } else {
-                    response = await client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({data: {embeds: [createEmbed()]}})
+                    response = await client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({ data: { embeds: [createEmbed()] } })
                 }
                 return response
             }
             sendResponse().then(sentMessage => {
                 //collect feedback
-                if(interaction.name !== "fake"){
+                if (interaction.name !== "fake") {
                     sentMessage = new Discord.Message(client, sentMessage, client.channels.cache.get(sentMessage.channel_id))
                 }
                 profileref.child(member).child("current").update({ message: sentMessage.id })
                 sentMessage.react('🔄').then(async function (message) {//.react('👍').then(() => sentMessage.react('👎'))
-                    var feedback = "" 
+                    var feedback = ""
                     if (!vc) {
                         sentMessage.react('🔄')
                     }
@@ -642,9 +642,9 @@ module.exports = {
                             eTitle = "~~" + eTitle + "~~"
                             profileref.child(member).child("current").update({ completed: true })
                             try {
-                                
+
                                 sentMessage.reactions.removeAll().catch()
-                                sentMessage.edit("", createEmbed()).then(sentMessage.delete({ timeout: 10000, reason: 'bot cleanup'}))
+                                sentMessage.edit("", createEmbed()).then(sentMessage.delete({ timeout: 10000, reason: 'bot cleanup' }))
                             } catch { }
                             client.commands.get("challenge").execute(client, fakeinteraction, args);
                         } else if (reaction.emoji.name === '↩️') { //undo
@@ -658,7 +658,7 @@ module.exports = {
                                         profileref.child(member).child("current").update({ completed: false })
                                         sentMessage.edit(createEmbed())
                                         sentMessage.reactions.removeAll().catch()
-                                        
+
                                     } catch { }
                                     collected = false
                                     collecting = true
@@ -668,13 +668,13 @@ module.exports = {
                         } else if (reaction.emoji.name === '▶️' && collected) { //next challenge
                             client.commands.get("challenge").execute(client, fakeinteraction, args);
                             try {
-                                
+
                                 sentMessage.reactions.resolve("↩️").users.remove("545798436105224203")
                                 sentMessage.reactions.resolve("▶️").users.remove("545798436105224203")
                                 sentMessage.reactions.resolve("↩️").users.remove(member)
                                 sentMessage.reactions.resolve("▶️").users.remove(member)
                             } catch { }
-                            
+
                         }
                     })
                 })
@@ -770,11 +770,11 @@ module.exports = {
                         }
                         tools.timetoSeconds(message.content)
                         if (time !== "" && collecting) {
-                            
-                            if ((challengeend - challengestart) < time*1000 && interaction.name !=="fake") {
+
+                            if ((challengeend - challengestart) < time * 1000 && interaction.name !== "fake") {
                                 message.reply("*I warn you. No funny business.*")
                                 collected = true
-                                if(!vc){
+                                if (!vc) {
                                     collecting = false
                                 }
                                 title = ":negative_squared_cross_mark: Closed: "
@@ -786,63 +786,63 @@ module.exports = {
                                     console.error(error)
                                 }
                             } else {
-                            //log time
-                            try {
-                                sentMessage.reactions.removeAll().catch()
-                                sentMessage.react('▶️').then(sentMessage.react('↩️')).then(sentMessage.react('👍')).then(sentMessage.react('👎'))
-                            } catch {
+                                //log time
+                                try {
+                                    sentMessage.reactions.removeAll().catch()
+                                    sentMessage.react('▶️').then(sentMessage.react('↩️')).then(sentMessage.react('👍')).then(sentMessage.react('👎'))
+                                } catch {
 
-                            }
-                            var submissiondata = {
-                                user: message.author.id,
-                                name: message.author.username,
-                                time: time,
-                                date: message.createdTimestamp,
-                                racer: random1,
-                                track: random2,
-                                laps: laps,
-                                nu: nu,
-                                skips: skips,
-                                mirror: mirror,
-                                mp: vc,
-                                settings: {
-                                    winnings: profiledata[member].winnings,
-                                    no_upgrades: profiledata[member].no_upgrades,
-                                    non_3_lap: profiledata[member].non_3_lap,
-                                    skips: profiledata[member].skips,
-                                    mirror_mode: profiledata[member].mirror_mode
                                 }
-                            }
-                            best.push(submissiondata)
-                            var newPostRef = ref.push(submissiondata);
-                            var collectiondata = {
-                                record: newPostRef.key,
-                                user: message.author.id,
-                                index: best.length - 1
-                            }
-                            collection.push(collectiondata)
-                            collected = true
-                            if (!vc) {
-                                collecting = false
-                            }
-                            if (vc) {
-                                highlight = submissiondata.date
-                                try {
-                                    sentMessage.edit(createEmbed())
-                                } catch { }
-                            } else {
-                                title = ":white_check_mark: Completed: "
-                                highlight = submissiondata.date
-                                profileref.child(member).child("current").update({ completed: true })
-                                try {
-                                    sentMessage.edit("", createEmbed())
-                                } catch { }
-                            }
-                            if (message.guild) {
-                                try {
-                                    message.delete()
-                                } catch { }
-                            }
+                                var submissiondata = {
+                                    user: message.author.id,
+                                    name: message.author.username,
+                                    time: time,
+                                    date: message.createdTimestamp,
+                                    racer: random1,
+                                    track: random2,
+                                    laps: laps,
+                                    nu: nu,
+                                    skips: skips,
+                                    mirror: mirror,
+                                    mp: vc,
+                                    settings: {
+                                        winnings: profiledata[member].winnings,
+                                        no_upgrades: profiledata[member].no_upgrades,
+                                        non_3_lap: profiledata[member].non_3_lap,
+                                        skips: profiledata[member].skips,
+                                        mirror_mode: profiledata[member].mirror_mode
+                                    }
+                                }
+                                best.push(submissiondata)
+                                var newPostRef = ref.push(submissiondata);
+                                var collectiondata = {
+                                    record: newPostRef.key,
+                                    user: message.author.id,
+                                    index: best.length - 1
+                                }
+                                collection.push(collectiondata)
+                                collected = true
+                                if (!vc) {
+                                    collecting = false
+                                }
+                                if (vc) {
+                                    highlight = submissiondata.date
+                                    try {
+                                        sentMessage.edit(createEmbed())
+                                    } catch { }
+                                } else {
+                                    title = ":white_check_mark: Completed: "
+                                    highlight = submissiondata.date
+                                    profileref.child(member).child("current").update({ completed: true })
+                                    try {
+                                        sentMessage.edit("", createEmbed())
+                                    } catch { }
+                                }
+                                if (message.guild) {
+                                    try {
+                                        message.delete()
+                                    } catch { }
+                                }
                             }
                         }
                     }
@@ -990,7 +990,7 @@ module.exports = {
             })
         } else if (args[0].name == "profile") {
             var member = interaction.member.user.id
-            
+
             const Guild = client.guilds.cache.get(interaction.guild_id); // Getting the guild.
             const Member = Guild.members.cache.get(member); // Getting the member.
             if (args[0].hasOwnProperty("options")) {
@@ -1097,7 +1097,7 @@ module.exports = {
 
                 }
             }
-            if(member == interaction.member.user.id){
+            if (member == interaction.member.user.id) {
                 if (profiledata[member].achievements == undefined) {
                     var ach = {
                         galaxy_famous: false,
@@ -1298,7 +1298,7 @@ module.exports = {
                 var players = []
                 var runs = Object.keys(challengefiltered)
                 var pod_collection = {}
-                for(var i = 0; i < runs.length; i ++){
+                for (var i = 0; i < runs.length; i++) {
                     var run = runs[i]
                     pod_collection[challengefiltered[run].racer] = 1
                 }
