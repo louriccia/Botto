@@ -335,8 +335,7 @@ module.exports = {
                 profileref.child(member).child("current").set(current)
             }
             //build embed
-            var eAuthor = [], eTitle = "", title = "", highlight = "", eGoalTimes = []
-            var best = []
+            var eAuthor = [], eTitle = "", title = "", highlight = "", eGoalTimes = [], best = []
             function createEmbed() {
                 //get best runs/achievement progress
                 var keys = Object.keys(challengedata)
