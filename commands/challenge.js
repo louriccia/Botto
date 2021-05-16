@@ -497,12 +497,13 @@ module.exports = {
                 }
                 //prepare achievement progress
                 var achievement_message = []
-                var galaxyFamous = achievements.galaxy_famous.name, podChamp = achievements.pod_champ.name, lightSkipper = achievements.light_skipper.name, slowSteady = achievements.slow_steady.name, crowdFavorite = achievements.crowd_favorite.name, trueJedi = achievements.true_jedi.name
+                var galaxyFamous = achievements.galaxy_famous.name, podChamp = achievements.pod_champ.name, lightSkipper = achievements.light_skipper.name, slowSteady = achievements.slow_steady.name, crowdFavorite = achievements.crowd_favorite.name, trueJedi = achievements.true_jedi.name, mirrorDimension = achievements.mirror_dimension.name
                 if (interaction.guild_id == "441839750555369474") {
                     galaxyFamous = "<@&" + achievements.galaxy_famous.role + ">"
                     podChamp = "<@&" + achievements.pod_champ.role + ">"
                     lightSkipper = "<@&" + achievements.light_skipper.role + ">"
                     slowSteady = "<@&" + achievements.slow_steady.role + ">"
+                    mirrorDimension = "@&" + achievements.mirror_dimension.role + ">"
                     crowdFavorite = "<@&" + achievements.crowd_favorite.role + ">"
                     trueJedi = "<@&" + achievements.true_jedi.role + ">"
                 }
@@ -518,6 +519,9 @@ module.exports = {
                     }
                     if (Object.keys(achievements.slow_steady.collection).length < achievements.slow_steady.limit && nu && achievements.slow_steady.collection[random1] == undefined) {
                         achievement_message.push("**" + slowSteady + "** `" + Object.keys(achievements.slow_steady.collection).length + "/23`")
+                    }
+                    if (Object.keys(achievements.mirror_dimension.collection).length < achievements.mirror_dimension.limit && skips && achievements.mirror_dimension.collection[random2] == undefined) {
+                        achievement_message.push("**" + mirrorDimension + "** `" + Object.keys(achievements.mirror_dimension.collection).length + "/15`")
                     }
                     if (Object.keys(achievements.crowd_favorite.collection).length < achievements.crowd_favorite.limit && random1 == tracks[random2].favorite && achievements.crowd_favorite.collection[random2] == undefined) {
                         achievement_message.push("**" + crowdFavorite + "** `" + Object.keys(achievements.crowd_favorite.collection).length + "/25`")
