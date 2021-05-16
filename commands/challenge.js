@@ -583,10 +583,10 @@ module.exports = {
                 }
                 return response
             }
-            sendResponse().then(message => {
+            sendResponse().then(sentMessage => {
                 //collect feedback
                 if(interaction.name !== "fake"){
-                    const sentMessage = new Discord.Message(client, message, client.channels.cache.get(message.channel_id))
+                    sentMessage = new Discord.Message(client, sentMessage, client.channels.cache.get(sentMessage.channel_id))
                 }
                 profileref.child(member).child("current").update({ message: sentMessage.id })
                 sentMessage.react('👍').then(() => sentMessage.react('👎')).then(async function (message) {
