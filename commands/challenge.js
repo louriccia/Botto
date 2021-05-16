@@ -575,7 +575,12 @@ module.exports = {
                 return newEmbed
             }
             async function sendResponse() {
-                const response = await client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({data: {embeds: [createEmbed()]}})
+                var response = null
+                if(interaction.name == "fake"){
+                    response = client.channels.cache.get(interaction.channel_id).send(createEmbed())
+                } else {
+                    response = await client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({data: {embeds: [createEmbed()]}})
+                }
                 return response
             }
             sendResponse().then(sentMessage => {
@@ -1109,7 +1114,7 @@ module.exports = {
                 var achvs = Object.keys(achievements)
                 for (var i = 0; i < achvs.length; i++) {
                     var a = achvs[i]
-                    if (Object.keys(achievements[a].collection).length == achievements[a].limit && profiledata[member].achievements[a] == false) {
+                    if (Object.keys(achievements[a].collection).length >= achievements[a].limit && profiledata[member].achievements[a] == false) {
                         profileref.child(member).child("achievements").child(a).set(true)
                         const congratsEmbed = new Discord.MessageEmbed()
                             .setAuthor(interaction.member.user.username + " got an achievement!", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
