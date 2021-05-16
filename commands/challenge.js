@@ -589,8 +589,8 @@ module.exports = {
                     sentMessage = new Discord.Message(client, sentMessage, client.channels.cache.get(sentMessage.channel_id))
                 }
                 profileref.child(member).child("current").update({ message: sentMessage.id })
-                sentMessage.then(async function (message) {
-                    var feedback = "" //.react('👍').then(() => sentMessage.react('👎'))
+                sentMessage.react('🔄').then(async function (message) {//.react('👍').then(() => sentMessage.react('👎'))
+                    var feedback = "" 
                     if (!vc) {
                         sentMessage.react('🔄')
                     }
