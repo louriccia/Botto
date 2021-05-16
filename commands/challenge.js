@@ -657,10 +657,8 @@ module.exports = {
                                     try {
                                         profileref.child(member).child("current").update({ completed: false })
                                         sentMessage.edit(createEmbed())
-                                        sentMessage.reactions.resolve("↩️").users.remove("545798436105224203")
-                                        sentMessage.reactions.resolve("▶️").users.remove("545798436105224203")
-                                        sentMessage.reactions.resolve("↩️").users.remove(member)
-                                        sentMessage.reactions.resolve("▶️").users.remove(member)
+                                        sentMessage.reactions.removeAll().catch()
+                                        
                                     } catch { }
                                     collected = false
                                     collecting = true
@@ -790,8 +788,7 @@ module.exports = {
                             } else {
                             //log time
                             try {
-                                sentMessage.reactions.resolve("🔄").users.remove("545798436105224203")
-                                sentMessage.reactions.resolve("🔄").users.remove(member)
+                                sentMessage.reactions.removeAll().catch()
                                 sentMessage.react('▶️').then(sentMessage.react('↩️')).then(sentMessage.react('👍')).then(sentMessage.react('👎'))
                             } catch {
 
