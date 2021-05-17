@@ -748,14 +748,8 @@ module.exports = {
                                     title = ":arrows_counterclockwise: Rerolled: "
                                     profileref.child(member).child("current").update({ completed: true })
                                     try {
-                                        sentMessage.edit("", createEmbed())
                                         sentMessage.reactions.removeAll().catch()
-                                        /*
-                                        sentMessage.reactions.resolve("↩️").users.remove("545798436105224203")
-                                        sentMessage.reactions.resolve("▶️").users.remove("545798436105224203")
-                                        sentMessage.reactions.resolve("↩️").users.remove(member)
-                                        sentMessage.reactions.resolve("▶️").users.remove(member)
-                                        */
+                                        sentMessage.edit("", createEmbed()).then(sentMessage.delete({ timeout: 10000, reason: 'bot cleanup' }))
                                     } catch { }
                                 }
                             }
@@ -764,48 +758,7 @@ module.exports = {
                  })
                 collector.on('collect', message => {
                     //a new challenge appears
-                    console.log(message.content)
-                        console.log(message.embeds)
-                        console.log(message.attachments)
-                    if (message.embeds.length > 0 && message.author.id == "545798436105224203") {
-                        
-                        if (![undefined, null, ""].includes(message.embeds[0].title)) {
-                            
-                            if (message.embeds[0].title.startsWith("Race")) {
-                                if (vc) {
-                                    if (collected && collecting) { //previous mp challenge closed after rolling a new challenge
-                                        title = ":white_check_mark: Completed: "
-                                        try {
-                                            sentMessage.edit(createEmbed())
-                                        } catch { }
-                                        collecting = false
-                                    } else if (!collected) { //rerolling mp challenge
-                                        try {
-                                            sentMessage.delete()
-                                        } catch { }
-                                        collected = true
-                                        collecting = false
-                                    }
-                                } else if (!collected && message.embeds[0].author.name.replace("'s Challenge", "") == interaction.member.user.username) { //rerolling sp challenge
-                                    collected = true
-                                    collecting = false
-                                    title = ":arrows_counterclockwise: Rerolled: "
-                                    profileref.child(member).child("current").update({ completed: true })
-                                    try {
-                                        sentMessage.edit("", createEmbed())
-                                        sentMessage.reactions.removeAll().catch()
-                                        /*
-                                        sentMessage.reactions.resolve("↩️").users.remove("545798436105224203")
-                                        sentMessage.reactions.resolve("▶️").users.remove("545798436105224203")
-                                        sentMessage.reactions.resolve("↩️").users.remove(member)
-                                        sentMessage.reactions.resolve("▶️").users.remove(member)
-                                        */
-                                    } catch { }
-                                }
-                            }
-                        }
-                        //submitting the time
-                    } else if (!isNaN(message.content.replace(":", "")) && tools.timetoSeconds(message.content) !== null) {
+                    if (!isNaN(message.content.replace(":", "")) && tools.timetoSeconds(message.content) !== null) {
                         var challengeend = Date.now()
                         var time = ""
                         if (vc) {
