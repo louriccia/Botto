@@ -723,6 +723,11 @@ module.exports = {
                 //collect times
                 const collector = new Discord.MessageCollector(client.channels.cache.get(interaction.channel_id), m => m, { time: 900000 }); //messages
                 var collected = false, collecting = true, collection = []
+                client.on('messageUpdate', (oldMessage, newMessage) => {
+                    if (newMessage.embeds.length > 0 && newMessage.author.id == "545798436105224203") {
+                        console.log("message")
+                    }
+                 })
                 collector.on('collect', message => {
                     //a new challenge appears
                     console.log(message.content)
