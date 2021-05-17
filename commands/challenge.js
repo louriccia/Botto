@@ -724,7 +724,7 @@ module.exports = {
                 const collector = new Discord.MessageCollector(client.channels.cache.get(interaction.channel_id), m => m, { time: 900000 }); //messages
                 var collected = false, collecting = true, collection = []
                 client.on('messageUpdate', (oldMessage, newMessage) => {
-                    if (newMessage.embeds.length > 0 && newMessage.author.id == "545798436105224203") {
+                    if (newMessage.embeds.length > 0 && newMessage.author.id == "545798436105224203" && newMessage.id !== sentMessage.id) {
                         if (![undefined, null, ""].includes(newMessage.embeds[0].title)) {
                             
                             if (newMessage.embeds[0].title.startsWith("Race")) {
@@ -742,7 +742,7 @@ module.exports = {
                                         collected = true
                                         collecting = false
                                     }
-                                } else if (!collected && message.embeds[0].author.name.replace("'s Challenge", "") == interaction.member.user.username) { //rerolling sp challenge
+                                } else if (!collected && newMessage.embeds[0].author.name.replace("'s Challenge", "") == interaction.member.user.username) { //rerolling sp challenge
                                     collected = true
                                     collecting = false
                                     title = ":arrows_counterclockwise: Rerolled: "
