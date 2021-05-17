@@ -205,38 +205,16 @@ module.exports = {
                 })
 
             }
-            if (profiledata[member] !== undefined) {
-                if (profiledata[member].current !== undefined) {
-                    if (profiledata[member].current.completed == false && profiledata[member].current.start + 900000 > challengestart) {
-                        /* reroll event
-                        client.channels.cache.get(interaction.channel_id).send("Previous challenge still active. Click 🔄 to reroll.")
-                        if(interaction.name !== "fake"){
-                            client.api.interactions(interaction.id, interaction.token).callback.post({
-                                data: {
-                                    type: 2,
-                                    data: {
-                                        //content: "",
-                                        //embeds: [challengeEmbed]
-                                    }
-                                }
-                            })
-                        }
-                        return
-                        */
-                    }
-                }
-            }
 
-
-            var random1 = Math.floor(Math.random() * 23)
-            var random2 = Math.floor(Math.random() * 25)
-            var random3 = Math.floor(Math.random() * movieQuotes.length)
+            var random_racer = Math.floor(Math.random() * 23)
+            var random_track = Math.floor(Math.random() * 25)
+            var random_quote = Math.floor(Math.random() * movieQuotes.length)
             var laps = 3, lap = [1, 2, 4, 5]
             var laptext = "", mirrortext = "", nutext = "", skipstext = "", flag = "", record = ""
             var mirror = false, nu = false, skips = false
             //calculate odds
-            const Guild = client.guilds.cache.get(interaction.guild_id); // Getting the guild.
-            const Member = Guild.members.cache.get(member); // Getting the member.
+            const Guild = client.guilds.cache.get(interaction.guild_id)
+            const Member = Guild.members.cache.get(member)
 
             var memarray = []
             if (Member.voice.channel) {
@@ -287,7 +265,7 @@ module.exports = {
                 if (Math.random() < odds_non3lap) {
                     laps = lap[Math.floor(Math.random() * 4)]
                 }
-                if (tracks[random2].hasOwnProperty("parskiptimes")) {
+                if (tracks[random_track].hasOwnProperty("parskiptimes")) {
                     if (Math.random() < odds_skips) {
                         skips = true
                     }
@@ -295,8 +273,8 @@ module.exports = {
             }
             if (interaction.name == "fake") {
                 if (interaction.recovery == true) {
-                    random1 = profiledata[member].current.racer
-                    random2 = profiledata[member].current.track
+                    random_racer = profiledata[member].current.racer
+                    random_track = profiledata[member].current.track
                     nu = profiledata[member].current.nu
                     mirror = profiledata[member].current.mirror
                     laps = profiledata[member].current.laps
@@ -317,15 +295,12 @@ module.exports = {
                 }
 
             }
-            if (mirror) {
-                mirror = true
-            }
             var current = {
                 start: challengestart,
                 completed: false,
                 channel: interaction.channel_id,
-                racer: random1,
-                track: random2,
+                racer: random_racer,
+                track: random_track,
                 laps: laps,
                 nu: nu,
                 skips: skips,
@@ -360,7 +335,7 @@ module.exports = {
                         }
                         achievements.true_jedi.collection[String(challengedata[k].track + " " + challengedata[k].racer)] = 1
                     }
-                    if (challengedata[k].track == random2 && challengedata[k].racer == random1 && challengedata[k].laps == laps && challengedata[k].mirror == mirror && challengedata[k].nu == nu && challengedata[k].skips == skips) {
+                    if (challengedata[k].track == random_track && challengedata[k].racer == random_racer && challengedata[k].laps == laps && challengedata[k].mirror == mirror && challengedata[k].nu == nu && challengedata[k].skips == skips) {
                         best.push(challengedata[k])
                     }
 
@@ -391,17 +366,17 @@ module.exports = {
                     if (vc) {
                         desc = desc + mpQuotes[Math.floor(Math.random() * mpQuotes.length)]
                     } else {
-                        desc = desc + movieQuotes[random3]
+                        desc = desc + movieQuotes[random_quote]
                     }
                 }
 
                 //calculate goal time
 
-                var goals = getGoalTimes(random2, random1, skips, nu, laps)
+                var goals = getGoalTimes(random_track, random_racer, skips, nu, laps)
 
-                flag = racers[random1].flag
+                flag = racers[random_racer].flag
                 var eColor = ""
-                eTitle = "Race as **" + flag + " " + racers[random1].name + "** (" + (random1 + 1) + ")" + nutext + " on **" + tracks[random2].name + "** (" + (random2 + 1) + ")" + laptext + skipstext + mirrortext
+                eTitle = "Race as **" + flag + " " + racers[random_racer].name + "** (" + (random_racer + 1) + ")" + nutext + " on **" + tracks[random_track].name + "** (" + (random_track + 1) + ")" + laptext + skipstext + mirrortext
                 if (vc) {
                     eAuthor = ["Multiplayer Challenge", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/160/twitter/259/chequered-flag_1f3c1.png"]
                 } else {
@@ -409,10 +384,10 @@ module.exports = {
                 }
                 var goal_symbols = [":gem:", ":first_place:", ":second_place:", ":third_place:", "<:bumpythumb:703107780860575875>"]
                 var goal_earnings = [
-                    circuits[tracks[random2].circuit].winnings[profiledata[member].winnings][0],
-                    circuits[tracks[random2].circuit].winnings[profiledata[member].winnings][1],
-                    circuits[tracks[random2].circuit].winnings[profiledata[member].winnings][2],
-                    circuits[tracks[random2].circuit].winnings[profiledata[member].winnings][3],
+                    circuits[tracks[random_track].circuit].winnings[profiledata[member].winnings][0],
+                    circuits[tracks[random_track].circuit].winnings[profiledata[member].winnings][1],
+                    circuits[tracks[random_track].circuit].winnings[profiledata[member].winnings][2],
+                    circuits[tracks[random_track].circuit].winnings[profiledata[member].winnings][3],
                     0
                 ]
                 for (var i = 0; i < goal_earnings.length; i++) {
@@ -437,7 +412,7 @@ module.exports = {
                 var like = 0, dislike = 0, keys = Object.keys(feedbackdata)
                 for (var i = 0; i < keys.length; i++) {
                     var k = keys[i];
-                    if (feedbackdata[k].track == random2 && feedbackdata[k].racer == random1 && feedbackdata[k].laps == laps && feedbackdata[k].mirror == mirror && feedbackdata[k].nu == nu && feedbackdata[k].skips == skips) {
+                    if (feedbackdata[k].track == random_track && feedbackdata[k].racer == random_racer && feedbackdata[k].laps == laps && feedbackdata[k].mirror == mirror && feedbackdata[k].nu == nu && feedbackdata[k].skips == skips) {
                         if (feedbackdata[k].feedback == "👍") {
                             like = like + 1
                         } else if (feedbackdata[k].feedback == "👎") {
@@ -454,7 +429,7 @@ module.exports = {
                 var keys = Object.keys(challengedata), best = []
                 for (var i = 0; i < keys.length; i++) {
                     var k = keys[i];
-                    if (challengedata[k].track == random2 && challengedata[k].racer == random1 && challengedata[k].laps == laps && challengedata[k].mirror == mirror && challengedata[k].nu == nu && challengedata[k].skips == skips) {
+                    if (challengedata[k].track == random_track && challengedata[k].racer == random_racer && challengedata[k].laps == laps && challengedata[k].mirror == mirror && challengedata[k].nu == nu && challengedata[k].skips == skips) {
                         best.push(challengedata[k])
                     }
                 }
@@ -494,7 +469,7 @@ module.exports = {
                 } else if (title == ":negative_squared_cross_mark: Closed: " || title == ":arrows_counterclockwise: Rerolled: ") {
                     eColor = "2F3136"
                 } else {
-                    eColor = planets[tracks[random2].planet].color
+                    eColor = planets[tracks[random_track].planet].color
                 }
                 //prepare achievement progress
                 var achievement_message = []
@@ -509,25 +484,25 @@ module.exports = {
                     trueJedi = "<@&" + achievements.true_jedi.role + ">"
                 }
                 if (!vc) {
-                    if (Object.keys(achievements.galaxy_famous.collection).length < achievements.galaxy_famous.limit && achievements.galaxy_famous.collection[random2] == undefined) {
+                    if (Object.keys(achievements.galaxy_famous.collection).length < achievements.galaxy_famous.limit && achievements.galaxy_famous.collection[random_track] == undefined) {
                         achievement_message.push("**" + galaxyFamous + "** `" + Object.keys(achievements.galaxy_famous.collection).length + "/25`")
                     }
-                    if (Object.keys(achievements.pod_champ.collection).length < achievements.pod_champ.limit && achievements.pod_champ.collection[random1] == undefined) {
+                    if (Object.keys(achievements.pod_champ.collection).length < achievements.pod_champ.limit && achievements.pod_champ.collection[random_racer] == undefined) {
                         achievement_message.push("**" + podChamp + "** `" + Object.keys(achievements.pod_champ.collection).length + "/23`")
                     }
-                    if (Object.keys(achievements.light_skipper.collection).length < achievements.light_skipper.limit && skips && achievements.light_skipper.collection[random2] == undefined) {
+                    if (Object.keys(achievements.light_skipper.collection).length < achievements.light_skipper.limit && skips && achievements.light_skipper.collection[random_track] == undefined) {
                         achievement_message.push("**" + lightSkipper + "** `" + Object.keys(achievements.light_skipper.collection).length + "/15`")
                     }
-                    if (Object.keys(achievements.slow_steady.collection).length < achievements.slow_steady.limit && nu && achievements.slow_steady.collection[random1] == undefined) {
+                    if (Object.keys(achievements.slow_steady.collection).length < achievements.slow_steady.limit && nu && achievements.slow_steady.collection[random_racer] == undefined) {
                         achievement_message.push("**" + slowSteady + "** `" + Object.keys(achievements.slow_steady.collection).length + "/23`")
                     }
-                    if (Object.keys(achievements.mirror_dimension.collection).length < achievements.mirror_dimension.limit && mirror && achievements.mirror_dimension.collection[random2] == undefined) {
+                    if (Object.keys(achievements.mirror_dimension.collection).length < achievements.mirror_dimension.limit && mirror && achievements.mirror_dimension.collection[random_track] == undefined) {
                         achievement_message.push("**" + mirrorDimension + "** `" + Object.keys(achievements.mirror_dimension.collection).length + "/25`")
                     }
-                    if (Object.keys(achievements.crowd_favorite.collection).length < achievements.crowd_favorite.limit && random1 == tracks[random2].favorite && achievements.crowd_favorite.collection[random2] == undefined) {
+                    if (Object.keys(achievements.crowd_favorite.collection).length < achievements.crowd_favorite.limit && random_racer == tracks[random_track].favorite && achievements.crowd_favorite.collection[random_track] == undefined) {
                         achievement_message.push("**" + crowdFavorite + "** `" + Object.keys(achievements.crowd_favorite.collection).length + "/25`")
                     }
-                    if (Object.keys(achievements.true_jedi.collection).length < achievements.true_jedi.limit && achievements.true_jedi.collection[random2 + " " + random1] == undefined) {
+                    if (Object.keys(achievements.true_jedi.collection).length < achievements.true_jedi.limit && achievements.true_jedi.collection[random_track + " " + random_racer] == undefined) {
                         achievement_message.push("**" + trueJedi + "** `" + Object.keys(achievements.true_jedi.collection).length + "/575`")
                     }
                     if (profiledata[member].achievements == undefined) {
@@ -624,8 +599,8 @@ module.exports = {
                                 name: user.username,
                                 feedback: feedback,
                                 date: sentMessage.createdTimestamp,
-                                racer: random1,
-                                track: random2,
+                                racer: random_racer,
+                                track: random_track,
                                 laps: laps,
                                 nu: nu,
                                 skips: skips,
@@ -723,10 +698,9 @@ module.exports = {
                 //collect times
                 const collector = new Discord.MessageCollector(client.channels.cache.get(interaction.channel_id), m => m, { time: 900000 }); //messages
                 var collected = false, collecting = true, collection = []
-                client.on('messageUpdate', (oldMessage, newMessage) => {
+                var listener = function checkReroll(oldMessage, newMessage) {
                     if (newMessage.embeds.length > 0 && newMessage.author.id == "545798436105224203" && newMessage.id !== sentMessage.id) {
                         if (![undefined, null, ""].includes(newMessage.embeds[0].title)) {
-                            
                             if (newMessage.embeds[0].title.startsWith("Race")) {
                                 if (vc) {
                                     if (collected && collecting) { //previous mp challenge closed after rolling a new challenge
@@ -750,12 +724,15 @@ module.exports = {
                                     try {
                                         sentMessage.reactions.removeAll().catch()
                                         sentMessage.edit("", createEmbed()).then(sentMessage.delete({ timeout: 10000, reason: 'bot cleanup' }))
+                                        client.removeListener('mesageUpdate', listener)
                                     } catch { }
                                 }
                             }
                         }
                     }
-                 })
+                }
+                client.on('messageUpdate', listener)
+
                 collector.on('collect', message => {
                     //a new challenge appears
                     if (!isNaN(message.content.replace(":", "")) && tools.timetoSeconds(message.content) !== null) {
@@ -796,8 +773,8 @@ module.exports = {
                                     name: message.author.username,
                                     time: time,
                                     date: message.createdTimestamp,
-                                    racer: random1,
-                                    track: random2,
+                                    racer: random_racer,
+                                    track: random_track,
                                     laps: laps,
                                     nu: nu,
                                     skips: skips,
