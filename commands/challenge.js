@@ -725,9 +725,11 @@ module.exports = {
                 var collected = false, collecting = true, collection = []
                 collector.on('collect', message => {
                     //a new challenge appears
+                    console.log(message)
                     if (message.embeds.length > 0 && message.author.id == "545798436105224203") {
+                        console.log(message.embeds[0])
                         if (![undefined, null, ""].includes(message.embeds[0].title)) {
-                            console.log(message.embeds[0].author.name)
+                            
                             if (message.embeds[0].title.startsWith("Race")) {
                                 if (vc) {
                                     if (collected && collecting) { //previous mp challenge closed after rolling a new challenge
