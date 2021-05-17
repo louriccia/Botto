@@ -725,10 +725,11 @@ module.exports = {
                 var collected = false, collecting = true, collection = []
                 collector.on('collect', message => {
                     //a new challenge appears
-                    if (message.embeds.length > 0 && message.author.id == "545798436105224203") {
-                        console.log(message.content)
+                    console.log(message.content)
                         console.log(message.embeds)
                         console.log(message.attachments)
+                    if (message.embeds.length > 0 && message.author.id == "545798436105224203") {
+                        
                         if (![undefined, null, ""].includes(message.embeds[0].title)) {
                             
                             if (message.embeds[0].title.startsWith("Race")) {
