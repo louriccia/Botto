@@ -725,7 +725,41 @@ module.exports = {
                 var collected = false, collecting = true, collection = []
                 client.on('messageUpdate', (oldMessage, newMessage) => {
                     if (newMessage.embeds.length > 0 && newMessage.author.id == "545798436105224203") {
-                        console.log("message")
+                        if (![undefined, null, ""].includes(newMessage.embeds[0].title)) {
+                            
+                            if (newMessage.embeds[0].title.startsWith("Race")) {
+                                if (vc) {
+                                    if (collected && collecting) { //previous mp challenge closed after rolling a new challenge
+                                        title = ":white_check_mark: Completed: "
+                                        try {
+                                            sentMessage.edit(createEmbed())
+                                        } catch { }
+                                        collecting = false
+                                    } else if (!collected) { //rerolling mp challenge
+                                        try {
+                                            sentMessage.delete()
+                                        } catch { }
+                                        collected = true
+                                        collecting = false
+                                    }
+                                } else if (!collected && message.embeds[0].author.name.replace("'s Challenge", "") == interaction.member.user.username) { //rerolling sp challenge
+                                    collected = true
+                                    collecting = false
+                                    title = ":arrows_counterclockwise: Rerolled: "
+                                    profileref.child(member).child("current").update({ completed: true })
+                                    try {
+                                        sentMessage.edit("", createEmbed())
+                                        sentMessage.reactions.removeAll().catch()
+                                        /*
+                                        sentMessage.reactions.resolve("↩️").users.remove("545798436105224203")
+                                        sentMessage.reactions.resolve("▶️").users.remove("545798436105224203")
+                                        sentMessage.reactions.resolve("↩️").users.remove(member)
+                                        sentMessage.reactions.resolve("▶️").users.remove(member)
+                                        */
+                                    } catch { }
+                                }
+                            }
+                        }
                     }
                  })
                 collector.on('collect', message => {
