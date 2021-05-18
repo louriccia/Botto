@@ -349,6 +349,7 @@ module.exports = {
             }
             var rated = false
             //process reroll
+            var reroll_description = ""
             function rerollChallenge(){
                 reroll_description = ""
                 var played = false
@@ -393,7 +394,6 @@ module.exports = {
                 } else {
                     reroll_description = "`-💿" + truguts.reroll + "`"
                 }
-                console.log(reroll_description)
             }
             //build embed
             var eAuthor = [], eTitle = "", title = "", highlight = "", eGoalTimes = [], best = []
@@ -428,7 +428,6 @@ module.exports = {
                 }
                 //build description
                 var desc = ""
-                var reroll_description = ""
                 if (Math.random() < 0.50 && best.length > 0) {
                     best.sort(function (a, b) {
                         return a.time - b.time;
