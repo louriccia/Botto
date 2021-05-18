@@ -688,8 +688,10 @@ module.exports = {
                 if(played){
                     reroll = truguts.reroll_discount
                 }
-                if(record_holder.user == member){
-                    reroll = 0
+                if(record_holder !== null){
+                    if(record_holder.user == member){
+                        reroll = 0
+                    }
                 }
                 var selection = "full price"
                 if(played){
