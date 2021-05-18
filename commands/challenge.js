@@ -442,7 +442,7 @@ module.exports = {
                     }
 
                 }
-                eGoalTimes = goal_symbols[0] + " " + tools.timefix(goals[0]) + goal_earnings[0] + "\n" +
+                eGoalTimes = goal_symbols[0] + " " + tools.timefix(goals[0]) + goal_earnings_text[0] + "\n" +
                     goal_symbols[1] + " " + tools.timefix(goals[1]) + goal_earnings_text[1] + "\n" +
                     goal_symbols[2] + " " + tools.timefix(goals[2]) + goal_earnings_text[2] + "\n" +
                     goal_symbols[3] + " " + tools.timefix(goals[3]) + goal_earnings_text[3] + "\n" +
@@ -589,7 +589,7 @@ module.exports = {
                         }
                     }
                     if(goal_earnings[winnings_text] > 0) {
-                        earnings += goal_symbols[winnings_text] + " " + goal_earnings[winnings_text] + "\n"
+                        earnings += goal_symbols[winnings_text] + " `+💿" + goal_earnings[winnings_text] + "`\n"
                         earnings_total += goal_earnings[winnings_text]
                     }
                     if (vc) {
@@ -645,7 +645,7 @@ module.exports = {
                         earnings_total += truguts.rated
                     }
 
-                    earnings += "\n**Total: **" + earnings_total
+                    earnings += "\n**Total: **`💿" + earnings_total +"`"
                 }
                 const newEmbed = new Discord.MessageEmbed()
                     .setTitle(title + eTitle)
