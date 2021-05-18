@@ -436,11 +436,11 @@ module.exports = {
                     profileref.child(member).update({truguts_spent:profiledata[member].truguts_spent + reroll})
                 }
                 if (reroll == truguts.reroll_discount) {
-                    reroll_description = "`-💿" + truguts.reroll_discount + "` (discounted)"
+                    reroll_description = "`-💿" + truguts.reroll_discount + "` (discounted)\nCurrent balance: `" + profiledata[member].truguts_earned - profiledata[member].truguts_spent + "`"
                 } else if (reroll == 0) {
                     reroll_description = "(no charge for record holders)"
                 } else {
-                    reroll_description = "`-💿" + truguts.reroll + "`"
+                    reroll_description = "`-💿" + truguts.reroll + "`\nCurrent balance: `" + profiledata[member].truguts_earned - profiledata[member].truguts_spent + "`"
                 }
                 return reroll_description
 
