@@ -390,26 +390,22 @@ module.exports = {
 
             var reroll_description = ""
             function rerollChallenge(best) {
-                if (best == undefined) {
-                    if (profiledata[member].truguts_earned - profiledata[member].truguts_spent > reroll) {
-                        return true
-                    } else {
-                        return false
-                    }
-                }
+                
                 reroll_description = ""
                 var played = false
                 var record_holder = null
-                for (var i = 0; i < best.length; i++) {
-                    if (best[i].user == member) {
-                        played = true
-                    }
-                    if (record_holder !== null) {
-                        if (best[i].time < record_holder.time) {
+                if(best !== undefined){
+                    for (var i = 0; i < best.length; i++) {
+                        if (best[i].user == member) {
+                            played = true
+                        }
+                        if (record_holder !== null) {
+                            if (best[i].time < record_holder.time) {
+                                record_holder = best[i]
+                            }
+                        } else {
                             record_holder = best[i]
                         }
-                    } else {
-                        record_holder = best[i]
                     }
                 }
                 var reroll = truguts.reroll
@@ -428,7 +424,13 @@ module.exports = {
                     purchased_item: "reroll",
                     selection: selection
                 }
-
+                if (best == undefined) {
+                    if (profiledata[member].truguts_earned - profiledata[member].truguts_spent > reroll) {
+                        return true
+                    } else {
+                        return false
+                    }
+                }
                 if (reroll > 0) {
                     profileref.child(member).child("purchases").push(purchase)
                     profileref.child(member).update({truguts_spent:profiledata[member].truguts_spent + reroll})
