@@ -372,7 +372,7 @@ module.exports = {
             var reroll_description = ""
             function rerollChallenge(best) {
                 if (best == undefined) {
-                    if (profileref.[member].truguts_earned - profileref[member].truguts_spent > reroll) {
+                    if (profileref[member].truguts_earned - profileref[member].truguts_spent > reroll) {
                         return true
                     } else {
                         return false
