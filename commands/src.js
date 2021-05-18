@@ -16,21 +16,7 @@ module.exports = {
         for (let i = 0; i<args[0].options.length; i++) {
             if(args[0].name == "il") {
                 if (args[0].options[i].name == "track") {
-                    var input = args[0].options[i].value.toLowerCase()
-                    for(let i = 0; i<tracks.length; i++){
-                        if(input == tracks[i].name.toLowerCase() || input == tracks[i].name.toLowerCase().replace(/ /g, '')){
-                            numb = i
-                            i = tracks.length
-                        }
-                        if(i<tracks.length){
-                            tracks[i].nickname.forEach(nick => {
-                                if(nick.toLowerCase() == input){
-                                    numb = i
-                                    i = tracks.length
-                                }
-                            })    
-                        }
-                    }
+                    numb = Number(args[0].options[i].value)
                     catg = "level/"  + tracks[numb].id + "/824owmd5" //default to 3 lap
                     titl = tracks[numb].name + " | 3-Lap"
                 } else if (args[0].options[i].name == "skips") {

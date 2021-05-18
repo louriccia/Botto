@@ -215,6 +215,29 @@ module.exports = {
             //calculate odds
             const Guild = client.guilds.cache.get(interaction.guild_id)
             const Member = Guild.members.cache.get(member)
+            var racer_bribe = false, track_bribe = false
+            for (var i = 0; i < args.length; i ++){
+                if(args[i].name == "bribe_track"){
+                    random_track = Number(args[i].value)
+                    track_bribe = true
+                    var purchase = {
+                        date: Date.now(),
+                        purchased_item: "track bribe",
+                        selection: Number(args[i].value)
+                    }
+                    profileref.child(member).child("purchases").push(purchase)
+                }
+                if(args[i].name == "bribe_racer"){
+                    random_racer = Number(args[i].value)
+                    racer_bribe = true
+                    var purchase = {
+                        date: Date.now(),
+                        purchased_item: "racer bribe",
+                        selection: Number(args[i].value)
+                    }
+                    profileref.child(member).child("purchases").push(purchase)
+                }
+            }
 
             var memarray = []
             if (Member.voice.channel) {
@@ -295,6 +318,14 @@ module.exports = {
                 }
 
             }
+            var bribed_racer = "", bribed_track = ""
+            if(racer_bribe){
+                bribed_racer = "*"
+            }
+            if(track_bribe){
+                bribed_track = "*"
+            }
+
             var current = {
                 start: challengestart,
                 completed: false,
@@ -376,7 +407,7 @@ module.exports = {
 
                 flag = racers[random_racer].flag
                 var eColor = ""
-                eTitle = "Race as **" + flag + " " + racers[random_racer].name + "** (" + (random_racer + 1) + ")" + nutext + " on **" + tracks[random_track].name + "** (" + (random_track + 1) + ")" + laptext + skipstext + mirrortext
+                eTitle = "Race as **" + bribed_racer + flag + " "+racers[random_racer].name + bribed_racer + "** (" + (random_racer + 1) + ")" + nutext + " on **" + bribed_track + tracks[random_track].name  + bribed_track + "** (" + (random_track + 1) + ")" + laptext + skipstext + mirrortext
                 if (vc) {
                     eAuthor = ["Multiplayer Challenge", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/160/twitter/259/chequered-flag_1f3c1.png"]
                 } else {

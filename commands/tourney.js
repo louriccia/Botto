@@ -13,21 +13,7 @@ module.exports = {
          //filters out other tracks
         for (let i = 0; i<args.length; i++) {
             if (args[i].name == "track") {
-                var input = args[i].value.toLowerCase()
-                for(let i = 0; i<tracks.length; i++){
-                    if(input == tracks[i].name.toLowerCase() || input == tracks[i].name.toLowerCase().replace(/ /g, '')){
-                        trak = i
-                        i = tracks.length
-                    }
-                    if(i<tracks.length){
-                        tracks[i].nickname.forEach(nick => {
-                            if(nick.toLowerCase() == input){
-                                trak = i
-                                i = tracks.length
-                            }
-                        })    
-                    }
-                }
+                trak = Number(args[i].value)
                 tourneyReport
                     .setTitle(tracks[trak].name + " | Tournament Times")
                     .setColor(planets[tracks[trak].planet].color)
