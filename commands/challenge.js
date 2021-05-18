@@ -669,6 +669,42 @@ module.exports = {
                 }
                 return newEmbed
             }
+            function rerollChallenge(){
+                var played = false
+                var record_holder = null
+                for (var i = 0; i < best.length; i++){
+                    if(best[i].user == member){
+                        played = true
+                    }
+                    if(record_holder !== null){
+                        if(best[i].time < record_holder.time){
+                            record_holder = best[i]
+                        }
+                    } else {
+                        record_holder = best[i]
+                    }
+                }
+                var reroll = truguts.reroll
+                if(played){
+                    reroll = truguts.reroll_discount
+                }
+                if(record_holder.user == member){
+                    reroll = 0
+                }
+                var selection = "full price"
+                if(played){
+                    selection = "discount"
+                }
+                var purchase = {
+                    date: Date.now(),
+                    purchased_item: "reroll",
+                    selection: selection
+                }
+                if(reroll > 0){
+                    profileref.child(member).child("purchases").push(purchase)
+                }
+                return (reroll)
+            }
             async function sendResponse() {
                 var response = null
                 if (interaction.name == "fake") {
@@ -737,8 +773,9 @@ module.exports = {
                             collected = true
                             collecting = false
                             title = ":arrows_counterclockwise: Rerolled: "
-                            eTitle = "~~" + eTitle + "~~"
+                            eTitle = "~~" + eTitle + "~~\n` -💿" + rerollChallenge() +"`"
                             profileref.child(member).child("current").update({ completed: true })
+                            
                             try {
 
                                 sentMessage.reactions.removeAll().catch()
@@ -842,6 +879,7 @@ module.exports = {
                                     collected = true
                                     collecting = false
                                     title = ":arrows_counterclockwise: Rerolled: "
+                                    eTitle = "~~" + eTitle + "~~\n` -💿" + rerollChallenge() +"`"
                                     profileref.child(member).child("current").update({ completed: true })
                                     try {
                                         sentMessage.reactions.removeAll().catch()
