@@ -381,7 +381,7 @@ module.exports = {
                 }
                 //build description
                 var desc = ""
-                var reroll_description
+                var reroll_description = ""
                 if (Math.random() < 0.50 && best.length > 0) {
                     best.sort(function (a, b) {
                         return a.time - b.time;
@@ -674,6 +674,7 @@ module.exports = {
                 return newEmbed
             }
             function rerollChallenge(){
+                reroll_description = ""
                 var played = false
                 var record_holder = null
                 for (var i = 0; i < best.length; i++){
