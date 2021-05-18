@@ -173,7 +173,7 @@ module.exports = {
             }
             var feedback = {}
             var keys = Object.keys(feedbackdata)
-            for (var i = 0; i < keys; i++) {
+            for (var i = 0; i < keys.length; i++) {
                 var k = keys[i]
                 if (feedbackdata[k].user == player) {
                     feedback[feedbackdata[k].track + " " + feedbackdata[k].racer + " " + feedbackdata[k].skips + " " + feedbackdata[k].nu + " " + feedbackdata[k].laps + " " + feedbackdata[k].mirror] = 0
@@ -182,7 +182,6 @@ module.exports = {
             var fb = Object.keys(feedback)
             report.rated += fb.length
             report.total = report.earnings + report.mp * truguts.mp + report.non_standard * truguts.non_standard + report.beat * truguts.beat_opponent + report.pb * truguts.personal_best + report.first * truguts.first + report.rated * truguts.rated
-            console.log(report)
             return report
         }
 
