@@ -1227,7 +1227,7 @@ module.exports = {
             })
         } else if (args[0].name == "profile") {
             var member = interaction.member.user.id
-            console.log(trugutsEarned(member))
+           
             const Guild = client.guilds.cache.get(interaction.guild_id); // Getting the guild.
             const Member = Guild.members.cache.get(member); // Getting the member.
             if (args[0].hasOwnProperty("options")) {
@@ -1235,7 +1235,7 @@ module.exports = {
                     member = args[0].options[0].value
                 }
             }
-            //trugutsEarned(member)
+            console.log(trugutsEarned(member))
             var keys = Object.keys(challengedata)
             var stats = {
                 total: 0,
