@@ -216,24 +216,24 @@ module.exports = {
             const Guild = client.guilds.cache.get(interaction.guild_id)
             const Member = Guild.members.cache.get(member)
             var racer_bribe = false, track_bribe = false
-            for (var i = 0; i < args.length; i ++){
-                if(args[i].name == "bribe_track"){
-                    random_track = Number(args[i].value)
+            for (var i = 0; i < args[0].options.length; i ++){
+                if(args[0].options[i].name == "bribe_track"){
+                    random_track = Number(args[0].options[i].value)
                     track_bribe = true
                     var purchase = {
                         date: Date.now(),
                         purchased_item: "track bribe",
-                        selection: Number(args[i].value)
+                        selection: Number(args[0].options[i].value)
                     }
                     profileref.child(member).child("purchases").push(purchase)
                 }
-                if(args[i].name == "bribe_racer"){
-                    random_racer = Number(args[i].value)
+                if(args[0].options[i].name == "bribe_racer"){
+                    random_racer = Number(args[0].options[i].value)
                     racer_bribe = true
                     var purchase = {
                         date: Date.now(),
                         purchased_item: "racer bribe",
-                        selection: Number(args[i].value)
+                        selection: Number(args[0].options[i].value)
                     }
                     profileref.child(member).child("purchases").push(purchase)
                 }
