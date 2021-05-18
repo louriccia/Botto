@@ -230,7 +230,7 @@ module.exports = {
                                     selection: Number(args[0].options[i].value)
                                 }
                                 profileref.child(member).child("purchases").push(purchase)
-                                profileref[member].truguts_spent += truguts.bribe_track
+                                profileref.child(member).child("truguts_spent").set(rofileref[member].truguts_spent + truguts.bribe_track)
                             } else {
                                 var noMoney = new Discord.MessageEmbed()
                                 noMoney
@@ -251,12 +251,12 @@ module.exports = {
                                     selection: Number(args[0].options[i].value)
                                 }
                                 profileref.child(member).child("purchases").push(purchase)
-                                profileref[member].truguts_spent += truguts.bribe_racer
+                                profileref.child(member).child("truguts_spent").set(profileref[member].truguts_spent + truguts.bribe_racer)
                             } else {
                                 var noMoney = new Discord.MessageEmbed()
                                 noMoney
                                     .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
-                                    .setDescription("*'No money, no challenge, no bribe!'*\nYou do not have enough truguts to make this bribe.\n\nCurrent balance: `" + profileref[member].truguts_earned - profileref[member].truguts_spent + "`\Bribe cost: `" + truguts.bribe_racer + "`")
+                                    .setDescription("*'No money, no challenge, no bribe!'*\nYou do not have enough truguts to make this bribe.\n\nCurrent balance: `" + profileref[member].truguts_earned - profileref[member].truguts_spent + "`\nBribe cost: `" + truguts.bribe_racer + "`")
                                 sentMessage.channel.send(noMoney)
                                 return
                             }
@@ -372,7 +372,7 @@ module.exports = {
             var reroll_description = ""
             function rerollChallenge(best) {
                 if (best == undefined) {
-                    if (profileref[member].truguts_earned - profileref[member].truguts_spent > reroll) {
+                    if (profileref.[member].truguts_earned - profileref[member].truguts_spent > reroll) {
                         return true
                     } else {
                         return false
@@ -412,7 +412,7 @@ module.exports = {
 
                 if (reroll > 0) {
                     profileref.child(member).child("purchases").push(purchase)
-                    profileref[member].truguts_spent += reroll
+                    profileref.child(member).child("truguts_spent").set(profileref[member].truguts_spent + reroll)
                 }
                 if (reroll == truguts.reroll_discount) {
                     reroll_description = "`-💿" + truguts.reroll_discount + "` (discounted)"
@@ -722,9 +722,9 @@ module.exports = {
                         earnings_total += truguts.rated
                     }
                     if(!rated){
-                        profileref[member].truguts_earned += earnings_total
+                        profileref.child(member).child("truguts_earned").update += earnings_total
                     } else {
-                        profileref[member].truguts_earned += truguts.rated
+                        profileref.child(member).truguts_earned += truguts.rated
                     }
                     
                     earnings += "\n**Total: **`💿" + earnings_total + "`"
@@ -836,7 +836,7 @@ module.exports = {
                                 var noMoney = new Discord.MessageEmbed()
                                 noMoney
                                     .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
-                                    .setDescription("*'No money, no challenge, no reroll!'*\nYou do not have enough truguts to reroll this challenge.\n\nCurrent balance: `" + profileref[member].truguts_earned - profileref[member].truguts_spent + "`\nReroll cost: `" + truguts.reroll + "`")
+                                    .setDescription("*'No money, no challenge, no reroll!'*\nYou do not have enough truguts to reroll this challenge.\n\nCurrent balance: `" + profileref.child(member).truguts_earned - profileref.child(member).truguts_spent + "`\nReroll cost: `" + truguts.reroll + "`")
                                 sentMessage.channel.send(noMoney)
                             }
 
@@ -949,7 +949,7 @@ module.exports = {
                                         var noMoney = new Discord.MessageEmbed()
                                         noMoney
                                             .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
-                                            .setDescription("*'No money, no challenge, no reroll!'*\nYou do not have enough truguts to reroll this challenge.\n\nCurrent balance: `" + profileref[member].truguts_earned - profileref[member].truguts_spent + "`\nReroll cost: `" + truguts.reroll + "`")
+                                            .setDescription("*'No money, no challenge, no reroll!'*\nYou do not have enough truguts to reroll this challenge.\n\nCurrent balance: `" + profileref.child(member).truguts_earned - profileref.child(member).truguts_spent + "`\nReroll cost: `" + truguts.reroll + "`")
                                         sentMessage.channel.send(noMoney)
                                     }
                                 }
