@@ -248,7 +248,7 @@ module.exports = {
                                     selection: Number(args[0].options[i].value)
                                 }
                                 profileref.child(member).child("purchases").push(purchase)
-                                profileref.child(member).update({truguts_spent:rofileref[member].truguts_spent + truguts.bribe_track})
+                                profileref.child(member).update({truguts_spent:profileref[member].truguts_spent + truguts.bribe_track})
                             } else {
                                 var noMoney = new Discord.MessageEmbed()
                                 noMoney
