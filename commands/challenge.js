@@ -246,7 +246,7 @@ module.exports = {
                                     selection: Number(args[0].options[i].value)
                                 }
                                 profileref.child(member).child("purchases").push(purchase)
-                                profileref.child(member).child("truguts_spent").set(rofileref[member].truguts_spent + truguts.bribe_track)
+                                profileref.child(member).update({truguts_spent:rofileref[member].truguts_spent + truguts.bribe_track})
                             } else {
                                 var noMoney = new Discord.MessageEmbed()
                                 noMoney
@@ -267,7 +267,7 @@ module.exports = {
                                     selection: Number(args[0].options[i].value)
                                 }
                                 profileref.child(member).child("purchases").push(purchase)
-                                profileref.child(member).child("truguts_spent").set(profiledata[member].truguts_spent + truguts.bribe_racer)
+                                profileref.child(member).update({truguts_spent: profiledata[member].truguts_spent + truguts.bribe_racer})
                             } else {
                                 var noMoney = new Discord.MessageEmbed()
                                 noMoney
@@ -429,7 +429,7 @@ module.exports = {
 
                 if (reroll > 0) {
                     profileref.child(member).child("purchases").push(purchase)
-                    profileref.child(member).child("truguts_spent").set(profiledata[member].truguts_spent + reroll)
+                    profileref.child(member).update({truguts_spent:profiledata[member].truguts_spent + reroll})
                 }
                 if (reroll == truguts.reroll_discount) {
                     reroll_description = "`-💿" + truguts.reroll_discount + "` (discounted)"
@@ -739,13 +739,13 @@ module.exports = {
                         earnings_total += truguts.rated
                     }
                     if (!rated) {
-                        profileref.child(member).child("truguts_earned").set(profiledata[member].truguts_earned + earnings_total)
+                        profileref.child(member).update({truguts_earned:profiledata[member].truguts_earned + earnings_total})
                     } else {
-                        profileref.child(member).child("truguts_earned").set(profiledata[member].truguts_earned + truguts.rated)
+                        profileref.child(member).update({truguts_earned:profiledata[member].truguts_earned + truguts.rated})
                     }
 
                     earnings += "\n**Total: **`💿" + earnings_total + "`"
-                    profileref.child(member).child("current").child("truguts").update(earnings_total)
+                    profileref.child(member).child("current").update({truguts:earnings_total})
                 }
                 const newEmbed = new Discord.MessageEmbed()
                     .setTitle(title + eTitle)
@@ -865,7 +865,7 @@ module.exports = {
                         } else if (reaction.emoji.name === '↩️') { //undo
                             for (let i = 0; i < collection.length; i++) {
                                 if (collection[i].user == user.id) {
-                                    profileref.child(member).child("truguts_earned").set(profiledata[member].truguts_earned - profiledata[member].current.truguts)
+                                    profileref.child(member).update({truguts_earned:profiledata[member].truguts_earned - profiledata[member].current.truguts})
                                     ref.child(collection[i].record).remove()
                                     best.splice(collection[i].index, 1)
                                     title = ""
