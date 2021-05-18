@@ -197,7 +197,9 @@ module.exports = {
                     no_upgrades: 15,
                     non_3_lap: 5,
                     skips: 25,
-                    winnings: 1
+                    winnings: 1,
+                    truguts_earned: 0,
+                    truguts_spent: 0
                 }
                 profileref.child(member).set(data)
             }
@@ -755,7 +757,7 @@ module.exports = {
                     }
                     if (pb) {
                         earnings += "PB `+📀" + tools.numberWithCommas(truguts.pb) + "`\n"
-                        earnings_total += truguts.pb
+                        earnings_total += truguts.personal_best
                     }
                     if (first) {
                         earnings += "First `+📀" + tools.numberWithCommas(truguts.first) + "`\n"
@@ -1370,7 +1372,7 @@ module.exports = {
                 var achvs = Object.keys(achievements)
                 for (var i = 0; i < achvs.length; i++) {
                     var a = achvs[i]
-                    achievements[a].count = Object.keys(achievements[a].collection)
+                    achievements[a].count = Object.keys(achievements[a].collection).length
                     if(achievements[a].name == "Big-Time Swindler"){
                         achievements[a].count = profiledata[member].truguts_spent + profiledata[member].truguts_earned
                     }
