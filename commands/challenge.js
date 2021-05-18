@@ -863,6 +863,7 @@ module.exports = {
                                     sentMessage.reactions.removeAll().catch()
                                     sentMessage.edit("", createEmbed()).then(sentMessage.delete({ timeout: 10000, reason: 'bot cleanup' }))
                                 } catch { }
+                                args[0].options = undefined
                                 client.commands.get("challenge").execute(client, fakeinteraction, args);
                             } else {
                                 var noMoney = new Discord.MessageEmbed()
