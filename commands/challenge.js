@@ -192,6 +192,22 @@ module.exports = {
             var vc = false
             var challengestart = Date.now()
             //send embed
+            if (profiledata[member].current.completed == false && profiledata[member].current.start > challengestart - 900000) {
+                var noMoney = new Discord.MessageEmbed()
+                noMoney
+                    .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
+                    .setDescription("*'No money, no challenge, no reroll!'*\nYou do not have enough truguts to reroll this challenge.\n\nCurrent balance: `" + (profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`\nReroll cost: `" + truguts.reroll + "`")
+                client.api.interactions(interaction.id, interaction.token).callback.post({
+                    data: {
+                        type: 4,
+                        data: {
+                            //content: "\u200B"
+                            embeds: [noMoney]
+                        }
+                    }
+                })
+                return
+            }
             if (interaction.name !== "fake") {
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
@@ -721,12 +737,12 @@ module.exports = {
                         earnings += "Rated `+💿" + truguts.rated + "`\n"
                         earnings_total += truguts.rated
                     }
-                    if(!rated){
+                    if (!rated) {
                         profileref.child(member).child("truguts_earned").update += earnings_total
                     } else {
                         profileref.child(member).truguts_earned += truguts.rated
                     }
-                    
+
                     earnings += "\n**Total: **`💿" + earnings_total + "`"
                 }
                 const newEmbed = new Discord.MessageEmbed()
@@ -945,13 +961,13 @@ module.exports = {
                                             sentMessage.edit("", createEmbed()).then(sentMessage.delete({ timeout: 10000, reason: 'bot cleanup' }))
                                             client.removeListener('mesageUpdate', listener)
                                         } catch { }
-                                    } else {
+                                    }/* else {
                                         var noMoney = new Discord.MessageEmbed()
                                         noMoney
                                             .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
                                             .setDescription("*'No money, no challenge, no reroll!'*\nYou do not have enough truguts to reroll this challenge.\n\nCurrent balance: `" + (profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`\nReroll cost: `" + truguts.reroll + "`")
                                         sentMessage.channel.send(noMoney)
-                                    }
+                                    }*/
                                 }
                             }
                         }
