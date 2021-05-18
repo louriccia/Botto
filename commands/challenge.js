@@ -216,28 +216,33 @@ module.exports = {
             const Guild = client.guilds.cache.get(interaction.guild_id)
             const Member = Guild.members.cache.get(member)
             var racer_bribe = false, track_bribe = false
-            for (var i = 0; i < args[0].options.length; i ++){
-                if(args[0].options[i].name == "bribe_track"){
-                    random_track = Number(args[0].options[i].value)
-                    track_bribe = true
-                    var purchase = {
-                        date: Date.now(),
-                        purchased_item: "track bribe",
-                        selection: Number(args[0].options[i].value)
+            if (args !== undefined){
+                if(args[0].options !== undefined){
+                    for (var i = 0; i < args[0].options.length; i ++){
+                        if(args[0].options[i].name == "bribe_track"){
+                            random_track = Number(args[0].options[i].value)
+                            track_bribe = true
+                            var purchase = {
+                                date: Date.now(),
+                                purchased_item: "track bribe",
+                                selection: Number(args[0].options[i].value)
+                            }
+                            profileref.child(member).child("purchases").push(purchase)
+                        }
+                        if(args[0].options[i].name == "bribe_racer"){
+                            random_racer = Number(args[0].options[i].value)
+                            racer_bribe = true
+                            var purchase = {
+                                date: Date.now(),
+                                purchased_item: "racer bribe",
+                                selection: Number(args[0].options[i].value)
+                            }
+                            profileref.child(member).child("purchases").push(purchase)
+                        }
                     }
-                    profileref.child(member).child("purchases").push(purchase)
-                }
-                if(args[0].options[i].name == "bribe_racer"){
-                    random_racer = Number(args[0].options[i].value)
-                    racer_bribe = true
-                    var purchase = {
-                        date: Date.now(),
-                        purchased_item: "racer bribe",
-                        selection: Number(args[0].options[i].value)
-                    }
-                    profileref.child(member).child("purchases").push(purchase)
                 }
             }
+            
 
             var memarray = []
             if (Member.voice.channel) {
@@ -312,7 +317,7 @@ module.exports = {
             }
             if (laps !== 3) {
                 if (laps == 1) {
-                    laptext = " for **" + laps + " lap(s)**"
+                    laptext = " for **" + laps + " lap**"
                 } else {
                     laptext = " for **" + laps + " lap(s)**"
                 }
@@ -320,10 +325,10 @@ module.exports = {
             }
             var bribed_racer = "", bribed_track = ""
             if(racer_bribe){
-                bribed_racer = "*"
+                bribed_racer = " :moneybag: *"
             }
             if(track_bribe){
-                bribed_track = "*"
+                bribed_track = " :moneybag: *"
             }
 
             var current = {
