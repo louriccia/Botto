@@ -791,7 +791,6 @@ module.exports = {
                             title = ":arrows_counterclockwise: Rerolled: "
                             eTitle = "~~" + eTitle + "~~"
                             profileref.child(member).child("current").update({ completed: true })
-                            rerollChallenge()
                             try {
 
                                 sentMessage.reactions.removeAll().catch()
@@ -895,7 +894,6 @@ module.exports = {
                                     collected = true
                                     collecting = false
                                     title = ":arrows_counterclockwise: Rerolled: "
-                                    rerollChallenge()
                                     eTitle = "~~" + eTitle + "~~"
                                     profileref.child(member).child("current").update({ completed: true })
                                     try {
