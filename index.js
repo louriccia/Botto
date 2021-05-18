@@ -116,6 +116,7 @@ client.once('ready', () => {
             if (profiledata[k].current !== undefined) {
                 if (profiledata[k].current.completed == false) {
                     var recovery_channel = client.channels.cache.get(profiledata[k].current.channel)
+                    console.log("dead challenge found for " + profileref.child(k).name)
                     profileref.child(k).child("current").child("completed").set(true)
                     if (profiledata[k].current.message !== undefined) {
                         recovery_channel.messages.fetch(profiledata[k].current.message) //delete old challenge message

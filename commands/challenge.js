@@ -204,6 +204,8 @@ module.exports = {
                     }
                 })
 
+            } else {
+                console.log("reviving challenge...")
             }
 
             var random_racer = Math.floor(Math.random() * 23)
@@ -216,10 +218,10 @@ module.exports = {
             const Guild = client.guilds.cache.get(interaction.guild_id)
             const Member = Guild.members.cache.get(member)
             var racer_bribe = false, track_bribe = false
-            if (args !== undefined){
-                if(args[0].options !== undefined){
-                    for (var i = 0; i < args[0].options.length; i ++){
-                        if(args[0].options[i].name == "bribe_track"){
+            if (args !== undefined) {
+                if (args[0].options !== undefined) {
+                    for (var i = 0; i < args[0].options.length; i++) {
+                        if (args[0].options[i].name == "bribe_track") {
                             random_track = Number(args[0].options[i].value)
                             track_bribe = true
                             var purchase = {
@@ -229,7 +231,7 @@ module.exports = {
                             }
                             profileref.child(member).child("purchases").push(purchase)
                         }
-                        if(args[0].options[i].name == "bribe_racer"){
+                        if (args[0].options[i].name == "bribe_racer") {
                             random_racer = Number(args[0].options[i].value)
                             racer_bribe = true
                             var purchase = {
@@ -242,7 +244,7 @@ module.exports = {
                     }
                 }
             }
-            
+
 
             var memarray = []
             if (Member.voice.channel) {
@@ -324,10 +326,10 @@ module.exports = {
 
             }
             var bribed_racer = "", bribed_track = ""
-            if(racer_bribe){
+            if (racer_bribe) {
                 bribed_racer = " :moneybag: *"
             }
-            if(track_bribe){
+            if (track_bribe) {
                 bribed_track = " :moneybag: *"
             }
 
@@ -345,6 +347,7 @@ module.exports = {
             if (!vc) {
                 profileref.child(member).child("current").set(current)
             }
+            var rated = false
             //build embed
             var eAuthor = [], eTitle = "", title = "", highlight = "", eGoalTimes = [], best = []
             function createEmbed() {
@@ -412,7 +415,7 @@ module.exports = {
 
                 flag = racers[random_racer].flag
                 var eColor = ""
-                eTitle = "Race as **" + bribed_racer + flag + " "+racers[random_racer].name + bribed_racer + "** (" + (random_racer + 1) + ")" + nutext + " on **" + bribed_track + tracks[random_track].name  + bribed_track + "** (" + (random_track + 1) + ")" + laptext + skipstext + mirrortext
+                eTitle = "Race as **" + bribed_racer + flag + " " + racers[random_racer].name + bribed_racer + "** (" + (random_racer + 1) + ")" + nutext + " on **" + bribed_track + tracks[random_track].name + bribed_track + "** (" + (random_track + 1) + ")" + laptext + skipstext + mirrortext
                 if (vc) {
                     eAuthor = ["Multiplayer Challenge", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/160/twitter/259/chequered-flag_1f3c1.png"]
                 } else {
@@ -469,8 +472,9 @@ module.exports = {
                         best.push(challengedata[k])
                     }
                 }
-                var besttimes = "Be the first to submit a time for this challenge!"
+                var besttimes = "Be the first to submit a time for this challenge! \n `+💿" + truguts.first + "`"
                 var pos = ["<:P1:671601240228233216> ", "<:P2:671601321257992204> ", "<:P3:671601364794605570> ", "4th ", "5th ", "6th ", "7th ", "8th ", "9th ", "10th "]
+                var submitted_time = null
                 if (best.length > 0) {
                     besttimes = ""
                     best.sort(function (a, b) {
@@ -485,6 +489,7 @@ module.exports = {
                         if ((!vc && !already.includes(best[i].name) || best[i].name == interaction.member.user.username) || (vc && !already.includes(best[i].name))) {
                             if (best[i].date == date) {
                                 besttimes = besttimes + pos[0] + "**" + tools.timefix(best[i].time) + " - " + best[i].name + " <a:newrecord:672640831882133524>**\n"
+                                submitted_time = best[i]
                             } else if (date == "" && best[i].name == interaction.member.user.username && !vc) {
                                 besttimes = besttimes + pos[0] + "**" + tools.timefix(best[i].time) + " - " + best[i].name + "**\n"
                             } else {
@@ -572,6 +577,61 @@ module.exports = {
                         }
                     }
                 }
+                var earnings = ""
+                //construct winnings text
+                var winnings_text = null
+                for (var i = 4; i > -1; i--) {
+                    if (submitted_time.time < goals[i]) {
+                        winnings_text = i
+                    }
+                }
+                earnings += goal_symbols[winnings_text] + " " + goal_earnings[winnings_text] + "\n"
+                if (vc) {
+                    winnings_text += "MP `+💿" + truguts.mp + "`\n"
+                }
+                var winnings_non_standard = 0
+                if (submitted_time.skips && submitted_time.settings.skips <= 25) {
+                    winnings_non_standard++
+                }
+                if (submitted_time.mirror && submitted_time.settings.mirror_mode <= 25) {
+                    winnings_non_standard++
+                }
+                if (submitted_time.laps !== 3 && submitted_time.settings.non_3_lap <= 25) {
+                    winnings_non_standard++
+                }
+                if (submitted_time.nu && submitted_time.settings.no_upgrades <= 25) {
+                    winnings_non_standard++
+                }
+                if (winnings_non_standard > 0) {
+                    earnings += "Non-Standard `+💿" + truguts.non_standard + " × " + winnings_non_standard + "`\n"
+                }
+                var first = true, pb = false, beat = []
+                for (var i = 0; i < best.length; i++) {
+                    if (best[i].date < submitted_time.date) {
+                        first = false
+                        if (best[i].user == member && best[i].date !== date) {
+                            pb = true
+                            if (submitted_time.time < best[i].time) {
+                                pb = false
+                            }
+                        }
+                    }
+                    if (best[i].user !== member && submitted_time.time < best[i].time && !beat.includes(best[i].user)) {
+                        beat.push(best[i].user)
+                    }
+                }
+                if (beat.length > 0) {
+                    earnings += "Beat Opponent `+💿" + truguts.beat_opponent + " × " + beat.length + "`\n"
+                }
+                if (pb) {
+                    earnings += "PB `+💿" + truguts.pb + "`\n"
+                }
+                if (first) {
+                    earnings += "First `+💿" + truguts.first + "`\n"
+                }
+                if (rated) {
+                    earnings += "Rated `+💿" + truguts.rated + "`\n"
+                }
                 const newEmbed = new Discord.MessageEmbed()
                     .setTitle(title + eTitle)
                     .setColor(eColor)
@@ -579,8 +639,16 @@ module.exports = {
                     newEmbed
                         .setAuthor(eAuthor[0], eAuthor[1])
                         .setDescription(rating + desc + "\n" + achievement_message.join(", "))
-                        .addField("Goal Times", eGoalTimes, true)
-                        .addField("Best Times", besttimes, true)
+                    if (title == ":white_check_mark: Completed: ") {
+                        newEmbed
+                            .addField("Winnings", earnings, true)
+                            .addField("Best Times", besttimes, true)
+                    } else {
+                        newEmbed
+                            .addField("Goal Times", eGoalTimes, true)
+                            .addField("Best Times", besttimes, true)
+                    }
+
                 } else {
                     newEmbed.setTitle(title + "~~" + eTitle + "~~")
                 }
@@ -625,27 +693,30 @@ module.exports = {
                             channel_id: interaction.channel_id
                         }
                         if (['👍', '👎'].includes(reaction.emoji.name)) { //feedback
-                            if (reaction.emoji.name === '👍') {
-                                feedback = '👍'
-                            } else {
-                                feedback = '👎'
+                            if (rated == false) {
+                                rated = true
+                                if (reaction.emoji.name === '👍') {
+                                    feedback = '👍'
+                                } else {
+                                    feedback = '👎'
+                                }
+                                var feedbackdata = {
+                                    user: user.id,
+                                    name: user.username,
+                                    feedback: feedback,
+                                    date: sentMessage.createdTimestamp,
+                                    racer: random_racer,
+                                    track: random_track,
+                                    laps: laps,
+                                    nu: nu,
+                                    skips: skips,
+                                    mirror: mirror
+                                }
+                                feedbackref.push(feedbackdata);
+                                try {
+                                    sentMessage.edit(createEmbed())
+                                } catch { }
                             }
-                            var feedbackdata = {
-                                user: user.id,
-                                name: user.username,
-                                feedback: feedback,
-                                date: sentMessage.createdTimestamp,
-                                racer: random_racer,
-                                track: random_track,
-                                laps: laps,
-                                nu: nu,
-                                skips: skips,
-                                mirror: mirror
-                            }
-                            feedbackref.push(feedbackdata);
-                            try {
-                                sentMessage.edit(createEmbed())
-                            } catch { }
                         } else if (reaction.emoji.name === '🔄' && !collected) { //reroll
 
                             collected = true
