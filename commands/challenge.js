@@ -221,7 +221,7 @@ module.exports = {
                 if (args[0].options !== undefined) {
                     for (var i = 0; i < args[0].options.length; i++) {
                         if (args[0].options[i].name == "bribe_track") {
-                            if (profileref[member].truguts_earned - profileref[member].truguts_spent > truguts.bribe_track) {
+                            if (profiledata[member].truguts_earned - profiledata[member].truguts_spent > truguts.bribe_track) {
                                 random_track = Number(args[0].options[i].value)
                                 track_bribe = true
                                 var purchase = {
@@ -235,14 +235,14 @@ module.exports = {
                                 var noMoney = new Discord.MessageEmbed()
                                 noMoney
                                     .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
-                                    .setDescription("*'No money, no challenge, no bribe!'*\nYou do not have enough truguts to make this bribe.\n\nCurrent balance: `" + profileref[member].truguts_earned - profileref[member].truguts_spent + "`\nBribe cost: `" + truguts.bribe_track + "`")
+                                    .setDescription("*'No money, no challenge, no bribe!'*\nYou do not have enough truguts to make this bribe.\n\nCurrent balance: `" + profiledata[member].truguts_earned - profiledata[member].truguts_spent + "`\nBribe cost: `" + truguts.bribe_track + "`")
                                 sentMessage.channel.send(noMoney)
                                 return
                             }
 
                         }
                         if (args[0].options[i].name == "bribe_racer") {
-                            if (profileref[member].truguts_earned - profileref[member].truguts_spent > truguts.bribe_racer) {
+                            if (profiledata[member].truguts_earned - profiledata[member].truguts_spent > truguts.bribe_racer) {
                                 random_racer = Number(args[0].options[i].value)
                                 racer_bribe = true
                                 var purchase = {
@@ -251,12 +251,12 @@ module.exports = {
                                     selection: Number(args[0].options[i].value)
                                 }
                                 profileref.child(member).child("purchases").push(purchase)
-                                profileref.child(member).child("truguts_spent").set(profileref[member].truguts_spent + truguts.bribe_racer)
+                                profileref.child(member).child("truguts_spent").set(profiledata[member].truguts_spent + truguts.bribe_racer)
                             } else {
                                 var noMoney = new Discord.MessageEmbed()
                                 noMoney
                                     .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
-                                    .setDescription("*'No money, no challenge, no bribe!'*\nYou do not have enough truguts to make this bribe.\n\nCurrent balance: `" + profileref[member].truguts_earned - profileref[member].truguts_spent + "`\nBribe cost: `" + truguts.bribe_racer + "`")
+                                    .setDescription("*'No money, no challenge, no bribe!'*\nYou do not have enough truguts to make this bribe.\n\nCurrent balance: `" + profiledata[member].truguts_earned - profiledata[member].truguts_spent + "`\nBribe cost: `" + truguts.bribe_racer + "`")
                                 sentMessage.channel.send(noMoney)
                                 return
                             }
@@ -372,7 +372,7 @@ module.exports = {
             var reroll_description = ""
             function rerollChallenge(best) {
                 if (best == undefined) {
-                    if (profileref[member].truguts_earned - profileref[member].truguts_spent > reroll) {
+                    if (profiledata[member].truguts_earned - profiledata[member].truguts_spent > reroll) {
                         return true
                     } else {
                         return false
@@ -412,7 +412,7 @@ module.exports = {
 
                 if (reroll > 0) {
                     profileref.child(member).child("purchases").push(purchase)
-                    profileref.child(member).child("truguts_spent").set(profileref[member].truguts_spent + reroll)
+                    profileref.child(member).child("truguts_spent").set(profiledata[member].truguts_spent + reroll)
                 }
                 if (reroll == truguts.reroll_discount) {
                     reroll_description = "`-💿" + truguts.reroll_discount + "` (discounted)"
