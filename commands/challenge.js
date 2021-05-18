@@ -429,23 +429,24 @@ module.exports = {
                     circuits[tracks[random_track].circuit].winnings[profiledata[member].winnings][3],
                     0
                 ]
+                var goal_earnings_text = []
                 for (var i = 0; i < goal_earnings.length; i++) {
                     if (!vc) {
                         if (goal_earnings[i] == 0) {
-                            goal_earnings[i] = ""
+                            goal_earnings_text[i] = ""
                         } else {
-                            goal_earnings[i] = "  `+💿" + goal_earnings[i] + "`"
+                            goal_earnings_text[i] = "  `+💿" + goal_earnings[i] + "`"
                         }
                     } else {
-                        goal_earnings[i] = ""
+                        goal_earnings_text[i] = ""
                     }
 
                 }
                 eGoalTimes = goal_symbols[0] + " " + tools.timefix(goals[0]) + goal_earnings[0] + "\n" +
-                    goal_symbols[1] + " " + tools.timefix(goals[1]) + goal_earnings[1] + "\n" +
-                    goal_symbols[2] + " " + tools.timefix(goals[2]) + goal_earnings[2] + "\n" +
-                    goal_symbols[3] + " " + tools.timefix(goals[3]) + goal_earnings[3] + "\n" +
-                    goal_symbols[4] + " " + tools.timefix(goals[4]) + goal_earnings[4]
+                    goal_symbols[1] + " " + tools.timefix(goals[1]) + goal_earnings_text[1] + "\n" +
+                    goal_symbols[2] + " " + tools.timefix(goals[2]) + goal_earnings_text[2] + "\n" +
+                    goal_symbols[3] + " " + tools.timefix(goals[3]) + goal_earnings_text[3] + "\n" +
+                    goal_symbols[4] + " " + tools.timefix(goals[4]) + goal_earnings_text[4]
                 //tally likes and dislikes
                 var rating = ""
                 var like = 0, dislike = 0, keys = Object.keys(feedbackdata)
@@ -578,6 +579,7 @@ module.exports = {
                     }
                 }
                 var earnings = ""
+                var earnings_total = 0
                 //construct winnings text
                 if (title == ":white_check_mark: Completed: ") {
                     var winnings_text = null
@@ -586,9 +588,13 @@ module.exports = {
                             winnings_text = i
                         }
                     }
-                    earnings += goal_symbols[winnings_text] + " " + goal_earnings[winnings_text] + "\n"
+                    if(goal_earnings[winnings_text] > 0) {
+                        earnings += goal_symbols[winnings_text] + " " + goal_earnings[winnings_text] + "\n"
+                        earnings_total += goal_earnings[winnings_text]
+                    }
                     if (vc) {
                         winnings_text += "MP `+💿" + truguts.mp + "`\n"
+                        earnings_total += truguts.mp
                     }
                     var winnings_non_standard = 0
                     if (submitted_time.skips && submitted_time.settings.skips <= 25) {
@@ -605,6 +611,7 @@ module.exports = {
                     }
                     if (winnings_non_standard > 0) {
                         earnings += "Non-Standard `+💿" + truguts.non_standard + " × " + winnings_non_standard + "`\n"
+                        earnings_total += truguts.non_standard*winnings_non_standard
                     }
                     var first = true, pb = false, beat = []
                     for (var i = 0; i < best.length; i++) {
@@ -612,7 +619,7 @@ module.exports = {
                             first = false
                             if (best[i].user == member && best[i].date !== date) {
                                 pb = true
-                                if (submitted_time.time < best[i].time) {
+                                if (submitted_time.time > best[i].time) {
                                     pb = false
                                 }
                             }
@@ -623,16 +630,22 @@ module.exports = {
                     }
                     if (beat.length > 0) {
                         earnings += "Beat Opponent `+💿" + truguts.beat_opponent + " × " + beat.length + "`\n"
+                        earnings_total += truguts.beat_opponent*beat.length
                     }
                     if (pb) {
                         earnings += "PB `+💿" + truguts.pb + "`\n"
+                        earnings_total += truguts.pb
                     }
                     if (first) {
                         earnings += "First `+💿" + truguts.first + "`\n"
+                        earnings_total += truguts.first
                     }
                     if (rated) {
                         earnings += "Rated `+💿" + truguts.rated + "`\n"
+                        earnings_total += truguts.rated
                     }
+
+                    earnings += "\n**Total: **" + earnings_total
                 }
                 const newEmbed = new Discord.MessageEmbed()
                     .setTitle(title + eTitle)
