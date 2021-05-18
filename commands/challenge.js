@@ -193,7 +193,8 @@ module.exports = {
             var challengestart = Date.now()
             //send embed
             if (profiledata[member].current.completed == false && profiledata[member].current.start > challengestart - 900000) {
-                var noMoney = new Discord.MessageEmbed()
+                if(profiledata[member].truguts_earned - profiledata[member].truguts_spent < truguts.reroll){
+                    var noMoney = new Discord.MessageEmbed()
                 noMoney
                     .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
                     .setDescription("*'No money, no challenge, no reroll!'*\nYou do not have enough truguts to reroll this challenge.\n\nCurrent balance: `" + (profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`\nReroll cost: `" + truguts.reroll + "`")
@@ -207,6 +208,7 @@ module.exports = {
                     }
                 })
                 return
+                }
             }
             if (interaction.name !== "fake") {
                 client.api.interactions(interaction.id, interaction.token).callback.post({
