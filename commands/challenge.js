@@ -865,7 +865,7 @@ module.exports = {
                         } else if (reaction.emoji.name === '↩️') { //undo
                             for (let i = 0; i < collection.length; i++) {
                                 if (collection[i].user == user.id) {
-                                    profileref.child(member).child("truguts_earned").update(profiledata[member].truguts_earned - profiledata[member].current.truguts)
+                                    profileref.child(member).child("truguts_earned").update({truguts: profiledata[member].truguts_earned - profiledata[member].current.truguts})
                                     ref.child(collection[i].record).remove()
                                     best.splice(collection[i].index, 1)
                                     title = ""
