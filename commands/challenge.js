@@ -30,13 +30,14 @@ module.exports = {
 
 
         var achievements = {
-            galaxy_famous: { name: "Galaxy Famous", description: "Complete a challenge on every track", role: "819514261289828362", limit: 25, collection: {} },
-            pod_champ: { name: "Pod Champ", description: "Complete a challenge with every pod", role: "819514029218463774", limit: 23, collection: {} },
-            light_skipper: { name: "Lightspeed Skipper", description: "Complete a Skip challenge on every track with a skip", role: "819514330985922621", limit: 12, collection: {} },
-            slow_steady: { name: "Slow 'n Steady", description: "Complete a No Upgrades challenge with every pod", role: "819514431472926721", limit: 23, collection: {} },
-            mirror_dimension: { name: "Mirror Dimension", description: "Complete a Mirrored challenge on every track", role: "843573636119134219", limit: 25, collection: {} },
-            crowd_favorite: { name: "Crowd Favorite", description: "Complete a challenge as the track favorite on every track", role: "819514487852761138", limit: 25, collection: {} },
-            true_jedi: { name: "True Jedi", description: "Complete a challenge with every pod on every track", role: "819514600827519008", limit: 575, collection: {} }
+            galaxy_famous: { name: "Galaxy Famous", description: "Complete a challenge on every track", role: "819514261289828362", limit: 25, count: 0, collection: {} },
+            pod_champ: { name: "Pod Champ", description: "Complete a challenge with every pod", role: "819514029218463774", limit: 23, count: 0, collection: {} },
+            light_skipper: { name: "Lightspeed Skipper", description: "Complete a Skip challenge on every track with a skip", role: "819514330985922621", limit: 12, count: 0, collection: {} },
+            slow_steady: { name: "Slow 'n Steady", description: "Complete a No Upgrades challenge with every pod", role: "819514431472926721", limit: 23, count: 0, collection: {} },
+            mirror_dimension: { name: "Mirror Dimension", description: "Complete a Mirrored challenge on every track", role: "843573636119134219", limit: 25, count: 0, collection: {} },
+            crowd_favorite: { name: "Crowd Favorite", description: "Complete a challenge as the track favorite on every track", role: "819514487852761138", limit: 25, count: 0, collection: {} },
+            true_jedi: { name: "True Jedi", description: "Complete a challenge with every pod on every track", role: "819514600827519008", limit: 575, count: 0, collection: {} },
+            big_time_swindler: { name: "Big-Time Swindler", description: "Earn or spend 1,000,000 total truguts", role: "844307520997949481", limit: 1000000, count: 0, collection: {} }
         }
 
         var truguts = {
@@ -436,17 +437,18 @@ module.exports = {
                     profileref.child(member).update({truguts_spent:profiledata[member].truguts_spent + reroll})
                 }
                 if (reroll == truguts.reroll_discount) {
-                    reroll_description = "`-💿" + truguts.reroll_discount + "` (discounted)\nCurrent balance: `" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`"
+                    reroll_description = "`-📀" + truguts.reroll_discount + "` (discounted)\nCurrent balance: `" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`"
                 } else if (reroll == 0) {
                     reroll_description = "(no charge for record holders)"
                 } else {
-                    reroll_description = "`-💿" + truguts.reroll + "`\nCurrent balance: `" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`"
+                    reroll_description = "`-📀" + truguts.reroll + "`\nCurrent balance: `" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`"
                 }
                 return reroll_description
 
 
             }
             //build embed
+            var undone = false
             var eAuthor = [], eTitle = "", title = "", highlight = "", eGoalTimes = [], best = []
             function createEmbed() {
                 best = []
@@ -507,10 +509,10 @@ module.exports = {
                     }
                 }
                 if(racer_bribe){
-                    desc += "\nBribed racer `-💿" + truguts.bribe_racer + "`"
+                    desc += "\nBribed racer `-📀" + tools.numberWithCommas(truguts.bribe_racer) + "`"
                 }
                 if(track_bribe){
-                    desc += "\nBribed track `-💿" + truguts.bribe_track + "`"
+                    desc += "\nBribed track `-📀" + tools.numberWithCommas(truguts.bribe_track) + "`"
                 }
 
                 //calculate goal time
@@ -539,7 +541,7 @@ module.exports = {
                         if (goal_earnings[i] == 0) {
                             goal_earnings_text[i] = ""
                         } else {
-                            goal_earnings_text[i] = "  `+💿" + goal_earnings[i] + "`"
+                            goal_earnings_text[i] = "  `+📀" + tools.numberWithCommas(goal_earnings[i]) + "`"
                         }
                     } else {
                         goal_earnings_text[i] = ""
@@ -577,7 +579,7 @@ module.exports = {
                         best.push(challengedata[k])
                     }
                 }
-                var besttimes = "Be the first to submit a time for this challenge! \n `+💿" + truguts.first + "`"
+                var besttimes = "Be the first to submit a time for this challenge! \n `+📀" + tools.numberWithCommas(truguts.first) + "`"
                 var pos = ["<:P1:671601240228233216> ", "<:P2:671601321257992204> ", "<:P3:671601364794605570> ", "4th ", "5th ", "6th ", "7th ", "8th ", "9th ", "10th "]
                 var submitted_time = null
                 if (best.length > 0) {
@@ -693,11 +695,11 @@ module.exports = {
                         }
                     }
                     if (goal_earnings[winnings_text] > 0) {
-                        earnings += goal_symbols[winnings_text] + " `+💿" + goal_earnings[winnings_text] + "`\n"
+                        earnings += goal_symbols[winnings_text] + " `+📀" + tools.numberWithCommas(goal_earnings[winnings_text]) + "`\n"
                         earnings_total += goal_earnings[winnings_text]
                     }
                     if (vc) {
-                        winnings_text += "MP `+💿" + truguts.mp + "`\n"
+                        winnings_text += "MP `+📀" + tools.numberWithCommas(truguts.mp) + "`\n"
                         earnings_total += truguts.mp
                     }
                     var winnings_non_standard = 0
@@ -714,7 +716,7 @@ module.exports = {
                         winnings_non_standard++
                     }
                     if (winnings_non_standard > 0) {
-                        earnings += "Non-Standard `+💿" + truguts.non_standard + " × " + winnings_non_standard + "`\n"
+                        earnings += "Non-Standard `+📀" + tools.numberWithCommas(truguts.non_standard) + " × " + winnings_non_standard + "`\n"
                         earnings_total += truguts.non_standard * winnings_non_standard
                     }
                     var first = true, pb = false, beat = []
@@ -733,30 +735,31 @@ module.exports = {
                         }
                     }
                     if (beat.length > 0) {
-                        earnings += "Beat Opponent `+💿" + truguts.beat_opponent + " × " + beat.length + "`\n"
+                        earnings += "Beat Opponent `+📀" + tools.numberWithCommas(truguts.beat_opponent) + " × " + beat.length + "`\n"
                         earnings_total += truguts.beat_opponent * beat.length
                     }
                     if (pb) {
-                        earnings += "PB `+💿" + truguts.pb + "`\n"
+                        earnings += "PB `+📀" + tools.numberWithCommas(truguts.pb) + "`\n"
                         earnings_total += truguts.pb
                     }
                     if (first) {
-                        earnings += "First `+💿" + truguts.first + "`\n"
+                        earnings += "First `+📀" + tools.numberWithCommas(truguts.first) + "`\n"
                         earnings_total += truguts.first
                     }
                     if (rated) {
-                        earnings += "Rated `+💿" + truguts.rated + "`\n"
+                        earnings += "Rated `+📀" + tools.numberWithCommas(truguts.rated) + "`\n"
                         earnings_total += truguts.rated
                     }
                     var earned = profiledata[member].truguts_earned
-                    if (!rated) {
+                    if (!rated || undone) {
                         profileref.child(member).update({truguts_earned:earned + earnings_total})
                     } else {
                         profileref.child(member).update({truguts_earned:earned + truguts.rated})
                     }
 
-                    earnings += "\n**Total: **`💿" + earnings_total + "`"
+                    earnings += "\n**Total: **`📀" + tools.numberWithCommas(earnings_total) + "`"
                     profileref.child(member).child("current").update({truguts:earnings_total})
+                    earnings += "\n**New balance: **`📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent)
                 }
                 const newEmbed = new Discord.MessageEmbed()
                     .setTitle(title + eTitle)
@@ -890,6 +893,7 @@ module.exports = {
                                     } catch { }
                                     collected = false
                                     collecting = true
+                                    undone = true
                                 }
                             }
 
@@ -1351,7 +1355,11 @@ module.exports = {
                 var achvs = Object.keys(achievements)
                 for (var i = 0; i < achvs.length; i++) {
                     var a = achvs[i]
-                    if (Object.keys(achievements[a].collection).length >= achievements[a].limit && profiledata[member].achievements[a] == false) {
+                    achievements[a].count = Object.keys(achievements[a].collection)
+                    if(achievements[a].name == "Big-Time Swindler"){
+                        achievements[a].count = profiledata[member].truguts_spent + profiledata[member].truguts_earned
+                    }
+                    if (achievements[a].count >= achievements[a].limit && profiledata[member].achievements[a] == false) {
                         profileref.child(member).child("achievements").child(a).set(true)
                         const congratsEmbed = new Discord.MessageEmbed()
                             .setAuthor(interaction.member.user.username + " got an achievement!", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
@@ -1400,19 +1408,14 @@ module.exports = {
             var achvs = Object.keys(achievements)
             for (var i = 0; i < achvs.length; i++) {
                 var a = achvs[i]
-                if (Object.keys(achievements[a].collection).length >= achievements[a].limit) {
+                if (achievements[a].count >= achievements[a].limit) {
                     achievement_field += ":white_check_mark: "
                 }
                 if (interaction.guild_id == "441839750555369474") {
-                    achievement_field += "**<@&" + achievements[a].role + ">** - " + achievements[a].description + ": `" + Object.keys(achievements[a].collection).length + "/" + achievements[a].limit + "`\n"
+                    achievement_field += "**<@&" + achievements[a].role + ">** - " + achievements[a].description + ": `" + tools.numberWithCommas(achievements[a].count) + "/" + tools.numberWithCommas(achievements[a].limit) + "`\n"
                 } else {
-                    achievement_field += "**" + achievements[a].name + "** - " + achievements[a].description + ": `" + Object.keys(achievements[a].collection).length + "/" + achievements[a].limit + "`\n"
+                    achievement_field += "**" + achievements[a].name + "** - " + achievements[a].description + ": `" + tools.numberWithCommas(achievements[a].count) + "/" + tools.numberWithCommas(achievements[a].limit) + "`\n"
                 }
-            }
-            if(profiledata[member].truguts_spent + profiledata[member].truguts_earned >= 1000000){
-                achievement_field += ":white_check_mark: " + "**Big-Time Swindler** - Earn or spend 1,000,000 total truguts: `" + tools.numberWithCommas(profiledata[member].truguts_spent + profiledata[member].truguts_earned) + "/1,000,000`"
-            } else {
-                achievement_field += "**Big-Time Swindler** - Earn or spend 1,000,000 total truguts: `" + tools.numberWithCommas(profiledata[member].truguts_spent + profiledata[member].truguts_earned) + "/1,000,000`"
             }
             
             profileEmbed.addField(":trophy: Achievements", achievement_field, true)

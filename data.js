@@ -552,6 +552,9 @@ module.exports = racer_hints = [
         "his pod stalled at the start of the Boonta Classic",
         "may have been conceived by the will of the Force",
         "started the Boonta Classic in the second row",
+        "his pod is already available at the start of a new game",
+        "his family attended the race",
+        "briefly appears on a viewscreen behind Fodesinbeed during the film"
     ], [
         "Veknoid outcast from Moonus Mandel",
         "known for his long engines",
@@ -562,7 +565,6 @@ module.exports = racer_hints = [
         "track favorite on a Mon Gazza course",
         "track favorite on an Amateur Circuit course",
         "voiced by Michael Sorich",
-        "you wouldn’t have the best view sitting in his cockpit",
         "he can be briefly spotted talking to Ben Quadinaros in a scene from the film",
         "started the Boonta Classic in the third row"
     ], [
@@ -584,6 +586,7 @@ module.exports = racer_hints = [
         "commissioned a special perch for his awkward body that became his “lucky” pre-race chair",
         "sabotaged a racer’s pod before the Boonta Classic",
         "started the Boonta Classic in the front row",
+        "briefly appears on a viewscreen behind Fodesinbeed during the film"
     ], [
         "pilots a Vokoff-Strood Titan 1250 Scatalpen",
         "voiced by Terry McGovern",
@@ -591,15 +594,14 @@ module.exports = racer_hints = [
         "track favorite on a Semi-Pro Circuit course",
         "a scrappy Aleena",
         "known as “the little scrapper”",
-        "animators referenced actor Joe Pesci’s performances to nail this racer’s tough guy demeanor",
-        "his whole family including a newborn baby was in attendance for his final race",
+        "his family attended the race",
         "Aleen’s most famous native",
         "smallest of the podracing pilots",
         "mourned by an entire planet",
         "a foundation named in his honor campaigned to outlaw podracing",
         "had a strong hatred for cheating",
         "vowed to kill Sebulba",
-        "started the Boonta Classic in the front row",
+        "started the Boonta Classic in the front row"
     ], [
         "pilots a Manta RamAir Mark IV Flat-Twin Turbojet",
         "voiced by Nick Jameson",
@@ -614,6 +616,7 @@ module.exports = racer_hints = [
         "worked as Sebulba’s bodyguard",
         "once accepted a contract to assassinate fellow podracer Elan Mak’s crime lord father",
         "started the Boonta Classic in the front row",
+        "worst traction in the game"
     ], [
         "hails from Hok",
         "Gran",
@@ -647,6 +650,7 @@ module.exports = racer_hints = [
         "started the Boonta Classic in the fourth row",
         "paranoid that Anakin Skywalker is out to get him",
         "has a nickname",
+        "worst traction in the game"
     ], [
         "unabashed playboy from Ord Ramada",
         "voiced by Gregg Berger",
@@ -661,6 +665,7 @@ module.exports = racer_hints = [
         "his legacy was continued by his son",
         "the father of Wan Sandage Jr.",
         "best brakes in the game",
+        "best traction in the game"
     ], [
         "his pod was sabotaged before the Boonta Classic",
         "known for his massive engines",
@@ -687,7 +692,7 @@ module.exports = racer_hints = [
         "former delivery man",
         "had his cockpit positioned high so his adoring fans could see his handsome face",
         "started the Boonta Classic in the third row",
-        "",
+        "his pod is already available at the start of a new game"
     ], [
         "voiced by David Jeremiah",
         "Vulptereen from Vulpter",
@@ -700,6 +705,7 @@ module.exports = racer_hints = [
         "he has an antenna on his snout",
         "started the Boonta Classic in the second row",
         "before his final name, he was referred to as Bozzie Baranta during pre-production",
+        "his pod is already available at the start of a new game"
     ], [
         "voiced by Bob Bergen",
         "Xexto from Troiken",
@@ -713,6 +719,7 @@ module.exports = racer_hints = [
         "can be seen using a holoscreen to view racers behind him in the film",
         "worst cooling in the game",
         "started the Boonta Classic in the third row",
+        "his pod is already available at the start of a new game"
     ], [
         "voiced by Dominic Armato",
         "pilots a Keizaar-Volvec KV9T9-B Wasp",
@@ -727,7 +734,7 @@ module.exports = racer_hints = [
         "assassinated by Aldar Beedo in Star Wars Kinect(spoiler alert)",
         "started the Boonta Classic in the second row",
     ], [
-        "* Just who is this mysterious podracer ?*",
+        "*Just who is this mysterious podracer?*",
         "pilots a Kurtob KRT 410C",
         "voiced by Tom Kane",
         "track favorite on a Malastare course",
@@ -741,10 +748,12 @@ module.exports = racer_hints = [
         "never piloted a podracer before racing in the Boonta Classic",
         "until the Boonta Eve, hadn’t won a race",
         "started the Boonta Classic in the fourth row",
+        "his pod is already available at the start of a new game",
+        "worst traction in the game"
     ], [
         "pilots a Farwan & Glott FG 8T8-Twin Block-2 Special",
         "pilots a new super experimental podracer",
-        "* NO CABLES! *",
+        "*NO CABLES!*",
         "track favorite on a Semi-Pro Circuit course",
         "track favorite on a Baroonda course",
         "voiced by Peter Lurie",
@@ -755,6 +764,7 @@ module.exports = racer_hints = [
         "rumored to have been assassinated by Aurra Sing",
         "never shared his custom modification secrets for his podracer",
         "best acceleration in the game",
+        "best traction in the game"
     ], [
         "voiced by Terry McGovern",
         "track favorite on an Invitational Course",
@@ -783,6 +793,7 @@ module.exports = racer_hints = [
         "lost a large bet that Ben Quadinaros wouldn’t show at the Boonta Classic",
         "nicknamed “Shaggy” in his concept art",
         "briefly appears on a viewscreen behind Fodesinbeed during the film",
+        "worst traction in the game"
     ], [
         "stopped for a pit stop on the second lap of the Boonta Classic",
         "has a record-setting pit droid team",
@@ -795,7 +806,8 @@ module.exports = racer_hints = [
         "voiced by Bob Bergen",
         "an adrenaline junky who watched races all his life",
         "taken out of the race by his own pitdroid",
-        "* Oh no *",
+        "*Oh no*",
+        "his pod is already available at the start of a new game"
     ], [
         "pilots a Bokaan Race Engineering BRE Block-6 Tri-Ram",
         "track favorite on an Oovo IV course",
@@ -832,6 +844,7 @@ module.exports = racer_hints = [
         "most fragile pod in the game",
         "best cooling in the game",
         "you can tell by his craft that he has a strong dislike for large podracers",
+        "shortest boost in the game"
     ], [
         "does not appear in the finished film",
         "pilots a Turca 910 Special",
@@ -867,7 +880,8 @@ module.exports = track_hints = [
         "better bring along an opponent to clear out rocks on this course",
         "features grandstands at its starting line",
         "features Hutt Flats",
-        "starts with ‘the’"
+        "starts with ‘the’",
+        "does not have a shortcut"
     ], [
         "Amateur Circuit",
         "the track favorite’s last name starts with ‘P’",
@@ -878,7 +892,8 @@ module.exports = track_hints = [
         "the planet is in the name",
         "shortest track in the game",
         "has ‘way’ in its name",
-        "features racer posters"
+        "features racer posters",
+        "does not have a shortcut"
     ], [
         "Amateur Circuit",
         "the track favorite’s first name starts with ‘A’",
@@ -893,7 +908,9 @@ module.exports = track_hints = [
         "features a number of frozen lakes",
         "features arches",
         "has an apostrophe in its name",
-        "features a waterfall"
+        "features a waterfall",
+        "a racer could fall to their death on this course",
+        "features fast terrain"
     ], [
         "Amateur Circuit",
         "the track favorite has red in their flag",
@@ -902,7 +919,8 @@ module.exports = track_hints = [
         "hosted by Nave Vengaris",
         "the planet is in the name",
         "features grandstands at its starting line",
-        "its name includes the word ‘classic’"
+        "its name includes the word ‘classic’",
+        "features a figure-eight"
     ], [
         "Amateur Circuit",
         "the track favorite has a three-letter name",
@@ -917,7 +935,10 @@ module.exports = track_hints = [
         "features a methane lake",
         "this track bears a striking resemblance to a real-life raceway",
         "features a waterfall",
-        "features a flying creature"
+        "features a flying creature",
+        "a racer could fall to their death on this course",
+        "features fast terrain",
+        "does not have a shortcut"
     ], [
         "Amateur Circuit",
         "the track favorite has a three-letter name",
@@ -928,7 +949,10 @@ module.exports = track_hints = [
         "features anti-gravity tubes",
         "this course requires you to dodge a purple filament in its reactor core",
         "be careful of the enormous fan blades on this course",
-        "one-word name"
+        "one-word name",
+        "features fast terrain",
+        "features a figure-eight",
+        "does not have a shortcut"
     ], [
         "Amateur Circuit",
         "the track favorite has a three-letter name",
@@ -944,7 +968,8 @@ module.exports = track_hints = [
         "features caged corkscrews",
         "features a conveyor belt",
         "its name includes the word ‘run’",
-        "features racer posters"
+        "features racer posters",
+        "features fast terrain"
     ], [
         "Semi-Pro Circuit",
         "the track favorite has a ‘V’ in his name",
@@ -953,7 +978,8 @@ module.exports = track_hints = [
         "hosted by Nave Vengaris",
         "features grandstands at its starting line",
         "features a narrow shortcut through a rusted tube",
-        "features a section with an upper and lower track"
+        "features a section with an upper and lower track",
+        "features a figure-eight"
     ], [
         "Semi-Pro Circuit",
         "the track favorite’s last name ends with ‘rell’",
@@ -965,7 +991,9 @@ module.exports = track_hints = [
         "begins in a chilly mountain village",
         "a secret tent route is no question on this track",
         "features a shortcut that is only accessible after the first lap",
-        "features the Andobi Mountain Pipeline"
+        "features the Andobi Mountain Pipeline",
+        "a racer could fall to their death on this course",
+        "features fast terrain"
     ], [
         "Semi-Pro Circuit",
         "the track favorite has a three-letter name",
@@ -985,7 +1013,10 @@ module.exports = track_hints = [
         "hosted by Dethro Glok",
         "features a conveyor belt",
         "its name includes the word ‘run’",
-        "has an apostrophe in its name"
+        "has an apostrophe in its name",
+        "a racer could fall to their death on this course",
+        "features fast terrain",
+        "does not have a shortcut"
     ], [
         "Semi-Pro Circuit",
         "the track favorite’s name starts with ‘B’",
@@ -997,7 +1028,8 @@ module.exports = track_hints = [
         "features a section with an upper and lower track",
         "you might find a large vehicle in your way on this course",
         "features caged corkscrews",
-        "features racer posters"
+        "features racer posters",
+        "a racer could fall to their death on this course"
     ], [
         "Semi-Pro Circuit",
         "the track favorite has a three-letter name",
@@ -1009,7 +1041,8 @@ module.exports = track_hints = [
         "features grandstands at its starting line",
         "the only track that lets you drive in the water",
         "features a waterfall",
-        "features a flying creature"
+        "features a flying creature",
+        "a racer could fall to their death on this course"
     ], [
         "Semi-Pro Circuit",
         "the track favorite has a three-letter name",
@@ -1033,7 +1066,8 @@ module.exports = track_hints = [
         "better bring along an opponent to clear out rocks on this course",
         "features anti-gravity tubes",
         "the second-to-the-left of four tunnels is the fastest on this course",
-        "one-word name"
+        "one-word name",
+        "features fast terrain"
     ], [
         "Galactic Circuit",
         "Sebulba is the track favorite",
@@ -1044,7 +1078,8 @@ module.exports = track_hints = [
         "named after a podracer",
         "features a methane lake",
         "has an apostrophe in its name",
-        "features a flying creature"
+        "features a flying creature",
+        "a racer could fall to their death on this course"
     ], [
         "Galactic Circuit",
         "the track favorite’s name starts with ‘A’",
@@ -1058,7 +1093,8 @@ module.exports = track_hints = [
         "infamous for its difficult swamp section",
         "has ‘way’ in its name",
         "features a waterfall",
-        "you might feel the ground shake on this course"
+        "you might feel the ground shake on this course",
+        "a racer could fall to their death on this course"
     ], [
         "Galactic Circuit",
         "the track favorite goes by one name",
@@ -1071,7 +1107,9 @@ module.exports = track_hints = [
         "features a shortcut that is only accessible after the first lap",
         "features the Andobi Mountain Pipeline",
         "its name includes the word “run”",
-        "its name includes the word ‘mountain’"
+        "its name includes the word ‘mountain’",
+        "a racer could fall to their death on this course",
+        "features fast terrain"
     ], [
         "Galactic Circuit",
         "the track favorite’s last name ends with ‘rell’",
@@ -1082,7 +1120,8 @@ module.exports = track_hints = [
         "named after its host",
         "features a section with an upper and lower track",
         "out-of-bounds finish",
-        "has an apostrophe in its name"
+        "has an apostrophe in its name",
+        "a racer could fall to their death on this course"
     ], [
         "Galactic Circuit",
         "the track favorite’s first and last name starts with the same letter",
@@ -1098,7 +1137,9 @@ module.exports = track_hints = [
         "features lava",
         "its name includes the word ‘mountain’",
         "features a waterfall",
-        "you might feel the ground shake on this course"
+        "you might feel the ground shake on this course",
+        "a racer could fall to their death on this course",
+        "features a figure-eight"
     ], [
         "Galactic Circuit",
         "Sebulba is the track favorite",
@@ -1116,7 +1157,8 @@ module.exports = track_hints = [
         "features fire hazards",
         "features arches",
         "its name includes the word ‘classic’",
-        "starts with ‘the’"
+        "starts with ‘the’",
+        "a racer could fall to their death on this course"
     ], [
         "the track favorite’s last name starts with ‘P’",
         "the first race of its circuit",
@@ -1136,7 +1178,9 @@ module.exports = track_hints = [
         "features a section with an upper and lower track",
         "out-of-bounds finish",
         "failure to stay on top on this course will surely lose your lead",
-        "one-word name"
+        "one-word name",
+        "a racer could fall to their death on this course",
+        "features fast terrain"
     ], [
         "the track favorite goes by one name",
         "the track favorite has green on their flag",
@@ -1149,7 +1193,9 @@ module.exports = track_hints = [
         "better bring along an opponent to clear out rocks on this course",
         "features anti-gravity tubes",
         "features fire hazards",
-        "starts with ‘the’"
+        "starts with ‘the’",
+        "a racer could fall to their death on this course",
+        "features fast terrain"
     ], [
         "the track favorite’s first name starts with ‘B’",
         "the track favorite has red on their flag",
@@ -1162,6 +1208,7 @@ module.exports = track_hints = [
         "the final track of the game",
         "features arches",
         "one-word name",
-        "does not overlap with any other track"
+        "does not overlap with any other track",
+        "features a figure-eight"
     ]
 ]
