@@ -748,10 +748,11 @@ module.exports = {
                         earnings += "Rated `+💿" + truguts.rated + "`\n"
                         earnings_total += truguts.rated
                     }
+                    var earned = profiledata[member].truguts_earned
                     if (!rated) {
-                        profileref.child(member).update({truguts_earned:profiledata[member].truguts_earned + earnings_total})
+                        profileref.child(member).update({truguts_earned:earned + earnings_total})
                     } else {
-                        profileref.child(member).update({truguts_earned:profiledata[member].truguts_earned + truguts.rated})
+                        profileref.child(member).update({truguts_earned:earned + truguts.rated})
                     }
 
                     earnings += "\n**Total: **`💿" + earnings_total + "`"
