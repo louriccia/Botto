@@ -350,7 +350,7 @@ module.exports = {
             var rated = false
             //process reroll
             var reroll_description = ""
-            function rerollChallenge(){
+            function rerollChallenge(best){
                 reroll_description = ""
                 var played = false
                 var record_holder = null
@@ -367,17 +367,15 @@ module.exports = {
                     }
                 }
                 var reroll = truguts.reroll
+                var selection = "full price"
                 if(played){
                     reroll = truguts.reroll_discount
+                    selection = "discount"
                 }
                 if(record_holder !== null){
                     if(record_holder.user == member){
                         reroll = 0
                     }
-                }
-                var selection = "full price"
-                if(played){
-                    selection = "discount"
                 }
                 var purchase = {
                     date: Date.now(),
@@ -790,7 +788,7 @@ module.exports = {
                             title = ":arrows_counterclockwise: Rerolled: "
                             eTitle = "~~" + eTitle + "~~"
                             profileref.child(member).child("current").update({ completed: true })
-                            rerollChallenge()
+                            rerollChallenge(best)
                             try {
 
                                 sentMessage.reactions.removeAll().catch()
@@ -894,7 +892,7 @@ module.exports = {
                                     collected = true
                                     collecting = false
                                     title = ":arrows_counterclockwise: Rerolled: "
-                                    rerollChallenge()
+                                    rerollChallenge(best)
                                     eTitle = "~~" + eTitle + "~~"
                                     profileref.child(member).child("current").update({ completed: true })
                                     try {
