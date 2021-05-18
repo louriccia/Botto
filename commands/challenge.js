@@ -221,24 +221,45 @@ module.exports = {
                 if (args[0].options !== undefined) {
                     for (var i = 0; i < args[0].options.length; i++) {
                         if (args[0].options[i].name == "bribe_track") {
-                            random_track = Number(args[0].options[i].value)
-                            track_bribe = true
-                            var purchase = {
-                                date: Date.now(),
-                                purchased_item: "track bribe",
-                                selection: Number(args[0].options[i].value)
+                            if (profileref[member].truguts_earned - profileref[member].truguts_spent > truguts.bribe_track) {
+                                random_track = Number(args[0].options[i].value)
+                                track_bribe = true
+                                var purchase = {
+                                    date: Date.now(),
+                                    purchased_item: "track bribe",
+                                    selection: Number(args[0].options[i].value)
+                                }
+                                profileref.child(member).child("purchases").push(purchase)
+                                profileref[member].truguts_spent += truguts.bribe_track
+                            } else {
+                                var noMoney = new Discord.MessageEmbed()
+                                noMoney
+                                    .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
+                                    .setDescription("*'No money, no challenge, no bribe!'*\nYou do not have enough truguts to make this bribe.\n\nCurrent balance: `" + profileref[member].truguts_earned - profileref[member].truguts_spent + "`\nBribe cost: `" + truguts.bribe_track + "`")
+                                sentMessage.channel.send(noMoney)
+                                return
                             }
-                            profileref.child(member).child("purchases").push(purchase)
+
                         }
                         if (args[0].options[i].name == "bribe_racer") {
-                            random_racer = Number(args[0].options[i].value)
-                            racer_bribe = true
-                            var purchase = {
-                                date: Date.now(),
-                                purchased_item: "racer bribe",
-                                selection: Number(args[0].options[i].value)
+                            if (profileref[member].truguts_earned - profileref[member].truguts_spent > truguts.bribe_racer) {
+                                random_racer = Number(args[0].options[i].value)
+                                racer_bribe = true
+                                var purchase = {
+                                    date: Date.now(),
+                                    purchased_item: "racer bribe",
+                                    selection: Number(args[0].options[i].value)
+                                }
+                                profileref.child(member).child("purchases").push(purchase)
+                                profileref[member].truguts_spent += truguts.bribe_racer
+                            } else {
+                                var noMoney = new Discord.MessageEmbed()
+                                noMoney
+                                    .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
+                                    .setDescription("*'No money, no challenge, no bribe!'*\nYou do not have enough truguts to make this bribe.\n\nCurrent balance: `" + profileref[member].truguts_earned - profileref[member].truguts_spent + "`\Bribe cost: `" + truguts.bribe_racer + "`")
+                                sentMessage.channel.send(noMoney)
+                                return
                             }
-                            profileref.child(member).child("purchases").push(purchase)
                         }
                     }
                 }
@@ -347,19 +368,25 @@ module.exports = {
                 profileref.child(member).child("current").set(current)
             }
             var rated = false
-           
+
             var reroll_description = ""
-            function rerollChallenge(best){
+            function rerollChallenge(best) {
+                if (best == undefined) {
+                    if (profileref[member].truguts_earned - profileref[member].truguts_spent > reroll) {
+                        return true
+                    } else {
+                        return false
+                    }
+                }
                 reroll_description = ""
                 var played = false
                 var record_holder = null
-                console.log(best)
-                for (var i = 0; i < best.length; i++){
-                    if(best[i].user == member){
+                for (var i = 0; i < best.length; i++) {
+                    if (best[i].user == member) {
                         played = true
                     }
-                    if(record_holder !== null){
-                        if(best[i].time < record_holder.time){
+                    if (record_holder !== null) {
+                        if (best[i].time < record_holder.time) {
                             record_holder = best[i]
                         }
                     } else {
@@ -368,12 +395,12 @@ module.exports = {
                 }
                 var reroll = truguts.reroll
                 var selection = "full price"
-                if(played){
+                if (played) {
                     reroll = truguts.reroll_discount
                     selection = "discount"
                 }
-                if(record_holder !== null){
-                    if(record_holder.user == member){
+                if (record_holder !== null) {
+                    if (record_holder.user == member) {
                         reroll = 0
                     }
                 }
@@ -382,17 +409,21 @@ module.exports = {
                     purchased_item: "reroll",
                     selection: selection
                 }
-                if(reroll > 0){
+
+                if (reroll > 0) {
                     profileref.child(member).child("purchases").push(purchase)
+                    profileref[member].truguts_spent += reroll
                 }
-                if(reroll == truguts.reroll_discount){
+                if (reroll == truguts.reroll_discount) {
                     reroll_description = "`-💿" + truguts.reroll_discount + "` (discounted)"
-                } else if(reroll == 0){
+                } else if (reroll == 0) {
                     reroll_description = "(no charge for record holders)"
                 } else {
                     reroll_description = "`-💿" + truguts.reroll + "`"
                 }
                 return reroll_description
+
+
             }
             //build embed
             var eAuthor = [], eTitle = "", title = "", highlight = "", eGoalTimes = [], best = []
@@ -634,7 +665,7 @@ module.exports = {
                             winnings_text = i
                         }
                     }
-                    if(goal_earnings[winnings_text] > 0) {
+                    if (goal_earnings[winnings_text] > 0) {
                         earnings += goal_symbols[winnings_text] + " `+💿" + goal_earnings[winnings_text] + "`\n"
                         earnings_total += goal_earnings[winnings_text]
                     }
@@ -657,7 +688,7 @@ module.exports = {
                     }
                     if (winnings_non_standard > 0) {
                         earnings += "Non-Standard `+💿" + truguts.non_standard + " × " + winnings_non_standard + "`\n"
-                        earnings_total += truguts.non_standard*winnings_non_standard
+                        earnings_total += truguts.non_standard * winnings_non_standard
                     }
                     var first = true, pb = false, beat = []
                     for (var i = 0; i < best.length; i++) {
@@ -676,7 +707,7 @@ module.exports = {
                     }
                     if (beat.length > 0) {
                         earnings += "Beat Opponent `+💿" + truguts.beat_opponent + " × " + beat.length + "`\n"
-                        earnings_total += truguts.beat_opponent*beat.length
+                        earnings_total += truguts.beat_opponent * beat.length
                     }
                     if (pb) {
                         earnings += "PB `+💿" + truguts.pb + "`\n"
@@ -690,8 +721,13 @@ module.exports = {
                         earnings += "Rated `+💿" + truguts.rated + "`\n"
                         earnings_total += truguts.rated
                     }
-
-                    earnings += "\n**Total: **`💿" + earnings_total +"`"
+                    if(!rated){
+                        profileref[member].truguts_earned += earnings_total
+                    } else {
+                        profileref[member].truguts_earned += truguts.rated
+                    }
+                    
+                    earnings += "\n**Total: **`💿" + earnings_total + "`"
                 }
                 const newEmbed = new Discord.MessageEmbed()
                     .setTitle(title + eTitle)
@@ -712,14 +748,14 @@ module.exports = {
 
                 } else {
                     newEmbed.setTitle(title + "~~" + eTitle + "~~")
-                    if(title == ":arrows_counterclockwise: Rerolled: "){
+                    if (title == ":arrows_counterclockwise: Rerolled: ") {
                         newEmbed.setDescription(rerollChallenge(best))
                     }
                 }
                 return newEmbed
             }
             //process reroll
-            
+
             async function sendResponse() {
                 var response = null
                 if (interaction.name == "fake") {
@@ -784,18 +820,26 @@ module.exports = {
                                 } catch { }
                             }
                         } else if (reaction.emoji.name === '🔄' && !collected) { //reroll
+                            if (rerollChallenge()) {
+                                collected = true
+                                collecting = false
+                                title = ":arrows_counterclockwise: Rerolled: "
+                                eTitle = "~~" + eTitle + "~~"
+                                profileref.child(member).child("current").update({ completed: true })
+                                try {
 
-                            collected = true
-                            collecting = false
-                            title = ":arrows_counterclockwise: Rerolled: "
-                            eTitle = "~~" + eTitle + "~~"
-                            profileref.child(member).child("current").update({ completed: true })
-                            try {
+                                    sentMessage.reactions.removeAll().catch()
+                                    sentMessage.edit("", createEmbed()).then(sentMessage.delete({ timeout: 10000, reason: 'bot cleanup' }))
+                                } catch { }
+                                client.commands.get("challenge").execute(client, fakeinteraction, args);
+                            } else {
+                                var noMoney = new Discord.MessageEmbed()
+                                noMoney
+                                    .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
+                                    .setDescription("*'No money, no challenge, no reroll!'*\nYou do not have enough truguts to reroll this challenge.\n\nCurrent balance: `" + profileref[member].truguts_earned - profileref[member].truguts_spent + "`\nReroll cost: `" + truguts.reroll + "`")
+                                sentMessage.channel.send(noMoney)
+                            }
 
-                                sentMessage.reactions.removeAll().catch()
-                                sentMessage.edit("", createEmbed()).then(sentMessage.delete({ timeout: 10000, reason: 'bot cleanup' }))
-                            } catch { }
-                            client.commands.get("challenge").execute(client, fakeinteraction, args);
                         } else if (reaction.emoji.name === '↩️') { //undo
                             for (let i = 0; i < collection.length; i++) {
                                 if (collection[i].user == user.id) {
@@ -890,16 +934,24 @@ module.exports = {
                                         collecting = false
                                     }
                                 } else if (!collected && newMessage.embeds[0].author.name.replace("'s Challenge", "") == interaction.member.user.username) { //rerolling sp challenge
-                                    collected = true
-                                    collecting = false
-                                    title = ":arrows_counterclockwise: Rerolled: "
-                                    eTitle = "~~" + eTitle + "~~"
-                                    profileref.child(member).child("current").update({ completed: true })
-                                    try {
-                                        sentMessage.reactions.removeAll().catch()
-                                        sentMessage.edit("", createEmbed()).then(sentMessage.delete({ timeout: 10000, reason: 'bot cleanup' }))
-                                        client.removeListener('mesageUpdate', listener)
-                                    } catch { }
+                                    if (rerollChalleng()) {
+                                        collected = true
+                                        collecting = false
+                                        title = ":arrows_counterclockwise: Rerolled: "
+                                        eTitle = "~~" + eTitle + "~~"
+                                        profileref.child(member).child("current").update({ completed: true })
+                                        try {
+                                            sentMessage.reactions.removeAll().catch()
+                                            sentMessage.edit("", createEmbed()).then(sentMessage.delete({ timeout: 10000, reason: 'bot cleanup' }))
+                                            client.removeListener('mesageUpdate', listener)
+                                        } catch { }
+                                    } else {
+                                        var noMoney = new Discord.MessageEmbed()
+                                        noMoney
+                                            .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
+                                            .setDescription("*'No money, no challenge, no reroll!'*\nYou do not have enough truguts to reroll this challenge.\n\nCurrent balance: `" + profileref[member].truguts_earned - profileref[member].truguts_spent + "`\nReroll cost: `" + truguts.reroll + "`")
+                                        sentMessage.channel.send(noMoney)
+                                    }
                                 }
                             }
                         }
