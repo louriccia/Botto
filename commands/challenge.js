@@ -579,58 +579,60 @@ module.exports = {
                 }
                 var earnings = ""
                 //construct winnings text
-                var winnings_text = null
-                for (var i = 4; i > -1; i--) {
-                    if (submitted_time.time < goals[i]) {
-                        winnings_text = i
-                    }
-                }
-                earnings += goal_symbols[winnings_text] + " " + goal_earnings[winnings_text] + "\n"
-                if (vc) {
-                    winnings_text += "MP `+💿" + truguts.mp + "`\n"
-                }
-                var winnings_non_standard = 0
-                if (submitted_time.skips && submitted_time.settings.skips <= 25) {
-                    winnings_non_standard++
-                }
-                if (submitted_time.mirror && submitted_time.settings.mirror_mode <= 25) {
-                    winnings_non_standard++
-                }
-                if (submitted_time.laps !== 3 && submitted_time.settings.non_3_lap <= 25) {
-                    winnings_non_standard++
-                }
-                if (submitted_time.nu && submitted_time.settings.no_upgrades <= 25) {
-                    winnings_non_standard++
-                }
-                if (winnings_non_standard > 0) {
-                    earnings += "Non-Standard `+💿" + truguts.non_standard + " × " + winnings_non_standard + "`\n"
-                }
-                var first = true, pb = false, beat = []
-                for (var i = 0; i < best.length; i++) {
-                    if (best[i].date < submitted_time.date) {
-                        first = false
-                        if (best[i].user == member && best[i].date !== date) {
-                            pb = true
-                            if (submitted_time.time < best[i].time) {
-                                pb = false
-                            }
+                if (title == ":white_check_mark: Completed: ") {
+                    var winnings_text = null
+                    for (var i = 4; i > -1; i--) {
+                        if (submitted_time.time < goals[i]) {
+                            winnings_text = i
                         }
                     }
-                    if (best[i].user !== member && submitted_time.time < best[i].time && !beat.includes(best[i].user)) {
-                        beat.push(best[i].user)
+                    earnings += goal_symbols[winnings_text] + " " + goal_earnings[winnings_text] + "\n"
+                    if (vc) {
+                        winnings_text += "MP `+💿" + truguts.mp + "`\n"
                     }
-                }
-                if (beat.length > 0) {
-                    earnings += "Beat Opponent `+💿" + truguts.beat_opponent + " × " + beat.length + "`\n"
-                }
-                if (pb) {
-                    earnings += "PB `+💿" + truguts.pb + "`\n"
-                }
-                if (first) {
-                    earnings += "First `+💿" + truguts.first + "`\n"
-                }
-                if (rated) {
-                    earnings += "Rated `+💿" + truguts.rated + "`\n"
+                    var winnings_non_standard = 0
+                    if (submitted_time.skips && submitted_time.settings.skips <= 25) {
+                        winnings_non_standard++
+                    }
+                    if (submitted_time.mirror && submitted_time.settings.mirror_mode <= 25) {
+                        winnings_non_standard++
+                    }
+                    if (submitted_time.laps !== 3 && submitted_time.settings.non_3_lap <= 25) {
+                        winnings_non_standard++
+                    }
+                    if (submitted_time.nu && submitted_time.settings.no_upgrades <= 25) {
+                        winnings_non_standard++
+                    }
+                    if (winnings_non_standard > 0) {
+                        earnings += "Non-Standard `+💿" + truguts.non_standard + " × " + winnings_non_standard + "`\n"
+                    }
+                    var first = true, pb = false, beat = []
+                    for (var i = 0; i < best.length; i++) {
+                        if (best[i].date < submitted_time.date) {
+                            first = false
+                            if (best[i].user == member && best[i].date !== date) {
+                                pb = true
+                                if (submitted_time.time < best[i].time) {
+                                    pb = false
+                                }
+                            }
+                        }
+                        if (best[i].user !== member && submitted_time.time < best[i].time && !beat.includes(best[i].user)) {
+                            beat.push(best[i].user)
+                        }
+                    }
+                    if (beat.length > 0) {
+                        earnings += "Beat Opponent `+💿" + truguts.beat_opponent + " × " + beat.length + "`\n"
+                    }
+                    if (pb) {
+                        earnings += "PB `+💿" + truguts.pb + "`\n"
+                    }
+                    if (first) {
+                        earnings += "First `+💿" + truguts.first + "`\n"
+                    }
+                    if (rated) {
+                        earnings += "Rated `+💿" + truguts.rated + "`\n"
+                    }
                 }
                 const newEmbed = new Discord.MessageEmbed()
                     .setTitle(title + eTitle)
