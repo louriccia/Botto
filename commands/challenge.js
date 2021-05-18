@@ -442,7 +442,7 @@ module.exports = {
 
             }
             //build embed
-            var eAuthor = [], eTitle = "", title = "", highlight = "", eGoalTimes = [], best = []
+            var eAuthor = [], eTitle = "", title = "", highlight = "", eGoalTimes = [], best = [], earnings_total = 0
             function createEmbed() {
                 best = []
                 //get best runs/achievement progress
@@ -672,7 +672,7 @@ module.exports = {
                     }
                 }
                 var earnings = ""
-                var earnings_total = 0
+                
                 //construct winnings text
                 if (title == ":white_check_mark: Completed: ") {
                     var winnings_text = null
@@ -738,9 +738,9 @@ module.exports = {
                         earnings_total += truguts.rated
                     }
                     if (!rated) {
-                        profileref.child(member).child("truguts_earned").update += earnings_total
+                        profileref.child(member).child("truguts_earned").update(profiledata[member].truguts_earned + earnings_total)
                     } else {
-                        profileref.child(member).truguts_earned += truguts.rated
+                        profileref.child(member).child("truguts_earned").update(profiledata[member].truguts_earned + truguts.rated)
                     }
 
                     earnings += "\n**Total: **`💿" + earnings_total + "`"
@@ -833,6 +833,10 @@ module.exports = {
                                 feedbackref.push(feedbackdata);
                                 try {
                                     sentMessage.edit(createEmbed())
+                                    sentMessage.reactions.resolve("👍").users.remove("545798436105224203")
+                                    sentMessage.reactions.resolve("👎").users.remove("545798436105224203")
+                                    sentMessage.reactions.resolve("👍").users.remove(member)
+                                    sentMessage.reactions.resolve("👎").users.remove(member)
                                 } catch { }
                             }
                         } else if (reaction.emoji.name === '🔄' && !collected) { //reroll
@@ -859,6 +863,7 @@ module.exports = {
                         } else if (reaction.emoji.name === '↩️') { //undo
                             for (let i = 0; i < collection.length; i++) {
                                 if (collection[i].user == user.id) {
+                                    profileref.child(member).child("truguts_earned").update(profiledata[member].truguts_earned - earnings_total)
                                     ref.child(collection[i].record).remove()
                                     best.splice(collection[i].index, 1)
                                     title = ""
