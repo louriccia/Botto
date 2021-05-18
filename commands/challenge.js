@@ -710,9 +710,11 @@ module.exports = {
                     profileref.child(member).child("purchases").push(purchase)
                 }
                 if(reroll == truguts.reroll_discount){
-                    reroll_description = "`-💿" + reroll_discount + "` (discounted)"
+                    reroll_description = "`-💿" + truguts.reroll_discount + "` (discounted)"
                 } else if(reroll == 0){
                     reroll_description = "(no charge for record holders)"
+                } else {
+                    reroll_description = "`-💿" + truguts.reroll + "`"
                 }
             }
             async function sendResponse() {
