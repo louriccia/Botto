@@ -348,53 +348,9 @@ module.exports = {
                 profileref.child(member).child("current").set(current)
             }
             var rated = false
-            //process reroll
+           
             var reroll_description = ""
-            function rerollChallenge(){
-                best = best
-                reroll_description = ""
-                var played = false
-                var record_holder = null
-                console.log(best)
-                for (var i = 0; i < best.length; i++){
-                    if(best[i].user == member){
-                        played = true
-                    }
-                    if(record_holder !== null){
-                        if(best[i].time < record_holder.time){
-                            record_holder = best[i]
-                        }
-                    } else {
-                        record_holder = best[i]
-                    }
-                }
-                var reroll = truguts.reroll
-                var selection = "full price"
-                if(played){
-                    reroll = truguts.reroll_discount
-                    selection = "discount"
-                }
-                if(record_holder !== null){
-                    if(record_holder.user == member){
-                        reroll = 0
-                    }
-                }
-                var purchase = {
-                    date: Date.now(),
-                    purchased_item: "reroll",
-                    selection: selection
-                }
-                if(reroll > 0){
-                    profileref.child(member).child("purchases").push(purchase)
-                }
-                if(reroll == truguts.reroll_discount){
-                    reroll_description = "`-💿" + truguts.reroll_discount + "` (discounted)"
-                } else if(reroll == 0){
-                    reroll_description = "(no charge for record holders)"
-                } else {
-                    reroll_description = "`-💿" + truguts.reroll + "`"
-                }
-            }
+             
             //build embed
             var eAuthor = [], eTitle = "", title = "", highlight = "", eGoalTimes = [], best = []
             function createEmbed() {
@@ -719,7 +675,52 @@ module.exports = {
                 }
                 return newEmbed
             }
-            
+            //process reroll
+            function rerollChallenge(){
+                best = best
+                reroll_description = ""
+                var played = false
+                var record_holder = null
+                console.log(best)
+                for (var i = 0; i < best.length; i++){
+                    if(best[i].user == member){
+                        played = true
+                    }
+                    if(record_holder !== null){
+                        if(best[i].time < record_holder.time){
+                            record_holder = best[i]
+                        }
+                    } else {
+                        record_holder = best[i]
+                    }
+                }
+                var reroll = truguts.reroll
+                var selection = "full price"
+                if(played){
+                    reroll = truguts.reroll_discount
+                    selection = "discount"
+                }
+                if(record_holder !== null){
+                    if(record_holder.user == member){
+                        reroll = 0
+                    }
+                }
+                var purchase = {
+                    date: Date.now(),
+                    purchased_item: "reroll",
+                    selection: selection
+                }
+                if(reroll > 0){
+                    profileref.child(member).child("purchases").push(purchase)
+                }
+                if(reroll == truguts.reroll_discount){
+                    reroll_description = "`-💿" + truguts.reroll_discount + "` (discounted)"
+                } else if(reroll == 0){
+                    reroll_description = "(no charge for record holders)"
+                } else {
+                    reroll_description = "`-💿" + truguts.reroll + "`"
+                }
+            }
             async function sendResponse() {
                 var response = null
                 if (interaction.name == "fake") {
