@@ -350,10 +350,11 @@ module.exports = {
             var rated = false
             //process reroll
             var reroll_description = ""
-            function rerollChallenge(best){
+            function rerollChallenge(){
                 reroll_description = ""
                 var played = false
                 var record_holder = null
+                console.log(best)
                 for (var i = 0; i < best.length; i++){
                     if(best[i].user == member){
                         played = true
@@ -788,7 +789,7 @@ module.exports = {
                             title = ":arrows_counterclockwise: Rerolled: "
                             eTitle = "~~" + eTitle + "~~"
                             profileref.child(member).child("current").update({ completed: true })
-                            rerollChallenge(best)
+                            rerollChallenge()
                             try {
 
                                 sentMessage.reactions.removeAll().catch()
@@ -892,7 +893,7 @@ module.exports = {
                                     collected = true
                                     collecting = false
                                     title = ":arrows_counterclockwise: Rerolled: "
-                                    rerollChallenge(best)
+                                    rerollChallenge()
                                     eTitle = "~~" + eTitle + "~~"
                                     profileref.child(member).child("current").update({ completed: true })
                                     try {
