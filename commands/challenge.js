@@ -365,10 +365,10 @@ module.exports = {
             }
             var bribed_racer = "", bribed_track = ""
             if (racer_bribe) {
-                bribed_racer = " :moneybag: *"
+                bribed_racer = "*"
             }
             if (track_bribe) {
-                bribed_track = " :moneybag: *"
+                bribed_track = "*"
             }
 
             var current = {
@@ -505,6 +505,12 @@ module.exports = {
                     } else {
                         desc = desc + movieQuotes[random_quote]
                     }
+                }
+                if(racer_bribe){
+                    desc += "\nBribed racer `-💿" + truguts.bribe_racer + "`"
+                }
+                if(track_bribe){
+                    desc += "\nBribed track `-💿" + truguts.bribe_track + "`"
                 }
 
                 //calculate goal time
