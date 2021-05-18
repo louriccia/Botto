@@ -739,9 +739,9 @@ module.exports = {
                         earnings_total += truguts.rated
                     }
                     if (!rated) {
-                        profileref.child(member).child("truguts_earned").update(profiledata[member].truguts_earned + earnings_total)
+                        profileref.child(member).child("truguts_earned").set(profiledata[member].truguts_earned + earnings_total)
                     } else {
-                        profileref.child(member).child("truguts_earned").update(profiledata[member].truguts_earned + truguts.rated)
+                        profileref.child(member).child("truguts_earned").set(profiledata[member].truguts_earned + truguts.rated)
                     }
 
                     earnings += "\n**Total: **`💿" + earnings_total + "`"
@@ -865,7 +865,7 @@ module.exports = {
                         } else if (reaction.emoji.name === '↩️') { //undo
                             for (let i = 0; i < collection.length; i++) {
                                 if (collection[i].user == user.id) {
-                                    profileref.child(member).child("truguts_earned").update({truguts: profiledata[member].truguts_earned - profiledata[member].current.truguts})
+                                    profileref.child(member).child("truguts_earned").set(profiledata[member].truguts_earned - profiledata[member].current.truguts)
                                     ref.child(collection[i].record).remove()
                                     best.splice(collection[i].index, 1)
                                     title = ""
@@ -1058,10 +1058,10 @@ module.exports = {
                                     title = ":white_check_mark: Completed: "
                                     highlight = submissiondata.date
                                     profileref.child(member).child("current").update({ completed: true })
-                                    sentMessage.edit("", createEmbed())
-                                    /*try {
+                                    
+                                    try {
                                         sentMessage.edit("", createEmbed())
-                                    } catch { }*/
+                                    } catch { }
                                 }
                                 if (message.guild) {
                                     try {
