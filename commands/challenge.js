@@ -351,6 +351,7 @@ module.exports = {
             //process reroll
             var reroll_description = ""
             function rerollChallenge(){
+                best = best
                 reroll_description = ""
                 var played = false
                 var record_holder = null
