@@ -1058,10 +1058,10 @@ module.exports = {
                                     title = ":white_check_mark: Completed: "
                                     highlight = submissiondata.date
                                     profileref.child(member).child("current").update({ completed: true })
-                                    
-                                    try {
+                                    sentMessage.edit("", createEmbed())
+                                    /*try {
                                         sentMessage.edit("", createEmbed())
-                                    } catch { }
+                                    } catch { }*/
                                 }
                                 if (message.guild) {
                                     try {
