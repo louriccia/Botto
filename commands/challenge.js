@@ -393,6 +393,7 @@ module.exports = {
                 } else {
                     reroll_description = "`-💿" + truguts.reroll + "`"
                 }
+                console.log(reroll_description)
             }
             //build embed
             var eAuthor = [], eTitle = "", title = "", highlight = "", eGoalTimes = [], best = []
