@@ -378,7 +378,8 @@ module.exports = {
                 laps: laps,
                 nu: nu,
                 skips: skips,
-                mirror: mirror
+                mirror: mirror,
+                truguts: 0
             }
             if (!vc) {
                 profileref.child(member).child("current").set(current)
@@ -442,7 +443,7 @@ module.exports = {
 
             }
             //build embed
-            var eAuthor = [], eTitle = "", title = "", highlight = "", eGoalTimes = [], best = [], earnings_total = 0
+            var eAuthor = [], eTitle = "", title = "", highlight = "", eGoalTimes = [], best = []
             function createEmbed() {
                 best = []
                 //get best runs/achievement progress
@@ -672,7 +673,7 @@ module.exports = {
                     }
                 }
                 var earnings = ""
-                
+                var earnings_total = 0
                 //construct winnings text
                 if (title == ":white_check_mark: Completed: ") {
                     var winnings_text = null
@@ -744,6 +745,7 @@ module.exports = {
                     }
 
                     earnings += "\n**Total: **`💿" + earnings_total + "`"
+                    profileref.child(member).child("current").child("truguts").update(earnings_total)
                 }
                 const newEmbed = new Discord.MessageEmbed()
                     .setTitle(title + eTitle)
@@ -863,7 +865,7 @@ module.exports = {
                         } else if (reaction.emoji.name === '↩️') { //undo
                             for (let i = 0; i < collection.length; i++) {
                                 if (collection[i].user == user.id) {
-                                    profileref.child(member).child("truguts_earned").update(profiledata[member].truguts_earned - earnings_total)
+                                    profileref.child(member).child("truguts_earned").update(profiledata[member].truguts_earned - profiledata[member].current.truguts)
                                     ref.child(collection[i].record).remove()
                                     best.splice(collection[i].index, 1)
                                     title = ""
