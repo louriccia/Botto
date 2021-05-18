@@ -197,7 +197,7 @@ module.exports = {
                     var noMoney = new Discord.MessageEmbed()
                 noMoney
                     .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
-                    .setDescription("*'No money, no challenge, no reroll!'*\nYou do not have enough truguts to reroll this challenge.\n\nCurrent balance: `" + (profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`\nReroll cost: `" + truguts.reroll + "`")
+                    .setDescription("*'No money, no challenge, no reroll!'*\nYou do not have enough truguts to reroll this challenge.\n\nCurrent balance: `" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`\nReroll cost: `" + tools.numberWithCommas(truguts.reroll) + "`")
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
                         type: 4,
@@ -253,7 +253,7 @@ module.exports = {
                                 var noMoney = new Discord.MessageEmbed()
                                 noMoney
                                     .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
-                                    .setDescription("*'No money, no challenge, no bribe!'*\nYou do not have enough truguts to make this bribe.\n\nCurrent balance: `" + profiledata[member].truguts_earned - profiledata[member].truguts_spent + "`\nBribe cost: `" + truguts.bribe_track + "`")
+                                    .setDescription("*'No money, no challenge, no bribe!'*\nYou do not have enough truguts to make this bribe.\n\nCurrent balance: `" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`\nBribe cost: `" + tools.numberWithCommas(truguts.bribe_track) + "`")
                                 sentMessage.channel.send(noMoney)
                                 return
                             }
@@ -274,7 +274,7 @@ module.exports = {
                                 var noMoney = new Discord.MessageEmbed()
                                 noMoney
                                     .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
-                                    .setDescription("*'No money, no challenge, no bribe!'*\nYou do not have enough truguts to make this bribe.\n\nCurrent balance: `" + profiledata[member].truguts_earned - profiledata[member].truguts_spent + "`\nBribe cost: `" + truguts.bribe_racer + "`")
+                                    .setDescription("*'No money, no challenge, no bribe!'*\nYou do not have enough truguts to make this bribe.\n\nCurrent balance: `" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`\nBribe cost: `" + tools.numberWithCommas(truguts.bribe_racer) + "`")
                                 sentMessage.channel.send(noMoney)
                                 return
                             }
@@ -436,11 +436,11 @@ module.exports = {
                     profileref.child(member).update({truguts_spent:profiledata[member].truguts_spent + reroll})
                 }
                 if (reroll == truguts.reroll_discount) {
-                    reroll_description = "`-💿" + truguts.reroll_discount + "` (discounted)\nCurrent balance: `" + (profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`"
+                    reroll_description = "`-💿" + truguts.reroll_discount + "` (discounted)\nCurrent balance: `" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`"
                 } else if (reroll == 0) {
                     reroll_description = "(no charge for record holders)"
                 } else {
-                    reroll_description = "`-💿" + truguts.reroll + "`\nCurrent balance: `" + (profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`"
+                    reroll_description = "`-💿" + truguts.reroll + "`\nCurrent balance: `" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`"
                 }
                 return reroll_description
 
@@ -1235,7 +1235,7 @@ module.exports = {
                     member = args[0].options[0].value
                 }
             }
-            console.log(trugutsEarned(member))
+            //console.log(trugutsEarned(member))
             var keys = Object.keys(challengedata)
             var stats = {
                 total: 0,
@@ -1409,7 +1409,12 @@ module.exports = {
                     achievement_field += "**" + achievements[a].name + "** - " + achievements[a].description + ": `" + Object.keys(achievements[a].collection).length + "/" + achievements[a].limit + "`\n"
                 }
             }
-            achievement_field += "**Big-Time Swindler** - Earn or spend 1,000,000 total truguts: `" + "x" + "/1,000,000`"
+            if(profiledata[member].truguts_spent + profiledata[member].truguts_earned >= 1000000){
+                achievement_field += ":white_check_mark: " + "**Big-Time Swindler** - Earn or spend 1,000,000 total truguts: `" + tools.numberWithCommas(profiledata[member].truguts_spent + profiledata[member].truguts_earned) + "/1,000,000`"
+            } else {
+                achievement_field += "**Big-Time Swindler** - Earn or spend 1,000,000 total truguts: `" + tools.numberWithCommas(profiledata[member].truguts_spent + profiledata[member].truguts_earned) + "/1,000,000`"
+            }
+            
             profileEmbed.addField(":trophy: Achievements", achievement_field, true)
             client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {

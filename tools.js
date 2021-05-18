@@ -1,5 +1,7 @@
 module.exports = {
-    
+    numberWithCommas: function(x) {
+        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    },
     timefix: function(time) {
         var myformat = new Intl.NumberFormat('en-US', { 
             minimumIntegerDigits: 2, 
