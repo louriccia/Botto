@@ -675,53 +675,67 @@ module.exports = {
                     if (!title == ":white_check_mark: Completed: ") {
                         achievement_message_array = []
                         if (Object.keys(achievements.galaxy_famous.collection).length < achievements.galaxy_famous.limit && achievements.galaxy_famous.collection[random_track] == undefined) {
-                            achievement_message_array.push({
+                            var thing = {
                                 name: galaxyFamous,
                                 count: Object.keys(achievements.galaxy_famous.collection).length,
                                 limit: achievements.galaxy_famous.limit
-                            })
+                            }
+                            console.log(thing)
+                            achievement_message_array.push(thing)
                         }
                         if (Object.keys(achievements.pod_champ.collection).length < achievements.pod_champ.limit && achievements.pod_champ.collection[random_racer] == undefined) {
-                            achievement_message_array.push({
+                            var thing = {
                                 name: podChamp,
                                 count: Object.keys(achievements.pod_champ.collection).length,
                                 limit: achievements.pod_champ.limit
-                            })
+                            }
+                            achievement_message_array.push(thing)
+                            console.log(thing)
                         }
                         if (Object.keys(achievements.light_skipper.collection).length < achievements.light_skipper.limit && skips && achievements.light_skipper.collection[random_track] == undefined) {
-                            achievement_message_array.push({
+                            var thing = {
                                 name: lightSkipper,
                                 count: Object.keys(achievements.light_skipper.collection).length,
                                 limit: achievements.light_skipper.limit
-                            })
+                            }
+                            achievement_message_array.push(thing)
+                            console.log(thing)
                         }
                         if (Object.keys(achievements.slow_steady.collection).length < achievements.slow_steady.limit && nu && achievements.slow_steady.collection[random_racer] == undefined) {
-                            achievement_message_array.push({
+                            var thing = {
                                 name: slowSteady,
                                 count: Object.keys(achievements.slow_steady.collection).length,
                                 limit: achievements.slow_steady.limit
-                            })
+                            }
+                            achievement_message_array.push(thing)
+                            console.log(thing)
                         }
                         if (Object.keys(achievements.mirror_dimension.collection).length < achievements.mirror_dimension.limit && mirror && achievements.mirror_dimension.collection[random_track] == undefined) {
-                            achievement_message_array.push({
+                            var thing = {
                                 name: mirrorDimension,
                                 count: Object.keys(achievements.mirror_dimension.collection).length,
                                 limit: achievements.mirror_dimension.limit
-                            })
+                            }
+                            achievement_message_array.push(thing)
+                            console.log(thing)
                         }
                         if (Object.keys(achievements.crowd_favorite.collection).length < achievements.crowd_favorite.limit && random_racer == tracks[random_track].favorite && achievements.crowd_favorite.collection[random_track] == undefined) {
-                            achievement_message_array.push({
+                            var thing = {
                                 name: crowdFavorite,
                                 count: Object.keys(achievements.crowd_favorite.collection).length,
                                 limit: achievements.crowd_favorite.limit
-                            })
+                            }
+                            achievement_message_array.push(thing)
+                            console.log(thing)
                         }
                         if (Object.keys(achievements.true_jedi.collection).length < achievements.true_jedi.limit && achievements.true_jedi.collection[random_track + " " + random_racer] == undefined) {
-                            achievement_message_array.push({
+                            var thing = {
                                 name: trueJedi,
                                 count: Object.keys(achievements.true_jedi.collection).length,
                                 limit: achievements.true_jedi.limit
-                            })
+                            }
+                            achievement_message_array.push(thing)
+                            console.log(thing)
                         }
                     }
                     console.log(achievement_message_array)
