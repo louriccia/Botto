@@ -1269,7 +1269,7 @@ module.exports = {
                 }
                 hintEmbed
                     .setAuthor(interaction.member.user.username + "'s Hint", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
-                    .setTitle(":bulb: " + hints[hint_tier].name + ": " + achievements[selection].name)
+                    .setTitle(":bulb: " + hints[hint_tier].name + ": " + achievement_name)
             }
             client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {
