@@ -407,7 +407,7 @@ client.on('message', message => {
         message.channel.send(myEmbed)
     }
 })
-
+/*
 client.api.applications("545798436105224203").commands.post({data: {
     name: 'challenge',
     description: 'randomly generated challenges',
@@ -990,6 +990,6 @@ client.api.applications("545798436105224203").commands.post({data: {
         }
     ]
 }})
-
+*/
 
 client.login(process.env.token);

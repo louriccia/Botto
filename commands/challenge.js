@@ -1253,7 +1253,7 @@ module.exports = {
                         purchased_item: hints[hint_tier].name,
                         selection: selection
                     }
-                    profileref.child(member).child("puchases").push(purchase)
+                    profileref.child(member).child("purchases").push(purchase)
                     if(selection == "challenge_hunt"){
                         hintEmbed.setDescription("`-📀" + tools.numberWithCommas(hints[hint_tier].price) + "`\nBotto has randomly hid a large trugut bonus on a random challenge. You have one hour to find and complete the challenge and claim your bonus! If you use a bribe to successfully find the challenge, you will not be charged.\n" + 
                         "Potential bonus: `📀" + tools.numberWithCommas(hints[hint_tier].bonus) + "`")
