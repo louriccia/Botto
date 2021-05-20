@@ -30,14 +30,14 @@ module.exports = {
 
 
         var achievements = {
-            galaxy_famous: { name: "Galaxy Famous", description: "Complete a challenge on every track", role: "819514261289828362", limit: 25, count: 0, collection: {} },
-            pod_champ: { name: "Pod Champ", description: "Complete a challenge with every pod", role: "819514029218463774", limit: 23, count: 0, collection: {} },
-            light_skipper: { name: "Lightspeed Skipper", description: "Complete a Skip challenge on every track with a skip", role: "819514330985922621", limit: 12, count: 0, collection: {} },
-            slow_steady: { name: "Slow 'n Steady", description: "Complete a No Upgrades challenge with every pod", role: "819514431472926721", limit: 23, count: 0, collection: {} },
-            mirror_dimension: { name: "Mirror Dimension", description: "Complete a Mirrored challenge on every track", role: "843573636119134219", limit: 25, count: 0, collection: {} },
-            crowd_favorite: { name: "Crowd Favorite", description: "Complete a challenge as the track favorite on every track", role: "819514487852761138", limit: 25, count: 0, collection: {} },
-            true_jedi: { name: "True Jedi", description: "Complete a challenge with every pod on every track", role: "819514600827519008", limit: 575, count: 0, collection: {} },
-            big_time_swindler: { name: "Big-Time Swindler", description: "Earn or spend 1,000,000 total truguts", role: "844307520997949481", limit: 1000000, count: 0, collection: {} }
+            galaxy_famous: { name: "Galaxy Famous", description: "Complete a challenge on every track", role: "819514261289828362", limit: 25, count: 0, collection: {}, array: [], missing: [] },
+            pod_champ: { name: "Pod Champ", description: "Complete a challenge with every pod", role: "819514029218463774", limit: 23, count: 0, collection: {}, array: [], missing: [] },
+            light_skipper: { name: "Lightspeed Skipper", description: "Complete a Skip challenge on every track with a skip", role: "819514330985922621", limit: 12, count: 0, collection: {}, array: [], missing: [] },
+            slow_steady: { name: "Slow 'n Steady", description: "Complete a No Upgrades challenge with every pod", role: "819514431472926721", limit: 23, count: 0, collection: {}, array: [], missing: [] },
+            mirror_dimension: { name: "Mirror Dimension", description: "Complete a Mirrored challenge on every track", role: "843573636119134219", limit: 25, count: 0, collection: {}, array: [], missing: [] },
+            crowd_favorite: { name: "Crowd Favorite", description: "Complete a challenge as the track favorite on every track", role: "819514487852761138", limit: 25, count: 0, collection: {}, array: [], missing: [] },
+            true_jedi: { name: "True Jedi", description: "Complete a challenge with every pod on every track", role: "819514600827519008", limit: 575, count: 0, collection: {}, array: [], missing: [] },
+            big_time_swindler: { name: "Big-Time Swindler", description: "Earn or spend 1,000,000 total truguts", role: "844307520997949481", limit: 1000000, count: 0, collection: {}, array: [], missing: [] }
         }
 
         var truguts = {
@@ -49,9 +49,14 @@ module.exports = {
             rated: 50,
             bribe_track: 8400,
             bribe_racer: 8400,
-            hint: 100,
+            hint_basic: 200,
+            hint_standard: 1000,
+            hint_deluxe: 5000,
             reroll: 1200,
-            reroll_discount: 600
+            reroll_discount: 600,
+            bonus_basic: 50000,
+            bonus_standard: 20000,
+            bonus_deluxe: 10000
         }
 
         function getGoalTimes(track, racer, skips, nu, laps) {
@@ -190,7 +195,7 @@ module.exports = {
         if (args[0].name == "generate" || args[0].name == "challenge") {
 
             let member = interaction.member.user.id
-            if(profiledata[member] == undefined){
+            if (profiledata[member] == undefined) {
                 var data = {
                     mirror_mode: 5,
                     name: interaction.member.user.username,
@@ -203,31 +208,31 @@ module.exports = {
                 }
                 profileref.child(member).set(data)
             }
-            
+
             var vc = false
             var challengestart = Date.now()
             //send embed
-            if(profiledata[member].current !== undefined){
+            if (profiledata[member].current !== undefined) {
                 if (profiledata[member].current.completed == false && profiledata[member].current.start > challengestart - 900000) {
-                    if(profiledata[member].truguts_earned - profiledata[member].truguts_spent < truguts.reroll){
+                    if (profiledata[member].truguts_earned - profiledata[member].truguts_spent < truguts.reroll) {
                         var noMoney = new Discord.MessageEmbed()
-                    noMoney
-                        .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
-                        .setDescription("*'No money, no challenge, no reroll!'*\nYou do not have enough truguts to reroll this challenge.\n\nCurrent balance: `" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`\nReroll cost: `" + tools.numberWithCommas(truguts.reroll) + "`")
-                    client.api.interactions(interaction.id, interaction.token).callback.post({
-                        data: {
-                            type: 4,
+                        noMoney
+                            .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
+                            .setDescription("*'No money, no challenge, no reroll!'*\nYou do not have enough truguts to reroll this challenge.\n\nCurrent balance: `" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`\nReroll cost: `" + tools.numberWithCommas(truguts.reroll) + "`")
+                        client.api.interactions(interaction.id, interaction.token).callback.post({
                             data: {
-                                //content: "\u200B"
-                                embeds: [noMoney]
+                                type: 4,
+                                data: {
+                                    //content: "\u200B"
+                                    embeds: [noMoney]
+                                }
                             }
-                        }
-                    })
-                    return
+                        })
+                        return
                     }
                 }
             }
-            
+
             if (interaction.name !== "fake") {
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
@@ -266,7 +271,7 @@ module.exports = {
                                     selection: Number(args[0].options[i].value)
                                 }
                                 profileref.child(member).child("purchases").push(purchase)
-                                profileref.child(member).update({truguts_spent:profiledata[member].truguts_spent + truguts.bribe_track})
+                                profileref.child(member).update({ truguts_spent: profiledata[member].truguts_spent + truguts.bribe_track })
                             } else {
                                 var noMoney = new Discord.MessageEmbed()
                                 noMoney
@@ -287,7 +292,7 @@ module.exports = {
                                     selection: Number(args[0].options[i].value)
                                 }
                                 profileref.child(member).child("purchases").push(purchase)
-                                profileref.child(member).update({truguts_spent: profiledata[member].truguts_spent + truguts.bribe_racer})
+                                profileref.child(member).update({ truguts_spent: profiledata[member].truguts_spent + truguts.bribe_racer })
                             } else {
                                 var noMoney = new Discord.MessageEmbed()
                                 noMoney
@@ -408,11 +413,11 @@ module.exports = {
 
             var reroll_description = ""
             function rerollChallenge(best) {
-                
+
                 reroll_description = ""
                 var played = false
                 var record_holder = null
-                if(best !== undefined){
+                if (best !== undefined) {
                     for (var i = 0; i < best.length; i++) {
                         if (best[i].user == member) {
                             played = true
@@ -451,7 +456,7 @@ module.exports = {
                 }
                 if (reroll > 0) {
                     profileref.child(member).child("purchases").push(purchase)
-                    profileref.child(member).update({truguts_spent:profiledata[member].truguts_spent + reroll})
+                    profileref.child(member).update({ truguts_spent: profiledata[member].truguts_spent + reroll })
                 }
                 if (reroll == truguts.reroll_discount) {
                     reroll_description = "`-📀" + truguts.reroll_discount + "` (discounted)\nCurrent balance: `" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`"
@@ -525,10 +530,10 @@ module.exports = {
                         desc = desc + movieQuotes[random_quote]
                     }
                 }
-                if(racer_bribe){
+                if (racer_bribe) {
                     desc += "\nBribed racer `-📀" + tools.numberWithCommas(truguts.bribe_racer) + "`"
                 }
-                if(track_bribe){
+                if (track_bribe) {
                     desc += "\nBribed track `-📀" + tools.numberWithCommas(truguts.bribe_track) + "`"
                 }
 
@@ -769,14 +774,14 @@ module.exports = {
                     }
                     var earned = profiledata[member].truguts_earned
                     if (!rated || undone) {
-                        profileref.child(member).update({truguts_earned:earned + earnings_total})
+                        profileref.child(member).update({ truguts_earned: earned + earnings_total })
                     } else {
-                        profileref.child(member).update({truguts_earned:earned + truguts.rated})
+                        profileref.child(member).update({ truguts_earned: earned + truguts.rated })
                     }
 
-                    earnings += "\n**Total: **`📀" + tools.numberWithCommas(earnings_total) + "`"
-                    profileref.child(member).child("current").update({truguts:earnings_total})
-                    earnings += "\n**New balance: **`📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent)
+                    earnings += "\n**Total: **`+📀" + tools.numberWithCommas(earnings_total) + "`"
+                    profileref.child(member).child("current").update({ truguts: earnings_total })
+                    earnings += "\n**New balance: **`📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`"
                 }
                 const newEmbed = new Discord.MessageEmbed()
                     .setTitle(title + eTitle)
@@ -897,7 +902,7 @@ module.exports = {
                         } else if (reaction.emoji.name === '↩️') { //undo
                             for (let i = 0; i < collection.length; i++) {
                                 if (collection[i].user == user.id) {
-                                    profileref.child(member).update({truguts_earned:profiledata[member].truguts_earned - profiledata[member].current.truguts})
+                                    profileref.child(member).update({ truguts_earned: profiledata[member].truguts_earned - profiledata[member].current.truguts })
                                     ref.child(collection[i].record).remove()
                                     best.splice(collection[i].index, 1)
                                     title = ""
@@ -1106,6 +1111,168 @@ module.exports = {
                     }
                 })
             })
+        } else if (args[0].name == "hint") {
+            const hintEmbed = new Discord.MessageEmbed()
+            let member = interaction.member.user.id
+            var hints = [
+                { name: "Basic Hint", price: truguts.hint_basic, bonus: truguts.bonus_basic},
+                { name: "Standard Hint", price: truguts.hint_standard, bonus: truguts.bonus_standard },
+                { name: "Deluxe Hint", price: truguts.hint_deluxe, bonus: truguts.bonus_deluxe }
+            ]
+            //process input
+            var hint_tier = 0
+            var selection = ""
+            for (var i = 0; i < args[0].options.length; i++) {
+                if (args[0].options[i].name == "hint") {
+                    hint_tier = Number(args[0].options[i].value)
+                } else if (args[0].options[i].name == "selection") {
+                    selection = args[0].options[i].value
+                }
+            }
+            //check truguts
+            if (challengedata[member].truguts_earned - challengedata[member].truguts_spent < hints[hint_tier].price) {
+                hintEmbed
+                    .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
+                    .setDescription("*'No money, no hint!'*\nYou do not have enough truguts to buy the selected hint.\n\nCurrent balance: `" + (profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`\nHint cost: `" + hints[hint_tier].price + "`")
+            } else {
+                //get array of possible hints based on selection
+                var keys = Object.keys(challengedata)
+                for (var i = 0; i < keys.length; i++) {
+                    var k = keys[i];
+                    if (challengedata[k].user == member) {
+                        if (!achievements.galaxy_famous.array.includes(challengedata[k].track)) {
+                            achievements.galaxy_famous.array.push(challengedata[k].track)
+                        }
+                        if (!achievements.pod_champ.array.includes(challengedata[k].racer)) {
+                            achievements.pod_champ.array.push(challengedata[k].racer)
+                        }
+                        if (challengedata[k].skips && !achievements.light_skipper.array.includes(challengedata[k].track)) {
+                            achievements.light_skipper.array.push(challengedata[k].track)
+                        }
+                        if (challengedata[k].nu && !achievements.slow_steady.array.includes(challengedata[k].racer)) {
+                            achievements.slow_steady.array.push(challengedata[k].racer)
+                        }
+                        if (challengedata[k].mirror && !achievements.mirror_dimension.array.includes(challengedata[k].track)) {
+                            achievements.mirror_dimension.array.push(challengedata[k].track)
+                        }
+                        if (challengedata[k].racer == tracks[challengedata[k].track].favorite && !achievements.crowd_favorite.array.includes(challengedata[k].track)) {
+                            achievements.crowd_favorite.array.push(challengedata[k].track)
+                        }
+                        if (!achievements.true_jedi.array.includes(challengedata[k].track + "," + challengedata[k].racer)) {
+                            achievements.true_jedi.array.push(challengedata[k].track + "," + challengedata[k].racer)
+                        }
+                    }
+                }
+                //figure out missing
+                for (var j = 0; j < 25; j++) {
+                    if (!achievements.galaxy_famous.array.includes(j)) {
+                        achievements.galaxy_famous.missing.push(j)
+                    }
+                    if (!achievements.pod_champ.array.includes(j) && j < 23) {
+                        achievements.pod_champ.missing.push(j)
+                    }
+                    if (!achievements.light_skipper.array.includes(j) && tracks[j].hasOwnProperty("parskiptimes")) {
+                        achievements.light_skipper.missing.push(j)
+                    }
+                    if (!achievements.slow_steady.array.includes(j) && j < 23) {
+                        achievements.slow_steady.missing.push(j)
+                    }
+                    if (!achievements.mirror_dimension.array.includes(j)) {
+                        achievements.mirror_dimension.missing.push(j)
+                    }
+                    if (!achievements.crowd_favorite.array.includes(j)) {
+                        achievements.crowd_favorite.missing.push(j)
+                    }
+                    for (var l = 0; l < 23; l++) {
+                        if (!achievements.true_jedi.array.includes(j + "," + l)) {
+                            achievements.true_jedi.missing.push(j + "," + l)
+                        }
+                    }
+                }
+                //get random missing challenge
+                var racer = null, track = null
+                if (["galaxy_famous", "lightspeed_skipper", "mirror_dimension", "crowd_favorite"].includes(selection)) {
+                    track = achievements[selection].missing[Math.floor(Math.random() * achievements[selection].missing.length)]
+                    if (selection == "crowd_favorite") {
+                        racer = tracks[track].favorite
+                    }
+                }
+                if (["pod_champ", "slow_steady"].includes(selection)) {
+                    racer = achievements[selection].missing[Math.floor(Math.random() * achievements[selection].missing.length)]
+                }
+                if (selection == "true_jedi") {
+                    var random = achievements.true_jedi.missing[Math.floor(Math.random() * achievements.true_jedi.missing.length)]
+                    random = random.split(",")
+                    track = random[0]
+                    racer = random[1]
+                }
+                console.log("racer: " + racer)
+                console.log("track: " + track)
+                if (selection == "challenge_hunt") {
+                    track = Math.floor(Math.random * 25)
+                    racer = Math.floor(Math.random * 23)
+                    //save challenge hunt to profile here
+                    profileref.child(member).update({
+                        hunt: {
+                            track: track,
+                            racer: racer,
+                            date: Date.now(),
+                            bonus: hints[hint_tier].bonus
+                        }
+                    })
+                }
+                if ((["galaxy_famous", "lightspeed_skipper", "mirror_dimension", "crowd_favorite", "true_jedi"].includes(selection) && track == null) || (["pod_champ", "slow_steady", "true_jedi"].includes(selection) && racer == null)) {
+                    //player already has achievement
+                    hintEmbed.setDescription("You already have this achievement and do not require a hint. You have not been charged. \n\nAlready have all the achievements? Try the Challenge Hunt!")
+                } else {
+                    //prepare hint
+                    var track_hint_text = "", racer_hint_text = ""
+                    if (track !== null) {
+                        var track_hint = track_hints[track]
+                        for (var i = 0; i < hint_tier + 1; i++) {
+                            var random_hint = Math.floor(Math.random() * track_hint.length)
+                            track_hint_text += "○ *" + track_hint[random_hint] + "*\n"
+                            track_hint.splice(random_hint, 1)
+                        }
+                        hintEmbed.addField("Track Hint", track_hint_text)
+                    }
+                    if (racer !== null) {
+                        var racer_hint = racer_hints[racer]
+                        for (var i = 0; i < hint_tier + 1; i++) {
+                            var random_hint = Math.floor(Math.random() * racer_hint.length)
+                            racer_hint_text += "○ *" + racer_hint[random_hint] + "*\n"
+                            racer_hint.splice(random_hint, 1)
+                        }
+                        hintEmbed.addField("Racer Hint", racer_hint_text)
+                    }
+                    // process purchase
+                    profileref.child(member).update({ truguts_spent: profiledata[member].truguts_spent + hints[hint_tier].price })
+                    var purchase = {
+                        date: Date.now(),
+                        purchased_item: hints[hint_tier].name,
+                        selection: selection
+                    }
+                    if(selection == "challenge_hunt"){
+                        hintEmbed.setDescription("`-📀" + tools.numberWithCommas(hints[hint_tier].price) + "`\nBotto has randomly hid a large trugut bonus on a random challenge. You have one hour to find and complete the challenge and claim your bonus! If you use a bribe to successfully find the challenge, you will not be charged.\n" + 
+                        "Potential bonus: `📀" + tools.numberWithCommas(hints[hint_tier].bonus) + "`")
+                    } else {
+                        hintEmbed.setDescription("`-📀" + tools.numberWithCommas(hints[hint_tier].price) + "`")
+                    }
+                }
+                hintEmbed
+                    .setAuthor(interaction.member.user.username + "' Hint", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
+                    .setTitle(":bulb: " + hints[hint_tier].name + ": " + achievements[selection].name)
+            }
+            client.api.interactions(interaction.id, interaction.token).callback.post({
+                data: {
+                    type: 4,
+                    data: {
+                        content: "",
+                        embeds: [hintEmbed],
+                    }
+                }
+            })
+
         } else if (args[0].name == "settings") {
             //get input
             let member = interaction.member.user.id
@@ -1248,7 +1415,7 @@ module.exports = {
             })
         } else if (args[0].name == "profile") {
             var member = interaction.member.user.id
-           
+
             const Guild = client.guilds.cache.get(interaction.guild_id); // Getting the guild.
             const Member = Guild.members.cache.get(member); // Getting the member.
             if (args[0].hasOwnProperty("options")) {
@@ -1365,7 +1532,7 @@ module.exports = {
                         mirror_dimension: false,
                         crowd_favorite: false,
                         true_jedi: false,
-                        big_spender: false
+                        big_time_swindler: false
                     }
                     profileref.child(member).child("achievements").set(ach)
                 }
@@ -1373,7 +1540,7 @@ module.exports = {
                 for (var i = 0; i < achvs.length; i++) {
                     var a = achvs[i]
                     achievements[a].count = Object.keys(achievements[a].collection).length
-                    if(achievements[a].name == "Big-Time Swindler"){
+                    if (achievements[a].name == "Big-Time Swindler") {
                         achievements[a].count = profiledata[member].truguts_spent + profiledata[member].truguts_earned
                     }
                     if (achievements[a].count >= achievements[a].limit && profiledata[member].achievements[a] == false) {
@@ -1434,7 +1601,7 @@ module.exports = {
                     achievement_field += "**" + achievements[a].name + "** - " + achievements[a].description + ": `" + tools.numberWithCommas(achievements[a].count) + "/" + tools.numberWithCommas(achievements[a].limit) + "`\n"
                 }
             }
-            
+
             profileEmbed.addField(":trophy: Achievements", achievement_field, true)
             client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {

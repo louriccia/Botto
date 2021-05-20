@@ -223,6 +223,76 @@ client.api.applications("545798436105224203").commands.post({data: {
             ]
         },
         {
+            name: "hint",
+            description: "Need to know what track/racer to bribe for your achievements? Spend truguts to buy a hint from Botto",
+            type: 1,
+            options: [
+                {
+                    name: "hint",
+                    description: "Select a hint to buy. The more you spend, the better the hint.",
+                    type: 3,
+                    required: true,
+                    choices: [
+                        {
+                            name: "Basic Hint (single-part hint) [200]",
+                            value: "0"
+                        },
+                        {
+                            name: "Standard Hint (two-part hint) [1,000]",
+                            value: "1"
+
+                        },
+                        {
+                            name: "Deluxe Hint (three-part hint) [5,000]",
+                            value: "2"
+                        }
+
+                    ]
+
+                },
+                {
+                    name: "selection",
+                    description: "this selection determines which achievement the hint is for",
+                    type: 3,
+                    requird: true,
+                    choices: [
+                        {
+                            name: "Galaxy Famous",
+                            value: "galaxy_famous"
+                        },
+                        {
+                            name: "Pod Champ",
+                            value: "pod_champ"
+                        },
+                        {
+                            name: "Lightspeed Skipper",
+                            value: "lightspeed_skipper"
+                        },
+                        {
+                            name: "Slow 'n Steady",
+                            value: "slow_steady"
+                        },
+                        {
+                            name: "Mirror Dimension",
+                            value: "mirror_dimension"
+                        },
+                        {
+                            name: "Crowd Favorite",
+                            value: "crowd_favorite"
+                        },
+                        {
+                            name: "True Jedi",
+                            value: "true_jedi"
+                        },
+                        {
+                            name: "Challenge Hunt",
+                            value: "challenge_hunt"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             name: "settings",
             description: "customize your challenge settings including your winnings and odds of rolling nu, skips, etc.",
             type: 1,
