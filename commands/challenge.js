@@ -484,6 +484,7 @@ module.exports = {
             }
             //build embed
             var undone = false
+            var hunt_bonus = 0
             var eAuthor = [], eTitle = "", title = "", highlight = "", eGoalTimes = [], best = [], achievement_message_array = []
             function createEmbed() {
                 best = []
@@ -544,7 +545,7 @@ module.exports = {
                 }
 
                 if (hunt) {
-                    desc += "\nYou found the challenge hunt! Complete the challenge to earn a `📀" + tools.numberWithCommas(profiledata[member].hunt.bonus) + "` bonus"
+                    desc += "\nYou found the Challenge Hunt! Complete the challenge to earn a `📀" + tools.numberWithCommas(profiledata[member].hunt.bonus) + "` bonus"
                 } else {
                     if (racer_bribe) {
                         desc += "\nBribed racer `-📀" + tools.numberWithCommas(truguts.bribe_racer) + "`"
@@ -768,6 +769,7 @@ module.exports = {
                     if (hunt) {
                         earnings += "Hunt Bonus `+📀" + tools.numberWithCommas(profiledata[member].hunt.bonus) + "`\n"
                         earnings_total += profiledata[member].hunt.bonus
+                        hunt_bonus = profiledata[member].hunt.bonus
                         profileref.child(member).update({ hunt: { completed: true } })
                     }
                     if (goal_earnings[winnings_text] > 0) {
@@ -1142,7 +1144,8 @@ module.exports = {
                                         non_3_lap: profiledata[member].non_3_lap,
                                         skips: profiledata[member].skips,
                                         mirror_mode: profiledata[member].mirror_mode
-                                    }
+                                    },
+                                    hunt: hunt_bonus
                                 }
                                 best.push(submissiondata)
                                 var newPostRef = ref.push(submissiondata);
