@@ -512,7 +512,6 @@ module.exports = {
                     if (challengedata[k].track == random_track && challengedata[k].racer == random_racer && challengedata[k].laps == laps && challengedata[k].mirror == mirror && challengedata[k].nu == nu && challengedata[k].skips == skips) {
                         best.push(challengedata[k])
                     }
-
                 }
                 //build description
                 var desc = ""
@@ -673,6 +672,7 @@ module.exports = {
                 }
                 if (!vc) {
                     if (!title == ":white_check_mark: Completed: ") {
+                        console.log("assembling achievement array")
                         achievement_message_array = []
                         if (Object.keys(achievements.galaxy_famous.collection).length < achievements.galaxy_famous.limit && achievements.galaxy_famous.collection[random_track] == undefined) {
                             var thing = {
