@@ -472,11 +472,11 @@ module.exports = {
                     profileref.child(member).update({ truguts_spent: profiledata[member].truguts_spent + reroll })
                 }
                 if (reroll == truguts.reroll_discount) {
-                    reroll_description = "`-📀" + truguts.reroll_discount + "` (discounted)\nCurrent balance: `" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`"
+                    reroll_description = "`-📀" + truguts.reroll_discount + "` (discounted)\nCurrent balance: `📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`"
                 } else if (reroll == 0) {
                     reroll_description = "(no charge for record holders)"
                 } else {
-                    reroll_description = "`-📀" + truguts.reroll + "`\nCurrent balance: `" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`"
+                    reroll_description = "`-📀" + truguts.reroll + "`\nCurrent balance: `📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`"
                 }
                 return reroll_description
 
@@ -724,6 +724,7 @@ module.exports = {
                             })
                         }
                     }
+                    console.log(achievement_message_array)
                     if (profiledata[member].achievements == undefined) {
                         var ach = {
                             galaxy_famous: false,
@@ -964,7 +965,7 @@ module.exports = {
                                 var noMoney = new Discord.MessageEmbed()
                                 noMoney
                                     .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
-                                    .setDescription("*'No money, no challenge, no reroll!'*\nYou do not have enough truguts to reroll this challenge.\n\nCurrent balance: `" + (profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`\nReroll cost: `" + truguts.reroll + "`")
+                                    .setDescription("*'No money, no challenge, no reroll!'*\nYou do not have enough truguts to reroll this challenge.\n\nCurrent balance: `📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`\nReroll cost: `📀" + tools.numberWithCommas(truguts.reroll) + "`")
                                 sentMessage.channel.send(noMoney)
                             }
 
