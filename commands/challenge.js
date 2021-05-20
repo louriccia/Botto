@@ -1274,28 +1274,11 @@ module.exports = {
                     }
                 }
                 //get random missing challenge
-                var racer = null, track = null
-                if (["galaxy_famous", "lightspeed_skipper", "mirror_dimension", "crowd_favorite"].includes(selection)) {
-                    track = achievements[selection].missing[Math.floor(Math.random() * achievements[selection].missing.length)]
-                    if (selection == "crowd_favorite") {
-                        racer = tracks[track].favorite
-                    }
-                }
-                if (["pod_champ", "slow_steady"].includes(selection)) {
-                    racer = achievements[selection].missing[Math.floor(Math.random() * achievements[selection].missing.length)]
-                }
-                if (selection == "true_jedi") {
-                    var random = achievements.true_jedi.missing[Math.floor(Math.random() * achievements.true_jedi.missing.length)]
-                    random = random.split(",")
-                    track = random[0]
-                    racer = random[1]
-                }
-                console.log("racer: " + racer)
-                console.log("track: " + track)
+                var racer = null, track = null, achievement_name = ""
                 if (selection == "challenge_hunt") {
+                    achievement_name = "Challenge Hunt"
                     track = Math.floor(Math.random() * 25)
                     racer = Math.floor(Math.random() * 23)
-                    //save challenge hunt to profile here
                     profileref.child(member).update({
                         hunt: {
                             track: track,
@@ -1305,13 +1288,26 @@ module.exports = {
                             completed: false
                         }
                     })
-                }
-                var achievement_name = ""
-                if (selection == "challenge_hunt") {
-                    achievement_name = "Challenge Hunt"
                 } else {
                     achievement_name = achievements[selection].name
+                    if (["galaxy_famous", "lightspeed_skipper", "mirror_dimension", "crowd_favorite"].includes(selection)) {
+                        track = achievements[selection].missing[Math.floor(Math.random() * achievements[selection].missing.length)]
+                        if (selection == "crowd_favorite") {
+                            racer = tracks[track].favorite
+                        }
+                    }
+                    if (["pod_champ", "slow_steady"].includes(selection)) {
+                        racer = achievements[selection].missing[Math.floor(Math.random() * achievements[selection].missing.length)]
+                    }
+                    if (selection == "true_jedi") {
+                        var random = achievements.true_jedi.missing[Math.floor(Math.random() * achievements.true_jedi.missing.length)]
+                        random = random.split(",")
+                        track = random[0]
+                        racer = random[1]
+                    }
                 }
+                console.log("racer: " + racer)
+                console.log("track: " + track)
                 if ((["galaxy_famous", "lightspeed_skipper", "mirror_dimension", "crowd_favorite", "true_jedi"].includes(selection) && track == null) || (["pod_champ", "slow_steady", "true_jedi"].includes(selection) && racer == null)) {
                     //player already has achievement
                     hintEmbed.setDescription("You already have this achievement and do not require a hint. You have not been charged. \n\nAlready have all the achievements? Try the Challenge Hunt!")
