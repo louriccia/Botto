@@ -1221,6 +1221,7 @@ module.exports = {
                         }
                     })
                 }
+                var achievement_name = achievements[selection].name
                 if ((["galaxy_famous", "lightspeed_skipper", "mirror_dimension", "crowd_favorite", "true_jedi"].includes(selection) && track == null) || (["pod_champ", "slow_steady", "true_jedi"].includes(selection) && racer == null)) {
                     //player already has achievement
                     hintEmbed.setDescription("You already have this achievement and do not require a hint. You have not been charged. \n\nAlready have all the achievements? Try the Challenge Hunt!")
@@ -1256,6 +1257,7 @@ module.exports = {
                     if(selection == "challenge_hunt"){
                         hintEmbed.setDescription("`-📀" + tools.numberWithCommas(hints[hint_tier].price) + "`\nBotto has randomly hid a large trugut bonus on a random challenge. You have one hour to find and complete the challenge and claim your bonus! If you use a bribe to successfully find the challenge, you will not be charged.\n" + 
                         "Potential bonus: `📀" + tools.numberWithCommas(hints[hint_tier].bonus) + "`")
+                        achievement_name = "Challenge Hunt"
                     } else {
                         hintEmbed.setDescription("`-📀" + tools.numberWithCommas(hints[hint_tier].price) + "`")
                     }
