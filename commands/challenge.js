@@ -258,11 +258,16 @@ module.exports = {
             const Guild = client.guilds.cache.get(interaction.guild_id)
             const Member = Guild.members.cache.get(member)
             var racer_bribe = false, track_bribe = false
+            if(profiledata[member].hunt !== undefined){
+                if(random_racer == profiledata[member].hunt.racer && random_track == profiledata[member].hunt.track && !profiledata[member].hunt.completed && Date.now() - 3600000 <= profiledata[member].hunt.date){
+                    hunt = true
+                }
+            }
             if (args !== undefined) {
                 if (args[0].options !== undefined) {
                     for (var i = 0; i < args[0].options.length; i++) {
                         if (args[0].options[i].name == "bribe_track") {
-                            if (profiledata[member].truguts_earned - profiledata[member].truguts_spent > truguts.bribe_track) {
+                            if (profiledata[member].truguts_earned - profiledata[member].truguts_spent > truguts.bribe_track && !hunt) {
                                 random_track = Number(args[0].options[i].value)
                                 track_bribe = true
                                 var purchase = {
@@ -283,7 +288,7 @@ module.exports = {
 
                         }
                         if (args[0].options[i].name == "bribe_racer") {
-                            if (profiledata[member].truguts_earned - profiledata[member].truguts_spent > truguts.bribe_racer) {
+                            if (profiledata[member].truguts_earned - profiledata[member].truguts_spent > truguts.bribe_racer && !hunt) {
                                 random_racer = Number(args[0].options[i].value)
                                 racer_bribe = true
                                 var purchase = {
@@ -305,11 +310,7 @@ module.exports = {
                     }
                 }
             }
-            if(profiledata[member].hunt !== undefined){
-                if(random_racer == profiledata[member].hunt.racer && random_track == profiledata[member].hunt.track && !profiledata[member].hunt.completed && Date.now() - 3600000 <= profiledata[member].hunt.date){
-                    hunt = true
-                }
-            }
+            
 
             var memarray = []
             if (Member.voice.channel) {
