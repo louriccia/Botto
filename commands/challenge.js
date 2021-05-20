@@ -484,7 +484,7 @@ module.exports = {
             }
             //build embed
             var undone = false
-            var eAuthor = [], eTitle = "", title = "", highlight = "", eGoalTimes = [], best = [], achievement_message = []
+            var eAuthor = [], eTitle = "", title = "", highlight = "", eGoalTimes = [], best = [], achievement_message_array = []
             function createEmbed() {
                 best = []
                 //get best runs/achievement progress
@@ -660,7 +660,7 @@ module.exports = {
                     eColor = planets[tracks[random_track].planet].color
                 }
                 //prepare achievement progress
-                var achievement_message_array = []
+                
                 var galaxyFamous = achievements.galaxy_famous.name, podChamp = achievements.pod_champ.name, lightSkipper = achievements.light_skipper.name, slowSteady = achievements.slow_steady.name, crowdFavorite = achievements.crowd_favorite.name, trueJedi = achievements.true_jedi.name, mirrorDimension = achievements.mirror_dimension.name
                 if (interaction.guild_id == "441839750555369474") {
                     galaxyFamous = "<@&" + achievements.galaxy_famous.role + ">"
