@@ -1209,8 +1209,8 @@ module.exports = {
                 console.log("racer: " + racer)
                 console.log("track: " + track)
                 if (selection == "challenge_hunt") {
-                    track = Math.floor(Math.random * 25)
-                    racer = Math.floor(Math.random * 23)
+                    track = Math.floor(Math.random() * 25)
+                    racer = Math.floor(Math.random() * 23)
                     //save challenge hunt to profile here
                     profileref.child(member).update({
                         hunt: {
@@ -1252,6 +1252,7 @@ module.exports = {
                         purchased_item: hints[hint_tier].name,
                         selection: selection
                     }
+                    profileref.child(member).child("puchases").push(purchase)
                     if(selection == "challenge_hunt"){
                         hintEmbed.setDescription("`-📀" + tools.numberWithCommas(hints[hint_tier].price) + "`\nBotto has randomly hid a large trugut bonus on a random challenge. You have one hour to find and complete the challenge and claim your bonus! If you use a bribe to successfully find the challenge, you will not be charged.\n" + 
                         "Potential bonus: `📀" + tools.numberWithCommas(hints[hint_tier].bonus) + "`")
@@ -1260,7 +1261,7 @@ module.exports = {
                     }
                 }
                 hintEmbed
-                    .setAuthor(interaction.member.user.username + "' Hint", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
+                    .setAuthor(interaction.member.user.username + "'s Hint", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
                     .setTitle(":bulb: " + hints[hint_tier].name + ": " + achievements[selection].name)
             }
             client.api.interactions(interaction.id, interaction.token).callback.post({
