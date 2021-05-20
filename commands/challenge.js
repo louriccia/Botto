@@ -671,8 +671,9 @@ module.exports = {
                     trueJedi = "<@&" + achievements.true_jedi.role + ">"
                 }
                 if (!vc) {
+                    console.log("assembling achievement array")
                     if (!title == ":white_check_mark: Completed: ") {
-                        console.log("assembling achievement array")
+                        
                         achievement_message_array = []
                         if (Object.keys(achievements.galaxy_famous.collection).length < achievements.galaxy_famous.limit && achievements.galaxy_famous.collection[random_track] == undefined) {
                             var thing = {

@@ -671,7 +671,7 @@ client.api.applications("545798436105224203").commands.post({data: {
                         },
                         {
                             name: "Lightspeed Skipper",
-                            value: "lightspeed_skipper"
+                            value: "light_skipper"
                         },
                         {
                             name: "Slow 'n Steady",
