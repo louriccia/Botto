@@ -282,7 +282,15 @@ module.exports = {
                                 noMoney
                                     .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
                                     .setDescription("*'No money, no challenge, no bribe!'*\nYou do not have enough truguts to make this bribe.\n\nCurrent balance: `" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`\nBribe cost: `" + tools.numberWithCommas(truguts.bribe_track) + "`")
-                                sentMessage.channel.send(noMoney)
+                                client.api.interactions(interaction.id, interaction.token).callback.post({
+                                    data: {
+                                        type: 4,
+                                        data: {
+                                            //content: "\u200B"
+                                            embeds: [noMoney]
+                                        }
+                                    }
+                                })
                                 return
                             }
 
@@ -303,7 +311,15 @@ module.exports = {
                                 noMoney
                                     .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
                                     .setDescription("*'No money, no challenge, no bribe!'*\nYou do not have enough truguts to make this bribe.\n\nCurrent balance: `" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`\nBribe cost: `" + tools.numberWithCommas(truguts.bribe_racer) + "`")
-                                sentMessage.channel.send(noMoney)
+                                    client.api.interactions(interaction.id, interaction.token).callback.post({
+                                        data: {
+                                            type: 4,
+                                            data: {
+                                                //content: "\u200B"
+                                                embeds: [noMoney]
+                                            }
+                                        }
+                                    })
                                 return
                             }
                         }
