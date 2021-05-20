@@ -254,7 +254,7 @@ client.api.applications("545798436105224203").commands.post({data: {
                     name: "selection",
                     description: "this selection determines which achievement the hint is for",
                     type: 3,
-                    requird: true,
+                    required: true,
                     choices: [
                         {
                             name: "Galaxy Famous",
