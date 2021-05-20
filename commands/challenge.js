@@ -671,72 +671,56 @@ module.exports = {
                     trueJedi = "<@&" + achievements.true_jedi.role + ">"
                 }
                 if (!vc) {
-                    console.log("vc = false")
                     if (title !== ":white_check_mark: Completed: ") {
-                        console.log("title isn't completed")
                         achievement_message_array = []
                         if (Object.keys(achievements.galaxy_famous.collection).length < achievements.galaxy_famous.limit && achievements.galaxy_famous.collection[random_track] == undefined) {
-                            var thing = {
+                            achievement_message_array.push({
                                 name: galaxyFamous,
                                 count: Object.keys(achievements.galaxy_famous.collection).length,
                                 limit: achievements.galaxy_famous.limit
-                            }
-                            console.log(thing)
-                            achievement_message_array.push(thing)
+                            })
                         }
                         if (Object.keys(achievements.pod_champ.collection).length < achievements.pod_champ.limit && achievements.pod_champ.collection[random_racer] == undefined) {
-                            var thing = {
+                            achievement_message_array.push({
                                 name: podChamp,
                                 count: Object.keys(achievements.pod_champ.collection).length,
                                 limit: achievements.pod_champ.limit
-                            }
-                            achievement_message_array.push(thing)
-                            console.log(thing)
+                            })
                         }
                         if (Object.keys(achievements.light_skipper.collection).length < achievements.light_skipper.limit && skips && achievements.light_skipper.collection[random_track] == undefined) {
-                            var thing = {
+                            achievement_message_array.push({
                                 name: lightSkipper,
                                 count: Object.keys(achievements.light_skipper.collection).length,
                                 limit: achievements.light_skipper.limit
-                            }
-                            achievement_message_array.push(thing)
-                            console.log(thing)
+                            })
                         }
                         if (Object.keys(achievements.slow_steady.collection).length < achievements.slow_steady.limit && nu && achievements.slow_steady.collection[random_racer] == undefined) {
-                            var thing = {
+                            achievement_message_array.push({
                                 name: slowSteady,
                                 count: Object.keys(achievements.slow_steady.collection).length,
                                 limit: achievements.slow_steady.limit
-                            }
-                            achievement_message_array.push(thing)
-                            console.log(thing)
+                            })
                         }
                         if (Object.keys(achievements.mirror_dimension.collection).length < achievements.mirror_dimension.limit && mirror && achievements.mirror_dimension.collection[random_track] == undefined) {
-                            var thing = {
+                            achievement_message_array.push({
                                 name: mirrorDimension,
                                 count: Object.keys(achievements.mirror_dimension.collection).length,
                                 limit: achievements.mirror_dimension.limit
-                            }
-                            achievement_message_array.push(thing)
-                            console.log(thing)
+                            })
                         }
                         if (Object.keys(achievements.crowd_favorite.collection).length < achievements.crowd_favorite.limit && random_racer == tracks[random_track].favorite && achievements.crowd_favorite.collection[random_track] == undefined) {
-                            var thing = {
+                            achievement_message_array.push( {
                                 name: crowdFavorite,
                                 count: Object.keys(achievements.crowd_favorite.collection).length,
                                 limit: achievements.crowd_favorite.limit
-                            }
-                            achievement_message_array.push(thing)
-                            console.log(thing)
+                            })
                         }
                         if (Object.keys(achievements.true_jedi.collection).length < achievements.true_jedi.limit && achievements.true_jedi.collection[random_track + " " + random_racer] == undefined) {
-                            var thing = {
+                            achievement_message_array.push({
                                 name: trueJedi,
                                 count: Object.keys(achievements.true_jedi.collection).length,
                                 limit: achievements.true_jedi.limit
-                            }
-                            achievement_message_array.push(thing)
-                            console.log(thing)
+                            })
                         }
                     }
                     console.log(achievement_message_array)
@@ -863,7 +847,7 @@ module.exports = {
                         .setAuthor(eAuthor[0], eAuthor[1])
                     if (title == ":white_check_mark: Completed: ") {
                         for (var i = 0; i < achievement_message_array.length; i++){
-                            achievement_message += ":white_check_mark: **" + achievement_message_array[i].name + "** `" + achievement_message_array[i].count+1 + "/" + achievement_message_array[i].limit + "` "
+                            achievement_message += ":white_check_mark: **" + achievement_message_array[i].name + "** `" + (Number(achievement_message_array[i].count)+1) + "/" + achievement_message_array[i].limit + "` "
                             if(i !== achievement_message_array.length -1){
                                 achievement_message += "○ "
                             }
