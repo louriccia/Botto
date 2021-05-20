@@ -644,8 +644,7 @@ module.exports = racer_hints = [
         "sabotaged a racer’s pod before the Boonta Classic",
         "stopped for a pit stop on the second lap of the Boonta Classic",
         "this racer can only be seen in a deleted scene from the movie",
-        "ended up in a medcenter after colliding with another racer during the third lap of the",
-        "Boonta Classic",
+        "ended up in a medcenter after colliding with another racer during the third lap of the Boonta Classic",
         "best acceleration in the game",
         "started the Boonta Classic in the fourth row",
         "paranoid that Anakin Skywalker is out to get him",
@@ -923,7 +922,7 @@ module.exports = track_hints = [
         "features a figure-eight"
     ], [
         "Amateur Circuit",
-        "the track favorite has a three-letter name",
+        "the track favorite has a three-letter first or last name",
         "the track favorite has red on their flag",
         "the track favorite has blue on their flag",
         "the fifth race of its circuit",
@@ -933,29 +932,29 @@ module.exports = track_hints = [
         "infamous for its difficult hairpin",
         "home of the Sketto Leap",
         "features a methane lake",
-        "this track bears a striking resemblance to a real-life raceway",
+        "bears a striking resemblance to a real-life raceway",
         "features a waterfall",
         "features a flying creature",
-        "a racer could fall to their death on this course",
+        "a racer could fall to their death",
         "features fast terrain",
         "does not have a shortcut"
     ], [
         "Amateur Circuit",
-        "the track favorite has a three-letter name",
+        "the track favorite has a three-letter first or last name",
         "the sixth race of its circuit",
         "Oovo IV",
         "hosted by Fenn Booda",
-        "better bring along an opponent to clear out rocks on this course",
+        "better bring along an opponent to clear out rocks",
         "features anti-gravity tubes",
-        "this course requires you to dodge a purple filament in its reactor core",
-        "be careful of the enormous fan blades on this course",
+        "requires you to dodge a purple filament in its reactor core",
+        "be careful of the enormous fan blades",
         "one-word name",
         "features fast terrain",
         "features a figure-eight",
         "does not have a shortcut"
     ], [
         "Amateur Circuit",
-        "the track favorite has a three-letter name",
+        "the track favorite has a three-letter first or last name",
         "the track favorite has orange on their flag",
         "the track favorite has green on their flag",
         "the last race of its circuit",
@@ -963,8 +962,8 @@ module.exports = track_hints = [
         "hosted by Groff Zugga",
         "features grandstands at its starting line",
         "features a section with an upper and lower track",
-        "watch out for the mechanized ore loader on your way through this track",
-        "you might find a large vehicle in your way on this course",
+        "watch out for the mechanized ore loader",
+        "you might find a large vehicle in your waye",
         "features caged corkscrews",
         "features a conveyor belt",
         "its name includes the word ‘run’",
@@ -989,32 +988,32 @@ module.exports = track_hints = [
         "Ando Prime",
         "hosted by Ten-Abu Donba",
         "begins in a chilly mountain village",
-        "a secret tent route is no question on this track",
+        "a secret tent route is no question",
         "features a shortcut that is only accessible after the first lap",
         "features the Andobi Mountain Pipeline",
-        "a racer could fall to their death on this course",
+        "a racer could fall to their death",
         "features fast terrain"
     ], [
         "Semi-Pro Circuit",
-        "the track favorite has a three-letter name",
+        "the track favorite has a three-letter first or last name",
         "the track favorite has blue on their flag",
         "the track favorite has orange on their flag",
         "the third race of its circuit",
         "Malastare",
         "hosted by Nugtosh",
         "second shortest track in the game",
-        "this track bears a striking resemblance to a real-life raceway",
+        "bears a striking resemblance to a real-life raceway",
         "known for its difficult chicane"
     ], [
         "Semi-Pro Circuit",
-        "the track favorite has a three-letter name",
+        "the track favorite has a three-letter first or last name",
         "the fourth race of its circuit",
         "Ord Ibanna",
         "hosted by Dethro Glok",
         "features a conveyor belt",
         "its name includes the word ‘run’",
         "has an apostrophe in its name",
-        "a racer could fall to their death on this course",
+        "a racer could fall to their death",
         "features fast terrain",
         "does not have a shortcut"
     ], [
@@ -1026,13 +1025,13 @@ module.exports = track_hints = [
         "hosted by Groff Zugga",
         "named after its host",
         "features a section with an upper and lower track",
-        "you might find a large vehicle in your way on this course",
+        "you might find a large vehicle in your way",
         "features caged corkscrews",
         "features racer posters",
-        "a racer could fall to their death on this course"
+        "a racer could fall to their death"
     ], [
         "Semi-Pro Circuit",
-        "the track favorite has a three-letter name",
+        "the track favorite has a three-letter first or last name",
         "the track favorite has a ‘V’ in his name",
         "the track favorite has blue on their flag",
         "the sixth race of its circuit",
@@ -1042,10 +1041,10 @@ module.exports = track_hints = [
         "the only track that lets you drive in the water",
         "features a waterfall",
         "features a flying creature",
-        "a racer could fall to their death on this course"
+        "a racer could fall to their death"
     ], [
         "Semi-Pro Circuit",
-        "the track favorite has a three-letter name",
+        "the track favorite has a three-letter first or last name",
         "the track favorite has orange on their flag",
         "the last race of its circuit",
         "Aquilaris",
@@ -1056,16 +1055,16 @@ module.exports = track_hints = [
         "features a section with an upper and lower track",
         "has an apostrophe in its name",
         "features a waterfall",
-        "you might feel the ground shake on this course"
+        "you might feel the ground shake"
     ], [
         "Galactic Circuit",
-        "the track favorite has a three-letter name",
+        "the track favorite has a three-letter first or last name",
         "the first race of its circuit",
         "Oovo IV",
         "hosted by Fenn Booda",
-        "better bring along an opponent to clear out rocks on this course",
+        "better bring along an opponent to clear out rocks",
         "features anti-gravity tubes",
-        "the second-to-the-left of four tunnels is the fastest on this course",
+        "the second-to-the-left of four tunnels is the fastest",
         "one-word name",
         "features fast terrain"
     ], [
@@ -1079,7 +1078,7 @@ module.exports = track_hints = [
         "features a methane lake",
         "has an apostrophe in its name",
         "features a flying creature",
-        "a racer could fall to their death on this course"
+        "a racer could fall to their death"
     ], [
         "Galactic Circuit",
         "the track favorite’s name starts with ‘A’",
@@ -1093,8 +1092,8 @@ module.exports = track_hints = [
         "infamous for its difficult swamp section",
         "has ‘way’ in its name",
         "features a waterfall",
-        "you might feel the ground shake on this course",
-        "a racer could fall to their death on this course"
+        "you might feel the ground shake",
+        "a racer could fall to their death"
     ], [
         "Galactic Circuit",
         "the track favorite goes by one name",
@@ -1103,12 +1102,12 @@ module.exports = track_hints = [
         "Ando Prime",
         "hosted by Ten-Abu Donba",
         "begins in a chilly mountain village",
-        "a secret tent route is no question on this track",
+        "a secret tent route is no question",
         "features a shortcut that is only accessible after the first lap",
         "features the Andobi Mountain Pipeline",
         "its name includes the word “run”",
         "its name includes the word ‘mountain’",
-        "a racer could fall to their death on this course",
+        "a racer could fall to their death",
         "features fast terrain"
     ], [
         "Galactic Circuit",
@@ -1121,7 +1120,7 @@ module.exports = track_hints = [
         "features a section with an upper and lower track",
         "out-of-bounds finish",
         "has an apostrophe in its name",
-        "a racer could fall to their death on this course"
+        "a racer could fall to their death"
     ], [
         "Galactic Circuit",
         "the track favorite’s first and last name starts with the same letter",
@@ -1137,8 +1136,8 @@ module.exports = track_hints = [
         "features lava",
         "its name includes the word ‘mountain’",
         "features a waterfall",
-        "you might feel the ground shake on this course",
-        "a racer could fall to their death on this course",
+        "you might feel the ground shake",
+        "a racer could fall to their death",
         "features a figure-eight"
     ], [
         "Galactic Circuit",
@@ -1149,16 +1148,16 @@ module.exports = track_hints = [
         "hosted by Jabba the Hutt",
         "beat this track to see the credits",
         "second longest track in the game",
-        "better bring along an opponent to clear out rocks on this course",
+        "better bring along an opponent to clear out rocks",
         "features grandstands at its starting line",
         "features Hutt Flats",
         "features Beggar’s Canyon",
-        "you might find a large vehicle in your way on this course",
+        "you might find a large vehicle in your way",
         "features fire hazards",
         "features arches",
         "its name includes the word ‘classic’",
         "starts with ‘the’",
-        "a racer could fall to their death on this course"
+        "a racer could fall to their death"
     ], [
         "the track favorite’s last name starts with ‘P’",
         "the first race of its circuit",
@@ -1177,9 +1176,9 @@ module.exports = track_hints = [
         "Invitational Circuit",
         "features a section with an upper and lower track",
         "out-of-bounds finish",
-        "failure to stay on top on this course will surely lose your lead",
+        "failure to stay on top will surely lose your lead",
         "one-word name",
-        "a racer could fall to their death on this course",
+        "a racer could fall to their death",
         "features fast terrain"
     ], [
         "the track favorite goes by one name",
@@ -1190,11 +1189,11 @@ module.exports = track_hints = [
         "hosted by Fenn Booda",
         "Invitational Circuit",
         "longest track in the game",
-        "better bring along an opponent to clear out rocks on this course",
+        "better bring along an opponent to clear out rocks",
         "features anti-gravity tubes",
         "features fire hazards",
         "starts with ‘the’",
-        "a racer could fall to their death on this course",
+        "a racer could fall to their death",
         "features fast terrain"
     ], [
         "the track favorite’s first name starts with ‘B’",

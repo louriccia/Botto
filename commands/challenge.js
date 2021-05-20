@@ -253,7 +253,7 @@ module.exports = {
             var random_quote = Math.floor(Math.random() * movieQuotes.length)
             var laps = 3, lap = [1, 2, 4, 5]
             var laptext = "", mirrortext = "", nutext = "", skipstext = "", flag = "", record = ""
-            var mirror = false, nu = false, skips = false
+            var mirror = false, nu = false, skips = false, hunt = false
             //calculate odds
             const Guild = client.guilds.cache.get(interaction.guild_id)
             const Member = Guild.members.cache.get(member)
@@ -305,7 +305,11 @@ module.exports = {
                     }
                 }
             }
-
+            if(profiledata[member].hunt !== undefined){
+                if(random_racer == profiledata[member].hunt.racer && random_track == profiledata[member].hunt.track && !profiledata[member].hunt.completed && Date.now() - 3600000 <= profiledata[member].hunt.date){
+                    hunt = true
+                }
+            }
 
             var memarray = []
             if (Member.voice.channel) {
@@ -370,6 +374,7 @@ module.exports = {
                     mirror = profiledata[member].current.mirror
                     laps = profiledata[member].current.laps
                     skips = profiledata[member].current.skips
+                    hunt = profiledata[member].current.hunt
                 }
             }
             if (nu) {
@@ -386,14 +391,16 @@ module.exports = {
                 }
 
             }
-            var bribed_racer = "", bribed_track = ""
+            var bribed_racer = "", bribed_track = "", hunt_text = ""
             if (racer_bribe) {
                 bribed_racer = "*"
             }
             if (track_bribe) {
                 bribed_track = "*"
             }
-
+            if (hunt) {
+                hunt_text = ":mag_right: Challenge Hunt: "
+            }
             var current = {
                 start: challengestart,
                 completed: false,
@@ -404,7 +411,8 @@ module.exports = {
                 nu: nu,
                 skips: skips,
                 mirror: mirror,
-                truguts: 0
+                truguts: 0,
+                hunt: hunt
             }
             if (!vc) {
                 profileref.child(member).child("current").set(current)
@@ -535,6 +543,9 @@ module.exports = {
                 }
                 if (track_bribe) {
                     desc += "\nBribed track `-📀" + tools.numberWithCommas(truguts.bribe_track) + "`"
+                }
+                if(hunt){
+                    desc += "\nYou found the challenge hunt! Complete the challenge to earn a `📀" + tools.numberWithCommas(profiledata[member].hunt.bonus) + "` bonus"
                 }
 
                 //calculate goal time
@@ -716,6 +727,11 @@ module.exports = {
                             winnings_text = i
                         }
                     }
+                    if(hunt) {
+                        earnings += "Hunt Bonus `+📀" + tools.numberWithCommas(profiledata[member].hunt.bonus) + "`\n"
+                        earnings_total += profiledata[member].hunt.bonus
+                        profileref.child(member).update({hunt: {completed: true}})
+                    }
                     if (goal_earnings[winnings_text] > 0) {
                         earnings += goal_symbols[winnings_text] + " `+📀" + tools.numberWithCommas(goal_earnings[winnings_text]) + "`\n"
                         earnings_total += goal_earnings[winnings_text]
@@ -784,7 +800,7 @@ module.exports = {
                     earnings += "\n**New balance: **`📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`"
                 }
                 const newEmbed = new Discord.MessageEmbed()
-                    .setTitle(title + eTitle)
+                    .setTitle(title + hunt_text + eTitle)
                     .setColor(eColor)
                 if (![":arrows_counterclockwise: Rerolled: ", ":negative_squared_cross_mark: Closed: "].includes(title)) {
                     newEmbed
@@ -1217,7 +1233,8 @@ module.exports = {
                             track: track,
                             racer: racer,
                             date: Date.now(),
-                            bonus: hints[hint_tier].bonus
+                            bonus: hints[hint_tier].bonus,
+                            completed: false
                         }
                     })
                 }
