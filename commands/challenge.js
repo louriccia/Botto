@@ -1275,7 +1275,7 @@ module.exports = {
                     })
                 } else {
                     achievement_name = achievements[selection].name
-                    if (["galaxy_famous", "lightspeed_skipper", "mirror_dimension", "crowd_favorite"].includes(selection)) {
+                    if (["galaxy_famous", "light_skipper", "mirror_dimension", "crowd_favorite"].includes(selection)) {
                         track = achievements[selection].missing[Math.floor(Math.random() * achievements[selection].missing.length)]
                         if (selection == "crowd_favorite") {
                             racer = tracks[track].favorite
@@ -1293,7 +1293,7 @@ module.exports = {
                 }
                 console.log("racer: " + racer)
                 console.log("track: " + track)
-                if ((["galaxy_famous", "lightspeed_skipper", "mirror_dimension", "crowd_favorite", "true_jedi"].includes(selection) && track == null) || (["pod_champ", "slow_steady", "true_jedi"].includes(selection) && racer == null)) {
+                if ((["galaxy_famous", "light_skipper", "mirror_dimension", "crowd_favorite", "true_jedi"].includes(selection) && track == null) || (["pod_champ", "slow_steady", "true_jedi"].includes(selection) && racer == null)) {
                     //player already has achievement
                     hintEmbed.setDescription("You already have this achievement and do not require a hint. You have not been charged. \n\nAlready have all the achievements? Try the Challenge Hunt!")
                 } else {
@@ -1692,7 +1692,7 @@ module.exports = {
                 .addField("Challenge Settings", "Use the `/challenge settings` command to customize your challenge settings and modify the chances that Botto will roll a No Upgrades, Skips, Non 3-lap, or Mirrored challenge. You can select a challenge winnings pattern which determines how many truguts your submitted time will earn.", false)
                 .addField("Earning Truguts", "Truguts are awarded depending on how fast your submitted time is compared to the given goal times and how your winnings are set up. Bonuses are available for beating other players' best times, beating your own time, rating challenges, and completing non-standard challenges (odds must be below 25%).", false)
                 .addField("Spending Truguts", "You can spend truguts on 'rerolling' challenges that you wish to skip. Truguts can also be used to bribe Botto for a specific track or racer as part of the `/challenge generate` command. You can use the `/challenge hint` command to figure out what to bribe for your achievement progress.", false)
-                .addField("Challenge Hunt", "Challenge Hunt is a special mode is a way to earn big truguts fast and can be accessed via the `/challenge hit` command. Botto hides a large trugut bonus based on your hint selection on a random challenge. You have one hour to find this challenge and complete it to claim your bonus.", false)
+                .addField("Challenge Hunt", "Challenge Hunt is a way to earn big truguts fast and can be accessed via the `/challenge hit` command. Botto hides a large trugut bonus based on your hint selection on a random challenge. You have one hour to find this challenge and complete it to claim your bonus.", false)
             client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {
                     type: 4,

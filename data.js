@@ -876,7 +876,7 @@ module.exports = track_hints = [
         "hosted by Jabba the Hutt",
         "the first track of the game",
         "third shortest track in the game",
-        "better bring along an opponent to clear out rocks on this course",
+        "better bring along an opponent to clear out rocks",
         "features grandstands at its starting line",
         "features Hutt Flats",
         "starts with ‘the’",
@@ -908,7 +908,7 @@ module.exports = track_hints = [
         "features arches",
         "has an apostrophe in its name",
         "features a waterfall",
-        "a racer could fall to their death on this course",
+        "a racer could fall to their death",
         "features fast terrain"
     ], [
         "Amateur Circuit",
