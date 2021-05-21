@@ -660,7 +660,7 @@ module.exports = {
                     eColor = planets[tracks[random_track].planet].color
                 }
                 //prepare achievement progress
-                
+
                 var galaxyFamous = achievements.galaxy_famous.name, podChamp = achievements.pod_champ.name, lightSkipper = achievements.light_skipper.name, slowSteady = achievements.slow_steady.name, crowdFavorite = achievements.crowd_favorite.name, trueJedi = achievements.true_jedi.name, mirrorDimension = achievements.mirror_dimension.name
                 if (interaction.guild_id == "441839750555369474") {
                     galaxyFamous = "<@&" + achievements.galaxy_famous.role + ">"
@@ -710,7 +710,7 @@ module.exports = {
                             })
                         }
                         if (Object.keys(achievements.crowd_favorite.collection).length < achievements.crowd_favorite.limit && random_racer == tracks[random_track].favorite && achievements.crowd_favorite.collection[random_track] == undefined) {
-                            achievement_message_array.push( {
+                            achievement_message_array.push({
                                 name: crowdFavorite,
                                 count: Object.keys(achievements.crowd_favorite.collection).length,
                                 limit: achievements.crowd_favorite.limit
@@ -844,13 +844,13 @@ module.exports = {
                     .setColor(eColor)
                 if (![":arrows_counterclockwise: Rerolled: ", ":negative_squared_cross_mark: Closed: "].includes(title)) {
                     var achievement_message = ""
-                    
+
                     newEmbed
                         .setAuthor(eAuthor[0], eAuthor[1])
                     if (title == ":white_check_mark: Completed: ") {
-                        for (var i = 0; i < achievement_message_array.length; i++){
-                            achievement_message += ":white_check_mark: **" + achievement_message_array[i].name + "** `" + (Number(achievement_message_array[i].count)+1) + "/" + achievement_message_array[i].limit + "` "
-                            if(i !== achievement_message_array.length -1){
+                        for (var i = 0; i < achievement_message_array.length; i++) {
+                            achievement_message += ":white_check_mark: **" + achievement_message_array[i].name + "** `" + (Number(achievement_message_array[i].count) + 1) + "/" + achievement_message_array[i].limit + "` "
+                            if (i !== achievement_message_array.length - 1) {
                                 achievement_message += "○ "
                             }
                         }
@@ -859,9 +859,9 @@ module.exports = {
                             .addField("Winnings", earnings, true)
                             .addField("Best Times", besttimes, true)
                     } else {
-                        for (var i = 0; i < achievement_message_array.length; i++){
+                        for (var i = 0; i < achievement_message_array.length; i++) {
                             achievement_message += "**" + achievement_message_array[i].name + "** `" + achievement_message_array[i].count + "/" + achievement_message_array[i].limit + "` "
-                            if(i !== achievement_message_array.length -1){
+                            if (i !== achievement_message_array.length - 1) {
                                 achievement_message += "○ "
                             }
                         }
@@ -1492,194 +1492,208 @@ module.exports = {
             })
         } else if (args[0].name == "profile") {
             var member = interaction.member.user.id
-
             const Guild = client.guilds.cache.get(interaction.guild_id); // Getting the guild.
             const Member = Guild.members.cache.get(member); // Getting the member.
-            if (args[0].hasOwnProperty("options")) {
-                if (args[0].options[0].name == "user") {
+            if (args[0].options[0].hasOwnProperty("options")) {
+                if (args[0].options[0].options[0].name == "user") {
                     member = args[0].options[0].value
                 }
             }
-            //console.log(trugutsEarned(member))
-            var keys = Object.keys(challengedata)
-            var stats = {
-                total: 0,
-                standard: 0,
-                skips: 0,
-                no_upgrades: 0,
-                non_3_lap: 0,
-                mirrored: 0
-            }
-            var mostPod = {}, mostTrack = {}, mostPlanet = {}, mostCircuit = {}, likePod = {}, likeTrack = {}, dislikePod = {}, dislikeTrack = {}
-            mostPod.most_count = 0
-            mostPod.most_name = null
-            mostTrack.most_count = 0
-            mostTrack.most_name = null
-            mostPlanet.most_count = 0
-            mostPlanet.most_name = null
-            mostCircuit.most_count = 0
-            mostCircuit.most_name = null
-            likePod.most_count = 0
-            likePod.most_name = null
-            likeTrack.most_count = 0
-            likeTrack.most_name = null
-            dislikePod.most_count = 0
-            dislikePod.most_name = null
-            dislikeTrack.most_count = 0
-            dislikeTrack.most_name = null
-            function getMost(obj, prop) {
-                if (obj[prop] == null) {
-                    obj[prop] = 1
-                } else {
-                    obj[prop]++
+            const profileEmbed = new Discord.MessageEmbed()
+            if (args[0].options[0].name == "stats") {
+                //console.log(trugutsEarned(member))
+                var keys = Object.keys(challengedata)
+                var stats = {
+                    total: 0,
+                    standard: 0,
+                    skips: 0,
+                    no_upgrades: 0,
+                    non_3_lap: 0,
+                    mirrored: 0
                 }
-                if (obj[prop] > obj.most_count) {
-                    obj.most_name = prop;
-                    obj.most_count = obj[prop];
-                }
-            }
-            var hasraced = false
-            for (var i = 0; i < keys.length; i++) {
-                var k = keys[i];
-                if (challengedata[k].user == member) {
-                    achievements.galaxy_famous.collection[String(challengedata[k].track)] = 1
-                    achievements.pod_champ.collection[String(challengedata[k].racer)] = 1
-                    if (challengedata[k].skips) {
-                        achievements.light_skipper.collection[String(challengedata[k].track)] = 1
-                    }
-                    if (challengedata[k].nu) {
-                        achievements.slow_steady.collection[String(challengedata[k].racer)] = 1
-                    }
-                    if (challengedata[k].mirror) {
-                        achievements.mirror_dimension.collection[String(challengedata[k].track)] = 1
-                    }
-                    if (challengedata[k].racer == tracks[String(challengedata[k].track)].favorite) {
-                        achievements.crowd_favorite.collection[String(challengedata[k].track)] = 1
-                    }
-                    achievements.true_jedi.collection[String(challengedata[k].track + " " + challengedata[k].racer)] = 1
-                    stats.total++
-                    if (!challengedata[k].mirror && !challengedata[k].nu && !challengedata[k].skips && challengedata[k].laps == 3) {
-                        stats.standard++
+                var mostPod = {}, mostTrack = {}, mostPlanet = {}, mostCircuit = {}, likePod = {}, likeTrack = {}, dislikePod = {}, dislikeTrack = {}
+                mostPod.most_count = 0
+                mostPod.most_name = null
+                mostTrack.most_count = 0
+                mostTrack.most_name = null
+                mostPlanet.most_count = 0
+                mostPlanet.most_name = null
+                mostCircuit.most_count = 0
+                mostCircuit.most_name = null
+                likePod.most_count = 0
+                likePod.most_name = null
+                likeTrack.most_count = 0
+                likeTrack.most_name = null
+                dislikePod.most_count = 0
+                dislikePod.most_name = null
+                dislikeTrack.most_count = 0
+                dislikeTrack.most_name = null
+                function getMost(obj, prop) {
+                    if (obj[prop] == null) {
+                        obj[prop] = 1
                     } else {
+                        obj[prop]++
+                    }
+                    if (obj[prop] > obj.most_count) {
+                        obj.most_name = prop;
+                        obj.most_count = obj[prop];
+                    }
+                }
+                var hasraced = false
+                for (var i = 0; i < keys.length; i++) {
+                    var k = keys[i];
+                    if (challengedata[k].user == member) {
+                        stats.total++
+                        if (!challengedata[k].mirror && !challengedata[k].nu && !challengedata[k].skips && challengedata[k].laps == 3) {
+                            stats.standard++
+                        } else {
+                            if (challengedata[k].skips) {
+                                stats.skips++
+                            }
+                            if (challengedata[k].nu) {
+                                stats.no_upgrades++
+                            }
+                            if (challengedata[k].laps !== 3) {
+                                stats.non_3_lap++
+                            }
+                            if (challengedata[k].mirror) {
+                                stats.mirrored++
+                            }
+                        }
+                        hasraced = true
+                        getMost(mostPod, challengedata[k].racer)
+                        getMost(mostTrack, challengedata[k].track)
+                        getMost(mostPlanet, tracks[challengedata[k].track].planet)
+                        getMost(mostCircuit, tracks[challengedata[k].track].circuit)
+                    }
+                }
+                var keys = Object.keys(feedbackdata)
+                var hasliked = false
+                var hasdisliked = false
+                for (var i = 0; i < keys.length; i++) {
+                    var k = keys[i];
+                    if (feedbackdata[k].user == member) {
+                        if (feedbackdata[k].feedback == "👍") {
+                            hasliked = true
+                            getMost(likePod, feedbackdata[k].racer)
+                            getMost(likeTrack, feedbackdata[k].track)
+                        } else if (feedbackdata[k].feedback == "👎") {
+                            hasdisliked = true
+                            getMost(dislikePod, feedbackdata[k].racer)
+                            getMost(dislikeTrack, feedbackdata[k].track)
+                        }
+
+                    }
+                }
+                profileEmbed
+                    .setAuthor(client.guilds.resolve(interaction.guild_id).members.resolve(member).user.username + "'s Profile", client.guilds.resolve(interaction.guild_id).members.resolve(member).user.avatarURL())
+                    .setTitle("Random Challenge Statistics")
+                //add goal times achieved for the stat section
+                if (hasraced) {
+                    profileEmbed
+                        .addField(":bar_chart: Challenge Stats", "Total: `" + stats.total + "`\nStandard: `" + stats.standard + "`\nSkips: `" + stats.skips + "`\nNo Upgrades: `" + stats.no_upgrades + "`\nNon 3-Lap: `" + stats.non_3_lap + "`\nMirrored: `" + stats.mirrored + "`", true)
+                        .addField(":chart_with_upwards_trend: Gameplay Trends", "**Most Played Pod:** \n" + racers[mostPod.most_name].flag + " " + racers[mostPod.most_name].name + " `" + mostPod.most_count + "`" +
+                            "\n**Most Played Track:**\n" + tracks[mostTrack.most_name].name + " `" + mostTrack.most_count + "`" +
+                            "\n**Most Played Planet:**\n" + planets[mostPlanet.most_name].name + " `" + mostPlanet.most_count + "`" +
+                            "\n**Most Played Circuit:**\n" + circuits[mostCircuit.most_name].name + " `" + mostCircuit.most_count + "`", true)
+                } else {
+                    profileEmbed
+                        .addField(":bar_chart: Challenge Stats", "No challenge data", true)
+                        .addField(":chart_with_upwards_trend: Gameplay Trends", "No gameplay data", true)
+                }
+                var feedbacktrend = ""
+                if (hasliked) {
+                    feedbacktrend += "**Most Liked Pod:** \n" + racers[likePod.most_name].flag + " " + racers[likePod.most_name].name + " `👍" + likePod.most_count + "`" +
+                        "\n**Most Liked Track:**\n" + tracks[likeTrack.most_name].name + " `👍" + likeTrack.most_count + "`\n"
+                }
+                if (hasdisliked) {
+                    feedbacktrend += "**Most Disliked Pod:**\n" + racers[dislikePod.most_name].flag + " " + racers[dislikePod.most_name].name + " `👎" + dislikePod.most_count + "`" +
+                        "\n**Most Disliked Track:**\n" + tracks[dislikeTrack.most_name].name + " `👎" + dislikeTrack.most_count + "`"
+                }
+                if (feedbacktrend == "") {
+                    feedbacktrend = "No feedback data"
+                }
+                profileEmbed
+                    .addField(":pencil: Feedback Trends", feedbacktrend, true)
+            } else if (args[0].options[0].name == "achievements") {
+                //console.log(trugutsEarned(member))
+                var keys = Object.keys(challengedata)
+                var hasraced = false
+                for (var i = 0; i < keys.length; i++) {
+                    var k = keys[i];
+                    if (challengedata[k].user == member) {
+                        achievements.galaxy_famous.collection[String(challengedata[k].track)] = 1
+                        achievements.pod_champ.collection[String(challengedata[k].racer)] = 1
                         if (challengedata[k].skips) {
-                            stats.skips++
+                            achievements.light_skipper.collection[String(challengedata[k].track)] = 1
                         }
                         if (challengedata[k].nu) {
-                            stats.no_upgrades++
-                        }
-                        if (challengedata[k].laps !== 3) {
-                            stats.non_3_lap++
+                            achievements.slow_steady.collection[String(challengedata[k].racer)] = 1
                         }
                         if (challengedata[k].mirror) {
-                            stats.mirrored++
+                            achievements.mirror_dimension.collection[String(challengedata[k].track)] = 1
+                        }
+                        if (challengedata[k].racer == tracks[String(challengedata[k].track)].favorite) {
+                            achievements.crowd_favorite.collection[String(challengedata[k].track)] = 1
+                        }
+                        achievements.true_jedi.collection[String(challengedata[k].track + " " + challengedata[k].racer)] = 1
+                        hasraced = true
+                    }
+                }
+                if (member == interaction.member.user.id) {
+                    if (profiledata[member].achievements == undefined) {
+                        var ach = {
+                            galaxy_famous: false,
+                            pod_champ: false,
+                            light_skipper: false,
+                            slow_steady: false,
+                            mirror_dimension: false,
+                            crowd_favorite: false,
+                            true_jedi: false,
+                            big_time_swindler: false
+                        }
+                        profileref.child(member).child("achievements").set(ach)
+                    }
+                    var achvs = Object.keys(achievements)
+                    for (var i = 0; i < achvs.length; i++) {
+                        var a = achvs[i]
+                        achievements[a].count = Object.keys(achievements[a].collection).length
+                        if (achievements[a].name == "Big-Time Swindler") {
+                            achievements[a].count = profiledata[member].truguts_spent + profiledata[member].truguts_earned
+                        }
+                        if (achievements[a].count >= achievements[a].limit && profiledata[member].achievements[a] == false) {
+                            profileref.child(member).child("achievements").child(a).set(true)
+                            const congratsEmbed = new Discord.MessageEmbed()
+                                .setAuthor(interaction.member.user.username + " got an achievement!", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
+                                .setDescription(achievements[a].description) //+ " `" + String(Object.keys(achievements[a].collection).length) + "/" + String(achievements[a].limit)) + "`"
+                                .setColor("FFB900")
+                                .setTitle("**:trophy: " + achievements[a].name + "**")
+                            if (interaction.guild_id == "441839750555369474") {
+                                congratsEmbed.setDescription("**<@&" + achievements[a].role + ">** - " + achievements[a].description)
+                                Member.roles.add(achievements[a].role).catch(error => console.log(error))
+                            }
+                            client.channels.cache.get(interaction.channel_id).send(congratsEmbed)
                         }
                     }
-                    hasraced = true
-                    getMost(mostPod, challengedata[k].racer)
-                    getMost(mostTrack, challengedata[k].track)
-                    getMost(mostPlanet, tracks[challengedata[k].track].planet)
-                    getMost(mostCircuit, tracks[challengedata[k].track].circuit)
-                }
-            }
-            var keys = Object.keys(feedbackdata)
-            var hasliked = false
-            var hasdisliked = false
-            for (var i = 0; i < keys.length; i++) {
-                var k = keys[i];
-                if (feedbackdata[k].user == member) {
-                    if (feedbackdata[k].feedback == "👍") {
-                        hasliked = true
-                        getMost(likePod, feedbackdata[k].racer)
-                        getMost(likeTrack, feedbackdata[k].track)
-                    } else if (feedbackdata[k].feedback == "👎") {
-                        hasdisliked = true
-                        getMost(dislikePod, feedbackdata[k].racer)
-                        getMost(dislikeTrack, feedbackdata[k].track)
-                    }
-
-                }
-            }
-            if (member == interaction.member.user.id) {
-                if (profiledata[member].achievements == undefined) {
-                    var ach = {
-                        galaxy_famous: false,
-                        pod_champ: false,
-                        light_skipper: false,
-                        slow_steady: false,
-                        mirror_dimension: false,
-                        crowd_favorite: false,
-                        true_jedi: false,
-                        big_time_swindler: false
-                    }
-                    profileref.child(member).child("achievements").set(ach)
                 }
                 var achvs = Object.keys(achievements)
+                var achievement_count = 0
                 for (var i = 0; i < achvs.length; i++) {
                     var a = achvs[i]
-                    achievements[a].count = Object.keys(achievements[a].collection).length
-                    if (achievements[a].name == "Big-Time Swindler") {
-                        achievements[a].count = profiledata[member].truguts_spent + profiledata[member].truguts_earned
+                    var achievement_title = ""
+                    var achievement_text = ""
+                    if (achievements[a].count >= achievements[a].limit) {
+                        achievement_title += ":white_check_mark: "
+                        achievement_count++
                     }
-                    if (achievements[a].count >= achievements[a].limit && profiledata[member].achievements[a] == false) {
-                        profileref.child(member).child("achievements").child(a).set(true)
-                        const congratsEmbed = new Discord.MessageEmbed()
-                            .setAuthor(interaction.member.user.username + " got an achievement!", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
-                            .setDescription(achievements[a].description) //+ " `" + String(Object.keys(achievements[a].collection).length) + "/" + String(achievements[a].limit)) + "`"
-                            .setColor("FFB900")
-                            .setTitle("**:trophy: " + achievements[a].name + "**")
-                        if (interaction.guild_id == "441839750555369474") {
-                            congratsEmbed.setDescription("**<@&" + achievements[a].role + ">** - " + achievements[a].description)
-                            Member.roles.add(achievements[a].role).catch(error => console.log(error))
-                        }
-                        client.channels.cache.get(interaction.channel_id).send(congratsEmbed)
-                    }
+                    achievement_title += achievements[a].name
+                    achievement_text = achievements[a].description + ": `" + tools.numberWithCommas(achievements[a].count) + "/" + tools.numberWithCommas(achievements[a].limit) + "`\n"
+                    profileEmbed.addField(achievement_title, achievement_text, false)
                 }
-            }
-            const profileEmbed = new Discord.MessageEmbed()
-                .setAuthor(client.guilds.resolve(interaction.guild_id).members.resolve(member).user.username, client.guilds.resolve(interaction.guild_id).members.resolve(member).user.avatarURL())
-                .setTitle("Random Challenge Career Profile")
-            //add goal times achieved for the stat section
-            if (hasraced) {
                 profileEmbed
-                    .addField(":bar_chart: Challenge Stats", "Total: `" + stats.total + "`\nStandard: `" + stats.standard + "`\nSkips: `" + stats.skips + "`\nNo Upgrades: `" + stats.no_upgrades + "`\nNon 3-Lap: `" + stats.non_3_lap + "`\nMirrored: `" + stats.mirrored + "`", true)
-                    .addField(":chart_with_upwards_trend: Gameplay Trends", "**Most Played Pod:** \n" + racers[mostPod.most_name].flag + " " + racers[mostPod.most_name].name + " `" + mostPod.most_count + "`" +
-                        "\n**Most Played Track:**\n" + tracks[mostTrack.most_name].name + " `" + mostTrack.most_count + "`" +
-                        "\n**Most Played Planet:**\n" + planets[mostPlanet.most_name].name + " `" + mostPlanet.most_count + "`" +
-                        "\n**Most Played Circuit:**\n" + circuits[mostCircuit.most_name].name + " `" + mostCircuit.most_count + "`", true)
-            } else {
-                profileEmbed
-                    .addField(":bar_chart: Challenge Stats", "No challenge data", true)
-                    .addField(":chart_with_upwards_trend: Gameplay Trends", "No gameplay data", true)
+                    .setAuthor(client.guilds.resolve(interaction.guild_id).members.resolve(member).user.username + "'s Profile", client.guilds.resolve(interaction.guild_id).members.resolve(member).user.avatarURL())
+                    .setTitle("Random Challenge Achievements ("+achievement_count + "/8)")
             }
-            var feedbacktrend = ""
-            if (hasliked) {
-                feedbacktrend += "**Most Liked Pod:** \n" + racers[likePod.most_name].flag + " " + racers[likePod.most_name].name + " `👍" + likePod.most_count + "`" +
-                    "\n**Most Liked Track:**\n" + tracks[likeTrack.most_name].name + " `👍" + likeTrack.most_count + "`\n"
-            }
-            if (hasdisliked) {
-                feedbacktrend += "**Most Disliked Pod:**\n" + racers[dislikePod.most_name].flag + " " + racers[dislikePod.most_name].name + " `👎" + dislikePod.most_count + "`" +
-                    "\n**Most Disliked Track:**\n" + tracks[dislikeTrack.most_name].name + " `👎" + dislikeTrack.most_count + "`"
-            }
-            if (feedbacktrend == "") {
-                feedbacktrend = "No feedback data"
-            }
-            profileEmbed
-                .addField(":pencil: Feedback Trends", feedbacktrend, true)
-            var achievement_field = ""
-            var achvs = Object.keys(achievements)
-            for (var i = 0; i < achvs.length; i++) {
-                var a = achvs[i]
-                if (achievements[a].count >= achievements[a].limit) {
-                    achievement_field += ":white_check_mark: "
-                }
-                if (interaction.guild_id == "441839750555369474") {
-                    achievement_field += "**<@&" + achievements[a].role + ">** - " + achievements[a].description + ": `" + tools.numberWithCommas(achievements[a].count) + "/" + tools.numberWithCommas(achievements[a].limit) + "`\n"
-                } else {
-                    achievement_field += "**" + achievements[a].name + "** - " + achievements[a].description + ": `" + tools.numberWithCommas(achievements[a].count) + "/" + tools.numberWithCommas(achievements[a].limit) + "`\n"
-                }
-            }
-
-            profileEmbed.addField(":trophy: Achievements", achievement_field, true)
             client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {
                     type: 4,
@@ -1695,7 +1709,7 @@ module.exports = {
                 .addField("Challenge Settings", "Use the `/challenge settings` command to customize your challenge settings and modify the chances that Botto will roll a No Upgrades, Skips, Non 3-lap, or Mirrored challenge. You can select a challenge winnings pattern which determines how many truguts your submitted time will earn.", false)
                 .addField("Earning Truguts", "Truguts are awarded depending on how fast your submitted time is compared to the given goal times and how your winnings are set up. Bonuses are available for beating other players' best times, beating your own time, rating challenges, and completing non-standard challenges (odds must be below 25%).", false)
                 .addField("Spending Truguts", "You can spend truguts on 'rerolling' challenges that you wish to skip. Truguts can also be used to bribe Botto for a specific track or racer as part of the `/challenge generate` command. You can use the `/challenge hint` command to figure out what to bribe for your achievement progress.", false)
-                .addField("Challenge Hunt", "Challenge Hunt is a way to earn big truguts fast and can be accessed via the `/challenge hit` command. Botto hides a large trugut bonus based on your hint selection on a random challenge. You have one hour to find this challenge and complete it to claim your bonus.", false)
+                .addField("Challenge Hunt", "Challenge Hunt is a way to earn big truguts fast and can be accessed via the `/challenge hint` command. Based on your hint selection, Botto hides a large trugut bonus on a random challenge. You have one hour to find this challenge and complete it to claim your bonus.", false)
             client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {
                     type: 4,
