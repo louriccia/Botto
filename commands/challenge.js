@@ -817,7 +817,7 @@ module.exports = {
                         earnings_total += truguts.beat_opponent * beat.length
                     }
                     if (pb) {
-                        earnings += "PB `+📀" + tools.numberWithCommas(truguts.pb) + "`\n"
+                        earnings += "PB `+📀" + tools.numberWithCommas(truguts.personal_best) + "`\n"
                         earnings_total += truguts.personal_best
                     }
                     if (first) {
@@ -1512,6 +1512,7 @@ module.exports = {
                     mirrored: 0
                 }
                 var mostPod = {}, mostTrack = {}, mostPlanet = {}, mostCircuit = {}, likePod = {}, likeTrack = {}, dislikePod = {}, dislikeTrack = {}
+                var total_time = 0
                 mostPod.most_count = 0
                 mostPod.most_name = null
                 mostTrack.most_count = 0
