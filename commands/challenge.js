@@ -1793,7 +1793,7 @@ module.exports = {
                 var achievement_count = 0
                 for (var i = 0; i < achvs.length; i++) {
                     var a = achvs[i]
-                    chievements[a].count = Object.keys(achievements[a].collection).length
+                    achievements[a].count = Object.keys(achievements[a].collection).length
                     if (achievements[a].name == "Big-Time Swindler") {
                         achievements[a].count = profiledata[member].truguts_spent + profiledata[member].truguts_earned
                     }
