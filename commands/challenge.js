@@ -1590,7 +1590,7 @@ module.exports = {
                     if (challengedata[k].user == member) {
                         stats.total++
                         //time stats
-                        times.total_time += challengedata[k].time
+                        times.total += challengedata[k].time
                         var goals = getGoalTimes(challengedata[k].track, challengedata[k].racer, challengedata[k].skips, challengedata[k].nu, challengedata[k].laps)
                         var goal_array = ["elite", "pro", "rookie", "amateur", "youngling"]
                         var goal_time = null
