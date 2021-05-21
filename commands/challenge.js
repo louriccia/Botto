@@ -1499,19 +1499,20 @@ module.exports = {
                     member = args[0].options[0].options[0].value
                 }
             }
-            client.api.interactions(interaction.id, interaction.token).callback.post({
-                data: {
-                    type: 5,
-                    data: {
-                        content: "",
-                        embeds: [],
-                    }
-                }
-            })
+
             const profileEmbed = new Discord.MessageEmbed()
             profileEmbed
                 .setAuthor(client.guilds.resolve(interaction.guild_id).members.resolve(member).user.username + "'s Profile", client.guilds.resolve(interaction.guild_id).members.resolve(member).user.avatarURL())
             if (args[0].options[0].name == "stats") {
+                client.api.interactions(interaction.id, interaction.token).callback.post({
+                    data: {
+                        type: 5,
+                        data: {
+                            content: "Coming right up..."
+                            //embeds: [racerEmbed]
+                        }
+                    }
+                })
                 //console.log(trugutsEarned(member))
                 var keys = Object.keys(challengedata)
                 var stats = {
@@ -1730,7 +1731,21 @@ module.exports = {
                         "Racer Bribes: `" + purchases.racer_bribes + "`\n" +
                         "Hints: `" + purchases.hints + "`\n" +
                         "Total Spending: `📀" + tools.numberWithCommas(purchases.total_spending) + "`", true)
+                async function sendResponse() {
+                    const response = await client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({ data: { embeds: [profileEmbed] } })
+                    return response
+                }
+                sendResponse()
             } else if (args[0].options[0].name == "achievements") {
+                client.api.interactions(interaction.id, interaction.token).callback.post({
+                    data: {
+                        type: 5,
+                        data: {
+                            content: "Coming right up..."
+                            //embeds: [racerEmbed]
+                        }
+                    }
+                })
                 //console.log(trugutsEarned(member))
                 var keys = Object.keys(challengedata)
                 for (var i = 0; i < keys.length; i++) {
@@ -1811,13 +1826,14 @@ module.exports = {
                     profileEmbed.addField(achievement_title, achievement_text, false)
                 }
                 profileEmbed.setTitle("Random Challenge Achievements (" + achievement_count + "/8)")
+                async function sendResponse() {
+                    const response = await client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({ data: { embeds: [profileEmbed] } })
+                    return response
+                }
+                sendResponse()
             }
-/*
-            async function sendResponse() {
-                const response = await client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({data: {embeds: [profileEmbed]}})
-                return response
-            }
-            sendResponse()*/
+
+
         } else if (args[0].name == "about") {
             const challengeHelpEmbed = new Discord.MessageEmbed()
                 .setTitle("Random Challenges")
