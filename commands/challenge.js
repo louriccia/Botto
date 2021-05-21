@@ -1655,14 +1655,14 @@ module.exports = {
                                 if (challengedata[n].track == challengedata[k].track && challengedata[n].racer == challengedata[k].racer && challengedata[n].skips == challengedata[k].skips && challengedata[n].nu == challengedata[k].nu && challengedata[n].laps == challengedata[k].laps && challengedata[n].mirror == challengedata[k].mirror) {
                                     if (challengedata[n].date < challengedata[k].date) {
                                         first = false
-                                        if (challengedata[n].user == player) {
+                                        if (challengedata[n].user == member) {
                                             pb = true
                                             if (challengedata[n].time < challengedata[k].time) {
                                                 pb = false
                                             }
                                         }
                                     }
-                                    if (challengedata[n].user !== player && challengedata[n].time > challengedata[k].time && challengedata[n].date < challengedata[k].date && !beat.includes(challengedata[n].user)) {
+                                    if (challengedata[n].user !== member && challengedata[n].time > challengedata[k].time && challengedata[n].date < challengedata[k].date && !beat.includes(challengedata[n].user)) {
                                         beat.push(challengedata[n].user)
                                     }
                                 }
