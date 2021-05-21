@@ -1547,7 +1547,7 @@ module.exports = {
                 purchases.total_spending = profiledata[member].truguts_spent
                 if (profiledata[member].purchases !== undefined) {
                     var prchs = Object.keys(profiledata[member].purchases)
-                    for (var p = 0; p < purchases.length; p++) {
+                    for (var p = 0; p < prchs.length; p++) {
                         var purchase = prchs[p]
                         if (["Basic Hint", "Standard Hint", "Deluxe Hint"].includes(profiledata[member].purchases[purchase].purchased_item)) {
                             purchases.hints++
