@@ -1499,6 +1499,14 @@ module.exports = {
                     member = args[0].options[0].value
                 }
             }
+            client.api.interactions(interaction.id, interaction.token).callback.post({
+                data: {
+                    type: 5,
+                    data: {
+                        
+                    }
+                }
+            })
             const profileEmbed = new Discord.MessageEmbed()
             profileEmbed
                 .setAuthor(client.guilds.resolve(interaction.guild_id).members.resolve(member).user.username + "'s Profile", client.guilds.resolve(interaction.guild_id).members.resolve(member).user.avatarURL())
@@ -1799,14 +1807,11 @@ module.exports = {
                 }
                 profileEmbed.setTitle("Random Challenge Achievements (" + achievement_count + "/8)")
             }
-            client.api.interactions(interaction.id, interaction.token).callback.post({
-                data: {
-                    type: 4,
-                    data: {
-                        embeds: [profileEmbed]
-                    }
-                }
-            })
+
+            async function sendResponse() {
+                return await client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({ data: { embeds: [profileEmbed] } })
+            }
+            sendResponse()
         } else if (args[0].name == "about") {
             const challengeHelpEmbed = new Discord.MessageEmbed()
                 .setTitle("Random Challenges")
