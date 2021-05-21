@@ -1503,7 +1503,8 @@ module.exports = {
                 data: {
                     type: 5,
                     data: {
-
+                        content: "",
+                        embeds: [],
                     }
                 }
             })
@@ -1813,7 +1814,8 @@ module.exports = {
             }
 
             async function sendResponse() {
-                return await client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({ data: { embeds: [profileEmbed] } })
+                const response = await client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({data: {embeds: [profileEmbed]}})
+                return response
             }
             sendResponse()
         } else if (args[0].name == "about") {
