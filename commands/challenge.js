@@ -1502,8 +1502,8 @@ module.exports = {
                     }
                 })
             }
-            async function sendResponse() {
-                const response = await client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({ data: { embeds: [profileEmbed] } })
+            async function sendResponse(embed) {
+                const response = await client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({ data: { embeds: [embed] } })
                 return response
             }
             sendCallback().then(() => {
@@ -1821,7 +1821,8 @@ module.exports = {
                     }
                     profileEmbed.setTitle("Random Challenge Achievements (" + achievement_count + "/8)")
                 }
-            }).then(()=> sendResponse())
+                return profileEmbed
+            }).then((embed)=> sendResponse(embed))
 
 
 
