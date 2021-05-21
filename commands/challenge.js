@@ -1500,6 +1500,8 @@ module.exports = {
                 }
             }
             const profileEmbed = new Discord.MessageEmbed()
+            profileEmbed
+                .setAuthor(client.guilds.resolve(interaction.guild_id).members.resolve(member).user.username + "'s Profile", client.guilds.resolve(interaction.guild_id).members.resolve(member).user.avatarURL())
             if (args[0].options[0].name == "stats") {
                 //console.log(trugutsEarned(member))
                 var keys = Object.keys(challengedata)
@@ -1511,8 +1513,50 @@ module.exports = {
                     non_3_lap: 0,
                     mirrored: 0
                 }
+                var times = {
+                    total: 0,
+                    elite: 0,
+                    pro: 0,
+                    rookie: 0,
+                    amateur: 0,
+                    youngling: 0
+                }
+                var bonuses = {
+                    first: 0,
+                    opponents_beat: 0,
+                    pbs: 0,
+                    non_standard: 0,
+                    total_earnings: 0
+                }
+                var purchases = {
+                    rerolls: 0,
+                    track_bribes: 0,
+                    racer_bribes: 0,
+                    hints: 0,
+                    total_spending: 0
+                }
+                bonuses.total_earnings = profiledata[member].truguts_earned
+                purchases.total_spending = profiledata[member].truguts_spent
+                if(profiledata[member].purchases !== undefined){
+                    var purchases = Object.keys(profiledata[member].purchases)
+                    for(var p = 0; p < purchases.length; p++){
+                        var purchase = purchases[p]
+                        if(["Basic Hint", "Standard Hint", "Deluxe Hint"].includes(profiledata[member].purchases[purchase].purchased_item)){
+                            purchases.hints ++
+                        }
+                        if (profiledata[member].purchases[purchase].purchased_item == "track bribe"){
+                            purchases.track_bribes ++
+                        }
+                        if (profiledata[member].purchases[purchase].purchased_item == "racer bribe"){
+                            purchases.racer_bribes ++
+                        }
+                        if (profiledata[member].purchases[purchase].purchased_item == "reroll"){
+                            purchases.rerolls ++
+                        }
+                    }
+                }
+                
                 var mostPod = {}, mostTrack = {}, mostPlanet = {}, mostCircuit = {}, likePod = {}, likeTrack = {}, dislikePod = {}, dislikeTrack = {}
-                var total_time = 0
                 mostPod.most_count = 0
                 mostPod.most_name = null
                 mostTrack.most_count = 0
@@ -1545,20 +1589,38 @@ module.exports = {
                     var k = keys[i];
                     if (challengedata[k].user == member) {
                         stats.total++
+                        //time stats
+                        times.total_time += challengedata[k].time
+                        var goals = getGoalTimes(challengedata[k].track, challengedata[k].racer, challengedata[k].skips, challengedata[k].nu, challengedata[k].laps)
+                        var goal_array = ["elite", "pro", "rookie", "amateur", "youngling"]
+                        var goal_time = null
+                        for (var j = goals.length - 1; j > -1; j--) {
+                            if (challengedata[k].time < goals[j]) {
+                                goal_time = j
+                            }
+                        }
+                        if (goal_time !== null) {
+                            times[goal_array[goal_time]]++
+                        }
+                        //stats
                         if (!challengedata[k].mirror && !challengedata[k].nu && !challengedata[k].skips && challengedata[k].laps == 3) {
                             stats.standard++
                         } else {
                             if (challengedata[k].skips) {
                                 stats.skips++
+                                bonuses.non_standard ++
                             }
                             if (challengedata[k].nu) {
                                 stats.no_upgrades++
+                                bonuses.non_standard ++
                             }
                             if (challengedata[k].laps !== 3) {
                                 stats.non_3_lap++
+                                bonuses.non_standard ++
                             }
                             if (challengedata[k].mirror) {
                                 stats.mirrored++
+                                bonuses.non_standard ++
                             }
                         }
                         hasraced = true
@@ -1566,6 +1628,33 @@ module.exports = {
                         getMost(mostTrack, challengedata[k].track)
                         getMost(mostPlanet, tracks[challengedata[k].track].planet)
                         getMost(mostCircuit, tracks[challengedata[k].track].circuit)
+                        var first = true
+                        var pb = false
+                        var beat = []
+                        for (var p = 0; p < keys.length; p++) {
+                            var n = keys[p]
+                            if (challengedata[n].track == challengedata[k].track && challengedata[n].racer == challengedata[k].racer && challengedata[n].skips == challengedata[k].skips && challengedata[n].nu == challengedata[k].nu && challengedata[n].laps == challengedata[k].laps && challengedata[n].mirror == challengedata[k].mirror) {
+                                if (challengedata[n].date < challengedata[k].date) {
+                                    first = false
+                                    if (challengedata[n].user == player) {
+                                        pb = true
+                                        if (challengedata[n].time < challengedata[k].time) {
+                                            pb = false
+                                        }
+                                    }
+                                }
+                                if (challengedata[n].user !== player && challengedata[n].time > challengedata[k].time && challengedata[n].date < challengedata[k].date && !beat.includes(challengedata[n].user)) {
+                                    beat.push(challengedata[n].user)
+                                }
+                            }
+                        }
+                        bonuses.opponents_beat += beat.length
+                        if (first) {
+                            bonuses.first++
+                        }
+                        if (pb) {
+                            bonuses.pbs++
+                        }
                     }
                 }
                 var keys = Object.keys(feedbackdata)
@@ -1587,8 +1676,8 @@ module.exports = {
                     }
                 }
                 profileEmbed
-                    .setAuthor(client.guilds.resolve(interaction.guild_id).members.resolve(member).user.username + "'s Profile", client.guilds.resolve(interaction.guild_id).members.resolve(member).user.avatarURL())
                     .setTitle("Random Challenge Statistics")
+                    .setDescription("Current trugut balance: `📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`")
                 //add goal times achieved for the stat section
                 if (hasraced) {
                     profileEmbed
@@ -1616,10 +1705,25 @@ module.exports = {
                 }
                 profileEmbed
                     .addField(":pencil: Feedback Trends", feedbacktrend, true)
+                    .addField(":stopwatch: Time Stats", "Total time: `" + tools.timefix(times.total) +"`\n" +
+                    "Elite: `" + times.elite + "`\n" +
+                    "Pro: `" + times.pro + "`\n" + 
+                    "Rookie: `" + times.rookie + "`\n" + 
+                    "Amateur: `" + times.amateur + "`\n" + 
+                    "Youngling: `" + times.youngling + "`",true)
+                    .addField(":moneybag: Bonus Stats", "Firsts: `" +  bonuses.first +"`\n" +
+                    "Opponents Beat: `" +  bonuses.opponents_beat +"`\n" +
+                    "Personal Bests: `" +  bonuses.pbs +"`\n" +
+                    "Non-Standard: `" +  bonuses.non_standard +"`\n" +
+                    "Total Earnings: `📀" +  tools.numberWithCommas(bonuses.total_earnings) + "`",true)
+                    .addField(":shopping_cart: Purchase Stats", "Rerolls: `" + purchases.rerolls + "`\n" +
+                    "Track Bribes: `" + purchases.track_bribes + "`\n" +
+                    "Racer Bribes: `" + purchases.racer_bribes + "`\n" +
+                    "Hints: `" + purchases.hints + "`\n" +
+                    "Total Spending: `📀" + tools.numberWithCommas(purchases.total_spending) + "`",true)
             } else if (args[0].options[0].name == "achievements") {
                 //console.log(trugutsEarned(member))
                 var keys = Object.keys(challengedata)
-                var hasraced = false
                 for (var i = 0; i < keys.length; i++) {
                     var k = keys[i];
                     if (challengedata[k].user == member) {
@@ -1638,10 +1742,10 @@ module.exports = {
                             achievements.crowd_favorite.collection[String(challengedata[k].track)] = 1
                         }
                         achievements.true_jedi.collection[String(challengedata[k].track + " " + challengedata[k].racer)] = 1
-                        hasraced = true
                     }
                 }
                 if (member == interaction.member.user.id) {
+                    //award achievement if gotten
                     if (profiledata[member].achievements == undefined) {
                         var ach = {
                             galaxy_famous: false,
@@ -1686,14 +1790,14 @@ module.exports = {
                     if (achievements[a].count >= achievements[a].limit) {
                         achievement_title += ":white_check_mark: "
                         achievement_count++
+                    } else {
+                        achievement_title += ":trophy: "
                     }
-                    achievement_title += achievements[a].name
-                    achievement_text = achievements[a].description + ": `" + tools.numberWithCommas(achievements[a].count) + "/" + tools.numberWithCommas(achievements[a].limit) + "`\n"
+                    achievement_title += achievements[a].name + "  `" + tools.numberWithCommas(achievements[a].count) + "/" + tools.numberWithCommas(achievements[a].limit) + "`"
+                    achievement_text = achievements[a].description
                     profileEmbed.addField(achievement_title, achievement_text, false)
                 }
-                profileEmbed
-                    .setAuthor(client.guilds.resolve(interaction.guild_id).members.resolve(member).user.username + "'s Profile", client.guilds.resolve(interaction.guild_id).members.resolve(member).user.avatarURL())
-                    .setTitle("Random Challenge Achievements ("+achievement_count + "/8)")
+                profileEmbed.setTitle("Random Challenge Achievements (" + achievement_count + "/8)")
             }
             client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {
