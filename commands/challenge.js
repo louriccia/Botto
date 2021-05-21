@@ -1546,9 +1546,9 @@ module.exports = {
                 bonuses.total_earnings = profiledata[member].truguts_earned
                 purchases.total_spending = profiledata[member].truguts_spent
                 if (profiledata[member].purchases !== undefined) {
-                    var purchases = Object.keys(profiledata[member].purchases)
+                    var prchs = Object.keys(profiledata[member].purchases)
                     for (var p = 0; p < purchases.length; p++) {
-                        var purchase = purchases[p]
+                        var purchase = prchs[p]
                         if (["Basic Hint", "Standard Hint", "Deluxe Hint"].includes(profiledata[member].purchases[purchase].purchased_item)) {
                             purchases.hints++
                         }
