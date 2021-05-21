@@ -1492,7 +1492,7 @@ module.exports = {
             })
         } else if (args[0].name == "profile") {
             async function sendCallback() {
-                client.api.interactions(interaction.id, interaction.token).callback.post({
+                const wait = client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
                         type: 5,
                         data: {
@@ -1501,6 +1501,7 @@ module.exports = {
                         }
                     }
                 })
+                return wait
             }
             async function sendResponse(embed) {
                 const response = await client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({ data: { embeds: [embed] } })
