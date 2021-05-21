@@ -1496,7 +1496,7 @@ module.exports = {
             const Member = Guild.members.cache.get(member); // Getting the member.
             if (args[0].options[0].hasOwnProperty("options")) {
                 if (args[0].options[0].options[0].name == "user") {
-                    member = args[0].options[0].value
+                    member = args[0].options[0].options[0].value
                 }
             }
             client.api.interactions(interaction.id, interaction.token).callback.post({
