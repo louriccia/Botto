@@ -1503,7 +1503,7 @@ module.exports = {
                 data: {
                     type: 5,
                     data: {
-                        
+
                     }
                 }
             })
@@ -1545,25 +1545,25 @@ module.exports = {
                 }
                 bonuses.total_earnings = profiledata[member].truguts_earned
                 purchases.total_spending = profiledata[member].truguts_spent
-                if(profiledata[member].purchases !== undefined){
+                if (profiledata[member].purchases !== undefined) {
                     var purchases = Object.keys(profiledata[member].purchases)
-                    for(var p = 0; p < purchases.length; p++){
+                    for (var p = 0; p < purchases.length; p++) {
                         var purchase = purchases[p]
-                        if(["Basic Hint", "Standard Hint", "Deluxe Hint"].includes(profiledata[member].purchases[purchase].purchased_item)){
-                            purchases.hints ++
+                        if (["Basic Hint", "Standard Hint", "Deluxe Hint"].includes(profiledata[member].purchases[purchase].purchased_item)) {
+                            purchases.hints++
                         }
-                        if (profiledata[member].purchases[purchase].purchased_item == "track bribe"){
-                            purchases.track_bribes ++
+                        if (profiledata[member].purchases[purchase].purchased_item == "track bribe") {
+                            purchases.track_bribes++
                         }
-                        if (profiledata[member].purchases[purchase].purchased_item == "racer bribe"){
-                            purchases.racer_bribes ++
+                        if (profiledata[member].purchases[purchase].purchased_item == "racer bribe") {
+                            purchases.racer_bribes++
                         }
-                        if (profiledata[member].purchases[purchase].purchased_item == "reroll"){
-                            purchases.rerolls ++
+                        if (profiledata[member].purchases[purchase].purchased_item == "reroll") {
+                            purchases.rerolls++
                         }
                     }
                 }
-                
+
                 var mostPod = {}, mostTrack = {}, mostPlanet = {}, mostCircuit = {}, likePod = {}, likeTrack = {}, dislikePod = {}, dislikeTrack = {}
                 mostPod.most_count = 0
                 mostPod.most_name = null
@@ -1616,19 +1616,19 @@ module.exports = {
                         } else {
                             if (challengedata[k].skips) {
                                 stats.skips++
-                                bonuses.non_standard ++
+                                bonuses.non_standard++
                             }
                             if (challengedata[k].nu) {
                                 stats.no_upgrades++
-                                bonuses.non_standard ++
+                                bonuses.non_standard++
                             }
                             if (challengedata[k].laps !== 3) {
                                 stats.non_3_lap++
-                                bonuses.non_standard ++
+                                bonuses.non_standard++
                             }
                             if (challengedata[k].mirror) {
                                 stats.mirrored++
-                                bonuses.non_standard ++
+                                bonuses.non_standard++
                             }
                         }
                         hasraced = true
@@ -1713,22 +1713,22 @@ module.exports = {
                 }
                 profileEmbed
                     .addField(":pencil: Feedback Trends", feedbacktrend, true)
-                    .addField(":stopwatch: Time Stats", "Total time: `" + tools.timefix(times.total) +"`\n" +
-                    "Elite: `" + times.elite + "`\n" +
-                    "Pro: `" + times.pro + "`\n" + 
-                    "Rookie: `" + times.rookie + "`\n" + 
-                    "Amateur: `" + times.amateur + "`\n" + 
-                    "Youngling: `" + times.youngling + "`",true)
-                    .addField(":moneybag: Bonus Stats", "Firsts: `" +  bonuses.first +"`\n" +
-                    "Opponents Beat: `" +  bonuses.opponents_beat +"`\n" +
-                    "Personal Bests: `" +  bonuses.pbs +"`\n" +
-                    "Non-Standard: `" +  bonuses.non_standard +"`\n" +
-                    "Total Earnings: `📀" +  tools.numberWithCommas(bonuses.total_earnings) + "`",true)
+                    .addField(":stopwatch: Time Stats", "Total time: `" + tools.timefix(times.total) + "`\n" +
+                        "Elite: `" + times.elite + "`\n" +
+                        "Pro: `" + times.pro + "`\n" +
+                        "Rookie: `" + times.rookie + "`\n" +
+                        "Amateur: `" + times.amateur + "`\n" +
+                        "Youngling: `" + times.youngling + "`", true)
+                    .addField(":moneybag: Bonus Stats", "Firsts: `" + bonuses.first + "`\n" +
+                        "Opponents Beat: `" + bonuses.opponents_beat + "`\n" +
+                        "Personal Bests: `" + bonuses.pbs + "`\n" +
+                        "Non-Standard: `" + bonuses.non_standard + "`\n" +
+                        "Total Earnings: `📀" + tools.numberWithCommas(bonuses.total_earnings) + "`", true)
                     .addField(":shopping_cart: Purchase Stats", "Rerolls: `" + purchases.rerolls + "`\n" +
-                    "Track Bribes: `" + purchases.track_bribes + "`\n" +
-                    "Racer Bribes: `" + purchases.racer_bribes + "`\n" +
-                    "Hints: `" + purchases.hints + "`\n" +
-                    "Total Spending: `📀" + tools.numberWithCommas(purchases.total_spending) + "`",true)
+                        "Track Bribes: `" + purchases.track_bribes + "`\n" +
+                        "Racer Bribes: `" + purchases.racer_bribes + "`\n" +
+                        "Hints: `" + purchases.hints + "`\n" +
+                        "Total Spending: `📀" + tools.numberWithCommas(purchases.total_spending) + "`", true)
             } else if (args[0].options[0].name == "achievements") {
                 //console.log(trugutsEarned(member))
                 var keys = Object.keys(challengedata)
@@ -1793,6 +1793,10 @@ module.exports = {
                 var achievement_count = 0
                 for (var i = 0; i < achvs.length; i++) {
                     var a = achvs[i]
+                    chievements[a].count = Object.keys(achievements[a].collection).length
+                    if (achievements[a].name == "Big-Time Swindler") {
+                        achievements[a].count = profiledata[member].truguts_spent + profiledata[member].truguts_earned
+                    }
                     var achievement_title = ""
                     var achievement_text = ""
                     if (achievements[a].count >= achievements[a].limit) {
