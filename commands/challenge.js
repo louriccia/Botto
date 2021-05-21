@@ -1502,7 +1502,7 @@ module.exports = {
                     }
                 })
             }
-            sendCallback().then({
+            sendCallback().then(() => {
                 var member = interaction.member.user.id
                 const Guild = client.guilds.cache.get(interaction.guild_id); // Getting the guild.
                 const Member = Guild.members.cache.get(member); // Getting the member.
