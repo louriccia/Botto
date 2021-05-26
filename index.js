@@ -107,6 +107,9 @@ client.once('ready', () => {
     } catch {
         console.error(error);
     }
+    database.ref("tourney/participants").push("test")
+    database.ref("tourney/matches").push("test")
+    database.ref("tourney/races").push("test")
     profileref.get().then(function (snapshot) {
         console.log("checking for incomplete challenges...")
         var profiledata = snapshot.val()
@@ -146,6 +149,104 @@ client.once('ready', () => {
             }
         }
     });
+
+    client.channels.cahce.get("545800310283829270").send({
+        content: "This is a test message",
+        components: [
+            {
+                type: 1,
+                components: [
+                    {
+                        type: 2,
+                        label: "Click me!",
+                        style: 1,
+                        custom_id: "click_one"
+                    },
+                    {
+                        type: 2,
+                        label: "Emoji Button!",
+                        emoji: {
+                            "id": null,
+                            "name": "🔥"
+                        },
+                        style: 1,
+                        custom_id: "click_one"
+                    }
+                ]
+            }
+        ]
+    })
+
+    const testEmbed = new Discord.MessageEmbed()
+        .setTitle("Test")
+        .setDescription("this is a test")
+
+    client.channels.cahce.get("545800310283829270").send({
+        content: "This is a test embed message",
+        components: [
+            {
+                type: 1,
+                components: [
+                    {
+                        type: 2,
+                        label: "Click me!",
+                        style: 1,
+                        custom_id: "click_one"
+                    },
+                    {
+                        type: 2,
+                        label: "Primary Button!",
+                        emoji: {
+                            "id": null,
+                            "name": "🔥"
+                        },
+                        style: 2,
+                        custom_id: "click_one"
+                    },
+                    {
+                        type: 2,
+                        label: "Secondary Button!",
+                        emoji: {
+                            "id": null,
+                            "name": "🔥"
+                        },
+                        style: 4,
+                        custom_id: "click_one"
+                    },
+                    {
+                        type: 2,
+                        label: "Mean Button!",
+                        emoji: {
+                            "id": null,
+                            "name": "🔥"
+                        },
+                        style: 4,
+                        custom_id: "click_one"
+                    },
+                    {
+                        type: 2,
+                        label: "Link Button!",
+                        style: 5,
+                        url: "https://discord.com/developers/docs/interactions/message-components"
+                    }
+                ]
+            }
+        ],
+        embeds: [testEmbed]
+    })
+
+    client.channels.cahce.get("545800310283829270").send({
+        content: "This is a test embed message with one button",
+        components: [
+            {
+                type: 2,
+                label: "Click me!",
+                style: 1,
+                custom_id: "click_one"
+            }
+        ],
+        embeds: [testEmbed]
+    })
 
     //set up role claim message
     const channelId = '442116200147714049'
@@ -226,6 +327,8 @@ client.once('ready', () => {
             member.roles.remove(role)
         }
     }
+
+
 
     client.on('messageReactionAdd', (reaction, user) => {
         if (reaction.message.id === messageID) { //message id goes here
