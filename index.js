@@ -150,7 +150,7 @@ client.once('ready', () => {
         }
     });
 
-    client.channels.cahce.get("545800310283829270").send({
+    client.channels.cache.get("545800310283829270").send({
         content: "This is a test message",
         components: [
             {
@@ -181,7 +181,7 @@ client.once('ready', () => {
         .setTitle("Test")
         .setDescription("this is a test")
 
-    client.channels.cahce.get("545800310283829270").send({
+    client.channels.cache.get("545800310283829270").send({
         content: "This is a test embed message",
         components: [
             {
@@ -235,7 +235,7 @@ client.once('ready', () => {
         embeds: [testEmbed]
     })
 
-    client.channels.cahce.get("545800310283829270").send({
+    client.channels.cache.get("545800310283829270").send({
         content: "This is a test embed message with one button",
         components: [
             {
