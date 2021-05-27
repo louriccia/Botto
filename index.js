@@ -710,7 +710,7 @@ client.api.applications("545798436105224203").commands.post({
                     {
                         name: "tourney",
                         description: "filter runs by tournament",
-                        type: 4,
+                        type: 3,
                         required: false,
                         choices: [
                             {
