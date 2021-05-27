@@ -39,7 +39,7 @@ module.exports = {
             var podfilterin = []
             var showall = false
             var desc = []
-            var skips = null, nu = null, deaths = null, player = null, tourney = null
+            var skips = null, nu = null, deaths = null, player = null, tourney = null, quali = false
             //filters out other tracks
             for (let i = 0; i < args.length; i++) {
                 if (args[i].name == "track") {
@@ -106,6 +106,8 @@ module.exports = {
                 } else if (args[i].name == "tourney") {
                     tourney = args[i].value
                     desc.push(String(args[i].value))
+                } else if (args[i].name == "quali") {
+                    quali = args[i].value
                 } else if (args[i].name == "player") {
                     player = args[i].value
                     showall = true
@@ -119,38 +121,41 @@ module.exports = {
             var j = 0
             var players = []
             var rns = Object.keys(tourney_races_data)
-            for(var i = 0; i < rns.length; i ++){
+            for (var i = 0; i < rns.length; i++) {
                 var r = rns[i]
-                if(tourney_races_data[r].track == trak){
+                if (tourney_races_data[r].track == trak) {
                     runs.push(tourney_races_data[r])
                 }
             }
-            if(skips){
+            if (skips) {
                 runs.filter(e => e.force == "Skips")
-            } else if (!skips){
+            } else if (!skips) {
                 runs.filter(e => e.force !== "Skips")
             }
-            if(nu){
-                runs.filter(e=> e.force == "NU")
-            } else if (!nu){
-                runs.filter(e=> e.force !== "NU")
+            if (nu) {
+                runs.filter(e => e.force == "NU")
+            } else if (!nu) {
+                runs.filter(e => e.force !== "NU")
             }
-            if(podfilterin.length > 0){
-                runs.filter(e=> podfilterin.includes(e.pod))
+            if (podfilterin.length > 0) {
+                runs.filter(e => podfilterin.includes(e.pod))
             }
-            if(podfilterout.length > 0){
-                runs.filter(e=> !podfilterout.includes(e.pod))
+            if (podfilterout.length > 0) {
+                runs.filter(e => !podfilterout.includes(e.pod))
             }
-            if(deaths){
+            if (deaths) {
                 runs.filter(e => e.totaldeaths > 0)
-            } else if (!deaths){
+            } else if (!deaths) {
                 runs.filter(e => e.totaldeaths == 0)
             }
-            if(tourney !==null){
+            if (tourney !== null) {
                 runs.filter(e => tourney_matches_data[e.datetime].tourney == tourney)
             }
-            if(player !== null){
+            if (player !== null) {
                 runs.filter(e => tourney_participants_data[e.player].id == player)
+            }
+            if (!quali) {
+                runs.filter(e => tourney_matches_data[e.datetime].bracket !== "Qual")
             }
             var already = []
             if (runs.length > 0) {
@@ -168,9 +173,7 @@ module.exports = {
                                 forc = "NU "
                             }
                         }
-                        if (runs[i].hasOwnProperty("url")) {
-                            link = tourney_matches_data[runs[i].datetime].url
-                        }
+                        link = tourney_matches_data[runs[i].datetime].url
                         if (runs[i].hasOwnProperty("podtempban")) {
                             characterban = "\n~~" + runs[i].podtempban + "~~"
                         }
@@ -179,13 +182,13 @@ module.exports = {
                         }
                         character = racers[runs[i].pod].flag
                         tourneyReport
-                            .addField(pos[i] + " " + tourney_participants_data[runs[i].player].name, runs[i].year + ", " + runs[i].bracket + ": " + runs[i].round + "\n[Race " + runs[i].race + ", vs " + runs[i].opponent + "](" + link + ")", true)
+                            .addField(pos[0] + " <@" + tourney_participants_data[runs[i].player].id +">", tourney_tournaments_data[tourney_matches_data[runs[i].datetime].tourney].nickname + ", " + tourney_matches_data[runs[i].datetime].bracket + ": " + tourney_matches_data[runs[i].datetime].round + "\n[Race " + runs[i].race + ", vs <@" + tourney_participants_data[runs[i].opponent] + ">](" + link + ")", true)
                             .addField(tools.timefix(Number(runs[i].totaltime).toFixed(3)), " " + character + " " + forc + " " + deaths + characterban, true)
                             .addField('\u200B', '\u200B', true)
                             .setDescription(desc.join(', ') + " [" + runs.length + " Total Runs]")
                         already.push(runs[i].player + runs[i].force)
                         pos = pos.splice(0, 1)
-                        if(pos.length ==0){
+                        if (pos.length == 0) {
                             i = runs.length
                         }
                     }
