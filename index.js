@@ -89,24 +89,27 @@ tourney_tournaments.on("value", function (snapshot) {
     console.log("The read failed: " + errorObject);
 });
 client.ws.on('INTERACTION_CREATE', async interaction => {
-    const command = interaction.data.name.toLowerCase();
-    const args = interaction.data.options;
-    //command handler
-    if (!client.commands.has(command)) return;
-    try {
-        client.commands.get(command).execute(client, interaction, args);
-    } catch (error) {
-        console.error(error);
-        client.api.interactions(interaction.id, interaction.token).callback.post({
-            data: {
-                type: 4,
+    if(interaction.data.hasOwnProperty("name")){
+        const command = interaction.data.name.toLowerCase();
+        const args = interaction.data.options;
+        //command handler
+        if (!client.commands.has(command)) return;
+        try {
+            client.commands.get(command).execute(client, interaction, args);
+        } catch (error) {
+            console.error(error);
+            client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {
-                    content: "`Error: Command failed to execute `\n" + errorMessage[Math.floor(Math.random() * errorMessage.length)]
+                    type: 4,
+                    data: {
+                        content: "`Error: Command failed to execute `\n" + errorMessage[Math.floor(Math.random() * errorMessage.length)]
+                    }
                 }
-            }
-        })
+            })
+        }
+    } else if(interaction.data.hasOwnProperty("custom_id")){
+        console.log(interaction.data.custom_id)
     }
-
 })
 
 async function getCommands() {
@@ -199,12 +202,13 @@ client.once('ready', () => {
     //client.channels.cache.get("545800310283829270").send(msg)*/
 
     const testEmbed = new Discord.MessageEmbed()
+    testEmbed
         .setTitle("Test")
         .setDescription("this is a test")
 
     client.api.channels("545800310283829270").messages.post({
         data: {
-            content: "test",
+            embed: testEmbed,
             components: [
                 {
                     type: 1,
@@ -249,25 +253,10 @@ client.once('ready', () => {
                         }
                     ]
                 }
-            ],
-            embeds: [testEmbed]
+            ]
         }
         
     })
-
-    client.channels.cache.get("545800310283829270").send({
-        content: "This is a test embed message with one button",
-        components: [
-            {
-                type: 2,
-                label: "Click me!",
-                style: 1,
-                custom_id: "click_one"
-            }
-        ],
-        embeds: [testEmbed]
-    })
-
     //set up role claim message
     const channelId = '442116200147714049'
 
