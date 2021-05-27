@@ -67,7 +67,15 @@ module.exports = {
                 type: 4,
                 data: {
                     //content: "",
-                    embeds: [myEmbed]
+                    embeds: [myEmbed],
+                    components: [
+                        {
+                            type: 2,
+                            label: title,
+                            style: 5,
+                            url: link
+                        }
+                    ]
                 }
             }
         })
