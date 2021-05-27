@@ -2343,206 +2343,242 @@ client.api.applications("545798436105224203").commands.post({
 
 client.api.applications("545798436105224203").commands.post({
     data: {
-        name: 'tourney',
-        description: 'get top-5 leaderboards for tournament runs of each track',
+        name: "tourney",
+        description: "get tourney leaderboards, lookup tourney profiles, and more",
+        type: 2,
         options: [
             {
-                name: "track",
-                description: "name or abbreviation of the track",
-                type: 3,
-                required: true,
-                choices: [
+                name: 'leaderboards',
+                description: 'get top-5 leaderboards for tournament runs of each track',
+                type: 1,
+                options: [
                     {
-                        name: "The Boonta Training Course",
-                        value: "0"
-                    },
-                    {
-                        name: "Mon Gazza Speedway",
-                        value: "1"
-                    },
-                    {
-                        name: "Beedo's Wild Ride",
-                        value: "2"
-                    },
-                    {
-                        name: "Aquilaris Classic",
-                        value: "3"
-                    },
-                    {
-                        name: "Malastare 100",
-                        value: "4"
-                    },
-                    {
-                        name: "Vengeance",
-                        value: "5"
-                    },
-                    {
-                        name: "Spice Mine Run",
-                        value: "6"
-                    },
-                    {
-                        name: "Sunken City",
-                        value: "7"
-                    },
-                    {
-                        name: "Howler Gorge",
-                        value: "8"
-                    },
-                    {
-                        name: "Dug Derby",
-                        value: "9"
-                    },
-                    {
-                        name: "Scrapper's Run",
-                        value: "10"
-                    },
-                    {
-                        name: "Zugga Challenge",
-                        value: "11"
-                    },
-                    {
-                        name: "Baroo Coast",
-                        value: "12"
-                    },
-                    {
-                        name: "Bumpy's Breakers",
-                        value: "13"
-                    },
-                    {
-                        name: "Executioner",
-                        value: "14"
-                    },
-                    {
-                        name: "Sebulba's Legacy",
-                        value: "15"
-                    },
-                    {
-                        name: "Grabvine Gateway",
-                        value: "16"
-                    },
-                    {
-                        name: "Andobi Mountain Run",
-                        value: "17"
-                    },
-                    {
-                        name: "Dethro's Revenge",
-                        value: "18"
-                    },
-                    {
-                        name: "Fire Mountain Rally",
-                        value: "19"
-                    },
-                    {
-                        name: "The Boonta Classic",
-                        value: "20"
-                    },
-                    {
-                        name: "Ando Prime Centrum",
-                        value: "21"
-                    },
-                    {
-                        name: "Abyss",
-                        value: "22"
-                    },
-                    {
-                        name: "The Gauntlet",
-                        value: "23"
-                    },
-                    {
-                        name: "Inferno",
-                        value: "24"
-                    }
-                ]
-            },
-            {
-                name: "skips",
-                description: "filter by skip runs or full track runs",
-                type: 3,
-                required: false,
-                choices: [
-                    {
-                        name: "any",
-                        value: "any"
+                        name: "track",
+                        description: "name or abbreviation of the track",
+                        type: 3,
+                        required: true,
+                        choices: [
+                            {
+                                name: "The Boonta Training Course",
+                                value: "0"
+                            },
+                            {
+                                name: "Mon Gazza Speedway",
+                                value: "1"
+                            },
+                            {
+                                name: "Beedo's Wild Ride",
+                                value: "2"
+                            },
+                            {
+                                name: "Aquilaris Classic",
+                                value: "3"
+                            },
+                            {
+                                name: "Malastare 100",
+                                value: "4"
+                            },
+                            {
+                                name: "Vengeance",
+                                value: "5"
+                            },
+                            {
+                                name: "Spice Mine Run",
+                                value: "6"
+                            },
+                            {
+                                name: "Sunken City",
+                                value: "7"
+                            },
+                            {
+                                name: "Howler Gorge",
+                                value: "8"
+                            },
+                            {
+                                name: "Dug Derby",
+                                value: "9"
+                            },
+                            {
+                                name: "Scrapper's Run",
+                                value: "10"
+                            },
+                            {
+                                name: "Zugga Challenge",
+                                value: "11"
+                            },
+                            {
+                                name: "Baroo Coast",
+                                value: "12"
+                            },
+                            {
+                                name: "Bumpy's Breakers",
+                                value: "13"
+                            },
+                            {
+                                name: "Executioner",
+                                value: "14"
+                            },
+                            {
+                                name: "Sebulba's Legacy",
+                                value: "15"
+                            },
+                            {
+                                name: "Grabvine Gateway",
+                                value: "16"
+                            },
+                            {
+                                name: "Andobi Mountain Run",
+                                value: "17"
+                            },
+                            {
+                                name: "Dethro's Revenge",
+                                value: "18"
+                            },
+                            {
+                                name: "Fire Mountain Rally",
+                                value: "19"
+                            },
+                            {
+                                name: "The Boonta Classic",
+                                value: "20"
+                            },
+                            {
+                                name: "Ando Prime Centrum",
+                                value: "21"
+                            },
+                            {
+                                name: "Abyss",
+                                value: "22"
+                            },
+                            {
+                                name: "The Gauntlet",
+                                value: "23"
+                            },
+                            {
+                                name: "Inferno",
+                                value: "24"
+                            }
+                        ]
                     },
                     {
                         name: "skips",
-                        value: "skips"
-                    },
-                    {
-                        name: "full track",
-                        value: "ft"
-                    }
-                ]
-            },
-            {
-                name: "upgrades",
-                description: "filter by upgrade runs (mu) or no upgrade runs (nu)",
-                type: 3,
-                required: false,
-                choices: [
-                    {
-                        name: "any",
-                        value: "any"
+                        description: "filter by skip runs or full track runs",
+                        type: 3,
+                        required: false,
+                        choices: [
+                            {
+                                name: "any",
+                                value: "any"
+                            },
+                            {
+                                name: "skips",
+                                value: "skips"
+                            },
+                            {
+                                name: "full track",
+                                value: "ft"
+                            }
+                        ]
                     },
                     {
                         name: "upgrades",
-                        value: "mu"
+                        description: "filter by upgrade runs (mu) or no upgrade runs (nu)",
+                        type: 3,
+                        required: false,
+                        choices: [
+                            {
+                                name: "any",
+                                value: "any"
+                            },
+                            {
+                                name: "upgrades",
+                                value: "mu"
+                            },
+                            {
+                                name: "no upgrades",
+                                value: "nu"
+                            }
+                        ]
                     },
                     {
-                        name: "no upgrades",
-                        value: "nu"
-                    }
-                ]
-            },
-            {
-                name: "pod",
-                description: "filter runs by a specific pod or filter out pods with 'no' in front; use racer's first name/initials",
-                type: 3,
-                required: false,
-            },
-            {
-                name: "player",
-                description: "filter runs by player",
-                type: 6,
-                required: false,
-            },
-            {
-                name: "deaths",
-                description: "filter runs by deaths or deathless",
-                type: 3,
-                required: false,
-                choices: [
+                        name: "pod",
+                        description: "filter runs by a specific pod or filter out pods with 'no' in front; use racer's first name/initials",
+                        type: 3,
+                        required: false,
+                    },
                     {
-                        name: "any",
-                        value: "any"
+                        name: "player",
+                        description: "filter runs by player",
+                        type: 6,
+                        required: false,
                     },
                     {
                         name: "deaths",
-                        value: "deaths"
+                        description: "filter runs by deaths or deathless",
+                        type: 3,
+                        required: false,
+                        choices: [
+                            {
+                                name: "any",
+                                value: "any"
+                            },
+                            {
+                                name: "deaths",
+                                value: "deaths"
+                            },
+                            {
+                                name: "deathless",
+                                value: "deathless"
+                            }
+                        ]
                     },
                     {
-                        name: "deathless",
-                        value: "deathless"
+                        name: "quali",
+                        description: "include qualifying times (false by default)",
+                        type: 5,
+                        required: false
+                    },
+                    {
+                        name: "tourney",
+                        description: "filter runs by tournament",
+                        type: 4,
+                        required: false,
+                        choices: [
+                            {
+                                name: "20th Anniversary Tournament 2019",
+                                value: "20th Anniversary Tournament 2019"
+                            },
+                            {
+                                name: "Galactic Tournament 2020",
+                                value: "Tournament 2020"
+                            },
+                            {
+                                name: "David Stubbs Tribute 2021",
+                                value: "David Stubbs Tribute 2021"
+                            },
+                            {
+                                name: "Galactic Tournament 2021",
+                                value: "Tournament 2021"
+                            }
+                        ]
                     }
                 ]
             },
             {
-                name: "year",
-                description: "filter runs by the year the tournament was held",
-                type: 4,
-                required: false,
-                choices: [
+                name: "profile",
+                description: "get profile stats on tournament participants",
+                type: 1,
+                options: [
                     {
-                        name: 2019,
-                        value: 2019
-                    },
-                    {
-                        name: 2020,
-                        value: 2020
+                        name: "participant",
+                        description: "select someone to get their tourney stats",
+                        type: 6,
+                        required: true
                     }
                 ]
             }
         ]
+
     }
 })
 /*

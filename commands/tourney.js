@@ -3,152 +3,191 @@ module.exports = {
     execute(client, interaction, args) {
         const tools = require('./../tools.js');
         const Discord = require('discord.js');
+        var admin = require('firebase-admin');
+        var database = admin.database();
+        var firebase = require("firebase/app");
+        var tourney_races = database.ref('tourney/races');
+        tourney_races.on("value", function (snapshot) {
+            tourney_races_data = snapshot.val();
+        }, function (errorObject) {
+            console.log("The read failed: " + errorObject);
+        });
+        var tourney_matches = database.ref('tourney/matches')
+        tourney_matches.on("value", function (snapshot) {
+            tourney_matches_data = snapshot.val();
+        }, function (errorObject) {
+            console.log("The read failed: " + errorObject);
+        });
+        var tourney_participants = database.ref('tourney/participants')
+        tourney_participants.on("value", function (snapshot) {
+            tourney_participants_data = snapshot.val();
+        }, function (errorObject) {
+            console.log("The read failed: " + errorObject);
+        });
+        var tourney_tournaments = database.ref('tourney/tournaments')
+        tourney_tournaments.on("value", function (snapshot) {
+            tourney_tournaments_data = snapshot.val();
+        }, function (errorObject) {
+            console.log("The read failed: " + errorObject);
+        });
         const tourneyReport = new Discord.MessageEmbed()
             .setURL("https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing")
-        var trak = null
-        var podfilterout = []
-        var podfilterin = []
-        var showall = false
-        var desc = []
-         //filters out other tracks
-        for (let i = 0; i<args.length; i++) {
-            if (args[i].name == "track") {
-                trak = Number(args[i].value)
-                tourneyReport
-                    .setTitle(tracks[trak].name + " | Tournament Times")
-                    .setColor(planets[tracks[trak].planet].color)
-                var tourneyfiltered = tourney.filter(element => element.track == tracks[trak].name)
-            } else if (args[i].name == "skips") {
-                var input = args[i].value.toLowerCase()
-                if(input == "skips"){
-                    tourneyfiltered = tourneyfiltered.filter(element => element.force == "Skips")
-                    desc.push("Skips")
-                } else if (input == "ft"){
-                    tourneyfiltered = tourneyfiltered.filter(element => element.force !== "Skips")
-                    desc.push("Full Track")
-                }
-            } else if (args[i].name == "upgrades") {
-                var input = args[i].value.toLowerCase()
-                if(input == "mu"){
-                    tourneyfiltered = tourneyfiltered.filter(element => element.force !== "NU")
-                    desc.push("Upgrades")
-                } else if (input == "nu"){
-                    tourneyfiltered = tourneyfiltered.filter(element => element.force == "NU")
-                    desc.push("No Upgrades")
-                }
-            } else if (args[i].name == "pod") {
-                var input = args[i].value.toLowerCase()
-                var podfilter = args[i].value.split(/[\s,]+/)
-                var filterin = true
-                for (var p = 0; p < podfilter.length; p++){
-                    if(podfilter[p] == "no"){
-                        filterin = false
-                    } else {
-                        var numb = null
-                        for(let q = 0; q<racers.length; q++){
-                            racers[q].nickname.forEach(nick => {
-                                if(nick.toLowerCase() == podfilter[p].toLowerCase()){
-                                    numb = q
-                                    q = racers.length
+
+        if (args[0].name == "leaderboards") {
+            var trak = null
+            var podfilterout = []
+            var podfilterin = []
+            var showall = false
+            var desc = []
+            var skips = null, nu = null, deaths = null, player = null, tourney = null
+            //filters out other tracks
+            for (let i = 0; i < args.length; i++) {
+                if (args[i].name == "track") {
+                    trak = Number(args[i].value)
+                    tourneyReport
+                        .setTitle(tracks[trak].name + " | Tournament Times")
+                        .setColor(planets[tracks[trak].planet].color)
+                    var runs = tourney.filter(element => element.track == tracks[trak].name)
+                } else if (args[i].name == "skips") {
+                    var input = args[i].value.toLowerCase()
+                    if (input == "skips") {
+                        skips = true
+                        desc.push("Skips")
+                    } else if (input == "ft") {
+                        skips = false
+                        desc.push("Full Track")
+                    }
+                } else if (args[i].name == "upgrades") {
+                    var input = args[i].value.toLowerCase()
+                    if (input == "mu") {
+                        nu = false
+                        desc.push("Upgrades")
+                    } else if (input == "nu") {
+                        nu = true
+                        desc.push("No Upgrades")
+                    }
+                } else if (args[i].name == "pod") {
+                    var input = args[i].value.toLowerCase()
+                    var podfilter = args[i].value.split(/[\s,]+/)
+                    var filterin = true
+                    for (var p = 0; p < podfilter.length; p++) {
+                        if (podfilter[p] == "no") {
+                            filterin = false
+                        } else {
+                            var numb = null
+                            for (let q = 0; q < racers.length; q++) {
+                                racers[q].nickname.forEach(nick => {
+                                    if (nick.toLowerCase() == podfilter[p].toLowerCase()) {
+                                        numb = q
+                                        q = racers.length
+                                    }
+                                })
+                            }
+                            if (numb !== null) {
+                                if (filterin) {
+                                    podfilterin.push(numb)
+                                    desc.push(racers[numb].name + " Only")
+                                } else {
+                                    podfilterout.push(numb)
+                                    desc.push("No " + racers[numb].name)
                                 }
-                            })     
-                        }
-                        if (numb !== null){
-                            if(filterin){
-                                tourneyfiltered = tourneyfiltered.filter(element => element.pod == racers[numb].name)
-                                desc.push(racers[numb].name + " Only")
-                            } else {
-                                tourneyfiltered = tourneyfiltered.filter(element => element.pod !== racers[numb].name)
-                                desc.push("No " + racers[numb].name)
                             }
                         }
                     }
+                } else if (args[i].name == "deaths") {
+                    var input = args[i].value.toLowerCase()
+                    if (input == "deaths") {
+                        deaths = true
+                        desc.push("Deaths")
+                    } else if (input == "deathless") {
+                        deaths = false
+                        desc.push("Deathless")
+                    }
+                } else if (args[i].name == "tourney") {
+                    tourney = args[i].value
+                    desc.push(String(args[i].value))
+                } else if (args[i].name == "player") {
+                    player = args[i].value
+                    showall = true
+                    const Guild = client.guilds.cache.get(interaction.guild_id);
+                    const Member = Guild.members.cache.get(player)
+                    tourneyReport.setAuthor(Member.user.username + "'s Best", client.guilds.resolve(interaction.guild_id).members.resolve(player).user.avatarURL())
                 }
-            } else if (args[i].name == "deaths") {
-                var input = args[i].value.toLowerCase()
-                if(input == "deaths"){
-                    tourneyfiltered = tourneyfiltered.filter(element => element.totaldeaths > 0)
-                    desc.push("Deaths")
-                } else if (input == "deathless"){
-                    tourneyfiltered = tourneyfiltered.filter(element => element.totaldeaths == 0)
-                    desc.push("Deathless")
-                }
-            } else if (args[i].name == "year") {
-                tourneyfiltered = tourneyfiltered.filter(element => element.year == args[i].value)
-                desc.push(String(args[i].value))
-            } else if (args[i].name == "player") {
-                var player = args[i].value
-                tourneyfiltered = tourneyfiltered.filter(element => element.playerid == player)
-                showall = true
-                const Guild = client.guilds.cache.get(interaction.guild_id);
-                const Member = Guild.members.cache.get(player)
-                tourneyReport.setAuthor(Member.user.username + "'s Best", client.guilds.resolve(interaction.guild_id).members.resolve(player).user.avatarURL())
             }
-        }      
-        var pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>", "4th", "5th"]
-        if (trak !== null) {
+            var runs = []
+            var pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>", "4th", "5th"]
             var j = 0
             var players = []
-            
-            if (tourneyfiltered.length > 0) {
-                for (i=0; i<5;){
-                    var skip = false
-                    for (k = 0; k < players.length; k++) {
-                        if (tourneyfiltered[j].player + tourneyfiltered[j].force == players[k] && !showall) {
-                            skip = true
-                        }
-                    }
-                    if (skip == false && tourneyfiltered[j].hasOwnProperty("totaltime")) {
+            var rns = Object.keys(tourney_races_data)
+            for(var i = 0; i < rns.length; i ++){
+                var r = rns[i]
+                if(tourney_races_data[r].track == trak){
+                    runs.push(tourney_races_data[r])
+                }
+            }
+            if(skips){
+                runs.filter(e => e.force == "Skips")
+            } else if (!skips){
+                runs.filter(e => e.force !== "Skips")
+            }
+            if(nu){
+                runs.filter(e=> e.force == "NU")
+            } else if (!nu){
+                runs.filter(e=> e.force !== "NU")
+            }
+            if(podfilterin.length > 0){
+                runs.filter(e=> podfilterin.includes(e.pod))
+            }
+            if(podfilterout.length > 0){
+                runs.filter(e=> !podfilterout.includes(e.pod))
+            }
+            if(deaths){
+                runs.filter(e => e.totaldeaths > 0)
+            } else if (!deaths){
+                runs.filter(e => e.totaldeaths == 0)
+            }
+            if(tourney !==null){
+                runs.filter(e => tourney_matches_data[e.datetime].tourney == tourney)
+            }
+            if(player !== null){
+                runs.filter(e => tourney_participants_data[e.player].id == player)
+            }
+            var already = []
+            if (runs.length > 0) {
+                for (i = 0; i < runs.length; i++) {
+                    if (runs[i].hasOwnProperty("totaltime") && !already.includes(runs[i].player + runs[i].force)) {
                         var character = ""
                         var deaths = ""
                         var characterban = ""
                         var link = ""
                         var forc = "MU "
-                        if (tourneyfiltered[j].hasOwnProperty("force")) {
-                            if (tourneyfiltered[j].force == "Skips") {
+                        if (runs[i].hasOwnProperty("force")) {
+                            if (runs[i].force == "Skips") {
                                 forc = "Skips "
-                            } else if (tourneyfiltered[j].force == "NU") {
+                            } else if (runs[i].force == "NU") {
                                 forc = "NU "
                             }
                         }
-                        if (tourneyfiltered[j].hasOwnProperty("url")) {
-                            link = tourneyfiltered[j].url
+                        if (runs[i].hasOwnProperty("url")) {
+                            link = tourney_matches_data[runs[i].datetime].url
                         }
-                        if (tourneyfiltered[j].hasOwnProperty("podtempban")) {
-                            characterban = "\n~~" + tourneyfiltered[j].podtempban + "~~"
+                        if (runs[i].hasOwnProperty("podtempban")) {
+                            characterban = "\n~~" + runs[i].podtempban + "~~"
                         }
-                        if (tourneyfiltered[j].totaldeaths > 0) {
-                            deaths = ""
-                            if (tourneyfiltered[j].totaldeaths > 5) {
-                                deaths = ":skull:×"+tourneyfiltered[j].totaldeaths
-                            } else {
-                                for (d = 0; d< tourneyfiltered[j].totaldeaths; d++){
-                                    deaths = deaths + ":skull:"
-                                }
-                            }
+                        if (runs[i].totaldeaths > 0) {
+                            deaths = ":skull:×" + runs[i].totaldeaths
                         }
-                        for (let n = 0; n<23; n++){
-                            if (tourneyfiltered[j].pod == racers[n].name) {
-                                if (racers[n].flag !== "") {
-                                    character = racers[n].flag
-                                } else {
-                                    character = racers[n].name
-                                }
-                            }
-                        } 
-
+                        character = racers[runs[i].pod].flag
                         tourneyReport
-                            .addField(pos[i] + " " + tourneyfiltered[j].player, tourneyfiltered[j].year + ", " + tourneyfiltered[j].bracket +": "+tourneyfiltered[j].round + "\n[Race " + tourneyfiltered[j].race + ", vs " + tourneyfiltered[j].opponent + "](" + link + ")", true)
-                            .addField(tools.timefix(Number(tourneyfiltered[j].totaltime).toFixed(3))," " + character + " " + forc + " " + deaths + characterban, true)
+                            .addField(pos[i] + " " + tourney_participants_data[runs[i].player].name, runs[i].year + ", " + runs[i].bracket + ": " + runs[i].round + "\n[Race " + runs[i].race + ", vs " + runs[i].opponent + "](" + link + ")", true)
+                            .addField(tools.timefix(Number(runs[i].totaltime).toFixed(3)), " " + character + " " + forc + " " + deaths + characterban, true)
                             .addField('\u200B', '\u200B', true)
-                            .setDescription(desc.join(', ') + " [" + tourneyfiltered.length + " Total Runs]")
-                            
-                        players.push(tourneyfiltered[j].player + tourneyfiltered[j].force)
-                        i++
-                    }
-                    j++
-                    if (j == tourneyfiltered.length) {
-                        i = 5
+                            .setDescription(desc.join(', ') + " [" + runs.length + " Total Runs]")
+                        already.push(runs[i].player + runs[i].force)
+                        pos = pos.splice(0, 1)
+                        if(pos.length ==0){
+                            i = runs.length
+                        }
                     }
                 }
                 client.api.interactions(interaction.id, interaction.token).callback.post({
@@ -165,25 +204,18 @@ module.exports = {
                     data: {
                         type: 4,
                         data: {
-                            content: "`Error: No tournament runs were found matching that criteria`\n" + errorMessage[Math.floor(Math.random()*errorMessage.length)],
+                            content: "`Error: No tournament runs were found matching that criteria`\n" + errorMessage[Math.floor(Math.random() * errorMessage.length)],
                             //embeds: [racerEmbed]
                         }
                     }
                 })
             }
-        } else {
-            client.api.interactions(interaction.id, interaction.token).callback.post({
-                data: {
-                    type: 4,
-                    data: {
-                        content: "`Error: Track not found`\n" + errorMessage[Math.floor(Math.random()*errorMessage.length)],
-                        //embeds: [racerEmbed]
-                    }
-                }
-            })
+
+        } else if (args[0].name == "profile") {
+
         }
+
     }
-    
 }
 
 
