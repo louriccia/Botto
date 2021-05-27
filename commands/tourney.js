@@ -48,7 +48,6 @@ module.exports = {
                     tourneyReport
                         .setTitle(tracks[trak].name + " | Tournament Times")
                         .setColor(planets[tracks[trak].planet].color)
-                    var runs = tourney.filter(element => element.track == tracks[trak].name)
                 } else if (args[0].options[i].name == "skips") {
                     var input = args[0].options[i].value.toLowerCase()
                     if (input == "skips") {
