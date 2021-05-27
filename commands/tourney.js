@@ -33,7 +33,7 @@ module.exports = {
         });
         const tourneyReport = new Discord.MessageEmbed()
             .setURL("https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing")
-
+        console.log(Object.keys(tourney_races_data))
         if (args[0].name == "leaderboards") {
             var trak = null
             var podfilterout = []
