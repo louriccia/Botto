@@ -202,57 +202,60 @@ client.once('ready', () => {
         .setTitle("Test")
         .setDescription("this is a test")
 
-    client.channels.cache.get("545800310283829270").send("This is a test embed message", {
-        components: [
-            {
-                type: 1,
-                components: [
-                    {
-                        type: 2,
-                        label: "Click me!",
-                        style: 1,
-                        custom_id: "click_one"
-                    },
-                    {
-                        type: 2,
-                        label: "Primary Button!",
-                        emoji: {
-                            "id": null,
-                            "name": "🔥"
+    client.api.channels("545800310283829270").messages.post({
+        data: {
+            components: [
+                {
+                    type: 1,
+                    components: [
+                        {
+                            type: 2,
+                            label: "Click me!",
+                            style: 1,
+                            custom_id: "click_one"
                         },
-                        style: 2,
-                        custom_id: "click_one"
-                    },
-                    {
-                        type: 2,
-                        label: "Secondary Button!",
-                        emoji: {
-                            "id": null,
-                            "name": "🔥"
+                        {
+                            type: 2,
+                            label: "Primary Button!",
+                            emoji: {
+                                "id": null,
+                                "name": "🔥"
+                            },
+                            style: 2,
+                            custom_id: "click_one"
                         },
-                        style: 4,
-                        custom_id: "click_one"
-                    },
-                    {
-                        type: 2,
-                        label: "Mean Button!",
-                        emoji: {
-                            "id": null,
-                            "name": "🔥"
+                        {
+                            type: 2,
+                            label: "Secondary Button!",
+                            emoji: {
+                                "id": null,
+                                "name": "🔥"
+                            },
+                            style: 4,
+                            custom_id: "click_one"
                         },
-                        style: 4,
-                        custom_id: "click_one"
-                    },
-                    {
-                        type: 2,
-                        label: "Link Button!",
-                        style: 5,
-                        url: "https://discord.com/developers/docs/interactions/message-components"
-                    }
-                ]
-            }
-        ],
-        embeds: [testEmbed]
+                        {
+                            type: 2,
+                            label: "Mean Button!",
+                            emoji: {
+                                "id": null,
+                                "name": "🔥"
+                            },
+                            style: 4,
+                            custom_id: "click_one"
+                        },
+                        {
+                            type: 2,
+                            label: "Link Button!",
+                            style: 5,
+                            url: "https://discord.com/developers/docs/interactions/message-components"
+                        }
+                    ]
+                }
+            ],
+            embeds: [testEmbed]
+        }
+        
     })
 
     client.channels.cache.get("545800310283829270").send({

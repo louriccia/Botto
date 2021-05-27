@@ -156,7 +156,11 @@ module.exports = {
                 runs.filter(e => tourney_matches_data[e.datetime].bracket !== "Qual")
             }
             var already = []
+            
             if (runs.length > 0) {
+                runs.sort(function (a, b) {
+                    return a.time - b.time;
+                })
                 for (i = 0; i < runs.length; i++) {
                     if (runs[i].hasOwnProperty("totaltime") && !already.includes(runs[i].player + runs[i].force)) {
                         var character = ""
@@ -173,19 +177,19 @@ module.exports = {
                         }
                         link = tourney_matches_data[runs[i].datetime].url
                         if (runs[i].hasOwnProperty("podtempban")) {
-                            characterban = "\n~~" + runs[i].podtempban + "~~"
+                            characterban = "\n~~" + racers[runs[i].podtempban].name + "~~"
                         }
                         if (runs[i].totaldeaths > 0) {
                             deaths = ":skull:×" + runs[i].totaldeaths
                         }
                         character = racers[runs[i].pod].flag
                         tourneyReport
-                            .addField(pos[0] + " <@" + tourney_participants_data[runs[i].player].id +">", tourney_tournaments_data[tourney_matches_data[runs[i].datetime].tourney].nickname + ", " + tourney_matches_data[runs[i].datetime].bracket + ": " + tourney_matches_data[runs[i].datetime].round + "\n[Race " + runs[i].race + ", vs <@" + tourney_participants_data[runs[i].opponent] + ">](" + link + ")", true)
+                            .addField(pos[0] + " " + tourney_participants_data[runs[i].player].name, tourney_tournaments_data[tourney_matches_data[runs[i].datetime].tourney].nickname + " | " + tourney_matches_data[runs[i].datetime].bracket + ": " + tourney_matches_data[runs[i].datetime].round + "\n[Race " + runs[i].race + ", vs " + tourney_participants_data[runs[i].opponent].name + "](" + link + ")", true)
                             .addField(tools.timefix(Number(runs[i].totaltime).toFixed(3)), " " + character + " " + forc + " " + deaths + characterban, true)
                             .addField('\u200B', '\u200B', true)
                             .setDescription(desc.join(', ') + " [" + runs.length + " Total Runs]")
                         already.push(runs[i].player + runs[i].force)
-                        pos = pos.splice(0, 1)
+                        pos.splice(0, 1)
                         if (pos.length == 0) {
                             i = runs.length
                         }
