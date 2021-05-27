@@ -204,6 +204,7 @@ client.once('ready', () => {
 
     client.api.channels("545800310283829270").messages.post({
         data: {
+            content: "test",
             components: [
                 {
                     type: 1,
@@ -226,11 +227,7 @@ client.once('ready', () => {
                         },
                         {
                             type: 2,
-                            label: "Secondary Button!",
-                            emoji: {
-                                "id": null,
-                                "name": "🔥"
-                            },
+                            label: "🔥 Secondary Button!",
                             style: 4,
                             custom_id: "click_one"
                         },
