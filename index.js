@@ -64,7 +64,30 @@ feedbackref.on("value", function (snapshot) {
 }, function (errorObject) {
     console.log("The read failed: " + errorObject.code);
 });
-
+var tourney_races = database.ref('tourney/races');
+tourney_races.on("value", function (snapshot) {
+    tourney_races_data = snapshot.val();
+}, function (errorObject) {
+    console.log("The read failed: " + errorObject);
+});
+var tourney_matches = database.ref('tourney/matches')
+tourney_matches.on("value", function (snapshot) {
+    tourney_matches_data = snapshot.val();
+}, function (errorObject) {
+    console.log("The read failed: " + errorObject);
+});
+var tourney_participants = database.ref('tourney/participants')
+tourney_participants.on("value", function (snapshot) {
+    tourney_participants_data = snapshot.val();
+}, function (errorObject) {
+    console.log("The read failed: " + errorObject);
+});
+var tourney_tournaments = database.ref('tourney/tournaments')
+tourney_tournaments.on("value", function (snapshot) {
+    tourney_tournaments_data = snapshot.val();
+}, function (errorObject) {
+    console.log("The read failed: " + errorObject);
+});
 client.ws.on('INTERACTION_CREATE', async interaction => {
     const command = interaction.data.name.toLowerCase();
     const args = interaction.data.options;

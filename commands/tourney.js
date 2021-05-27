@@ -119,8 +119,6 @@ module.exports = {
             }
             var runs = []
             var pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>", "4th", "5th"]
-            var j = 0
-            var players = []
             var rns = Object.keys(tourney_races_data)
             for (var i = 0; i < rns.length; i++) {
                 var r = rns[i]
