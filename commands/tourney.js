@@ -7,6 +7,7 @@ module.exports = {
         var database = admin.database();
         var firebase = require("firebase/app");
         var tourney_races = database.ref('tourney/races');
+        var tourney_races_data = {}, tourney_matches_data = {}, tourney_participants_data = {}, tourney_tournaments_data = {}
         tourney_races.on("value", function (snapshot) {
             tourney_races_data = snapshot.val();
         }, function (errorObject) {
