@@ -42,15 +42,15 @@ module.exports = {
             var desc = []
             var skips = null, nu = null, deaths = null, player = null, tourney = null, quali = false
             //filters out other tracks
-            for (let i = 0; i < args.length; i++) {
-                if (args[i].name == "track") {
-                    trak = Number(args[i].value)
+            for (let i = 0; i < args[0].options.length; i++) {
+                if (args[0].options[i].name == "track") {
+                    trak = Number(args[0].options[i].value)
                     tourneyReport
                         .setTitle(tracks[trak].name + " | Tournament Times")
                         .setColor(planets[tracks[trak].planet].color)
                     var runs = tourney.filter(element => element.track == tracks[trak].name)
-                } else if (args[i].name == "skips") {
-                    var input = args[i].value.toLowerCase()
+                } else if (args[0].options[i].name == "skips") {
+                    var input = args[0].options[i].value.toLowerCase()
                     if (input == "skips") {
                         skips = true
                         desc.push("Skips")
@@ -58,8 +58,8 @@ module.exports = {
                         skips = false
                         desc.push("Full Track")
                     }
-                } else if (args[i].name == "upgrades") {
-                    var input = args[i].value.toLowerCase()
+                } else if (args[0].options[i].name == "upgrades") {
+                    var input = args[0].options[i].value.toLowerCase()
                     if (input == "mu") {
                         nu = false
                         desc.push("Upgrades")
@@ -67,9 +67,9 @@ module.exports = {
                         nu = true
                         desc.push("No Upgrades")
                     }
-                } else if (args[i].name == "pod") {
-                    var input = args[i].value.toLowerCase()
-                    var podfilter = args[i].value.split(/[\s,]+/)
+                } else if (args[0].options[i].name == "pod") {
+                    var input = args[0].options[i].value.toLowerCase()
+                    var podfilter = args[0].options[i].value.split(/[\s,]+/)
                     var filterin = true
                     for (var p = 0; p < podfilter.length; p++) {
                         if (podfilter[p] == "no") {
@@ -95,8 +95,8 @@ module.exports = {
                             }
                         }
                     }
-                } else if (args[i].name == "deaths") {
-                    var input = args[i].value.toLowerCase()
+                } else if (args[0].options[i].name == "deaths") {
+                    var input = args[0].options[i].value.toLowerCase()
                     if (input == "deaths") {
                         deaths = true
                         desc.push("Deaths")
@@ -104,13 +104,13 @@ module.exports = {
                         deaths = false
                         desc.push("Deathless")
                     }
-                } else if (args[i].name == "tourney") {
-                    tourney = args[i].value
-                    desc.push(String(args[i].value))
-                } else if (args[i].name == "quali") {
-                    quali = args[i].value
-                } else if (args[i].name == "player") {
-                    player = args[i].value
+                } else if (args[0].options[i].name == "tourney") {
+                    tourney = args[0].options[i].value
+                    desc.push(String(args[0].options[i].value))
+                } else if (args[0].options[i].name == "quali") {
+                    quali = args[0].options[i].value
+                } else if (args[0].options[i].name == "player") {
+                    player = args[0].options[i].value
                     showall = true
                     const Guild = client.guilds.cache.get(interaction.guild_id);
                     const Member = Guild.members.cache.get(player)
