@@ -169,7 +169,7 @@ client.once('ready', () => {
             }
         }
     });
-
+/*
     var msg = new Discord.Message(client, {
         content: "This is a test message",
         components: [
@@ -196,7 +196,7 @@ client.once('ready', () => {
             }
         ]
     })
-    //client.channels.cache.get("545800310283829270").send(msg)
+    //client.channels.cache.get("545800310283829270").send(msg)*/
 
     const testEmbed = new Discord.MessageEmbed()
         .setTitle("Test")
