@@ -202,8 +202,7 @@ client.once('ready', () => {
         .setTitle("Test")
         .setDescription("this is a test")
 
-    client.channels.cache.get("545800310283829270").send({
-        content: "This is a test embed message",
+    client.channels.cache.get("545800310283829270").send("This is a test embed message", {
         components: [
             {
                 type: 1,
