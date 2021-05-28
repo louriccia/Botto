@@ -215,19 +215,25 @@ client.once('ready', () => {
                     components: [
                         {
                             type: 2,
-                            label: "Role 1",
+                            label: "🔄",
                             style: 2,
                             custom_id: "click_one"
                         },
                         {
                             type: 2,
-                            label: "Role 2",
+                            label: "▶️",
                             style: 2,
                             custom_id: "click_one"
                         },
                         {
                             type: 2,
-                            label: "Role 3",
+                            label: "👍",
+                            style: 2,
+                            custom_id: "click_one"
+                        },
+                        {
+                            type: 2,
+                            label: "👎",
                             style: 2,
                             custom_id: "click_one"
                         },
@@ -238,19 +244,41 @@ client.once('ready', () => {
                     components: [
                         {
                             type: 2,
-                            label: "Role 4",
+                            label: "",
+                            emoji: {
+                                id: null,
+                                name: "🔄"
+                            },
                             style: 2,
                             custom_id: "click_one"
                         },
                         {
                             type: 2,
-                            label: "Role 5",
+                            label: "",
+                            emoji: {
+                                id: null,
+                                name: "▶️"
+                            },
                             style: 2,
                             custom_id: "click_one"
                         },
                         {
                             type: 2,
-                            label: "Role 6",
+                            label: "",
+                            emoji: {
+                                id: null,
+                                name: "👍"
+                            },
+                            style: 2,
+                            custom_id: "click_one"
+                        },
+                        {
+                            type: 2,
+                            label: "",
+                            emoji: {
+                                id: null,
+                                name: "👎"
+                            },
                             style: 2,
                             custom_id: "click_one"
                         },

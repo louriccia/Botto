@@ -126,37 +126,37 @@ module.exports = {
                 }
             }
             if (skips) {
-                runs.filter(e => e.force == "Skips")
+                runs = runs.filter(e => e.force == "Skips")
             } else if (!skips) {
-                runs.filter(e => e.force !== "Skips")
+                runs = runs.filter(e => e.force !== "Skips")
             }
             if (nu) {
-                runs.filter(e => e.force == "NU")
+                runs = runs.filter(e => e.force == "NU")
             } else if (!nu) {
-                runs.filter(e => e.force !== "NU")
+                runs = runs.filter(e => e.force !== "NU")
             }
             if (podfilterin.length > 0) {
-                runs.filter(e => podfilterin.includes(e.pod))
+                runs = runs.filter(e => podfilterin.includes(e.pod))
             }
             if (podfilterout.length > 0) {
-                runs.filter(e => !podfilterout.includes(e.pod))
+                runs = runs.filter(e => !podfilterout.includes(e.pod))
             }
             if (deaths) {
-                runs.filter(e => e.totaldeaths > 0)
+                runs =  runs.filter(e => e.totaldeaths > 0)
             } else if (!deaths) {
-                runs.filter(e => e.totaldeaths == 0)
+                runs = runs.filter(e => e.totaldeaths == 0)
             }
             if (tourney !== null) {
-                runs.filter(e => tourney_matches_data[e.datetime].tourney == tourney)
+                runs = runs.filter(e => tourney_matches_data[e.datetime].tourney == tourney)
             }
             if (player !== null) {
-                runs.filter(e => tourney_participants_data[e.player].id == player)
+                runs = runs.filter(e => tourney_participants_data[e.player].id == player)
             }
             if (!quali) {
-                runs.filter(e => tourney_matches_data[e.datetime].bracket !== "Qual")
+                runs = runs.filter(e => tourney_matches_data[e.datetime].bracket !== "Qual")
             }
             var already = []
-            
+
             if (runs.length > 0) {
                 runs.sort(function (a, b) {
                     return a.totaltime - b.totaltime;
@@ -169,6 +169,7 @@ module.exports = {
                         var link = ""
                         var forc = "MU "
                         var opponent = ""
+                        var bracket = ""
                         if (runs[i].hasOwnProperty("force")) {
                             if (runs[i].force == "Skips") {
                                 forc = "Skips "
@@ -178,20 +179,26 @@ module.exports = {
                         }
                         link = tourney_matches_data[runs[i].datetime].url
                         if (runs[i].hasOwnProperty("podtempban")) {
-                            if(runs[i].podtempban !== ""){
+                            if (runs[i].podtempban !== "") {
                                 characterban = "\n~~" + racers[runs[i].podtempban].name + "~~"
                             }
                         }
-                        if (runs[i].hasOwnProperty("opponent")){
+                        if (runs[i].hasOwnProperty("opponent")) {
                             opponent = " vs " + tourney_participants_data[runs[i].opponent].name
                         }
                         if (runs[i].totaldeaths > 0) {
                             deaths = ":skull:×" + runs[i].totaldeaths
                         }
+                        if (![undefined, "", null].includes(tourney_matches_data[runs[i].datetime].bracket)) {
+                            bracket = " | " + tourney_matches_data[runs[i].datetime].bracket
+                            if (![undefined, "", null].includes(tourney_matches_data[runs[i].datetime].round)) {
+                                bracket += ": " + tourney_matches_data[runs[i].datetime].round
+                            }
+                        }
                         character = racers[runs[i].pod].flag
                         console.log(runs[i].player)
                         tourneyReport
-                            .addField(pos[0] + " " + tourney_participants_data[runs[i].player].name, tourney_tournaments_data[tourney_matches_data[runs[i].datetime].tourney].nickname + " | " + tourney_matches_data[runs[i].datetime].bracket + ": " + tourney_matches_data[runs[i].datetime].round + "\n[Race " + runs[i].race + opponent + "](" + link + ")", true)
+                            .addField(pos[0] + " " + tourney_participants_data[runs[i].player].name, tourney_tournaments_data[tourney_matches_data[runs[i].datetime].tourney].nickname + bracket + "\n[Race " + runs[i].race + opponent + "](" + link + ")", true)
                             .addField(tools.timefix(Number(runs[i].totaltime).toFixed(3)), " " + character + " " + forc + " " + deaths + characterban, true)
                             .addField('\u200B', '\u200B', true)
                             .setDescription(desc.join(', ') + " [" + runs.length + " Total Runs]")
