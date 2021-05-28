@@ -177,7 +177,9 @@ module.exports = {
                         }
                         link = tourney_matches_data[runs[i].datetime].url
                         if (runs[i].hasOwnProperty("podtempban")) {
-                            characterban = "\n~~" + racers[runs[i].podtempban].name + "~~"
+                            if(runs[i].podtempban !== ""){
+                                characterban = "\n~~" + racers[runs[i].podtempban].name + "~~"
+                            }
                         }
                         if (runs[i].totaldeaths > 0) {
                             deaths = ":skull:×" + runs[i].totaldeaths

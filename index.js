@@ -215,42 +215,68 @@ client.once('ready', () => {
                     components: [
                         {
                             type: 2,
-                            label: "Click me!",
-                            style: 1,
-                            custom_id: "click_one"
-                        },
-                        {
-                            type: 2,
-                            label: "Primary Button!",
-                            emoji: {
-                                "id": null,
-                                "name": "🔥"
-                            },
+                            label: "Role 1",
                             style: 2,
                             custom_id: "click_one"
                         },
                         {
                             type: 2,
-                            label: "🔥 Secondary Button!",
-                            style: 4,
+                            label: "Role 2",
+                            style: 2,
                             custom_id: "click_one"
                         },
                         {
                             type: 2,
-                            label: "Mean Button!",
-                            emoji: {
-                                "id": null,
-                                "name": "🔥"
-                            },
-                            style: 4,
+                            label: "Role 3",
+                            style: 2,
+                            custom_id: "click_one"
+                        },
+                    ]
+                },
+                {
+                    type: 1,
+                    components: [
+                        {
+                            type: 2,
+                            label: "Role 4",
+                            style: 2,
                             custom_id: "click_one"
                         },
                         {
                             type: 2,
-                            label: "Link Button!",
-                            style: 5,
-                            url: "https://discord.com/developers/docs/interactions/message-components"
-                        }
+                            label: "Role 5",
+                            style: 2,
+                            custom_id: "click_one"
+                        },
+                        {
+                            type: 2,
+                            label: "Role 6",
+                            style: 2,
+                            custom_id: "click_one"
+                        },
+                    ]
+                },
+                {
+                    type: 1,
+                    components: [
+                        {
+                            type: 2,
+                            label: "Role 7",
+                            style: 2,
+                            custom_id: "click_one"
+                        },
+                        {
+                            type: 2,
+                            label: "Role 8",
+                            style: 2,
+                            custom_id: "click_one"
+                        },
+                        {
+                            type: 2,
+                            label: "Role 9",
+                            style: 2,
+                            custom_id: "click_one"
+                        },
                     ]
                 }
             ]
