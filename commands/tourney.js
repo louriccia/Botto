@@ -159,7 +159,7 @@ module.exports = {
             
             if (runs.length > 0) {
                 runs.sort(function (a, b) {
-                    return a.time - b.time;
+                    return a.totaltime - b.totaltime;
                 })
                 for (i = 0; i < runs.length; i++) {
                     if (runs[i].hasOwnProperty("totaltime") && !already.includes(runs[i].player + runs[i].force)) {
