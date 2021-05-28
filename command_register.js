@@ -2546,19 +2546,19 @@ client.api.applications("545798436105224203").commands.post({
                         choices: [
                             {
                                 name: "20th Anniversary Tournament 2019",
-                                value: "20th Anniversary Tournament 2019"
+                                value: "0"
                             },
                             {
                                 name: "Galactic Tournament 2020",
-                                value: "Tournament 2020"
+                                value: "1"
                             },
                             {
                                 name: "David Stubbs Tribute 2021",
-                                value: "David Stubbs Tribute 2021"
+                                value: "2"
                             },
                             {
                                 name: "Galactic Tournament 2021",
-                                value: "Tournament 2021"
+                                value: "3"
                             }
                         ]
                     }

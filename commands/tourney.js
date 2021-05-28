@@ -127,12 +127,12 @@ module.exports = {
             }
             if (skips) {
                 runs = runs.filter(e => e.force == "Skips")
-            } else if (!skips) {
+            } else if (!skips && skips !==null) {
                 runs = runs.filter(e => e.force !== "Skips")
             }
             if (nu) {
                 runs = runs.filter(e => e.force == "NU")
-            } else if (!nu) {
+            } else if (!nu && nu !==null) {
                 runs = runs.filter(e => e.force !== "NU")
             }
             if (podfilterin.length > 0) {
@@ -143,7 +143,7 @@ module.exports = {
             }
             if (deaths) {
                 runs =  runs.filter(e => e.totaldeaths > 0)
-            } else if (!deaths) {
+            } else if (!deaths&& deaths !==null) {
                 runs = runs.filter(e => e.totaldeaths == 0)
             }
             if (tourney !== null) {
@@ -152,7 +152,7 @@ module.exports = {
             if (player !== null) {
                 runs = runs.filter(e => tourney_participants_data[e.player].id == player)
             }
-            if (!quali) {
+            if (quali === false) {
                 runs = runs.filter(e => tourney_matches_data[e.datetime].bracket !== "Qual")
             }
             var already = []
