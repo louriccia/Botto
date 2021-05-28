@@ -183,7 +183,7 @@ module.exports = {
                             }
                         }
                         if (runs[i].hasOwnProperty("opponent")){
-                            oponent = " vs " + tourney_participants_data[runs[i].opponent].name
+                            opponent = " vs " + tourney_participants_data[runs[i].opponent].name
                         }
                         if (runs[i].totaldeaths > 0) {
                             deaths = ":skull:×" + runs[i].totaldeaths
@@ -191,7 +191,7 @@ module.exports = {
                         character = racers[runs[i].pod].flag
                         console.log(runs[i].player)
                         tourneyReport
-                            .addField(pos[0] + " " + tourney_participants_data[runs[i].player].name, tourney_tournaments_data[tourney_matches_data[runs[i].datetime].tourney].nickname + " | " + tourney_matches_data[runs[i].datetime].bracket + ": " + tourney_matches_data[runs[i].datetime].round + "\n[Race " + runs[i].race + oponent + "](" + link + ")", true)
+                            .addField(pos[0] + " " + tourney_participants_data[runs[i].player].name, tourney_tournaments_data[tourney_matches_data[runs[i].datetime].tourney].nickname + " | " + tourney_matches_data[runs[i].datetime].bracket + ": " + tourney_matches_data[runs[i].datetime].round + "\n[Race " + runs[i].race + opponent + "](" + link + ")", true)
                             .addField(tools.timefix(Number(runs[i].totaltime).toFixed(3)), " " + character + " " + forc + " " + deaths + characterban, true)
                             .addField('\u200B', '\u200B', true)
                             .setDescription(desc.join(', ') + " [" + runs.length + " Total Runs]")
