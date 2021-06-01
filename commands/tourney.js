@@ -279,6 +279,39 @@ module.exports = {
                     }
                     return most_name
                 }
+                function getMultipleMost(object, num){
+                    var obj = Object.keys(object)
+                    var array = []
+                    if(obj.length > 0){
+                        object.sort(function (a, b) {
+                            return b - a;
+                        })
+                        for (i = 0; i < num; i++){
+                            var o = obj[i]
+                            array.push(o)
+                            if(i == obj.length){i = num}
+                        }
+                    }
+                    return array
+                }
+                function arraytoTracks(array){
+                    var string = ""
+                    for (i = 0; i < array.length; i++){
+                        string += "`" + tracks[i].nickname[0] + "` "
+                    }
+                }
+                function arraytoRacers(array){
+                    var string = ""
+                    for (i = 0; i < array.length; i++){
+                        string += racers[i].flag + " "
+                    }
+                }
+                function arraytoPlayers(array){
+                    var string = ""
+                    for (i = 0; i < array.length; i++){
+                        string += "`"+tourney_participants_data[i].name + "` "
+                    }
+                }
                 for (var i = 0; i < tpd.length; i++) {
                     var p = tpd[i]
                     if (tourney_participants_data[p].id == member) {
@@ -307,14 +340,24 @@ module.exports = {
                             nu: 0
                         },
                         pod_bans: {},
-                        track_bans: {},
-                        track_picks: {},
                         forces: {
                             nu: 0,
                             skips: 0
                         },
                         co_comm: {},
-                        comm_player: {}
+                        comm_player: {},
+                        track: {
+                            picks: {},
+                            tempbans: {},
+                            permabans: {},
+                            wins: {},
+                            losses: {}
+                        },
+                        opponent: {
+                            rivalries: {},
+                            wins: {},
+                            losses: {}
+                        }
                     }
                     var tmd = Object.keys(tourney_matches_data)
                     for (var i = 0; i < tmd.length; i++) {
@@ -345,6 +388,7 @@ module.exports = {
                         //get match data
                         var ply = Object.keys(tourney_matches_data[m].players)
                         var opponent_score = null
+                        var opponent_player = null
                         var player_score = null
                         var played = false
                         for (var j = 0; j < ply.length; j++) {
@@ -355,12 +399,33 @@ module.exports = {
                                 if (tourney_matches_data[m].players[p].hasOwnProperty("score")) {
                                     player_score = tourney_matches_data[m].players[p].score
                                 }
+                                if (tourney_matches_data[m].players[p].hasOwnProperty("permabans")){
+                                    var permabans = Object.values(tourney_matches_data[m].players[p].permabans)
+                                    permabans.forEach(b => {
+                                        if(stats.track.tempbans[b] == undefined){
+                                            stats.track.tempbans[b] = 1
+                                        } else {
+                                            stats.track.tempbans[b] ++
+                                        }
+                                    })
+                                }
                             } else {
                                 if (tourney_matches_data[m].players[p].hasOwnProperty("score")) {
                                     opponent_score = tourney_matches_data[m].players[p].score
+                                    opponent_player = tourney_matches_data[m].players[p].player
                                 }
                             }
                             if (![player_score, opponent_score].includes(null) && played) {
+                                if(stats.opponent.wins[oponent_player] == undefined ){
+                                    stats.opponent.wins[opponent_player] = player_score
+                                } else {
+                                    stats.opponent.wins[opponent_player] += player_score
+                                }
+                                if(stats.opponent.losses[oponent_player] == undefined ){
+                                    stats.opponent.losses[opponent_player] = opponent_score
+                                } else {
+                                    stats.opponent.losses[opponent_player] += opponent_score
+                                }
                                 if (player_score > opponent_score) {
                                     stats.matches.won++
                                 } else {
@@ -388,8 +453,18 @@ module.exports = {
                         }
                         if (r.result == "Winner") {
                             race_summary[r.datetime][r.race].winner = { player: r.player }
+                            if(stats.track.wins[r.track] == undefined){
+                                stats.track.wins[r.track] = 1
+                            } else {
+                                stats.track.wins[r.track] ++
+                            }
                         } else if (r.result == "Loser") {
                             race_summary[r.datetime][r.race].loser = { player: r.player }
+                            if(stats.track.wins[r.track] == undefined){
+                                stats.track.losses[r.track] = 1
+                            } else {
+                                stats.track.losses[r.track] ++
+                            }
                         }
                         if (r.race > 1) {
                             if (race_summary[r.datetime][r.race - 1].hasOwnProperty("loser") || race_summary[r.datetime][r.race - 1].hasOwnProperty("winner")) {
@@ -478,10 +553,10 @@ module.exports = {
                             if (e.hasOwnProperty("winner")) {
                                 if (e.winner.player == player) {
                                     if (e.winner.hasOwnProperty("tracktempban")) {
-                                        if (stats.track_bans[e.winner.trackban] == undefined) {
-                                            stats.track_bans[e.winner.trackban] = 1
+                                        if (stats.track.tempbans[e.winner.trackban] == undefined) {
+                                            stats.track.tempbans[e.winner.trackban] = 1
                                         } else {
-                                            stats.track_bans[e.winner.trackban]++
+                                            stats.track.tempbans[e.winner.trackban]++
                                         }
                                     }
                                 } else if (e.loser.player == player) {
@@ -499,10 +574,10 @@ module.exports = {
                                             stats.forces.nu++
                                         }
                                     }
-                                    if (stats.track_picks[e.loser.trackpick] == undefined) {
-                                        stats.track_picks[e.loser.trackpick] = 1
+                                    if (stats.track.picks[e.loser.trackpick] == undefined) {
+                                        stats.track.picks[e.loser.trackpick] = 1
                                     } else {
-                                        stats.track_picks[e.loser.trackpick]++
+                                        stats.track.picks[e.loser.trackpick]++
                                     }
                                 }
                             }
@@ -529,18 +604,18 @@ module.exports = {
                             "skips: `" + stats.forces.skips + "`\n" +
                             "nu: `" + stats.forces.nu + "`", true)
                         .addField(":microphone2: Commentary", "total: `" + stats.matches_commentated + "`\n" +
-                            "favorite co-comm: `" + tourney_participants_data[getMost(stats.co_comm)].name + "`\n" +
-                            "favorite player: `" + tourney_participants_data[getMost(stats.comm_player)].name + "`", true)
+                            "fav. co-comm: `" + tourney_participants_data[getMost(stats.co_comm)].name + "`\n" +
+                            "fav. player: `" + tourney_participants_data[getMost(stats.comm_player)].name + "`", true)
 
-                        .addField(":triangular_flag_on_post: Tracks", "most picked:\n" + "\n" +
-                            "most wins:\n" + "\n" +
-                            "most losses:\n", true)
-                        .addField(":no_entry_sign: Bans", "most temp-banned tracks:\n" + "\n" +
-                            "most perma-banned tracks:\n" + "\n" +
-                            "most banned racers:\n", true)
+                        .addField(":triangular_flag_on_post: Tracks", "most picked:\n" + arraytoTracks(getMultipleMost(stats.track.picks, 3)) + "\n" +
+                            "most wins:\n" + arraytoTracks(getMultipleMost(stats.track.wins, 3)) +"\n" +
+                            "most losses:\n" + arraytoTracks(getMultipleMost(stats.track.losses, 3)) , true)
+                        .addField(":no_entry_sign: Bans", "most temp-banned:\n" + arraytoTracks(getMultipleMost(stats.track.tempbans, 3)) + "\n" +
+                            arraytoRacers(getMultipleMost(stats.pod_bans, 3)) + "\n" +
+                            "most perma-banned:\n" + arraytoTracks(getMultipleMost(stats.track.permabans, 3)), true)
                         .addField(":vs: Opponents", "closest rivals:\n" + "\n" +
-                            "most victories vs:\n" + "\n" +
-                            "most defeats vs:\n", true)
+                            "most wins vs:\n" + arraytoPlayers(getMultipleMost(stats.opponent.wins, 2))+ "\n" +
+                            "most losses vs:\n" + arraytoPlayers(getMultipleMost(stats.opponent.losses, 2)), true)
                     
                     return tourneyReport
                 } else {
