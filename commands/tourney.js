@@ -589,10 +589,10 @@ module.exports = {
                                     }
                                 } else if (e.loser.player == player) {
                                     if (e.loser.hasOwnProperty("podban")) {
-                                        if (stats.pod_bans[e.loser.podtempban] == undefined) {
-                                            stats.pod_bans[e.loser.podtempban] = 1
-                                        } else if (stats.pod_bans[e.loser.podtempban] !== undefined) {
-                                            stats.pod_bans[e.loser.podtempban]++
+                                        if (stats.pod_bans[e.loser.podban] == undefined) {
+                                            stats.pod_bans[e.loser.podban] = 1
+                                        } else if (stats.pod_bans[e.loser.podban] !== undefined) {
+                                            stats.pod_bans[e.loser.podban]++
                                         }
                                     }
                                     if (e.loser.hasOwnProperty("force")) {
