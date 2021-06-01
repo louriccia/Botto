@@ -301,6 +301,7 @@ module.exports = {
                 }
                 function arraytoTracks(array) {
                     var string = ""
+                    console.log(array)
                     if(array.length > 0){
                         for (i = 0; i < array.length; i++) {
                             string += "`" + tracks[Number(array[i])].nickname[0] + "` "
@@ -311,6 +312,7 @@ module.exports = {
                 }
                 function arraytoRacers(array) {
                     var string = ""
+                    console.log(array)
                     if(array.length > 0){
                         for (i = 0; i < array.length; i++) {
                             string += racers[Number(array[i])].flag + " "
@@ -321,6 +323,7 @@ module.exports = {
                 }
                 function arraytoPlayers(array) {
                     var string = ""
+                    console.log(array)
                     if(array.length > 0){
                         for (i = 0; i < array.length; i++) {
                             string += "`" + tourney_participants_data[Number(array[i])].name + "` "
