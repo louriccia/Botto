@@ -565,5 +565,8 @@ module.exports = {
         //console.log("Final Time: " + finaltime)
         finaltime += deaths*(3+accel)
         return finaltime
+    },
+    simulateSpeed: function() {
+        
     }
 }
