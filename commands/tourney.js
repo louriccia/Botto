@@ -290,7 +290,6 @@ module.exports = {
                         object_array.sort(function (a, b) {
                             return b.count - a.count;
                         })
-                        console.log(object_array)
                         for (i = 0; i < num; i++) {
                             if (i == object_array.length) { i = num }
                             array.push(object_array[i].name)
@@ -303,18 +302,21 @@ module.exports = {
                     for (i = 0; i < array.length; i++) {
                         string += "`" + tracks[Number(i)].nickname[0] + "` "
                     }
+                    return string
                 }
                 function arraytoRacers(array) {
                     var string = ""
                     for (i = 0; i < array.length; i++) {
                         string += racers[Number(i)].flag + " "
                     }
+                    return string
                 }
                 function arraytoPlayers(array) {
                     var string = ""
                     for (i = 0; i < array.length; i++) {
                         string += "`" + tourney_participants_data[Number(i)].name + "` "
                     }
+                    return string
                 }
                 for (var i = 0; i < tpd.length; i++) {
                     var p = tpd[i]
@@ -374,7 +376,7 @@ module.exports = {
                                 if (c !== Number(player)) {
                                     if (stats.co_comm[c] == undefined) {
                                         stats.co_comm[c] = 1
-                                    } else {
+                                    } else if (stats.co_comm[c] == !undefined){
                                         stats.co_comm[c]++
                                     }
                                 }
@@ -384,7 +386,7 @@ module.exports = {
                                 var p = tourney_matches_data[m].players[pla[j]]
                                 if (stats.comm_player[p.player] == undefined) {
                                     stats.comm_player[p.player] = 1
-                                } else {
+                                } else if (stats.comm_player[p.player] == !undefined){
                                     stats.comm_player[p.player]++
                                 }
                             }
@@ -422,12 +424,12 @@ module.exports = {
                             if (![player_score, opponent_score].includes(null) && played) {
                                 if (stats.opponent.wins[opponent_player] == undefined) {
                                     stats.opponent.wins[opponent_player] = player_score
-                                } else {
+                                } else if (stats.opponent.wins[opponent_player] !== undefined){
                                     stats.opponent.wins[opponent_player] += player_score
                                 }
                                 if (stats.opponent.losses[opponent_player] == undefined) {
                                     stats.opponent.losses[opponent_player] = opponent_score
-                                } else {
+                                } else if (stats.opponent.losses[opponent_player] !== undefined){
                                     stats.opponent.losses[opponent_player] += opponent_score
                                 }
                                 if (player_score > opponent_score) {
