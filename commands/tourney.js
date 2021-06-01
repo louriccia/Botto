@@ -281,15 +281,18 @@ module.exports = {
                 }
                 function getMultipleMost(object, num){
                     var obj = Object.keys(object)
+                    var object_array = []
                     var array = []
                     if(obj.length > 0){
-                        object.sort(function (a, b) {
-                            return b - a;
+                        for(i =0; i < obj.length; i++){
+                            object_array.push({name: obj[i], count: object[obj[i]]})
+                        }
+                        object_array.sort(function (a, b) {
+                            return b.count - a.count;
                         })
                         for (i = 0; i < num; i++){
-                            var o = obj[i]
-                            array.push(o)
-                            if(i == obj.length){i = num}
+                            array.push(object_array[i].name)
+                            if(i == object_array.length){i = num}
                         }
                     }
                     return array
@@ -455,14 +458,14 @@ module.exports = {
                             race_summary[r.datetime][r.race].winner = { player: r.player }
                             if(stats.track.wins[r.track] == undefined){
                                 stats.track.wins[r.track] = 1
-                            } else {
+                            } else if(stats.track.wins[r.track] !== undefined){
                                 stats.track.wins[r.track] ++
                             }
                         } else if (r.result == "Loser") {
                             race_summary[r.datetime][r.race].loser = { player: r.player }
-                            if(stats.track.wins[r.track] == undefined){
+                            if(stats.track.losses[r.track] == undefined){
                                 stats.track.losses[r.track] = 1
-                            } else {
+                            } else if(stats.track.losses[r.track] !== undefined){
                                 stats.track.losses[r.track] ++
                             }
                         }
@@ -555,7 +558,7 @@ module.exports = {
                                     if (e.winner.hasOwnProperty("tracktempban")) {
                                         if (stats.track.tempbans[e.winner.trackban] == undefined) {
                                             stats.track.tempbans[e.winner.trackban] = 1
-                                        } else {
+                                        } else if (stats.track.tempbans[e.winner.trackban] !== undefined){
                                             stats.track.tempbans[e.winner.trackban]++
                                         }
                                     }
@@ -563,7 +566,7 @@ module.exports = {
                                     if (e.loser.hasOwnProperty("podtempban")) {
                                         if (stats.pod_bans[e.loser.podtempban] == undefined) {
                                             stats.pod_bans[e.loser.podtempban] = 1
-                                        } else {
+                                        } else if (stats.pod_bans[e.loser.podtempban] !== undefined){
                                             stats.pod_bans[e.loser.podtempban]++
                                         }
                                     }
@@ -576,7 +579,7 @@ module.exports = {
                                     }
                                     if (stats.track.picks[e.loser.trackpick] == undefined) {
                                         stats.track.picks[e.loser.trackpick] = 1
-                                    } else {
+                                    } else if (stats.track.picks[e.loser.trackpick] !== undefined){
                                         stats.track.picks[e.loser.trackpick]++
                                     }
                                 }
