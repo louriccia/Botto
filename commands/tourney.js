@@ -290,9 +290,10 @@ module.exports = {
                         object_array.sort(function (a, b) {
                             return b.count - a.count;
                         })
+                        console.log(object_array)
                         for (i = 0; i < num; i++) {
-                            array.push(object_array[i].name)
                             if (i == object_array.length) { i = num }
+                            array.push(object_array[i].name)
                         }
                     }
                     return array
@@ -557,7 +558,7 @@ module.exports = {
                         races.forEach(e => {
                             if (e.hasOwnProperty("winner")) {
                                 if (e.winner.player == player) {
-                                    if (e.winner.hasOwnProperty("tracktempban")) {
+                                    if (e.winner.hasOwnProperty("trackban")) {
                                         if (stats.track.tempbans[e.winner.trackban] == undefined) {
                                             stats.track.tempbans[e.winner.trackban] = 1
                                         } else if (stats.track.tempbans[e.winner.trackban] !== undefined) {
@@ -565,7 +566,7 @@ module.exports = {
                                         }
                                     }
                                 } else if (e.loser.player == player) {
-                                    if (e.loser.hasOwnProperty("podtempban")) {
+                                    if (e.loser.hasOwnProperty("podban")) {
                                         if (stats.pod_bans[e.loser.podtempban] == undefined) {
                                             stats.pod_bans[e.loser.podtempban] = 1
                                         } else if (stats.pod_bans[e.loser.podtempban] !== undefined) {
