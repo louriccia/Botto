@@ -416,12 +416,12 @@ module.exports = {
                                 }
                             }
                             if (![player_score, opponent_score].includes(null) && played) {
-                                if(stats.opponent.wins[oponent_player] == undefined ){
+                                if(stats.opponent.wins[opponent_player] == undefined ){
                                     stats.opponent.wins[opponent_player] = player_score
                                 } else {
                                     stats.opponent.wins[opponent_player] += player_score
                                 }
-                                if(stats.opponent.losses[oponent_player] == undefined ){
+                                if(stats.opponent.losses[opponent_player] == undefined ){
                                     stats.opponent.losses[opponent_player] = opponent_score
                                 } else {
                                     stats.opponent.losses[opponent_player] += opponent_score
