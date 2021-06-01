@@ -270,7 +270,7 @@ module.exports = {
                     var most_name = null
                     for (i = 0; i < obj.length; i++) {
                         var o = obj[i]
-                        if (object[o] > most_count) {
+                        if (object[o] > most_count && o !== undefined) {
                             most_name = o
                         }
                     }
@@ -318,7 +318,6 @@ module.exports = {
                         var m = tmd[i]
                         //get commentators
                         var com = Object.values(tourney_matches_data[m].commentators)
-                        console.log(com)
                         if (com.includes(Number(player))) {
                             stats.matches_commentated++
                             com.forEach(c => {
@@ -507,6 +506,7 @@ module.exports = {
                         }
                         )
                     }
+                    console.log(stats)
                     tourneyReport
                         .setDescription("Total race time: `" + tools.timefix(stats.race_time) + "`")
                         .addField(":crossed_swords: Matches", "total: `" + stats.matches.total + "`\n" +
@@ -537,7 +537,7 @@ module.exports = {
                         .addField(":vs: Opponents", "closest rivals:\n" + "\n" +
                             "most victories vs:\n" + "\n" +
                             "most defeats vs:\n", true)
-                    console.log(stats)
+                    
                     return tourneyReport
                 } else {
                     //user has not participated in a tournament
