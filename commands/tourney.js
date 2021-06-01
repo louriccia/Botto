@@ -301,23 +301,32 @@ module.exports = {
                 }
                 function arraytoTracks(array) {
                     var string = ""
-                    for (i = 0; i < array.length; i++) {
-                        string += "`" + tracks[Number(array[i])].nickname[0] + "` "
+                    if(array.length > 0){
+                        for (i = 0; i < array.length; i++) {
+                            string += "`" + tracks[Number(array[i])].nickname[0] + "` "
+                        }
                     }
+                    
                     return string
                 }
                 function arraytoRacers(array) {
                     var string = ""
-                    for (i = 0; i < array.length; i++) {
-                        string += racers[Number(array[i])].flag + " "
+                    if(array.length > 0){
+                        for (i = 0; i < array.length; i++) {
+                            string += racers[Number(array[i])].flag + " "
+                        }
                     }
+                    
                     return string
                 }
                 function arraytoPlayers(array) {
                     var string = ""
-                    for (i = 0; i < array.length; i++) {
-                        string += "`" + tourney_participants_data[Number(array[i])].name + "` "
+                    if(array.length > 0){
+                        for (i = 0; i < array.length; i++) {
+                            string += "`" + tourney_participants_data[Number(array[i])].name + "` "
+                        }
                     }
+                    
                     return string
                 }
                 for (var i = 0; i < tpd.length; i++) {
