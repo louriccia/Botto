@@ -292,7 +292,7 @@ module.exports = {
                         })
                         for (i = 0; i < num; i++) {
                             if (i == object_array.length) { i = num }
-                            if(object_array[i] !== undefined){
+                            if (object_array[i] !== undefined) {
                                 array.push(object_array[i].name)
                             }
                         }
@@ -302,34 +302,40 @@ module.exports = {
                 function arraytoTracks(array) {
                     var string = ""
                     console.log(array)
-                    if(array.length > 0){
+                    if (array.length > 0) {
                         for (i = 0; i < array.length; i++) {
-                            string += "`" + tracks[Number(array[i])].nickname[0] + "` "
+                            if (tracks[array[i]] !== undefined) {
+                                string += "`" + tracks[Number(array[i])].nickname[0] + "` "
+                            }
                         }
                     }
-                    
+
                     return string
                 }
                 function arraytoRacers(array) {
                     var string = ""
                     console.log(array)
-                    if(array.length > 0){
+                    if (array.length > 0) {
                         for (i = 0; i < array.length; i++) {
-                            string += racers[Number(array[i])].flag + " "
+                            if (racers[array[i]] !== undefined) {
+                                string += racers[Number(array[i])].flag + " "
+                            }
                         }
                     }
-                    
+
                     return string
                 }
                 function arraytoPlayers(array) {
                     var string = ""
                     console.log(array)
-                    if(array.length > 0){
+                    if (array.length > 0) {
                         for (i = 0; i < array.length; i++) {
-                            string += "`" + tourney_participants_data[Number(array[i])].name + "` "
+                            if (tourney_participants_data[array[i]] !== undefined) {
+                                string += "`" + tourney_participants_data[Number(array[i])].name + "` "
+                            }
                         }
                     }
-                    
+
                     return string
                 }
                 for (var i = 0; i < tpd.length; i++) {
@@ -390,7 +396,7 @@ module.exports = {
                                 if (c !== Number(player)) {
                                     if (stats.co_comm[c] == undefined) {
                                         stats.co_comm[c] = 1
-                                    } else if (stats.co_comm[c] == !undefined){
+                                    } else if (stats.co_comm[c] == !undefined) {
                                         stats.co_comm[c]++
                                     }
                                 }
@@ -400,7 +406,7 @@ module.exports = {
                                 var p = tourney_matches_data[m].players[pla[j]]
                                 if (stats.comm_player[p.player] == undefined) {
                                     stats.comm_player[p.player] = 1
-                                } else if (stats.comm_player[p.player] == !undefined){
+                                } else if (stats.comm_player[p.player] == !undefined) {
                                     stats.comm_player[p.player]++
                                 }
                             }
@@ -438,12 +444,12 @@ module.exports = {
                             if (![player_score, opponent_score].includes(null) && played) {
                                 if (stats.opponent.wins[opponent_player] == undefined) {
                                     stats.opponent.wins[opponent_player] = player_score
-                                } else if (stats.opponent.wins[opponent_player] !== undefined){
+                                } else if (stats.opponent.wins[opponent_player] !== undefined) {
                                     stats.opponent.wins[opponent_player] += player_score
                                 }
                                 if (stats.opponent.losses[opponent_player] == undefined) {
                                     stats.opponent.losses[opponent_player] = opponent_score
-                                } else if (stats.opponent.losses[opponent_player] !== undefined){
+                                } else if (stats.opponent.losses[opponent_player] !== undefined) {
                                     stats.opponent.losses[opponent_player] += opponent_score
                                 }
                                 if (player_score > opponent_score) {
@@ -596,10 +602,12 @@ module.exports = {
                                             stats.forces.nu++
                                         }
                                     }
-                                    if (stats.track.picks[e.loser.trackpick] == undefined) {
-                                        stats.track.picks[e.loser.trackpick] = 1
-                                    } else if (stats.track.picks[e.loser.trackpick] !== undefined) {
-                                        stats.track.picks[e.loser.trackpick]++
+                                    if (e.loser.hasOwnProperty("trackpick")) {
+                                        if (stats.track.picks[e.loser.trackpick] == undefined) {
+                                            stats.track.picks[e.loser.trackpick] = 1
+                                        } else if (stats.track.picks[e.loser.trackpick] !== undefined) {
+                                            stats.track.picks[e.loser.trackpick]++
+                                        }
                                     }
                                 }
                             }
