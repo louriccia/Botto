@@ -319,10 +319,10 @@ module.exports = {
                         //get commentators
                         var com = Object.values(tourney_matches_data[m].commentators)
                         console.log(com)
-                        if (com.includes(player)) {
+                        if (com.includes(Number(player))) {
                             stats.matches_commentated++
                             com.forEach(c => {
-                                if (c !== player) {
+                                if (c !== Number(player)) {
                                     if (stats.co_comm[c] == undefined) {
                                         stats.co_comm[c] = 1
                                     } else {
@@ -525,8 +525,8 @@ module.exports = {
                             "skips: `" + stats.forces.skips + "`\n" +
                             "nu: `" + stats.forces.nu + "`", true)
                         .addField(":microphone2: Commentary", "total: `" + stats.matches_commentated + "`\n" +
-                            "favorite co-comm: `" + getMost(stats.co_comm) + "`\n" +
-                            "favorite player: `" + getMost(stats.comm_player) + "`", true)
+                            "favorite co-comm: `" + tourney_participants_data[getMost(stats.co_comm)].name + "`\n" +
+                            "favorite player: `" + tourney_participants_data[getMost(stats.comm_player)].name + "`", true)
 
                         .addField(":triangular_flag_on_post: Tracks", "most picked:\n" + "\n" +
                             "most wins:\n" + "\n" +
