@@ -292,7 +292,9 @@ module.exports = {
                         })
                         for (i = 0; i < num; i++) {
                             if (i == object_array.length) { i = num }
-                            array.push(object_array[i].name)
+                            if(object_array[i] !== undefined){
+                                array.push(object_array[i].name)
+                            }
                         }
                     }
                     return array
