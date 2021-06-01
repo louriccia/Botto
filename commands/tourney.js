@@ -266,12 +266,13 @@ module.exports = {
                 var tpd = Object.keys(tourney_participants_data)
                 function getMost(object) {
                     var obj = Object.keys(object)
-                    var most_count = null
+                    var most_count = 0
                     var most_name = null
                     for (i = 0; i < obj.length; i++) {
                         var o = obj[i]
                         if (object[o] > most_count && o !== undefined) {
                             most_name = o
+                            most_count = object[o]
                         }
                     }
                     return most_name
@@ -333,7 +334,7 @@ module.exports = {
                             for (j = 0; j < pla.length; j++) {
                                 var p = tourney_matches_data[m].players[pla[j]]
                                 if (stats.comm_player[p.player] == undefined) {
-                                    stats.comm_player[p.player] = 0
+                                    stats.comm_player[p.player] = 1
                                 } else {
                                     stats.comm_player[p.player]++
                                 }
