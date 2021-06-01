@@ -318,6 +318,7 @@ module.exports = {
                         var m = tmd[i]
                         //get commentators
                         var com = Object.values(tourney_matches_data[m].commentators)
+                        console.log(com)
                         if (com.includes(player)) {
                             stats.matches_commentated++
                             com.forEach(c => {
@@ -510,32 +511,32 @@ module.exports = {
                         .setDescription("Total race time: `" + tools.timefix(stats.race_time) + "`")
                         .addField(":crossed_swords: Matches", "total: `" + stats.matches.total + "`\n" +
                             "wins: `" + stats.matches.won + "`\n" +
-                            "losses: `" + stats.matches.lost + "`")
+                            "losses: `" + stats.matches.lost + "`", true)
                         .addField(":checkered_flag: Races", "total: `" + stats.races.total + "`\n" +
                             "wins: `" + stats.races.won + "`\n" +
-                            "losses: `" + stats.races.lost + "`")
+                            "losses: `" + stats.races.lost + "`", true)
                         .addField(":skull: Deaths", "total: `" + stats.deaths + "`\n" +
-                            "avg: `" + (stats.deaths / stats.races.total).toFixed(1) + "/race`")
+                            "avg: `" + (stats.deaths / stats.races.total).toFixed(1) + "/race`", true)
 
                         .addField(":trophy: Records", "standard: `" + stats.records.standard + "`\n" +
                             "skips: `" + stats.records.skips + "`\n" +
-                            "nu: `" + stats.records.nu + "`")
+                            "nu: `" + stats.records.nu + "`", true)
                         .addField(":asterisk: Forces", "total: `" + (stats.forces.nu + stats.forces.skips) + "`\n" +
                             "skips: `" + stats.forces.skips + "`\n" +
-                            "nu: `" + stats.forces.nu + "`")
+                            "nu: `" + stats.forces.nu + "`", true)
                         .addField(":microphone2: Commentary", "total: `" + stats.matches_commentated + "`\n" +
                             "favorite co-comm: `" + getMost(stats.co_comm) + "`\n" +
-                            "favorite player: `" + getMost(stats.comm_player) + "`")
+                            "favorite player: `" + getMost(stats.comm_player) + "`", true)
 
                         .addField(":triangular_flag_on_post: Tracks", "most picked:\n" + "\n" +
                             "most wins:\n" + "\n" +
-                            "most losses:\n")
+                            "most losses:\n", true)
                         .addField(":no_entry_sign: Bans", "most temp-banned tracks:\n" + "\n" +
                             "most perma-banned tracks:\n" + "\n" +
-                            "most banned racers:\n")
+                            "most banned racers:\n", true)
                         .addField(":vs: Opponents", "closest rivals:\n" + "\n" +
                             "most victories vs:\n" + "\n" +
-                            "most defeats vs:\n")
+                            "most defeats vs:\n", true)
                     console.log(stats)
                     return tourneyReport
                 } else {
