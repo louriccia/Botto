@@ -119,9 +119,9 @@ module.exports = {
             var pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>", "4th", "5th"]
             var rns = Object.keys(tourney_races_data)
             for (var i = 0; i < rns.length; i++) {
-                var r = rns[i]
-                if (tourney_races_data[r].track == trak) {
-                    runs.push(tourney_races_data[r])
+                var r = tourney_races_data[rns[i]]
+                if (r.track == trak) {
+                    runs.push(r)
                 }
             }
             if (skips) {
@@ -155,12 +155,13 @@ module.exports = {
                 runs = runs.filter(e => tourney_matches_data[e.datetime].bracket !== "Qual")
             }
             var already = []
-            console.log("presort\n" + runs)
+            runs.sort(function (a, b) {
+                return Number(a.totaltime) - Number(b.totaltime);
+            })
             if (runs.length > 0) {
                 runs = runs.sort(function (a, b) {
                     return Number(a.totaltime) - Number(b.totaltime);
                 })
-                console.log("postsort\n"+ runs)
                 for (i = 0; i < runs.length; i++) {
                     if (runs[i].hasOwnProperty("totaltime") && !already.includes(runs[i].player + runs[i].force)) {
                         var character = ""
