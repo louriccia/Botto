@@ -302,21 +302,21 @@ module.exports = {
                 function arraytoTracks(array) {
                     var string = ""
                     for (i = 0; i < array.length; i++) {
-                        string += "`" + tracks[Number(i)].nickname[0] + "` "
+                        string += "`" + tracks[Number(array[i])].nickname[0] + "` "
                     }
                     return string
                 }
                 function arraytoRacers(array) {
                     var string = ""
                     for (i = 0; i < array.length; i++) {
-                        string += racers[Number(i)].flag + " "
+                        string += racers[Number(array[i])].flag + " "
                     }
                     return string
                 }
                 function arraytoPlayers(array) {
                     var string = ""
                     for (i = 0; i < array.length; i++) {
-                        string += "`" + tourney_participants_data[Number(i)].name + "` "
+                        string += "`" + tourney_participants_data[Number(array[i])].name + "` "
                     }
                     return string
                 }
