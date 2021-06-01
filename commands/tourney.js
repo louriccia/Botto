@@ -120,7 +120,7 @@ module.exports = {
             var rns = Object.keys(tourney_races_data)
             for (var i = 0; i < rns.length; i++) {
                 var r = tourney_races_data[rns[i]]
-                if (r.track == trak) {
+                if (r.track == trak && r.hasOwnProperty("totaltime")) {
                     runs.push(r)
                 }
             }
