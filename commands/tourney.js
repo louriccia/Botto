@@ -274,7 +274,7 @@ module.exports = {
                             most_name = o
                         }
                     }
-                    return String(most_name)
+                    return most_name
                 }
                 for (var i = 0; i < tpd.length; i++) {
                     var p = tpd[i]
@@ -331,7 +331,7 @@ module.exports = {
                             })
                             var pla = Object.keys(tourney_matches_data[m].players)
                             for (j = 0; j < pla.length; j++) {
-                                var p = tourney_matches_data[pla[j]]
+                                var p = tourney_matches_data[m].players[pla[j]]
                                 if (stats.comm_player[p.player] == undefined) {
                                     stats.comm_player[p.player] = 0
                                 } else {
@@ -507,6 +507,7 @@ module.exports = {
                         )
                     }
                     console.log(stats)
+                    console.log(getMost(stats.co_comm))
                     tourneyReport
                         .setDescription("Total race time: `" + tools.timefix(stats.race_time) + "`")
                         .addField(":crossed_swords: Matches", "total: `" + stats.matches.total + "`\n" +
