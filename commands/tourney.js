@@ -388,16 +388,18 @@ module.exports = {
                         } else if (r.result == "Loser") {
                             race_summary[r.datetime][r.race].loser = { player: r.player }
                         }
-                        if (r.race > 1) {
-                            if (r.hasOwnProperty("podtempban")) {
-                                race_summary[r.datetime][r.race - 1].loser.podban = r.podtempban
-                            }
-                            if (r.hasOwnProperty("tracktempban")) {
-                                race_summary[r.datetime][r.race - 1].winner.trackban = r.tracktempban
-                            }
-                            race_summary[r.datetime][r.race - 1].loser.trackpick = r.track
-                            if (r.hasOwnProperty("force")) {
-                                race_summary[r.datetime][r.race - 1].loser.force = r.force
+                        if(race_summary[r.datetime][r.race - 1].hasOwnProperty("loser") || race_summary[r.datetime][r.race - 1].hasOwnProperty("winner")){
+                            if (r.race > 1) {
+                                if (r.hasOwnProperty("podtempban")) {
+                                    race_summary[r.datetime][r.race - 1].loser.podban = r.podtempban
+                                }
+                                if (r.hasOwnProperty("tracktempban")) {
+                                    race_summary[r.datetime][r.race - 1].winner.trackban = r.tracktempban
+                                }
+                                race_summary[r.datetime][r.race - 1].loser.trackpick = r.track
+                                if (r.hasOwnProperty("force")) {
+                                    race_summary[r.datetime][r.race - 1].loser.force = r.force
+                                }
                             }
                         }
                         //get records
