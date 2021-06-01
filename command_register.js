@@ -2573,7 +2573,7 @@ client.api.applications("545798436105224203").commands.post({
                         name: "participant",
                         description: "select someone to get their tourney stats",
                         type: 6,
-                        required: true
+                        required: false
                     }
                 ]
             }

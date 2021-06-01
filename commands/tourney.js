@@ -525,7 +525,7 @@ module.exports = {
                             "nu: `" + stats.forces.nu + "`")
                         .addField(":microphone2: Commentary", "total: `" + stats.matches_commentated + "`\n" +
                             "favorite co-comm: `" + getMost(stats.co_comm) + "`\n" +
-                            "favorite player: `" + getMost(stast.comm_player) + "`")
+                            "favorite player: `" + getMost(stats.comm_player) + "`")
 
                         .addField(":triangular_flag_on_post: Tracks", "most picked:\n" + "\n" +
                             "most wins:\n" + "\n" +
