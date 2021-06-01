@@ -158,7 +158,7 @@ module.exports = {
 
             if (runs.length > 0) {
                 runs.sort(function (a, b) {
-                    return a.totaltime - b.totaltime;
+                    return Number(a.totaltime) - Number(b.totaltime);
                 })
                 for (i = 0; i < runs.length; i++) {
                     if (runs[i].hasOwnProperty("totaltime") && !already.includes(runs[i].player + runs[i].force)) {
@@ -238,7 +238,7 @@ module.exports = {
             const Member = Guild.members.cache.get(member); // Getting the member.
             if (args[0].hasOwnProperty("options")) {
                 if (args[0].options[0].name == "participant") {
-                    member = args[0].options[0].options[0].value
+                    member = args[0].options[0].value
                 }
             }
             tourneyReport
