@@ -236,8 +236,8 @@ module.exports = {
             var member = interaction.member.user.id
             const Guild = client.guilds.cache.get(interaction.guild_id); // Getting the guild.
             const Member = Guild.members.cache.get(member); // Getting the member.
-            if (args[0].options[0].hasOwnProperty("options")) {
-                if (args[0].options[0].options[0].name == "participant") {
+            if (args[0].hasOwnProperty("options")) {
+                if (args[0].options[0].name == "participant") {
                     member = args[0].options[0].options[0].value
                 }
             }
@@ -274,7 +274,7 @@ module.exports = {
                             most_name = o
                         }
                     }
-                    return most_name + " `" + most_count + "`"
+                    return String(most_name)
                 }
                 for (var i = 0; i < tpd.length; i++) {
                     var p = tpd[i]
