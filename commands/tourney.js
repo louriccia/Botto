@@ -388,8 +388,8 @@ module.exports = {
                         } else if (r.result == "Loser") {
                             race_summary[r.datetime][r.race].loser = { player: r.player }
                         }
-                        if(race_summary[r.datetime][r.race - 1].hasOwnProperty("loser") || race_summary[r.datetime][r.race - 1].hasOwnProperty("winner")){
-                            if (r.race > 1) {
+                        if (r.race > 1) {
+                            if (race_summary[r.datetime][r.race - 1].hasOwnProperty("loser") || race_summary[r.datetime][r.race - 1].hasOwnProperty("winner")) {
                                 if (r.hasOwnProperty("podtempban")) {
                                     race_summary[r.datetime][r.race - 1].loser.podban = r.podtempban
                                 }
