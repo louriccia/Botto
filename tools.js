@@ -620,9 +620,9 @@ module.exports = {
             }
         }
 
-        for (i = 0; i < 200; i++) { 
+        for (i = 0; i < 20000; i++) { 
             incrementFrame()
-            console.log("frame: " + frame)
+            /*console.log("frame: " + frame)
             //console.log("frameTime: " + frameTime)
             //console.log("raceTime: " + raceTime)
             console.log("combinedSpeed: " + combinedSpeed)
@@ -631,7 +631,7 @@ module.exports = {
             //console.log("boostValue: " + boostValue)
             console.log("boostSpeed: " + boostSpeed)
             console.log("isBoostStart: " + isBoostStart)
-            console.log("isBoosting: " + isBoosting)
+            console.log("isBoosting: " + isBoosting)*/
         }
 
         function incrementFrame() {
@@ -678,6 +678,6 @@ module.exports = {
             averageSpeed = distanceTravelled / raceTime
         }
 
-        return combinedSpeed
+        return averageSpeed
     }
 }
