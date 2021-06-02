@@ -568,7 +568,7 @@ module.exports = {
     },
     simulateSpeed: function() {
         var frame = 0
-        var fps = 60
+        var fps = 25
         var frameTime = 1 / fps
         var maxAllowedHeat = 100.0
 
@@ -620,7 +620,7 @@ module.exports = {
             }
         }
 
-        for (i = 0; i < 2000; i++) { 
+        for (i = 0; i < 200; i++) { 
             incrementFrame()
             console.log("frame: " + frame + " (" + Math.round(raceTime*1000)/1000 + ")")
             //console.log("frameTime: " + frameTime)
@@ -668,6 +668,8 @@ module.exports = {
                 else boostValue = 0 //no boost
                 heat += statCoolRate
             }
+            heat = Math.min(Math.max(heat, 0), 100)
+
             //boost speed
             if (isBoosting) timeElapsedBoosting += frameTime
             else timeElapsedNotBoosting += frameTime
