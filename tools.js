@@ -622,10 +622,10 @@ module.exports = {
 
         for (i = 0; i < 2000; i++) { 
             incrementFrame()
-            console.log("frame: " + frame + " (" + Math.round(raceTime*100)/100 + ")")
+            console.log("frame: " + frame + " (" + Math.round(raceTime*1000)/1000 + ")")
             //console.log("frameTime: " + frameTime)
             //console.log("raceTime: " + raceTime)
-            console.log("combinedSpeed: " + combinedSpeed + " = " + baseSpeed + " + " + boostSpeed)
+            console.log("combinedSpeed: " + Math.round(combinedSpeed*10)/10 + " = " + Math.round(baseSpeed*10)/10 + " + " + Math.round(boostSpeed*10)/10)
             //console.log("speedValue: " + speedValue)
             //console.log("baseSpeed: " + baseSpeed)
             //console.log("boostValue: " + boostValue)
