@@ -574,5 +574,12 @@ client.on('message', message => {
     }
 })
 
+client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({
+    data: {
+        name: 'simulate',
+        description: "Average speed testing"
+    }
+})
+
 
 client.login(process.env.token);
