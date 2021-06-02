@@ -620,18 +620,18 @@ module.exports = {
             }
         }
 
-        for (i = 0; i < 200; i++) { 
+        for (i = 0; i < 2000; i++) { 
             incrementFrame()
-            /*console.log("frame: " + frame)
+            console.log("frame: " + frame + " (" + Math.round(rateTime*100)/100 + ")")
             //console.log("frameTime: " + frameTime)
             //console.log("raceTime: " + raceTime)
-            console.log("combinedSpeed: " + combinedSpeed)
+            console.log("combinedSpeed: " + combinedSpeed + " = " + baseSpeed + " + " + boostSpeed)
             //console.log("speedValue: " + speedValue)
-            console.log("baseSpeed: " + baseSpeed)
+            //console.log("baseSpeed: " + baseSpeed)
             //console.log("boostValue: " + boostValue)
-            console.log("boostSpeed: " + boostSpeed)
-            console.log("isBoostStart: " + isBoostStart)
-            console.log("isBoosting: " + isBoosting)*/
+            //console.log("boostSpeed: " + boostSpeed)
+            //console.log("isBoostStart: " + isBoostStart)
+            console.log("isBoosting: " + isBoosting)
         }
 
         function incrementFrame() {
