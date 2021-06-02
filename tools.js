@@ -576,7 +576,7 @@ module.exports = {
 
         var statSpeed = 650.0
         var statThrust = 400.0
-        var statAccel = 1.0
+        var statAccel = 0.9
         var statHeatRate = 8
         var statCoolRate = 10
 
@@ -620,7 +620,19 @@ module.exports = {
             }
         }
 
-        for (i = 0; i < 100; i++) { incrementFrame() }
+        for (i = 0; i < 100; i++) { 
+            incrementFrame()
+            console.log("frame: " + frame)
+            console.log("frameTime: " + frameTime)
+            console.log("raceTime: " + raceTime)
+            console.log("combinedSpeed: " + combinedSpeed)
+            console.log("speedValue: " + speedValue)
+            console.log("baseSpeed: " + baseSpeed)
+            console.log("boostValue: " + boostValue)
+            console.log("boostSpeed: " + boostSpeed)
+            console.log("isBoostStart: " + isBoostStart)
+            console.log("isBoosting: " + isBoosting)
+        }
 
         function incrementFrame() {
             frame++
