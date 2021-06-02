@@ -570,6 +570,7 @@ module.exports = {
         var frame = 0
         var fps = 60
         var frameTime = 1 / fps
+        var maxAllowedHeat = 100.0
 
         var trackLength = 100000
 
@@ -638,7 +639,7 @@ module.exports = {
 
             //boosting
             boostCharge = Math.min(Math.max((combinedSpeed >= statSpeed * 0.75) ? boostCharge + frameTime : 0, 0), 1)
-            isBoosting = ((isBoosting && heat != 0)||(heat >= maxHeat && boostCharge == 1)) ? true : false
+            isBoosting = ((isBoosting && heat != 0)||(heat >= maxAllowedHeat && boostCharge == 1)) ? true : false
             if (isBoosting) {
                 boostValue += 1.5 * frameTime //boosting
                 heat -= statHeatRate
