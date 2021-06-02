@@ -620,7 +620,7 @@ module.exports = {
             }
         }
 
-        for (i = 0; i < 20000; i++) { 
+        for (i = 0; i < 200; i++) { 
             incrementFrame()
             /*console.log("frame: " + frame)
             //console.log("frameTime: " + frameTime)
