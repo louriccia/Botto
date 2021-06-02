@@ -620,15 +620,15 @@ module.exports = {
             }
         }
 
-        for (i = 0; i < 100; i++) { 
+        for (i = 0; i < 200; i++) { 
             incrementFrame()
             console.log("frame: " + frame)
-            console.log("frameTime: " + frameTime)
-            console.log("raceTime: " + raceTime)
+            //console.log("frameTime: " + frameTime)
+            //console.log("raceTime: " + raceTime)
             console.log("combinedSpeed: " + combinedSpeed)
-            console.log("speedValue: " + speedValue)
+            //console.log("speedValue: " + speedValue)
             console.log("baseSpeed: " + baseSpeed)
-            console.log("boostValue: " + boostValue)
+            //console.log("boostValue: " + boostValue)
             console.log("boostSpeed: " + boostSpeed)
             console.log("isBoostStart: " + isBoostStart)
             console.log("isBoosting: " + isBoosting)
@@ -639,10 +639,15 @@ module.exports = {
             raceTime += frameTime
             
             //booststart
-            if (!isBoostStartEnded) {
+            if (!isBoostStartEnded && isBoostStart && combinedSpeed > 290) {
+                isBoostStartEnded = true
+                isBoostStart = false
+            }
+            
+            /*if (!isBoostStartEnded) {
                 isBoostStartEnded = (!isBoostStartEnded && combinedSpeed <= 290 && isBoostStart) ? false : true
                 isBoostStart = (!isBoostStartEnded && isBoostStart) ? true : false
-            }
+            }*/
             
             //base speed
             speedTimeMultiplier = (isBoosting || isBoostStart) ? 4.0 : 1.5
