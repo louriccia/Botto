@@ -74,6 +74,7 @@ module.exports = {
             .addField("/lookup", "get information for each track, racer, etc.", false)
             .addField("/random", "roll random tracks, racers, and teams", false)
             .addField("/role*", "add or remove the speedrunning and multiplayer roles", false)
+            .addField("/simulate", "simulate speed (in development)", false)
             .addField("/src", "get top-5 leaderboards from speedrun.com", false)
             .addField("/tourney", "get top-5 leaderboards from past tournaments", false)
             .addField("/weekly", "submit times and view leaderboards for weekly challenges", false)
