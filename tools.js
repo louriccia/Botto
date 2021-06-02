@@ -567,6 +567,99 @@ module.exports = {
         return finaltime
     },
     simulateSpeed: function() {
+        var frame = 0
+        var fps = 60
+        var frameTime = 1 / fps
+
+        var trackLength = 100000
+
+        var statSpeed = 650.0
+        var statThrust = 400.0
+        var statAccel = 1.0
+        var statHeatRate = 8
+        var statCoolRate = 10
+
+        var raceTime = 0.0
+        var combinedSpeed = 0.0
+        var distanceTravelled = 0.0
+        var averageSpeed = 0.0
+        var speedValue = 0.0
+        var baseSpeed = 0.0
+        var boostCharge = 0.0
         
+        //boost stuff
+        var heat = 100
+        var boostValue = 0.0
+        var boostSpeed = 0.0
+        var isBoosting = false
+        var isBoostStart = true
+        var isBoostStartEnded = false //becomes true to prevent boost start if speed later drops below 290
+        var speedTimeMultiplier = 1.5 //4.0 when boosting or boost start, 1.5 otherwise
+
+        var timeElapsedBoosting
+        var timeElapsedNotBoosting
+
+        var nosePosition = 'd' //'d': down, 'u': up, 'n': neutral
+        var noseMultiplier = 1.0
+        calculateNoseMultiplier()
+
+        function calculateNoseMultiplier() {
+            switch (nosePosition) {
+                case 'd':
+                    noseMultiplier = 1.32
+                    break
+                case 'u':
+                    noseMultiplier = 0.68
+                    break
+                case 'n':
+                    noseMultiplier = 1.0
+                    break
+                default:
+                    noseMultiplier = 1.0
+            }
+        }
+
+        for (i = 0; i < 100; i++) { incrementFrame() }
+
+        function incrementFrame() {
+            frame++
+            raceTime += frameTime
+            
+            //booststart
+            if (!isBoostStartEnded) {
+                isBoostStartEnded = (!isBoostStartEnded && combinedSpeed <= 290 && isBoostStart) ? false : true
+                isBoostStart = (!isBoostStartEnded && isBoostStart) ? true : false
+            }
+            
+            //base speed
+            speedTimeMultiplier = (isBoosting || isBoostStart) ? 4.0 : 1.5
+            speedValue += noseMultiplier * frameTime * speedTimeMultiplier
+            baseSpeed = speedValue * statSpeed / (statAccel * speedValue)
+
+            //boosting
+            boostCharge = Math.min(Math.max((combinedSpeed >= statSpeed * 0.75) ? boostCharge + frameTime : 0, 0), 1)
+            isBoosting = ((isBoosting && heat != 0)||(heat >= maxHeat && boostCharge == 1)) ? true : false
+            if (isBoosting) {
+                boostValue += 1.5 * frameTime //boosting
+                heat -= statHeatRate
+            }
+            else {
+                if (boostValue >= 0.001) { //decelerating
+                    boostValue *= (1 - (33.33 * frameTime / (33.33 * frameTime + 5)))
+                }
+                else boostValue = 0 //no boost
+                heat += statCoolRate
+            }
+            //boost speed
+            if (isBoosting) timeElapsedBoosting += frameTime
+            else timeElapsedNotBoosting += frameTime
+            boostSpeed = boostValue * statThrust / (boostValue + 0.33)
+
+            combinedSpeed = baseSpeed + boostSpeed
+            distanceTravelled += combinedSpeed * frameTime
+            averageSpeed = distanceTravelled / raceTime
+        }
+
+        return averageSpeed
     }
 }
