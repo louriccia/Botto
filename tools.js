@@ -647,7 +647,7 @@ module.exports = {
             //base speed
             speedTimeMultiplier = (isBoosting || isBoostStart) ? 4.0 : 1.5
             speedValue += noseMultiplier * frameTime * speedTimeMultiplier
-            baseSpeed = speedValue * statSpeed / (statAccel * speedValue)
+            baseSpeed = speedValue * statSpeed / (statAccel + speedValue)
 
             //boosting
             boostCharge = Math.min(Math.max((combinedSpeed >= statSpeed * 0.75) ? boostCharge + frameTime : 0, 0), 1)
@@ -673,6 +673,6 @@ module.exports = {
             averageSpeed = distanceTravelled / raceTime
         }
 
-        return averageSpeed
+        return combinedSpeed
     }
 }
