@@ -4,7 +4,7 @@ module.exports = {
         const Discord = require('discord.js');
         var tools = require('./../tools.js');
         const myEmbed = new Discord.MessageEmbed()
-        var output = String(tools.simulateSpeed())
+        var output = String(Math.round(tools.simulateSpeed()*10)/10)
         client.api.interactions(interaction.id, interaction.token).callback.post({
             data: {
                 type: 4,
