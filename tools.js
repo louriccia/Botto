@@ -628,7 +628,7 @@ module.exports = {
                 combinedSpeed: this.baseSpeed + this.boostSpeed,
                 distanceTravelled: distanceTravelled,
                 averageSpeed: distanceTravelled / raceTime,
-                prevAverageSpeed: averageSpeed
+                prevAverageSpeed: this.averageSpeed
             }
         }
         
