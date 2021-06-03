@@ -724,7 +724,7 @@ module.exports = {
         var statAccel = 0.9
         var statHeatRate = 8
         var statCoolRate = 10
-        var trackLength = 18000
+        var trackLength = 28000
         
 
         
