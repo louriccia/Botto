@@ -567,6 +567,20 @@ module.exports = {
         return finaltime
     },
     simulateSpeed: function() {
+        //flags
+        
+        //constants
+        var fps = 10
+        var frameTime = 1 / fps
+        var maxAllowedHeat = 100.0
+        var statSpeed = 650.0
+        var statThrust = 400.0
+        var statAccel = 0.9
+        var statHeatRate = 8
+        var statCoolRate = 10
+        var trackLength = 1000
+        
+
         function calculateBaseSpeed(speedValue) {
             return speedValue * statSpeed / (statAccel + speedValue)
         }
@@ -586,25 +600,13 @@ module.exports = {
             }
         }
 
-        //constants
-        var fps = 10
-        var frameTime = 1 / fps
-        var maxAllowedHeat = 100.0
-        var statSpeed = 650.0
-        var statThrust = 400.0
-        var statAccel = 0.9
-        var statHeatRate = 8
-        var statCoolRate = 10
-        var trackLength = 1000
         
-
+        //the data object
         function createState(frame, raceTime, distanceTravelled, speedValue, boostCharge, heat, boostValue, isBoosting, isBoostStart, isBoostStartEnded, nosePosition, isTrackFinished) {
             return {
                 frame: frame,
             
                 raceTime: raceTime,
-                distanceTravelled: distanceTravelled,
-                averageSpeed: distanceTravelled / raceTime,
                 speedValue: speedValue,
                 baseSpeed: calculateBaseSpeed(speedValue),
                 boostCharge: boostCharge,
@@ -623,7 +625,10 @@ module.exports = {
                 noseMultiplier: calculateNoseMultiplier(nosePosition),
                 isTrackFinished: isTrackFinished,
 
-                combinedSpeed: this.baseSpeed + this.boostSpeed
+                combinedSpeed: this.baseSpeed + this.boostSpeed,
+                distanceTravelled: distanceTravelled,
+                averageSpeed: distanceTravelled / raceTime,
+                prevAverageSpeed: averageSpeed
             }
         }
         
@@ -666,12 +671,24 @@ module.exports = {
         }*/
 
         function initialPass() {
-            for (i = 0; i < 200 && !stateInitialPass.isTrackFinished; i++) { 
+            var i = 0
+            var maxIterations = 2000
+            var loopAgain = true
+            //for (i = 0; i < 200 && !stateInitialPass.isTrackFinished; i++) { 
+            while (loopAgain) {
                 incrementFrame(stateInitialPass)
                 console.log("frame: " + stateInitialPass.frame + " (" + Math.round(stateInitialPass.raceTime*1000)/1000 + "s)")
                 console.log("combinedSpeed: " + Math.round(stateInitialPass.combinedSpeed*10)/10 + " = " + Math.round(stateInitialPass.baseSpeed*10)/10 + " + " + Math.round(stateInitialPass.boostSpeed*10)/10)
-                console.log("speedValue: " + stateInitialPass.speedValue + ", boostValue: " + stateInitialPass.boostValue)
-                console.log("isBoostStart: " + stateInitialPass.isBoostStart + ", isBoostStartEnded: " + stateInitialPass.isBoostStartEnded)
+                //console.log("speedValue: " + stateInitialPass.speedValue + ", boostValue: " + stateInitialPass.boostValue)
+                //console.log("isBoostStart: " + stateInitialPass.isBoostStart + ", isBoostStartEnded: " + stateInitialPass.isBoostStartEnded)
+                console.log("distance travelled: " + Math.round(stateInitialPass.distanceTravelled*10)/10 + ", track finished?: " + stateInitialPass.isTrackFinished)
+
+                //determine whether to loop again
+                i++
+                loopAgain = (loopAgain && i < maxIterations) ? true : false
+                if (stateInitialPass.isTrackFinished) { //continue running after track finish until average speed drops
+                    loopAgain = (loopAgain && stateInitialPass.averageSpeed > stateInitialPass.prevAverageSpeed) ? true : false
+                }
             }
         }
 
@@ -713,6 +730,7 @@ module.exports = {
 
             state.combinedSpeed = state.baseSpeed + state.boostSpeed
             state.distanceTravelled += state.combinedSpeed * frameTime
+            state.prevAverageSpeed = state.averageSpeed
             state.averageSpeed = state.distanceTravelled / state.raceTime
             state.isTrackFinished = state.distanceTravelled >= trackLength ? true : false
         }
