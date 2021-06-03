@@ -682,9 +682,13 @@ module.exports = {
                                 if(!schedule[i][4].includes("?")){
                                     channel = "[" + schedule[i][4] + "](twitch.tv/" + schedule[i][4] + ")"
                                 }
+                                var comm = ""
+                                if(schedule[i][5] !== undefined){
+                                    comm = schedule[i][5]
+                                }
                                 tourneyReport
-                                    .addField(schedule[i][0] + schedule[i][1] + "\n" + channel, schedule[i][2],true)
-                                    .addField(":crossed_swords:" + schedule[i][3], ":microphone2:" + schedule[i][5],true)
+                                    .addField(schedule[i][0] + " " + schedule[i][1] , schedule[i][2]+ "\n" + channel,true)
+                                    .addField(":crossed_swords: " + schedule[i][3].replace(/,/g, " vs."), ":microphone2: " + comm,true)
                                     .addField('\u200B', '\u200B', true)
                             }
                         } else {
