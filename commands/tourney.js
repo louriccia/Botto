@@ -648,7 +648,7 @@ module.exports = {
                         var r = stats.opponent.rivalries[rvl[i]]
                         console.log(r)
                         var sum = 0
-                        for (j = 0; j < r.length; r++) {
+                        for (j = 0; j < r.length; j++) {
                             sum += r[j]
                         }
                         var avg = sum / r.length
