@@ -660,14 +660,14 @@ module.exports = {
             isBoosting = ((isBoosting && heat != 0) || (heat >= maxAllowedHeat && boostCharge == 1)) ? true : false
             if (isBoosting) {
                 boostValue += 1.5 * frameTime //boosting
-                heat -= statHeatRate
+                heat -= statHeatRate * frameTime
             }
             else {
                 if (boostValue >= 0.001) { //decelerating
                     boostValue *= (1 - (33.33 * frameTime / (33.33 * frameTime + 5)))
                 }
                 else boostValue = 0 //no boost
-                heat += statCoolRate
+                heat += statCoolRate * frameTime
             }
             heat = Math.min(Math.max(heat, 0), 100)
 
