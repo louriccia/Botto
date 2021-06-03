@@ -603,7 +603,6 @@ module.exports = {
                 frame: frame,
             
                 raceTime: raceTime,
-                combinedSpeed: baseSpeed + boostSpeed,
                 distanceTravelled: distanceTravelled,
                 averageSpeed: distanceTravelled / raceTime,
                 speedValue: speedValue,
@@ -622,7 +621,9 @@ module.exports = {
 
                 nosePosition: nosePosition, //'d': down, 'u': up, 'n': neutral
                 noseMultiplier: calculateNoseMultiplier(nosePosition),
-                isTrackFinished: isTrackFinished
+                isTrackFinished: isTrackFinished,
+
+                combinedSpeed: baseSpeed + boostSpeed
             }
         }
         
