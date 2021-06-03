@@ -92,7 +92,7 @@ tourney_tournaments.on("value", function (snapshot) {
     console.log("The read failed: " + errorObject);
 });
 client.ws.on('INTERACTION_CREATE', async interaction => {
-    if(interaction.data.hasOwnProperty("name")){
+    if (interaction.data.hasOwnProperty("name")) {
         const command = interaction.data.name.toLowerCase();
         const args = interaction.data.options;
         //command handler
@@ -110,7 +110,7 @@ client.ws.on('INTERACTION_CREATE', async interaction => {
                 }
             })
         }
-    } else if(interaction.data.hasOwnProperty("custom_id")){
+    } else if (interaction.data.hasOwnProperty("custom_id")) {
         console.log(interaction.data.custom_id)
         var split = interaction.data.custom_id.split("_")
         console.log(split)
@@ -450,5 +450,142 @@ client.on('message', message => {
         message.channel.send(myEmbed)
     }
 })
+
+
+
+client.api.channels("444208252541075476").messages.post({
+    data: {
+        content: ":checkered_flag: **Multiplayer**\nGet the <@&474920988790751232> role and get notified when someone's hosting a multiplayer race. Read the multiplayer guide to get started: https://bit.ly/34emHqj",
+        components: [
+            {
+                type: 1,
+                components: [
+                    {
+                        type: 1,
+                        label: "Get the multiplayer role",
+                        style: 1,
+                        custom_id: "role_474920988790751232"
+                    }
+                ]
+            }
+        ]
+    }
+})
+client.api.channels("444208252541075476").messages.post({
+    data: {
+        content: ":crossed_swords: **Tournament Updates**\nGet the <@&828723543260659762> role and get notified of tournament matches and announcements. Check out the latest in the #tournaments channel.",
+        components: [
+            {
+                type: 1,
+                components: [
+                    {
+                        type: 1,
+                        label: "Get the Tournament Updates role",
+                        style: 1,
+                        custom_id: "role_828723543260659762"
+                    }
+                ]
+            }
+        ]
+    }
+})
+client.api.channels("444208252541075476").messages.post({
+    data: {
+        content: ":trophy: **Speedrunning**\nGet the <@&535973118578130954> role and join the fastest podracers in the galaxy on the speedrun.com leaderboards. Check out the latest strats in the #speedrun channels.",
+        components: [
+            {
+                type: 1,
+                components: [
+                    {
+                        type: 1,
+                        label: "Get the Speedrunning role",
+                        style: 1,
+                        custom_id: "role_535973118578130954"
+                    }
+                ]
+            }
+        ]
+    }
+})
+client.api.channels("444208252541075476").messages.post({
+    data: {
+        content: ":joystick: **Platform Roles**\nWhat platform do you use to play Racer? Rep it with a free role.",
+        components: [
+            {
+                type: 1,
+                components: [
+                    {
+                        type: 2,
+                        label: "PC Player",
+                        emoji: {
+                            id: null,
+                            name: "💿"
+                        },
+                        style: 1,
+                        custom_id: "role_841404897018380388"
+                    },
+                    {
+                        type: 2,
+                        label: "N64 Player",
+                        emoji: {
+                            id: null,
+                            name: "🕹️"
+                        },
+                        style: 1,
+                        custom_id: "role_602246101323612181"
+
+                    },
+                    {
+                        type: 2,
+                        label: "Dreamcast Player",
+                        emoji: {
+                            id: null,
+                            name: "🕹️"
+                        },
+                        style: 1,
+                        custom_id: "role_841405394441338890"
+                    }
+                ]
+            },
+            {
+                type: 1,
+                components: [
+                    {
+                        type: 2,
+                        label: "Switch Player",
+                        emoji: {
+                            id: null,
+                            name: "🎮"
+                        },
+                        style: 1,
+                        custom_id: "role_841405226282909716"
+                    },
+                    {
+                        type: 2,
+                        label: "PlayStation Player",
+                        emoji: {
+                            id: null,
+                            name: "🎮"
+                        },
+                        style: 1,
+                        custom_id: "role_841405077470445669"
+
+                    },
+                    {
+                        type: 2,
+                        label: "Xbox Player",
+                        emoji: {
+                            id: null,
+                            name: "🎮"
+                        },
+                        style: 1,
+                        custom_id: "role_841404991784091690"
+                    }
+                ]
+            }
+        ]
+    }
+})
+
 
 client.login(process.env.token);
