@@ -458,7 +458,7 @@ client.api.channels("444208252541075476").messages.post({
                 type: 1,
                 components: [
                     {
-                        type: 1,
+                        type: 2,
                         label: "Get the multiplayer role",
                         style: 1,
                         custom_id: "role_474920988790751232"
@@ -476,7 +476,7 @@ client.api.channels("444208252541075476").messages.post({
                 type: 1,
                 components: [
                     {
-                        type: 1,
+                        type: 2,
                         label: "Get the Tournament Updates role",
                         style: 1,
                         custom_id: "role_828723543260659762"
@@ -494,7 +494,7 @@ client.api.channels("444208252541075476").messages.post({
                 type: 1,
                 components: [
                     {
-                        type: 1,
+                        type: 2,
                         label: "Get the Speedrunning role",
                         style: 1,
                         custom_id: "role_535973118578130954"
