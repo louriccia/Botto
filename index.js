@@ -452,14 +452,14 @@ client.on('message', message => {
 
 client.api.channels("444208252541075476").messages.post({
     data: {
-        content: ":checkered_flag: **Multiplayer**\nGet the <@&474920988790751232> role and get notified when someone's hosting a multiplayer race. Read the multiplayer guide to get started: https://bit.ly/34emHqj",
+        content: ":checkered_flag: **Multiplayer**\nGet the **Multiplayer** role and get notified when someone's hosting a multiplayer race. Read the multiplayer guide to get started: https://bit.ly/34emHqj",
         components: [
             {
                 type: 1,
                 components: [
                     {
                         type: 2,
-                        label: "Get the multiplayer role",
+                        label: "Get the Multiplayer role",
                         style: 1,
                         custom_id: "role_474920988790751232"
                     }
@@ -470,7 +470,7 @@ client.api.channels("444208252541075476").messages.post({
 })
 client.api.channels("444208252541075476").messages.post({
     data: {
-        content: ":crossed_swords: **Tournament Updates**\nGet the <@&828723543260659762> role and get notified of tournament matches and announcements. Check out the latest in the #tournaments channel.",
+        content: ":crossed_swords: **Tournament Updates**\nGet the **Tournament Updates** role and get notified of tournament matches and announcements. Check out the latest in the #tournaments channel.",
         components: [
             {
                 type: 1,
@@ -488,7 +488,7 @@ client.api.channels("444208252541075476").messages.post({
 })
 client.api.channels("444208252541075476").messages.post({
     data: {
-        content: ":trophy: **Speedrunning**\nGet the <@&535973118578130954> role and join the fastest podracers in the galaxy on the speedrun.com leaderboards. Check out the latest strats in the #speedrun channels.",
+        content: ":trophy: **Speedrunning**\nGet the **Speedrunning** role and join the fastest podracers in the galaxy on the speedrun.com leaderboards. Check out the latest strats in the <#449375461886132235> channels.",
         components: [
             {
                 type: 1,

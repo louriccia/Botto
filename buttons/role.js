@@ -11,10 +11,10 @@ module.exports = {
         let role = Guild.roles.cache.get(args[0]);
         if(Member.roles.cache.some(r => r.id === role.id)){
             member.roles.remove(role).catch(console.error)
-            content = "You no longer have the <@&" + args[0].options[0].value + "> role"
+            content = "You no longer have the <@&" + args[0] + "> role"
         } else {
             member.roles.add(role).catch(console.error);
-            content = "You now have the <@&" + args[0].options[0].value + "> role"
+            content = "You now have the <@&" + args[0] + "> role"
         }
         client.api.interactions(interaction.id, interaction.token).callback.post({
             data: {
