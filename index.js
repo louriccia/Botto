@@ -112,7 +112,9 @@ client.ws.on('INTERACTION_CREATE', async interaction => {
             })
         }
     } else if(interaction.data.hasOwnProperty("custom_id")){
+        console.log(interaction.data.custom_id)
         var split = interaction.data.custom_id.split("_")
+        console.log(split)
         const button = split[0]
         const args = split.slice(1)
         //button handler
