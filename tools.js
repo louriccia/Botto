@@ -570,9 +570,6 @@ module.exports = {
         //all sub-functions
         {
             function initialPass(state, statePrev) {
-                var i = 0
-                var maxIterations = 2000
-                var loopAgain = true
                 runTrack(state, statePrev, -1)
             }
 
@@ -592,6 +589,9 @@ module.exports = {
             }
 
             function runTrack(state, statePrev, injectedBoostFrame) {
+                var i = 0
+                var maxIterations = 2000
+                var loopAgain = true
                 while (loopAgain) {
                     overwriteState(state, statePrev)
                     incrementFrame(state, injectedBoostFrame)
