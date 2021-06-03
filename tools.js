@@ -648,11 +648,10 @@ module.exports = {
             console.log("combinedSpeed: " + Math.round(combinedSpeed*10)/10 + " = " + Math.round(baseSpeed*10)/10 + " + " + Math.round(boostSpeed*10)/10)
             //console.log("heat: " + Math.round(heat*10)/10)
             console.log("distanceTravelled :" + Math.round(distanceTravelled))
-            //console.log("speedValue: " + speedValue)
+            //console.log("speedValue: " + speedValue + "boostValue: " + boostValue)
             //console.log("baseSpeed: " + baseSpeed)
-            //console.log("boostValue: " + boostValue)
             //console.log("boostSpeed: " + boostSpeed)
-            //console.log("isBoostStart: " + isBoostStart)
+            //console.log("isBoostStart: " + isBoostStart + "isBoostStartEnded: " + isBoostStartEnded)
             //console.log("isBoosting: " + isBoosting)
         }*/
 
@@ -661,6 +660,8 @@ module.exports = {
                 incrementFrame(stateInitialPass)
                 console.log("frame: " + stateInitialPass.frame + " (" + Math.round(stateInitialPass.raceTime*1000)/1000 + "s)")
                 console.log("combinedSpeed: " + Math.round(stateInitialPass.combinedSpeed*10)/10 + " = " + Math.round(stateInitialPass.baseSpeed*10)/10 + " + " + Math.round(stateInitialPass.boostSpeed*10)/10)
+                console.log("speedValue: " + stateInitialPass.speedValue + ", boostValue: " + stateInitialPass.boostValue)
+                console.log("isBoostStart: " + stateInitialPass.isBoostStart + ", isBoostStartEnded: " + stateInitialPass.isBoostStartEnded)
             }
         }
 
