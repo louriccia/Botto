@@ -3,6 +3,7 @@ module.exports = {
     execute(client, interaction, args) {
         const Discord = require('discord.js');
         const myEmbed = new Discord.MessageEmbed()
+        var tools = require('./tools.js');
         if (args[0] == "racer") {
             var random_racer = Math.floor(Math.random() * 23)
             client.api.interactions(interaction.id, interaction.token).callback.post({

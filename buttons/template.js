@@ -3,6 +3,7 @@ module.exports = {
     execute(client, interaction, args) {
         const Discord = require('discord.js');
         const myEmbed = new Discord.MessageEmbed()
+        var tools = require('./tools.js');
         if(args[0] == "") {
         } else if(args[0]=="") {
         }
