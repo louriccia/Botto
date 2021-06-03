@@ -32,7 +32,7 @@ module.exports = {
             console.log("The read failed: " + errorObject);
         });
         const tourneyReport = new Discord.MessageEmbed()
-            //.setURL("https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing")
+        //.setURL("https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing")
         if (args[0].name == "leaderboards") {
             var trak = null
             var podfilterout = []
@@ -472,12 +472,12 @@ module.exports = {
                         var r = tourney_races_data_sorted[trd[i]]
                         //get race summary
                         if (race_summary[r.datetime] == undefined) {
-                            race_summary[r.datetime] = {total: {}}
+                            race_summary[r.datetime] = { total: {} }
                         }
-                        if(r.time !== undefined && r.time !== ""){
-                            if(race_summary[r.datetime].total[r.player] == undefined){
+                        if (r.time !== undefined && r.time !== "") {
+                            if (race_summary[r.datetime].total[r.player] == undefined) {
                                 race_summary[r.datetime].total[r.player] = r.time
-                            } else if(race_summary[r.datetime].total[r.player] !== undefined){
+                            } else if (race_summary[r.datetime].total[r.player] !== undefined) {
                                 race_summary[r.datetime].total[r.player] += r.time
                             }
                         }
@@ -581,29 +581,29 @@ module.exports = {
                     }
                     //get stats from race summaries
                     var rsm = Object.keys(race_summary)
-                    for (i = 0; i < rsm.length; i++) {
+                    for (i = 0; i < rsm.length; i++) { //for each match
                         var m = race_summary[rsm[i]]
+                        var ttl = Object.keys(m.total)
+                        var p_time = null
+                        var o_time = null
+                        var o_player = null
+                        for (j = 0; j < ttl.length; j++) {
+                            var t = e.total[ttl[j]]
+                            if (ttl[j] == player) {
+                                p_time = t
+                            } else {
+                                o_time = t
+                                o_player = ttl[j]
+                            }
+                        }
+                        if (![p_time, o_time].includes(null)) {
+                            if (stats.opponent.rivalries[o_player] == undefined) {
+                                stats.opponent.rivalries[o_player] = []
+                            }
+                            stats.opponent.rivalries[o_player].push(Math.abs(o_time - p_time))
+                        }
                         var races = Object.values(m)
-                        races.forEach(e => {
-                            var ttl = Object.keys(e.total)
-                            var p_time = null
-                            var o_time = null
-                            var o_player = null
-                            for(j = 0; j< ttl.length; j++){
-                                var t = e.total[ttl[j]]
-                                if(ttl[j] == player){
-                                    p_time = t
-                                } else {
-                                    o_time = t
-                                    o_player = ttl[j]
-                                }
-                            }
-                            if(![p_time, o_time].includes(null)){
-                                if(stats.opponent.rivalries[o_player] == undefined){
-                                    stats.opponent.rivalries[o_player] = []
-                                }
-                                stats.opponent.rivalries[o_player].push(Math.abs(o_time-p_time))
-                            }
+                        races.forEach(e => { //for each race
                             if (e.hasOwnProperty("winner")) {
                                 if (e.winner.player == player) {
                                     if (e.winner.hasOwnProperty("trackban")) {
@@ -642,14 +642,14 @@ module.exports = {
                     }
                     var rvl = Object.keys(stats.opponent.rivalries)
                     var rivalries = []
-                    for(i = 0 ; i < rvl.length; i++){
+                    for (i = 0; i < rvl.length; i++) {
                         var r = stats.opponent.rivalries[rvl[i]]
                         var sum = 0
-                        for(j = 0; j < r.length; r++){
-                            sum+= r[j]
+                        for (j = 0; j < r.length; r++) {
+                            sum += r[j]
                         }
-                        var avg = sum/r.length
-                        rivalries.push({opponent: rvl[i], gap: avg})
+                        var avg = sum / r.length
+                        rivalries.push({ opponent: rvl[i], gap: avg })
                     }
                     rivalries.sort(function (a, b) {
                         return a.count - b.count;
@@ -684,7 +684,7 @@ module.exports = {
                         .addField(":no_entry_sign: Bans", "most temp-banned:\n" + arraytoTracks(getMultipleMost(stats.track.tempbans, 3)) + "\n" +
                             arraytoRacers(getMultipleMost(stats.pod_bans, 3)) + "\n" +
                             "most perma-banned:\n" + arraytoTracks(getMultipleMost(stats.track.permabans, 3)), true)
-                        .addField(":vs: Opponents", "closest rivals:\n" + arraytoPlayers(rivalries.slice(0,2)) + "\n" +
+                        .addField(":vs: Opponents", "closest rivals:\n" + arraytoPlayers(rivalries.slice(0, 2)) + "\n" +
                             "most wins vs:\n" + arraytoPlayers(getMultipleMost(stats.opponent.wins, 2)) + "\n" +
                             "most losses vs:\n" + arraytoPlayers(getMultipleMost(stats.opponent.losses, 2)), true)
 
@@ -716,25 +716,25 @@ module.exports = {
                         .setTitle("Tournament Schedule")
                         .setURL("http://speedgaming.org/swe1racer/")
                         .setDescription("Upcoming matches on speedgaming.org/swe1racer\n(all times are EDT)")
-                        schedule.splice(0, 1)
-                        if(schedule.length > 1){
-                            for(i = 0; i < schedule.length; i++){
-                                var channel = ""
-                                if(!schedule[i][4].includes("?")){
-                                    channel = "[" + schedule[i][4] + "](https://www.twitch.tv/" + schedule[i][4] + ")"
-                                }
-                                var comm = ""
-                                if(schedule[i][5] !== undefined){
-                                    comm = schedule[i][5]
-                                }
-                                tourneyReport
-                                    .addField(schedule[i][0] + " " + schedule[i][1] , schedule[i][2]+ "\n" + channel,true)
-                                    .addField(":crossed_swords: " + schedule[i][3].replace(/,/g, " vs."), ":microphone2: " + comm,true)
-                                    .addField('\u200B', '\u200B', true)
+                    schedule.splice(0, 1)
+                    if (schedule.length > 1) {
+                        for (i = 0; i < schedule.length; i++) {
+                            var channel = ""
+                            if (!schedule[i][4].includes("?")) {
+                                channel = "[" + schedule[i][4] + "](https://www.twitch.tv/" + schedule[i][4] + ")"
                             }
-                        } else {
-                            tourneyReport.setDescription("No matches are currently scheduled")
+                            var comm = ""
+                            if (schedule[i][5] !== undefined) {
+                                comm = schedule[i][5]
+                            }
+                            tourneyReport
+                                .addField(schedule[i][0] + " " + schedule[i][1], schedule[i][2] + "\n" + channel, true)
+                                .addField(":crossed_swords: " + schedule[i][3].replace(/,/g, " vs."), ":microphone2: " + comm, true)
+                                .addField('\u200B', '\u200B', true)
                         }
+                    } else {
+                        tourneyReport.setDescription("No matches are currently scheduled")
+                    }
                     client.api.interactions(interaction.id, interaction.token).callback.post({
                         data: {
                             type: 4,
