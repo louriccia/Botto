@@ -472,7 +472,14 @@ module.exports = {
                         var r = tourney_races_data_sorted[trd[i]]
                         //get race summary
                         if (race_summary[r.datetime] == undefined) {
-                            race_summary[r.datetime] = {}
+                            race_summary[r.datetime] = {total: {}}
+                        }
+                        if(r.time !== undefined && r.time !== ""){
+                            if(race_summary[r.datetime].total[r.player] == undefined){
+                                race_summary[r.datetime].total[r.player] = r.time
+                            } else if(race_summary[r.datetime].total[r.player] !== undefined){
+                                race_summary[r.datetime].total[r.player] += r.time
+                            }
                         }
                         if (race_summary[r.datetime][r.race] == undefined) {
                             race_summary[r.datetime][r.race] = {}
@@ -578,6 +585,25 @@ module.exports = {
                         var m = race_summary[rsm[i]]
                         var races = Object.values(m)
                         races.forEach(e => {
+                            var ttl = Object.keys(e.total)
+                            var p_time = null
+                            var o_time = null
+                            var o_player = null
+                            for(j = 0; j< ttl.length; j++){
+                                var t = e.total[ttl[j]]
+                                if(ttl[j] == player){
+                                    p_time = t
+                                } else {
+                                    o_time = t
+                                    o_player = ttl[j]
+                                }
+                            }
+                            if(![p_time, o_time].includes(null)){
+                                if(stats.opponent.rivalries[o_player] == undefined){
+                                    stats.opponent.rivalries[o_player] = []
+                                }
+                                stats.opponent.rivalries[o_player].push(Math.abs(o_time-p_time))
+                            }
                             if (e.hasOwnProperty("winner")) {
                                 if (e.winner.player == player) {
                                     if (e.winner.hasOwnProperty("trackban")) {
@@ -614,8 +640,23 @@ module.exports = {
                         }
                         )
                     }
+                    var rvl = Object.keys(stats.opponent.rivalries)
+                    var rivalries = []
+                    for(i = 0 ; i < rvl.length; i++){
+                        var r = stats.opponent.rivalries[rvl[i]]
+                        var sum = 0
+                        for(j = 0; j < r.length; r++){
+                            sum+= r[j]
+                        }
+                        var avg = sum/r.length
+                        rivalries.push({opponent: rvl[i], gap: avg})
+                    }
+                    rivalries.sort(function (a, b) {
+                        return a.count - b.count;
+                    })
+
                     console.log(stats)
-                    console.log(getMost(stats.co_comm))
+
                     tourneyReport
                         .setDescription("Total race time: `" + tools.timefix(stats.race_time) + "`")
                         .addField(":crossed_swords: Matches", "total: `" + stats.matches.total + "`\n" +
@@ -643,7 +684,7 @@ module.exports = {
                         .addField(":no_entry_sign: Bans", "most temp-banned:\n" + arraytoTracks(getMultipleMost(stats.track.tempbans, 3)) + "\n" +
                             arraytoRacers(getMultipleMost(stats.pod_bans, 3)) + "\n" +
                             "most perma-banned:\n" + arraytoTracks(getMultipleMost(stats.track.permabans, 3)), true)
-                        .addField(":vs: Opponents", "closest rivals:\n" + "\n" +
+                        .addField(":vs: Opponents", "closest rivals:\n" + arraytoPlayers(rivalries.slice(0,2)) + "\n" +
                             "most wins vs:\n" + arraytoPlayers(getMultipleMost(stats.opponent.wins, 2)) + "\n" +
                             "most losses vs:\n" + arraytoPlayers(getMultipleMost(stats.opponent.losses, 2)), true)
 
@@ -674,7 +715,7 @@ module.exports = {
                     tourneyReport
                         .setTitle("Tournament Schedule")
                         .setURL("http://speedgaming.org/swe1racer/")
-                        .setDescription("Upcoming matches on speedgaming.org/swe1racer")
+                        .setDescription("Upcoming matches on speedgaming.org/swe1racer\n(all times are EDT)")
                         schedule.splice(0, 1)
                         if(schedule.length > 1){
                             for(i = 0; i < schedule.length; i++){
