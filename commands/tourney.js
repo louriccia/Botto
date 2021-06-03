@@ -640,10 +640,13 @@ module.exports = {
                         }
                         )
                     }
+                    console.log(stats)
                     var rvl = Object.keys(stats.opponent.rivalries)
+                    console.log(rvl)
                     var rivalries = []
                     for (i = 0; i < rvl.length; i++) {
                         var r = stats.opponent.rivalries[rvl[i]]
+                        console.log(r)
                         var sum = 0
                         for (j = 0; j < r.length; r++) {
                             sum += r[j]
@@ -659,13 +662,13 @@ module.exports = {
                     console.log(rivalries)
                     var rivals = []
                     for (var i = 0; i < 2; i++) {
-                        if (i = rivalries.length) {
+                        if (i == rivalries.length) {
                             i = 2
                         } else {
                             rivals.push(rivalries[i].opponent)
                         }
                     }
-                    console.log(stats)
+                    
                     tourneyReport
                         .setDescription("Total race time: `" + tools.timefix(stats.race_time) + "`")
                         .addField(":crossed_swords: Matches", "total: `" + stats.matches.total + "`\n" +
