@@ -706,6 +706,6 @@ module.exports = {
             state.isTrackFinished = state.distanceTravelled >= trackLength ? true : false
         }
 
-        return state.averageSpeed
+        return stateInitialPass.averageSpeed
     }
 }
