@@ -353,6 +353,11 @@ client.on('message', message => {
             .setThumbnail(client.user.avatarURL())
         message.channel.send(myEmbed)
     }
+
+    if(message.content.toLowerCase() == `${prefix}kill` && message.channelID == "444208252541075476") {
+        message.channel.send("Come back when you got some money!")
+        client.destroy()
+    }
 })
 
 
