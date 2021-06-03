@@ -450,7 +450,9 @@ client.on('message', message => {
 
 
 
-client.api.channels("444208252541075476").messages.post({
+        
+
+client.api.channels("850131066365804564").messages.post({
     data: {
         content: ":checkered_flag: **Multiplayer**\nGet the **Multiplayer** role and get notified when someone's hosting a multiplayer race. Read the multiplayer guide and head to the <#444627151858171934> channel to get started.",
         components: [
@@ -474,7 +476,7 @@ client.api.channels("444208252541075476").messages.post({
         ]
     }
 })
-client.api.channels("444208252541075476").messages.post({
+client.api.channels("850131066365804564").messages.post({
     data: {
         content: "\u200B\n:crossed_swords: **Tournaments**\nGet the **Tournament Updates** role and get notified of tournament matches and announcements. Check out the latest in the <#536455290091077652> channel.",
         components: [
@@ -492,7 +494,7 @@ client.api.channels("444208252541075476").messages.post({
         ]
     }
 })
-client.api.channels("444208252541075476").messages.post({
+client.api.channels("850131066365804564").messages.post({
     data: {
         content: "\u200B\n:trophy: **Speedrunning**\nGet the **Speedrunning** role and join the fastest podracers in the galaxy on the speedrun.com leaderboards. Check out the latest strats in the <#449375461886132235> channels.",
         components: [
@@ -516,7 +518,7 @@ client.api.channels("444208252541075476").messages.post({
         ]
     }
 })
-client.api.channels("444208252541075476").messages.post({
+client.api.channels("850131066365804564").messages.post({
     data: {
         content: "\u200B\n:joystick: **Platform Roles**\nWhat platform do you use to play Racer? Rep it with a free role.",
         components: [
