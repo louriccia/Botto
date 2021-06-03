@@ -396,7 +396,7 @@ module.exports = {
                                 if (c !== Number(player)) {
                                     if (stats.co_comm[c] == undefined) {
                                         stats.co_comm[c] = 1
-                                    } else if (stats.co_comm[c] == !undefined) {
+                                    } else if (stats.co_comm[c] !== undefined) {
                                         stats.co_comm[c]++
                                     }
                                 }
@@ -406,7 +406,7 @@ module.exports = {
                                 var p = tourney_matches_data[m].players[pla[j]]
                                 if (stats.comm_player[p.player] == undefined) {
                                     stats.comm_player[p.player] = 1
-                                } else if (stats.comm_player[p.player] == !undefined) {
+                                } else if (stats.comm_player[p.player] !== undefined) {
                                     stats.comm_player[p.player]++
                                 }
                             }
@@ -588,7 +588,7 @@ module.exports = {
                         var o_time = null
                         var o_player = null
                         for (j = 0; j < ttl.length; j++) {
-                            var t = e.total[ttl[j]]
+                            var t = m.total[ttl[j]]
                             if (ttl[j] == player) {
                                 p_time = t
                             } else {
