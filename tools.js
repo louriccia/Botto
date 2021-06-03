@@ -627,13 +627,23 @@ module.exports = {
             }
         }
         
-        var stateInitialPass = createState(0.0, 0.0, 0.0, 0.0, 0.0, 100.0, 0.0, false, true, false, 'u',false)
+        var stateInitialPass = createState(
+            0, //frame
+            0.0, //raceTime
+            0.0, //distanceTravelled
+            0.0, //speedValue
+            0.0, //boostCharge
+            100.0, //heat
+            0.0, //boostValue
+            false, //isBoosting
+            true, //isBoostStart
+            false, //isBoostStartEnded
+            'd', //nosePosition
+            false //isTrackFinished
+        )
 
         
-
         var lastBoostFrame = [0, 0, 0] //[boost_start_frame, boost_end_frame, track_end_frame]
-        
-        
         
         initialPass()
 
