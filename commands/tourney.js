@@ -656,11 +656,13 @@ module.exports = {
                     rivalries.sort(function (a, b) {
                         return a.gap - b.gap;
                     })
+                    console.log(rivalries)
                     var rivals = []
                     for (var i = 0; i < 2; i++) {
-                        rivals.push(rivalries[i].opponent)
                         if (i = rivalries.length) {
                             i = 2
+                        } else {
+                            rivals.push(rivalries[i].opponent)
                         }
                     }
                     console.log(stats)
