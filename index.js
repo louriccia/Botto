@@ -18,7 +18,8 @@ for (const file of buttonFiles) {
     const button = require(`./buttons/${file}`);
     client.buttons.set(button.name, button);
 }
-
+console.log(client.commands)
+console.log(client.buttons)
 var firebase = require("firebase/app");
 require('firebase/auth');
 require('firebase/database');
@@ -117,6 +118,7 @@ client.ws.on('INTERACTION_CREATE', async interaction => {
         console.log(split)
         const button = split[0]
         const args = split.slice(1)
+        console.log(button)
         //button handler
         //if (!client.buttons.has(button))return;
         try {
