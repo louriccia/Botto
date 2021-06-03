@@ -623,7 +623,7 @@ module.exports = {
                 noseMultiplier: calculateNoseMultiplier(nosePosition),
                 isTrackFinished: isTrackFinished,
 
-                combinedSpeed: baseSpeed + boostSpeed
+                combinedSpeed: this.baseSpeed + this.boostSpeed
             }
         }
         
