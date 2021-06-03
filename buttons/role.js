@@ -1,10 +1,8 @@
 module.exports = {
     name: 'role',
     execute(client, interaction, args) {
-        const myEmbed = new Discord.MessageEmbed()
         var tools = require('./../tools.js');
         const Discord = require('discord.js');
-        const myEmbed = new Discord.MessageEmbed()
         const Guild = client.guilds.cache.get(interaction.guild_id); // Getting the guild.
         const Member = Guild.members.cache.get(interaction.member.user.id); // Getting the member.
         var content = ""
