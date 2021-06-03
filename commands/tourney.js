@@ -474,11 +474,11 @@ module.exports = {
                         if (race_summary[r.datetime] == undefined) {
                             race_summary[r.datetime] = { total: {} }
                         }
-                        if (r.time !== undefined && r.time !== "") {
+                        if (r.totaltime !== undefined && r.totaltime !== "") {
                             if (race_summary[r.datetime].total[r.player] == undefined) {
-                                race_summary[r.datetime].total[r.player] = r.time
+                                race_summary[r.datetime].total[r.player] = r.totaltime
                             } else if (race_summary[r.datetime].total[r.player] !== undefined) {
-                                race_summary[r.datetime].total[r.player] += r.time
+                                race_summary[r.datetime].total[r.player] += r.totaltime
                             }
                         }
                         if (race_summary[r.datetime][r.race] == undefined) {
@@ -640,23 +640,35 @@ module.exports = {
                         }
                         )
                     }
+                    console.log(stats)
                     var rvl = Object.keys(stats.opponent.rivalries)
+                    console.log(rvl)
                     var rivalries = []
                     for (i = 0; i < rvl.length; i++) {
                         var r = stats.opponent.rivalries[rvl[i]]
+                        console.log(r)
                         var sum = 0
-                        for (j = 0; j < r.length; r++) {
+                        for (j = 0; j < r.length; j++) {
                             sum += r[j]
                         }
                         var avg = sum / r.length
-                        rivalries.push({ opponent: rvl[i], gap: avg })
+                        if (r.length > 0) {
+                            rivalries.push({ opponent: rvl[i], gap: avg })
+                        }
                     }
                     rivalries.sort(function (a, b) {
-                        return a.count - b.count;
+                        return a.gap - b.gap;
                     })
-
-                    console.log(stats)
-
+                    console.log(rivalries)
+                    var rivals = []
+                    for (var i = 0; i < 2; i++) {
+                        if (i == rivalries.length) {
+                            i = 2
+                        } else {
+                            rivals.push(rivalries[i].opponent)
+                        }
+                    }
+                    
                     tourneyReport
                         .setDescription("Total race time: `" + tools.timefix(stats.race_time) + "`")
                         .addField(":crossed_swords: Matches", "total: `" + stats.matches.total + "`\n" +
@@ -674,17 +686,22 @@ module.exports = {
                         .addField(":asterisk: Forces", "total: `" + (stats.forces.nu + stats.forces.skips) + "`\n" +
                             "skips: `" + stats.forces.skips + "`\n" +
                             "nu: `" + stats.forces.nu + "`", true)
-                        .addField(":microphone2: Commentary", "total: `" + stats.matches_commentated + "`\n" +
+                        if(stats.matches_commentated > 0){
+                            tourneyReport.addField(":microphone2: Commentary", "total: `" + stats.matches_commentated + "`\n" +
                             "fav. co-comm: `" + tourney_participants_data[getMost(stats.co_comm)].name + "`\n" +
                             "fav. player: `" + tourney_participants_data[getMost(stats.comm_player)].name + "`", true)
-
+                        } else {
+                            tourneyReport.addField('\u200B', '\u200B', true)
+                        }
+                        
+                        tourneyReport
                         .addField(":triangular_flag_on_post: Tracks", "most picked:\n" + arraytoTracks(getMultipleMost(stats.track.picks, 3)) + "\n" +
                             "most wins:\n" + arraytoTracks(getMultipleMost(stats.track.wins, 3)) + "\n" +
                             "most losses:\n" + arraytoTracks(getMultipleMost(stats.track.losses, 3)), true)
                         .addField(":no_entry_sign: Bans", "most temp-banned:\n" + arraytoTracks(getMultipleMost(stats.track.tempbans, 3)) + "\n" +
                             arraytoRacers(getMultipleMost(stats.pod_bans, 3)) + "\n" +
                             "most perma-banned:\n" + arraytoTracks(getMultipleMost(stats.track.permabans, 3)), true)
-                        .addField(":vs: Opponents", "closest rivals:\n" + arraytoPlayers(rivalries.slice(0, 2)) + "\n" +
+                        .addField(":vs: Opponents", "closest rivals:\n" + arraytoPlayers(rivals) + "\n" +
                             "most wins vs:\n" + arraytoPlayers(getMultipleMost(stats.opponent.wins, 2)) + "\n" +
                             "most losses vs:\n" + arraytoPlayers(getMultipleMost(stats.opponent.losses, 2)), true)
 
