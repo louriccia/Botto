@@ -144,3 +144,98 @@ client.api.channels("850131066365804564").messages.post({
         ]
     }
 })
+
+
+//set up role claim message
+const channelId = '442116200147714049'
+
+const getEmoji = (emojiName) =>
+    client.emojis.cache.find((emoji) => emoji.name === emojiName)
+
+const addReactions = (message, reactions) => {
+    message.react(reactions[0])
+    reactions.shift()
+    if (reactions.length > 0) {
+        setTimeout(() => addReactions(message, reactions), 750)
+    }
+}
+
+const emojis = {
+    "🏁": 'Multiplayer',
+    "⚔️": 'Tournament',
+    "🏆": 'Speedrunning',
+    "💿": '💿 PC Player',
+    "🇳": '🕹️ N64 Player',
+    "🇩": '🕹️ Dreamcast Player',
+    "🇸": '🎮 Switch Player',
+    "🇵": '🎮 PlayStation Player',
+    "🇽": '🎮 Xbox Player'
+}
+
+const reactions = []
+
+let emojiText = ''
+for (const key in emojis) {
+    const emoji = key//getEmoji(key)
+    reactions.push(emoji)
+
+    const role = emojis[key]
+    reactions.push(emoji)
+    emojiText += `${emoji} - ${role}\n`
+}
+var messageID = ""
+client.channels.fetch(channelId).then(c => {
+    c.messages.fetch({ limit: 1 }).then(messages => {
+        let lastMessage = messages.first();
+        if (lastMessage.author.bot) {
+            lastMessage.edit(':busts_in_silhouette: **Self-Roles** \nAdd/remove reactions or use the `/role` command to manage your roles.\n\n' + emojiText)
+                .then(m => {
+                    addReactions(m, reactions)
+                    messageID = lastMessage.id
+                })
+        } else {
+            c.send(':busts_in_silhouette: **Self-Roles** \nAdd/remove reactions or use the `/role` command to manage your roles.\n\n' + emojiText)
+                .then(m => {
+                    addReactions(m, reactions)
+                    messageID = m.id
+                })
+        }
+    })
+})
+
+const handleReaction = (reaction, user, add) => {
+    if (user.id === '545798436105224203') {
+        return
+    }
+
+    const emoji = reaction._emoji.name
+
+    const { guild } = reaction.message
+    const roleName = emojis[emoji]
+    if (!roleName) {
+        return
+    }
+
+    const role = guild.roles.cache.find(role => role.name === roleName)
+    const member = guild.members.cache.find(member => member.id === user.id)
+
+    if (add) {
+        member.roles.add(role)
+    } else {
+        member.roles.remove(role)
+    }
+}
+
+
+
+client.on('messageReactionAdd', (reaction, user) => {
+    if (reaction.message.id === messageID) { //message id goes here
+        handleReaction(reaction, user, true)
+    }
+})
+
+client.on('messageReactionRemove', (reaction, user) => {
+    if (reaction.message.id === messageID) { //message id goes here
+        handleReaction(reaction, user, false)
+    }
+})
