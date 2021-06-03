@@ -573,10 +573,28 @@ module.exports = {
                 var i = 0
                 var maxIterations = 2000
                 var loopAgain = true
-                //for (i = 0; i < 200 && !stateInitialPass.isTrackFinished; i++) { 
+                runTrack(state, statePrev, -1)
+            }
+
+            function secondPass() {
+                var newBoostStartFrame
+                if (lastAverageSpeedIncreaseFrame >= lastTrackEndFrame) { //speed increased
+                    newBoostStartFrame = Math.round(lastBoostStartFrame - (lastAverageSpeedIncreaseFrame - lastTrackEndFrame) / 2)
+                } else
+                {
+                    //ASSUMES not boosting
+                    newBoostStartFrame = Math.round(lastBoostEndFrame - (lastAverageSpeedIncreaseFrame - lastTrackEndFrame) / 2)
+                    //15 - (16 - 20)/2 = 17
+                }
+
+                //incrementFrame(stateNextPass, newBoostStartFrame)
+                runTrack(stateNextPass, stateNextPassPrev, newBoostStartFrame)
+            }
+
+            function runTrack(state, statePrev, injectedBoostFrame) {
                 while (loopAgain) {
                     overwriteState(state, statePrev)
-                    incrementFrame(state, -1)
+                    incrementFrame(state, injectedBoostFrame)
                     /*console.log("frame: " + state.frame + " (" + Math.round(state.raceTime*1000)/1000 + "s)")
                     console.log("combinedSpeed: " + Math.round(state.combinedSpeed*10)/10 + " = " + Math.round(state.baseSpeed*10)/10 + " + " + Math.round(state.boostSpeed*10)/10)
                     //console.log("speedValue: " + state.speedValue + ", boostValue: " + state.boostValue)
@@ -590,20 +608,6 @@ module.exports = {
                         loopAgain = (loopAgain && state.averageSpeed > state.prevAverageSpeed) ? true : false
                     }
                 }
-            }
-
-            function secondPass() {
-                var newBoostStartFrame
-                if (lastAverageSpeedIncreaseFrame >= lastTrackEndFrame) { //speed increased
-                    newBoostStartFrame = Math.round(lastBoostStartFrame - (lastAverageSpeedIncreaseFrame - lastTrackEndFrame) / 2)
-                } else
-                {
-                    //ASSUMES not boosting
-                    newBoostStartFrame = Math.round(lastBoostEndFrame - (lastAverageSpeedIncreaseFrame - lastTrackEndFrame) / 2)
-                    //366 - (379 - 618)/2 = 486
-                }
-
-                incrementFrame(stateNextPass, newBoostStartFrame)
             }
 
             function incrementFrame(state, injectedBoostFrame) {
@@ -835,6 +839,7 @@ module.exports = {
         var stateLastBoostEnd = createClonedState(stateZeroFrame)
         var stateTrackEndFrame = createClonedState(stateZeroFrame)
         var stateNextPass = createClonedState(stateZeroFrame)
+        var stateNextPassPrev = createClonedState(stateZeroFrame)
 
         
         //var lastBoostFrame = [0, 0, 0] //[boost_start_frame, boost_end_frame, track_end_frame]
