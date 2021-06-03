@@ -649,14 +649,21 @@ module.exports = {
                             sum += r[j]
                         }
                         var avg = sum / r.length
-                        rivalries.push({ opponent: rvl[i], gap: avg })
+                        if (r.length > 0) {
+                            rivalries.push({ opponent: rvl[i], gap: avg })
+                        }
                     }
                     rivalries.sort(function (a, b) {
-                        return a.count - b.count;
+                        return a.gap - b.gap;
                     })
-
+                    var rivals = []
+                    for (var i = 0; i < 2; i++) {
+                        rivals.push(rivalries[i].opponent)
+                        if (i = rivalries.length) {
+                            i = 2
+                        }
+                    }
                     console.log(stats)
-
                     tourneyReport
                         .setDescription("Total race time: `" + tools.timefix(stats.race_time) + "`")
                         .addField(":crossed_swords: Matches", "total: `" + stats.matches.total + "`\n" +
@@ -684,7 +691,7 @@ module.exports = {
                         .addField(":no_entry_sign: Bans", "most temp-banned:\n" + arraytoTracks(getMultipleMost(stats.track.tempbans, 3)) + "\n" +
                             arraytoRacers(getMultipleMost(stats.pod_bans, 3)) + "\n" +
                             "most perma-banned:\n" + arraytoTracks(getMultipleMost(stats.track.permabans, 3)), true)
-                        .addField(":vs: Opponents", "closest rivals:\n" + arraytoPlayers(rivalries.slice(0, 2)) + "\n" +
+                        .addField(":vs: Opponents", "closest rivals:\n" + arraytoPlayers(rivals) + "\n" +
                             "most wins vs:\n" + arraytoPlayers(getMultipleMost(stats.opponent.wins, 2)) + "\n" +
                             "most losses vs:\n" + arraytoPlayers(getMultipleMost(stats.opponent.losses, 2)), true)
 
