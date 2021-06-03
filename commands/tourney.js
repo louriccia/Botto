@@ -474,11 +474,11 @@ module.exports = {
                         if (race_summary[r.datetime] == undefined) {
                             race_summary[r.datetime] = { total: {} }
                         }
-                        if (r.time !== undefined && r.time !== "") {
+                        if (r.totaltime !== undefined && r.totaltime !== "") {
                             if (race_summary[r.datetime].total[r.player] == undefined) {
-                                race_summary[r.datetime].total[r.player] = r.time
+                                race_summary[r.datetime].total[r.player] = r.totaltime
                             } else if (race_summary[r.datetime].total[r.player] !== undefined) {
-                                race_summary[r.datetime].total[r.player] += r.time
+                                race_summary[r.datetime].total[r.player] += r.totaltime
                             }
                         }
                         if (race_summary[r.datetime][r.race] == undefined) {
