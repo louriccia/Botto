@@ -844,7 +844,7 @@ module.exports = {
         var lastAverageSpeedIncreaseFrame = 0
         
         initialPass(stateInitialPass, stateInitialPassPrev)
-        //secondPass()
+        secondPass()
 
         //initial pass to find last boost position
         //adjust
