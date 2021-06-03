@@ -452,7 +452,7 @@ client.on('message', message => {
 
 client.api.channels("444208252541075476").messages.post({
     data: {
-        content: ":checkered_flag: **Multiplayer**\nGet the **Multiplayer** role and get notified when someone's hosting a multiplayer race. Read the multiplayer guide to get started: <https://bit.ly/34emHqj>",
+        content: ":checkered_flag: **Multiplayer**\nGet the **Multiplayer** role and get notified when someone's hosting a multiplayer race. Read the multiplayer guide and head to the <#444627151858171934> channel to get started.",
         components: [
             {
                 type: 1,
@@ -462,6 +462,12 @@ client.api.channels("444208252541075476").messages.post({
                         label: "Get the Multiplayer role",
                         style: 1,
                         custom_id: "role_474920988790751232"
+                    },
+                    {
+                        type: 2,
+                        label: "View Multiplayer Guide",
+                        style: 5,
+                        url: "https://bit.ly/34emHqj"
                     }
                 ]
             }
@@ -470,7 +476,7 @@ client.api.channels("444208252541075476").messages.post({
 })
 client.api.channels("444208252541075476").messages.post({
     data: {
-        content: "\u200B\n:crossed_swords: **Tournament Updates**\nGet the **Tournament Updates** role and get notified of tournament matches and announcements. Check out the latest in the <#536455290091077652> channel.",
+        content: "\u200B\n:crossed_swords: **Tournaments**\nGet the **Tournament Updates** role and get notified of tournament matches and announcements. Check out the latest in the <#536455290091077652> channel.",
         components: [
             {
                 type: 1,
@@ -498,6 +504,12 @@ client.api.channels("444208252541075476").messages.post({
                         label: "Get the Speedrunning role",
                         style: 1,
                         custom_id: "role_535973118578130954"
+                    },
+                    {
+                        type: 2,
+                        label: "speedrun.com",
+                        style: 5,
+                        url: "https://www.speedrun.com/swe1r"
                     }
                 ]
             }
