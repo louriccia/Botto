@@ -452,7 +452,7 @@ client.on('message', message => {
 
 client.api.channels("444208252541075476").messages.post({
     data: {
-        content: ":checkered_flag: **Multiplayer**\nGet the **Multiplayer** role and get notified when someone's hosting a multiplayer race. Read the multiplayer guide to get started: https://bit.ly/34emHqj",
+        content: ":checkered_flag: **Multiplayer**\nGet the **Multiplayer** role and get notified when someone's hosting a multiplayer race. Read the multiplayer guide to get started: <https://bit.ly/34emHqj>",
         components: [
             {
                 type: 1,
@@ -470,7 +470,7 @@ client.api.channels("444208252541075476").messages.post({
 })
 client.api.channels("444208252541075476").messages.post({
     data: {
-        content: ":crossed_swords: **Tournament Updates**\nGet the **Tournament Updates** role and get notified of tournament matches and announcements. Check out the latest in the #tournaments channel.",
+        content: "\u200B\n:crossed_swords: **Tournament Updates**\nGet the **Tournament Updates** role and get notified of tournament matches and announcements. Check out the latest in the <#536455290091077652> channel.",
         components: [
             {
                 type: 1,
@@ -479,7 +479,7 @@ client.api.channels("444208252541075476").messages.post({
                         type: 2,
                         label: "Get the Tournament Updates role",
                         style: 1,
-                        custom_id: "role_828723543260659762"
+                        custom_id: "role_841059665474617353"
                     }
                 ]
             }
@@ -488,7 +488,7 @@ client.api.channels("444208252541075476").messages.post({
 })
 client.api.channels("444208252541075476").messages.post({
     data: {
-        content: ":trophy: **Speedrunning**\nGet the **Speedrunning** role and join the fastest podracers in the galaxy on the speedrun.com leaderboards. Check out the latest strats in the <#449375461886132235> channels.",
+        content: "\u200B\n:trophy: **Speedrunning**\nGet the **Speedrunning** role and join the fastest podracers in the galaxy on the speedrun.com leaderboards. Check out the latest strats in the <#449375461886132235> channels.",
         components: [
             {
                 type: 1,
@@ -506,7 +506,7 @@ client.api.channels("444208252541075476").messages.post({
 })
 client.api.channels("444208252541075476").messages.post({
     data: {
-        content: ":joystick: **Platform Roles**\nWhat platform do you use to play Racer? Rep it with a free role.",
+        content: "\u200B\n:joystick: **Platform Roles**\nWhat platform do you use to play Racer? Rep it with a free role.",
         components: [
             {
                 type: 1,
