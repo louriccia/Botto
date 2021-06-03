@@ -6,11 +6,17 @@ var lookup = require("./data.js");
 var tourneylookup = require("./tourneydata.js");
 var tools = require('./tools.js');
 client.commands = new Discord.Collection();
+client.buttons = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+const buttonFiles = fs.readdirSync('./buttons').filter(file => file.endsWith('.js'));
 
 for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
     client.commands.set(command.name, command);
+}
+for (const file of buttonFiles) {
+    const button = require(`./buttons/${file}`);
+    client.buttons.set(button.name, button);
 }
 
 var firebase = require("firebase/app");
@@ -43,8 +49,6 @@ firebase.initializeApp(firebaseConfig);
 var database = admin.database();
 var logref = database.ref('log');
 var errorlogref = database.ref('log/error');
-var weeklychallenges = database.ref('weekly/challenges');
-var weeklyapproved = database.ref('weekly/submissions');
 
 var ref = database.ref('challenge/times');
 ref.on("value", function (snapshot) {
@@ -108,7 +112,16 @@ client.ws.on('INTERACTION_CREATE', async interaction => {
             })
         }
     } else if(interaction.data.hasOwnProperty("custom_id")){
-        console.log(interaction.data.custom_id)
+        var split = interaction.data.custom_id.split("_")
+        const button = split[0]
+        const args = split.slice(1)
+        //button handler
+        if (!client.buttons.has(button)) return;
+        try {
+            client.buttons.get(button).execute(client, interaction, args);
+        } catch (error) {
+            console.error(error);
+        }
     }
 })
 
@@ -172,145 +185,7 @@ client.once('ready', () => {
             }
         }
     });
-/*
-    var msg = new Discord.Message(client, {
-        content: "This is a test message",
-        components: [
-            {
-                type: 1,
-                components: [
-                    {
-                        type: 2,
-                        label: "Click me!",
-                        style: 1,
-                        custom_id: "click_one"
-                    },
-                    {
-                        type: 2,
-                        label: "Emoji Button!",
-                        emoji: {
-                            "id": null,
-                            "name": "🔥"
-                        },
-                        style: 1,
-                        custom_id: "click_one"
-                    }
-                ]
-            }
-        ]
-    })
-    //client.channels.cache.get("545800310283829270").send(msg)*/
 
-    const testEmbed = new Discord.MessageEmbed()
-    testEmbed
-        .setTitle("Test")
-        .setDescription("this is a test")
-
-    client.api.channels("545800310283829270").messages.post({
-        data: {
-            embed: testEmbed,
-            components: [
-                {
-                    type: 1,
-                    components: [
-                        {
-                            type: 2,
-                            label: "🔄",
-                            style: 2,
-                            custom_id: "click_one"
-                        },
-                        {
-                            type: 2,
-                            label: "▶️",
-                            style: 2,
-                            custom_id: "click_one"
-                        },
-                        {
-                            type: 2,
-                            label: "👍",
-                            style: 2,
-                            custom_id: "click_one"
-                        },
-                        {
-                            type: 2,
-                            label: "👎",
-                            style: 2,
-                            custom_id: "click_one"
-                        },
-                    ]
-                },
-                {
-                    type: 1,
-                    components: [
-                        {
-                            type: 2,
-                            label: "",
-                            emoji: {
-                                id: null,
-                                name: "🔄"
-                            },
-                            style: 2,
-                            custom_id: "click_one"
-                        },
-                        {
-                            type: 2,
-                            label: "",
-                            emoji: {
-                                id: null,
-                                name: "▶️"
-                            },
-                            style: 2,
-                            custom_id: "click_one"
-                        },
-                        {
-                            type: 2,
-                            label: "",
-                            emoji: {
-                                id: null,
-                                name: "👍"
-                            },
-                            style: 2,
-                            custom_id: "click_one"
-                        },
-                        {
-                            type: 2,
-                            label: "",
-                            emoji: {
-                                id: null,
-                                name: "👎"
-                            },
-                            style: 2,
-                            custom_id: "click_one"
-                        },
-                    ]
-                },
-                {
-                    type: 1,
-                    components: [
-                        {
-                            type: 2,
-                            label: "Role 7",
-                            style: 2,
-                            custom_id: "click_one"
-                        },
-                        {
-                            type: 2,
-                            label: "Role 8",
-                            style: 2,
-                            custom_id: "click_one"
-                        },
-                        {
-                            type: 2,
-                            label: "Role 9",
-                            style: 2,
-                            custom_id: "click_one"
-                        },
-                    ]
-                }
-            ]
-        }
-        
-    })
     //set up role claim message
     const channelId = '442116200147714049'
 

@@ -668,43 +668,48 @@ module.exports = {
                             rivals.push(rivalries[i].opponent)
                         }
                     }
-                    
-                    tourneyReport
-                        .setDescription("Total race time: `" + tools.timefix(stats.race_time) + "`")
-                        .addField(":crossed_swords: Matches", "total: `" + stats.matches.total + "`\n" +
-                            "wins: `" + stats.matches.won + "`\n" +
-                            "losses: `" + stats.matches.lost + "`", true)
-                        .addField(":checkered_flag: Races", "total: `" + stats.races.total + "`\n" +
-                            "wins: `" + stats.races.won + "`\n" +
-                            "losses: `" + stats.races.lost + "`", true)
-                        .addField(":skull: Deaths", "total: `" + stats.deaths + "`\n" +
-                            "avg: `" + (stats.deaths / stats.races.total).toFixed(1) + "/race`", true)
 
-                        .addField(":trophy: Records", "standard: `" + stats.records.standard + "`\n" +
-                            "skips: `" + stats.records.skips + "`\n" +
-                            "nu: `" + stats.records.nu + "`", true)
-                        .addField(":asterisk: Forces", "total: `" + (stats.forces.nu + stats.forces.skips) + "`\n" +
-                            "skips: `" + stats.forces.skips + "`\n" +
-                            "nu: `" + stats.forces.nu + "`", true)
-                        if(stats.matches_commentated > 0){
-                            tourneyReport.addField(":microphone2: Commentary", "total: `" + stats.matches_commentated + "`\n" +
+
+                    if (stats.matches.total > 0) {
+                        tourneyReport
+                            .setDescription("Total race time: `" + tools.timefix(stats.race_time) + "`")
+                            .addField(":crossed_swords: Matches", "total: `" + stats.matches.total + "`\n" +
+                                "wins: `" + stats.matches.won + "`\n" +
+                                "losses: `" + stats.matches.lost + "`", true)
+                            .addField(":checkered_flag: Races", "total: `" + stats.races.total + "`\n" +
+                                "wins: `" + stats.races.won + "`\n" +
+                                "losses: `" + stats.races.lost + "`", true)
+                            .addField(":skull: Deaths", "total: `" + stats.deaths + "`\n" +
+                                "avg: `" + (stats.deaths / stats.races.total).toFixed(1) + "/race`", true)
+
+                            .addField(":trophy: Records", "standard: `" + stats.records.standard + "`\n" +
+                                "skips: `" + stats.records.skips + "`\n" +
+                                "nu: `" + stats.records.nu + "`", true)
+                            .addField(":asterisk: Forces", "total: `" + (stats.forces.nu + stats.forces.skips) + "`\n" +
+                                "skips: `" + stats.forces.skips + "`\n" +
+                                "nu: `" + stats.forces.nu + "`", true)
+                    }
+
+                    if (stats.matches_commentated > 0) {
+                        tourneyReport.addField(":microphone2: Commentary", "total: `" + stats.matches_commentated + "`\n" +
                             "fav. co-comm: `" + tourney_participants_data[getMost(stats.co_comm)].name + "`\n" +
                             "fav. player: `" + tourney_participants_data[getMost(stats.comm_player)].name + "`", true)
-                        } else {
-                            tourneyReport.addField('\u200B', '\u200B', true)
-                        }
-                        
-                        tourneyReport
-                        .addField(":triangular_flag_on_post: Tracks", "most picked:\n" + arraytoTracks(getMultipleMost(stats.track.picks, 3)) + "\n" +
-                            "most wins:\n" + arraytoTracks(getMultipleMost(stats.track.wins, 3)) + "\n" +
-                            "most losses:\n" + arraytoTracks(getMultipleMost(stats.track.losses, 3)), true)
-                        .addField(":no_entry_sign: Bans", "most temp-banned:\n" + arraytoTracks(getMultipleMost(stats.track.tempbans, 3)) + "\n" +
-                            arraytoRacers(getMultipleMost(stats.pod_bans, 3)) + "\n" +
-                            "most perma-banned:\n" + arraytoTracks(getMultipleMost(stats.track.permabans, 3)), true)
-                        .addField(":vs: Opponents", "closest rivals:\n" + arraytoPlayers(rivals) + "\n" +
-                            "most wins vs:\n" + arraytoPlayers(getMultipleMost(stats.opponent.wins, 2)) + "\n" +
-                            "most losses vs:\n" + arraytoPlayers(getMultipleMost(stats.opponent.losses, 2)), true)
+                    } else {
+                        tourneyReport.addField('\u200B', '\u200B', true)
+                    }
 
+                    if (stats.matches.total > 0) {
+                        tourneyReport
+                            .addField(":triangular_flag_on_post: Tracks", "most picked:\n" + arraytoTracks(getMultipleMost(stats.track.picks, 3)) + "\n" +
+                                "most wins:\n" + arraytoTracks(getMultipleMost(stats.track.wins, 3)) + "\n" +
+                                "most losses:\n" + arraytoTracks(getMultipleMost(stats.track.losses, 3)), true)
+                            .addField(":no_entry_sign: Bans", "most temp-banned:\n" + arraytoTracks(getMultipleMost(stats.track.tempbans, 3)) + "\n" +
+                                arraytoRacers(getMultipleMost(stats.pod_bans, 3)) + "\n" +
+                                "most perma-banned:\n" + arraytoTracks(getMultipleMost(stats.track.permabans, 3)), true)
+                            .addField(":vs: Opponents", "closest rivals:\n" + arraytoPlayers(rivals) + "\n" +
+                                "most wins vs:\n" + arraytoPlayers(getMultipleMost(stats.opponent.wins, 2)) + "\n" +
+                                "most losses vs:\n" + arraytoPlayers(getMultipleMost(stats.opponent.losses, 2)), true)
+                    }
                     return tourneyReport
                 } else {
                     //user has not participated in a tournament

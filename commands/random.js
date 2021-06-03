@@ -123,7 +123,24 @@ module.exports = {
                         type: 4,
                         data: {
                             //content: "",
-                            embeds: [racerEmbed]
+                            embeds: [racerEmbed],
+                            components: [
+                                {
+                                    type: 1,
+                                    components: [
+                                        {
+                                            type: 2,
+                                            label: "Randomize",
+                                            emoji: {
+                                                id: null,
+                                                name: "🎲"
+                                            },
+                                            style: 1,
+                                            custom_id: "random_racer"
+                                        }
+                                    ]
+                                }
+                            ]
                         }
                     }
                 })
