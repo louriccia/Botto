@@ -571,9 +571,7 @@ module.exports = {
         var fps = 10
         var frameTime = 1 / fps
         var maxAllowedHeat = 100.0
-
-        var trackLength = 100000
-
+        
         var statSpeed = 650.0
         var statThrust = 400.0
         var statAccel = 0.9
@@ -604,6 +602,9 @@ module.exports = {
         var noseMultiplier = 1.0
         calculateNoseMultiplier()
 
+        var trackLength = 1000
+        var isTrackFinished = false
+
         function calculateNoseMultiplier() {
             switch (nosePosition) {
                 case 'd':
@@ -620,13 +621,12 @@ module.exports = {
             }
         }
 
-        for (i = 0; i < 50; i++) { 
+        for (i = 0; i < 200 && !isTrackFinished; i++) { 
             incrementFrame()
-            console.log("frame: " + frame + " (" + Math.round(raceTime*1000)/1000 + ")")
-            //console.log("frameTime: " + frameTime)
-            //console.log("raceTime: " + raceTime)
-            console.log("combinedSpeed: " + Math.round(combinedSpeed*10)/10 + " = " + Math.round(baseSpeed*10)/10 + isBoosting ? (" + " + Math.round(boostSpeed*10)/10) : "")
+            console.log("frame: " + frame + " (" + Math.round(raceTime*1000)/1000 + "s)")
+            console.log("combinedSpeed: " + Math.round(combinedSpeed*10)/10 + " = " + Math.round(baseSpeed*10)/10 + " + " + Math.round(boostSpeed*10)/10)
             console.log("heat: " + Math.round(heat*10)/10)
+            console.log("distanceTravelled :" + Math.round(distanceTravelled))
             //console.log("speedValue: " + speedValue)
             //console.log("baseSpeed: " + baseSpeed)
             //console.log("boostValue: " + boostValue)
@@ -679,6 +679,7 @@ module.exports = {
             combinedSpeed = baseSpeed + boostSpeed
             distanceTravelled += combinedSpeed * frameTime
             averageSpeed = distanceTravelled / raceTime
+            isTrackFinished = distanceTravelled >= trackLength ? true : false
         }
 
         return averageSpeed
