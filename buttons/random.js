@@ -1,12 +1,10 @@
-const random = require('../commands/random');
-
 module.exports = {
-    name: '',
+    name: 'random',
     execute(client, interaction, args) {
         const Discord = require('discord.js');
         const myEmbed = new Discord.MessageEmbed()
-        if(args[0] == "racer") {
-            var random_racer = Math.floor(Math.random()*23)
+        if (args[0] == "racer") {
+            var random_racer = Math.floor(Math.random() * 23)
             client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {
                     type: 7,
@@ -33,9 +31,7 @@ module.exports = {
                     }
                 }
             })
-        } else if(args[0]=="") {
+        } else if (args[0] == "") {
         }
-        
     }
-    
 }
