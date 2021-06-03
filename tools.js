@@ -573,19 +573,34 @@ module.exports = {
                 runTrack(state, statePrev, -1)
             }
 
-            function secondPass() {
+            function recursivePass(prevGuessError, i) {
                 var newBoostStartFrame
                 if (lastAverageSpeedIncreaseFrame >= lastTrackEndFrame) { //speed increased
                     newBoostStartFrame = Math.round(lastBoostStartFrame - (lastAverageSpeedIncreaseFrame - lastTrackEndFrame) / 2)
+                    //25 - (38 - 32)/2 = 22
                 } else
                 {
                     //ASSUMES not boosting
                     newBoostStartFrame = Math.round(lastBoostEndFrame - (lastAverageSpeedIncreaseFrame - lastTrackEndFrame) / 2)
-                    //15 - (16 - 20)/2 = 17
                 }
 
                 //incrementFrame(stateNextPass, newBoostStartFrame)
                 runTrack(stateNextPass, stateNextPassPrev, newBoostStartFrame)
+
+                var guessError = lastAverageSpeedIncreaseFrame - lastTrackEndFrame
+                if (i >= 10) { //abort after 10 iterations
+                    return
+                }
+                else if (guessError <= 1) { //desired accuracy reached
+                    return
+                }
+                else if ((prevGuessError > 0 && guessError > prevGuessError) || (prevGuessError < 0 && guessError < prevGuessError) ) { //less accurate
+                    return
+                }
+                else { //more accurate
+                    recursivePass(guessError, i + 1)
+                }
+                
             }
 
             function runTrack(state, statePrev, injectedBoostFrame) {
@@ -716,7 +731,7 @@ module.exports = {
         //flags
         
         //constants
-        var fps = 1
+        var fps = 60
         var frameTime = 1 / fps
         var maxAllowedHeat = 100.0
         var statSpeed = 650.0
@@ -724,7 +739,7 @@ module.exports = {
         var statAccel = 0.9
         var statHeatRate = 8
         var statCoolRate = 10
-        var trackLength = 28000
+        var trackLength = 110037
         
 
         
@@ -849,7 +864,7 @@ module.exports = {
         var lastAverageSpeedIncreaseFrame = 0
         
         initialPass(stateInitialPass, stateInitialPassPrev)
-        secondPass()
+        recursivePass(1000000, 0)
 
         //initial pass to find last boost position
         //adjust
