@@ -118,16 +118,7 @@ client.ws.on('INTERACTION_CREATE', async interaction => {
         const button = split[0]
         const args = split.slice(1)
         //button handler
-        if (!client.buttons.has(button)){
-
-            console.log("button doesn't exist")
-            client.api.interactions(interaction.id, interaction.token).callback.post({
-                data: {
-                    type: 1
-                }
-            })
-            return;
-        } 
+        //if (!client.buttons.has(button))return;
         try {
             client.buttons.get(button).execute(client, interaction, args);
         } catch (error) {
