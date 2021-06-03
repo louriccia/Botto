@@ -574,10 +574,10 @@ module.exports = {
             }
 
             function recursivePass(prevGuessError, i) {
+                console.log("iteration: " + String(i))
                 var newBoostStartFrame
                 if (lastAverageSpeedIncreaseFrame >= lastTrackEndFrame) { //speed increased
                     newBoostStartFrame = Math.round(lastBoostStartFrame - (lastAverageSpeedIncreaseFrame - lastTrackEndFrame) / 2)
-                    //25 - (38 - 32)/2 = 22
                 } else
                 {
                     //ASSUMES not boosting
