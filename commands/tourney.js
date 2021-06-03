@@ -32,7 +32,7 @@ module.exports = {
             console.log("The read failed: " + errorObject);
         });
         const tourneyReport = new Discord.MessageEmbed()
-            .setURL("https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing")
+            //.setURL("https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing")
         if (args[0].name == "leaderboards") {
             var trak = null
             var podfilterout = []
@@ -652,6 +652,55 @@ module.exports = {
                     //user has not participated in a tournament
                 }
             }).then((embed) => sendResponse(embed))
+        } else if (args[0].name == "schedule") {
+            const rp = require('request-promise');
+            const $ = require('cheerio');
+            const url = 'http://speedgaming.org/swe1racer/';
+            const fs = require('fs');
+            rp(url)
+                .then(function (html) {
+                    var table = $('tbody', html)
+                    var schedule = []
+                    $('tr', table).each((i, elem) => {
+                        var text = $('td', elem).text().replace(/\t/g, "").split(/\n/)
+                        for (var i = 0; i < text.length; i++) {
+                            if (text[i] == "") {
+                                text.splice(i, 1)
+                                i = i - 1
+                            }
+                        }
+                        schedule.push(text)
+                    })
+                    tourneyReport
+                        .setTitle("Tournament Schedule")
+                        .setURL("http://speedgaming.org/swe1racer/")
+                        .setDescription("Upcoming matches on speedgaming.org/swe1racer")
+                        schedule.splice(0, 1)
+                        if(schedule.length > 1){
+                            for(i = 0; i < schedule.length; i++){
+                                var channel = ""
+                                if(!schedule[i][4].includes("?")){
+                                    channel = "[" + schedule[i][4] + "](twitch.tv/" + schedule[i][4] + ")"
+                                }
+                                tourneyReport
+                                    .addField(schedule[i][0] + schedule[i][1] + "\n" + channel, schedule[i][2],true)
+                                    .addField(":crossed_swords:" + schedule[i][3], ":microphone2:" + schedule[i][5],true)
+                                    .addField('\u200B', '\u200B', true)
+                            }
+                        } else {
+                            tourneyReport.setDescription("No matches are currently scheduled")
+                        }
+                    client.api.interactions(interaction.id, interaction.token).callback.post({
+                        data: {
+                            type: 4,
+                            data: {
+                                //content: content,
+                                //flags: 64
+                                embeds: [tourneyReport]
+                            }
+                        }
+                    })
+                })
         }
     }
 }

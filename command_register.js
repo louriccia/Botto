@@ -2583,6 +2583,13 @@ client.api.applications("545798436105224203").commands.post({
                         required: false
                     }
                 ]
+            },
+            {
+                name: "schedule",
+                description: "get a look at upcoming matches on speedgaming.org",
+                type: 1,
+                options: [
+                ]
             }
         ]
 
