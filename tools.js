@@ -567,65 +567,85 @@ module.exports = {
         return finaltime
     },
     simulateSpeed: function() {
-        var frame = 0
+        function calculateBaseSpeed(speedValue) {
+            return speedValue * statSpeed / (statAccel + speedValue)
+        }
+        
+        function calculateBoostSpeed(boostValue) {
+            return boostValue * statThrust / (boostValue + 0.33)
+        }
+        
+        function calculateNoseMultiplier(nosePosition) {
+            switch (nosePosition) {
+                case 'd':
+                    return 1.32
+                case 'u':
+                    return 0.68
+                default: //generally this is 'n'
+                    return 1.0
+            }
+        }
+
+        //constants
         var fps = 10
         var frameTime = 1 / fps
         var maxAllowedHeat = 100.0
-        
         var statSpeed = 650.0
         var statThrust = 400.0
         var statAccel = 0.9
         var statHeatRate = 8
         var statCoolRate = 10
-
-        var raceTime = 0.0
-        var combinedSpeed = 0.0
-        var distanceTravelled = 0.0
-        var averageSpeed = 0.0
-        var speedValue = 0.0
-        var baseSpeed = 0.0
-        var boostCharge = 0.0
-        
-        //boost stuff
-        var heat = 100
-        var boostValue = 0.0
-        var boostSpeed = 0.0
-        var isBoosting = false
-        var isBoostStart = true
-        var isBoostStartEnded = false //becomes true to prevent boost start if speed later drops below 290
-        var speedTimeMultiplier = 1.5 //4.0 when boosting or boost start, 1.5 otherwise
-
-        var timeElapsedBoosting
-        var timeElapsedNotBoosting
-
-        var nosePosition = 'd' //'d': down, 'u': up, 'n': neutral
-        var noseMultiplier = 1.0
-        calculateNoseMultiplier()
-
         var trackLength = 1000
-        var isTrackFinished = false
+        
 
-        function calculateNoseMultiplier() {
-            switch (nosePosition) {
-                case 'd':
-                    noseMultiplier = 1.32
-                    break
-                case 'u':
-                    noseMultiplier = 0.68
-                    break
-                case 'n':
-                    noseMultiplier = 1.0
-                    break
-                default:
-                    noseMultiplier = 1.0
+        function createState(frame, raceTime, distanceTravelled, speedValue, boostCharge, heat, boostValue, isBoosting, isBoostStart, isBoostStartEnded, nosePosition, isTrackFinished) {
+            return {
+                frame: frame,
+            
+                raceTime: raceTime,
+                combinedSpeed: baseSpeed + boostSpeed,
+                distanceTravelled: distanceTravelled,
+                averageSpeed: distanceTravelled / raceTime,
+                speedValue: speedValue,
+                baseSpeed: calculateBaseSpeed(speedValue),
+                boostCharge: boostCharge,
+                
+                //boost stuff
+                heat: heat,
+                boostValue: boostValue,
+                boostSpeed: calculateBoostSpeed(boostValue),
+                isBoosting: isBoosting,
+                isBoostStart: isBoostStart,
+                isBoostStartEnded: isBoostStartEnded, //becomes true to prevent boost start if speed later drops below 290
+                
+                speedTimeMultiplier: (isBoosting || isBoostStart) ? 4.0 : 1.5, //4.0 when boosting or boost start, 1.5 otherwise
+
+                nosePosition: nosePosition, //'d': down, 'u': up, 'n': neutral
+                noseMultiplier: calculateNoseMultiplier(nosePosition),
+                isTrackFinished: isTrackFinished
             }
         }
+        
+        var stateInitialPass = createState(0.0, 0.0, 0.0, 0.0, 0.0, 100.0, 0.0, false, true, false, 'u',false)
 
-        for (i = 0; i < 200 && !isTrackFinished; i++) { 
+        
+
+        var lastBoostFrame = [0, 0, 0] //[boost_start_frame, boost_end_frame, track_end_frame]
+        
+        
+        
+        initialPass()
+
+
+        //initial pass to find last boost position
+        //adjust
+
+        
+        /*for (i = 0; i < 200 && !isTrackFinished; i++) { 
             incrementFrame()
             console.log("frame: " + frame + " (" + Math.round(raceTime*1000)/1000 + "s)")
             console.log("combinedSpeed: " + Math.round(combinedSpeed*10)/10 + " = " + Math.round(baseSpeed*10)/10 + " + " + Math.round(boostSpeed*10)/10)
-            console.log("heat: " + Math.round(heat*10)/10)
+            //console.log("heat: " + Math.round(heat*10)/10)
             console.log("distanceTravelled :" + Math.round(distanceTravelled))
             //console.log("speedValue: " + speedValue)
             //console.log("baseSpeed: " + baseSpeed)
@@ -633,55 +653,58 @@ module.exports = {
             //console.log("boostSpeed: " + boostSpeed)
             //console.log("isBoostStart: " + isBoostStart)
             //console.log("isBoosting: " + isBoosting)
+        }*/
+
+        function initialPass() {
+            for (i = 0; i < 200 && !stateInitialPass.isTrackFinished; i++) { 
+                incrementFrame(stateInitialPass)
+                console.log("frame: " + stateInitialPass.frame + " (" + Math.round(stateInitialPass.raceTime*1000)/1000 + "s)")
+                console.log("combinedSpeed: " + Math.round(stateInitialPass.combinedSpeed*10)/10 + " = " + Math.round(stateInitialPass.baseSpeed*10)/10 + " + " + Math.round(stateInitialPass.boostSpeed*10)/10)
+            }
         }
 
-        function incrementFrame() {
-            frame++
-            raceTime += frameTime
+        function incrementFrame(state) {
+            state.frame++
+            state.raceTime += frameTime
             
             //booststart
-            if (!isBoostStartEnded && isBoostStart && combinedSpeed > 290) {
-                isBoostStartEnded = true
-                isBoostStart = false
+            if (!state.isBoostStartEnded && state.isBoostStart && state.combinedSpeed > 290) {
+                state.isBoostStartEnded = true
+                state.isBoostStart = false
             }
-            
-            /*if (!isBoostStartEnded) {
-                isBoostStartEnded = (!isBoostStartEnded && combinedSpeed <= 290 && isBoostStart) ? false : true
-                isBoostStart = (!isBoostStartEnded && isBoostStart) ? true : false
-            }*/
             
             //base speed
-            speedTimeMultiplier = (isBoosting || isBoostStart) ? 4.0 : 1.5
-            speedValue += noseMultiplier * frameTime * speedTimeMultiplier
-            baseSpeed = speedValue * statSpeed / (statAccel + speedValue)
+            state.speedTimeMultiplier = (state.isBoosting || state.isBoostStart) ? 4.0 : 1.5
+            state.speedValue += state.noseMultiplier * frameTime * state.speedTimeMultiplier
+            state.baseSpeed = calculateBaseSpeed(state.speedValue)
 
             //boosting
-            boostCharge = Math.min(Math.max((combinedSpeed >= statSpeed * 0.75) ? boostCharge + frameTime : 0, 0), 1)
-            isBoosting = ((isBoosting && heat != 0) || (heat >= maxAllowedHeat && boostCharge == 1)) ? true : false
-            if (isBoosting) {
-                boostValue += 1.5 * frameTime //boosting
-                heat -= statHeatRate * frameTime
+            state.boostCharge = Math.min(Math.max((state.combinedSpeed >= statSpeed * 0.75) ? state.boostCharge + frameTime : 0, 0), 1)
+            state.isBoosting = ((state.isBoosting && state.heat != 0) || (state.heat >= maxAllowedHeat && state.boostCharge == 1)) ? true : false
+            if (state.isBoosting) {
+                state.boostValue += 1.5 * frameTime //boosting
+                state.heat -= statHeatRate * frameTime
             }
             else {
-                if (boostValue >= 0.001) { //decelerating
-                    boostValue *= (1 - (33.33 * frameTime / (33.33 * frameTime + 5)))
+                if (state.boostValue >= 0.001) { //decelerating
+                    state.boostValue *= (1 - (33.33 * frameTime / (33.33 * frameTime + 5)))
                 }
-                else boostValue = 0 //no boost
-                heat += statCoolRate * frameTime
+                else state.boostValue = 0 //no boost
+                state.heat += statCoolRate * frameTime
             }
-            heat = Math.min(Math.max(heat, 0), 100)
-
+            state.heat = Math.min(Math.max(state.heat, 0), 100)
+            
             //boost speed
-            if (isBoosting) timeElapsedBoosting += frameTime
-            else timeElapsedNotBoosting += frameTime
-            boostSpeed = boostValue * statThrust / (boostValue + 0.33)
+            /*if (state.isBoosting) timeElapsedBoosting += frameTime
+            else timeElapsedNotBoosting += frameTime*/ //not sure I need this block
+            state.boostSpeed = calculateBoostSpeed(state.boostValue)
 
-            combinedSpeed = baseSpeed + boostSpeed
-            distanceTravelled += combinedSpeed * frameTime
-            averageSpeed = distanceTravelled / raceTime
-            isTrackFinished = distanceTravelled >= trackLength ? true : false
+            state.combinedSpeed = state.baseSpeed + state.boostSpeed
+            state.distanceTravelled += state.combinedSpeed * frameTime
+            state.averageSpeed = state.distanceTravelled / state.raceTime
+            state.isTrackFinished = state.distanceTravelled >= trackLength ? true : false
         }
 
-        return averageSpeed
+        return state.averageSpeed
     }
 }
