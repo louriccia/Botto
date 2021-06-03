@@ -648,7 +648,7 @@ module.exports = {
                         var r = stats.opponent.rivalries[rvl[i]]
                         console.log(r)
                         var sum = 0
-                        for (j = 0; j < r.length; j++) {
+                        for (j = 0; j < r.length; r++) {
                             sum += r[j]
                         }
                         var avg = sum / r.length
@@ -686,10 +686,15 @@ module.exports = {
                         .addField(":asterisk: Forces", "total: `" + (stats.forces.nu + stats.forces.skips) + "`\n" +
                             "skips: `" + stats.forces.skips + "`\n" +
                             "nu: `" + stats.forces.nu + "`", true)
-                        .addField(":microphone2: Commentary", "total: `" + stats.matches_commentated + "`\n" +
+                        if(stats.matches_commentated > 0){
+                            tourneyReport.addField(":microphone2: Commentary", "total: `" + stats.matches_commentated + "`\n" +
                             "fav. co-comm: `" + tourney_participants_data[getMost(stats.co_comm)].name + "`\n" +
                             "fav. player: `" + tourney_participants_data[getMost(stats.comm_player)].name + "`", true)
-
+                        } else {
+                            tourneyReport.addField('\u200B', '\u200B', true)
+                        }
+                        
+                        tourneyReport
                         .addField(":triangular_flag_on_post: Tracks", "most picked:\n" + arraytoTracks(getMultipleMost(stats.track.picks, 3)) + "\n" +
                             "most wins:\n" + arraytoTracks(getMultipleMost(stats.track.wins, 3)) + "\n" +
                             "most losses:\n" + arraytoTracks(getMultipleMost(stats.track.losses, 3)), true)
