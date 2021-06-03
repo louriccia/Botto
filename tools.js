@@ -568,7 +568,7 @@ module.exports = {
     },
     simulateSpeed: function() {
         var frame = 0
-        var fps = 25
+        var fps = 10
         var frameTime = 1 / fps
         var maxAllowedHeat = 100.0
 
@@ -620,18 +620,19 @@ module.exports = {
             }
         }
 
-        for (i = 0; i < 200; i++) { 
+        for (i = 0; i < 50; i++) { 
             incrementFrame()
             console.log("frame: " + frame + " (" + Math.round(raceTime*1000)/1000 + ")")
             //console.log("frameTime: " + frameTime)
             //console.log("raceTime: " + raceTime)
-            console.log("combinedSpeed: " + Math.round(combinedSpeed*10)/10 + " = " + Math.round(baseSpeed*10)/10 + " + " + Math.round(boostSpeed*10)/10)
+            console.log("combinedSpeed: " + Math.round(combinedSpeed*10)/10 + " = " + Math.round(baseSpeed*10)/10 + isBoosting ? (" + " + Math.round(boostSpeed*10)/10) : "")
+            console.log("heat: " + Math.round(heat*10)/10)
             //console.log("speedValue: " + speedValue)
             //console.log("baseSpeed: " + baseSpeed)
             //console.log("boostValue: " + boostValue)
             //console.log("boostSpeed: " + boostSpeed)
             //console.log("isBoostStart: " + isBoostStart)
-            console.log("isBoosting: " + isBoosting)
+            //console.log("isBoosting: " + isBoosting)
         }
 
         function incrementFrame() {
@@ -656,7 +657,7 @@ module.exports = {
 
             //boosting
             boostCharge = Math.min(Math.max((combinedSpeed >= statSpeed * 0.75) ? boostCharge + frameTime : 0, 0), 1)
-            isBoosting = ((isBoosting && heat != 0)||(heat >= maxAllowedHeat && boostCharge == 1)) ? true : false
+            isBoosting = ((isBoosting && heat != 0) || (heat >= maxAllowedHeat && boostCharge == 1)) ? true : false
             if (isBoosting) {
                 boostValue += 1.5 * frameTime //boosting
                 heat -= statHeatRate
