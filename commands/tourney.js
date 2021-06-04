@@ -753,8 +753,8 @@ module.exports = {
                         arrow = ":small_red_triangle_down:"
                     }
                     tourneyRanks
-                        .addField(tourney_participants_data[rnk_vals[i].player].name, Math.round(rnk_vals[i].rank), true)
-                        .addField("`" + rnk_vals[i].matches + " matches`", arrow + " " + Math.round(rnk_vals[i].change) , true)
+                        .addField(tourney_participants_data[rnk_vals[i].player].name, "`" + rnk_vals[i].matches + " matches`", true)
+                        .addField(Math.round(rnk_vals[i].rank), arrow + " " + Math.round(rnk_vals[i].change) , true)
                         .addField('\u200B', '\u200B', true)
                 }
                 return tourneyRanks
