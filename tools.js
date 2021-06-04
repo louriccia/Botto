@@ -415,8 +415,6 @@ module.exports = {
                         s1 = 0
                         s2 = 1
                     }
-                    console.log(r1, p1, k1, s1)
-                    console.log(r2, p2, k2, s2)
                     ranks[players[0].player].rank += k1*(s1 - p1)
                     ranks[players[1].player].rank += k2*(s2 - p2)
                     ranks[players[0].player].change = k1*(s1 - p1)
@@ -426,7 +424,7 @@ module.exports = {
                 }
             }
         }
-        console.log(ranks)
+        return ranks
     },
     getGoalTime: function(track, racer, acceleration, top_speed, cooling, laps, length_mod, uh_mod, us_mod, deaths) {
         //0. get required values

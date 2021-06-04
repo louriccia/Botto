@@ -32,7 +32,7 @@ module.exports = {
             console.log("The read failed: " + errorObject);
         });
 
-        
+
         const tourneyReport = new Discord.MessageEmbed()
         //.setURL("https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing")
         if (args[0].name == "leaderboards") {
@@ -718,7 +718,48 @@ module.exports = {
                 }
             }).then((embed) => sendResponse(embed))
         } else if (args[0].name == "ranks") {
-            tools.getRanks()
+            async function sendCallback() {
+                const wait = client.api.interactions(interaction.id, interaction.token).callback.post({
+                    data: {
+                        type: 5,
+                        data: {
+                            content: "Coming right up..."
+                            //embeds: [racerEmbed]
+                        }
+                    }
+                })
+                return wait
+            }
+            async function sendResponse(embed) {
+                const response = await client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({ data: { embeds: [embed] } })
+                return response
+            }
+            sendCallback().then(() => {
+                var ranks = tools.getRanks()
+                const tourneyRanks = new Discord.MessageEmbed()
+                tourneyRanks.setTitle("Tourney Rankings")
+
+                var rnk_keys = Object.keys(ranks)
+                var rnk_vals = Object.values(ranks)
+                for(var i = 0; i < rnk_keys.length; i++){
+                    rnk_vals[i].player = rnk_keys[i]
+                }
+                rnk_vals.sort(function (a, b) {
+                    return b.rank - a.rank;
+                })
+                for(var i =0; i < 5; i++){
+                    var arrow = ":small_red_triangle:"
+                    if(rnk_vals[i].change < 0){
+                        arrow = ":small_red_triangle_down:"
+                    }
+                    tourneyRanks
+                        .addField(tourney_participants_data[rnk_vals[i].player].name, Math.round(rnk_vals[i].rank), true)
+                        .addField("`" + rnk_vals[i].matches + " matches`", arrow + " " + Math.round(rnk_vals[i].change) , true)
+                        .addField('\u200B', '\u200B', true)
+                }
+                return tourneyRanks
+                    
+            }).then((embed) => sendResponse(embed))
         } else if (args[0].name == "schedule") {
             const rp = require('request-promise');
             const $ = require('cheerio');
