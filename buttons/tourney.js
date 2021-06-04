@@ -57,12 +57,12 @@ module.exports = {
                             .addField('\u200B', '\u200B', true)
                     }
                 }
-                var previous = true, next = true
+                var previous = false, next = false
                 if(offset < 0){
-                    previous = false
+                    previous = true
                 }
                 if(offset + 1 == pages){
-                    next = false
+                    next = true
                 }
                 tourneyRanks
                 .setFooter("Page " + (offset+1) + " / " + pages)
