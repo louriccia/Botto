@@ -424,6 +424,12 @@ module.exports = {
                 }
             }
         }
+        var rnks = Object.keys(ranks)
+        for(i = 0; i < rnks.length; i++){
+            if(ranks[rnks[i]].matches < 4){
+                delete ranks[rnks[i]]
+            }
+        }
         return ranks
     },
     getGoalTime: function(track, racer, acceleration, top_speed, cooling, laps, length_mod, uh_mod, us_mod, deaths) {
