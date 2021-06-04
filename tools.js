@@ -567,172 +567,10 @@ module.exports = {
         return finaltime
     },
     simulateSpeed: function() {
-        //all sub-functions
-        {
-            function initialPass(state, statePrev) {
-                runTrack(state, statePrev, -1)
-            }
-
-            function recursivePass(prevGuessError, i) {
-                console.log("iteration: " + String(i))
-                console.log("average speed" + stateTrackEndFrame.averageSpeed)
-                var newBoostStartFrame
-                if (lastAverageSpeedIncreaseFrame >= lastTrackEndFrame) { //speed increased
-                    newBoostStartFrame = Math.round(lastBoostStartFrame - (lastAverageSpeedIncreaseFrame - lastTrackEndFrame) / 2)
-                } else
-                {
-                    //ASSUMES not boosting
-                    newBoostStartFrame = Math.round(lastBoostEndFrame - (lastAverageSpeedIncreaseFrame - lastTrackEndFrame) / 2)
-                }
-
-                //incrementFrame(stateNextPass, newBoostStartFrame)
-                runTrack(stateNextPass, stateNextPassPrev, newBoostStartFrame)
-
-                var guessError = lastAverageSpeedIncreaseFrame - lastTrackEndFrame
-                if (i >= 10) { //abort after 10 iterations
-                    return
-                }
-                else if (guessError <= 1) { //desired accuracy reached
-                    return
-                }
-                else if ((prevGuessError > 0 && guessError > prevGuessError) || (prevGuessError < 0 && guessError < prevGuessError) ) { //less accurate
-                    return
-                }
-                else { //more accurate
-                    recursivePass(guessError, i + 1)
-                }
-                
-            }
-
-            function runTrack(state, statePrev, injectedBoostFrame) {
-                var i = 0
-                var maxIterations = 2000
-                var loopAgain = true
-                while (loopAgain) {
-                    overwriteState(state, statePrev)
-                    incrementFrame(state, injectedBoostFrame)
-                    /*console.log("frame: " + state.frame + " (" + Math.round(state.raceTime*1000)/1000 + "s)")
-                    console.log("combinedSpeed: " + Math.round(state.combinedSpeed*10)/10 + " = " + Math.round(state.baseSpeed*10)/10 + " + " + Math.round(state.boostSpeed*10)/10)
-                    //console.log("speedValue: " + state.speedValue + ", boostValue: " + state.boostValue)
-                    //console.log("isBoostStart: " + state.isBoostStart + ", isBoostStartEnded: " + state.isBoostStartEnded)
-                    console.log("distance travelled: " + Math.round(state.distanceTravelled*10)/10 + ", track finished?: " + state.isTrackFinished)*/
-
-                    //determine whether to loop again
-                    i++
-                    loopAgain = (loopAgain && i < maxIterations) ? true : false
-                    if (state.isTrackFinished) { //continue running after track finish until average speed drops
-                        loopAgain = (loopAgain && state.averageSpeed > state.prevAverageSpeed) ? true : false
-                    }
-                }
-            }
-
-            function incrementFrame(state, injectedBoostFrame) {
-                state.frame++
-                state.raceTime += frameTime
-                
-                //booststart
-                {
-                    if (!state.isBoostStartEnded && state.isBoostStart && state.combinedSpeed > 290) {
-                        state.isBoostStartEnded = true
-                        state.isBoostStart = false
-                    }
-                }
-                
-                //base speed
-                {
-                    state.speedTimeMultiplier = (state.isBoosting || state.isBoostStart) ? 4.0 : 1.5
-                    state.speedValue += state.noseMultiplier * frameTime * state.speedTimeMultiplier
-                    state.baseSpeed = calculateBaseSpeed(state.speedValue)
-                }
-
-                //check if should boost
-                {
-                    //boost charge
-                    if (state.combinedSpeed >= statSpeed * 0.75) {
-                        state.boostCharge = Math.min(Math.max(state.boostCharge + frameTime , 0), 1)
-                    }
-                    //toggle boost
-                    var prevIsBoosting = state.isBoosting
-                    if (state.heat >= maxAllowedHeat && state.boostCharge == 1) { //boost if boost is ready
-                        state.isBoosting = true
-                    } else if (state.isBoosting && state.heat != 0) { //boost until heat == 0
-                        state.isBoosting = true
-                    } else if (state.frame == injectedBoostFrame) { //manually boost on frame
-                        state.isBoosting = true
-                    } else {
-                        state.isBoosting = false
-                    }
-                    state.isBoosting = ((state.isBoosting && state.heat != 0) || (state.heat >= maxAllowedHeat && state.boostCharge == 1)) ? true : false
-                    if (!prevIsBoosting && state.isBoosting) { //boost just started
-                        lastBoostStartFrame = state.frame
-                        overwriteState(state, stateLastBoostStart)
-                    }
-                    else if (prevIsBoosting && !state.isBoosting) { //boost just ended
-                        lastBoostEndFrame = state.frame -1
-                        overwriteState(state, stateLastBoostEnd)
-                    }
-                }
-
-                //handle the effects of boost
-                {
-                    if (state.isBoosting) {
-                        state.boostValue += 1.5 * frameTime //boosting
-                        state.heat -= statHeatRate * frameTime
-                    }
-                    else {
-                        if (state.boostValue >= 0.001) { //decelerating
-                            state.boostValue *= (1 - (33.33 * frameTime / (33.33 * frameTime + 5)))
-                        }
-                        else state.boostValue = 0 //no boost
-                        state.heat += statCoolRate * frameTime
-                    }
-                    state.heat = Math.min(Math.max(state.heat, 0), 100)
-                    state.boostSpeed = calculateBoostSpeed(state.boostValue)
-                }
-                
-                state.combinedSpeed = state.baseSpeed + state.boostSpeed
-                
-                //track stuff
-                {
-                    state.distanceTravelled += state.combinedSpeed * frameTime
-                    state.prevAverageSpeed = state.averageSpeed
-                    state.averageSpeed = state.distanceTravelled / state.raceTime
-                    lastAverageSpeedIncreaseFrame = (state.averageSpeed > state.prevAverageSpeed) ? state.frame : lastAverageSpeedIncreaseFrame
-
-                    var prevIsTrackFinished = state.isTrackFinished
-                    state.isTrackFinished = state.distanceTravelled >= trackLength ? true : false
-                    if (!prevIsTrackFinished && state.isTrackFinished) { //track just ended
-                        lastTrackEndFrame = state.frame
-                        state.averageSpeedAtTrackEnd = state.averageSpeed
-                        overwriteState(state, stateTrackEndFrame)
-                    }
-                }
-            }
-
-            function calculateBaseSpeed(speedValue) {
-                return speedValue * statSpeed / (statAccel + speedValue)
-            }
-            
-            function calculateBoostSpeed(boostValue) {
-                return boostValue * statThrust / (boostValue + 0.33)
-            }
-            
-            function calculateNoseMultiplier(nosePosition) {
-                switch (nosePosition) {
-                    case 'd':
-                        return 1.32
-                    case 'u':
-                        return 0.68
-                    default: //generally this is 'n'
-                        return 1.0
-                }
-            }
-        }
-        
         //flags
         
         //constants
-        var fps = 60
+        var fps = 24
         var frameTime = 1 / fps
         var maxAllowedHeat = 100.0
         var statSpeed = 650.0
@@ -740,12 +578,118 @@ module.exports = {
         var statAccel = 0.9
         var statHeatRate = 8
         var statCoolRate = 10
-        var trackLength = 110037
+        var trackLength = 20250
+        
+        const stateZeroFrame = createState(
+            0, //frame
+            0.0, //raceTime
+            0.0, //distanceTravelled
+            0.0, //speedValue
+            0.0, //boostCharge
+            100.0, //heat
+            0.0, //boostValue
+            false, //isBoosting
+            true, //isBoostStart
+            false, //isBoostStartEnded
+            'd', //nosePosition
+            false //isTrackFinished
+        )
+        var stateInitialPass = createClonedState(stateZeroFrame)
+        var stateInitialPassPrev = createClonedState(stateZeroFrame)
+        var stateLastBoostStart = createClonedState(stateZeroFrame)
+        var stateLastBoostEnd = createClonedState(stateZeroFrame)
+        var stateTrackEndFrame = createClonedState(stateZeroFrame)
+        var stateNextPass = createClonedState(stateZeroFrame)
+        var stateNextPassPrev = createClonedState(stateZeroFrame)
+
+        
+        //var lastBoostFrame = [0, 0, 0] //[boost_start_frame, boost_end_frame, track_end_frame]
+        //var lastBoostStartFrame = 0
+        //var lastBoostEndFrame = 0
+        //var lastTrackEndFrame = 0
+        var lastAverageSpeedIncreaseFrame = 0
+        
+        initialPass(stateInitialPass, stateInitialPassPrev)
+        recursivePass(stateNextPass, stateNextPassPrev, 1000000, 0)
+        
+        return stateNextPass.averageSpeedAtTrackEnd
         
 
         
+        //all functions
+        //core loop functions
+        function initialPass(state, statePrev) {
+            runTrack(state, statePrev, -1)
+            //printState(state)
+        }
+
+        function recursivePass(state, statePrev, prevGuessError, i) {
+            console.log("\niteration: " + String(i))
+            printState(stateTrackEndFrame)
+            console.log("previous guess error: " + prevGuessError)
+            console.log("lastAverageSpeedIncreaseFrame: " + lastAverageSpeedIncreaseFrame)
+            console.log("lastTrackEndFrame: " + stateTrackEndFrame.frame)
+            
+            //console.log("average speed" + stateTrackEndFrame.averageSpeed)
+            var newBoostStartFrame
+            if (lastAverageSpeedIncreaseFrame >= stateTrackEndFrame.frame) { //speed increased
+                newBoostStartFrame = Math.round(stateLastBoostStart.frame - (lastAverageSpeedIncreaseFrame - stateTrackEndFrame.frame) / 2)
+                console.log("lastBoostStartFrame: " + stateLastBoostEnd.frame)
+            } else
+            {
+                newBoostStartFrame = Math.round(stateLastBoostEnd.frame - 1 - (lastAverageSpeedIncreaseFrame - stateTrackEndFrame.frame) / 2)
+                console.log("lastBoostEndFrame: " + stateLastBoostEnd.frame)
+            }
+            console.log("lastAverageSpeedIncreaseFrame" + lastAverageSpeedIncreaseFrame)
+            console.log("lastTrackEndFrame" + stateTrackEndFrame.frame)
+            console.log("newBoostStartFrame: " + stateLastBoostStart.frame)
+            console.log("average speed: " + state.averageSpeedAtTrackEnd)
+            
+            overwriteState(stateZeroFrame, state)
+            overwriteState(stateZeroFrame, statePrev)
+            runTrack(state, statePrev, newBoostStartFrame)
+
+            var guessError = lastAverageSpeedIncreaseFrame - stateTrackEndFrame.frame
+            if (i >= 3) { //abort after 10 iterations
+                return
+            }
+            else if (guessError <= 1) { //desired accuracy reached
+                return
+            }
+            else if ((prevGuessError > 0 && guessError > prevGuessError) || (prevGuessError < 0 && guessError < prevGuessError) ) { //less accurate
+                return
+            }
+            else { //more accurate
+                recursivePass(state, statePrev, guessError, i + 1)
+            }
+            
+        }
+
+        function runTrack(state, statePrev, injectedBoostFrame) {
+            var i = 0
+            var maxFrames = 200000
+            var loopAgain = true
+            while (loopAgain) {
+                overwriteState(state, statePrev)
+                incrementFrame(state, injectedBoostFrame)
+                /*console.log("frame: " + state.frame + " (" + Math.round(state.raceTime*1000)/1000 + "s)")
+                console.log("combinedSpeed: " + Math.round(state.combinedSpeed*10)/10 + " = " + Math.round(state.baseSpeed*10)/10 + " + " + Math.round(state.boostSpeed*10)/10)
+                //console.log("speedValue: " + state.speedValue + ", boostValue: " + state.boostValue)
+                //console.log("isBoostStart: " + state.isBoostStart + ", isBoostStartEnded: " + state.isBoostStartEnded)
+                console.log("distance travelled: " + Math.round(state.distanceTravelled*10)/10 + ", track finished?: " + state.isTrackFinished)*/
+
+                //determine whether to loop again
+                i++
+                loopAgain = (loopAgain && i < maxFrames) ? true : false
+                if (state.isTrackFinished) { //continue running after track finish until average speed drops
+                    loopAgain = (loopAgain && state.averageSpeed > state.prevAverageSpeed) ? true : false
+                }
+            }
+        }
         
-        //the data object
+        
+        
+        //data (object) functions
         function createState(frame, raceTime, distanceTravelled, speedValue, boostCharge, heat, boostValue, isBoosting, isBoostStart, isBoostStartEnded, nosePosition, isTrackFinished) {
             return {
                 frame: frame,
@@ -820,11 +764,11 @@ module.exports = {
             destinationState.boostSpeed = sourceState.boostSpeed,
             destinationState.isBoosting = sourceState.isBoosting,
             destinationState.isBoostStart = sourceState.isBoostStart,
-            destinationState.isBoostStartEnded = sourceState.isBoostStartEnded, //becomes true to prevent boost start if speed later drops below 290
+            destinationState.isBoostStartEnded = sourceState.isBoostStartEnded,
             
-            destinationState.speedTimeMultiplier = sourceState.speedTimeMultiplier, //4.0 when boosting or boost start, 1.5 otherwise
+            destinationState.speedTimeMultiplier = sourceState.speedTimeMultiplier,
 
-            destinationState.nosePosition = sourceState.nosePosition, //'d': down, 'u': up, 'n': neutral
+            destinationState.nosePosition = sourceState.nosePosition,
             destinationState.noseMultiplier = sourceState.noseMultiplier,
             destinationState.isTrackFinished = sourceState.isTrackFinished,
 
@@ -835,49 +779,143 @@ module.exports = {
             destinationState.prevAverageSpeed = sourceState.prevAverageSpeed
         }
 
-        const stateZeroFrame = createState(
-            0, //frame
-            0.0, //raceTime
-            0.0, //distanceTravelled
-            0.0, //speedValue
-            0.0, //boostCharge
-            100.0, //heat
-            0.0, //boostValue
-            false, //isBoosting
-            true, //isBoostStart
-            false, //isBoostStartEnded
-            'd', //nosePosition
-            false //isTrackFinished
-        )
-        var stateInitialPass = createClonedState(stateZeroFrame)
-        var stateInitialPassPrev = createClonedState(stateZeroFrame)
-        var stateLastBoostStart = createClonedState(stateZeroFrame)
-        var stateLastBoostEnd = createClonedState(stateZeroFrame)
-        var stateTrackEndFrame = createClonedState(stateZeroFrame)
-        var stateNextPass = createClonedState(stateZeroFrame)
-        var stateNextPassPrev = createClonedState(stateZeroFrame)
+        function printState(state) {
+            console.log(String("frame: " + state.frame))
+            
+            console.log(String("raceTime: " + state.raceTime))
+            console.log(String("speedValue: " + state.speedValue))
+            console.log(String("baseSpeed: " + state.baseSpeed))
+            console.log(String("boostCharge: " + state.boostCharge))
+            
+            console.log(String("heat: " + state.heat))
+            console.log(String("boostValue: " + state.boostValue))
+            console.log(String("boostSpeed: " + state.boostSpeed))
+            console.log(String("isBoosting: " + state.isBoosting))
+            console.log(String("isBoostStart: " + state.isBoostStart))
+            console.log(String("isBoostStartEnded: " + state.isBoostStartEnded))
+            
+            console.log(String("speedTimeMultiplier: " + state.speedTimeMultiplier))
 
-        
-        //var lastBoostFrame = [0, 0, 0] //[boost_start_frame, boost_end_frame, track_end_frame]
-        var lastBoostStartFrame = 0
-        var lastBoostEndFrame = 0
-        var lastTrackEndFrame = 0
-        var lastAverageSpeedIncreaseFrame = 0
-        
-        initialPass(stateInitialPass, stateInitialPassPrev)
-        recursivePass(1000000, 0)
+            console.log(String("nosePosition: " + state.nosePosition))
+            console.log(String("noseMultiplier: " + state.noseMultiplier))
+            console.log(String("isTrackFinished: " + state.isTrackFinished))
 
-        //initial pass to find last boost position
-        //adjust
-
+            console.log(String("combinedSpeed: " + state.combinedSpeed))
+            console.log(String("distanceTravelled: " + state.distanceTravelled))
+            console.log(String("averageSpeed: " + state.averageSpeed))
+            console.log(String("averageSpeedAtTrackEnd: " + state.averageSpeedAtTrackEnd))
+            console.log(String("prevAverageSpeed: " + state.prevAverageSpeed))
+        }
         
-        
+        //speed functions
+        function incrementFrame(state, injectedBoostFrame) {
+            state.frame++
+            state.raceTime += frameTime
+            
+            //booststart
+            {
+                if (!state.isBoostStartEnded && state.isBoostStart && state.combinedSpeed > 290) {
+                    state.isBoostStartEnded = true
+                    state.isBoostStart = false
+                }
+            }
+            
+            //base speed
+            {
+                state.speedTimeMultiplier = (state.isBoosting || state.isBoostStart) ? 4.0 : 1.5
+                state.speedValue += state.noseMultiplier * frameTime * state.speedTimeMultiplier
+                state.baseSpeed = calculateBaseSpeed(state.speedValue)
+            }
 
-        return stateTrackEndFrame.averageSpeed
+            //check if should boost
+            {
+                //boost charge
+                if (state.combinedSpeed >= statSpeed * 0.75) {
+                    state.boostCharge = Math.min(Math.max(state.boostCharge + frameTime , 0), 1)
+                }
+                //toggle boost
+                var prevIsBoosting = state.isBoosting
+                if (state.heat >= maxAllowedHeat && state.boostCharge == 1) { //boost if boost is ready
+                    state.isBoosting = true
+                } else if (state.isBoosting && state.heat != 0) { //boost until heat == 0
+                    state.isBoosting = true
+                } else if (state.frame == injectedBoostFrame) { //manually boost on frame
+                    state.isBoosting = true
+                } else {
+                    state.isBoosting = false
+                }
+                //delete after validation//state.isBoosting = ((state.isBoosting && state.heat != 0) || (state.heat >= maxAllowedHeat && state.boostCharge == 1)) ? true : false
+                if (!prevIsBoosting && state.isBoosting) { //boost just started
+                    //lastBoostStartFrame = state.frame
+                    overwriteState(state, stateLastBoostStart)
+                }
+                else if (prevIsBoosting && !state.isBoosting) { //boost just ended
+                    //lastBoostEndFrame = state.frame -1
+                    overwriteState(state, stateLastBoostEnd)
+                }
+            }
 
+            //handle the effects of boost
+            {
+                if (state.isBoosting) {
+                    state.boostValue += 1.5 * frameTime //boosting
+                    state.heat -= statHeatRate * frameTime
+                }
+                else {
+                    if (state.boostValue >= 0.001) { //decelerating
+                        state.boostValue *= (1 - (33.33 * frameTime / (33.33 * frameTime + 5)))
+                    }
+                    else state.boostValue = 0 //no boost
+                    state.heat += statCoolRate * frameTime
+                }
+                state.heat = Math.min(Math.max(state.heat, 0), 100)
+                state.boostSpeed = calculateBoostSpeed(state.boostValue)
+            }
+            
+            state.combinedSpeed = state.baseSpeed + state.boostSpeed
+            
+            //track stuff
+            {
+                state.distanceTravelled += state.combinedSpeed * frameTime
+                state.prevAverageSpeed = state.averageSpeed
+                state.averageSpeed = state.distanceTravelled / state.raceTime
+                lastAverageSpeedIncreaseFrame = (state.averageSpeed > state.prevAverageSpeed) ? state.frame : lastAverageSpeedIncreaseFrame
+
+                var prevIsTrackFinished = state.isTrackFinished
+                state.isTrackFinished = state.distanceTravelled >= trackLength ? true : false
+                if (!prevIsTrackFinished && state.isTrackFinished) { //track just ended
+                    //lastTrackEndFrame = state.frame
+                    state.averageSpeedAtTrackEnd = state.averageSpeed
+                    overwriteState(state, stateTrackEndFrame)
+                }
+            }
+            
+
+            
+        }
+        function calculateBaseSpeed(speedValue) {
+            return speedValue * statSpeed / (statAccel + speedValue)
+        }
         
+        function calculateBoostSpeed(boostValue) {
+            return boostValue * statThrust / (boostValue + 0.33)
+        }
+        
+        function calculateNoseMultiplier(nosePosition) {
+            switch (nosePosition) {
+                case 'd':
+                    return 1.32
+                case 'u':
+                    return 0.68
+                default: //generally this is 'n'
+                    return 1.0
+            }
+        }
+            
         
     }
     
 
 }
+
+//console.log(String(module.exports.simulateSpeed()))
