@@ -770,7 +770,7 @@ module.exports = {
             sendCallback().then(() => {
                 var ranks = tools.getRanks()
                 const tourneyRanks = new Discord.MessageEmbed()
-                tourneyRanks.setTitle("Tourney Rankings")
+                tourneyRanks.setTitle("Tournament Rankings")
 
                 var rnk_keys = Object.keys(ranks)
                 var rnk_vals = Object.values(ranks)
@@ -806,7 +806,7 @@ module.exports = {
                     }
                 }
                 for(var i =0; i < 5; i++){
-                    if(i = rnk_vals.length){
+                    if(i == rnk_vals.length){
                         i = 5
                     } else {
                         var arrow = ":small_red_triangle:"
@@ -819,7 +819,9 @@ module.exports = {
                             .addField('\u200B', '\u200B', true)
                     }
                 }
-                tourneyRanks.setFooter("Page 1 / " + pages)
+                tourneyRanks
+                .setFooter("Page 1 / " + pages)
+                .setColor("#E75A70")
                 return tourneyRanks
                     
             }).then((embed) => sendResponse(embed))

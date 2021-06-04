@@ -8,7 +8,7 @@ module.exports = {
             if(args[1].startsWith("page")){
                 var ranks = tools.getRanks()
                 const tourneyRanks = new Discord.MessageEmbed()
-                tourneyRanks.setTitle("Tourney Rankings")
+                tourneyRanks.setTitle("Tournament Rankings")
                 var offset = Number(args[1].replace("page", ""))
                 var rnk_keys = Object.keys(ranks)
                 var rnk_vals = Object.values(ranks)
@@ -44,7 +44,7 @@ module.exports = {
                     }
                 }
                 for(var i = 5*offset; i < 5*(1+offset); i++){
-                    if(i = rnk_vals.length){
+                    if(i == rnk_vals.length){
                         i = 5*(1+offset)
                     } else {
                         var arrow = ":small_red_triangle:"
@@ -64,7 +64,9 @@ module.exports = {
                 if(offset + 1 == pages){
                     next = false
                 }
-                tourneyRanks.setFooter("Page " + (offset+1) + " / " + pages)
+                tourneyRanks
+                .setFooter("Page " + (offset+1) + " / " + pages)
+                .setColor("#E75A70")
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
                         type: 7,
@@ -83,7 +85,7 @@ module.exports = {
                                                 name: "◀️"
                                             },
                                             style: 2,
-                                            custom_id: "tourney_ranks_page" + offset -1,
+                                            custom_id: "tourney_ranks_page" + (offset -1),
                                             disabled: previous
                                         },
                                         {
@@ -94,7 +96,7 @@ module.exports = {
                                                 name: "▶️"
                                             },
                                             style: 2,
-                                            custom_id: "tourney_ranks_page" + offset +1,
+                                            custom_id: "tourney_ranks_page" + (offset +1),
                                             disabled: next
                                         }
                                     ]
