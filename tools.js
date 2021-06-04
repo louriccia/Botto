@@ -375,9 +375,8 @@ module.exports = {
         });
         var matches = Object.values(tourney_matches_data)
         matches.sort(function (a, b) {
-            return Date.parse(b.datetime) - Date.parse(a.datetime);
+            return Date.parse(a.datetime) - Date.parse(b.datetime);
         })
-        console.log(matches)
         var ranks = {}
         for(i = 0; i < matches.length; i++){
             if(![undefined, "", "Qual"].includes(matches[i].bracket)){
@@ -415,6 +414,8 @@ module.exports = {
                         s1 = 0
                         s2 = 1
                     }
+                    console.log(r1, p1, k1, s1)
+                    console.log(r2, p2, k2, s2)
                     ranks[players[0].player].rank += k1*(s1 - p1)
                     ranks[players[1].player].rank += k2*(s2 - p2)
                     ranks[players[0].player].change = k1*(s1 - p1)
