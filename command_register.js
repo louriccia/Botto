@@ -2585,6 +2585,13 @@ client.api.applications("545798436105224203").commands.post({
                 ]
             },
             {
+                name: "ranks",
+                description: "see Elo rankings for tournament participants",
+                type: 1,
+                options: [
+                ]
+            },
+            {
                 name: "schedule",
                 description: "get a look at upcoming matches on speedgaming.org",
                 type: 1,

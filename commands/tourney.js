@@ -31,6 +31,8 @@ module.exports = {
         }, function (errorObject) {
             console.log("The read failed: " + errorObject);
         });
+
+        
         const tourneyReport = new Discord.MessageEmbed()
         //.setURL("https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing")
         if (args[0].name == "leaderboards") {
@@ -715,6 +717,8 @@ module.exports = {
                     //user has not participated in a tournament
                 }
             }).then((embed) => sendResponse(embed))
+        } else if (args[0].name == "ranks") {
+            tools.getRanks()
         } else if (args[0].name == "schedule") {
             const rp = require('request-promise');
             const $ = require('cheerio');

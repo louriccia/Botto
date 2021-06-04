@@ -363,6 +363,66 @@ module.exports = {
                 })
             }) 
     },
+    getRanks: function(){
+        var tourney_matches = database.ref('tourney/matches')
+        tourney_matches.on("value", function (snapshot) {
+            tourney_matches_data = snapshot.val();
+        }, function (errorObject) {
+            console.log("The read failed: " + errorObject);
+        });
+        var matches = Object.values(tourney_matches_data)
+        matches.sort(function (a, b) {
+            return Date.parse(b.datetime) - Date.parse(a.datetime);
+        })
+        console.log(matches)
+        var ranks = {}
+        for(i = 0; i < matches.length; i++){
+            if(![undefined, "", "Qual"].includes(matches[i].bracket)){
+                var players = Object.values(matches[i].players)
+                if(players.length == 2){
+                    for(var j = 0; j < players.length; j++){
+                        //initialize player
+                        if(ranks[players[j].player] == undefined){
+                            ranks[players[j].player] = {rank: 1000, matches: 0, change: 0}
+                        }
+                    }
+                    var r1 = ranks[players[0].player].rank
+                    var r2 = ranks[players[1].player].rank
+                    var p1 = 1 / (1 + 10**((r2-r1)/400))
+                    var p2 = 1 - p1
+                    function getK(matches){
+                        var k = 25
+                        if(matches < 26){
+                            k = 32
+                        }
+                        if(matches < 11){
+                            k = 40
+                        }
+                        if(matches < 6){
+                            k = 50
+                        }
+                    }
+                    var k1 = getK(ranks[players[0].player].matches)
+                    var k2 = getK(ranks[players[1].player].matches)
+                    var s1 = null, s2 = null
+                    if(players[0].score > players[1].score){
+                        s1 = 1
+                        s2 = 0
+                    } else if(players[1].score > players[0].score){
+                        s1 = 0
+                        s2 = 1
+                    }
+                    ranks[players[0].player].rank += k1*(s1 - p1)
+                    ranks[players[1].player].rank += k2*(s2 - p2)
+                    ranks[players[0].player].change = k1*(s1 - p1)
+                    ranks[players[1].player].change = k2*(s2 - p2)
+                    ranks[players[0].player].matches ++
+                    ranks[players[1].player].matches ++
+                }
+            }
+        }
+        console.log(ranks)
+    },
     getGoalTime: function(track, racer, acceleration, top_speed, cooling, laps, length_mod, uh_mod, us_mod, deaths) {
         //0. get required values
         var accel = this.upgradeAcceleration(racers[racer].acceleration, acceleration)
