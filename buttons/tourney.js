@@ -8,7 +8,7 @@ module.exports = {
             if (args[1].startsWith("page")) {
                 var ranks = tools.getRanks()
                 const tourneyRanks = new Discord.MessageEmbed()
-                tourneyRanks.setTitle("Tournament Rankings")
+                tourneyRanks.setTitle(":crossed_swords: Tournament Rankings")
                 var offset = Number(args[1].replace("page", ""))
                 var rnk_keys = Object.keys(ranks)
                 var rnk_vals = Object.values(ranks)
@@ -59,7 +59,7 @@ module.exports = {
                     }
                 }
                 var previous = false, next = false
-                if (offset < 0) {
+                if (offset <= 0) {
                     previous = true
                 }
                 if (offset + 1 == pages) {

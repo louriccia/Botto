@@ -771,7 +771,7 @@ module.exports = {
             sendCallback().then(() => {
                 var ranks = tools.getRanks()
                 const tourneyRanks = new Discord.MessageEmbed()
-                tourneyRanks.setTitle("Tournament Rankings")
+                tourneyRanks.setTitle(":crossed_swords: Tournament Rankings")
 
                 var rnk_keys = Object.keys(ranks)
                 var rnk_vals = Object.values(ranks)
