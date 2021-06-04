@@ -364,6 +364,9 @@ module.exports = {
             }) 
     },
     getRanks: function(){
+        var admin = require('firebase-admin');
+        var database = admin.database();
+        var firebase = require("firebase/app");
         var tourney_matches = database.ref('tourney/matches')
         tourney_matches.on("value", function (snapshot) {
             tourney_matches_data = snapshot.val();
