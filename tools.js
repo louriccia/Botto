@@ -403,6 +403,7 @@ module.exports = {
                         if(matches < 6){
                             k = 50
                         }
+                        return k
                     }
                     var k1 = getK(ranks[players[0].player].matches)
                     var k2 = getK(ranks[players[1].player].matches)
