@@ -1036,5 +1036,5 @@ module.exports = {
 
 }
 
-module.exports.simulateSpeed()
+//module.exports.simulateSpeed()
 //console.log(String(module.exports.simulateSpeed()))
