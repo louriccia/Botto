@@ -31,6 +31,8 @@ module.exports = {
         }, function (errorObject) {
             console.log("The read failed: " + errorObject);
         });
+
+
         const tourneyReport = new Discord.MessageEmbed()
         //.setURL("https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing")
         if (args[0].name == "leaderboards") {
@@ -714,6 +716,116 @@ module.exports = {
                 } else {
                     //user has not participated in a tournament
                 }
+            }).then((embed) => sendResponse(embed))
+        } else if (args[0].name == "ranks") {
+            async function sendCallback() {
+                const wait = client.api.interactions(interaction.id, interaction.token).callback.post({
+                    data: {
+                        type: 5,
+                        data: {
+                            content: "Coming right up..."
+                            //embeds: [racerEmbed]
+                        }
+                    }
+                })
+                return wait
+            }
+            async function sendResponse(embed) {
+                const response = await client.api.webhooks(client.user.id, interaction.token).messages('@original').patch(
+                    {
+                        data:
+                        {
+                            embeds: [embed],
+                            components: [
+                                {
+                                    type: 1,
+                                    components: [
+                                        {
+                                            type: 2,
+                                            label: "",
+                                            emoji: {
+                                                id: null,
+                                                name: "◀️"
+                                            },
+                                            style: 2,
+                                            custom_id: "tourney_ranks_page0",
+                                            disabled: true
+                                        },
+                                        {
+                                            type: 2,
+                                            label: "",
+                                            emoji: {
+                                                id: null,
+                                                name: "▶️"
+                                            },
+                                            style: 2,
+                                            custom_id: "tourney_ranks_page1"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    })
+                return response
+            }
+            sendCallback().then(() => {
+                var ranks = tools.getRanks()
+                const tourneyRanks = new Discord.MessageEmbed()
+                tourneyRanks.setTitle(":crossed_swords: Tournament Rankings")
+
+                var rnk_keys = Object.keys(ranks)
+                var rnk_vals = Object.values(ranks)
+                var pages = 0
+                if (rnk_vals.length % 5 == 0) {
+                    pages = Math.floor(rnk_vals.length / 5)
+                } else {
+                    pages = Math.floor(rnk_vals.length / 5) + 1
+                }
+                for (var i = 0; i < rnk_keys.length; i++) {
+                    rnk_vals[i].player = rnk_keys[i]
+                }
+                rnk_vals.sort(function (a, b) {
+                    return b.rank - a.rank;
+                })
+                function ordinal_suffix_of(i) {
+                    if (i < 3) {
+                        var pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>"]
+                        return pos[i]
+                    } else {
+                        i = i+1
+                        var j = i % 10,
+                            k = i % 100;
+                        if (j == 1 && k != 11) {
+                            return i + "st";
+                        }
+                        if (j == 2 && k != 12) {
+                            return i + "nd";
+                        }
+                        if (j == 3 && k != 13) {
+                            return i + "rd";
+                        }
+                        return i + "th";
+                    }
+                }
+                for (var i = 0; i < 5; i++) {
+                    if (i == rnk_vals.length) {
+                        i = 5
+                    } else {
+                        var arrow = ":small_red_triangle:"
+                        if (rnk_vals[i].change < 0) {
+                            arrow = ":small_red_triangle_down:"
+                        }
+                        tourneyRanks
+                            .addField(ordinal_suffix_of(i) + " - " + tourney_participants_data[rnk_vals[i].player].name, "`" + rnk_vals[i].matches + " matches`", true)
+                            .addField(Math.round(rnk_vals[i].rank), arrow + " " + Math.round(rnk_vals[i].change), true)
+                            .addField('\u200B', '\u200B', true)
+                    }
+                }
+                tourneyRanks
+                    .setFooter("Page 1 / " + pages)
+                    .setColor("#E75A70")
+                return tourneyRanks
+
             }).then((embed) => sendResponse(embed))
         } else if (args[0].name == "schedule") {
             const rp = require('request-promise');
