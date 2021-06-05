@@ -567,18 +567,30 @@ module.exports = {
         return finaltime
     },
     simulateSpeed: function() {
-        //flags
+        var data = require('./data.js')
+        
+        var returnValue = [] //this will be: [[pod index, pod name, average speed, finish time], [...next pod...], ...]
+        
+        var chosenTrack = 13
+        var trackLength = tracks[chosenTrack].first_lap.length + 2 * tracks[chosenTrack].lap.length
+        const firstPod = 0
+        const lastPod = 22 //inclusive
+        var upgradeLavel = 5
         
         //constants
         var fps = 24
         var frameTime = 1 / fps
         var maxAllowedHeat = 100.0
-        var statSpeed = 650.0
-        var statThrust = 400.0
-        var statAccel = 0.9
-        var statHeatRate = 8
-        var statCoolRate = 10
-        var trackLength = 20250
+        
+        //pod stats
+        var podStats = { //default values here are never used
+            statSpeed: 650.0,
+            statThrust: 200.0,
+            statAccel: 1.0,
+            statHeatRate: 10,
+            statCoolRate: 10
+        }
+        
         
         const stateZeroFrame = createState(
             0, //frame
@@ -594,28 +606,38 @@ module.exports = {
             'd', //nosePosition
             false //isTrackFinished
         )
-        var stateInitialPass = createClonedState(stateZeroFrame)
-        var stateInitialPassPrev = createClonedState(stateZeroFrame)
-        var stateLastBoostStart = createClonedState(stateZeroFrame)
-        var stateLastBoostEnd = createClonedState(stateZeroFrame)
-        var stateTrackEndFrame = createClonedState(stateZeroFrame)
-        var stateNextPass = createClonedState(stateZeroFrame)
-        var stateNextPassPrev = createClonedState(stateZeroFrame)
+        var stateInitialPass// = createClonedState(stateZeroFrame)
+        var stateInitialPassPrev// = createClonedState(stateZeroFrame)
+        var stateLastBoostStart// = createClonedState(stateZeroFrame)
+        var stateLastBoostEnd// = createClonedState(stateZeroFrame)
+        var stateTrackEndFrame// = createClonedState(stateZeroFrame)
+        var stateNextPass// = createClonedState(stateZeroFrame)
+        var stateNextPassPrev// = createClonedState(stateZeroFrame)
 
         
-        //var lastBoostFrame = [0, 0, 0] //[boost_start_frame, boost_end_frame, track_end_frame]
-        //var lastBoostStartFrame = 0
-        //var lastBoostEndFrame = 0
-        //var lastTrackEndFrame = 0
-        var lastAverageSpeedIncreaseFrame = 0
+        var lastAverageSpeedIncreaseFrame
         
-        initialPass(stateInitialPass, stateInitialPassPrev)
-        recursivePass(stateNextPass, stateNextPassPrev, 1000000, 0)
+        for (var i = firstPod; i <= lastPod; i++) {
+            resetStatesAndValues()
+            getPodStats(i)
+            initialPass(stateInitialPass, stateInitialPassPrev)
+            recursivePass(stateNextPass, stateNextPassPrev, 1000000, 0)
+            returnValue.push([i, racers[i].name, stateNextPass.averageSpeedAtTrackEnd, stateNextPass.finishTime])
+            //console.log(racers[i].name + ": " + Math.round(stateNextPass.averageSpeedAtTrackEnd*10)/10 + ", Time: " + Math.round(stateNextPass.finishTime*1000)/1000)
+        }
         
-        return stateNextPass.averageSpeedAtTrackEnd
+        for (var i = firstPod; i <= lastPod; i++) {
+            console.log(returnValue[i][1] + ": " + Math.round(returnValue[i][2]*10)/10 + ", Time: " + Math.round(returnValue[i][3]*1000)/1000)
+        }
+
+        return returnValue
         
 
         
+
+
+
+
         //all functions
         //core loop functions
         function initialPass(state, statePrev) {
@@ -624,36 +646,36 @@ module.exports = {
         }
 
         function recursivePass(state, statePrev, prevGuessError, i) {
-            console.log("\niteration: " + String(i))
+            /*console.log("\niteration: " + String(i))
             printState(stateTrackEndFrame)
             console.log("previous guess error: " + prevGuessError)
             console.log("lastAverageSpeedIncreaseFrame: " + lastAverageSpeedIncreaseFrame)
-            console.log("lastTrackEndFrame: " + stateTrackEndFrame.frame)
+            console.log("lastTrackEndFrame: " + stateTrackEndFrame.frame)*/
             
             //console.log("average speed" + stateTrackEndFrame.averageSpeed)
             var newBoostStartFrame
             if (lastAverageSpeedIncreaseFrame >= stateTrackEndFrame.frame) { //speed increased
                 newBoostStartFrame = Math.round(stateLastBoostStart.frame - (lastAverageSpeedIncreaseFrame - stateTrackEndFrame.frame) / 2)
-                console.log("lastBoostStartFrame: " + stateLastBoostEnd.frame)
+                //console.log("lastBoostStartFrame: " + stateLastBoostEnd.frame)
             } else
             {
                 newBoostStartFrame = Math.round(stateLastBoostEnd.frame - 1 - (lastAverageSpeedIncreaseFrame - stateTrackEndFrame.frame) / 2)
-                console.log("lastBoostEndFrame: " + stateLastBoostEnd.frame)
+                //console.log("lastBoostEndFrame: " + stateLastBoostEnd.frame)
             }
-            console.log("lastAverageSpeedIncreaseFrame" + lastAverageSpeedIncreaseFrame)
+            /*console.log("lastAverageSpeedIncreaseFrame" + lastAverageSpeedIncreaseFrame)
             console.log("lastTrackEndFrame" + stateTrackEndFrame.frame)
             console.log("newBoostStartFrame: " + stateLastBoostStart.frame)
-            console.log("average speed: " + state.averageSpeedAtTrackEnd)
+            console.log("average speed: " + state.averageSpeedAtTrackEnd)*/
             
             overwriteState(stateZeroFrame, state)
             overwriteState(stateZeroFrame, statePrev)
             runTrack(state, statePrev, newBoostStartFrame)
 
             var guessError = lastAverageSpeedIncreaseFrame - stateTrackEndFrame.frame
-            if (i >= 3) { //abort after 10 iterations
+            if (i >= 10) { //abort after 10 iterations
                 return
             }
-            else if (guessError <= 1) { //desired accuracy reached
+            else if (Math.abs(guessError) <= 1) { //desired accuracy reached
                 return
             }
             else if ((prevGuessError > 0 && guessError > prevGuessError) || (prevGuessError < 0 && guessError < prevGuessError) ) { //less accurate
@@ -688,8 +710,19 @@ module.exports = {
         }
         
         
-        
         //data (object) functions
+        function resetStatesAndValues()
+        {
+            lastAverageSpeedIncreaseFrame = 0
+            stateInitialPass = createClonedState(stateZeroFrame)
+            stateInitialPassPrev = createClonedState(stateZeroFrame)
+            stateLastBoostStart = createClonedState(stateZeroFrame)
+            stateLastBoostEnd = createClonedState(stateZeroFrame)
+            stateTrackEndFrame = createClonedState(stateZeroFrame)
+            stateNextPass = createClonedState(stateZeroFrame)
+            stateNextPassPrev = createClonedState(stateZeroFrame)
+        }
+        
         function createState(frame, raceTime, distanceTravelled, speedValue, boostCharge, heat, boostValue, isBoosting, isBoostStart, isBoostStartEnded, nosePosition, isTrackFinished) {
             return {
                 frame: frame,
@@ -712,6 +745,7 @@ module.exports = {
                 nosePosition: nosePosition, //'d': down, 'u': up, 'n': neutral
                 noseMultiplier: calculateNoseMultiplier(nosePosition),
                 isTrackFinished: isTrackFinished,
+                finishTime: 1000000.0,
 
                 combinedSpeed: this.baseSpeed + this.boostSpeed,
                 distanceTravelled: distanceTravelled,
@@ -742,6 +776,7 @@ module.exports = {
                 nosePosition: state.nosePosition, //'d': down, 'u': up, 'n': neutral
                 noseMultiplier: state.noseMultiplier,
                 isTrackFinished: state.isTrackFinished,
+                finishTime: state.finishTime,
 
                 combinedSpeed: state.combinedSpeed,
                 distanceTravelled: state.distanceTravelled,
@@ -771,6 +806,7 @@ module.exports = {
             destinationState.nosePosition = sourceState.nosePosition,
             destinationState.noseMultiplier = sourceState.noseMultiplier,
             destinationState.isTrackFinished = sourceState.isTrackFinished,
+            destinationState.finishTime = sourceState.finishTime,
 
             destinationState.combinedSpeed = sourceState.combinedSpeed,
             destinationState.distanceTravelled = sourceState.distanceTravelled,
@@ -799,6 +835,7 @@ module.exports = {
             console.log(String("nosePosition: " + state.nosePosition))
             console.log(String("noseMultiplier: " + state.noseMultiplier))
             console.log(String("isTrackFinished: " + state.isTrackFinished))
+            console.log(String("finishTime: " + state.finishTime))
 
             console.log(String("combinedSpeed: " + state.combinedSpeed))
             console.log(String("distanceTravelled: " + state.distanceTravelled))
@@ -830,7 +867,7 @@ module.exports = {
             //check if should boost
             {
                 //boost charge
-                if (state.combinedSpeed >= statSpeed * 0.75) {
+                if (state.combinedSpeed >= podStats.statSpeed * 0.75) {
                     state.boostCharge = Math.min(Math.max(state.boostCharge + frameTime , 0), 1)
                 }
                 //toggle boost
@@ -859,14 +896,14 @@ module.exports = {
             {
                 if (state.isBoosting) {
                     state.boostValue += 1.5 * frameTime //boosting
-                    state.heat -= statHeatRate * frameTime
+                    state.heat -= podStats.statHeatRate * frameTime
                 }
                 else {
                     if (state.boostValue >= 0.001) { //decelerating
                         state.boostValue *= (1 - (33.33 * frameTime / (33.33 * frameTime + 5)))
                     }
                     else state.boostValue = 0 //no boost
-                    state.heat += statCoolRate * frameTime
+                    state.heat += podStats.statCoolRate * frameTime
                 }
                 state.heat = Math.min(Math.max(state.heat, 0), 100)
                 state.boostSpeed = calculateBoostSpeed(state.boostValue)
@@ -885,6 +922,7 @@ module.exports = {
                 state.isTrackFinished = state.distanceTravelled >= trackLength ? true : false
                 if (!prevIsTrackFinished && state.isTrackFinished) { //track just ended
                     //lastTrackEndFrame = state.frame
+                    state.finishTime = calculateFinishTime(state)
                     state.averageSpeedAtTrackEnd = state.averageSpeed
                     overwriteState(state, stateTrackEndFrame)
                 }
@@ -894,11 +932,15 @@ module.exports = {
             
         }
         function calculateBaseSpeed(speedValue) {
-            return speedValue * statSpeed / (statAccel + speedValue)
+            return speedValue * podStats.statSpeed / (podStats.statAccel + speedValue)
         }
         
         function calculateBoostSpeed(boostValue) {
-            return boostValue * statThrust / (boostValue + 0.33)
+            return boostValue * podStats.statThrust / (boostValue + 0.33)
+        }
+
+        function calculateFinishTime(state) {
+            return state.raceTime + (trackLength - state.distanceTravelled) / state.combinedSpeed
         }
         
         function calculateNoseMultiplier(nosePosition) {
@@ -911,11 +953,19 @@ module.exports = {
                     return 1.0
             }
         }
-            
         
+        //pod stats
+        function getPodStats(index) {
+            podStats.statSpeed = module.exports.upgradeTopSpeed(racers[index].max_speed, upgradeLavel)
+            podStats.statThrust = racers[index].boost_thrust
+            podStats.statAccel = module.exports.upgradeAcceleration(racers[index].acceleration, upgradeLavel)
+            podStats.statCoolRate = module.exports.upgradeCooling(racers[index].cool_rate, upgradeLavel)
+            podStats.statHeatRate = racers[index].heat_rate
+        }
     }
     
 
 }
 
+module.exports.simulateSpeed()
 //console.log(String(module.exports.simulateSpeed()))
