@@ -638,9 +638,9 @@ module.exports = {
     simulateSpeed: function() {
         var data = require('./data.js')
         
-        var returnValue = [] //this will be: [[pod index, pod name, average speed, finish time], [...next pod...], ...]
+        var returnValue = [] //format:: [[pod index, pod name, average speed, finish time], [next pod], ... [final pod], fps, track, maxAllowedHeat]
         
-        var chosenTrack = 13
+        var chosenTrack = 3
         var trackLength = tracks[chosenTrack].first_lap.length + 2 * tracks[chosenTrack].lap.length
         const firstPod = 0
         const lastPod = 22 //inclusive
@@ -695,6 +695,10 @@ module.exports = {
             //console.log(racers[i].name + ": " + Math.round(stateNextPass.averageSpeedAtTrackEnd*10)/10 + ", Time: " + Math.round(stateNextPass.finishTime*1000)/1000)
         }
         
+        returnValue.sort(function(a, b) {
+            return b[2] - a[2]
+        })
+
         for (var i = firstPod; i <= lastPod; i++) {
             console.log(returnValue[i][1] + ": " + Math.round(returnValue[i][2]*10)/10 + ", Time: " + Math.round(returnValue[i][3]*1000)/1000)
         }
