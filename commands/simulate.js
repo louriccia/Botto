@@ -25,9 +25,9 @@ module.exports = {
         var postColumn3 = ""
         var output = tools.simulateSpeed(track, fps, upgrades) //format:: [[pod index, average speed, finish time], [next pod], ... [final pod], fps, track]
         for (let i = 0; i < 23; i++) {
-            postColumn1 += racers[output[i][0]].name
-            postColumn2 += Math.round(output[i][1]*10)/10
-            postColumn3 += tools.timefix(output[i][2])
+            postColumn1 += racers[output[i][0]].name + "\n"
+            postColumn2 += Math.round(output[i][1]*10)/10 + "\n"
+            postColumn3 += tools.timefix(output[i][2]) + "\n"
         }
 
         myEmbed
