@@ -474,6 +474,12 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                 ]
             },
             {
+                name: "fps",
+                description: "frames per second for your simulation (between 24 and 60fps",
+                type: 4,
+                required: false
+            },
+            {
                 name: "upgrades",
                 description: "max upgrades or no upgrades",
                 type: 3,

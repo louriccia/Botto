@@ -31,11 +31,12 @@ module.exports = {
         }
 
         myEmbed
-            .setTitle(tracks[track].name) //track
+            .setTitle(tracks[track].name + " simulation") //track
             .setDescription(upgradeName[upgrades] + ", " + fps + "fps") //upgrades & fps //"Max Upgrades, 60fps"
-            .addField("Pod", postColumn1, true)
+            .addField("Racer", postColumn1, true)
             .addField("Speed", postColumn2, true)
-            .addField("Time", postColumn3, true)
+            .addField("Est. Time", postColumn3, true)
+            .addField("Note:", "*This simulation assumes the track is a straight line, and ignores hills and fast/slow terrain.*", false)
 
         
 
