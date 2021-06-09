@@ -303,7 +303,6 @@ module.exports = {
                 }
                 function arraytoTracks(array) {
                     var string = ""
-                    console.log(array)
                     if (array.length > 0) {
                         for (i = 0; i < array.length; i++) {
                             if (tracks[array[i]] !== undefined) {
@@ -316,7 +315,6 @@ module.exports = {
                 }
                 function arraytoRacers(array) {
                     var string = ""
-                    console.log(array)
                     if (array.length > 0) {
                         for (i = 0; i < array.length; i++) {
                             if (racers[array[i]] !== undefined) {
@@ -329,7 +327,6 @@ module.exports = {
                 }
                 function arraytoPlayers(array) {
                     var string = ""
-                    console.log(array)
                     if (array.length > 0) {
                         for (i = 0; i < array.length; i++) {
                             if (tourney_participants_data[array[i]] !== undefined) {
@@ -642,13 +639,10 @@ module.exports = {
                         }
                         )
                     }
-                    console.log(stats)
                     var rvl = Object.keys(stats.opponent.rivalries)
-                    console.log(rvl)
                     var rivalries = []
                     for (i = 0; i < rvl.length; i++) {
                         var r = stats.opponent.rivalries[rvl[i]]
-                        console.log(r)
                         var sum = 0
                         for (j = 0; j < r.length; j++) {
                             sum += r[j]
@@ -661,7 +655,6 @@ module.exports = {
                     rivalries.sort(function (a, b) {
                         return a.gap - b.gap;
                     })
-                    console.log(rivalries)
                     var rivals = []
                     for (var i = 0; i < 2; i++) {
                         if (i == rivalries.length) {
@@ -792,7 +785,7 @@ module.exports = {
                         var pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>"]
                         return pos[i]
                     } else {
-                        i = i+1
+                        i = i + 1
                         var j = i % 10,
                             k = i % 100;
                         if (j == 1 && k != 11) {
@@ -854,12 +847,14 @@ module.exports = {
                     if (schedule.length > 1) {
                         for (i = 0; i < schedule.length; i++) {
                             var channel = ""
-                            if (!schedule[i][4].includes("?")) {
-                                channel = "[" + schedule[i][4] + "](https://www.twitch.tv/" + schedule[i][4] + ")"
-                            }
                             var comm = ""
-                            if (schedule[i][5] !== undefined) {
-                                comm = schedule[i][5]
+                            if (schedule[i].length > 3) {
+                                if (!schedule[i][4].includes("?")) {
+                                    channel = "[" + schedule[i][4] + "](https://www.twitch.tv/" + schedule[i][4] + ")"
+                                }
+                                if (schedule[i][5] !== undefined) {
+                                    comm = schedule[i][5]
+                                }
                             }
                             tourneyReport
                                 .addField(schedule[i][0] + " " + schedule[i][1], schedule[i][2] + "\n" + channel, true)
@@ -875,7 +870,20 @@ module.exports = {
                             data: {
                                 //content: content,
                                 //flags: 64
-                                embeds: [tourneyReport]
+                                embeds: [tourneyReport],
+                                components: [
+                                    {
+                                        type: 1,
+                                        components: [
+                                            {
+                                                type: 2,
+                                                label: "Schedule Match",
+                                                style: 5,
+                                                url: "http://speedgaming.org/swe1racer/submit/"
+                                            }
+                                        ]
+                                    }
+                                ]
                             }
                         }
                     })
