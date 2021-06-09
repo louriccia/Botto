@@ -638,9 +638,9 @@ module.exports = {
     simulateSpeed: function() {
         var data = require('./data.js')
         
-        var returnValue = [] //format:: [[pod index, pod name, average speed, finish time], [next pod], ... [final pod], fps, track, maxAllowedHeat]
+        var returnValue = [] //format:: [[pod index, pod name, average speed, finish time], [next pod], ... [final pod], fps, track]
         
-        var chosenTrack = 3
+        var chosenTrack = 0
         var trackLength = tracks[chosenTrack].first_lap.length + 2 * tracks[chosenTrack].lap.length
         const firstPod = 0
         const lastPod = 22 //inclusive
@@ -663,7 +663,7 @@ module.exports = {
         
         const stateZeroFrame = createState(
             0, //frame
-            0.0, //raceTime
+            frameTime, //raceTime
             0.0, //distanceTravelled
             0.0, //speedValue
             0.0, //boostCharge
@@ -699,6 +699,9 @@ module.exports = {
             return b[2] - a[2]
         })
 
+        returnValue.push(fps)
+        returnValue.push(chosenTrack)
+
         for (var i = firstPod; i <= lastPod; i++) {
             console.log(returnValue[i][1] + ": " + Math.round(returnValue[i][2]*10)/10 + ", Time: " + Math.round(returnValue[i][3]*1000)/1000)
         }
@@ -719,26 +722,13 @@ module.exports = {
         }
 
         function recursivePass(state, statePrev, prevGuessError, i) {
-            /*console.log("\niteration: " + String(i))
-            printState(stateTrackEndFrame)
-            console.log("previous guess error: " + prevGuessError)
-            console.log("lastAverageSpeedIncreaseFrame: " + lastAverageSpeedIncreaseFrame)
-            console.log("lastTrackEndFrame: " + stateTrackEndFrame.frame)*/
-            
-            //console.log("average speed" + stateTrackEndFrame.averageSpeed)
             var newBoostStartFrame
             if (lastAverageSpeedIncreaseFrame >= stateTrackEndFrame.frame) { //speed increased
                 newBoostStartFrame = Math.round(stateLastBoostStart.frame - (lastAverageSpeedIncreaseFrame - stateTrackEndFrame.frame) / 2)
-                //console.log("lastBoostStartFrame: " + stateLastBoostEnd.frame)
             } else
             {
                 newBoostStartFrame = Math.round(stateLastBoostEnd.frame - 1 - (lastAverageSpeedIncreaseFrame - stateTrackEndFrame.frame) / 2)
-                //console.log("lastBoostEndFrame: " + stateLastBoostEnd.frame)
             }
-            /*console.log("lastAverageSpeedIncreaseFrame" + lastAverageSpeedIncreaseFrame)
-            console.log("lastTrackEndFrame" + stateTrackEndFrame.frame)
-            console.log("newBoostStartFrame: " + stateLastBoostStart.frame)
-            console.log("average speed: " + state.averageSpeedAtTrackEnd)*/
             
             overwriteState(stateZeroFrame, state)
             overwriteState(stateZeroFrame, statePrev)
@@ -748,7 +738,7 @@ module.exports = {
             if (i >= 10) { //abort after 10 iterations
                 return
             }
-            else if (Math.abs(guessError) <= 1) { //desired accuracy reached
+            else if (Math.abs(guessError) <= 0) { //desired accuracy reached
                 return
             }
             else if ((prevGuessError > 0 && guessError > prevGuessError) || (prevGuessError < 0 && guessError < prevGuessError) ) { //less accurate
@@ -764,6 +754,7 @@ module.exports = {
             var i = 0
             var maxFrames = 200000
             var loopAgain = true
+            var fire = false
             while (loopAgain) {
                 overwriteState(state, statePrev)
                 incrementFrame(state, injectedBoostFrame)
@@ -920,7 +911,7 @@ module.exports = {
         //speed functions
         function incrementFrame(state, injectedBoostFrame) {
             state.frame++
-            state.raceTime += frameTime
+            state.raceTime = (state.frame + 1) * frameTime
             
             //booststart
             {
@@ -930,13 +921,6 @@ module.exports = {
                 }
             }
             
-            //base speed
-            {
-                state.speedTimeMultiplier = (state.isBoosting || state.isBoostStart) ? 4.0 : 1.5
-                state.speedValue += state.noseMultiplier * frameTime * state.speedTimeMultiplier
-                state.baseSpeed = calculateBaseSpeed(state.speedValue)
-            }
-
             //check if should boost
             {
                 //boost charge
@@ -945,16 +929,16 @@ module.exports = {
                 }
                 //toggle boost
                 var prevIsBoosting = state.isBoosting
-                if (state.heat >= maxAllowedHeat && state.boostCharge == 1) { //boost if boost is ready
+                if (state.heat + (podStats.statCoolRate * frameTime) >= maxAllowedHeat && state.boostCharge == 1) { //boost if boost is ready
                     state.isBoosting = true
-                } else if (state.isBoosting && state.heat != 0) { //boost until heat == 0
+                } else if (state.isBoosting && state.heat - (podStats.statHeatRate * frameTime) > 0) { //boost until heat == 0
                     state.isBoosting = true
                 } else if (state.frame == injectedBoostFrame) { //manually boost on frame
                     state.isBoosting = true
                 } else {
                     state.isBoosting = false
                 }
-                //delete after validation//state.isBoosting = ((state.isBoosting && state.heat != 0) || (state.heat >= maxAllowedHeat && state.boostCharge == 1)) ? true : false
+                
                 if (!prevIsBoosting && state.isBoosting) { //boost just started
                     //lastBoostStartFrame = state.frame
                     overwriteState(state, stateLastBoostStart)
@@ -965,6 +949,13 @@ module.exports = {
                 }
             }
 
+            //base speed
+            {
+                state.speedTimeMultiplier = (state.isBoosting || state.isBoostStart) ? 4.0 : 1.5
+                state.speedValue += state.noseMultiplier * frameTime * state.speedTimeMultiplier
+                state.baseSpeed = calculateBaseSpeed(state.speedValue)
+            }
+//I made it here so far
             //handle the effects of boost
             {
                 if (state.isBoosting) {
