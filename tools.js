@@ -635,19 +635,19 @@ module.exports = {
         finaltime += deaths*(3+accel)
         return finaltime
     },
-    simulateSpeed: function() {
+    simulateSpeed: function(chosenTrack, fps, upgradeLevel) {
         var data = require('./data.js')
         
-        var returnValue = [] //format:: [[pod index, pod name, average speed, finish time], [next pod], ... [final pod], fps, track]
+        var returnValue = [] //format:: [[pod index, average speed, finish time], [next pod], ... [final pod], fps, track]
         
-        var chosenTrack = 0
+        //var chosenTrack = track
         var trackLength = tracks[chosenTrack].first_lap.length + 2 * tracks[chosenTrack].lap.length
         const firstPod = 0
         const lastPod = 22 //inclusive
-        var upgradeLavel = 5
+        //var upgradeLevel = upgrades
         
         //constants
-        var fps = 24
+        //var fps = 24
         var frameTime = 1 / fps
         var maxAllowedHeat = 100.0
         
@@ -691,19 +691,18 @@ module.exports = {
             getPodStats(i)
             initialPass(stateInitialPass, stateInitialPassPrev)
             recursivePass(stateNextPass, stateNextPassPrev, 1000000, 0)
-            returnValue.push([i, racers[i].name, stateNextPass.averageSpeedAtTrackEnd, stateNextPass.finishTime])
-            //console.log(racers[i].name + ": " + Math.round(stateNextPass.averageSpeedAtTrackEnd*10)/10 + ", Time: " + Math.round(stateNextPass.finishTime*1000)/1000)
+            returnValue.push([i, stateNextPass.averageSpeedAtTrackEnd, stateNextPass.finishTime])
         }
         
         returnValue.sort(function(a, b) {
-            return b[2] - a[2]
+            return a[2] - b[2]
         })
 
         returnValue.push(fps)
         returnValue.push(chosenTrack)
 
         for (var i = firstPod; i <= lastPod; i++) {
-            console.log(returnValue[i][1] + ": " + Math.round(returnValue[i][2]*10)/10 + ", Time: " + Math.round(returnValue[i][3]*1000)/1000)
+            //console.log(returnValue[i][0] + ": " + Math.round(returnValue[i][1]*10)/10 + ", Time: " + Math.round(returnValue[i][2]*1000)/1000)
         }
 
         return returnValue
@@ -1020,10 +1019,10 @@ module.exports = {
         
         //pod stats
         function getPodStats(index) {
-            podStats.statSpeed = module.exports.upgradeTopSpeed(racers[index].max_speed, upgradeLavel)
+            podStats.statSpeed = module.exports.upgradeTopSpeed(racers[index].max_speed, upgradeLevel)
             podStats.statThrust = racers[index].boost_thrust
-            podStats.statAccel = module.exports.upgradeAcceleration(racers[index].acceleration, upgradeLavel)
-            podStats.statCoolRate = module.exports.upgradeCooling(racers[index].cool_rate, upgradeLavel)
+            podStats.statAccel = module.exports.upgradeAcceleration(racers[index].acceleration, upgradeLevel)
+            podStats.statCoolRate = module.exports.upgradeCooling(racers[index].cool_rate, upgradeLevel)
             podStats.statHeatRate = racers[index].heat_rate
         }
     }
@@ -1031,5 +1030,5 @@ module.exports = {
 
 }
 
-//module.exports.simulateSpeed()
+//module.exports.simulateSpeed(0, 60, 5)
 //console.log(String(module.exports.simulateSpeed()))
