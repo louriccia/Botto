@@ -4,6 +4,11 @@ module.exports = {
         const Discord = require('discord.js');
         const myEmbed = new Discord.MessageEmbed()
         var tools = require('./../tools.js');
+        const tools = require('./../tools.js');
+        const Discord = require('discord.js');
+        var admin = require('firebase-admin');
+        var database = admin.database();
+        var firebase = require("firebase/app");
         if (args[0] == "ranks") {
             if (args[1].startsWith("page")) {
                 var ranks = tools.getRanks()
