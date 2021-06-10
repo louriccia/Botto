@@ -881,13 +881,13 @@ module.exports = {
                                             type: 2,
                                             label: "Submit",
                                             style: 3,
-                                            custom_id: unique_interaction + "submit"
+                                            custom_id: data.datetime + "submit"
                                         },
                                         {
                                             type: 2,
                                             label: "Cancel",
                                             style: 4,
-                                            custom_id: unique_interaction + "cancel"
+                                            custom_id: data.datetime + "cancel"
                                         }
                                     ]
                                 }
@@ -897,7 +897,7 @@ module.exports = {
                 }).then(() => {
                     client.ws.on('INTERACTION_CREATE', async interaction => {
                         if (interaction.data.hasOwnProperty("custom_id")) {
-                            if(interaction.data.custom_id == unique_interaction+"submit"){
+                            if(interaction.data.custom_id == data.datetime+"submit"){
                                 tourney_matches.push(data)
                                 client.api.interactions(interaction.id, interaction.token).callback.post({
                                     data: {
@@ -905,7 +905,7 @@ module.exports = {
                                     }
                                 })
                                 client.api.webhooks(client.user.id, unique_interaction).messages('@original').delete()
-                            } else if (interaction.data.custom_id == unique_interaction+"cancel"){
+                            } else if (interaction.data.custom_id == data.datetime+"cancel"){
                                 client.api.interactions(interaction.id, interaction.token).callback.post({
                                     data: {
                                         type: 1,
