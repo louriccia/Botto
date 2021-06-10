@@ -183,7 +183,7 @@ module.exports = {
                         }
                         link = tourney_matches_data[runs[i].datetime].url
                         if (runs[i].hasOwnProperty("podtempban")) {
-                            if (runs[i].podtempban !== "") {
+                            if (!["", "none"].includes(runs[i].podtempban)) {
                                 characterban = "\n~~" + racers[runs[i].podtempban].name + "~~"
                             }
                         }
