@@ -862,9 +862,66 @@ module.exports = {
                 data.players.push(player2)
                 data.players.push(player3)
                 data.players.push(player4)
-                tourneySubmission
-                    .setTitle("Does this look right?")
-                    .setDescription(JSON.stringify(data))
+                var dup = false
+                var dup_run = {}
+                var mtch = Object.keys(tourney_matches_data)
+                for(var i = 0; i < mtch.length; i++){
+                    var m = mtch[i]
+                    if (Date.parse(data.datetime) == Date.parse(tourney_matches_data[m].datetime)) {
+                        dup = true
+                        dup_run = m
+                    }
+                }
+                var action = "Submit"
+                if (!dup) {
+                    var match_info = "tournament: `" + tourney_tournaments_data[data.tourney].nickname + "`"
+                    if (data.hasOwnProperty("bracket")) {
+                        match_info += "\nbracket: `" + data.bracket + "`"
+                    }
+                    if (data.hasOwnProperty("round")) {
+                        match_info += "\nround: `" + data.round + "`"
+                    }
+                    match_info += "\ndate/time: `" + data.datetime + "`"
+                    match_info += "\ncommentators: `"
+                    data.commentators.forEach(comm => {
+                        match_info += tourney_participants_data[comm].name + " "
+                    })
+                    match_info += "`"
+                    if (data.hasOwnProperty("url")) {
+                        match_info += "\nvod: [link](" + data.url + ")"
+                    }
+                    function getplayerText(object) {
+                        var player_text = "name: `" + tourney_participants_data[object.player].name + "`"
+                        if (object.hasOwnProperty("permabans")) {
+                            var permabans = Object.values(object.permabans)
+                            player_text += "\npermabans: `"
+                            permabans.forEach(track => {
+                                player_text += tracks[track].nickname[0] + " "
+                            })
+                            player_text += "`"
+                        }
+                        if (object.hasOwnProperty("score")) {
+                            player_text += "\nscore: `" + object.score + "`"
+                        }
+                        return player_text
+                    }
+
+                    tourneySubmission
+                        .setTitle("Does this look right?")
+                        .addField("Match Info", match_info, false)
+                    var p = 1
+                    data.players.forEach(player => {
+                        tourneySubmission.addField("Player " + p, getplayerText(player), true)
+                        p++
+                    })
+                } else {
+                    action = "Update"
+                    tourneySubmission
+                        .setTitle("Possible Duplicate Detected...")
+                        .addField("Existing Run", "```" + JSON.stringify(tourney_matches_data[dup_run]) + "```", true)
+                        .addField("Submitted Run", "```" + JSON.stringify(data) + "```", true)
+                }
+                
                 var unique_interaction = interaction.token
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
@@ -879,9 +936,9 @@ module.exports = {
                                     components: [
                                         {
                                             type: 2,
-                                            label: "Submit",
+                                            label: action,
                                             style: 3,
-                                            custom_id: data.datetime + "submit"
+                                            custom_id: data.datetime + action
                                         },
                                         {
                                             type: 2,
@@ -897,8 +954,13 @@ module.exports = {
                 }).then(() => {
                     client.ws.on('INTERACTION_CREATE', async interaction => {
                         if (interaction.data.hasOwnProperty("custom_id")) {
-                            if (interaction.data.custom_id == data.datetime + "submit") {
-                                tourney_matches.push(data)
+                            if (interaction.data.custom_id == data.datetime + action) {
+                                if(action == "Submit"){
+                                    tourney_matches.push(data)
+                                } else if(action == "Update"){
+                                    tourney_matches.child(dup_run).update(data)
+                                }
+                                
                                 client.api.interactions(interaction.id, interaction.token).callback.post({
                                     data: {
                                         type: 7,
