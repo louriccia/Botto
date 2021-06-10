@@ -31,7 +31,8 @@ module.exports = {
                     if (i == rnk_vals.length) {
                         i = 5 * (1 + offset)
                     } else {
-                        var arrow = "<a:guidearrow:672640819475251235>"
+                        var emoji = client.emojis.cache.get('852392123093614642')
+                        var arrow = emoji
                         if (rnk_vals[i].change < 0) {
                             arrow = ":small_red_triangle_down:"
                             rnk_vals[i].change = Math.abs(rnk_vals[i].change)
