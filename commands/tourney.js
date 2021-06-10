@@ -891,6 +891,7 @@ module.exports = {
                         match_info += "\nvod: [link](" + data.url + ")"
                     }
                     function getplayerText(object) {
+                        console.log(object)
                         var player_text = "name: `" + tourney_participants_data[object.player].name + "`"
                         if (object.hasOwnProperty("permabans")) {
                             var permabans = Object.values(object.permabans)
