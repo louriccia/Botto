@@ -11,7 +11,7 @@ module.exports = {
             if (args[1].startsWith("page")) {
                 var ranks = tools.getRanks()
                 const tourneyRanks = new Discord.MessageEmbed()
-                tourneyRanks.setTitle(":crossed_swords: Tournament Rankings")
+                tourneyRanks.setTitle("Elo Ratings")
                 var offset = Number(args[1].replace("page", ""))
                 var rnk_keys = Object.keys(ranks)
                 var rnk_vals = Object.values(ranks)
@@ -48,12 +48,17 @@ module.exports = {
                 if (offset + 1 == pages) {
                     next = true
                 }
+                var type = 7
+                if (args.includes("initial")) {
+                    type = 4
+                }
                 tourneyRanks
                     .setFooter("Page " + (offset + 1) + " / " + pages)
                     .setColor("#E75A70")
+                    .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/crossed-swords_2694-fe0f.png")
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
-                        type: 7,
+                        type: type,
                         data: {
                             //content: "",
                             embeds: [tourneyRanks],
@@ -127,6 +132,7 @@ module.exports = {
                         .setTitle("Recent Matches")
                         .setFooter("Page " + (offset + 1) + " / " + pages)
                         .setColor("#E75A70")
+                        .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/crossed-swords_2694-fe0f.png")
                     for (var i = 5 * offset; i < 5 * (1 + offset); i++) {
                         if (i == matches.length) {
                             i = 5 * (1 + offset)
@@ -140,11 +146,23 @@ module.exports = {
                             var player_text = []
                             for (k = 0; k < players.length; k++) {
                                 player_text.push(tourney_participants_data[players[k].player].name)
-                                score.push(players[k].score)
+                                if(![undefined, ""].includes(players[k].score)){
+                                    score.push(players[k].score)
+                                }
+                            }
+                            if(score.length > 0){
+                                score = "score: ||`" + score.join(" to ") + "`||"
+                            }
+                            var bracketround = ""
+                            if(matches[i].bracket !== ""){
+                                bracketround +=  + " - " + matches[i].bracket
+                                if(matches[i].round !== ""){
+                                    bracketround += ": " + matches[i].round
+                                }
                             }
                             tourneyMatches
-                                .addField(tourney_tournaments_data[matches[i].tourney].nickname + " - " + matches[i].bracket + ": " + matches[i].round, date, true)
-                                .addField(player_text.join(" vs. "), "score: ||`" + score.join(" to ") + "`||", true)
+                                .addField(tourney_tournaments_data[matches[i].tourney].nickname + bracketround, date, true)
+                                .addField(player_text.join(" vs. "), score, true)
                                 .addField('\u200B', '\u200B', true)
                         }
                     }
