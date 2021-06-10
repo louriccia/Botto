@@ -24,26 +24,6 @@ module.exports = {
                 rnk_vals.sort(function (a, b) {
                     return b.rank - a.rank;
                 })
-                function ordinal_suffix_of(i) {
-                    if (i < 3) {
-                        var pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>"]
-                        return pos[i]
-                    } else {
-                        i = i+1
-                        var j = i % 10,
-                            k = i % 100;
-                        if (j == 1 && k != 11) {
-                            return i + "st";
-                        }
-                        if (j == 2 && k != 12) {
-                            return i + "nd";
-                        }
-                        if (j == 3 && k != 13) {
-                            return i + "rd";
-                        }
-                        return i + "th";
-                    }
-                }
                 for (var i = 5 * offset; i < 5 * (1 + offset); i++) {
                     if (i == rnk_vals.length) {
                         i = 5 * (1 + offset)
@@ -53,7 +33,7 @@ module.exports = {
                             arrow = ":small_red_triangle_down:"
                         }
                         tourneyRanks
-                            .addField(ordinal_suffix_of(i) + " - " + tourney_participants_data[rnk_vals[i].player].name, "`" + rnk_vals[i].matches + " matches`", true)
+                            .addField(tools.ordinalSuffix(i) + " - " + tourney_participants_data[rnk_vals[i].player].name, "`" + rnk_vals[i].matches + " matches`", true)
                             .addField(Math.round(rnk_vals[i].rank), arrow + " " + Math.round(rnk_vals[i].change), true)
                             .addField('\u200B', '\u200B', true)
                     }
@@ -107,7 +87,115 @@ module.exports = {
                     }
                 })
             }
-        } else if (args[0] == "") {
+        } else if (args[0] == "matches") {
+            if (args[1].startsWith("page")) {
+
+                var tourney_matches = database.ref('tourney/matches')
+                tourney_matches.on("value", function (snapshot) {
+                    tourney_matches_data = snapshot.val();
+                }, function (errorObject) {
+                    console.log("The read failed: " + errorObject);
+                });
+                var tourney_participants = database.ref('tourney/participants')
+                tourney_participants.on("value", function (snapshot) {
+                    tourney_participants_data = snapshot.val();
+                }, function (errorObject) {
+                    console.log("The read failed: " + errorObject);
+                });
+                var tourney_tournaments = database.ref('tourney/tournaments')
+                tourney_tournaments.on("value", function (snapshot) {
+                    tourney_tournaments_data = snapshot.val();
+                }, function (errorObject) {
+                    console.log("The read failed: " + errorObject);
+                });
+                var offset = Number(args[1].replace("page", ""))
+                var type = 7
+                var pages = 0
+                var matches = Object.values(tourney_matches_data)
+                matches.sort(function (a, b) {
+                    return Date.parse(b.datetime) - Date.parse(a.datetime);
+                })
+
+                if (matches.length % 5 == 0) {
+                    pages = Math.floor(matches.length / 5)
+                } else {
+                    pages = Math.floor(matches.length / 5) + 1
+                }
+                const tourneyMatches = new Discord.MessageEmbed()
+                    .setTitle("Recent Matches")
+                    .setFooter("Page " + (offset + 1) + " / " + pages)
+                    .setColor("#E75A70")
+                for (var i = 5 * offset; i < 5 * (1 + offset); i++) {
+                    if (i == matches.length) {
+                        i = 5 * (1 + offset)
+                    } else {
+                        var date = matches.datetime
+                        if(matches.url !== ""){
+                            date = date + "\n[vod](" +matches.url + ")"
+                        }
+                        var players = Object.values(matches.players)
+                        var score = []
+                        var player_text = []
+                        for(k = 0; k < players.length; k ++){
+                            player_text.push(tourney_participants_data[players[k].player].name)
+                            score.push(players[k].score)
+                        }
+                        tourneyMatches
+                            .addField(tourney_tournaments_data[matches.tourney].nickname + " - " + matches.bracket + ": " + matches.round, date, true)
+                            .addField(player_text.join(" vs. "), "score: ||`" + score.join(" to ") + "`||", true)
+                            .addField('\u200B', '\u200B', true)
+                    }
+                }
+                if (args.includes("initial")) {
+                    type = 4
+                }
+                var previous = false, next = false
+                if (offset <= 0) {
+                    previous = true
+                }
+                if (offset + 1 == pages) {
+                    next = true
+                }
+                client.api.interactions(interaction.id, interaction.token).callback.post({
+                    data: {
+                        type: type,
+                        data: {
+                            //content: "",
+                            embeds: [tourneyMatches],
+                            components: [
+                                {
+                                    type: 1,
+                                    components: [
+                                        {
+                                            type: 2,
+                                            label: "",
+                                            emoji: {
+                                                id: null,
+                                                name: "◀️"
+                                            },
+                                            style: 2,
+                                            custom_id: "tourney_matches_page" + (offset - 1),
+                                            disabled: previous
+                                        },
+                                        {
+                                            type: 2,
+                                            label: "",
+                                            emoji: {
+                                                id: null,
+                                                name: "▶️"
+                                            },
+                                            style: 2,
+                                            custom_id: "tourney_matches_page" + (offset + 1),
+                                            disabled: next
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                })
+            }
+
         }
 
     }
