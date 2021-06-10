@@ -111,7 +111,7 @@ module.exports = {
                     }, function (errorObject) {
                         console.log("The read failed: " + errorObject);
                     });
-                    var offset = Number(args[1].replace("page", ""))
+                    var offset = Number(args[2].replace("page", ""))
                     var type = 7
                     var pages = 0
                     var matches = Object.values(tourney_matches_data)
@@ -176,7 +176,7 @@ module.exports = {
                                                     name: "◀️"
                                                 },
                                                 style: 2,
-                                                custom_id: "tourney_matches_page" + (offset - 1),
+                                                custom_id: "tourney_matches_browse_page" + (offset - 1),
                                                 disabled: previous
                                             },
                                             {
@@ -187,7 +187,7 @@ module.exports = {
                                                     name: "▶️"
                                                 },
                                                 style: 2,
-                                                custom_id: "tourney_matches_page" + (offset + 1),
+                                                custom_id: "tourney_matches_browse_page" + (offset + 1),
                                                 disabled: next
                                             }
                                         ]
