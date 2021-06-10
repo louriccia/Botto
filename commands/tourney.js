@@ -734,7 +734,7 @@ module.exports = {
                     })
                     tourneyReport
                         .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/crossed-swords_2694-fe0f.png")
-                        .setTitle("Matche Schedule")
+                        .setTitle("Match Schedule")
                         .setURL("http://speedgaming.org/swe1racer/")
                         .setDescription("Upcoming matches on speedgaming.org/swe1racer\n(all times are EDT)")
                     schedule.splice(0, 1)

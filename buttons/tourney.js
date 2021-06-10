@@ -31,7 +31,7 @@ module.exports = {
                     if (i == rnk_vals.length) {
                         i = 5 * (1 + offset)
                     } else {
-                        var arrow = ":small_red_triangle:"
+                        var arrow = "<:green_arrow:852392123093614642>"
                         if (rnk_vals[i].change < 0) {
                             arrow = ":small_red_triangle_down:"
                         }
@@ -70,8 +70,8 @@ module.exports = {
                                             type: 2,
                                             label: "",
                                             emoji: {
-                                                id: null,
-                                                name: "◀️"
+                                                id: "852392123151679548",
+                                                name: "left"
                                             },
                                             style: 2,
                                             custom_id: "tourney_ranks_page" + (offset - 1),
@@ -81,8 +81,8 @@ module.exports = {
                                             type: 2,
                                             label: "",
                                             emoji: {
-                                                id: null,
-                                                name: "▶️"
+                                                id: "852392123109998602",
+                                                name: "right"
                                             },
                                             style: 2,
                                             custom_id: "tourney_ranks_page" + (offset + 1),
@@ -142,13 +142,18 @@ module.exports = {
                                 date = date + "\n[vod](" + matches[i].url + ")"
                             }
                             var players = Object.values(matches[i].players)
+                            var commentators = Object.values(matches[i].commentators)
                             var score = []
+                            var comms = []
                             var player_text = []
                             for (k = 0; k < players.length; k++) {
                                 player_text.push(tourney_participants_data[players[k].player].name)
                                 if(![undefined, ""].includes(players[k].score)){
                                     score.push(players[k].score)
                                 }
+                            }
+                            for(k = 0 ; k < commentators.length; k++){
+                                comms.push(tourney_participants_data[commentators[k]].name)
                             }
                             if(score.length > 0){
                                 score = "score: ||`" + score.join(" to ") + "`||"
@@ -162,7 +167,7 @@ module.exports = {
                             }
                             tourneyMatches
                                 .addField(tourney_tournaments_data[matches[i].tourney].nickname + bracketround, date, true)
-                                .addField(player_text.join(" vs. "), score, true)
+                                .addField(player_text.join(" vs. "), ":microphone2: " + comms.join(", ") + "\n" + score, true)
                                 .addField('\u200B', '\u200B', true)
                         }
                     }
@@ -190,8 +195,8 @@ module.exports = {
                                                 type: 2,
                                                 label: "",
                                                 emoji: {
-                                                    id: null,
-                                                    name: "◀️"
+                                                    id: "852392123151679548",
+                                                    name: "left"
                                                 },
                                                 style: 2,
                                                 custom_id: "tourney_matches_browse_page" + (offset - 1),
@@ -201,8 +206,8 @@ module.exports = {
                                                 type: 2,
                                                 label: "",
                                                 emoji: {
-                                                    id: null,
-                                                    name: "▶️"
+                                                    id: "852392123109998602",
+                                                    name: "right"
                                                 },
                                                 style: 2,
                                                 custom_id: "tourney_matches_browse_page" + (offset + 1),
