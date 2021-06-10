@@ -897,25 +897,31 @@ module.exports = {
                 }).then(() => {
                     client.ws.on('INTERACTION_CREATE', async interaction => {
                         if (interaction.data.hasOwnProperty("custom_id")) {
-                            if(interaction.data.custom_id == data.datetime+"submit"){
+                            if (interaction.data.custom_id == data.datetime + "submit") {
                                 tourney_matches.push(data)
                                 client.api.interactions(interaction.id, interaction.token).callback.post({
                                     data: {
                                         type: 7,
-                                        content: "The inputted match has been successfully submitted to the database. Thank you!",
-                                        components: []
+                                        data: {
+                                            content: "The inputted match has been successfully submitted to the database. Thank you!",
+                                            components: []
+                                        }
+
                                     }
                                 })
-                                
-                            } else if (interaction.data.custom_id == data.datetime+"cancel"){
+
+                            } else if (interaction.data.custom_id == data.datetime + "cancel") {
                                 client.api.interactions(interaction.id, interaction.token).callback.post({
                                     data: {
                                         type: 7,
-                                        content: "Match submission canceled. <:WhyNobodyBuy:589481340957753363>",
-                                        components: []
+                                        data: {
+                                            content: "Match submission canceled. <:WhyNobodyBuy:589481340957753363>",
+                                            components: []
+                                        }
+
                                     }
                                 })
-                            
+
                             }
                         }
                     })
