@@ -901,17 +901,21 @@ module.exports = {
                                 tourney_matches.push(data)
                                 client.api.interactions(interaction.id, interaction.token).callback.post({
                                     data: {
-                                        type: 1,
+                                        type: 7,
+                                        content: "The inputted match has been successfully submitted to the database. Thank you!",
+                                        components: []
                                     }
                                 })
-                                client.api.webhooks(client.user.id, unique_interaction).messages('@original').delete()
+                                
                             } else if (interaction.data.custom_id == data.datetime+"cancel"){
                                 client.api.interactions(interaction.id, interaction.token).callback.post({
                                     data: {
-                                        type: 1,
+                                        type: 7,
+                                        content: "Match submission canceled. <:WhyNobodyBuy:589481340957753363>",
+                                        components: []
                                     }
                                 })
-                                client.api.webhooks(client.user.id, unique_interaction).messages('@original').delete()
+                            
                             }
                         }
                     })
