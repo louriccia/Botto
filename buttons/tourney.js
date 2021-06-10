@@ -131,11 +131,11 @@ module.exports = {
                         if (i == matches.length) {
                             i = 5 * (1 + offset)
                         } else {
-                            var date = matches.datetime
-                            if (matches.url !== "") {
-                                date = date + "\n[vod](" + matches.url + ")"
+                            var date = matches[i].datetime
+                            if (matches[i].url !== "") {
+                                date = date + "\n[vod](" + matches[i].url + ")"
                             }
-                            var players = Object.values(matches.players)
+                            var players = Object.values(matches[i].players)
                             var score = []
                             var player_text = []
                             for (k = 0; k < players.length; k++) {
@@ -143,7 +143,7 @@ module.exports = {
                                 score.push(players[k].score)
                             }
                             tourneyMatches
-                                .addField(tourney_tournaments_data[matches.tourney].nickname + " - " + matches.bracket + ": " + matches.round, date, true)
+                                .addField(tourney_tournaments_data[matches[i].tourney].nickname + " - " + matches[i].bracket + ": " + matches[i].round, date, true)
                                 .addField(player_text.join(" vs. "), "score: ||`" + score.join(" to ") + "`||", true)
                                 .addField('\u200B', '\u200B', true)
                         }
