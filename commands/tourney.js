@@ -860,8 +860,12 @@ module.exports = {
                 data.players = []
                 data.players.push(player1)
                 data.players.push(player2)
-                data.players.push(player3)
-                data.players.push(player4)
+                if(Object.keys(player3).length > 0){
+                    data.players.push(player3)
+                }
+                if(Object.keys(player4).length > 0){
+                    data.players.push(player4)
+                }
                 var dup = false
                 var dup_run = {}
                 var mtch = Object.keys(tourney_matches_data)
