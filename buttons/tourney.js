@@ -162,7 +162,7 @@ module.exports = {
                             var bracketround = ""
                             if(matches[i].bracket !== ""){
                                 bracketround += " - " + matches[i].bracket
-                                if(matches[i].round !== ""){
+                                if(![undefined, ""].includes(matches[i].round)){
                                     bracketround += ": " + matches[i].round
                                 }
                             }
