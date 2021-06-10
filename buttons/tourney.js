@@ -34,9 +34,10 @@ module.exports = {
                         var arrow = "<:green_arrow:852392123093614642>"
                         if (rnk_vals[i].change < 0) {
                             arrow = ":small_red_triangle_down:"
+                            rnk_vals[i].change = Math.abs(rnk_vals[i].change)
                         }
                         tourneyRanks
-                            .addField(tools.ordinalSuffix(i) + " - " + tourney_participants_data[rnk_vals[i].player].name, "`" + rnk_vals[i].matches + " matches`", true)
+                            .addField(tools.ordinalSuffix(i) + " " + tourney_participants_data[rnk_vals[i].player].name, "`" + rnk_vals[i].matches + " matches`", true)
                             .addField(Math.round(rnk_vals[i].rank), arrow + " " + Math.round(rnk_vals[i].change), true)
                             .addField('\u200B', '\u200B', true)
                     }
@@ -160,14 +161,14 @@ module.exports = {
                             }
                             var bracketround = ""
                             if(matches[i].bracket !== ""){
-                                bracketround +=  + " - " + matches[i].bracket
+                                bracketround += " - " + matches[i].bracket
                                 if(matches[i].round !== ""){
                                     bracketround += ": " + matches[i].round
                                 }
                             }
                             tourneyMatches
                                 .addField(tourney_tournaments_data[matches[i].tourney].nickname + bracketround, date, true)
-                                .addField(player_text.join(" vs. "), ":microphone2: " + comms.join(", ") + "\n" + score, true)
+                                .addField(player_text.join(" vs. "), score + "\n" + ":microphone2: " + comms.join(", "), true)
                                 .addField('\u200B', '\u200B', true)
                         }
                     }
