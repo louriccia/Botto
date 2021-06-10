@@ -889,7 +889,11 @@ module.exports = {
                     })
                 })
         } else if (args[0].name == "matches"){
-            
+            if(args[0].options[0].name == "browse"){
+                client.buttons.get("tourney").execute(client, interaction, ["matches", "browse", "page0", "initial"]);
+            } else if(args[0].options[0].name == "submit"){
+                
+            }
         }
     }
 }
