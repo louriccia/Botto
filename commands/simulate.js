@@ -36,7 +36,7 @@ module.exports = {
             .addField("Racer", postColumn1, true)
             .addField("Speed", postColumn2, true)
             .addField("Est. Time", postColumn3, true)
-            .addField("Note:", "*This simulation assumes the track is a straight line, and ignores hills and fast/slow terrain. The estimated times might also be off by as much as 0.1s from pod to pod.*", false)
+            .addField("Note:", "*This simulation assumes the track is a straight line, and ignores hills and fast/slow terrain. The estimated times might also be off by as much as 0.1s from pod to pod due to boost timing error.*", false)
 
         
 
