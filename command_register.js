@@ -838,6 +838,11 @@ client.api.applications("545798436105224203").commands.post({
                 type: 1
             },
             {
+                name: "speedrunning",
+                description: "posts a collection of links to various leaderboards across the web",
+                type: 1
+            },
+            {
                 name: "mp_guide",
                 description: "posts a link to the online multiplayer guide",
                 type: 1
@@ -2718,7 +2723,7 @@ client.api.applications("545798436105224203").commands.post({
             },
             {
                 name: "ranks",
-                description: "see Elo rankings for tournament participants",
+                description: "get Elo ratings for tournament participants",
                 type: 1,
                 options: [
                 ]
@@ -2728,6 +2733,607 @@ client.api.applications("545798436105224203").commands.post({
                 description: "get a look at upcoming matches on speedgaming.org",
                 type: 1,
                 options: [
+                ]
+            },
+            {
+                name: "matches",
+                description: "view or add matches",
+                type: 2,
+                options: [
+                    {
+                        name: "browse",
+                        description :"get a list of recent tournament matches",
+                        type: 1,
+                        options: [
+                        ]
+                    },
+                    {
+                        name: "submit",
+                        description : "submit a tournament match to the database",
+                        type: 1,
+                        options: [
+                            {
+                                name: "tournament",
+                                description: "select the tournament for the match submission",
+                                type: 3,
+                                required: true,
+                                choices: [
+                                    {
+                                        name: "20th Anniversary Tournament 2019",
+                                        value: "0"
+                                    },
+                                    {
+                                        name: "Galactic Tournament 2020",
+                                        value: "1"
+                                    },
+                                    {
+                                        name: "David Stubbs Tribute 2021",
+                                        value: "2"
+                                    },
+                                    {
+                                        name: "Galactic Tournament 2021",
+                                        value: "3"
+                                    }
+                                ]
+                            },
+                            {
+                                name: "bracket",
+                                description: "select the bracket for the match submission",
+                                type: 3, 
+                                required: true,
+                                choices: [
+                                    {
+                                        name: "Qualifiers",
+                                        value: "Qual"
+                                    },
+                                    {
+                                        name: "Group A",
+                                        value: "Group A"
+                                    },
+                                    {
+                                        name: "Group B",
+                                        value: "Group B"
+                                    },
+                                    {
+                                        name: "Group C",
+                                        value: "Group C"
+                                    },
+                                    {
+                                        name: "Group D",
+                                        value: "Group D"
+                                    },
+                                    {
+                                        name: "Double Elimenation - Losers",
+                                        value: "DE-L"
+                                    },
+                                    {
+                                        name: "Double Elimenation - Losers",
+                                        value: "DE-W"
+                                    }
+                                ]
+                            },
+                            {
+                                name: "datetime",
+                                description: "enter the date the match was held; please use m/d/yyyy 24:00:00 format in Eastern Time",
+                                type: 3,
+                                required: true
+                            },
+                            {
+                                name: "player_1",
+                                description: "enter the first player in the match",
+                                type: 6,
+                                required: true
+                            },
+                            {
+                                name: "player_2",
+                                description: "enter the second player in the match",
+                                type: 6,
+                                required: true
+                            },
+                            {
+                                name: "player_1_permaban_1",
+                                description: "enter the first player's first permaban",
+                                type: 3,
+                                required: false,
+                                choices: [
+                                    {
+                                        name: "The Boonta Training Course",
+                                        value: "0"
+                                    },
+                                    {
+                                        name: "Mon Gazza Speedway",
+                                        value: "1"
+                                    },
+                                    {
+                                        name: "Beedo's Wild Ride",
+                                        value: "2"
+                                    },
+                                    {
+                                        name: "Aquilaris Classic",
+                                        value: "3"
+                                    },
+                                    {
+                                        name: "Malastare 100",
+                                        value: "4"
+                                    },
+                                    {
+                                        name: "Vengeance",
+                                        value: "5"
+                                    },
+                                    {
+                                        name: "Spice Mine Run",
+                                        value: "6"
+                                    },
+                                    {
+                                        name: "Sunken City",
+                                        value: "7"
+                                    },
+                                    {
+                                        name: "Howler Gorge",
+                                        value: "8"
+                                    },
+                                    {
+                                        name: "Dug Derby",
+                                        value: "9"
+                                    },
+                                    {
+                                        name: "Scrapper's Run",
+                                        value: "10"
+                                    },
+                                    {
+                                        name: "Zugga Challenge",
+                                        value: "11"
+                                    },
+                                    {
+                                        name: "Baroo Coast",
+                                        value: "12"
+                                    },
+                                    {
+                                        name: "Bumpy's Breakers",
+                                        value: "13"
+                                    },
+                                    {
+                                        name: "Executioner",
+                                        value: "14"
+                                    },
+                                    {
+                                        name: "Sebulba's Legacy",
+                                        value: "15"
+                                    },
+                                    {
+                                        name: "Grabvine Gateway",
+                                        value: "16"
+                                    },
+                                    {
+                                        name: "Andobi Mountain Run",
+                                        value: "17"
+                                    },
+                                    {
+                                        name: "Dethro's Revenge",
+                                        value: "18"
+                                    },
+                                    {
+                                        name: "Fire Mountain Rally",
+                                        value: "19"
+                                    },
+                                    {
+                                        name: "The Boonta Classic",
+                                        value: "20"
+                                    },
+                                    {
+                                        name: "Ando Prime Centrum",
+                                        value: "21"
+                                    },
+                                    {
+                                        name: "Abyss",
+                                        value: "22"
+                                    },
+                                    {
+                                        name: "The Gauntlet",
+                                        value: "23"
+                                    },
+                                    {
+                                        name: "Inferno",
+                                        value: "24"
+                                    }
+                                ]
+                            },
+                            {
+                                name: "player_1_permaban_2",
+                                description: "enter the first player's second permaban",
+                                type: 3,
+                                required: false,
+                                choices: [
+                                    {
+                                        name: "The Boonta Training Course",
+                                        value: "0"
+                                    },
+                                    {
+                                        name: "Mon Gazza Speedway",
+                                        value: "1"
+                                    },
+                                    {
+                                        name: "Beedo's Wild Ride",
+                                        value: "2"
+                                    },
+                                    {
+                                        name: "Aquilaris Classic",
+                                        value: "3"
+                                    },
+                                    {
+                                        name: "Malastare 100",
+                                        value: "4"
+                                    },
+                                    {
+                                        name: "Vengeance",
+                                        value: "5"
+                                    },
+                                    {
+                                        name: "Spice Mine Run",
+                                        value: "6"
+                                    },
+                                    {
+                                        name: "Sunken City",
+                                        value: "7"
+                                    },
+                                    {
+                                        name: "Howler Gorge",
+                                        value: "8"
+                                    },
+                                    {
+                                        name: "Dug Derby",
+                                        value: "9"
+                                    },
+                                    {
+                                        name: "Scrapper's Run",
+                                        value: "10"
+                                    },
+                                    {
+                                        name: "Zugga Challenge",
+                                        value: "11"
+                                    },
+                                    {
+                                        name: "Baroo Coast",
+                                        value: "12"
+                                    },
+                                    {
+                                        name: "Bumpy's Breakers",
+                                        value: "13"
+                                    },
+                                    {
+                                        name: "Executioner",
+                                        value: "14"
+                                    },
+                                    {
+                                        name: "Sebulba's Legacy",
+                                        value: "15"
+                                    },
+                                    {
+                                        name: "Grabvine Gateway",
+                                        value: "16"
+                                    },
+                                    {
+                                        name: "Andobi Mountain Run",
+                                        value: "17"
+                                    },
+                                    {
+                                        name: "Dethro's Revenge",
+                                        value: "18"
+                                    },
+                                    {
+                                        name: "Fire Mountain Rally",
+                                        value: "19"
+                                    },
+                                    {
+                                        name: "The Boonta Classic",
+                                        value: "20"
+                                    },
+                                    {
+                                        name: "Ando Prime Centrum",
+                                        value: "21"
+                                    },
+                                    {
+                                        name: "Abyss",
+                                        value: "22"
+                                    },
+                                    {
+                                        name: "The Gauntlet",
+                                        value: "23"
+                                    },
+                                    {
+                                        name: "Inferno",
+                                        value: "24"
+                                    }
+                                ]
+                            },
+                            {
+                                name: "player_2_permaban_1",
+                                description: "enter the second player's first permaban",
+                                type: 3,
+                                required: false,
+                                choices: [
+                                    {
+                                        name: "The Boonta Training Course",
+                                        value: "0"
+                                    },
+                                    {
+                                        name: "Mon Gazza Speedway",
+                                        value: "1"
+                                    },
+                                    {
+                                        name: "Beedo's Wild Ride",
+                                        value: "2"
+                                    },
+                                    {
+                                        name: "Aquilaris Classic",
+                                        value: "3"
+                                    },
+                                    {
+                                        name: "Malastare 100",
+                                        value: "4"
+                                    },
+                                    {
+                                        name: "Vengeance",
+                                        value: "5"
+                                    },
+                                    {
+                                        name: "Spice Mine Run",
+                                        value: "6"
+                                    },
+                                    {
+                                        name: "Sunken City",
+                                        value: "7"
+                                    },
+                                    {
+                                        name: "Howler Gorge",
+                                        value: "8"
+                                    },
+                                    {
+                                        name: "Dug Derby",
+                                        value: "9"
+                                    },
+                                    {
+                                        name: "Scrapper's Run",
+                                        value: "10"
+                                    },
+                                    {
+                                        name: "Zugga Challenge",
+                                        value: "11"
+                                    },
+                                    {
+                                        name: "Baroo Coast",
+                                        value: "12"
+                                    },
+                                    {
+                                        name: "Bumpy's Breakers",
+                                        value: "13"
+                                    },
+                                    {
+                                        name: "Executioner",
+                                        value: "14"
+                                    },
+                                    {
+                                        name: "Sebulba's Legacy",
+                                        value: "15"
+                                    },
+                                    {
+                                        name: "Grabvine Gateway",
+                                        value: "16"
+                                    },
+                                    {
+                                        name: "Andobi Mountain Run",
+                                        value: "17"
+                                    },
+                                    {
+                                        name: "Dethro's Revenge",
+                                        value: "18"
+                                    },
+                                    {
+                                        name: "Fire Mountain Rally",
+                                        value: "19"
+                                    },
+                                    {
+                                        name: "The Boonta Classic",
+                                        value: "20"
+                                    },
+                                    {
+                                        name: "Ando Prime Centrum",
+                                        value: "21"
+                                    },
+                                    {
+                                        name: "Abyss",
+                                        value: "22"
+                                    },
+                                    {
+                                        name: "The Gauntlet",
+                                        value: "23"
+                                    },
+                                    {
+                                        name: "Inferno",
+                                        value: "24"
+                                    }
+                                ]
+                            },
+                            {
+                                name: "player_2_permaban_2",
+                                description: "enter the second player's second permaban",
+                                type: 3,
+                                required: false,
+                                choices: [
+                                    {
+                                        name: "The Boonta Training Course",
+                                        value: "0"
+                                    },
+                                    {
+                                        name: "Mon Gazza Speedway",
+                                        value: "1"
+                                    },
+                                    {
+                                        name: "Beedo's Wild Ride",
+                                        value: "2"
+                                    },
+                                    {
+                                        name: "Aquilaris Classic",
+                                        value: "3"
+                                    },
+                                    {
+                                        name: "Malastare 100",
+                                        value: "4"
+                                    },
+                                    {
+                                        name: "Vengeance",
+                                        value: "5"
+                                    },
+                                    {
+                                        name: "Spice Mine Run",
+                                        value: "6"
+                                    },
+                                    {
+                                        name: "Sunken City",
+                                        value: "7"
+                                    },
+                                    {
+                                        name: "Howler Gorge",
+                                        value: "8"
+                                    },
+                                    {
+                                        name: "Dug Derby",
+                                        value: "9"
+                                    },
+                                    {
+                                        name: "Scrapper's Run",
+                                        value: "10"
+                                    },
+                                    {
+                                        name: "Zugga Challenge",
+                                        value: "11"
+                                    },
+                                    {
+                                        name: "Baroo Coast",
+                                        value: "12"
+                                    },
+                                    {
+                                        name: "Bumpy's Breakers",
+                                        value: "13"
+                                    },
+                                    {
+                                        name: "Executioner",
+                                        value: "14"
+                                    },
+                                    {
+                                        name: "Sebulba's Legacy",
+                                        value: "15"
+                                    },
+                                    {
+                                        name: "Grabvine Gateway",
+                                        value: "16"
+                                    },
+                                    {
+                                        name: "Andobi Mountain Run",
+                                        value: "17"
+                                    },
+                                    {
+                                        name: "Dethro's Revenge",
+                                        value: "18"
+                                    },
+                                    {
+                                        name: "Fire Mountain Rally",
+                                        value: "19"
+                                    },
+                                    {
+                                        name: "The Boonta Classic",
+                                        value: "20"
+                                    },
+                                    {
+                                        name: "Ando Prime Centrum",
+                                        value: "21"
+                                    },
+                                    {
+                                        name: "Abyss",
+                                        value: "22"
+                                    },
+                                    {
+                                        name: "The Gauntlet",
+                                        value: "23"
+                                    },
+                                    {
+                                        name: "Inferno",
+                                        value: "24"
+                                    }
+                                ]
+                            },
+                            {
+                                name: "player_1_score",
+                                description: "enter player 1's final score",
+                                type: 4,
+                                required: false
+                            },
+                            {
+                                name: "player_2_score",
+                                description: "enter player 2's final score",
+                                type: 4,
+                                required: false
+                            },
+                            {
+                                name: "vod",
+                                description: "enter the url for the match vod",
+                                type: 3,
+                                required: false
+                            },
+                            {
+                                name: "commentator_1",
+                                description: "enter the first commentator",
+                                type: 6,
+                                required: false
+                            },
+                            {
+                                name: "commentator_2",
+                                description: "enter the second commentator",
+                                type: 6,
+                                required: false
+                            },
+                            {
+                                name: "round",
+                                description: "select the round for the match submission",
+                                type: 3,
+                                required: false,
+                                choices: [
+                                    {
+                                        name: "1",
+                                        value: "1"
+                                    },
+                                    {
+                                        name: "2",
+                                        value: "2"
+                                    },
+                                    {
+                                        name: "3",
+                                        value: "3"
+                                    },
+                                    {
+                                        name: "4",
+                                        value: "4"
+                                    },
+                                    {
+                                        name: "5",
+                                        value: "5"
+                                    }
+                                ]
+                            },
+                            {
+                                name: "player_3",
+                                description: "enter the third player in the match",
+                                type: 6,
+                                required: false
+                            },
+                            {
+                                name: "player_4",
+                                description: "enter the fourth player in the match",
+                                type: 6,
+                                required: false
+                            }
+                        ]
+                    }
                 ]
             }
         ]

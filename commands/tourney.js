@@ -47,7 +47,8 @@ module.exports = {
                 if (args[0].options[i].name == "track") {
                     trak = Number(args[0].options[i].value)
                     tourneyReport
-                        .setTitle(tracks[trak].name + " | Tournament Times")
+                        .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/crossed-swords_2694-fe0f.png")
+                        .setTitle(tracks[trak].name)
                         .setColor(planets[tracks[trak].planet].color)
                 } else if (args[0].options[i].name == "skips") {
                     var input = args[0].options[i].value.toLowerCase()
@@ -182,7 +183,7 @@ module.exports = {
                         }
                         link = tourney_matches_data[runs[i].datetime].url
                         if (runs[i].hasOwnProperty("podtempban")) {
-                            if (runs[i].podtempban !== "") {
+                            if (!["", "none"].includes(runs[i].podtempban)) {
                                 characterban = "\n~~" + racers[runs[i].podtempban].name + "~~"
                             }
                         }
@@ -238,8 +239,6 @@ module.exports = {
 
         } else if (args[0].name == "profile") {
             var member = interaction.member.user.id
-            const Guild = client.guilds.cache.get(interaction.guild_id); // Getting the guild.
-            const Member = Guild.members.cache.get(member); // Getting the member.
             if (args[0].hasOwnProperty("options")) {
                 if (args[0].options[0].name == "participant") {
                     member = args[0].options[0].value
@@ -303,7 +302,6 @@ module.exports = {
                 }
                 function arraytoTracks(array) {
                     var string = ""
-                    console.log(array)
                     if (array.length > 0) {
                         for (i = 0; i < array.length; i++) {
                             if (tracks[array[i]] !== undefined) {
@@ -316,7 +314,6 @@ module.exports = {
                 }
                 function arraytoRacers(array) {
                     var string = ""
-                    console.log(array)
                     if (array.length > 0) {
                         for (i = 0; i < array.length; i++) {
                             if (racers[array[i]] !== undefined) {
@@ -329,7 +326,6 @@ module.exports = {
                 }
                 function arraytoPlayers(array) {
                     var string = ""
-                    console.log(array)
                     if (array.length > 0) {
                         for (i = 0; i < array.length; i++) {
                             if (tourney_participants_data[array[i]] !== undefined) {
@@ -642,13 +638,10 @@ module.exports = {
                         }
                         )
                     }
-                    console.log(stats)
                     var rvl = Object.keys(stats.opponent.rivalries)
-                    console.log(rvl)
                     var rivalries = []
                     for (i = 0; i < rvl.length; i++) {
                         var r = stats.opponent.rivalries[rvl[i]]
-                        console.log(r)
                         var sum = 0
                         for (j = 0; j < r.length; j++) {
                             sum += r[j]
@@ -661,7 +654,6 @@ module.exports = {
                     rivalries.sort(function (a, b) {
                         return a.gap - b.gap;
                     })
-                    console.log(rivalries)
                     var rivals = []
                     for (var i = 0; i < 2; i++) {
                         if (i == rivalries.length) {
@@ -714,119 +706,28 @@ module.exports = {
                     }
                     return tourneyReport
                 } else {
-                    //user has not participated in a tournament
+                    tourneyReport.setDescription("This user has not participated in any tournaments.")
+                    return tourneyReport
                 }
-            }).then((embed) => sendResponse(embed))
+            }).then((embed) => sendResponse(embed)).then(() => {
+                if (stats.matches_commentated >= 30 && member == interaction.member.user.id && interaction.guild_id == "441839750555369474") {
+                    const Guild = client.guilds.cache.get(interaction.guild_id); // Getting the guild.
+                    const Member = Guild.members.cache.get(member); // Getting the member.
+                    let role = Guild.roles.cache.get("747922926296104991");
+                    if (!Member.roles.cache.some(r => r.id === role.id)) {
+                        const congratsEmbed = new Discord.MessageEmbed()
+                            .setAuthor(Member.user.username + " got a new role!", Member.avatarURL)
+                            .setDescription(Member.user.username + " got the Fodesinbeed role for commentating 30 or more tournament matches! <a:fodesinbeed:672640805055496192>") //+ " `" + String(Object.keys(achievements[a].collection).length) + "/" + String(achievements[a].limit)) + "`"
+                            .setColor("FFB900")
+                            .setTitle("**<a:fodesinbeed:672640805055496192> Fodesinbeed**")
+                        Member.roles.add(role).catch(console.error);
+                        congratsEmbed.setDescription("**<@&" + achievements[a].role + ">** - " + achievements[a].description)
+                        client.channels.cache.get(interaction.channel_id).send(congratsEmbed)
+                    }
+                }
+            })
         } else if (args[0].name == "ranks") {
-            async function sendCallback() {
-                const wait = client.api.interactions(interaction.id, interaction.token).callback.post({
-                    data: {
-                        type: 5,
-                        data: {
-                            content: "Coming right up..."
-                            //embeds: [racerEmbed]
-                        }
-                    }
-                })
-                return wait
-            }
-            async function sendResponse(embed) {
-                const response = await client.api.webhooks(client.user.id, interaction.token).messages('@original').patch(
-                    {
-                        data:
-                        {
-                            embeds: [embed],
-                            components: [
-                                {
-                                    type: 1,
-                                    components: [
-                                        {
-                                            type: 2,
-                                            label: "",
-                                            emoji: {
-                                                id: null,
-                                                name: "◀️"
-                                            },
-                                            style: 2,
-                                            custom_id: "tourney_ranks_page0",
-                                            disabled: true
-                                        },
-                                        {
-                                            type: 2,
-                                            label: "",
-                                            emoji: {
-                                                id: null,
-                                                name: "▶️"
-                                            },
-                                            style: 2,
-                                            custom_id: "tourney_ranks_page1"
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    })
-                return response
-            }
-            sendCallback().then(() => {
-                var ranks = tools.getRanks()
-                const tourneyRanks = new Discord.MessageEmbed()
-                tourneyRanks.setTitle(":crossed_swords: Tournament Rankings")
-
-                var rnk_keys = Object.keys(ranks)
-                var rnk_vals = Object.values(ranks)
-                var pages = 0
-                if (rnk_vals.length % 5 == 0) {
-                    pages = Math.floor(rnk_vals.length / 5)
-                } else {
-                    pages = Math.floor(rnk_vals.length / 5) + 1
-                }
-                for (var i = 0; i < rnk_keys.length; i++) {
-                    rnk_vals[i].player = rnk_keys[i]
-                }
-                rnk_vals.sort(function (a, b) {
-                    return b.rank - a.rank;
-                })
-                function ordinal_suffix_of(i) {
-                    if (i < 3) {
-                        var pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>"]
-                        return pos[i]
-                    } else {
-                        i = i+1
-                        var j = i % 10,
-                            k = i % 100;
-                        if (j == 1 && k != 11) {
-                            return i + "st";
-                        }
-                        if (j == 2 && k != 12) {
-                            return i + "nd";
-                        }
-                        if (j == 3 && k != 13) {
-                            return i + "rd";
-                        }
-                        return i + "th";
-                    }
-                }
-                for (var i = 0; i < 5; i++) {
-                    if (i == rnk_vals.length) {
-                        i = 5
-                    } else {
-                        var arrow = ":small_red_triangle:"
-                        if (rnk_vals[i].change < 0) {
-                            arrow = ":small_red_triangle_down:"
-                        }
-                        tourneyRanks
-                            .addField(ordinal_suffix_of(i) + " - " + tourney_participants_data[rnk_vals[i].player].name, "`" + rnk_vals[i].matches + " matches`", true)
-                            .addField(Math.round(rnk_vals[i].rank), arrow + " " + Math.round(rnk_vals[i].change), true)
-                            .addField('\u200B', '\u200B', true)
-                    }
-                }
-                tourneyRanks
-                    .setFooter("Page 1 / " + pages)
-                    .setColor("#E75A70")
-                return tourneyRanks
-
-            }).then((embed) => sendResponse(embed))
+            client.buttons.get("tourney").execute(client, interaction, ["ranks", "page0", "initial"]);
         } else if (args[0].name == "schedule") {
             const rp = require('request-promise');
             const $ = require('cheerio');
@@ -847,19 +748,22 @@ module.exports = {
                         schedule.push(text)
                     })
                     tourneyReport
-                        .setTitle("Tournament Schedule")
+                        .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/crossed-swords_2694-fe0f.png")
+                        .setTitle("Match Schedule")
                         .setURL("http://speedgaming.org/swe1racer/")
                         .setDescription("Upcoming matches on speedgaming.org/swe1racer\n(all times are EDT)")
                     schedule.splice(0, 1)
                     if (schedule.length > 1) {
                         for (i = 0; i < schedule.length; i++) {
                             var channel = ""
-                            if (!schedule[i][4].includes("?")) {
-                                channel = "[" + schedule[i][4] + "](https://www.twitch.tv/" + schedule[i][4] + ")"
-                            }
                             var comm = ""
-                            if (schedule[i][5] !== undefined) {
-                                comm = schedule[i][5]
+                            if (schedule[i].length > 3) {
+                                if (!schedule[i][4].includes("?")) {
+                                    channel = "[" + schedule[i][4] + "](https://www.twitch.tv/" + schedule[i][4] + ")"
+                                }
+                                if (schedule[i][5] !== undefined) {
+                                    comm = schedule[i][5]
+                                }
                             }
                             tourneyReport
                                 .addField(schedule[i][0] + " " + schedule[i][1], schedule[i][2] + "\n" + channel, true)
@@ -875,11 +779,221 @@ module.exports = {
                             data: {
                                 //content: content,
                                 //flags: 64
-                                embeds: [tourneyReport]
+                                embeds: [tourneyReport],
+                                components: [
+                                    {
+                                        type: 1,
+                                        components: [
+                                            {
+                                                type: 2,
+                                                label: "Schedule Match",
+                                                style: 5,
+                                                url: "http://speedgaming.org/swe1racer/submit/"
+                                            }
+                                        ]
+                                    }
+                                ]
                             }
                         }
                     })
                 })
+        } else if (args[0].name == "matches") {
+            if (args[0].options[0].name == "browse") {
+                client.buttons.get("tourney").execute(client, interaction, ["matches", "browse", "page0", "initial"]);
+            } else if (args[0].options[0].name == "submit") {
+                const tourneySubmission = new Discord.MessageEmbed()
+                var data = {}
+                function getUser(id) {
+                    var participants = Object.keys(tourney_participants_data)
+                    for (var i = 0; i < participants.length; i++) {
+                        var p = tourney_participants_data[participants[i]]
+                        if (p.id == id) {
+                            return participants[i]
+                        }
+                    }
+                }
+                var player1 = {}
+                var player2 = {}
+                var player3 = {}
+                var player4 = {}
+                for (i = 0; i < args[0].options[0].options.length; i++) {
+                    var input = args[0].options[0].options[i]
+                    if (input.name == "tournament") {
+                        data.tourney = input.value
+                    } else if (input.name == "bracket") {
+                        data.bracket = input.value
+                    } else if (input.name == "datetime") {
+                        data.datetime = input.value
+                    } else if (input.name == "player_1") {
+                        player1.player = getUser(input.value)
+                    } else if (input.name == "player_2") {
+                        player2.player = getUser(input.value)
+                    } else if (input.name == "player_1_permaban_1") {
+                        player1.permabans = []
+                        player1.permabans.push(input.value)
+                    } else if (input.name == "player_1_permaban_2") {
+                        player1.permabans.push(input.value)
+                    } else if (input.name == "player_2_permaban_1") {
+                        player2.permabans = []
+                        player2.permabans.push(input.value)
+                    } else if (input.name == "player_2_permaban_2") {
+                        player2.permabans.push(input.value)
+                    } else if (input.name == "player_1_score") {
+                        player1.score = input.value
+                    } else if (input.name == "player_2_score") {
+                        player2.score = input.value
+                    } else if (input.name == "vod") {
+                        data.url = input.value
+                    } else if (input.name == "commentator_1") {
+                        data.commentators = []
+                        data.commentators.push(getUser(input.value))
+                    } else if (input.name == "commentator_2") {
+                        data.commentators.push(getUser(input.value))
+                    } else if (input.name == "round") {
+                        data.round = input.value
+                    } else if (input.name == "player_3") {
+                        player3.player = getUser(input.value)
+                    } else if (input.name == "player_4") {
+                        player4.player = getUser(input.value)
+                    }
+                }
+                data.players = []
+                data.players.push(player1)
+                data.players.push(player2)
+                if(Object.keys(player3).length > 0){
+                    data.players.push(player3)
+                }
+                if(Object.keys(player4).length > 0){
+                    data.players.push(player4)
+                }
+                var dup = false
+                var dup_run = {}
+                var mtch = Object.keys(tourney_matches_data)
+                for(var i = 0; i < mtch.length; i++){
+                    var m = mtch[i]
+                    if (Date.parse(data.datetime) == Date.parse(tourney_matches_data[m].datetime)) {
+                        dup = true
+                        dup_run = m
+                    }
+                }
+                var action = "Submit"
+                if (!dup) {
+                    var match_info = "tournament: `" + tourney_tournaments_data[data.tourney].nickname + "`"
+                    if (data.hasOwnProperty("bracket")) {
+                        match_info += "\nbracket: `" + data.bracket + "`"
+                    }
+                    if (data.hasOwnProperty("round")) {
+                        match_info += "\nround: `" + data.round + "`"
+                    }
+                    match_info += "\ndate/time: `" + data.datetime + "`"
+                    match_info += "\ncommentators: `"
+                    data.commentators.forEach(comm => {
+                        match_info += tourney_participants_data[comm].name + " "
+                    })
+                    match_info += "`"
+                    if (data.hasOwnProperty("url")) {
+                        match_info += "\nvod: [link](" + data.url + ")"
+                    }
+                    function getplayerText(object) {
+                        console.log(object)
+                        var player_text = "name: `" + tourney_participants_data[object.player].name + "`"
+                        if (object.hasOwnProperty("permabans")) {
+                            var permabans = Object.values(object.permabans)
+                            player_text += "\npermabans: `"
+                            permabans.forEach(track => {
+                                player_text += tracks[track].nickname[0] + " "
+                            })
+                            player_text += "`"
+                        }
+                        if (object.hasOwnProperty("score")) {
+                            player_text += "\nscore: `" + object.score + "`"
+                        }
+                        return player_text
+                    }
+
+                    tourneySubmission
+                        .setTitle("Does this look right?")
+                        .addField("Match Info", match_info, false)
+                    var p = 1
+                    data.players.forEach(player => {
+                        tourneySubmission.addField("Player " + p, getplayerText(player), true)
+                        p++
+                    })
+                } else {
+                    action = "Update"
+                    tourneySubmission
+                        .setTitle("Possible Duplicate Detected...")
+                        .addField("Existing Run", "```" + JSON.stringify(tourney_matches_data[dup_run]) + "```", true)
+                        .addField("Submitted Run", "```" + JSON.stringify(data) + "```", true)
+                }
+                
+                var unique_interaction = interaction.token
+                client.api.interactions(interaction.id, interaction.token).callback.post({
+                    data: {
+                        type: 4,
+                        data: {
+                            //content: content,
+                            flags: 64,
+                            embeds: [tourneySubmission],
+                            components: [
+                                {
+                                    type: 1,
+                                    components: [
+                                        {
+                                            type: 2,
+                                            label: action,
+                                            style: 3,
+                                            custom_id: data.datetime + action
+                                        },
+                                        {
+                                            type: 2,
+                                            label: "Cancel",
+                                            style: 4,
+                                            custom_id: data.datetime + "cancel"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                }).then(() => {
+                    client.ws.on('INTERACTION_CREATE', async interaction => {
+                        if (interaction.data.hasOwnProperty("custom_id")) {
+                            if (interaction.data.custom_id == data.datetime + action) {
+                                if(action == "Submit"){
+                                    tourney_matches.push(data)
+                                } else if(action == "Update"){
+                                    tourney_matches.child(dup_run).update(data)
+                                }
+                                
+                                client.api.interactions(interaction.id, interaction.token).callback.post({
+                                    data: {
+                                        type: 7,
+                                        data: {
+                                            content: "The inputted match has been successfully submitted to the database. Thank you!",
+                                            components: []
+                                        }
+
+                                    }
+                                })
+
+                            } else if (interaction.data.custom_id == data.datetime + "cancel") {
+                                client.api.interactions(interaction.id, interaction.token).callback.post({
+                                    data: {
+                                        type: 7,
+                                        data: {
+                                            content: "Match submission canceled. <:WhyNobodyBuy:589481340957753363>",
+                                            components: []
+                                        }
+
+                                    }
+                                })
+
+                            }
+                        }
+                    })
+                })
+            }
         }
     }
 }

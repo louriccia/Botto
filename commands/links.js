@@ -25,6 +25,20 @@ module.exports = {
             title = "Community Google Drive"
             desc = "Official guides, track maps, stat sheets, and more!"
             link = "https://drive.google.com/drive/folders/1ScgPE1i1EpSYXT16a1ocxQiouMCcE9z1?usp=sharing"
+        } else if (args[0].name == "speedrunning"){
+            title = "Speedrunning Leaderboards"
+            myEmbed
+                .addField("speedrun.com", "[speedrun.com](https://www.speedrun.com/swe1r)\n The main site for SWE1R speedruns including RTA and IL leaderboards filterable by skips, upgrades, and more.", false)
+                .addField("Cyberscore", "[cyberscore.me.uk](https://www.cyberscore.me.uk/game/191)\nSecondary site for SWE1R speedruns including 3-lap/1-lap leaderboards for every track and a long history of runs.", false)
+                .addField("Star Wars Episode 1 Racer (weebly)", "[starwarsepisode1racer.weebly.com](https://starwarsepisode1racer.weebly.com/all-time-world-records.html)\nMikeyburger's community page containing an archive of the best runs up to 2014.", false)
+                .addField("Speed Demos Archive", "[speeddemosarchive.com](http://speeddemosarchive.com/EpisodeIRacer.html)\nAn archive of the oldest known recorded times from Wouter M. Jansen for every track.", false)
+                .addField("Video Games Records", "[video-games-records.com](https://www.video-games-records.com/star-wars-episode-1-racer-best-lap-amateur-mon-gazza-speedway-record-r13163.html/star-wars-episode-1-racer-game-g232/index)\nA small collection of older times around 2007-2010.", false)
+                .addField("N64 High Scores", "[n64hs.speedrunwiki.com](http://n64hs.speedrunwiki.com/Episode1Amateur.html)\nPre-2007 leaderboard archive of some of the oldest runs for the game.", false)
+                .addField("Twin Galaxies", "[twingalaxies.com](https://www.twingalaxies.com/game/star-wars-episode-one-racer/nintendo-64/)\nSome of the oldest recorded times that still exist on the internet.", false)
+                .addField("High Score", "[highscore.com](http://www.highscore.com/game/?g=49619)\nA very small assortment of Dreamcast and N64 runs from the 2010s.", false)
+                .addField("Archived SWE1R Speedrunning Discord", "[Discord Invite](https://discord.gg/vg77T84K96)\nAn archived discord server that used to be the main discord for SWE1R speedrunning before merging with the [Star Wars Episode I: Racer Discord](https://discord.gg/bCgX4wpYuN)", false)
+            desc = ""
+            link = ""
         } else if (args[0].name == "mp_guide") {
             title = "Online Multiplayer Setup Guide"
             desc = "Everything you need to know to start podracing online. Click the above link to see the extended guide."
@@ -61,26 +75,29 @@ module.exports = {
             .setURL(link)
             .setTitle(title)
             .setDescription(desc)
-
+        var components = []
+        if(args[0].name !== "speedrunning"){
+            components = [
+                {
+                    type: 1,
+                    components: [
+                        {
+                            type: 2,
+                            label: title,
+                            style: 5,
+                            url: link
+                        }
+                    ]
+                }
+            ]
+        }
         client.api.interactions(interaction.id, interaction.token).callback.post({
             data: {
                 type: 4,
                 data: {
                     //content: "",
                     embeds: [myEmbed],
-                    components: [
-                        {
-                            type: 1,
-                            components: [
-                                {
-                                    type: 2,
-                                    label: title,
-                                    style: 5,
-                                    url: link
-                                }
-                            ]
-                        }
-                    ]
+                    components: components
                 }
             }
         })
