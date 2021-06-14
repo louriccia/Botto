@@ -31,7 +31,7 @@ module.exports = {
                     if (i == rnk_vals.length) {
                         i = 5 * (1 + offset)
                     } else {
-                        
+
                         var arrow = "<:green_arrow:852392123093614642>"
                         if (rnk_vals[i].change < 0) {
                             arrow = ":small_red_triangle_down:"
@@ -150,20 +150,20 @@ module.exports = {
                             var player_text = []
                             for (k = 0; k < players.length; k++) {
                                 player_text.push(tourney_participants_data[players[k].player].name)
-                                if(![undefined, ""].includes(players[k].score)){
+                                if (![undefined, ""].includes(players[k].score)) {
                                     score.push(players[k].score)
                                 }
                             }
-                            for(k = 0 ; k < commentators.length; k++){
+                            for (k = 0; k < commentators.length; k++) {
                                 comms.push(tourney_participants_data[commentators[k]].name)
                             }
-                            if(score.length > 0){
+                            if (score.length > 0) {
                                 score = "score: ||`" + score.join(" to ") + "`||"
                             }
                             var bracketround = ""
-                            if(matches[i].bracket !== ""){
+                            if (matches[i].bracket !== "") {
                                 bracketround += " - " + matches[i].bracket
-                                if(![undefined, ""].includes(matches[i].round)){
+                                if (![undefined, ""].includes(matches[i].round)) {
                                     bracketround += ": " + matches[i].round
                                 }
                             }
@@ -223,6 +223,95 @@ module.exports = {
                     })
                 }
             }
+        } else if (args[0] == "schedule") {
+            var type = 4
+            if (args[1] == "refresh") {
+                type = 7
+            }
+            const rp = require('request-promise');
+                const $ = require('cheerio');
+                const url = 'http://speedgaming.org/swe1racer/';
+                const fs = require('fs');
+                rp(url)
+                    .then(function (html) {
+                        var table = $('tbody', html)
+                        var schedule = []
+                        $('tr', table).each((i, elem) => {
+                            var text = $('td', elem).text().replace(/\t/g, "").split(/\n/)
+                            for (var i = 0; i < text.length; i++) {
+                                if (text[i] == "") {
+                                    text.splice(i, 1)
+                                    i = i - 1
+                                }
+                            }
+                            schedule.push(text)
+                        })
+                        tourneyReport
+                            .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/crossed-swords_2694-fe0f.png")
+                            .setTitle("Match Schedule")
+                            .setURL("http://speedgaming.org/swe1racer/")
+                            .setDescription("Upcoming matches on speedgaming.org/swe1racer\n(all times are EDT)")
+                        schedule.splice(0, 1)
+                        if (schedule.length > 1) {
+                            for (i = 0; i < schedule.length; i++) {
+                                var channel = ""
+                                var comm = ""
+                                if (schedule[i].length > 3) {
+                                    if (!schedule[i][4].includes("?")) {
+                                        channel = "[" + schedule[i][4] + "](https://www.twitch.tv/" + schedule[i][4] + ")"
+                                    }
+                                    if (schedule[i][5] !== undefined) {
+                                        comm = schedule[i][5]
+                                    }
+                                }
+                                tourneyReport
+                                    .addField(schedule[i][0] + " " + schedule[i][1], schedule[i][2] + "\n" + channel, true)
+                                    .addField(":crossed_swords: " + schedule[i][3].replace(/,/g, " vs."), ":microphone2: " + comm, true)
+                                    .addField('\u200B', '\u200B', true)
+                            }
+                        } else {
+                            tourneyReport.setDescription("No matches are currently scheduled")
+                        }
+                        client.api.interactions(interaction.id, interaction.token).callback.post({
+                            data: {
+                                type: type,
+                                data: {
+                                    //content: content,
+                                    //flags: 64
+                                    embeds: [tourneyReport],
+                                    components: [
+                                        {
+                                            type: 1,
+                                            components: [
+                                                {
+                                                    type: 2,
+                                                    label: "",
+                                                    emoji: {
+                                                        id: "854097998357987418",
+                                                        name: "refresh"
+                                                    },
+                                                    style: 2,
+                                                    custom_id: "tourney_schedule_refresh",
+                                                },
+                                                {
+                                                    type: 2,
+                                                    label: "Schedule Match",
+                                                    style: 5,
+                                                    url: "http://speedgaming.org/swe1racer/submit/"
+                                                },
+                                                {
+                                                    type: 2,
+                                                    label: "Sign Up for Commentary",
+                                                    style: 5,
+                                                    url: "http://speedgaming.org/swe1racer/crew/"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        })
+                    })
         }
     }
 }
