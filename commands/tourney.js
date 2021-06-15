@@ -50,6 +50,7 @@ module.exports = {
                         .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/crossed-swords_2694-fe0f.png")
                         .setTitle(tracks[trak].name)
                         .setColor(planets[tracks[trak].planet].color)
+                        .setThumbnail(planets[tracks[trak].planet].img)
                 } else if (args[0].options[i].name == "skips") {
                     var input = args[0].options[i].value.toLowerCase()
                     if (input == "skips") {
@@ -264,6 +265,7 @@ module.exports = {
                 const response = await client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({ data: { embeds: [embed] } })
                 return response
             }
+            var comm_check = false
             sendCallback().then(() => {
                 var player = null
                 var tpd = Object.keys(tourney_participants_data)
@@ -457,6 +459,9 @@ module.exports = {
                                 }
                             }
                         }
+                    }
+                    if (stats.matches_commentated >= 30 && member == interaction.member.user.id && interaction.guild_id == "441839750555369474") {
+                        comm_check = true
                     }
                     var race_summary = {}
                     var standard_records = {}
@@ -710,7 +715,7 @@ module.exports = {
                     return tourneyReport
                 }
             }).then((embed) => sendResponse(embed)).then(() => {
-                if (stats.matches_commentated >= 30 && member == interaction.member.user.id && interaction.guild_id == "441839750555369474") {
+                if (comm_check) {
                     const Guild = client.guilds.cache.get(interaction.guild_id); // Getting the guild.
                     const Member = Guild.members.cache.get(member); // Getting the member.
                     let role = Guild.roles.cache.get("747922926296104991");
