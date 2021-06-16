@@ -121,7 +121,13 @@ module.exports = {
                     var offset = Number(args[2].replace("page", ""))
                     var type = 7
                     var pages = 0
-                    var matches = Object.values(tourney_matches_data)
+                    var mtch = Object.keys(tourney_matches_data)
+                    var matches = []
+                    for (var i = 0; i < mtch.length; i++){
+                        var m = mtch[i]
+                        tourney_matches_data[m].id = m
+                        matches.push(tourney_matches_data[m])
+                    }
                     matches.sort(function (a, b) {
                         return Date.parse(b.datetime) - Date.parse(a.datetime);
                     })
@@ -141,7 +147,7 @@ module.exports = {
                         } else {
                             var date = matches[i].datetime
                             if (matches[i].url !== "") {
-                                date = date + "\n[vod](" + matches[i].url + ")"
+                                date = "[" + date +"](" + matches[i].url + ")"
                             }
                             var players = Object.values(matches[i].players)
                             var commentators = Object.values(matches[i].commentators)
@@ -168,7 +174,7 @@ module.exports = {
                                 }
                             }
                             tourneyMatches
-                                .addField(tourney_tournaments_data[matches[i].tourney].nickname + bracketround, date, true)
+                                .addField(tourney_tournaments_data[matches[i].tourney].nickname + bracketround, date + "\nid: " + matches[i].id, true)
                                 .addField(player_text.join(" vs. "), score + "\n" + ":microphone2: " + comms.join(", "), true)
                                 .addField('\u200B', '\u200B', true)
                         }
