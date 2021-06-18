@@ -174,7 +174,7 @@ module.exports = {
                                 }
                             }
                             tourneyMatches
-                                .addField(tourney_tournaments_data[matches[i].tourney].nickname + bracketround, date + "\nid: " + matches[i].id, true)
+                                .addField(tourney_tournaments_data[matches[i].tourney].nickname + bracketround, date + "\nid: `" + matches[i].id +"`", true)
                                 .addField(player_text.join(" vs. "), score + "\n" + ":microphone2: " + comms.join(", "), true)
                                 .addField('\u200B', '\u200B', true)
                         }

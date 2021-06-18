@@ -390,10 +390,10 @@ module.exports = {
                         var m = tmd[i]
                         //get commentators
                         var com = Object.values(tourney_matches_data[m].commentators)
-                        if (com.includes(Number(player))) {
+                        if (com.includes(Number(player)) || com.includes(player)) {
                             stats.matches_commentated++
                             com.forEach(c => {
-                                if (c !== Number(player)) {
+                                if (c !== player) {
                                     if (stats.co_comm[c] == undefined) {
                                         stats.co_comm[c] = 1
                                     } else if (stats.co_comm[c] !== undefined) {
