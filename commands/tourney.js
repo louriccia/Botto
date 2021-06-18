@@ -393,7 +393,7 @@ module.exports = {
                         if (com.includes(Number(player)) || com.includes(player)) {
                             stats.matches_commentated++
                             com.forEach(c => {
-                                if (c !== player) {
+                                if (c !== player && c !== Number(player)) {
                                     if (stats.co_comm[c] == undefined) {
                                         stats.co_comm[c] = 1
                                     } else if (stats.co_comm[c] !== undefined) {
