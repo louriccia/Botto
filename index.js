@@ -263,7 +263,7 @@ client.once('ready', () => {
                                 var s = tsd[j]
                                 if(tourney_scheduled_data[s].datetime == datetime){
                                     var date = new Date(tourney_scheduled_data[s].datetime)
-                                    console.log(date.toISOString())
+                                    console.log(date)
                                     tourney_scheduled.child(s).update(data)
                                     dup = true
                                     j = tsd.length
