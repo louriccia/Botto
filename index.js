@@ -234,7 +234,6 @@ client.once('ready', () => {
                             }
                             if (schedule[i][5] !== undefined) {
                                 comm = schedule[i][5].split(",")
-                                console.log(comm)
                                 if (comm.length > 0) {
                                     for (j = 0; j < comm.length; j++) {
                                         data.commentators.push(getParticipantbyName(comm[j]))
@@ -242,12 +241,11 @@ client.once('ready', () => {
                                 }
                             }
                         }
-                        var datetime = schedule[i][0] + " " + schedule[i][1] + " EDT"
+                        var datetime = schedule[i][0] + schedule[i][1] + " EDT"
                         data.datetime = datetime
                         datetimes.push(data.datetime)
                         data.bracket = schedule[i][2]
                         var players = schedule[i][3].split(",")
-                        console.log(players)
                         if (players.length > 0) {
                             for (j = 0; j < players.length; j++) {
                                 data.players.push({
@@ -259,7 +257,7 @@ client.once('ready', () => {
                         }
                         var tsd = Object.keys(tourney_scheduled_data)
                         var dup = false
-                        for (j = 0 ; j < tsd; j++){
+                        for (j = 0 ; j < tsd.length; j++){
                             var s = tsd[j]
                             if(tourney_scheduled_data[s].datetime == datetime){
                                 tourney_scheduled.child(s).update(data)
@@ -271,7 +269,7 @@ client.once('ready', () => {
                             tourney_scheduled.push(data)
                         }
                     }
-                    if (![undefined, null].includes(tourney_scheduled_data)) {
+                    /*if (![undefined, null].includes(tourney_scheduled_data)) {
                         var tsd = Object.keys(tourney_scheduled_data)
                         for (var i = 0; i < tsd.length; i++) {
                             var s = tsd[i]
@@ -279,7 +277,7 @@ client.once('ready', () => {
                                 tourney_scheduled.child(s).remove()
                             }
                         }
-                    }
+                    }*/
                 } else {
                     //delete all scheduled
                 }
