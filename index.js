@@ -79,7 +79,7 @@ tourney_matches.on("value", function (snapshot) {
 }, function (errorObject) {
     console.log("The read failed: " + errorObject);
 });
-var tourney_scheduled = database.ref('tourney/matches')
+var tourney_scheduled = database.ref('tourney/scheduled')
 tourney_scheduled.on("value", function (snapshot) {
     tourney_scheduled_data = snapshot.val();
 }, function (errorObject) {
