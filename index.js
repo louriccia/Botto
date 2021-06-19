@@ -224,7 +224,7 @@ client.once('ready', () => {
                             for (k = 0; k < ptc.length; k++) {
                                 var p = ptc[k]
                                 if (tourney_participants_data[p].name == name) {
-                                    return(p)
+                                    return (p)
                                 }
                             }
                         }
@@ -256,13 +256,15 @@ client.once('ready', () => {
                         }
                         //check if duplicate by datetime, if so, update
                         //push 
-                        matches.push(data)
+                        tourney_scheduled.push(data)
                     }
-                    var tsd = Object.keys(tourney_scheduled_data)
-                    for(var i = 0; i < tsd.length; i++){
-                        var s = tsd[i]
-                        if(!datetimes.includes(tourney_scheduled_data[s].datetime)){
-                            tourney_scheduled.child(s).remove()
+                    if (![undefined, null].includes(tourney_scheduled_data)) {
+                        var tsd = Object.keys(tourney_scheduled_data)
+                        for (var i = 0; i < tsd.length; i++) {
+                            var s = tsd[i]
+                            if (!datetimes.includes(tourney_scheduled_data[s].datetime)) {
+                                tourney_scheduled.child(s).remove()
+                            }
                         }
                     }
                 } else {
