@@ -223,8 +223,8 @@ client.once('ready', () => {
                             var ptc = Object.keys(tourney_participants_data)
                             for (k = 0; k < ptc.length; k++) {
                                 var p = ptc[k]
-                                if (tourney_participants_data[p].name == name) {
-                                    return (p)
+                                if (tourney_participants_data[p].name == name.trim()) {
+                                    return p
                                 }
                             }
                         }
