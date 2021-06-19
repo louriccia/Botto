@@ -234,6 +234,7 @@ client.once('ready', () => {
                             }
                             if (schedule[i][5] !== undefined) {
                                 comm = schedule[i][5].split(",")
+                                console.log(comm)
                                 if (comm.length > 0) {
                                     for (j = 0; j < comm.length; j++) {
                                         data.commentators.push(getParticipantbyName(comm[j]))
@@ -245,6 +246,7 @@ client.once('ready', () => {
                         datetimes.push(data.datetime)
                         data.bracket = schedule[i][2]
                         var players = schedule[i][3].split(",")
+                        console.log(players)
                         if (players.length > 0) {
                             for (j = 0; j < players.length; j++) {
                                 data.players.push({
