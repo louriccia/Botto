@@ -146,6 +146,7 @@ client.once('ready', () => {
     client.user.setActivity("/help");
     //client.users.cache.get("256236315144749059").send("Ready!")
     client.channels.cache.get("444208252541075476").send("Ready!");
+    tourney_matches.push("test")
     try {
         //client.commands.get("scrape").execute();
     } catch {

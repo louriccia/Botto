@@ -4054,5 +4054,959 @@
     ],
     "datetime": "6/7/2019 23:00:00",
     "url": "https://youtu.be/8HQFoGEcL5Y"
+  },
+  {
+    "tourney": 3,
+    "bracket": "GpC",
+    "round": "",
+    "players": [
+      {
+        "player": "10",
+        "score": 5,
+        "permabans": [
+          "0",
+          "1"
+        ]
+      },
+      {
+        "player": "1",
+        "score": 0,
+        "permabans": [
+          "21",
+          "19"
+        ]
+      }
+    ],
+    "commentators": [
+      "8",
+      "12"
+    ],
+    "datetime": 1621465200000,
+    "url": "https://www.twitch.tv/videos/1028492629"
+  },
+  {
+    "tourney": 3,
+    "bracket": "GpD",
+    "round": "",
+    "players": [
+      {
+        "player": "14",
+        "score": 5,
+        "permabans": [
+          "1",
+          "17"
+        ]
+      },
+      {
+        "player": "16",
+        "score": 0,
+        "permabans": [
+          "24",
+          "20"
+        ]
+      }
+    ],
+    "commentators": [
+      "8",
+      "10"
+    ],
+    "datetime": 1621634400000,
+    "url": "https://www.twitch.tv/videos/1030648066"
+  },
+  {
+    "tourney": 3,
+    "bracket": "GpB",
+    "round": "",
+    "players": [
+      {
+        "player": "17",
+        "score": 5,
+        "permabans": [
+          "20",
+          "22"
+        ]
+      },
+      {
+        "player": "19",
+        "score": 0,
+        "permabans": [
+          "16",
+          "19"
+        ]
+      }
+    ],
+    "commentators": [
+      "8",
+      "12"
+    ],
+    "datetime": 1621645200000,
+    "url": "https://www.twitch.tv/videos/1030842824"
+  },
+  {
+    "tourney": 3,
+    "bracket": "GpB",
+    "round": "",
+    "players": [
+      {
+        "player": "19",
+        "score": 1,
+        "permabans": [
+          "16",
+          "20"
+        ]
+      },
+      {
+        "player": "5",
+        "score": 5,
+        "permabans": [
+          "1",
+          "2"
+        ]
+      }
+    ],
+    "commentators": [
+      "0",
+      "17"
+    ],
+    "datetime": 1621702800000,
+    "url": "https://www.twitch.tv/videos/1031333795"
+  },
+  {
+    "tourney": 3,
+    "bracket": "GpB",
+    "round": "",
+    "players": [
+      {
+        "player": "17",
+        "score": 5,
+        "permabans": [
+          "20",
+          "22"
+        ]
+      },
+      {
+        "player": "27",
+        "score": 1,
+        "permabans": [
+          "5",
+          "13"
+        ]
+      }
+    ],
+    "commentators": [
+      "8",
+      "19"
+    ],
+    "datetime": 1621720800000,
+    "url": "https://www.twitch.tv/videos/1031879125"
+  },
+  {
+    "tourney": 3,
+    "bracket": "GpA",
+    "round": "",
+    "players": [
+      {
+        "player": "6",
+        "score": 1,
+        "permabans": [
+          "20",
+          "16"
+        ]
+      },
+      {
+        "player": "0",
+        "score": 5,
+        "permabans": [
+          "14",
+          "8"
+        ]
+      }
+    ],
+    "commentators": [
+      "15",
+      "19"
+    ],
+    "datetime": 1621783800000,
+    "url": "https://www.twitch.tv/videos/1032553023"
+  },
+  {
+    "tourney": 3,
+    "bracket": "GpD",
+    "round": "",
+    "players": [
+      {
+        "player": "29",
+        "score": 5,
+        "permabans": [
+          "1",
+          "11"
+        ]
+      },
+      {
+        "player": "24",
+        "score": 0,
+        "permabans": [
+          "19",
+          "5"
+        ]
+      }
+    ],
+    "commentators": [
+      "8",
+      "10"
+    ],
+    "datetime": 1622062800000,
+    "url": "https://www.twitch.tv/videos/1036206495"
+  },
+  {
+    "tourney": 3,
+    "bracket": "GpC",
+    "round": "",
+    "players": [
+      {
+        "player": "1",
+        "score": 0,
+        "permabans": [
+          "19",
+          "15"
+        ]
+      },
+      {
+        "player": "20",
+        "score": 5,
+        "permabans": [
+          "1",
+          "23"
+        ]
+      }
+    ],
+    "commentators": [
+      "5",
+      "8"
+    ],
+    "datetime": 1622142000000,
+    "url": "https://www.twitch.tv/videos/1037044768"
+  },
+  {
+    "tourney": 3,
+    "bracket": "GpA",
+    "round": "",
+    "players": [
+      {
+        "player": "4",
+        "score": 0,
+        "permabans": [
+          "5",
+          "9"
+        ]
+      },
+      {
+        "player": "0",
+        "score": 5,
+        "permabans": [
+          "2",
+          "8"
+        ]
+      }
+    ],
+    "commentators": [
+      "8",
+      "19"
+    ],
+    "datetime": 1622395800000,
+    "url": "https://www.twitch.tv/videos/1040433810"
+  },
+  {
+    "tourney": 3,
+    "bracket": "GpD",
+    "round": "",
+    "players": [
+      {
+        "player": "14",
+        "score": 5,
+        "permabans": [
+          "17",
+          "7"
+        ]
+      },
+      {
+        "player": "24",
+        "score": 0,
+        "permabans": [
+          "23",
+          "19"
+        ]
+      }
+    ],
+    "commentators": [
+      "8",
+      "19"
+    ],
+    "datetime": 1622404800000,
+    "url": "https://www.twitch.tv/videos/1040462317"
+  },
+  {
+    "tourney": 3,
+    "bracket": "GpA",
+    "round": "",
+    "players": [
+      {
+        "player": "6",
+        "score": 5,
+        "permabans": [
+          "20",
+          "19"
+        ]
+      },
+      {
+        "player": "13",
+        "score": 0,
+        "permabans": [
+          "22",
+          "18"
+        ]
+      }
+    ],
+    "commentators": [
+      "8",
+      "10"
+    ],
+    "datetime": 1622592000000,
+    "url": "https://www.twitch.tv/videos/1042873624"
+  },
+  {
+    "tourney": 3,
+    "bracket": "GpC",
+    "round": "",
+    "players": [
+      {
+        "player": "10",
+        "score": 5,
+        "permabans": [
+          "0",
+          "1"
+        ]
+      },
+      {
+        "player": "25",
+        "score": 0,
+        "permabans": [
+          "16",
+          "11"
+        ]
+      }
+    ],
+    "commentators": [
+      "0",
+      "5"
+    ],
+    "datetime": 1622658600000,
+    "url": "https://www.twitch.tv/videos/1043467109"
+  },
+  {
+    "tourney": 3,
+    "bracket": "GpC",
+    "round": "",
+    "players": [
+      {
+        "player": "1",
+        "score": 0,
+        "permabans": [
+          "19",
+          "21"
+        ]
+      },
+      {
+        "player": "25",
+        "score": 5,
+        "permabans": [
+          "11",
+          "0"
+        ]
+      }
+    ],
+    "commentators": [
+      "10",
+      "20"
+    ],
+    "datetime": 1622743200000,
+    "url": "https://www.twitch.tv/videos/1044647736"
+  },
+  {
+    "tourney": 3,
+    "bracket": "GpC",
+    "round": "",
+    "players": [
+      {
+        "player": "11",
+        "score": 5,
+        "permabans": [
+          "24",
+          "1"
+        ]
+      },
+      {
+        "player": "1",
+        "score": 1,
+        "permabans": [
+          "19",
+          "2"
+        ]
+      }
+    ],
+    "commentators": [
+      "8",
+      "15"
+    ],
+    "datetime": 1622836800000,
+    "url": "https://www.twitch.tv/videos/1045846579"
+  },
+  {
+    "tourney": 3,
+    "bracket": "GpB",
+    "round": "",
+    "players": [
+      {
+        "player": "19",
+        "score": 5,
+        "permabans": [
+          "24",
+          "16"
+        ]
+      },
+      {
+        "player": "27",
+        "score": 4,
+        "permabans": [
+          "19",
+          "13"
+        ]
+      }
+    ],
+    "commentators": [
+      "8",
+      "24"
+    ],
+    "datetime": 1622935800000,
+    "url": "https://www.twitch.tv/videos/1047176613"
+  },
+  {
+    "tourney": 3,
+    "bracket": "GpA",
+    "round": "",
+    "players": [
+      {
+        "player": "13",
+        "score": 0,
+        "permabans": [
+          "22",
+          "18"
+        ]
+      },
+      {
+        "player": "0",
+        "score": 5,
+        "permabans": [
+          "19",
+          "14"
+        ]
+      }
+    ],
+    "commentators": [
+      "15",
+      "19"
+    ],
+    "datetime": 1622997000000,
+    "url": "https://www.twitch.tv/videos/1047846595"
+  },
+  {
+    "tourney": 3,
+    "bracket": "GpD",
+    "round": "",
+    "players": [
+      {
+        "player": "14",
+        "score": 5,
+        "permabans": [
+          "17",
+          "13"
+        ]
+      },
+      {
+        "player": "18",
+        "score": 0,
+        "permabans": [
+          "20",
+          "1"
+        ]
+      }
+    ],
+    "commentators": [
+      "0",
+      "19"
+    ],
+    "datetime": 1623002400000,
+    "url": "https://www.twitch.tv/videos/1047846595"
+  },
+  {
+    "tourney": 3,
+    "bracket": "GpB",
+    "round": "",
+    "players": [
+      {
+        "player": "5",
+        "score": 5,
+        "permabans": [
+          "2",
+          "10"
+        ]
+      },
+      {
+        "player": "27",
+        "score": 0,
+        "permabans": [
+          "13",
+          "8"
+        ]
+      }
+    ],
+    "commentators": [
+      "8",
+      "19"
+    ],
+    "datetime": 1623016800000,
+    "url": "https://www.twitch.tv/videos/1048157385"
+  },
+  {
+    "tourney": 3,
+    "bracket": "GpA",
+    "round": "",
+    "players": [
+      {
+        "player": "12",
+        "score": 5,
+        "permabans": [
+          "1",
+          "20"
+        ]
+      },
+      {
+        "player": "4",
+        "score": 0,
+        "permabans": [
+          "11",
+          "0"
+        ]
+      }
+    ],
+    "commentators": [
+      "8",
+      "10"
+    ],
+    "datetime": 1623092400000,
+    "url": "https://www.twitch.tv/videos/1048926743"
+  },
+  {
+    "tourney": 3,
+    "bracket": "GpA",
+    "round": "",
+    "players": [
+      {
+        "player": "4",
+        "score": 5,
+        "permabans": [
+          "16",
+          "19"
+        ]
+      },
+      {
+        "player": "13",
+        "score": 0,
+        "permabans": [
+          "22",
+          "18"
+        ]
+      }
+    ],
+    "commentators": [
+      "15",
+      "19"
+    ],
+    "datetime": 1623171600000,
+    "url": "https://www.twitch.tv/videos/1049856256?t=00h13m25s"
+  },
+  {
+    "tourney": 3,
+    "bracket": "GpA",
+    "round": "",
+    "players": [
+      {
+        "player": "6",
+        "score": 5,
+        "permabans": [
+          "16",
+          "20"
+        ]
+      },
+      {
+        "player": "4",
+        "score": 2,
+        "permabans": [
+          "1",
+          "11"
+        ]
+      }
+    ],
+    "commentators": [
+      "10",
+      "17"
+    ],
+    "datetime": 1623191400000,
+    "url": "https://www.twitch.tv/videos/1050139454"
+  },
+  {
+    "tourney": 3,
+    "bracket": "GpC",
+    "round": "",
+    "players": [
+      {
+        "player": "20",
+        "score": 5,
+        "permabans": [
+          "8",
+          "19"
+        ]
+      },
+      {
+        "player": "25",
+        "score": 4,
+        "permabans": [
+          "21",
+          "11"
+        ]
+      }
+    ],
+    "commentators": [
+      "0",
+      "10"
+    ],
+    "datetime": 1623348000000,
+    "url": "https://www.twitch.tv/videos/1051993588"
+  },
+  {
+    "tourney": 3,
+    "bracket": "GpC",
+    "round": "",
+    "players": [
+      {
+        "player": "11",
+        "score": 0,
+        "permabans": [
+          "19",
+          "1"
+        ]
+      },
+      {
+        "player": "25",
+        "score": 5,
+        "permabans": [
+          "11",
+          "5"
+        ]
+      }
+    ],
+    "commentators": [
+      "5",
+      "20"
+    ],
+    "datetime": 1623434400000,
+    "url": "https://www.twitch.tv/videos/1053030937"
+  },
+  {
+    "tourney": 3,
+    "bracket": "GpB",
+    "round": "",
+    "players": [
+      {
+        "player": "5",
+        "score": 5,
+        "permabans": [
+          "6",
+          "2"
+        ]
+      },
+      {
+        "player": "17",
+        "score": 2,
+        "permabans": [
+          "0",
+          "20"
+        ]
+      }
+    ],
+    "commentators": [
+      "8",
+      "19"
+    ],
+    "datetime": 1623520800000,
+    "url": "https://www.twitch.tv/videos/1054134919"
+  },
+  {
+    "tourney": 3,
+    "bracket": "GpD",
+    "round": "",
+    "players": [
+      {
+        "player": "14",
+        "score": 5,
+        "permabans": [
+          "17",
+          "22"
+        ]
+      },
+      {
+        "player": "29",
+        "score": 2,
+        "permabans": [
+          "11",
+          "20"
+        ]
+      }
+    ],
+    "commentators": [
+      "8",
+      "19"
+    ],
+    "datetime": 1623531600000,
+    "url": "https://www.twitch.tv/videos/1054315315"
+  },
+  {
+    "tourney": 3,
+    "bracket": "GpA",
+    "round": "",
+    "players": [
+      {
+        "player": "12",
+        "score": 5,
+        "permabans": [
+          "0",
+          "14"
+        ]
+      },
+      {
+        "player": "13",
+        "score": 0,
+        "permabans": [
+          "18",
+          "10"
+        ]
+      }
+    ],
+    "commentators": [
+      "8"
+    ],
+    "datetime": 1623801600000,
+    "url": "https://www.twitch.tv/videos/1057471761"
+  },
+  {
+    "tourney": 3,
+    "bracket": "GpC",
+    "round": "",
+    "players": [
+      {
+        "player": "10",
+        "score": 5,
+        "permabans": [
+          "0",
+          "22"
+        ]
+      },
+      {
+        "player": "20",
+        "score": 1,
+        "permabans": [
+          "19",
+          "20"
+        ]
+      }
+    ],
+    "commentators": [
+      "12",
+      "15"
+    ],
+    "datetime": 1623870000000,
+    "url": "https://www.twitch.tv/videos/1058203357?t=00h09m57s"
+  },
+  {
+    "tourney": 3,
+    "bracket": "GpC",
+    "round": "",
+    "players": [
+      {
+        "player": "11",
+        "score": 2,
+        "permabans": [
+          "23",
+          "9"
+        ]
+      },
+      {
+        "player": "20",
+        "score": 5,
+        "permabans": [
+          "19",
+          "11"
+        ]
+      }
+    ],
+    "commentators": [
+      "10",
+      "24"
+    ],
+    "datetime": 1623879000000,
+    "url": "https://www.twitch.tv/videos/1058351968"
+  },
+  {
+    "tourney": 3,
+    "bracket": "GpA",
+    "round": "",
+    "players": [
+      {
+        "player": "6",
+        "score": 3,
+        "permabans": [
+          "22",
+          "16"
+        ]
+      },
+      {
+        "player": "12",
+        "score": 5,
+        "permabans": [
+          "17",
+          "13"
+        ]
+      }
+    ],
+    "commentators": [
+      "8",
+      "19"
+    ],
+    "datetime": 1623974400000,
+    "url": "https://www.twitch.tv/videos/1059518189"
+  },
+  {
+    "tourney": 3,
+    "bracket": "GpC",
+    "round": "",
+    "players": [
+      {
+        "player": "11",
+        "score": 0,
+        "permabans": [
+          "19",
+          "14"
+        ]
+      },
+      {
+        "player": "10",
+        "score": 5,
+        "permabans": [
+          "24",
+          "1"
+        ]
+      }
+    ],
+    "commentators": [
+      "24",
+      "12"
+    ],
+    "datetime": 1624046400000,
+    "url": "https://www.twitch.tv/videos/1060319785"
+  },
+  {
+    "tourney": 3,
+    "bracket": "GpD",
+    "round": "",
+    "players": [
+      {
+        "player": "24",
+        "score": null,
+        "permabans": [
+          "",
+          ""
+        ]
+      },
+      {
+        "player": "18",
+        "score": null,
+        "permabans": [
+          "",
+          ""
+        ]
+      }
+    ],
+    "commentators": [
+      ""
+    ],
+    "datetime": 1624190400000,
+    "url": ""
+  },
+  {
+    "tourney": 3,
+    "bracket": "GpA",
+    "round": "",
+    "players": [
+      {
+        "player": "12",
+        "score": null,
+        "permabans": [
+          "",
+          ""
+        ]
+      },
+      {
+        "player": "0",
+        "score": null,
+        "permabans": [
+          "",
+          ""
+        ]
+      }
+    ],
+    "commentators": [
+      "5",
+      "19"
+    ],
+    "datetime": 1624208400000,
+    "url": ""
+  },
+  {
+    "tourney": 3,
+    "bracket": "GpD",
+    "round": "",
+    "players": [
+      {
+        "player": "29",
+        "score": null,
+        "permabans": [
+          "",
+          ""
+        ]
+      },
+      {
+        "player": "18",
+        "score": null,
+        "permabans": [
+          "",
+          ""
+        ]
+      }
+    ],
+    "commentators": [
+      "8"
+    ],
+    "datetime": 1624213800000,
+    "url": ""
   }
 ]
