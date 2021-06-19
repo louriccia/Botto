@@ -255,14 +255,17 @@ client.once('ready', () => {
                                 })
                             }
                         }
-                        var tsd = Object.keys(tourney_scheduled_data)
                         var dup = false
-                        for (j = 0 ; j < tsd.length; j++){
-                            var s = tsd[j]
-                            if(tourney_scheduled_data[s].datetime == datetime){
-                                tourney_scheduled.child(s).update(data)
-                                dup = true
-                                j = tsd.length
+                        if(![undefined, null].includes(tourney_scheduled_data)) {
+                            var tsd = Object.keys(tourney_scheduled_data)
+                            
+                            for (j = 0 ; j < tsd.length; j++){
+                                var s = tsd[j]
+                                if(tourney_scheduled_data[s].datetime == datetime){
+                                    tourney_scheduled.child(s).update(data)
+                                    dup = true
+                                    j = tsd.length
+                                }
                             }
                         }
                         if(!dup){
