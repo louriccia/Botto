@@ -79,6 +79,12 @@ tourney_matches.on("value", function (snapshot) {
 }, function (errorObject) {
     console.log("The read failed: " + errorObject);
 });
+var tourney_scheduled = database.ref('tourney/matches')
+tourney_scheduled.on("value", function (snapshot) {
+    tourney_scheduled_data = snapshot.val();
+}, function (errorObject) {
+    console.log("The read failed: " + errorObject);
+});
 var tourney_participants = database.ref('tourney/participants')
 tourney_participants.on("value", function (snapshot) {
     tourney_participants_data = snapshot.val();
@@ -184,9 +190,89 @@ client.once('ready', () => {
             }
         }
     });
+    const updater = async () => {
+        const rp = require('request-promise');
+        const $ = require('cheerio');
+        const url = 'http://speedgaming.org/swe1racer/';
+        const fs = require('fs');
+        rp(url)
+            .then(function (html) {
+                var table = $('tbody', html)
+                var schedule = []
+                $('tr', table).each((i, elem) => {
+                    var text = $('td', elem).text().replace(/\t/g, "").split(/\n/)
+                    for (var i = 0; i < text.length; i++) {
+                        if (text[i] == "") {
+                            text.splice(i, 1)
+                            i = i - 1
+                        }
+                    }
+                    schedule.push(text)
+                })
+                schedule.splice(0, 1)
+                var matches = []
+                var datetimes = []
+                if (schedule.length > 1) {
+                    for (i = 0; i < schedule.length; i++) {
+                        var data = {}
+                        data.commentators = []
+                        data.players = []
+                        var channel = ""
+                        var comm = ""
+                        function getParticipantbyName(name) {
+                            var ptc = Object.keys(tourney_participants_data)
+                            for (k = 0; k < ptc.length; k++) {
+                                var p = ptc[k]
+                                if (tourney_participants_data[p].name == name) {
+                                    return(p)
+                                }
+                            }
+                        }
+                        if (schedule[i].length > 3) {
+                            if (!schedule[i][4].includes("?")) {
+                                data.channel = "https://www.twitch.tv/" + schedule[i][4]
+                            }
+                            if (schedule[i][5] !== undefined) {
+                                comm = schedule[i][5].split(",")
+                                if (comm.length > 0) {
+                                    for (j = 0; j < comm.length; j++) {
+                                        data.commentators.push(getParticipantbyName(comm[j]))
+                                    }
+                                }
+                            }
+                        }
+                        data.datetime = Date.parse(schedule[i][0] + " " + schedule[i][1] + " EDT")
+                        datetimes.push(data.datetime)
+                        data.bracket = schedule[i][2]
+                        var players = schedule[i][3].split(",")
+                        if (players.length > 0) {
+                            for (j = 0; j < players.length; j++) {
+                                data.players.push({
+                                    player: getParticipantbyName(players[j]),
+                                    permabans: [],
+                                    score: null
+                                })
+                            }
+                        }
+                        //check if duplicate by datetime, if so, update
+                        //push 
+                        matches.push(data)
+                    }
+                    var tsd = Object.keys(tourney_scheduled_data)
+                    for(var i = 0; i < tsd.length; i++){
+                        var s = tsd[i]
+                        if(!datetimes.includes(tourney_scheduled_data[s].datetime)){
+                            tourney_scheduled.child(s).remove()
+                        }
+                    }
+                } else {
+                    //delete all scheduled
+                }
 
-    
-
+            })
+        setTimeout(updater, 1000 * 60)
+    }
+    updater()
 })
 
 client.on("error", (e) => {
@@ -354,7 +440,7 @@ client.on('message', message => {
         message.channel.send(myEmbed)
     }
 
-    if(message.content.toLowerCase() == `${prefix}kill` && message.channelID == "444208252541075476") {
+    if (message.content.toLowerCase() == `${prefix}kill` && message.channelID == "444208252541075476") {
         message.channel.send("Come back when you got some money!")
         client.destroy()
     }
