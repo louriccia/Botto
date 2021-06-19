@@ -241,7 +241,7 @@ client.once('ready', () => {
                                 }
                             }
                         }
-                        var datetime = schedule[i][0] + schedule[i][1] + " EDT"
+                        var datetime = Date.parse(schedule[i][0].replace(" ", " ") + schedule[i][1].replace(" ", " ") + " EDT")//this stupid 'no-break' space was messing up Date.parse and I was losing my mind
                         data.datetime = datetime
                         datetimes.push(data.datetime)
                         data.bracket = schedule[i][2]
@@ -262,8 +262,6 @@ client.once('ready', () => {
                             for (j = 0 ; j < tsd.length; j++){
                                 var s = tsd[j]
                                 if(tourney_scheduled_data[s].datetime == datetime){
-                                    var date = new Date(tourney_scheduled_data[s].datetime)
-                                    console.log(date)
                                     tourney_scheduled.child(s).update(data)
                                     dup = true
                                     j = tsd.length
