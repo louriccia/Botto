@@ -242,7 +242,7 @@ client.once('ready', () => {
                                 }
                             }
                         }
-                        data.datetime = Date.parse(schedule[i][0] + " " + schedule[i][1] + " EDT")
+                        data.datetime = schedule[i][0] + " " + schedule[i][1] + " EDT"
                         datetimes.push(data.datetime)
                         data.bracket = schedule[i][2]
                         var players = schedule[i][3].split(",")
