@@ -242,7 +242,8 @@ client.once('ready', () => {
                                 }
                             }
                         }
-                        data.datetime = schedule[i][0] + " " + schedule[i][1] + " EDT"
+                        var datetime = schedule[i][0] + " " + schedule[i][1] + " EDT"
+                        data.datetime = datetime
                         datetimes.push(data.datetime)
                         data.bracket = schedule[i][2]
                         var players = schedule[i][3].split(",")
@@ -256,9 +257,19 @@ client.once('ready', () => {
                                 })
                             }
                         }
-                        //check if duplicate by datetime, if so, update
-                        //push 
-                        tourney_scheduled.push(data)
+                        var tsd = Object.keys(tourney_scheduled_data)
+                        var dup = false
+                        for (j = 0 ; j < tsd; j++){
+                            var s = tsd[j]
+                            if(tourney_scheduled_data[s].datetime == datetime){
+                                tourney_scheduled.child(s).update(data)
+                                dup = true
+                                j = tsd.length
+                            }
+                        }
+                        if(!dup){
+                            tourney_scheduled.push(data)
+                        }
                     }
                     if (![undefined, null].includes(tourney_scheduled_data)) {
                         var tsd = Object.keys(tourney_scheduled_data)
