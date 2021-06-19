@@ -155,13 +155,13 @@ module.exports = {
                             var comms = []
                             var player_text = []
                             for (k = 0; k < players.length; k++) {
-                                player_text.push(tourney_participants_data[players[k].player].name)
+                                player_text.push(tourney_participants_data[String(players[k].player)].name)
                                 if (![undefined, ""].includes(players[k].score)) {
                                     score.push(players[k].score)
                                 }
                             }
                             for (k = 0; k < commentators.length; k++) {
-                                comms.push(tourney_participants_data[commentators[k]].name)
+                                comms.push(tourney_participants_data[String(commentators[k])].name)
                             }
                             if (score.length > 0) {
                                 score = "score: ||`" + score.join(" to ") + "`||"
