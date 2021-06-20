@@ -162,7 +162,9 @@ module.exports = {
                             }
                             if(commentators.length > 0){
                                 for (k = 0; k < commentators.length; k++) {
-                                    comms.push(tourney_participants_data[String(commentators[k])].name)
+                                    if(commentators[k] !== ""){
+                                        comms.push(tourney_participants_data[String(commentators[k])].name)
+                                    }
                                 }
                             }
                             
