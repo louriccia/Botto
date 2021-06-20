@@ -288,10 +288,17 @@ client.once('ready', () => {
                     var s = tsd[i]
                     if(tourney_scheduled_data[s].stream_notification == false && Date.parse(tourney_scheduled_data[s].datetime) <= Date.now() + 1000*60*5){
                         var players = []
+                        var commentators = []
+                        Object.values(tourney_scheduled_data[s].commentators).forEach(c => {
+                            commentators.push(tourney_participants_data[c].name)
+                        })
                         Object.values(tourney_scheduled_data[s].players).forEach( p => {
                             players.push(tourney_participants_data[p.player].name)
                         })
-                        client.channels.cache.get("444208252541075476").send("This is a test notification\n<@&841059665474617353>\n**" + tourney_scheduled_data[s].bracket + ": " + players.join("vs. ") + "**\n" + tourney_scheduled_data[s].url);
+                        if(commentators.length == 0){
+                            commentators.push("WhyNobodyCommentate")
+                        }
+                        client.channels.cache.get("444208252541075476").send("`This is a test notification`\n<@&841059665474617353>\n**" + tourney_scheduled_data[s].bracket + ": " + players.join("vs. ") + "**\n:microphone2: " + commentators.join(", ") + "\n" + tourney_scheduled_data[s].url);
                         tourney_scheduled.child(s).child(stream_notification).set(true)
                     }
                 }
