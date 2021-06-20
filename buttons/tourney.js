@@ -145,9 +145,9 @@ module.exports = {
                         if (i == matches.length) {
                             i = 5 * (1 + offset)
                         } else {
-                            var date = matches[i].datetime
+                            var date =  new Date(matches[i].datetime).toLocaleString("en-US", {timeZone: "America/New_York"}) + " EDT"
                             if (matches[i].url !== "") {
-                                date = "[" + new Date(date).toLocaleString("en-US", {timeZone: "America/New_York"}) +"](" + matches[i].url + ")"
+                                date = "[" + date +"](" + matches[i].url + ")"
                             }
                             var players = Object.values(matches[i].players)
                             var commentators = Object.values(matches[i].commentators)
