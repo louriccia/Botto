@@ -147,7 +147,7 @@ module.exports = {
                         } else {
                             var date = matches[i].datetime
                             if (matches[i].url !== "") {
-                                date = "[" + date +"](" + matches[i].url + ")"
+                                date = "[" + new Date(date).toLocaleString("en-US", {timeZone: "America/New_York"}) +"](" + matches[i].url + ")"
                             }
                             var players = Object.values(matches[i].players)
                             var commentators = Object.values(matches[i].commentators)
