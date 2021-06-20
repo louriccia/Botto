@@ -428,19 +428,21 @@ module.exports = {
                     var k1 = getK(ranks[players[0].player].matches)
                     var k2 = getK(ranks[players[1].player].matches)
                     var s1 = null, s2 = null
-                    if (players[0].score > players[1].score) {
-                        s1 = 1
-                        s2 = 0
-                    } else if (players[1].score > players[0].score) {
-                        s1 = 0
-                        s2 = 1
+                    if (!["", null, undefined].includes(players[0].score) && !["", null, undefined].includes(players[1].score)) {
+                        if (players[0].score > players[1].score) {
+                            s1 = 1
+                            s2 = 0
+                        } else if (players[1].score > players[0].score) {
+                            s1 = 0
+                            s2 = 1
+                        }
+                        ranks[players[0].player].rank += k1 * (s1 - p1)
+                        ranks[players[1].player].rank += k2 * (s2 - p2)
+                        ranks[players[0].player].change = k1 * (s1 - p1)
+                        ranks[players[1].player].change = k2 * (s2 - p2)
+                        ranks[players[0].player].matches++
+                        ranks[players[1].player].matches++
                     }
-                    ranks[players[0].player].rank += k1 * (s1 - p1)
-                    ranks[players[1].player].rank += k2 * (s2 - p2)
-                    ranks[players[0].player].change = k1 * (s1 - p1)
-                    ranks[players[1].player].change = k2 * (s2 - p2)
-                    ranks[players[0].player].matches++
-                    ranks[players[1].player].matches++
                 }
             }
         }
