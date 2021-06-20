@@ -210,14 +210,12 @@ client.once('ready', () => {
                     schedule.push(text)
                 })
                 schedule.splice(0, 1)
-                var matches = []
                 var datetimes = []
                 if (schedule.length > 1) {
                     for (i = 0; i < schedule.length; i++) {
                         var data = {}
                         data.commentators = []
                         data.players = []
-                        var channel = ""
                         var comm = ""
                         function getParticipantbyName(name) {
                             var ptc = Object.keys(tourney_participants_data)
@@ -230,7 +228,7 @@ client.once('ready', () => {
                         }
                         if (schedule[i].length > 3) {
                             if (!schedule[i][4].includes("?")) {
-                                data.channel = "https://www.twitch.tv/" + schedule[i][4]
+                                data.url = "https://www.twitch.tv/" + schedule[i][4]
                             }
                             if (schedule[i][5] !== undefined) {
                                 comm = schedule[i][5].split(",")
@@ -269,6 +267,7 @@ client.once('ready', () => {
                             }
                         }
                         if(!dup){
+                            data.stream_notification = false
                             tourney_scheduled.push(data)
                         }
                     }
@@ -284,7 +283,18 @@ client.once('ready', () => {
                 } else {
                     //delete all scheduled
                 }
-
+                var tsd = Object.keys(tourney_scheduled_data)
+                for (i = 0; i < tsd.length; i++){
+                    var s = tsd[i]
+                    if(tourney_scheduled_data[s].stream_notification == false && Date.parse(tourney_scheduled_data[s].datetime) <= Date.now() + 1000*60*5){
+                        var players = []
+                        Object.values(tourney_scheduled_data[s].players).forEach( p => {
+                            players.push(tourney_participants_data[p.player].name)
+                        })
+                        client.channels.cache.get("444208252541075476").send("This is a test notification\n<@&841059665474617353>\n**" + tourney_scheduled_data[s].bracket + ": " + players.join("vs. ") + "**\n" + tourney_scheduled_data[s].url);
+                        tourney_scheduled.child(s).child(stream_notification).set(true)
+                    }
+                }
             })
         setTimeout(updater, 1000 * 60)
     }
