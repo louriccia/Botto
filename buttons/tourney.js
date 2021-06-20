@@ -160,9 +160,12 @@ module.exports = {
                                     score.push(players[k].score)
                                 }
                             }
-                            for (k = 0; k < commentators.length; k++) {
-                                comms.push(tourney_participants_data[String(commentators[k])].name)
+                            if(commentators.length > 0){
+                                for (k = 0; k < commentators.length; k++) {
+                                    comms.push(tourney_participants_data[String(commentators[k])].name)
+                                }
                             }
+                            
                             if (score.length > 0) {
                                 score = "score: ||`" + score.join(" to ") + "`||"
                             }

@@ -241,7 +241,7 @@ client.once('ready', () => {
                                 }
                             }
                         }
-                        var datetime = Date.parse(schedule[i][0].replace(", ", " " + new Date().getFullYear() + " ") + schedule[i][1].replace(" ", " ") + " EDT")//this stupid 'no-break' space was messing up Date.parse and I was losing my mind
+                        var datetime = new Date(schedule[i][0].replace(", ", " " + new Date().getFullYear() + " ") + schedule[i][1].replace(" ", " ") + " EDT").toUTCString()//this stupid 'no-break' space was messing up Date.parse and I was losing my mind
                         data.datetime = datetime
                         datetimes.push(data.datetime)
                         data.bracket = schedule[i][2]
