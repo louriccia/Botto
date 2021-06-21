@@ -211,7 +211,7 @@ client.once('ready', () => {
                 })
                 schedule.splice(0, 1)
                 var datetimes = []
-                if (schedule.length > 1) {
+                if (schedule.length > 0) {
                     for (i = 0; i < schedule.length; i++) {
                         var data = {}
                         data.commentators = []
