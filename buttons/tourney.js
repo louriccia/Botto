@@ -264,7 +264,7 @@ module.exports = {
                             .setURL("http://speedgaming.org/swe1racer/")
                             .setDescription("Upcoming matches on speedgaming.org/swe1racer\n(all times are EDT)")
                         schedule.splice(0, 1)
-                        if (schedule.length > 1) {
+                        if (schedule.length > 0) {
                             for (i = 0; i < schedule.length; i++) {
                                 var channel = ""
                                 var comm = ""
