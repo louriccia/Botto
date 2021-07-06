@@ -19,7 +19,7 @@ module.exports = {
                 var option = {
                     label: racers[i].name,
                     value: i,
-                    description: racers[i].pod,
+                    description: racers[i].pod.substring(0, 50),
                     emoji: {
                         name: racers[i].flag.split(":")[1],
                         id: racers[i].flag.split(":")[2].replace(">", "")
