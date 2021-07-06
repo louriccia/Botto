@@ -146,7 +146,7 @@ module.exports = {
             .setColor('#00DE45')
             .setTitle(racers[numb].flag + " " + racers[numb].name)
             .setDescription("(" + (numb + 1) + ") " + racers[numb].intro)
-            .addField("Pod", racers[numb].Pod, false)
+            .addField("Pod", racers[numb].pod, false)
             .addField("Species: " + racers[numb].species, "Homeworld: " + racers[numb].homeworld, true)
             .addField("Favorite", planets[tracks[racers[numb].favorite].planet].emoji + " " + tracks[racers[numb].favorite].name, true)
             .addField("Voice Actor", racers[numb].voice, true)
@@ -172,196 +172,12 @@ module.exports = {
             .setTitle(tracks[numb].name)
             .setDescription("(" + tracks[numb].nickname.join(", ") + ")")
             .addField(circuits[tracks[numb].circuit].name + " Circuit", "Race " + tracks[numb].cirnum, true)
-            .addField("Planet", planets[tracks[numb].planet].name, true)
+            .addField("Planet", planets[tracks[numb].planet].emoji + " " + planets[tracks[numb].planet].name, true)
             .addField("Host", planets[tracks[numb].planet].host, true)
             .addField("Track Favorite", racers[tracks[numb].favorite].flag + " " + racers[tracks[numb].favorite].name, true)
             .addField("Difficulty", difficulties[tracks[numb].difficulty].name, true)
             .addField("Length", tracks[numb].lengthclass, true)
-        const newLocal = this;
-        var mu = {}, nu = {}, sk = {}, mu1 = {}, nu1 = {}, sk1 = {}
-        async function sendResponse() {
-            const response = await client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({ data: { embeds: [trackEmbed] } })
-            return response
-        }
-        sendResponse().then(message => {
-            const sentMessage = new Discord.Message(client, message, client.channels.cache.get(message.channel_id))
-            //console.log(djsMessage)
-
-            /*})
-            
-            client.channels.cache.get(channel).send(trackEmbed).then(sentMessage => {*/
-            let muurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-rn1z02dl=klrvnpoq&var-789x6p58=013d38rl" //mu
-            let nuurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&var-rn1z02dl=21d9rzpq&var-789x6p58=013d38rl" //nu
-            let skurl = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/824owmd5?top=1&embed=players&&var-789x6p58=rqvg3prq" //sku
-            let muurl1 = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/9d8wr6dn?top=1&embed=players&var-rn1z02dl=klrvnpoq&var-789x6p58=013d38rl" //mu
-            let nuurl1 = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/9d8wr6dn?top=1&embed=players&var-rn1z02dl=21d9rzpq&var-789x6p58=013d38rl" //nu
-            let skurl1 = 'https://www.speedrun.com/api/v1/leaderboards/m1mmex12/level/' + tracks[numb].id + "/9d8wr6dn?top=1&embed=players&&var-789x6p58=rqvg3prq" //sku
-            let settings = { method: "Get" }
-            async function getwrData() {
-                try {
-                    const response1 = await fetch(muurl);
-                    const data1 = await response1.json();
-                    mu = data1.data
-                    const response2 = await fetch(nuurl);
-                    const data2 = await response2.json();
-                    nu = data2.data
-                    const response3 = await fetch(skurl);
-                    const data3 = await response3.json();
-                    sk = data3.data
-                    const response4 = await fetch(muurl1);
-                    const data4 = await response4.json();
-                    mu1 = data4.data
-                    const response5 = await fetch(nuurl1);
-                    const data5 = await response5.json();
-                    nu1 = data5.data
-                    const response6 = await fetch(skurl1);
-                    const data6 = await response6.json();
-                    sk1 = data6.data
-                } catch (error) {
-                    console.log(error)
-                }
-            }
-            getwrData()
-            sentMessage.react('⏱️').then(() => {
-                const filter = (reaction, user) => {
-                    return ['⏱️'].includes(reaction.emoji.name) && user.id !== "545798436105224203";
-                };
-                sentMessage.awaitReactions(filter, { max: 1 })
-                    .then(collected => {
-                        const reaction = collected.first();
-                        if (reaction.emoji.name === '⏱️' && reaction.users.id !== "545798436105224203") {
-                            const tracktimesEmbed = new Discord.MessageEmbed()
-                                .setColor(planets[tracks[numb].planet].color)
-                                .setTitle(tracks[numb].name + " Times")
-                                .setURL("https://docs.google.com/spreadsheets/d/1TwDtG6eOyiQZEZ3iTbZaEmthe5zdf9YEGJ-1tfFfQKg/edit?usp=sharing")
-                                .addField("MU 3-Lap", ":gem: " + tracks[numb].partimes[0] + "\n:first_place: " + tracks[numb].partimes[1] + "\n:second_place: " + tracks[numb].partimes[2] + "\n:third_place: " + tracks[numb].partimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[numb].partimes[4], true)
-                                .addField("MU 1-Lap", ":gem: " + tracks[numb].parlaptimes[0] + "\n:first_place: " + tracks[numb].parlaptimes[1] + "\n:second_place: " + tracks[numb].parlaptimes[2] + "\n:third_place: " + tracks[numb].parlaptimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[numb].parlaptimes[4], true)
-                            if (tracks[numb].hasOwnProperty("parskiptimes")) {
-                                tracktimesEmbed.addField("Skips 3-Lap", ":gem: " + tracks[numb].parskiptimes[0] + "\n:first_place: " + tracks[numb].parskiptimes[1] + "\n:second_place: " + tracks[numb].parskiptimes[2] + "\n:third_place: " + tracks[numb].parskiptimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[numb].parskiptimes[4], true)
-                            } else {
-                                tracktimesEmbed.addField('\u200B', '\u200B', true)
-                            }
-                            function getRecord(record) {
-                                if (record !== undefined) {
-                                    if (record.hasOwnProperty("runs")) {
-                                        if (record.runs.length > 0) {
-                                            if (record.runs[0].hasOwnProperty("run")) {
-                                                var character = "", name = ""
-                                                for (let j = 0; j < 23; j++) {
-                                                    if (record.runs[0].run.values.j846d94l == racers[j].id) {
-                                                        if (racers[j].hasOwnProperty("flag")) {
-                                                            character = racers[j].flag
-                                                        } else {
-                                                            character = racers[j].name
-                                                        }
-                                                    }
-                                                }
-                                                if (record.players.data[0].hasOwnProperty("names")) {
-                                                    name = record.players.data[0].names.international
-                                                } else {
-                                                    name = record.players.data[0].name
-                                                }
-                                                var vid = record.runs[0].run.videos.links[0].uri
-                                                return character + "  [" + newLocal.timefix(record.runs[0].run.times.primary_t) + "](" + vid + ")\n" + name
-                                            } else {
-                                                return ""
-                                            }
-                                        } else {
-                                            return ""
-                                        }
-                                    } else {
-                                        return ""
-                                    }
-                                } else {
-                                    return ""
-                                }
-                            }
-                            var wrsk = getRecord(sk)
-                            var wrsk1 = getRecord(sk1)
-                            var wrmu = getRecord(mu)
-                            var wrmu1 = getRecord(mu1)
-                            var wrnu = getRecord(nu)
-                            var wrnu1 = getRecord(nu1)
-                            var tourney_mu = "", tourney_nu = "", tourney_sk = ""
-                            var mudeaths = [], nudeaths = [], skdeaths = []
-                            if (tourney.length > 0) {
-                                var tourneyfiltered = tourney.filter(element => element.track == tracks[numb].name)
-                                for (j = 0; j < tourneyfiltered.length; j++) {
-                                    if (tourneyfiltered[j].hasOwnProperty("totaltime")) {
-                                        var link = ""
-                                        if (tourneyfiltered[j].hasOwnProperty("url")) {
-                                            link = tourneyfiltered[j].url
-                                        }
-                                        var character = ""
-                                        for (let n = 0; n < 23; n++) {
-                                            if (tourneyfiltered[j].pod == racers[n].name) {
-                                                if (racers[n].flag !== "") {
-                                                    character = racers[n].flag
-                                                } else {
-                                                    character = racers[n].name
-                                                }
-                                            }
-                                        }
-                                        if (!tourneyfiltered[j].hasOwnProperty("force")) {
-                                            mudeaths.push(tourneyfiltered[j].totaldeaths)
-                                            if (tourney_mu == "") {
-                                                tourney_mu = character + "  [" + newLocal.timefix(tourneyfiltered[j].totaltime) + "](" + link + ")\n" + tourneyfiltered[j].player
-                                            }
-                                        } else {
-                                            if (tourneyfiltered[j].force == "Skips") {
-                                                skdeaths.push(tourneyfiltered[j].totaldeaths)
-                                                if (tourney_sk == "") {
-                                                    tourney_sk = character + "  [" + newLocal.timefix(tourneyfiltered[j].totaltime) + "](" + link + ")\n" + tourneyfiltered[j].player
-                                                }
-                                            } else if (tourneyfiltered[j].force == "NU") {
-                                                nudeaths.push(tourneyfiltered[j].totaldeaths)
-                                                if (tourney_nu == "") {
-                                                    tourney_nu = character + "  [" + newLocal.timefix(tourneyfiltered[j].totaltime) + "](" + link + ")\n" + tourneyfiltered[j].player
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            function getAvg(array) {
-                                array_total = 0
-                                for (var i = 0; i < array.length; i++) {
-                                    array_total += array[i];
-                                }
-                                if (array_total > 0) {
-                                    return "**Avg. Deaths**\n" + (array_total / array.length).toFixed(2)
-                                } else {
-                                    return ""
-                                }
-                            }
-                            var avg_mudeaths = getAvg(mudeaths)
-                            var avg_nudeaths = getAvg(nudeaths)
-                            var avg_skdeaths = getAvg(skdeaths)
-                            if (tourney_mu !== "") {
-                                tourney_mu = "[**Tourney Record**](https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing)\n" + tourney_mu
-                            }
-                            if (tourney_nu !== "") {
-                                tourney_nu = "[**Tourney Record**](https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing)\n" + tourney_nu
-                            }
-                            tracktimesEmbed.addField("Max Upgrades", "[**3-Lap WR**](" + mu.weblink + ")\n" + wrmu + "\n[**1-Lap WR**](" + mu1.weblink + ")\n" + wrmu1 + "\n" + tourney_mu + "\n" + avg_mudeaths, true)
-                            tracktimesEmbed.addField("No Upgrades", "[**3-Lap WR**](" + nu.weblink + ")\n" + wrnu + "\n[**1-Lap WR**](" + nu1.weblink + ")\n" + wrnu1 + "\n" + tourney_nu + "\n" + avg_nudeaths, true)
-                            if (wrsk !== "" || wrsk1 !== "" || tourney_sk !== "") {
-                                if (wrsk !== "") {
-                                    wrsk = "[**3-Lap WR**](" + sk.weblink + ")\n" + wrsk
-                                }
-                                if (wrsk1 !== "") {
-                                    wrsk1 = "[**1-Lap WR**](" + sk1.weblink + ")\n" + wrsk1
-                                }
-                                if (tourney_sk !== "") {
-                                    tourney_sk = "[**Tourney Record**](https://docs.google.com/spreadsheets/d/1ZyzBNOVxJ5PMyKsqHmzF4kV_6pKAJyRdk3xjkZP_6mU/edit?usp=sharing)\n" + tourney_sk
-                                }
-                                tracktimesEmbed.addField("Skips", wrsk + "\n" + wrsk1 + "\n" + tourney_sk + "\n" + avg_skdeaths, true)
-                            }
-                            sentMessage.channel.send(tracktimesEmbed);
-                        }
-                    })
-            })
-        })
+        return trackEmbed
     },
     ordinalSuffix: function (i) {
         if (i < 3) {
