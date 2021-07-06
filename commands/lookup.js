@@ -51,29 +51,7 @@ module.exports = {
         const myEmbed = new Discord.MessageEmbed()
         if(args[0].name =="racer") {
             var input = args[0].options[0].value.toLowerCase()
-            var numb = getRacer(input)
-            if(numb !== null){
-                racerEmbed = tools.getRacerEmbed(numb)
-                client.api.interactions(interaction.id, interaction.token).callback.post({
-                    data: {
-                        type: 4,
-                        data: {
-                            //content: "",
-                            embeds: [racerEmbed]
-                        }
-                    }
-                })
-            } else {
-                client.api.interactions(interaction.id, interaction.token).callback.post({
-                    data: {
-                        type: 4,
-                        data: {
-                            content: "`Error: Racer not found `\n" + errorMessage[Math.floor(Math.random()*errorMessage.length)],
-                            //embeds: [racerEmbed]
-                        }
-                    }
-                })
-            }
+            client.selects.get("lookup").execute(client, interaction, ["racer", input, "initial"]);
         } else if(args[0].name=="track") {
             var input = args[0].options[0].value.toLowerCase()
             var numb = getTrack(input)

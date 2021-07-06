@@ -7,8 +7,10 @@ var tourneylookup = require("./tourneydata.js");
 var tools = require('./tools.js');
 client.commands = new Discord.Collection();
 client.buttons = new Discord.Collection();
+client.selects = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 const buttonFiles = fs.readdirSync('./buttons').filter(file => file.endsWith('.js'));
+const selectFiles = fs.readdirSync('./buttons').filter(file => file.endsWith('.js'));
 
 for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
@@ -17,6 +19,10 @@ for (const file of commandFiles) {
 for (const file of buttonFiles) {
     const button = require(`./buttons/${file}`);
     client.buttons.set(button.name, button);
+}
+for (const file of selectFiles) {
+    const select = require(`./selects/${file}`);
+    client.selects.set(select.name, select);
 }
 var firebase = require("firebase/app");
 require('firebase/auth');
@@ -118,15 +124,22 @@ client.ws.on('INTERACTION_CREATE', async interaction => {
         }
     } else if (interaction.data.hasOwnProperty("custom_id")) {
         var split = interaction.data.custom_id.split("_")
-        const button = split[0]
+        const name = split[0]
         const args = split.slice(1)
-        //button handler
-        //if (!client.buttons.has(button))return;
-        try {
-            client.buttons.get(button).execute(client, interaction, args);
-        } catch (error) {
-            console.error(error);
+        if(interaction.data.component_type == 2){
+            try {
+                client.buttons.get(name).execute(client, interaction, args);
+            } catch (error) {
+                console.error(error);
+            }
+        } else if(interaction.data.component_type == 3){
+            try {
+                client.selects.get(name).execute(client, interaction, args);
+            } catch (error) {
+                console.error(error);
+            }
         }
+        
     }
 })
 
