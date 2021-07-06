@@ -211,7 +211,7 @@ client.once('ready', () => {
                 })
                 schedule.splice(0, 1)
                 var datetimes = []
-                if (schedule.length > 1) {
+                if (schedule.length > 0) {
                     for (i = 0; i < schedule.length; i++) {
                         var data = {}
                         data.commentators = []
@@ -298,8 +298,8 @@ client.once('ready', () => {
                         if(commentators.length == 0){
                             commentators.push("WhyNobodyCommentate")
                         }
-                        client.channels.cache.get("444208252541075476").send("`This is a test notification`\n<@&841059665474617353>\n**" + tourney_scheduled_data[s].bracket + ": " + players.join("vs. ") + "**\n:microphone2: " + commentators.join(", ") + "\n" + tourney_scheduled_data[s].url);
-                        tourney_scheduled.child(s).child(stream_notification).set(true)
+                        client.channels.cache.get("515311630100463656").send("<@&841059665474617353>\n**" + tourney_scheduled_data[s].bracket + ": " + players.join(" vs. ") + "**\n:microphone2: " + commentators.join(", ") + "\n" + tourney_scheduled_data[s].url);
+                        tourney_scheduled.child(s).child("stream_notification").set(true)
                     }
                 }
             })
