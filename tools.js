@@ -148,7 +148,7 @@ module.exports = {
             .setDescription("(" + (numb + 1) + ") " + racers[numb].intro)
             .addField("Pod", racers[numb].Pod, false)
             .addField("Species: " + racers[numb].species, "Homeworld: " + racers[numb].homeworld, true)
-            .addField("Favorite", tracks[racers[numb].favorite].name, true)
+            .addField("Favorite", [tracks[racers[numb].favorite].planet].emoji + " " + tracks[racers[numb].favorite].name, true)
             .addField("Voice Actor", racers[numb].voice, true)
             .addField("Tier", Tier[racers[numb].nu_tier] + " | " + Tier[racers[numb].mu_tier], true)
             .addField("Average Speed", Math.round(avgspeednu) + " | " + Math.round(avgspeedmu), true)

@@ -10,7 +10,7 @@ client.buttons = new Discord.Collection();
 client.selects = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 const buttonFiles = fs.readdirSync('./buttons').filter(file => file.endsWith('.js'));
-const selectFiles = fs.readdirSync('./buttons').filter(file => file.endsWith('.js'));
+const selectFiles = fs.readdirSync('./selects').filter(file => file.endsWith('.js'));
 
 for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
