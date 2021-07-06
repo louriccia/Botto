@@ -145,7 +145,7 @@ module.exports = {
                         if (i == matches.length) {
                             i = 5 * (1 + offset)
                         } else {
-                            var date =  new Date(matches[i].datetime).toLocaleString("en-US", {timeZone: "America/New_York"}) + " EDT"
+                            var date =  new Date(matches[i].datetime).toLocaleString("en-US", {timeZone: "America/New_York"}) + " ET"
                             if (matches[i].url !== "") {
                                 date = "[" + date +"](" + matches[i].url + ")"
                             }
@@ -262,7 +262,7 @@ module.exports = {
                             .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/crossed-swords_2694-fe0f.png")
                             .setTitle("Match Schedule")
                             .setURL("http://speedgaming.org/swe1racer/")
-                            .setDescription("Upcoming matches on speedgaming.org/swe1racer\n(all times are EDT)")
+                            .setDescription("Upcoming matches on speedgaming.org/swe1racer\n(all times are Eastern Time)")
                         schedule.splice(0, 1)
                         if (schedule.length > 1) {
                             for (i = 0; i < schedule.length; i++) {
