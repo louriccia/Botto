@@ -1,12 +1,12 @@
 module.exports = planets = [
-    { "name": "Ando Prime", "img": "https://imgur.com/KNUfpQa.png", "color": "#EC6423", "host": "Ten-Abu Donba" }, //0
-    { "name": "Aquilaris", "img": "https://imgur.com/rCMTQd0.png", "color": "#279843", "host": "Nave Vengaris" },  //1
-    { "name": "Baroonda", "img": "https://imgur.com/0y5b433.png", "color": "#683062", "host": "Maja Fey'ja" },   //2
-    { "name": "Malastare", "img": "https://imgur.com/DCeKQxc.png", "color": "#9D1F3C", "host": "Nugtosh" },  //3
-    { "name": "Mon Gazza", "img": "https://imgur.com/oKFvTEt.png", "color": "#F09813", "host": "Groff Zugga" },  //4
-    { "name": "Oovo IV", "img": "https://imgur.com/Xhx0LCy.png", "color": "#2BB79B", "host": "Fenn Booda" },    //5
-    { "name": "Ord Ibanna", "img": "https://imgur.com/UIsMgaO.png", "color": "#E62121", "host": "Dethro Glok" }, //6
-    { "name": "Tatooine", "img": "https://imgur.com/lbDJ9Kv.png", "color": "#4292B0", "host": "Jabba the Hutt" }    //7
+    { "name": "Ando Prime", "img": "https://imgur.com/tBIBKS5.png", "color": "#EC6423", "host": "Ten-Abu Donba" }, //0
+    { "name": "Aquilaris", "img": "https://imgur.com/gZxTAqX.png", "color": "#279843", "host": "Nave Vengaris" },  //1
+    { "name": "Baroonda", "img": "https://imgur.com/2aQfuVQ.png", "color": "#683062", "host": "Maja Fey'ja" },   //2
+    { "name": "Malastare", "img": "https://imgur.com/gy5Vj7u.png", "color": "#9D1F3C", "host": "Nugtosh" },  //3
+    { "name": "Mon Gazza", "img": "https://imgur.com/k3LGJXR.png", "color": "#F09813", "host": "Groff Zugga" },  //4
+    { "name": "Oovo IV", "img": "https://imgur.com/UjObB8T.png", "color": "#2BB79B", "host": "Fenn Booda" },    //5
+    { "name": "Ord Ibanna", "img": "https://imgur.com/CPlmJ7X.png", "color": "#E62121", "host": "Dethro Glok" }, //6
+    { "name": "Tatooine", "img": "https://imgur.com/U3ScWA5.png", "color": "#4292B0", "host": "Jabba the Hutt" }    //7
 ]
 
 module.exports = circuits = [
