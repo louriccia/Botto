@@ -823,14 +823,14 @@ module.exports = {
                                     }
                                     profileref.child(member).child("current").update({ completed: true, title:  ":negative_squared_cross_mark: Closed: "})
                                     try {
-                                        await client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({ data: {embeds: [updateChallenge()], components: [] } })
+                                        client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({ data: {embeds: [updateChallenge()], components: [] } })
                                     } catch (error) {
                                         console.error(error)
                                     }
                                 } else {
                                     //log time
                                     try {
-                                        await client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({ 
+                                        client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({ 
                                             data: {
                                                 embeds: [updateChallenge()], 
                                                 components: [] //new challenge, undo, like, dislike, menu
@@ -873,13 +873,13 @@ module.exports = {
                                     if (vc) {
                                         highlight = submissiondata.date
                                         try {
-                                            await client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({ data: {embeds: [updateChallenge()], components: [] } })
+                                            client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({ data: {embeds: [updateChallenge()], components: [] } })
                                         } catch { }
                                     } else {
                                         title = ":white_check_mark: Completed: "
                                         highlight = submissiondata.date
                                         profileref.child(member).child("current").update({ completed: true })
-                                        await client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({ data: {embeds: [updateChallenge()], components: [] } })
+                                        client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({ data: {embeds: [updateChallenge()], components: [] } })
                                     }
                                     if (message.guild) {
                                         try {
