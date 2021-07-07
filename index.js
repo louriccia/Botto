@@ -139,8 +139,8 @@ async function getCommands() {
     console.log(commands)
 }
 
-getCommands()
-
+//getCommands()
+//client.api.applications("545798436105224203").guilds('441839750555369474').commands("").delete()
 
 client.once('ready', () => {
     console.log('Ready!')
@@ -478,6 +478,25 @@ client.on('message', message => {
     if (message.content.toLowerCase() == `${prefix}kill` && message.channelID == "444208252541075476") {
         message.channel.send("Come back when you got some money!")
         client.destroy()
+    }
+})
+
+client.api.applications("545798436105224203").commands.post({
+    data: {
+        name: 'challenge',
+        description: 'randomly generated challenges',
+        options: [
+            {
+                name: "random",
+                description: "get a random pod/track challenge; 15-minute time limit; submit your time below",
+                type: 1,
+            },
+            {
+                name: "community",
+                description: "explore community challenges",
+                type: 1
+            }
+        ]
     }
 })
 
