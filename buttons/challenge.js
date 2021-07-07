@@ -216,7 +216,9 @@ module.exports = {
             } else {
                 profileref.child(member).child("name").set(interaction.member.user.username) //update name in case of namechange
             }
-
+            const Guild = client.guilds.cache.get(interaction.guild_id)
+            const Member = Guild.members.cache.get(member)
+            
             function updateChallenge() {
                 var best = [], played = false, record_holder = false
                 //get best runs/achievement progress
@@ -446,7 +448,7 @@ module.exports = {
                     }
                     profileref.child(member).child("achievements").set(ach)
                 }
-                
+
                 if (title !== ":white_check_mark: Completed: ") {
                     if (Object.keys(achievements.galaxy_famous.collection).length < achievements.galaxy_famous.limit && achievements.galaxy_famous.collection[profiledata[member].current.track] == undefined) {
                         achievement_message_array.push({
@@ -519,7 +521,7 @@ module.exports = {
                         }
                     }
                 }
-                
+
 
                 //calculate winnings
                 var earnings = ""
@@ -668,8 +670,6 @@ module.exports = {
                 }
 
                 //get values
-                const Guild = client.guilds.cache.get(interaction.guild_id)
-                const Member = Guild.members.cache.get(member)
                 var random_racer = Math.floor(Math.random() * 23)
                 var random_track = Math.floor(Math.random() * 25)
                 var random_quote = Math.floor(Math.random() * movieQuotes.length)
@@ -682,7 +682,7 @@ module.exports = {
                         hunt = true
                     }
                 }
-                
+
                 //set odds
                 var odds = {
                     skips: 25,
@@ -710,7 +710,7 @@ module.exports = {
                 if (Math.random() < odds.mirrored) {
                     mirror = true
                 }
-                
+
                 //revived challenge
                 if (interaction.name == "revive") {
                     if (interaction.recovery == true) {
@@ -749,7 +749,7 @@ module.exports = {
                     title: ""
                 }
                 profileref.child(member).child("current").set(current)
-                
+
 
                 //reroll button should only show for single-player challenges or maybe it should just be free for multiplayer
                 var token = interaction.token
@@ -860,7 +860,7 @@ module.exports = {
                                                                 }
                                                             ]
                                                         }
-                                                    ] 
+                                                    ]
                                                 }
                                             })
                                         } catch { }
