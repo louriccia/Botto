@@ -214,7 +214,7 @@ module.exports = {
                 }
                 profileref.child(member).set(data)
             } else {
-                profileref.child(member).child(name).set(interaction.member.user.username) //update name in case of namechange
+                profileref.child(member).child("name").set(interaction.member.user.username) //update name in case of namechange
             }
 
             function updateChallenge() {

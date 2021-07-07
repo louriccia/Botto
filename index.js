@@ -481,23 +481,4 @@ client.on('message', message => {
     }
 })
 
-client.api.applications("545798436105224203").commands.post({
-    data: {
-        name: 'challenge',
-        description: 'randomly generated challenges',
-        options: [
-            {
-                name: "random",
-                description: "get a random pod/track challenge; 15-minute time limit; submit your time below",
-                type: 1,
-            },
-            {
-                name: "community",
-                description: "explore community challenges",
-                type: 1
-            }
-        ]
-    }
-})
-
 client.login(process.env.token);
