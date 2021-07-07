@@ -139,7 +139,7 @@ async function getCommands() {
     console.log(commands)
 }
 
-//getCommands()
+getCommands()
 
 
 client.once('ready', () => {
