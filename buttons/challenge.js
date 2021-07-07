@@ -1075,7 +1075,7 @@ module.exports = {
                                     type: 1,
                                     components: [
                                         {
-                                            type: 3,
+                                            type: 2,
                                             custom_id: "challenge_random_play",
                                             style: 1,
                                             label: "Play",
@@ -1085,7 +1085,7 @@ module.exports = {
                                         },
 
                                         {
-                                            type: 3,
+                                            type: 2,
                                             custom_id: "challenge_random_hint",
                                             style: 2,
                                             label: "Hints",
@@ -1094,7 +1094,7 @@ module.exports = {
                                             }
                                         },
                                         {
-                                            type: 3,
+                                            type: 2,
                                             custom_id: "challenge_random_hunt",
                                             style: 2,
                                             label: "Challenge Hunt",
@@ -1103,7 +1103,7 @@ module.exports = {
                                             }
                                         },
                                         {
-                                            type: 3,
+                                            type: 2,
                                             custom_id: "challenge_random_settings",
                                             style: 2,
                                             label: "Settings",
@@ -1117,7 +1117,7 @@ module.exports = {
                                     type: 1,
                                     components: [
                                         {
-                                            type: 3,
+                                            type: 2,
                                             custom_id: "challenge_random_profile",
                                             style: 2,
                                             label: "Profile",
@@ -1126,7 +1126,7 @@ module.exports = {
                                             }
                                         },
                                         {
-                                            type: 3,
+                                            type: 2,
                                             custom_id: "challenge_random_leaderboards",
                                             style: 2,
                                             label: "Leaderboards",
@@ -1135,7 +1135,7 @@ module.exports = {
                                             }
                                         },
                                         {
-                                            type: 3,
+                                            type: 2,
                                             custom_id: "challenge_random_about",
                                             style: 2,
                                             emoji: {
