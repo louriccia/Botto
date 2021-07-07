@@ -10,7 +10,6 @@ client.buttons = new Discord.Collection();
 client.selects = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 const buttonFiles = fs.readdirSync('./buttons').filter(file => file.endsWith('.js'));
-const selectFiles = fs.readdirSync('./selects').filter(file => file.endsWith('.js'));
 
 for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
@@ -20,10 +19,7 @@ for (const file of buttonFiles) {
     const button = require(`./buttons/${file}`);
     client.buttons.set(button.name, button);
 }
-for (const file of selectFiles) {
-    const select = require(`./selects/${file}`);
-    client.selects.set(select.name, select);
-}
+
 var firebase = require("firebase/app");
 require('firebase/auth');
 require('firebase/database');
@@ -126,20 +122,13 @@ client.ws.on('INTERACTION_CREATE', async interaction => {
         var split = interaction.data.custom_id.split("_")
         const name = split[0]
         const args = split.slice(1)
-        if(interaction.data.component_type == 2){
-            try {
-                client.buttons.get(name).execute(client, interaction, args);
-            } catch (error) {
-                console.error(error);
-            }
-        } else if(interaction.data.component_type == 3){
-            try {
-                client.selects.get(name).execute(client, interaction, args);
-            } catch (error) {
-                console.error(error);
-            }
+
+        try {
+            client.buttons.get(name).execute(client, interaction, args);
+        } catch (error) {
+            console.error(error);
         }
-        
+
     }
 })
 
@@ -267,19 +256,19 @@ client.once('ready', () => {
                             }
                         }
                         var dup = false
-                        if(![undefined, null].includes(tourney_scheduled_data)) {
+                        if (![undefined, null].includes(tourney_scheduled_data)) {
                             var tsd = Object.keys(tourney_scheduled_data)
-                            
-                            for (j = 0 ; j < tsd.length; j++){
+
+                            for (j = 0; j < tsd.length; j++) {
                                 var s = tsd[j]
-                                if(tourney_scheduled_data[s].datetime == datetime){
+                                if (tourney_scheduled_data[s].datetime == datetime) {
                                     tourney_scheduled.child(s).update(data)
                                     dup = true
                                     j = tsd.length
                                 }
                             }
                         }
-                        if(!dup){
+                        if (!dup) {
                             data.stream_notification = false
                             tourney_scheduled.push(data)
                         }
@@ -297,18 +286,18 @@ client.once('ready', () => {
                     //delete all scheduled
                 }
                 var tsd = Object.keys(tourney_scheduled_data)
-                for (i = 0; i < tsd.length; i++){
+                for (i = 0; i < tsd.length; i++) {
                     var s = tsd[i]
-                    if(tourney_scheduled_data[s].stream_notification == false && Date.parse(tourney_scheduled_data[s].datetime) <= Date.now() + 1000*60*5){
+                    if (tourney_scheduled_data[s].stream_notification == false && Date.parse(tourney_scheduled_data[s].datetime) <= Date.now() + 1000 * 60 * 5) {
                         var players = []
                         var commentators = []
                         Object.values(tourney_scheduled_data[s].commentators).forEach(c => {
                             commentators.push(tourney_participants_data[c].name)
                         })
-                        Object.values(tourney_scheduled_data[s].players).forEach( p => {
+                        Object.values(tourney_scheduled_data[s].players).forEach(p => {
                             players.push(tourney_participants_data[p.player].name)
                         })
-                        if(commentators.length == 0){
+                        if (commentators.length == 0) {
                             commentators.push("WhyNobodyCommentate")
                         }
                         client.channels.cache.get("515311630100463656").send("<@&841059665474617353>\n**" + tourney_scheduled_data[s].bracket + ": " + players.join(" vs. ") + "**\n:microphone2: " + commentators.join(", ") + "\n" + tourney_scheduled_data[s].url);

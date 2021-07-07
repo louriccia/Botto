@@ -191,23 +191,25 @@ module.exports = {
             return report
         }
 
+
+        //initialize player if they don't exist
+        let member = interaction.member.user.id
+        if (profiledata[member] == undefined) {
+            var data = {
+                mirror_mode: 5,
+                name: interaction.member.user.username,
+                no_upgrades: 15,
+                non_3_lap: 5,
+                skips: 25,
+                winnings: 1,
+                truguts_earned: 0,
+                truguts_spent: 0
+            }
+            profileref.child(member).set(data)
+        }
+
         //const myEmbed = new Discord.MessageEmbed()
         if (args[0].name == "generate" || args[0].name == "challenge") {
-
-            let member = interaction.member.user.id
-            if (profiledata[member] == undefined) {
-                var data = {
-                    mirror_mode: 5,
-                    name: interaction.member.user.username,
-                    no_upgrades: 15,
-                    non_3_lap: 5,
-                    skips: 25,
-                    winnings: 1,
-                    truguts_earned: 0,
-                    truguts_spent: 0
-                }
-                profileref.child(member).set(data)
-            }
 
             var vc = false
             var challengestart = Date.now()
@@ -1823,7 +1825,7 @@ module.exports = {
                     profileEmbed.setTitle("Random Challenge Achievements (" + achievement_count + "/8)")
                 }
                 return profileEmbed
-            }).then((embed)=> sendResponse(embed))
+            }).then((embed) => sendResponse(embed))
 
 
 
