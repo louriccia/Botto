@@ -669,6 +669,7 @@ module.exports = {
                     message: newEmbed,
                     components: components
                 }
+                console.log(data)
                 return data
             }
 
@@ -790,7 +791,7 @@ module.exports = {
                     var data = updateChallenge()
                     response = await client.api.webhooks(client.user.id, token).messages('@original').patch({ data: { 
                         embeds: [data.message], 
-                        componenets: [
+                        components: [
                             {
                                 type: 1,
                                 components: data.components
@@ -810,7 +811,7 @@ module.exports = {
                                 var data = updateChallenge()
                                 await client.api.webhooks(client.user.id, token).messages('@original').patch({ data: { 
                                     embeds: [data.message], 
-                                    componenets: [
+                                    components: [
                                         {
                                             type: 1,
                                             components: data.components
@@ -828,7 +829,7 @@ module.exports = {
                                 await client.api.webhooks(client.user.id, token).messages('@original').patch({ data: { 
                                     content: warning,
                                     embeds: [data.message], 
-                                    componenets: [
+                                    components: [
                                         {
                                             type: 1,
                                             components: data.components
@@ -846,7 +847,7 @@ module.exports = {
                                 await client.api.webhooks(client.user.id, token).messages('@original').patch({ data: { 
                                     content: "",
                                     embeds: [data.message], 
-                                    componenets: [
+                                    components: [
                                         {
                                             type: 1,
                                             components: [
