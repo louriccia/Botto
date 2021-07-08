@@ -816,7 +816,7 @@ module.exports = {
                                                     components: [
                                                         {
                                                             type: 1,
-                                                            componenets: [
+                                                            components: [
                                                                 {
                                                                     type: 2,
                                                                     style: 1,
