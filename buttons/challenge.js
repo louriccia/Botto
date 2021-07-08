@@ -882,7 +882,7 @@ module.exports = {
                                             hunt: profiledata[member].current.hunt_bonus
                                         }
                                         var newPostRef = ref.push(submissiondata);
-                                        profileref.child(member).child("current").update({ submission: newPostRef, title: ":white_check_mark: Completed: ", completed: true })
+                                        profileref.child(member).child("current").update({ submission: newPostRef.key, title: ":white_check_mark: Completed: ", completed: true })
                                         client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({ data: { embeds: [updateChallenge()], components: [] } })
                                         if (message.guild) {
                                             try {
