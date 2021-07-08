@@ -538,7 +538,7 @@ module.exports = {
                         earnings += "Hunt Bonus `+📀" + tools.numberWithCommas(profiledata[member].hunt.bonus) + "`\n"
                         earnings_total += profiledata[member].hunt.bonus
                         hunt_bonus = profiledata[member].hunt.bonus
-                        profileref.child(member).update({ hunt: { completed: true } })
+                        profileref.child(member).update({ hunt: { completed: true, hunt_bonus: hunt_bonus } })
                     }
                     if (goal_earnings[winnings_text] > 0) {
                         earnings += goal_symbols[winnings_text] + " `+📀" + tools.numberWithCommas(goal_earnings[winnings_text]) + "`\n"
@@ -741,6 +741,7 @@ module.exports = {
                     mirror: mirror,
                     truguts: 0,
                     hunt: hunt,
+                    hunt_bonus: 0,
                     track_bribe: false,
                     racer_bribe: false,
                     rated: false,
@@ -878,7 +879,7 @@ module.exports = {
                                                 skips: profiledata[member].skips,
                                                 mirror_mode: profiledata[member].mirror_mode
                                             },
-                                            hunt: hunt_bonus
+                                            hunt: profiledata[member].current.hunt_bonus
                                         }
                                         var newPostRef = ref.push(submissiondata);
                                         profileref.child(member).child(current).update({ submission: newPostRef, title: ":white_check_mark: Completed: ", completed: true })
