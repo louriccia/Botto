@@ -638,7 +638,7 @@ module.exports = {
                     }
 
                 } else {
-                    newEmbed.setTitle(title + "~~" + eTitle + "~~")
+                    newEmbed.setTitle(title + hunt_text + "~~" + eTitle + "~~")
                     if (title == ":arrows_counterclockwise: Rerolled: ") {
                         newEmbed.setDescription(rerollChallenge(best))
                     }
@@ -788,7 +788,7 @@ module.exports = {
                             profileref.child(member).child("current").update({ completed: true, title: ":negative_squared_cross_mark: Closed: " })
                             try {
                                 await client.api.webhooks(client.user.id, token).messages('@original').patch({ data: { content: "", embeds: [updateChallenge()] } })
-                            } catch { }
+                            } catch (error) {console.log(error) }
                         }
                     }, 900000)
                     setTimeout(async function () { //remove components
@@ -799,7 +799,7 @@ module.exports = {
                     //collect times
                     const collector = new Discord.MessageCollector(client.channels.cache.get(interaction.channel_id), m => m, { time: 900000 }); //messages
                     collector.on('collect', message => {
-                        if (profiledata[member].current.date == challengestart && profiledata[member].current.completed == false) {
+                        if (profiledata[member].current.start == challengestart && profiledata[member].current.completed == false) {
                             if (!isNaN(message.content.replace(":", "")) && tools.timetoSeconds(message.content) !== null) {
                                 var challengeend = Date.now()
                                 if (member == message.author.id) {

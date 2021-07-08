@@ -171,7 +171,7 @@ client.once('ready', () => {
                     if (profiledata[k].current.start + 1200000 > Date.now()) {
                         try {
                             var fakeinteraction = {
-                                name: "fake",
+                                name: "revive",
                                 recovery: true,
                                 member: {
                                     user: {
@@ -183,7 +183,7 @@ client.once('ready', () => {
                                 channel_id: profiledata[k].current.channel
                             }
                             console.log(fakeinteraction)
-                            client.commands.get("challenge").execute(client, fakeinteraction, [{ name: "generate" }]);
+                            client.buttons.get("challenge").execute(client, fakeinteraction, ["random", "play"]);
                         } catch {
 
                         }
