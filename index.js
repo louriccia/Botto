@@ -228,7 +228,7 @@ client.once('ready', () => {
                                 }
                             }
                         }
-                        if (schedule[i].length > 3) {
+                        if (schedule[i].length > 4) {
                             if (!schedule[i][4].includes("?")) {
                                 data.url = "https://www.twitch.tv/" + schedule[i][4]
                             }

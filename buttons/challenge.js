@@ -218,7 +218,7 @@ module.exports = {
             }
             const Guild = client.guilds.cache.get(interaction.guild_id)
             const Member = Guild.members.cache.get(member)
-            
+
             function updateChallenge() {
                 var best = [], played = false, record_holder = false
                 //get best runs/achievement progress
@@ -260,6 +260,7 @@ module.exports = {
                 }
 
                 //build title
+                var laptext = "", mirrortext = "", nutext = "", skipstext = "", flag = "", record = "", desc = ""
                 var title = profiledata[member].current.title
                 if (profiledata[member].current.nu) {
                     nutext = " with **NO UPGRADES**"
@@ -293,7 +294,6 @@ module.exports = {
                 var eAuthor = [interaction.member.user.username + "'s Challenge", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL()]
 
                 //build description
-                var laptext = "", mirrortext = "", nutext = "", skipstext = "", flag = "", record = "", desc = ""
                 if (Math.random() < 0.50 && best.length > 0) {
                     desc = desc + "*The current record-holder for this challenge is... " + best[0].name + "!*"
                 } else if (Math.random() < 0.50) {
@@ -504,8 +504,10 @@ module.exports = {
                 for (var i = 0; i < achvs.length; i++) {
                     var a = achvs[i]
                     if (Object.keys(achievements[a].collection).length >= achievements[a].limit) { //if player has met condition for achievement
-                        if (!Member.roles.cache.some(r => r.id === achievements[a].role && interaction.guild_id == "441839750555369474")) { //award role
-                            Member.roles.add(achievements[a].role).catch(error => console.log(error))
+                        if(interaction.guild_id == "441839750555369474"){
+                            if (!Member.roles.cache.some(r => r.id === achievements[a].role && )) { //award role
+                                Member.roles.add(achievements[a].role).catch(error => console.log(error))
+                            }
                         }
                         if (profiledata[member].achievements[a] == false) { //send congrats
                             profileref.child(member).child("achievements").child(a).set(true)
