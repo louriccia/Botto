@@ -290,7 +290,7 @@ module.exports = {
                     hunt_text = ":dart: Challenge Hunt: "
                 }
                 var flag = racers[profiledata[member].current.racer].flag
-                var eTitle = "Race as **" + bribed_racer + flag + " " + racers[profiledata[member].current.racer].name + bribed_racer + "** (" + (profiledata[member].current.racer + 1) + ")" + nutext + " on **" + bribed_track + planets[tracks[profiledata[member].current.track].planet].emoji + " " + tracks[profiledata[member].current.track].name + bribed_track + "** (" + (profiledata[member].current.track + 1) + ")" + laptext + skipstext + mirrortext
+                var eTitle = "Race as **" + bribed_racer + flag + " " + racers[profiledata[member].current.racer].name + bribed_racer + "**" + nutext + " on **" + bribed_track + planets[tracks[profiledata[member].current.track].planet].emoji + " " + tracks[profiledata[member].current.track].name + bribed_track + "**" + laptext + skipstext + mirrortext
                 var eAuthor = [interaction.member.user.username + "'s Challenge", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL()]
 
                 //build description
@@ -344,7 +344,7 @@ module.exports = {
                     if (price == 0){
                         price = "free"
                     } else {
-                        price = "📀" + price
+                        price = "📀" + tools.numberWithCommas(price)
                     }
                     components.push({
                         type: 2,
@@ -859,7 +859,7 @@ module.exports = {
                                             components: [
                                                 {
                                                     type: 2,
-                                                    style: 1,
+                                                    style: 4,
                                                     custom_id: "challenge_random_play",
                                                     label: "New Challenge",
                                                     emoji: {
@@ -870,7 +870,10 @@ module.exports = {
                                                     type: 2,
                                                     style: 2,
                                                     custom_id: "challenge_random_menu",
-                                                    label: "menu"
+                                                    emoji: {
+                                                        name: "menu",
+                                                        id: "862620287735955487"
+                                                    }
                                                 }
                                             ]
                                         }
@@ -931,7 +934,7 @@ module.exports = {
                                                             components: [
                                                                 {
                                                                     type: 2,
-                                                                    style: 1,
+                                                                    style: 4,
                                                                     custom_id: "challenge_random_play",
                                                                     emoji: {
                                                                         name: "🎲"
@@ -965,7 +968,10 @@ module.exports = {
                                                                     type: 2,
                                                                     style: 2,
                                                                     custom_id: "challenge_random_menu",
-                                                                    label: "menu"
+                                                                    emoji: {
+                                                                        name: "menu",
+                                                                        id: "862620287735955487"
+                                                                    }
                                                                 }
                                                             ]
                                                         }
@@ -1148,7 +1154,7 @@ module.exports = {
                 }
                 const myEmbed = new Discord.MessageEmbed()
                     .setAuthor("Random Challenge", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/game-die_1f3b2.png")
-                    .setTitle("Menu")
+                    .setTitle("<:menu:862620287735955487> Menu")
                     .setDescription("This is the Random Challenge menu. From here, you can access all options related to random challenges. Press the **Play** button to get rollin'.")
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
@@ -1163,7 +1169,7 @@ module.exports = {
                                         {
                                             type: 2,
                                             custom_id: "challenge_random_play",
-                                            style: 1,
+                                            style: 4,
                                             label: "Play",
                                             emoji: {
                                                 name: "🎲"
