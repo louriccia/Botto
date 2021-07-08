@@ -253,7 +253,7 @@ module.exports = {
                 best.sort(function (a, b) {
                     return a.time - b.time;
                 })
-                if (best !== undefined) {
+                if (best.length > 0) {
                     if (best[0].user == member) {
                         record_holder = true
                     }
@@ -290,7 +290,7 @@ module.exports = {
                     hunt_text = ":dart: Challenge Hunt: "
                 }
                 var flag = racers[profiledata[member].current.racer].flag
-                var eTitle = "Race as **" + bribed_racer + flag + " " + racers[profiledata[member].current.racer].name + bribed_racer + "** (" + (profiledata[member].current.racer + 1) + ")" + nutext + " on **" + bribed_track + tracks[profiledata[member].current.track].name + bribed_track + "** (" + (profiledata[member].current.track + 1) + ")" + laptext + skipstext + mirrortext
+                var eTitle = "Race as **" + bribed_racer + flag + " " + racers[profiledata[member].current.racer].name + bribed_racer + "** (" + (profiledata[member].current.racer + 1) + ")" + nutext + " on **" + bribed_track + planets[tracks[profiledata[member].current.track].planet].emoji + " " + tracks[profiledata[member].current.track].name + bribed_track + "** (" + (profiledata[member].current.track + 1) + ")" + laptext + skipstext + mirrortext
                 var eAuthor = [interaction.member.user.username + "'s Challenge", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL()]
 
                 //build description
@@ -341,7 +341,7 @@ module.exports = {
                 var current_truguts = profiledata[member].truguts_earned - profiledata[member].truguts_spent
                 if (current_truguts >= reroll.price) {
                     var price = reroll.price
-                    if (price = 0){
+                    if (price == 0){
                         price = "free"
                     } else {
                         price = "📀" + price
@@ -350,7 +350,7 @@ module.exports = {
                         type: 2,
                         style: 2,
                         custom_id: "challenge_random_reroll",
-                        label: "Reroll [" + price +"]",
+                        label: "Reroll (" + price +")",
                         emoji: {
                             name: "🎲"
                         }
