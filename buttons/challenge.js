@@ -505,7 +505,7 @@ module.exports = {
                     var a = achvs[i]
                     if (Object.keys(achievements[a].collection).length >= achievements[a].limit) { //if player has met condition for achievement
                         if(interaction.guild_id == "441839750555369474"){
-                            if (!Member.roles.cache.some(r => r.id === achievements[a].role && )) { //award role
+                            if (!Member.roles.cache.some(r => r.id === achievements[a].role)) { //award role
                                 Member.roles.add(achievements[a].role).catch(error => console.log(error))
                             }
                         }
