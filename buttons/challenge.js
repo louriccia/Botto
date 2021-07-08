@@ -526,8 +526,7 @@ module.exports = {
 
 
                 //calculate winnings
-                var earnings = ""
-                var earnings_total = 0
+                var earnings = "", earnings_total = 0, hunt_bonus = 0
                 if (title == ":white_check_mark: Completed: ") {
                     var winnings_text = null
                     for (var i = 4; i > -1; i--) {
@@ -790,12 +789,7 @@ module.exports = {
                                 await client.api.webhooks(client.user.id, token).messages('@original').patch({ data: { content: "", embeds: [updateChallenge()] } })
                             } catch (error) {console.log(error) }
                         }
-                    }, 900000)
-                    setTimeout(async function () { //remove components
-                        try {
-                            await client.api.webhooks(client.user.id, token).messages('@original').patch({ data: { embeds: [updateChallenge()], components: [] } })
-                        } catch { }
-                    }, 1200000)
+                    }, 895000)
                     //collect times
                     const collector = new Discord.MessageCollector(client.channels.cache.get(interaction.channel_id), m => m, { time: 900000 }); //messages
                     collector.on('collect', message => {
