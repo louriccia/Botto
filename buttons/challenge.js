@@ -220,7 +220,7 @@ module.exports = {
             const Member = Guild.members.cache.get(member)
 
             function updateChallenge() {
-                var best = [], played = false, record_holder = false
+                var best = [], played = false, record_holder = false, components = []
                 //get best runs/achievement progress
                 var keys = Object.keys(challengedata)
                 for (var i = 0; i < keys.length; i++) {
@@ -337,6 +337,29 @@ module.exports = {
                 if (record_holder) {
                     reroll.price = 0
                     reroll.selection = "free"
+                }
+                var current_truguts = profiledata[member].truguts_earned - profiledata[member].truguts_spent
+                if (current_truguts >= reroll.price) {
+                    components.push({
+                        type: 2,
+                        style: 2,
+                        custom_id: "challenge_random_reroll",
+                        label: "Reroll",
+                        emoji: {
+                            name: "🎲"
+                        }
+                    })
+                }
+                if (current_truguts >= truguts.bribe_track || current_truguts >= truguts.bribe_racer) {
+                    components.push({
+                        type: 2,
+                        style: 2,
+                        custom_id: "challenge_random_bribe",
+                        label: "Bribe",
+                        emoji: {
+                            name: "💰"
+                        }
+                    })
                 }
 
                 //calculate goal time
@@ -504,7 +527,7 @@ module.exports = {
                 for (var i = 0; i < achvs.length; i++) {
                     var a = achvs[i]
                     if (Object.keys(achievements[a].collection).length >= achievements[a].limit) { //if player has met condition for achievement
-                        if(interaction.guild_id == "441839750555369474"){
+                        if (interaction.guild_id == "441839750555369474") {
                             if (!Member.roles.cache.some(r => r.id === achievements[a].role)) { //award role
                                 Member.roles.add(achievements[a].role).catch(error => console.log(error))
                             }
@@ -642,7 +665,11 @@ module.exports = {
                         newEmbed.setDescription(rerollChallenge(best))
                     }
                 }
-                return newEmbed
+                var data = {
+                    message: newEmbed,
+                    components: components
+                }
+                return data
             }
 
             if (args[1] == "play") {
@@ -760,7 +787,16 @@ module.exports = {
                 }
                 async function sendResponse() {
                     var response = null
-                    response = await client.api.webhooks(client.user.id, token).messages('@original').patch({ data: { embeds: [updateChallenge()] } })
+                    var data = updateChallenge()
+                    response = await client.api.webhooks(client.user.id, token).messages('@original').patch({ data: { 
+                        embeds: [data.message], 
+                        componenets: [
+                            {
+                                type: 1,
+                                components: data.components
+                            }
+                        ] 
+                    } })
                     return response
                 }
                 sendResponse().then(() => {
@@ -771,7 +807,16 @@ module.exports = {
                         if (!profiledata[member].current.completed) {
                             profileref.child(member).child("current").child("title").set(":warning: 5 Minute Warning: ")
                             try {
-                                await client.api.webhooks(client.user.id, token).messages('@original').patch({ data: { content: warning, embeds: [updateChallenge()] } })
+                                var data = updateChallenge()
+                                await client.api.webhooks(client.user.id, token).messages('@original').patch({ data: { 
+                                    embeds: [data.message], 
+                                    componenets: [
+                                        {
+                                            type: 1,
+                                            components: data.components
+                                        }
+                                    ] 
+                                } })
                             } catch { }
                         }
                     }, 600000)
@@ -779,16 +824,52 @@ module.exports = {
                         if (!profiledata[member].current.completed) {
                             profileref.child(member).child("current").child("title").set("<a:countdown:672640791369482251> 1 Minute Warning: ")
                             try {
-                                await client.api.webhooks(client.user.id, token).messages('@original').patch({ data: { content: warning, embeds: [updateChallenge()] } })
+                                var data = updateChallenge()
+                                await client.api.webhooks(client.user.id, token).messages('@original').patch({ data: { 
+                                    content: warning,
+                                    embeds: [data.message], 
+                                    componenets: [
+                                        {
+                                            type: 1,
+                                            components: data.components
+                                        }
+                                    ] 
+                                } })
                             } catch { }
                         }
                     }, 840000)
                     setTimeout(async function () { //close challenge and remove components
                         if (!profiledata[member].current.completed) {
                             profileref.child(member).child("current").update({ completed: true, title: ":negative_squared_cross_mark: Closed: " })
+                            var data = updateChallenge()
                             try {
-                                await client.api.webhooks(client.user.id, token).messages('@original').patch({ data: { content: "", embeds: [updateChallenge()] } })
-                            } catch (error) {console.log(error) }
+                                await client.api.webhooks(client.user.id, token).messages('@original').patch({ data: { 
+                                    content: "",
+                                    embeds: [data.message], 
+                                    componenets: [
+                                        {
+                                            type: 1,
+                                            components: [
+                                                {
+                                                    type: 2,
+                                                    style: 1,
+                                                    custom_id: "challenge_random_play",
+                                                    label: "New Challenge",
+                                                    emoji: {
+                                                        name: "🎲"
+                                                    }
+                                                },
+                                                {
+                                                    type: 2,
+                                                    style: 2,
+                                                    custom_id: "challenge_random_menu",
+                                                    label: "menu"
+                                                }
+                                            ]
+                                        }
+                                    ] 
+                                } })
+                            } catch (error) { console.log(error) }
                         }
                     }, 895000)
                     //collect times
@@ -809,10 +890,34 @@ module.exports = {
                                         }
                                     } else {
                                         //log time
+                                        var submissiondata = {
+                                            user: message.author.id,
+                                            name: message.author.username,
+                                            time: time,
+                                            date: challengestart,
+                                            racer: profiledata[member].current.racer,
+                                            track: profiledata[member].current.track,
+                                            laps: profiledata[member].current.laps,
+                                            nu: profiledata[member].current.nu,
+                                            skips: profiledata[member].current.skips,
+                                            mirror: profiledata[member].current.mirror,
+                                            settings: {
+                                                winnings: profiledata[member].winnings,
+                                                no_upgrades: profiledata[member].no_upgrades,
+                                                non_3_lap: profiledata[member].non_3_lap,
+                                                skips: profiledata[member].skips,
+                                                mirror_mode: profiledata[member].mirror_mode
+                                            },
+                                            hunt: profiledata[member].current.hunt_bonus
+                                        }
+                                        var newPostRef = ref.push(submissiondata);
+                                        profileref.child(member).child("current").update({ submission: newPostRef.key, title: ":white_check_mark: Completed: ", completed: true })
+                                        var data = updateChallenge()
                                         try {
+                                            var data = updateChallenge()
                                             client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({
                                                 data: {
-                                                    embeds: [updateChallenge()],
+                                                    embeds: [data.message],
                                                     components: [
                                                         {
                                                             type: 1,
@@ -860,30 +965,7 @@ module.exports = {
                                                     ]
                                                 }
                                             })
-                                        } catch { }
-                                        var submissiondata = {
-                                            user: message.author.id,
-                                            name: message.author.username,
-                                            time: time,
-                                            date: challengestart,
-                                            racer: profiledata[member].current.racer,
-                                            track: profiledata[member].current.track,
-                                            laps: profiledata[member].current.laps,
-                                            nu: profiledata[member].current.nu,
-                                            skips: profiledata[member].current.skips,
-                                            mirror: profiledata[member].current.mirror,
-                                            settings: {
-                                                winnings: profiledata[member].winnings,
-                                                no_upgrades: profiledata[member].no_upgrades,
-                                                non_3_lap: profiledata[member].non_3_lap,
-                                                skips: profiledata[member].skips,
-                                                mirror_mode: profiledata[member].mirror_mode
-                                            },
-                                            hunt: profiledata[member].current.hunt_bonus
-                                        }
-                                        var newPostRef = ref.push(submissiondata);
-                                        profileref.child(member).child("current").update({ submission: newPostRef.key, title: ":white_check_mark: Completed: ", completed: true })
-                                        client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({ data: { embeds: [updateChallenge()], components: [] } })
+                                        } catch {}
                                         if (message.guild) {
                                             try {
                                                 message.delete() //delete time message
