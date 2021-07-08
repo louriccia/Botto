@@ -340,11 +340,17 @@ module.exports = {
                 }
                 var current_truguts = profiledata[member].truguts_earned - profiledata[member].truguts_spent
                 if (current_truguts >= reroll.price) {
+                    var price = reroll.price
+                    if (price = 0){
+                        price = "free"
+                    } else {
+                        price = "📀" + price
+                    }
                     components.push({
                         type: 2,
                         style: 2,
                         custom_id: "challenge_random_reroll",
-                        label: "Reroll",
+                        label: "Reroll [" + price +"]",
                         emoji: {
                             name: "🎲"
                         }
