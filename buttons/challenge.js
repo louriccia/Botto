@@ -291,7 +291,7 @@ module.exports = {
                 }
                 var flag = racers[profiledata[member].current.racer].flag
                 var eTitle = "Race as **" + bribed_racer + flag + " " + racers[profiledata[member].current.racer].name + bribed_racer + "**" + nutext + " on **" + bribed_track + planets[tracks[profiledata[member].current.track].planet].emoji + " " + tracks[profiledata[member].current.track].name + bribed_track + "**" + laptext + skipstext + mirrortext
-                var eAuthor = [interaction.member.user.username + "'s Challenge", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL()]
+                var eAuthor = [interaction.member.user.username + "'s Random Challenge", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL()]
 
                 //build description
                 if (Math.random() < 0.50 && best.length > 0) {
@@ -668,7 +668,15 @@ module.exports = {
                 } else {
                     newEmbed.setTitle(title + hunt_text + "~~" + eTitle + "~~")
                     if (title == ":arrows_counterclockwise: Rerolled: ") {
-                        newEmbed.setDescription(rerollChallenge(best))
+                        var reroll_description = ""
+                        if (reroll == truguts.reroll_discount) {
+                            reroll_description = "`-📀" + truguts.reroll_discount + "` (discounted)\nCurrent balance: `📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`"
+                        } else if (reroll == 0) {
+                            reroll_description = "(no charge for record holders)"
+                        } else {
+                            reroll_description = "`-📀" + truguts.reroll + "`\nCurrent balance: `📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`"
+                        }
+                        newEmbed.setDescription(reroll_description)
                     }
                 }
                 var data = {
@@ -759,8 +767,6 @@ module.exports = {
                     }
                 }
 
-
-
                 //set current challenge
                 var current = {
                     start: challengestart,
@@ -786,8 +792,6 @@ module.exports = {
                 }
                 profileref.child(member).child("current").set(current)
 
-
-                //reroll button should only show for single-player challenges or maybe it should just be free for multiplayer
                 var token = interaction.token
                 if (interaction.name == "revive") {
                     token = profiledata[member].current.token
@@ -1008,29 +1012,17 @@ module.exports = {
                 }
 
                 //edit previous challenge embed
-                if (reroll == truguts.reroll_discount) {
-                    reroll_description = "`-📀" + truguts.reroll_discount + "` (discounted)\nCurrent balance: `📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`"
-                } else if (reroll == 0) {
-                    reroll_description = "(no charge for record holders)"
-                } else {
-                    reroll_description = "`-📀" + truguts.reroll + "`\nCurrent balance: `📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`"
-                }
+                
 
                 //forward interaction to new challenge
 
                 if (rerollChallenge()) {
-                    collected = true
-                    collecting = false
-                    title = ":arrows_counterclockwise: Rerolled: "
-                    eTitle = "~~" + eTitle + "~~"
-                    profileref.child(member).child("current").update({ completed: true, rerolled: true })
-                    try {
 
-                        sentMessage.reactions.removeAll().catch()
-                        sentMessage.edit("", updateChallenge()).then(sentMessage.delete({ timeout: 10000, reason: 'bot cleanup' }))
+                    profileref.child(member).child("current").update({ completed: true, rerolled: true, title: ":arrows_counterclockwise: Rerolled: "})
+                    try {
+                        client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({embeds: [updateChallenge()], flags: 64, components: []})
                     } catch { }
-                    args[0].options = undefined
-                    client.commands.get("challenge").execute(client, fakeinteraction, args);
+                    client.buttons.get("challenge").execute(client, interaction, ["random", "play"]);
                 } else {
                     var noMoney = new Discord.MessageEmbed()
                     noMoney
@@ -1155,6 +1147,7 @@ module.exports = {
                 const myEmbed = new Discord.MessageEmbed()
                     .setAuthor("Random Challenge", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/game-die_1f3b2.png")
                     .setTitle("<:menu:862620287735955487> Menu")
+                    .setColor("#ED4245")
                     .setDescription("This is the Random Challenge menu. From here, you can access all options related to random challenges. Press the **Play** button to get rollin'.")
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {

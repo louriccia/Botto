@@ -51,7 +51,7 @@ module.exports = {
         const myEmbed = new Discord.MessageEmbed()
         if(args[0].name =="racer") {
             var input = args[0].options[0].value.toLowerCase()
-            client.selects.get("lookup").execute(client, interaction, ["racer", input, "initial"]);
+            client.buttons.get("lookup").execute(client, interaction, ["racer", input, "initial"]);
         } else if(args[0].name=="track") {
             var input = args[0].options[0].value.toLowerCase()
             var numb = getTrack(input)
