@@ -270,9 +270,9 @@ module.exports = {
                 }
                 if (profiledata[member].current.laps !== 3) {
                     if (laps == 1) {
-                        laptext = " for **" + laps + " lap**"
+                        laptext = " for **" + laps + " Lap**"
                     } else {
-                        laptext = " for **" + laps + " lap(s)**"
+                        laptext = " for **" + laps + " Laps**"
                     }
 
                 }
@@ -1026,10 +1026,11 @@ module.exports = {
                         profileref.child(member).child("purchases").push(purchase)
                         profileref.child(member).update({ truguts_spent: profiledata[member].truguts_spent + profiledata[member].current.reroll_cost })
                     }
-
+                    
                     profileref.child(member).child("current").update({ completed: true, rerolled: true, title: ":arrows_counterclockwise: Rerolled: " })
                     try {
                         var data = updateChallenge()
+                        client.api.webhooks(client.user.id, profiledata[member].current.token).messages('@original').delete()
                         client.api.webhooks(client.user.id, profiledata[member].current.token).post({
                             data: {
                                 embeds: [data.message],
