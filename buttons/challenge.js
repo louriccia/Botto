@@ -1029,8 +1029,14 @@ module.exports = {
                     profileref.child(member).child("current").update({ completed: true, rerolled: true, title: ":arrows_counterclockwise: Rerolled: " })
                     try {
                         var data = updateChallenge()
-                        client.api.webhooks(client.user.id, profiledata[member].current.token).messages('@original').patch({ embeds: [data.message], flags: 64, components: [] })
-                    } catch (error) {console.log(error) }
+                        client.api.webhooks(client.user.id, profiledata[member].current.token).messages('@original').patch({
+                            data: {
+                                embeds: [data.message],
+                                flags: 64,
+                                components: []
+                            }
+                        })
+                    } catch (error) { console.log(error) }
                     client.buttons.get("challenge").execute(client, interaction, ["random", "play"]);
                 } else {
                     var noMoney = new Discord.MessageEmbed()
