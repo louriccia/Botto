@@ -821,12 +821,13 @@ module.exports = {
                     var warning = ""
                     warning = "<@" + member + ">"
                     setTimeout(async function () { //5 minute warning
-                        if (!profiledata[member].current.completed) {
+                        if (!profiledata[member].current.completed && interaction.token == profiledata[member].current.token) {
                             profileref.child(member).child("current").child("title").set(":warning: 5 Minute Warning: ")
                             try {
                                 var data = updateChallenge()
                                 await client.api.webhooks(client.user.id, token).messages('@original').patch({
                                     data: {
+                                        content: warning,
                                         embeds: [data.message],
                                         components: [
                                             {
@@ -840,7 +841,7 @@ module.exports = {
                         }
                     }, 600000)
                     setTimeout(async function () { //1 minute warning
-                        if (!profiledata[member].current.completed) {
+                        if (!profiledata[member].current.completed && interaction.token == profiledata[member].current.token) {
                             profileref.child(member).child("current").child("title").set("<a:countdown:672640791369482251> 1 Minute Warning: ")
                             try {
                                 var data = updateChallenge()
@@ -860,7 +861,7 @@ module.exports = {
                         }
                     }, 840000)
                     setTimeout(async function () { //close challenge and remove components
-                        if (!profiledata[member].current.completed) {
+                        if (!profiledata[member].current.completed && interaction.token == profiledata[member].current.token) {
                             profileref.child(member).child("current").update({ completed: true, title: ":negative_squared_cross_mark: Closed: " })
                             var data = updateChallenge()
                             try {
@@ -1029,7 +1030,7 @@ module.exports = {
                     profileref.child(member).child("current").update({ completed: true, rerolled: true, title: ":arrows_counterclockwise: Rerolled: " })
                     try {
                         var data = updateChallenge()
-                        client.api.webhooks(client.user.id, profiledata[member].current.token).messages('@original').patch({
+                        client.api.webhooks(client.user.id, profiledata[member].current.token).post({
                             data: {
                                 embeds: [data.message],
                                 flags: 64,
