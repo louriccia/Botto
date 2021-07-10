@@ -1023,7 +1023,7 @@ module.exports = {
                             selection: selection
                         }
                         profileref.child(member).child("purchases").push(purchase)
-                        profileref.child(member).update({ truguts_spent: profiledata[member].truguts_spent + reroll })
+                        profileref.child(member).update({ truguts_spent: profiledata[member].truguts_spent + profiledata[member].current.reroll_cost })
                     }
 
                     profileref.child(member).child("current").update({ completed: true, rerolled: true, title: ":arrows_counterclockwise: Rerolled: " })
