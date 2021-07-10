@@ -1026,11 +1026,11 @@ module.exports = {
                         }
                         profileref.child(member).child("purchases").push(purchase)
                         profileref.child(member).update({ truguts_spent: profiledata[member].truguts_spent + profiledata[member].current.reroll_cost })
-                    }  
+                    }
                     profileref.child(member).child("current").update({ completed: true, rerolled: true, title: ":arrows_counterclockwise: Rerolled: " })
                     try {
                         var data = updateChallenge()
-                        async function followUp(){
+                        async function followUp() {
                             const fu = await client.api.webhooks(client.user.id, profiledata[member].current.token).post({
                                 data: {
                                     embeds: [data.message],
@@ -1040,7 +1040,7 @@ module.exports = {
                             })
                             return fu
                         }
-                        client.api.webhooks(client.user.id, profiledata[member].current.token).messages('@original').delete().then(followUp().then((thing)  => {client.buttons.get("challenge").execute(client, interaction, ["random", "play"])}))
+                        client.api.webhooks(client.user.id, profiledata[member].current.token).messages('@original').delete().then(followUp().then((thing) => { client.buttons.get("challenge").execute(client, interaction, ["random", "play"]) }))
                     } catch (error) { console.log(error) }
                 } else {
                     var noMoney = new Discord.MessageEmbed()
@@ -1059,65 +1059,121 @@ module.exports = {
                     })
                 }
             } else if (args[1] == "bribe") {
-                //bribes
-                var racer_bribe = false, track_bribe = false
-                var bribes = 0
-                if (args !== undefined) {
-                    if (args[0].options !== undefined) {
-                        for (var i = 0; i < args[0].options.length; i++) {
-                            if (args[0].options[i].name == "bribe_track") {
-                                bribes += truguts.bribe_track
-                                random_track = Number(args[0].options[i].value)
-                                track_bribe = true
-
-                            }
-                            if (args[0].options[i].name == "bribe_racer") {
-                                bribes += truguts.bribe_racer
-                                random_racer = Number(args[0].options[i].value)
-                                racer_bribe = true
-                            }
-                        }
+                if (interaction.data.hasOwnProperty("values")) {
+                    var purchase = {
+                        date: Date.now(),
                     }
-                }
-
-                //can't afford bribe
-                if (profiledata[member].truguts_earned - profiledata[member].truguts_spent < bribes && !hunt) {
-                    var noMoney = new Discord.MessageEmbed()
-                    noMoney
-                        .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
-                        .setDescription("*'No money, no challenge, no bribe!'*\nYou do not have enough truguts to make this bribe.\n\nCurrent balance: `" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`\nBribe cost: `" + tools.numberWithCommas(bribes) + "`")
-                    client.api.interactions(interaction.id, interaction.token).callback.post({
-                        data: {
-                            type: 4,
+                    var bribe_cost = 0
+                    var selection = Number(interaction.data.values[0])
+                    if(args[2] == "track"){
+                        bribe_cost = truguts.bribe_track
+                        purchase.purchased_item = "track bribe"
+                    } else if(args[2] == "racer"){
+                        bribe_cost = truguts.bribe_racer
+                        purchase.purchased_item = "racer bribe"
+                    }
+                    purchase.selection = selection
+                    if (profiledata[member].truguts_earned - profiledata[member].truguts_spent < bribe_cost) {
+                        //player doesn't have enough money
+                        var noMoney = new Discord.MessageEmbed()
+                        noMoney
+                            .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
+                            .setDescription("*'No money, no bribe!'*\nYou do not have enough truguts to make this bribe.\n\nCurrent balance: `" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`\nBribe cost: `" + tools.numberWithCommas(bribe_cost) + "`")
+                        client.api.interactions(interaction.id, interaction.token).callback.post({
                             data: {
-                                //content: "\u200B"
-                                embeds: [noMoney],
-                                flags: 64
+                                type: 4,
+                                data: {
+                                    embeds: [noMoney],
+                                    flags: 64
+                                }
                             }
+                        })
+                        return
+                    } else {
+                        //process purchase
+                        if(args[2] == "track"){
+                            profileref.child(member).child("current").update({track_bribe: true, track: selection})
+                        } else if(args[2] == "track"){
+                            profileref.child(member).child("current").update({racer_bribe: true, racer: selection})
                         }
-                    })
-                    return
-                }
+                        profileref.child(member).child("purchases").push(purchase)
+                        profileref.child(member).update({ truguts_spent: profiledata[member].truguts_spent + bribe_cost })
 
-                //process bribe purchase
-                if (track_bribe && !hunt) {
-                    var purchase = {
-                        date: Date.now(),
-                        purchased_item: "track bribe",
-                        selection: Number(args[0].options[i].value)
                     }
-                    profileref.child(member).child("purchases").push(purchase)
-                    profileref.child(member).update({ truguts_spent: profiledata[member].truguts_spent + truguts.bribe_track })
                 }
-                if (racer_bribe && !hunt) {
-                    var purchase = {
-                        date: Date.now(),
-                        purchased_item: "racer bribe",
-                        selection: Number(args[0].options[i].value)
+                //populate options
+                var track_selections = []
+                var racer_selections = []
+                for (var i = 0; i < 25; i++) {
+                    var racer_option = {
+                        label: racers[i].name,
+                        value: i,
+                        description: racers[i].pod.substring(0, 50),
+                        emoji: {
+                            name: racers[i].flag.split(":")[1],
+                            id: racers[i].flag.split(":")[2].replace(">", "")
+                        }
                     }
-                    profileref.child(member).child("purchases").push(purchase)
-                    profileref.child(member).update({ truguts_spent: profiledata[member].truguts_spent + truguts.bribe_racer })
+                    var track_option = {
+                        label: tracks[i].name,
+                        value: i,
+                        description: circuits[tracks[i].circuit].name + " Circuit | Race " + tracks[i].cirnum + " | " + planets[tracks[i].planet].name,
+                        emoji: {
+                            name: planets[tracks[i].planet].emoji.split(":")[1],
+                            id: planets[tracks[i].planet].emoji.split(":")[2].replace(">", "")
+                        }
+                    }
+                    if (i < 23) {
+                        racer_selections.push(racer_option)
+                    }
+                    track_selections.push(track_option)
                 }
+                var components = []
+                if (profiledata[member].current.track_bribe == false) {
+                    components.push(
+                        {
+                            type: 1,
+                            components: [
+                                {
+                                    type: 3,
+                                    custom_id: "challenge_random_bribe_track",
+                                    options: track_selections,
+                                    placeholder: "Bribe Track (📀" + tools.numberWithCommas(truguts.bribe_track) + ")",
+                                    min_values: 1,
+                                    max_values: 1
+                                },
+                            ]
+                        }
+                    )
+                }
+                if (profiledata[member].current.racer_bribe == false) {
+                    components.push(
+                        {
+                            type: 1,
+                            components: [
+                                {
+                                    type: 3,
+                                    custom_id: "challenge_random_bribe_racer",
+                                    options: racer_selections,
+                                    placeholder: "Bribe Racer (📀" + tools.numberWithCommas(truguts.bribe_racer) + ")",
+                                    min_values: 1,
+                                    max_values: 1
+                                }
+                            ]
+                        }
+                    )
+                }
+                var data = updateChallenge()
+                client.api.interactions(interaction.id, interaction.token).callback.post({
+                    data: {
+                        type: 7,
+                        data: {
+                            embeds: [data.message],
+                            components: components
+                        }
+                    }
+                })
+
             } else if (args[1] == "undo") {
                 for (let i = 0; i < collection.length; i++) {
                     if (collection[i].user == user.id) {
