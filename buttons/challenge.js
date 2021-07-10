@@ -1040,7 +1040,7 @@ module.exports = {
                             })
                             return fu
                         }
-                        client.api.webhooks(client.user.id, profiledata[member].current.token).messages('@original').delete().then(followUp().then(client.buttons.get("challenge").execute(client, interaction, ["random", "play"])))
+                        client.api.webhooks(client.user.id, profiledata[member].current.token).messages('@original').delete().then(followUp().then((thing)  => {client.buttons.get("challenge").execute(client, interaction, ["random", "play"])}))
                     } catch (error) { console.log(error) }
                 } else {
                     var noMoney = new Discord.MessageEmbed()
