@@ -269,6 +269,7 @@ module.exports = {
                     skipstext = " with **SKIPS**"
                 }
                 if (profiledata[member].current.laps !== 3) {
+                    var laps = profiledata[member].current.laps
                     if (laps == 1) {
                         laptext = " for **" + laps + " Lap**"
                     } else {
@@ -1030,16 +1031,17 @@ module.exports = {
                     profileref.child(member).child("current").update({ completed: true, rerolled: true, title: ":arrows_counterclockwise: Rerolled: " })
                     try {
                         var data = updateChallenge()
-                        client.api.webhooks(client.user.id, profiledata[member].current.token).messages('@original').delete()
-                        client.api.webhooks(client.user.id, profiledata[member].current.token).post({
+                        client.api.webhooks(client.user.id, profiledata[member].current.token).messages('@original').delete().then(
+                            client.api.webhooks(client.user.id, profiledata[member].current.token).post({
                             data: {
                                 embeds: [data.message],
                                 flags: 64,
                                 components: []
                             }
-                        })
+                        }).then(client.buttons.get("challenge").execute(client, interaction, ["random", "play"])))
+                        
                     } catch (error) { console.log(error) }
-                    client.buttons.get("challenge").execute(client, interaction, ["random", "play"]);
+                    
                 } else {
                     var noMoney = new Discord.MessageEmbed()
                     noMoney
