@@ -339,9 +339,12 @@ module.exports = {
                     reroll.selection = "free"
                 }
                 var current_truguts = profiledata[member].truguts_earned - profiledata[member].truguts_spent
+                if (title !== ":arrows_counterclockwise: Rerolled: ") {
+                    profileref.child(member).child("current").child("reroll_cost").set(reroll.price)
+                }
                 if (current_truguts >= reroll.price) {
                     var price = reroll.price
-                    if (price == 0){
+                    if (price == 0) {
                         price = "free"
                     } else {
                         price = "📀" + tools.numberWithCommas(price)
@@ -350,7 +353,7 @@ module.exports = {
                         type: 2,
                         style: 2,
                         custom_id: "challenge_random_reroll",
-                        label: "Reroll (" + price +")",
+                        label: "Reroll (" + price + ")",
                         emoji: {
                             name: "🎲"
                         }
@@ -668,10 +671,11 @@ module.exports = {
                 } else {
                     newEmbed.setTitle(title + hunt_text + "~~" + eTitle + "~~")
                     if (title == ":arrows_counterclockwise: Rerolled: ") {
+                        var reroll_cost = profiledata[member].current.reroll_cost
                         var reroll_description = ""
-                        if (reroll == truguts.reroll_discount) {
+                        if (reroll_cost == truguts.reroll_discount) {
                             reroll_description = "`-📀" + truguts.reroll_discount + "` (discounted)\nCurrent balance: `📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`"
-                        } else if (reroll == 0) {
+                        } else if (reroll_cost == 0) {
                             reroll_description = "(no charge for record holders)"
                         } else {
                             reroll_description = "`-📀" + truguts.reroll + "`\nCurrent balance: `📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`"
@@ -799,15 +803,17 @@ module.exports = {
                 async function sendResponse() {
                     var response = null
                     var data = updateChallenge()
-                    response = await client.api.webhooks(client.user.id, token).messages('@original').patch({ data: { 
-                        embeds: [data.message], 
-                        components: [
-                            {
-                                type: 1,
-                                components: data.components
-                            }
-                        ] 
-                    } })
+                    response = await client.api.webhooks(client.user.id, token).messages('@original').patch({
+                        data: {
+                            embeds: [data.message],
+                            components: [
+                                {
+                                    type: 1,
+                                    components: data.components
+                                }
+                            ]
+                        }
+                    })
                     return response
                 }
                 sendResponse().then(() => {
@@ -819,15 +825,17 @@ module.exports = {
                             profileref.child(member).child("current").child("title").set(":warning: 5 Minute Warning: ")
                             try {
                                 var data = updateChallenge()
-                                await client.api.webhooks(client.user.id, token).messages('@original').patch({ data: { 
-                                    embeds: [data.message], 
-                                    components: [
-                                        {
-                                            type: 1,
-                                            components: data.components
-                                        }
-                                    ] 
-                                } })
+                                await client.api.webhooks(client.user.id, token).messages('@original').patch({
+                                    data: {
+                                        embeds: [data.message],
+                                        components: [
+                                            {
+                                                type: 1,
+                                                components: data.components
+                                            }
+                                        ]
+                                    }
+                                })
                             } catch { }
                         }
                     }, 600000)
@@ -836,16 +844,18 @@ module.exports = {
                             profileref.child(member).child("current").child("title").set("<a:countdown:672640791369482251> 1 Minute Warning: ")
                             try {
                                 var data = updateChallenge()
-                                await client.api.webhooks(client.user.id, token).messages('@original').patch({ data: { 
-                                    content: warning,
-                                    embeds: [data.message], 
-                                    components: [
-                                        {
-                                            type: 1,
-                                            components: data.components
-                                        }
-                                    ] 
-                                } })
+                                await client.api.webhooks(client.user.id, token).messages('@original').patch({
+                                    data: {
+                                        content: warning,
+                                        embeds: [data.message],
+                                        components: [
+                                            {
+                                                type: 1,
+                                                components: data.components
+                                            }
+                                        ]
+                                    }
+                                })
                             } catch { }
                         }
                     }, 840000)
@@ -854,35 +864,37 @@ module.exports = {
                             profileref.child(member).child("current").update({ completed: true, title: ":negative_squared_cross_mark: Closed: " })
                             var data = updateChallenge()
                             try {
-                                await client.api.webhooks(client.user.id, token).messages('@original').patch({ data: { 
-                                    content: "",
-                                    embeds: [data.message], 
-                                    components: [
-                                        {
-                                            type: 1,
-                                            components: [
-                                                {
-                                                    type: 2,
-                                                    style: 4,
-                                                    custom_id: "challenge_random_play",
-                                                    label: "New Challenge",
-                                                    emoji: {
-                                                        name: "🎲"
+                                await client.api.webhooks(client.user.id, token).messages('@original').patch({
+                                    data: {
+                                        content: "",
+                                        embeds: [data.message],
+                                        components: [
+                                            {
+                                                type: 1,
+                                                components: [
+                                                    {
+                                                        type: 2,
+                                                        style: 4,
+                                                        custom_id: "challenge_random_play",
+                                                        label: "New Challenge",
+                                                        emoji: {
+                                                            name: "🎲"
+                                                        }
+                                                    },
+                                                    {
+                                                        type: 2,
+                                                        style: 2,
+                                                        custom_id: "challenge_random_menu",
+                                                        emoji: {
+                                                            name: "menu",
+                                                            id: "862620287735955487"
+                                                        }
                                                     }
-                                                },
-                                                {
-                                                    type: 2,
-                                                    style: 2,
-                                                    custom_id: "challenge_random_menu",
-                                                    emoji: {
-                                                        name: "menu",
-                                                        id: "862620287735955487"
-                                                    }
-                                                }
-                                            ]
-                                        }
-                                    ] 
-                                } })
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                })
                             } catch (error) { console.log(error) }
                         }
                     }, 895000)
@@ -982,7 +994,7 @@ module.exports = {
                                                     ]
                                                 }
                                             })
-                                        } catch {}
+                                        } catch { }
                                         if (message.guild) {
                                             try {
                                                 message.delete() //delete time message
@@ -996,31 +1008,27 @@ module.exports = {
                     })
                 })
             } else if (args[1] == "reroll") {
-
-
-
-
-                //process purchase
-                if (reroll > 0) {
-                    var purchase = {
-                        date: Date.now(),
-                        purchased_item: "reroll",
-                        selection: selection
+                if (profiledata[member].truguts_earned - profiledata[member].truguts_spent >= profiledata[member].current.reroll_cost) {
+                    //process purchase
+                    if (profiledata[member].current.reroll_cost > 0) {
+                        var selection = ""
+                        if (profiledata[member].current.reroll_cost == truguts.reroll) {
+                            selection = "full price"
+                        } else {
+                            selection = "discount"
+                        }
+                        var purchase = {
+                            date: Date.now(),
+                            purchased_item: "reroll",
+                            selection: selection
+                        }
+                        profileref.child(member).child("purchases").push(purchase)
+                        profileref.child(member).update({ truguts_spent: profiledata[member].truguts_spent + reroll })
                     }
-                    profileref.child(member).child("purchases").push(purchase)
-                    profileref.child(member).update({ truguts_spent: profiledata[member].truguts_spent + reroll })
-                }
 
-                //edit previous challenge embed
-                
-
-                //forward interaction to new challenge
-
-                if (rerollChallenge()) {
-
-                    profileref.child(member).child("current").update({ completed: true, rerolled: true, title: ":arrows_counterclockwise: Rerolled: "})
+                    profileref.child(member).child("current").update({ completed: true, rerolled: true, title: ":arrows_counterclockwise: Rerolled: " })
                     try {
-                        client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({embeds: [updateChallenge()], flags: 64, components: []})
+                        client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({ embeds: [updateChallenge()], flags: 64, components: [] })
                     } catch { }
                     client.buttons.get("challenge").execute(client, interaction, ["random", "play"]);
                 } else {
@@ -1028,7 +1036,16 @@ module.exports = {
                     noMoney
                         .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
                         .setDescription("*'No money, no challenge, no reroll!'*\nYou do not have enough truguts to reroll this challenge.\n\nCurrent balance: `📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`\nReroll cost: `📀" + tools.numberWithCommas(truguts.reroll) + "`")
-                    sentMessage.channel.send(noMoney)
+                    client.api.interactions(interaction.id, interaction.token).callback.post({
+                        data: {
+                            type: 4,
+                            data: {
+                                //content: "",
+                                embeds: [noMoney],
+                                flags: 64
+                            }
+                        }
+                    })
                 }
             } else if (args[1] == "bribe") {
                 //bribes
