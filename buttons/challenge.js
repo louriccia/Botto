@@ -1093,7 +1093,7 @@ module.exports = {
                         //process purchase
                         if(args[2] == "track"){
                             profileref.child(member).child("current").update({track_bribe: true, track: selection})
-                        } else if(args[2] == "track"){
+                        } else if(args[2] == "racer"){
                             profileref.child(member).child("current").update({racer_bribe: true, racer: selection})
                         }
                         profileref.child(member).child("purchases").push(purchase)
