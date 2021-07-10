@@ -290,8 +290,15 @@ module.exports = {
                 if (profiledata[member].current.hunt) {
                     hunt_text = ":dart: Challenge Hunt: "
                 }
-                var flag = racers[profiledata[member].current.racer].flag
-                var eTitle = "Race as **" + bribed_racer + flag + " " + racers[profiledata[member].current.racer].name + bribed_racer + "**" + nutext + " on **" + bribed_track + planets[tracks[profiledata[member].current.track].planet].emoji + " " + tracks[profiledata[member].current.track].name + bribed_track + "**" + laptext + skipstext + mirrortext
+                var racer_flag = racers[profiledata[member].current.racer].flag
+                var track_flag = planets[tracks[profiledata[member].current.track].planet].emoji
+                if(profiledata[member].current.racer_bribe){
+                    racer_flag = ":moneybag:"
+                }
+                if(profiledata[member].current.track_bribe){
+                    track_flag = ":moneybag:"
+                }
+                var eTitle = "Race as **" + bribed_racer + racer_flag + " " + racers[profiledata[member].current.racer].name + bribed_racer + "**" + nutext + " on **" + bribed_track + track_flag + " " + tracks[profiledata[member].current.track].name + bribed_track + "**" + laptext + skipstext + mirrortext
                 var eAuthor = [interaction.member.user.username + "'s Random Challenge", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL()]
 
                 //build description
@@ -313,7 +320,7 @@ module.exports = {
                         desc = desc + str.replace("replaceme", memarray[Math.floor(Math.random() * memarray.length)])
                     }
                 } else {
-                    desc = desc + movieQuotes[random_quote]
+                    desc = desc + movieQuotes[Math.floor(Math.random() * movieQuotes.length)]
                 }
                 if (profiledata[member].current.hunt) {
                     desc += "\nYou found the Challenge Hunt! Complete the challenge to earn a `📀" + tools.numberWithCommas(profiledata[member].hunt.bonus) + "` bonus"
@@ -720,7 +727,6 @@ module.exports = {
                 //get values
                 var random_racer = Math.floor(Math.random() * 23)
                 var random_track = Math.floor(Math.random() * 25)
-                var random_quote = Math.floor(Math.random() * movieQuotes.length)
                 var laps = 3, alt_laps = [1, 2, 4, 5]
                 var mirror = false, nu = false, skips = false, hunt = false
 
