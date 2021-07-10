@@ -302,7 +302,7 @@ module.exports = {
                 var eAuthor = [interaction.member.user.username + "'s Random Challenge", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL()]
 
                 //build description
-                if (Math.random() < 0.50 && best.length > 0) {
+                if (Math.random() < 0.20 && best.length > 0) {
                     desc = desc + "*The current record-holder for this challenge is... " + best[0].name + "!*"
                 } else if (Math.random() < 0.50) {
                     var str = playerPicks[Math.floor(Math.random() * playerPicks.length)]
@@ -639,7 +639,7 @@ module.exports = {
                         profileref.child(member).update({ truguts_earned: earned + truguts.rated })
                     }
 
-                    earnings += "\n**Total: **`+📀" + tools.numberWithCommas(earnings_total) + "`"
+                    //earnings += "\n**Total: **`+📀" + tools.numberWithCommas(earnings_total) + "`"
                     profileref.child(member).child("current").update({ truguts: earnings_total })
                     earnings += "\n**New balance: **`📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`"
                 }
@@ -648,6 +648,7 @@ module.exports = {
                 const newEmbed = new Discord.MessageEmbed()
                     .setTitle(title + hunt_text + eTitle)
                     .setColor(eColor)
+                    .setFooter("Truguts: " + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent))
                 if (![":arrows_counterclockwise: Rerolled: ", ":negative_squared_cross_mark: Closed: "].includes(title)) {
                     var achievement_message = ""
                     newEmbed
@@ -682,11 +683,11 @@ module.exports = {
                         var reroll_cost = profiledata[member].current.reroll_cost
                         var reroll_description = ""
                         if (reroll_cost == truguts.reroll_discount) {
-                            reroll_description = "`-📀" + truguts.reroll_discount + "` (discounted)\nCurrent balance: `📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`"
+                            reroll_description = "`-📀" + tools.numberWithCommas(truguts.reroll_discount) + "` (discounted)\nCurrent balance: `📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`"
                         } else if (reroll_cost == 0) {
                             reroll_description = "(no charge for record holders)"
                         } else {
-                            reroll_description = "`-📀" + truguts.reroll + "`\nCurrent balance: `📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`"
+                            reroll_description = "`-📀" + tools.numberWithCommas(truguts.reroll) + "`\nCurrent balance: `📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`"
                         }
                         newEmbed.setDescription(reroll_description)
                     }
