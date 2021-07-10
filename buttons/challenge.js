@@ -1026,22 +1026,22 @@ module.exports = {
                         }
                         profileref.child(member).child("purchases").push(purchase)
                         profileref.child(member).update({ truguts_spent: profiledata[member].truguts_spent + profiledata[member].current.reroll_cost })
-                    }
-                    
+                    }  
                     profileref.child(member).child("current").update({ completed: true, rerolled: true, title: ":arrows_counterclockwise: Rerolled: " })
                     try {
                         var data = updateChallenge()
-                        client.api.webhooks(client.user.id, profiledata[member].current.token).messages('@original').delete().then(
-                            client.api.webhooks(client.user.id, profiledata[member].current.token).post({
-                            data: {
-                                embeds: [data.message],
-                                flags: 64,
-                                components: []
-                            }
-                        }).then(client.buttons.get("challenge").execute(client, interaction, ["random", "play"])))
-                        
+                        async function followUp(){
+                            const fu = await client.api.webhooks(client.user.id, profiledata[member].current.token).post({
+                                data: {
+                                    embeds: [data.message],
+                                    flags: 64,
+                                    components: []
+                                }
+                            })
+                            return fu
+                        }
+                        client.api.webhooks(client.user.id, profiledata[member].current.token).messages('@original').delete().then(followUp().then(client.buttons.get("challenge").execute(client, interaction, ["random", "play"])))
                     } catch (error) { console.log(error) }
-                    
                 } else {
                     var noMoney = new Discord.MessageEmbed()
                     noMoney
