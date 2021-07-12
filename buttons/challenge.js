@@ -292,10 +292,10 @@ module.exports = {
                 }
                 var racer_flag = racers[profiledata[member].current.racer].flag
                 var track_flag = planets[tracks[profiledata[member].current.track].planet].emoji
-                if(profiledata[member].current.racer_bribe){
+                if (profiledata[member].current.racer_bribe) {
                     racer_flag = ":moneybag:"
                 }
-                if(profiledata[member].current.track_bribe){
+                if (profiledata[member].current.track_bribe) {
                     track_flag = ":moneybag:"
                 }
                 var eTitle = "Race as **" + bribed_racer + racer_flag + " " + racers[profiledata[member].current.racer].name + bribed_racer + "**" + nutext + " on **" + bribed_track + track_flag + " " + tracks[profiledata[member].current.track].name + bribed_track + "**" + laptext + skipstext + mirrortext
@@ -648,7 +648,7 @@ module.exports = {
                 const newEmbed = new Discord.MessageEmbed()
                     .setTitle(title + hunt_text + eTitle)
                     .setColor(eColor)
-                    .setFooter("Truguts: " + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent))
+                    .setFooter("Truguts: 📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent))
                 if (![":arrows_counterclockwise: Rerolled: ", ":negative_squared_cross_mark: Closed: "].includes(title)) {
                     var achievement_message = ""
                     newEmbed
@@ -822,6 +822,7 @@ module.exports = {
                             ]
                         }
                     })
+                    profileref.child(member).child("current").update( { message: client.api.webhooks(client.user.id, token).messages('@original').id})
                     return response
                 }
                 sendResponse().then(() => {
@@ -1072,10 +1073,10 @@ module.exports = {
                     }
                     var bribe_cost = 0
                     var selection = Number(interaction.data.values[0])
-                    if(args[2] == "track"){
+                    if (args[2] == "track") {
                         bribe_cost = truguts.bribe_track
                         purchase.purchased_item = "track bribe"
-                    } else if(args[2] == "racer"){
+                    } else if (args[2] == "racer") {
                         bribe_cost = truguts.bribe_racer
                         purchase.purchased_item = "racer bribe"
                     }
@@ -1098,14 +1099,18 @@ module.exports = {
                         return
                     } else {
                         //process purchase
-                        if(args[2] == "track"){
-                            profileref.child(member).child("current").update({track_bribe: true, track: selection})
-                        } else if(args[2] == "racer"){
-                            profileref.child(member).child("current").update({racer_bribe: true, racer: selection})
+                        var bribed = false
+                        if (args[2] == "track" && selection !== profiledata[member].current.track) {
+                            profileref.child(member).child("current").update({ track_bribe: true, track: selection })
+                            bribed = true
+                        } else if (args[2] == "racer" && selection !== profiledata[member].current.racer) {
+                            profileref.child(member).child("current").update({ racer_bribe: true, racer: selection })
+                            bribed = true
                         }
-                        profileref.child(member).child("purchases").push(purchase)
-                        profileref.child(member).update({ truguts_spent: profiledata[member].truguts_spent + bribe_cost })
-
+                        if (bribed) {
+                            profileref.child(member).child("purchases").push(purchase)
+                            profileref.child(member).update({ truguts_spent: profiledata[member].truguts_spent + bribe_cost })
+                        }
                     }
                 }
                 //populate options
@@ -1124,7 +1129,7 @@ module.exports = {
                     var track_option = {
                         label: tracks[i].name.replace("The Boonta Training Course", "Boonta Training Course"),
                         value: i,
-                        description: (circuits[tracks[i].circuit].name + " Circuit | Race " + tracks[i].cirnum + " | " + planets[tracks[i].planet].name).substring(0,50),
+                        description: (circuits[tracks[i].circuit].name + " Circuit | Race " + tracks[i].cirnum + " | " + planets[tracks[i].planet].name).substring(0, 50),
                         emoji: {
                             name: planets[tracks[i].planet].emoji.split(":")[1],
                             id: planets[tracks[i].planet].emoji.split(":")[2].replace(">", "")
