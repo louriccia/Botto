@@ -1,3 +1,5 @@
+const { get } = require('request');
+
 module.exports = {
     name: 'challenge',
     execute(client, interaction, args) {
@@ -822,7 +824,8 @@ module.exports = {
                             ]
                         }
                     })
-                    profileref.child(member).child("current").update( { message: client.api.webhooks(client.user.id, token).messages('@original').id})
+                    var webhook = await client.api.webhooks(client.user.id, token).messages('@original').get()
+                    profileref.child(member).child("current").update( { message: webhook.id})
                     return response
                 }
                 sendResponse().then(() => {
