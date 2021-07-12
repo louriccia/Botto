@@ -825,7 +825,7 @@ module.exports = {
                         }
                     })
                     var webhook = await client.api.webhooks(client.user.id, token).messages('@original').get()
-                    profileref.child(member).child("current").update( { message: webhook.id})
+                    profileref.child(member).child("current").update({ message: webhook.id })
                     return response
                 }
                 sendResponse().then(() => {
@@ -1021,50 +1021,83 @@ module.exports = {
                     })
                 })
             } else if (args[1] == "reroll") {
-                if (profiledata[member].truguts_earned - profiledata[member].truguts_spent >= profiledata[member].current.reroll_cost) {
-                    //process purchase
-                    if (profiledata[member].current.reroll_cost > 0) {
-                        var selection = ""
-                        if (profiledata[member].current.reroll_cost == truguts.reroll) {
-                            selection = "full price"
-                        } else {
-                            selection = "discount"
+                if (interaction.message.id == profiledata[member].current.message) {
+                    if (profiledata[member].truguts_earned - profiledata[member].truguts_spent >= profiledata[member].current.reroll_cost) {
+                        //process purchase
+                        if (profiledata[member].current.reroll_cost > 0) {
+                            var selection = ""
+                            if (profiledata[member].current.reroll_cost == truguts.reroll) {
+                                selection = "full price"
+                            } else {
+                                selection = "discount"
+                            }
+                            var purchase = {
+                                date: Date.now(),
+                                purchased_item: "reroll",
+                                selection: selection
+                            }
+                            profileref.child(member).child("purchases").push(purchase)
+                            profileref.child(member).update({ truguts_spent: profiledata[member].truguts_spent + profiledata[member].current.reroll_cost })
                         }
-                        var purchase = {
-                            date: Date.now(),
-                            purchased_item: "reroll",
-                            selection: selection
-                        }
-                        profileref.child(member).child("purchases").push(purchase)
-                        profileref.child(member).update({ truguts_spent: profiledata[member].truguts_spent + profiledata[member].current.reroll_cost })
-                    }
-                    profileref.child(member).child("current").update({ completed: true, rerolled: true, title: ":arrows_counterclockwise: Rerolled: " })
-                    try {
-                        var data = updateChallenge()
-                        async function followUp() {
-                            const fu = await client.api.webhooks(client.user.id, profiledata[member].current.token).post({
+                        profileref.child(member).child("current").update({ completed: true, rerolled: true, title: ":arrows_counterclockwise: Rerolled: " })
+                        try {
+                            var data = updateChallenge()
+                            async function followUp() {
+                                const fu = await client.api.webhooks(client.user.id, profiledata[member].current.token).post({
+                                    data: {
+                                        embeds: [data.message],
+                                        flags: 64,
+                                        components: []
+                                    }
+                                })
+                                return fu
+                            }
+                            client.api.webhooks(client.user.id, profiledata[member].current.token).messages('@original').delete().then(followUp().then((thing) => { client.buttons.get("challenge").execute(client, interaction, ["random", "play"]) }))
+                        } catch (error) { console.log(error) }
+                    } else {
+                        var noMoney = new Discord.MessageEmbed()
+                        noMoney
+                            .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
+                            .setDescription("*'No money, no challenge, no reroll!'*\nYou do not have enough truguts to reroll this challenge.\n\nCurrent balance: `📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`\nReroll cost: `📀" + tools.numberWithCommas(truguts.reroll) + "`")
+                        client.api.interactions(interaction.id, interaction.token).callback.post({
+                            data: {
+                                type: 4,
                                 data: {
-                                    embeds: [data.message],
-                                    flags: 64,
-                                    components: []
+                                    //content: "",
+                                    embeds: [noMoney],
+                                    flags: 64
                                 }
-                            })
-                            return fu
-                        }
-                        client.api.webhooks(client.user.id, profiledata[member].current.token).messages('@original').delete().then(followUp().then((thing) => { client.buttons.get("challenge").execute(client, interaction, ["random", "play"]) }))
-                    } catch (error) { console.log(error) }
+                            }
+                        })
+                    }
                 } else {
                     var noMoney = new Discord.MessageEmbed()
                     noMoney
-                        .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
-                        .setDescription("*'No money, no challenge, no reroll!'*\nYou do not have enough truguts to reroll this challenge.\n\nCurrent balance: `📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`\nReroll cost: `📀" + tools.numberWithCommas(truguts.reroll) + "`")
+                        .setTitle("<:WhyNobodyBuy:589481340957753363> Get Your Own Challenge!")
+                        .setDescription("This is someone else's challenge, or the option to reroll has expired. Roll a challenge with the button below.")
                     client.api.interactions(interaction.id, interaction.token).callback.post({
                         data: {
                             type: 4,
                             data: {
                                 //content: "",
                                 embeds: [noMoney],
-                                flags: 64
+                                flags: 64,
+                                components: [
+                                    {
+                                        type: 1,
+                                        components: [
+                                            {
+                                                type: 2,
+                                                style: 4,
+                                                custom_id: "challenge_random_play",
+                                                emoji: {
+                                                    name: "🎲"
+                                                }
+                                            },
+                                        ]
+                                    }
+
+                                ]
                             }
                         }
                     })
