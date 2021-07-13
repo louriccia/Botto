@@ -58,6 +58,12 @@ module.exports = {
             bonus_deluxe: 10000
         }
 
+        var hints = [
+            { name: "Basic Hint", price: truguts.hint_basic, bonus: truguts.bonus_basic, description: "Single-part hint" },
+            { name: "Standard Hint", price: truguts.hint_standard, bonus: truguts.bonus_standard, description: "Two-part hint" },
+            { name: "Deluxe Hint", price: truguts.hint_deluxe, bonus: truguts.bonus_deluxe, description: "Three-part hint" }
+        ]
+
         function getGoalTimes(track, racer, skips, nu, laps) {
             var upg = 5
             if (nu) {
@@ -1522,16 +1528,12 @@ module.exports = {
                     }
                 }
 
-                var hints = [
-                    { name: "Basic Hint", price: truguts.hint_basic, bonus: truguts.bonus_basic, description: "Single-part hint" },
-                    { name: "Standard Hint", price: truguts.hint_standard, bonus: truguts.bonus_standard, description: "Two-part hint" },
-                    { name: "Deluxe Hint", price: truguts.hint_deluxe, bonus: truguts.bonus_deluxe, description: "Three-part hint" }
-                ]
+
                 var achievement = null, selection = null
 
                 if (!args.includes("initial")) {
-                    if (args[args.length-1].startsWith("uid")){
-                        if (args[args.length-1].replace("uid", "") !== member) {
+                    if (args[args.length - 1].startsWith("uid")) {
+                        if (args[args.length - 1].replace("uid", "") !== member) {
                             const hintMessage = new Discord.MessageEmbed()
                                 .setTitle("<:WhyNobodyBuy:589481340957753363> Get Your Own Hints!")
                                 .setDescription("This is someone else's hint menu. Get your own by clicking the button below.")
@@ -1558,7 +1560,7 @@ module.exports = {
                                                     {
                                                         type: 2,
                                                         style: 2,
-                                                        custom_id: "challenge_random_menu",
+                                                        custom_id: "challenge_random_menu_initial",
                                                         emoji: {
                                                             name: "menu",
                                                             id: "862620287735955487"
@@ -1596,7 +1598,7 @@ module.exports = {
                     selection = Number(interaction.data.values[0])
                 }
                 //draw components
-                var components = [], achievement_options = [], selection_options = []
+                var components = [], achievement_options = [], selection_options = [], disabled = false
                 var ach = Object.keys(achievements)
                 for (i = 0; i < ach.length; i++) {
                     if (profiledata[member].achievements[ach[i]] == false && ach[i] !== "big_time_swindler") {
@@ -1629,6 +1631,9 @@ module.exports = {
                     if (profiledata[member].truguts_earned - profiledata[member].truguts_spent >= hints[i].price) {
                         selection_options.push(option)
                     }
+                }
+                if ([achievement, selection].includes(null)) {
+                    disabled = true
                 }
                 const hintEmbed = new Discord.MessageEmbed()
                     .setTitle(":bulb: Hints")
@@ -1668,12 +1673,13 @@ module.exports = {
                                     type: 2,
                                     custom_id: "challenge_random_hint_purchase_uid" + member,
                                     label: "Buy Hint",
-                                    style: 4
+                                    style: 4,
+                                    disabled: disabled
                                 },
                                 {
                                     type: 2,
                                     style: 2,
-                                    custom_id: "challenge_random_menu_uid"+member,
+                                    custom_id: "challenge_random_menu_uid" + member,
                                     emoji: {
                                         name: "menu",
                                         id: "862620287735955487"
@@ -1691,11 +1697,20 @@ module.exports = {
                         components: [
                             {
                                 type: 2,
-                                custom_id: "challenge_random_hunt",
+                                custom_id: "challenge_random_hunt_initial",
                                 label: "Challenge Hunt",
                                 style: 4,
                                 emoji: {
                                     name: "🎯"
+                                }
+                            },
+                            {
+                                type: 2,
+                                style: 2,
+                                custom_id: "challenge_random_menu_initial",
+                                emoji: {
+                                    name: "menu",
+                                    id: "862620287735955487"
                                 }
                             }
                         ]
@@ -1703,6 +1718,7 @@ module.exports = {
                 }
                 if (args[2] == "purchase") {
                     const hintBuy = new Discord.MessageEmbed()
+                        .setColor("#ED4245")
                     var flags = 0
                     if (profiledata[member].truguts_earned - profiledata[member].truguts_spent < hints[selection].price) {
                         hintBuy
@@ -1826,21 +1842,205 @@ module.exports = {
 
 
             } else if (args[1] == "hunt") {
-                achievement_name = "Challenge Hunt"
-                track = Math.floor(Math.random() * 25)
-                racer = Math.floor(Math.random() * 23)
-                profileref.child(member).update({
-                    hunt: {
-                        track: track,
-                        racer: racer,
-                        date: Date.now(),
-                        bonus: hints[hint_tier].bonus,
-                        completed: false
+                const huntEmbed = new Discord.MessageEmbed()
+                    .setDescription("Challenge Hunt is a way to earn big truguts fast. Based on your hint selection, Botto hides a large trugut bonus on a random challenge. You have one hour to find and complete this challenge to claim your bonus.")
+                    .setFooter(interaction.member.user.username + " | Truguts: 📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent), client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
+                    .setColor("#ED4245")
+                var selection = null
+                if (!args.includes("initial")) {
+                    if (args[args.length - 1].startsWith("uid")) {
+                        if (args[args.length - 1].replace("uid", "") !== member) {
+                            const huntMessage = new Discord.MessageEmbed()
+                                .setTitle("<:WhyNobodyBuy:589481340957753363> Get Your Own Hunt!")
+                                .setDescription("This is someone else's hunt menu. Get your own by clicking the button below.")
+                            client.api.interactions(interaction.id, interaction.token).callback.post({
+                                data: {
+                                    type: 4,
+                                    data: {
+                                        content: "",
+                                        embeds: [huntMessage],
+                                        flags: 64,
+                                        components: [
+                                            {
+                                                type: 1,
+                                                components: [
+                                                    {
+                                                        type: 2,
+                                                        custom_id: "challenge_random_hunt_initial",
+                                                        style: 4,
+                                                        label: "Challenge Hunt",
+                                                        emoji: {
+                                                            name: "🎯"
+                                                        }
+                                                    },
+                                                    {
+                                                        type: 2,
+                                                        style: 2,
+                                                        custom_id: "challenge_random_menu_initial",
+                                                        emoji: {
+                                                            name: "menu",
+                                                            id: "862620287735955487"
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                }
+                            })
+                            return
+                        }
+                    }
+                    for (var i = 0; i < interaction.message.components[0].components[0].options.length; i++) {
+                        var option = interaction.message.components[0].components[0].options[i]
+                        if (option.hasOwnProperty("default")) {
+                            if (option.default) {
+                                selection = option.value
+                            }
+                        }
+                    }
+                }
+                if (args[2] == "selection") {
+                    selection = Number(interaction.data.values[0])
+                }
+                if(profiledata[member].hunt !==undefined){
+                    if(profiledata[member].hunt.date > Date.now() - 1000*60*60 && profiledata[member].hunt.completed == false){
+                        huntEmbed.addField(":exclamation: Hunt Already in Progress", "You already have an active hunt with " + tools.timefix((profiledata[member].hunt.date + 1000*60*60-Date.now())/1000) + " remaining. Starting a new one will overwrite the hunt in progress.")
+                    }
+                }
+                //draw components
+                var components = [], selection_options = []
+                for (i = 0; i < hints.length; i++) {
+                    var option = {
+                        label: hints[i].name,
+                        value: i,
+                        description: "Price: 📀" + tools.numberWithCommas(hints[i].price) + " | " + hints[i].description + " | Bonus: 📀" + tools.numberWithCommas(hints[i].bonus),
+                        emoji: {
+                            name: "🎯"
+                        }
+                    }
+                    if (selection == i) {
+                        option.default = true
+                    }
+                    if (profiledata[member].truguts_earned - profiledata[member].truguts_spent >= hints[i].price) {
+                        selection_options.push(option)
+                    }
+                }
+                var disabled = false
+                if (selection == null) {
+                    disabled = true
+                }
+                components.push(
+                    {
+                        type: 1,
+                        components: [
+                            {
+                                type: 3,
+                                custom_id: "challenge_random_hunt_selection_uid" + member,
+                                options: selection_options,
+                                placeholder: "Select Hunt Type",
+                                min_values: 1,
+                                max_values: 1
+                            }
+                        ]
+                    },
+                    {
+                        type: 1,
+                        components: [
+                            {
+                                type: 2,
+                                custom_id: "challenge_random_hunt_start_uid" + member,
+                                label: "Buy Hint",
+                                style: 4,
+                                disabled: disabled
+                            },
+                            {
+                                type: 2,
+                                style: 2,
+                                custom_id: "challenge_random_menu_uid" + member,
+                                emoji: {
+                                    name: "menu",
+                                    id: "862620287735955487"
+                                }
+                            }
+                        ]
+                    })
+                if (args[2] == "start") {
+                    var flags = 0
+                    if (profiledata[member].truguts_earned - profiledata[member].truguts_spent < hints[selection].price) {
+                        hintBuy
+                            .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
+                            .setDescription("*'No money, no hunt!'*\nYou do not have enough truguts to buy the selected hunt.\n\nHunt cost: `" + hints[selection].price + "`")
+                        flags = 64
+                    } else {
+                        //process purchase
+                        profileref.child(member).update({ truguts_spent: profiledata[member].truguts_spent + hints[selection].price })
+                        var purchase = {
+                            date: Date.now(),
+                            purchased_item: hints[selection].name,
+                            selection: "challenge_hunt"
+                        }
+                        profileref.child(member).child("purchases").push(purchase)
+
+                        var track = Math.floor(Math.random() * 25)
+                        var racer = Math.floor(Math.random() * 23)
+                        profileref.child(member).update({
+                            hunt: {
+                                track: track,
+                                racer: racer,
+                                date: Date.now(),
+                                bonus: hints[hint_tier].bonus,
+                                completed: false
+                            }
+                        })
+                        const huntBuy = new Discord.MessageEmbed()
+                            .setColor("#ED4245")
+                            .setAuthor(interaction.member.user.username + "'s Challenge Hunt", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
+                        var track_hint = track_hints[track]
+                        for (var i = 0; i < selection + 1; i++) {
+                            var random_hint = Math.floor(Math.random() * track_hint.length)
+                            track_hint_text += "○ *" + track_hint[random_hint] + "*\n"
+                            track_hint.splice(random_hint, 1)
+                        }
+                        huntBuy.addField("Track Hint", track_hint_text)
+
+                        var racer_hint = racer_hints[racer]
+                        for (var i = 0; i < selection + 1; i++) {
+                            var random_hint = Math.floor(Math.random() * racer_hint.length)
+                            racer_hint_text += "○ *" + racer_hint[random_hint] + "*\n"
+                            racer_hint.splice(random_hint, 1)
+                        }
+                        huntBuy.addField("Racer Hint", racer_hint_text)
+                        huntBuy.setDescription("`-📀" + tools.numberWithCommas(hints[hint_tier].price) + "`\nBotto has randomly hid a large trugut bonus on a random challenge. You have one hour to find and complete the challenge and claim your bonus! If you use a bribe to successfully find the challenge, you will not be charged.\n" +
+                            "Potential bonus: `📀" + tools.numberWithCommas(hints[hint_tier].bonus) + "`")
+                        client.api.interactions(interaction.id, interaction.token).callback.post({
+                            data: {
+                                type: 4,
+                                data: {
+                                    content: "",
+                                    embeds: [huntBuy]
+                                }
+                            }
+                        })
+                        return
+                    }
+                }
+                var type = 7
+                if (args.includes("initial")) {
+                    //type = 4
+                }
+                client.api.interactions(interaction.id, interaction.token).callback.post({
+                    data: {
+                        type: type,
+                        data: {
+                            content: "",
+                            embeds: [huntEmbed],
+                            components: components,
+                            //flags: 64
+                        },
+
                     }
                 })
-                hintBuy.setDescription("`-📀" + tools.numberWithCommas(hints[hint_tier].price) + "`\nBotto has randomly hid a large trugut bonus on a random challenge. You have one hour to find and complete the challenge and claim your bonus! If you use a bribe to successfully find the challenge, you will not be charged.\n" +
-                    "Potential bonus: `📀" + tools.numberWithCommas(hints[hint_tier].bonus) + "`")
-
             } else if (args[1] == "settings") {
                 //get input
                 let member = interaction.member.user.id
@@ -2320,12 +2520,14 @@ module.exports = {
 
             } else if (args[1] == "about") {
                 const challengeHelpEmbed = new Discord.MessageEmbed()
-                    .setTitle("Random Challenges")
-                    .setDescription("When you type `/challenge generate` or `/random challenge`, Botto will challenge you to race a random pod on a random track with random conditions. The default conditions are max upgrades, 3-lap, full track. You have 15 minutes to submit a time for the challenge which you may do by entering it in the same text channel as the challenge.")
-                    .addField("Challenge Settings", "Use the `/challenge settings` command to customize your challenge settings and modify the chances that Botto will roll a No Upgrades, Skips, Non 3-lap, or Mirrored challenge. You can select a challenge winnings pattern which determines how many truguts your submitted time will earn.", false)
-                    .addField("Earning Truguts", "Truguts are awarded depending on how fast your submitted time is compared to the given goal times and how your winnings are set up. Bonuses are available for beating other players' best times, beating your own time, rating challenges, and completing non-standard challenges (odds must be below 25%).", false)
-                    .addField("Spending Truguts", "You can spend truguts on 'rerolling' challenges that you wish to skip. Truguts can also be used to bribe Botto for a specific track or racer as part of **Random Challenges**. You can use **Hints** to figure out what to bribe for your achievement progress.", false)
-                    .addField("Challenge Hunt", "Challenge Hunt is a way to earn big truguts fast and can be accessed via the **Random Challenge** menu. Based on your hint selection, Botto hides a large trugut bonus on a random challenge. You have one hour to find this challenge and complete it to claim your bonus.", false)
+                    .setAuthor("Random Challenge", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/game-die_1f3b2.png")
+                    .setTitle(":grey_question: About")
+                    .setColor("#ED4245")
+                    .setDescription("When you roll a random challenge, Botto will challenge you to race a random pod on a random track with random conditions. The default conditions are max upgrades, 3-lap, full track. You have 15 minutes to submit a time for the challenge which you may do by entering it in the same text channel as the challenge.")
+                    .addField(":gear: Settings", "You can customize your challenge settings and modify the chances that Botto will roll a No Upgrades, Skips, Non 3-lap, or Mirrored challenge. You can also select a winnings pattern which determines the share of truguts your submitted time will earn.", false)
+                    .addField(":dvd: Earning Truguts", "Truguts are awarded depending on how fast your submitted time is compared to the given goal times and how your winnings are set up. Bonuses are available for beating other players' best times, beating your own time, rating challenges, and completing non-standard challenges (odds must be equal to or below 25%).", false)
+                    .addField(":dvd: Spending Truguts", "You can spend truguts on 'rerolling' challenges that you wish to skip. Truguts can also be used on :moneybag: **Bribes** for a specific track or racer. You can use :bulb: **Hints** to figure out what to bribe for your achievement progress.", false)
+                    .addField(":dart: Challenge Hunt", "Challenge Hunt is a way to earn big truguts fast and can be accessed via the **Random Challenge** menu. Based on your hint selection, Botto hides a large trugut bonus on a random challenge. You have one hour to find this challenge and complete it to claim your bonus.", false)
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
                         type: 4,
