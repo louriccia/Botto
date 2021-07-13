@@ -31,11 +31,11 @@ module.exports = {
         var achievements = {
             galaxy_famous: { name: "Galaxy Famous", description: "Race on every track", role: "819514261289828362", limit: 25, count: 0, collection: {}, array: [], missing: [] },
             pod_champ: { name: "Pod Champ", description: "Race as every pod", role: "819514029218463774", limit: 23, count: 0, collection: {}, array: [], missing: [] },
-            light_skipper: { name: "Lightspeed Skipper", description: "Race every track with a skip", role: "819514330985922621", limit: 12, count: 0, collection: {}, array: [], missing: [] },
+            light_skipper: { name: "Lightspeed Skipper", description: "Race every track with a Skip", role: "819514330985922621", limit: 12, count: 0, collection: {}, array: [], missing: [] },
             slow_steady: { name: "Slow 'n Steady", description: "Race every pod with No Upgrades", role: "819514431472926721", limit: 23, count: 0, collection: {}, array: [], missing: [] },
-            mirror_dimension: { name: "Mirror Dimension", description: "Race mirrored on every track", role: "843573636119134219", limit: 25, count: 0, collection: {}, array: [], missing: [] },
+            mirror_dimension: { name: "Mirror Dimension", description: "Race Mirrored on every track", role: "843573636119134219", limit: 25, count: 0, collection: {}, array: [], missing: [] },
             crowd_favorite: { name: "Crowd Favorite", description: "Race as every track favorite on his track", role: "819514487852761138", limit: 25, count: 0, collection: {}, array: [], missing: [] },
-            true_jedi: { name: "True Jedi", description: "Race every pod on every track", role: "819514600827519008", limit: 575, count: 0, collection: {}, array: [], missing: [] },
+            true_jedi: { name: "True Jedi", description: "Race as every pod on every track", role: "819514600827519008", limit: 575, count: 0, collection: {}, array: [], missing: [] },
             big_time_swindler: { name: "Big-Time Swindler", description: "Earn or spend 1,000,000 total truguts", role: "844307520997949481", limit: 1000000, count: 0, collection: {}, array: [], missing: [] }
         }
 
@@ -1519,7 +1519,7 @@ module.exports = {
                     }
                 }
                 if (args[2] == "achievement") {
-                    achievement = Number(interaction.data.values[0])
+                    achievement = interaction.data.values[0]
                 } else if (args[2] == "selection") {
                     selection = Number(interaction.data.values[0])
                 }
@@ -1527,7 +1527,7 @@ module.exports = {
                 var components = [], achievement_options = [], selection_options = []
                 var ach = Object.keys(achievements)
                 for (i = 0; i < ach.length; i++) {
-                    if (profiledata[member].achievements[ach[i]] == false) {
+                    if (profiledata[member].achievements[ach[i]] == false && ach[i] !== "big_time_swindler") {
                         var option = {
                             label: achievements[ach[i]].name,
                             value: ach[i],
