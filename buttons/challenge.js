@@ -1443,7 +1443,7 @@ module.exports = {
                                         },
                                         {
                                             type: 2,
-                                            custom_id: "challenge_random_hunt",
+                                            custom_id: "challenge_random_hunt_initial",
                                             style: 2,
                                             label: "Challenge Hunt",
                                             emoji: {
