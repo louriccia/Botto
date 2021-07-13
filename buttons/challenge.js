@@ -216,6 +216,19 @@ module.exports = {
                 }
                 profileref.child(member).set(data)
             } else {
+                if (profiledata[member].achievements == undefined) {
+                    profileref.child(member).child("achievements").set(
+                        {
+                            galaxy_famous: false,
+                            pod_champ: false,
+                            light_skipper: false,
+                            slow_steady: false,
+                            mirror_dimension: false,
+                            crowd_favorite: false,
+                            true_jedi: false,
+                            big_spender: false
+                        })
+                }
                 profileref.child(member).child("name").set(interaction.member.user.username) //update name in case of namechange
             }
             const Guild = client.guilds.cache.get(interaction.guild_id)
@@ -1415,7 +1428,7 @@ module.exports = {
 
                                         {
                                             type: 2,
-                                            custom_id: "challenge_random_hint",
+                                            custom_id: "challenge_random_hint_initial",
                                             style: 2,
                                             label: "Hints",
                                             emoji: {
@@ -1480,171 +1493,291 @@ module.exports = {
                     }
                 })
             } else if (args[1] == "hint") {
-                const hintEmbed = new Discord.MessageEmbed()
-                let member = interaction.member.user.id
                 var hints = [
-                    { name: "Basic Hint", price: truguts.hint_basic, bonus: truguts.bonus_basic },
-                    { name: "Standard Hint", price: truguts.hint_standard, bonus: truguts.bonus_standard },
-                    { name: "Deluxe Hint", price: truguts.hint_deluxe, bonus: truguts.bonus_deluxe }
+                    { name: "Basic Hint", price: truguts.hint_basic, bonus: truguts.bonus_basic, description: "Single-part hint" },
+                    { name: "Standard Hint", price: truguts.hint_standard, bonus: truguts.bonus_standard, description: "Two-part hint" },
+                    { name: "Deluxe Hint", price: truguts.hint_deluxe, bonus: truguts.bonus_deluxe, description: "Three-part hint" }
                 ]
-                //process input
-                var hint_tier = 0
-                var selection = ""
-                for (var i = 0; i < args[0].options.length; i++) {
-                    if (args[0].options[i].name == "hint") {
-                        hint_tier = Number(args[0].options[i].value)
-                    } else if (args[0].options[i].name == "selection") {
-                        selection = args[0].options[i].value
+                var achievement = null, selection = null
+                
+                if (!args.includes("initial")){
+                    for (var i = 0; i < interaction.message.components[0].components[0].options.length; i++) {
+                        var option = interaction.message.components[0].components[0].options[i]
+                        if (option.hasOwnProperty("default")) {
+                            if (option.default) {
+                                achievement = option.value
+                            }
+                        }
+                    }
+                    for (var i = 0; i < interaction.message.components[0].components[1].options.length; i++) {
+                        var option = interaction.message.components[0].components[1].options[i]
+                        if (option.hasOwnProperty("default")) {
+                            if (option.default) {
+                                selection = i
+                            }
+                        }
                     }
                 }
-                //check truguts
-                if (profiledata[member].truguts_earned - profiledata[member].truguts_spent < hints[hint_tier].price) {
+                if (args[2] == "achievement") {
+                    achievement = Number(interaction.data.values[0])
+                } else if (args[2] == "selection") {
+                    selection = Number(interaction.data.values[0])
+                }
+                //draw components
+                var components = [], achievement_options = [], selection_options = []
+                var ach = Object.keys(achievements)
+                for (i = 0; i < ach.length; i++) {
+                    if (profiledata[member].achievements[ach[i]] == false) {
+                        var option = {
+                            label: achievements[ach[i]].name,
+                            value: ach[i],
+                            description: achievements[achi[i]].description,
+                        }
+                        if (achievement == ach[i]) {
+                            option.default = true
+                        }
+                        achievement_options.push(option)
+                    }
+                }
+                for (i = 0; i < hints.length; i++) {
+                    var option = {
+                        label: hints[i].name,
+                        value: i,
+                        description: "📀" + hints[i].price + " | " + hints[i].description
+                    }
+                    if (selection == i) {
+                        option.default = true
+                    }
+                    selection_options.push(option)
+                }
+                const hintEmbed = new Discord.MessageEmbed()
+                    .setTitle(":bulb: Hints")
+                    .setAuthor("Random Challenge", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/game-die_1f3b2.png")
+                    .setColor("#ED4245")
+                if (achievement_options.length > 0) {
+                    components.push({
+                        type: 1,
+                        components: [
+                            {
+                                type: 3,
+                                custom_id: "challenge_random_hint_achievement",
+                                options: achievement_options,
+                                placeholder: "Select Achievement",
+                                min_values: 1,
+                                max_values: 1
+                            }
+                        ]
+                    },
+                    {
+                        type: 1,
+                        components: [
+                            {
+                                type: 3,
+                                custom_id: "challenge_random_hint_achievement",
+                                options: achievement_options,
+                                placeholder: "Select Hint Type",
+                                min_values: 1,
+                                max_values: 1
+                            }
+                        ]
+                    },
+                    {
+                        type: 1,
+                        components: [
+                            {
+                                type: 2,
+                                custom_id: "challenge_random_hint_purchase",
+                                label: "Purchase Hint",
+                                style: 4
+                            }
+                        ]
+                    })
                     hintEmbed
-                        .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
-                        .setDescription("*'No money, no hint!'*\nYou do not have enough truguts to buy the selected hint.\n\nHint cost: `" + hints[hint_tier].price + "`")
+                    .setDescription("Hints help you narrow down what challenges you need to complete for :trophy: **Achievements**. The more you pay, the better the hint.")
+                    .setFooter("Truguts: 📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent))
                 } else {
-                    //get array of possible hints based on selection
-                    var keys = Object.keys(challengedata)
-                    for (var i = 0; i < keys.length; i++) {
-                        var k = keys[i];
-                        if (challengedata[k].user == member) {
-                            if (!achievements.galaxy_famous.array.includes(challengedata[k].track)) {
-                                achievements.galaxy_famous.array.push(challengedata[k].track)
+                    hintEmbed.setDescription("Wow! You've already earned all the achievements! This means you have no use for hints, but you may be interested in earning a large Trugut bonus from a :dart: **Challenge Hunt**.")
+                    components.push({
+                        type: 1,
+                        components: [
+                            {
+                                type: 2,
+                                custom_id: "challenge_random_hunt",
+                                label: "Challenge Hunt",
+                                style: 4,
+                                emoji: {
+                                    name: "🎯"
+                                }
                             }
-                            if (!achievements.pod_champ.array.includes(challengedata[k].racer)) {
-                                achievements.pod_champ.array.push(challengedata[k].racer)
-                            }
-                            if (challengedata[k].skips && !achievements.light_skipper.array.includes(challengedata[k].track)) {
-                                achievements.light_skipper.array.push(challengedata[k].track)
-                            }
-                            if (challengedata[k].nu && !achievements.slow_steady.array.includes(challengedata[k].racer)) {
-                                achievements.slow_steady.array.push(challengedata[k].racer)
-                            }
-                            if (challengedata[k].mirror && !achievements.mirror_dimension.array.includes(challengedata[k].track)) {
-                                achievements.mirror_dimension.array.push(challengedata[k].track)
-                            }
-                            if (challengedata[k].racer == tracks[challengedata[k].track].favorite && !achievements.crowd_favorite.array.includes(challengedata[k].track)) {
-                                achievements.crowd_favorite.array.push(challengedata[k].track)
-                            }
-                            if (!achievements.true_jedi.array.includes(challengedata[k].track + "," + challengedata[k].racer)) {
-                                achievements.true_jedi.array.push(challengedata[k].track + "," + challengedata[k].racer)
-                            }
-                        }
-                    }
-                    //figure out missing
-                    for (var j = 0; j < 25; j++) {
-                        if (!achievements.galaxy_famous.array.includes(j)) {
-                            achievements.galaxy_famous.missing.push(j)
-                        }
-                        if (!achievements.pod_champ.array.includes(j) && j < 23) {
-                            achievements.pod_champ.missing.push(j)
-                        }
-                        if (!achievements.light_skipper.array.includes(j) && tracks[j].hasOwnProperty("parskiptimes")) {
-                            achievements.light_skipper.missing.push(j)
-                        }
-                        if (!achievements.slow_steady.array.includes(j) && j < 23) {
-                            achievements.slow_steady.missing.push(j)
-                        }
-                        if (!achievements.mirror_dimension.array.includes(j)) {
-                            achievements.mirror_dimension.missing.push(j)
-                        }
-                        if (!achievements.crowd_favorite.array.includes(j)) {
-                            achievements.crowd_favorite.missing.push(j)
-                        }
-                        for (var l = 0; l < 23; l++) {
-                            if (!achievements.true_jedi.array.includes(j + "," + l)) {
-                                achievements.true_jedi.missing.push(j + "," + l)
-                            }
-                        }
-                    }
-                    //get random missing challenge
-                    var racer = null, track = null, achievement_name = ""
-                    if (selection == "challenge_hunt") {
-                        achievement_name = "Challenge Hunt"
-                        track = Math.floor(Math.random() * 25)
-                        racer = Math.floor(Math.random() * 23)
-                        profileref.child(member).update({
-                            hunt: {
-                                track: track,
-                                racer: racer,
-                                date: Date.now(),
-                                bonus: hints[hint_tier].bonus,
-                                completed: false
-                            }
-                        })
+                        ]
+                    })
+                }
+                if (args[2] == "purchase") {
+                    if (profiledata[member].truguts_earned - profiledata[member].truguts_spent < hints[hint_tier].price) {
+                        hintEmbed
+                            .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
+                            .setDescription("*'No money, no hint!'*\nYou do not have enough truguts to buy the selected hint.\n\nHint cost: `" + hints[hint_tier].price + "`")
                     } else {
-                        achievement_name = achievements[selection].name
-                        if (["galaxy_famous", "light_skipper", "mirror_dimension", "crowd_favorite"].includes(selection)) {
-                            track = achievements[selection].missing[Math.floor(Math.random() * achievements[selection].missing.length)]
-                            if (selection == "crowd_favorite") {
-                                racer = tracks[track].favorite
+                        //get array of possible hints based on selection
+                        var keys = Object.keys(challengedata)
+                        for (var i = 0; i < keys.length; i++) {
+                            var k = keys[i];
+                            if (challengedata[k].user == member) {
+                                if (!achievements.galaxy_famous.array.includes(challengedata[k].track)) {
+                                    achievements.galaxy_famous.array.push(challengedata[k].track)
+                                }
+                                if (!achievements.pod_champ.array.includes(challengedata[k].racer)) {
+                                    achievements.pod_champ.array.push(challengedata[k].racer)
+                                }
+                                if (challengedata[k].skips && !achievements.light_skipper.array.includes(challengedata[k].track)) {
+                                    achievements.light_skipper.array.push(challengedata[k].track)
+                                }
+                                if (challengedata[k].nu && !achievements.slow_steady.array.includes(challengedata[k].racer)) {
+                                    achievements.slow_steady.array.push(challengedata[k].racer)
+                                }
+                                if (challengedata[k].mirror && !achievements.mirror_dimension.array.includes(challengedata[k].track)) {
+                                    achievements.mirror_dimension.array.push(challengedata[k].track)
+                                }
+                                if (challengedata[k].racer == tracks[challengedata[k].track].favorite && !achievements.crowd_favorite.array.includes(challengedata[k].track)) {
+                                    achievements.crowd_favorite.array.push(challengedata[k].track)
+                                }
+                                if (!achievements.true_jedi.array.includes(challengedata[k].track + "," + challengedata[k].racer)) {
+                                    achievements.true_jedi.array.push(challengedata[k].track + "," + challengedata[k].racer)
+                                }
                             }
                         }
-                        if (["pod_champ", "slow_steady"].includes(selection)) {
-                            racer = achievements[selection].missing[Math.floor(Math.random() * achievements[selection].missing.length)]
-                        }
-                        if (selection == "true_jedi") {
-                            var random = achievements.true_jedi.missing[Math.floor(Math.random() * achievements.true_jedi.missing.length)]
-                            random = random.split(",")
-                            track = random[0]
-                            racer = random[1]
-                        }
-                    }
-                    console.log("racer: " + racer)
-                    console.log("track: " + track)
-                    if ((["galaxy_famous", "light_skipper", "mirror_dimension", "crowd_favorite", "true_jedi"].includes(selection) && track == null) || (["pod_champ", "slow_steady", "true_jedi"].includes(selection) && racer == null)) {
-                        //player already has achievement
-                        hintEmbed.setDescription("You already have this achievement and do not require a hint. You have not been charged. \n\nAlready have all the achievements? Try the Challenge Hunt!")
-                    } else {
-                        //prepare hint
-                        var track_hint_text = "", racer_hint_text = ""
-                        if (track !== null) {
-                            var track_hint = track_hints[track]
-                            for (var i = 0; i < hint_tier + 1; i++) {
-                                var random_hint = Math.floor(Math.random() * track_hint.length)
-                                track_hint_text += "○ *" + track_hint[random_hint] + "*\n"
-                                track_hint.splice(random_hint, 1)
+                        //figure out missing
+                        for (var j = 0; j < 25; j++) {
+                            if (!achievements.galaxy_famous.array.includes(j)) {
+                                achievements.galaxy_famous.missing.push(j)
                             }
-                            hintEmbed.addField("Track Hint", track_hint_text)
-                        }
-                        if (racer !== null) {
-                            var racer_hint = racer_hints[racer]
-                            for (var i = 0; i < hint_tier + 1; i++) {
-                                var random_hint = Math.floor(Math.random() * racer_hint.length)
-                                racer_hint_text += "○ *" + racer_hint[random_hint] + "*\n"
-                                racer_hint.splice(random_hint, 1)
+                            if (!achievements.pod_champ.array.includes(j) && j < 23) {
+                                achievements.pod_champ.missing.push(j)
                             }
-                            hintEmbed.addField("Racer Hint", racer_hint_text)
+                            if (!achievements.light_skipper.array.includes(j) && tracks[j].hasOwnProperty("parskiptimes")) {
+                                achievements.light_skipper.missing.push(j)
+                            }
+                            if (!achievements.slow_steady.array.includes(j) && j < 23) {
+                                achievements.slow_steady.missing.push(j)
+                            }
+                            if (!achievements.mirror_dimension.array.includes(j)) {
+                                achievements.mirror_dimension.missing.push(j)
+                            }
+                            if (!achievements.crowd_favorite.array.includes(j)) {
+                                achievements.crowd_favorite.missing.push(j)
+                            }
+                            for (var l = 0; l < 23; l++) {
+                                if (!achievements.true_jedi.array.includes(j + "," + l)) {
+                                    achievements.true_jedi.missing.push(j + "," + l)
+                                }
+                            }
                         }
-                        // process purchase
-                        profileref.child(member).update({ truguts_spent: profiledata[member].truguts_spent + hints[hint_tier].price })
-                        var purchase = {
-                            date: Date.now(),
-                            purchased_item: hints[hint_tier].name,
-                            selection: selection
-                        }
-                        profileref.child(member).child("purchases").push(purchase)
+                        //get random missing challenge
+                        var racer = null, track = null, achievement_name = ""
                         if (selection == "challenge_hunt") {
-                            hintEmbed.setDescription("`-📀" + tools.numberWithCommas(hints[hint_tier].price) + "`\nBotto has randomly hid a large trugut bonus on a random challenge. You have one hour to find and complete the challenge and claim your bonus! If you use a bribe to successfully find the challenge, you will not be charged.\n" +
-                                "Potential bonus: `📀" + tools.numberWithCommas(hints[hint_tier].bonus) + "`")
-
+                            achievement_name = "Challenge Hunt"
+                            track = Math.floor(Math.random() * 25)
+                            racer = Math.floor(Math.random() * 23)
+                            profileref.child(member).update({
+                                hunt: {
+                                    track: track,
+                                    racer: racer,
+                                    date: Date.now(),
+                                    bonus: hints[hint_tier].bonus,
+                                    completed: false
+                                }
+                            })
                         } else {
-                            hintEmbed.setDescription("`-📀" + tools.numberWithCommas(hints[hint_tier].price) + "`")
+                            achievement_name = achievements[selection].name
+                            if (["galaxy_famous", "light_skipper", "mirror_dimension", "crowd_favorite"].includes(selection)) {
+                                track = achievements[selection].missing[Math.floor(Math.random() * achievements[selection].missing.length)]
+                                if (selection == "crowd_favorite") {
+                                    racer = tracks[track].favorite
+                                }
+                            }
+                            if (["pod_champ", "slow_steady"].includes(selection)) {
+                                racer = achievements[selection].missing[Math.floor(Math.random() * achievements[selection].missing.length)]
+                            }
+                            if (selection == "true_jedi") {
+                                var random = achievements.true_jedi.missing[Math.floor(Math.random() * achievements.true_jedi.missing.length)]
+                                random = random.split(",")
+                                track = random[0]
+                                racer = random[1]
+                            }
                         }
+                        if ((["galaxy_famous", "light_skipper", "mirror_dimension", "crowd_favorite", "true_jedi"].includes(selection) && track == null) || (["pod_champ", "slow_steady", "true_jedi"].includes(selection) && racer == null)) {
+                            //player already has achievement
+                            hintEmbed.setDescription("You already have this achievement and do not require a hint. You have not been charged. \n\nAlready have all the achievements? Try the Challenge Hunt!")
+                        } else {
+                            //prepare hint
+                            var track_hint_text = "", racer_hint_text = ""
+                            if (track !== null) {
+                                var track_hint = track_hints[track]
+                                for (var i = 0; i < hint_tier + 1; i++) {
+                                    var random_hint = Math.floor(Math.random() * track_hint.length)
+                                    track_hint_text += "○ *" + track_hint[random_hint] + "*\n"
+                                    track_hint.splice(random_hint, 1)
+                                }
+                                hintEmbed.addField("Track Hint", track_hint_text)
+                            }
+                            if (racer !== null) {
+                                var racer_hint = racer_hints[racer]
+                                for (var i = 0; i < hint_tier + 1; i++) {
+                                    var random_hint = Math.floor(Math.random() * racer_hint.length)
+                                    racer_hint_text += "○ *" + racer_hint[random_hint] + "*\n"
+                                    racer_hint.splice(random_hint, 1)
+                                }
+                                hintEmbed.addField("Racer Hint", racer_hint_text)
+                            }
+                            // process purchase
+                            profileref.child(member).update({ truguts_spent: profiledata[member].truguts_spent + hints[hint_tier].price })
+                            var purchase = {
+                                date: Date.now(),
+                                purchased_item: hints[hint_tier].name,
+                                selection: selection
+                            }
+                            profileref.child(member).child("purchases").push(purchase)
+                            if (selection == "challenge_hunt") {
+                                hintEmbed.setDescription("`-📀" + tools.numberWithCommas(hints[hint_tier].price) + "`\nBotto has randomly hid a large trugut bonus on a random challenge. You have one hour to find and complete the challenge and claim your bonus! If you use a bribe to successfully find the challenge, you will not be charged.\n" +
+                                    "Potential bonus: `📀" + tools.numberWithCommas(hints[hint_tier].bonus) + "`")
+
+                            } else {
+                                hintEmbed.setDescription("`-📀" + tools.numberWithCommas(hints[hint_tier].price) + "`")
+                            }
+                        }
+                        hintEmbed
+                            .setAuthor(interaction.member.user.username + "'s Hint", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
+                            .setTitle(":bulb: " + hints[hint_tier].name + ": " + achievement_name)
                     }
-                    hintEmbed
-                        .setAuthor(interaction.member.user.username + "'s Hint", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
-                        .setTitle(":bulb: " + hints[hint_tier].name + ": " + achievement_name)
+                    client.api.interactions(interaction.id, interaction.token).callback.post({
+                        data: {
+                            type: 4,
+                            data: {
+                                content: "",
+                                embeds: [hintEmbed],
+                            }
+                        }
+                    })
+                }
+
+                var type = 7
+                if (args.includes("initial")) {
+                    type = 4
                 }
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
-                        type: 4,
+                        type: type,
                         data: {
                             content: "",
                             embeds: [hintEmbed],
-                        }
+                            components: components,
+                            flags: 64
+                        },
+                        
                     }
                 })
+
+
             } else if (args[1] == "hunt") {
 
             } else if (args[1] == "settings") {
