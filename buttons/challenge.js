@@ -2016,7 +2016,7 @@ module.exports = {
                         }
                         huntBuy
                         .addField("Racer Hint", racer_hint_text)
-                        .setDescription("`-📀" + tools.numberWithCommas(hints[selection].price) + "`\nBotto has hid a large trugut bonus on a random challenge. You have one hour to find and complete the challenge and claim your bonus! \nHunt Expires: <t:" + Date.now()+1000*60*60 +":t>\n\nIf you use a bribe to successfully find the challenge, you will not be charged.\n" +
+                        .setDescription("`-📀" + tools.numberWithCommas(hints[selection].price) + "`\nBotto has hid a large trugut bonus on a random challenge. You have one hour to find and complete the challenge and claim your bonus! \nHunt Expires: <t:" + Math.round((Date.now()+1000*60*60)/1000) +":t>\n\nIf you use a bribe to successfully find the challenge, you will not be charged.\n" +
                             "Potential bonus: `📀" + tools.numberWithCommas(hints[selection].bonus) + "`")
                         .setFooter("Truguts: 📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent))
                         client.api.interactions(interaction.id, interaction.token).callback.post({
