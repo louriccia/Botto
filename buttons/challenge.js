@@ -2115,6 +2115,44 @@ module.exports = {
                 //get input
                 if (args[2] == "winnings") {
                     winnings_disabled = true
+                } else if (["skips", "noupgrades", "non3lap", "mirrormode", "odds"].includes(args[2]) ){
+                    odds_disabled = true
+                }
+                components.push({
+                    type: 1,
+                    components:[
+                        {
+                            type: 2,
+                            style: 2,
+                            custom_id: "challenge_random_settings_odds_uid" + member,
+                            label: "Odds",
+                            disabled: odds_disabled
+                        },
+                        {
+                            type: 2,
+                            style: 2,
+                            label: "Winnings",
+                            custom_id: "challenge_random_settings_winnings_uid" + member,
+                            disabled: winnings_disabled
+                        },
+                        {
+                            type: 2,
+                            style: 2,
+                            label: "Reset to Default",
+                            custom_id: "challenge_random_settings_default_uid" + member,
+                        },
+                        {
+                            type: 2,
+                            style: 2,
+                            custom_id: "challenge_random_menu_uid" + member,
+                            emoji: {
+                                name: "menu",
+                                id: "862620287735955487"
+                            }
+                        }
+                    ]
+                })
+                if (args[2] == "winnings") {
                     if (interaction.data.hasOwnProperty("values")) {
                         profileref.child(member).update({ winnings: Number(interaction.data.values[0]) })
                     }
@@ -2166,12 +2204,10 @@ module.exports = {
                 }
                 if (["skips", "noupgrades", "non3lap", "mirrormode", "odds"].includes(args[2])) {
                     var skip_options = [], no_upgrades_options = [], non_3_lap_options = [], mirror_mode_options = []
-                    odds_disabled = true
                     for (i = 0; i < 101; i += 5) {
-                        var option = {
-                            value: i
-                        }
+                        
                         //skips
+                        var option = {value: i}
                         option.label = "Skips: " + i + "%"
                         var description = []
                         if (i > 0 && i <= 25) {
@@ -2186,8 +2222,8 @@ module.exports = {
                         option.description = description.join(" | ")
                         skip_options.push(option)
                         //no upgrades
+                        var option = {value: i}
                         option.label = "No Upgrades: " + i + "%"
-                        option.default = false
                         description = []
                         if (i > 0 && i <= 25) {
                             description.push("📀" + tools.numberWithCommas(truguts.non_standard) + " Bonus")
@@ -2201,8 +2237,8 @@ module.exports = {
                         option.description = description.join(" | ")
                         no_upgrades_options.push(option)
                         //non 3 lap
+                        var option = {value: i}
                         option.label = "Non 3-lap: " + i + "%"
-                        option.default = false
                         description = []
                         if (i > 0 && i <= 25) {
                             description.push("📀" + tools.numberWithCommas(truguts.non_standard) + " Bonus")
@@ -2216,8 +2252,8 @@ module.exports = {
                         option.description = description.join(" | ")
                         non_3_lap_options.push(option)
                         //mirrored
+                        var option = {value: i}
                         option.label = "Mirrored: " + i + "%"
-                        option.default = false
                         description = []
                         if (i > 0 && i <= 25) {
                             description.push("📀" + tools.numberWithCommas(truguts.non_standard) + " Bonus")
@@ -2286,40 +2322,7 @@ module.exports = {
                         }
                     )
                 }
-                components.push({
-                    type: 1,
-                    components:[
-                        {
-                            type: 2,
-                            style: 2,
-                            custom_id: "challenge_random_settings_odds_uid" + member,
-                            label: "Odds",
-                            disabled: odds_disabled
-                        },
-                        {
-                            type: 2,
-                            style: 2,
-                            label: "Winnings",
-                            custom_id: "challenge_random_settings_winnings_uid" + member,
-                            disabled: winnings_disabled
-                        },
-                        {
-                            type: 2,
-                            style: 2,
-                            label: "Reset to Default",
-                            custom_id: "challenge_random_settings_default_uid" + member,
-                        },
-                        {
-                            type: 2,
-                            style: 2,
-                            custom_id: "challenge_random_menu_uid" + member,
-                            emoji: {
-                                name: "menu",
-                                id: "862620287735955487"
-                            }
-                        }
-                    ]
-                })
+                
                 var winnings = profiledata[member].winnings
                 var odds = {
                     skips: profiledata[member].skips,
