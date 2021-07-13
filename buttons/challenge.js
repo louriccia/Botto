@@ -1452,7 +1452,7 @@ module.exports = {
                                         },
                                         {
                                             type: 2,
-                                            custom_id: "challenge_random_settings",
+                                            custom_id: "challenge_random_settings_initial",
                                             style: 2,
                                             label: "Settings",
                                             emoji: {
@@ -2173,7 +2173,7 @@ module.exports = {
                         }
                         //skips
                         option.label = "Skips: " + i + "%"
-                        var description = ""
+                        var description = []
                         if (i > 0 && i <= 25) {
                             description.push("📀" + tools.numberWithCommas(truguts.non_standard) + " Bonus")
                         }
