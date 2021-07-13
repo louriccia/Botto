@@ -2113,7 +2113,7 @@ module.exports = {
                 ]
                 var components = [], odds_disabled = false, winnings_disabled = false
                 //get input
-                if (args[2] == "winnnings") {
+                if (args[2] == "winnings") {
                     winnings_disabled = true
                     if (interaction.data.hasOwnProperty("values")) {
                         profileref.child(member).update({ winnings: Number(interaction.data.values[0]) })
@@ -2180,6 +2180,9 @@ module.exports = {
                         if (i == settings_default.skips) {
                             description.push("Default")
                         }
+                        if(i == profiledata[member].skips){
+                            option.default = true
+                        }
                         option.description = description.join(" | ")
                         skip_options.push(option)
                         //no upgrades
@@ -2190,6 +2193,9 @@ module.exports = {
                         }
                         if (i == settings_default.no_upgrades) {
                             description.push("Default")
+                        }
+                        if(i == profiledata[member].no_upgrades){
+                            option.default = true
                         }
                         option.description = description.join(" | ")
                         no_upgrades_options.push(option)
@@ -2202,6 +2208,9 @@ module.exports = {
                         if (i == settings_default.non_3_lap) {
                             description.push("Default")
                         }
+                        if(i == profiledata[member].non_3_lap){
+                            option.default = true
+                        }
                         option.description = description.join(" | ")
                         non_3_lap_options.push(option)
                         //mirrored
@@ -2212,6 +2221,9 @@ module.exports = {
                         }
                         if (i == settings_default.mirrored) {
                             description.push("Default")
+                        }
+                        if(i == profiledata[member].mirror_mode){
+                            option.default = true
                         }
                         option.description = description.join(" | ")
                         mirror_mode_options.push(option)
