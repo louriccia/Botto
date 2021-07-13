@@ -1711,7 +1711,7 @@ module.exports = {
                             var track_hint_text = "", racer_hint_text = ""
                             if (track !== null) {
                                 var track_hint = track_hints[track]
-                                for (var i = 0; i < hint_tier + 1; i++) {
+                                for (var i = 0; i < selection + 1; i++) {
                                     var random_hint = Math.floor(Math.random() * track_hint.length)
                                     track_hint_text += "○ *" + track_hint[random_hint] + "*\n"
                                     track_hint.splice(random_hint, 1)
@@ -1720,7 +1720,7 @@ module.exports = {
                             }
                             if (racer !== null) {
                                 var racer_hint = racer_hints[racer]
-                                for (var i = 0; i < hint_tier + 1; i++) {
+                                for (var i = 0; i < selection + 1; i++) {
                                     var random_hint = Math.floor(Math.random() * racer_hint.length)
                                     racer_hint_text += "○ *" + racer_hint[random_hint] + "*\n"
                                     racer_hint.splice(random_hint, 1)
@@ -1728,19 +1728,19 @@ module.exports = {
                                 hintBuy.addField("Racer Hint", racer_hint_text)
                             }
                             // process purchase
-                            profileref.child(member).update({ truguts_spent: profiledata[member].truguts_spent + hints[hint_tier].price })
+                            profileref.child(member).update({ truguts_spent: profiledata[member].truguts_spent + hints[selection].price })
                             var purchase = {
                                 date: Date.now(),
-                                purchased_item: hints[hint_tier].name,
+                                purchased_item: hints[selection].name,
                                 selection: achievement
                             }
                             profileref.child(member).child("purchases").push(purchase)
-                            hintBuy.setDescription("`-📀" + tools.numberWithCommas(hints[hint_tier].price) + "`")
+                            hintBuy.setDescription("`-📀" + tools.numberWithCommas(hints[selection].price) + "`")
 
                         }
                         hintBuy
                             .setAuthor(interaction.member.user.username + "'s Hint", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
-                            .setTitle(":bulb: " + hints[hint_tier].name + ": " + achievement_name)
+                            .setTitle(":bulb: " + hints[selection].name + ": " + achievement_name)
                     }
                     client.api.interactions(interaction.id, interaction.token).callback.post({
                         data: {
