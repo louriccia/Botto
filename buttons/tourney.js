@@ -268,7 +268,7 @@ module.exports = {
                             for (i = 0; i < schedule.length; i++) {
                                 var channel = ""
                                 var comm = ""
-                                if (schedule[i].length > 3) {
+                                if (schedule[i].length > 4) {
                                     if (!schedule[i][4].includes("?")) {
                                         channel = "[" + schedule[i][4] + "](https://www.twitch.tv/" + schedule[i][4] + ")"
                                     }

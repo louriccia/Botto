@@ -59,8 +59,8 @@ module.exports = {
         }
 
         var hints = [
-            { name: "Basic Hint", price: truguts.hint_basic, bonus: truguts.bonus_basic, description: "Single-part hint" , hunt: "Force-Intuitive"},
-            { name: "Standard Hint", price: truguts.hint_standard, bonus: truguts.bonus_standard, description: "Two-part hint", hunt: "Force-Attuned"},
+            { name: "Basic Hint", price: truguts.hint_basic, bonus: truguts.bonus_basic, description: "Single-part hint", hunt: "Force-Intuitive" },
+            { name: "Standard Hint", price: truguts.hint_standard, bonus: truguts.bonus_standard, description: "Two-part hint", hunt: "Force-Attuned" },
             { name: "Deluxe Hint", price: truguts.hint_deluxe, bonus: truguts.bonus_deluxe, description: "Three-part hint", hunt: "Force-Sensitive" }
         ]
 
@@ -1905,9 +1905,9 @@ module.exports = {
                 if (args[2] == "selection") {
                     selection = Number(interaction.data.values[0])
                 }
-                if(profiledata[member].hunt !==undefined){
-                    if(profiledata[member].hunt.date > Date.now() - 1000*60*60 && profiledata[member].hunt.completed == false){
-                        huntEmbed.addField(":exclamation: Hunt Already in Progress", "Your current hunt expires <t:" + Math.round((profiledata[member].hunt.date + 1000*60*60)/1000) + ":R>. Starting a new one will overwrite the hunt in progress.")
+                if (profiledata[member].hunt !== undefined) {
+                    if (profiledata[member].hunt.date > Date.now() - 1000 * 60 * 60 && profiledata[member].hunt.completed == false) {
+                        huntEmbed.addField(":exclamation: Hunt Already in Progress", "Your current hunt expires <t:" + Math.round((profiledata[member].hunt.date + 1000 * 60 * 60) / 1000) + ":R>. Starting a new one will overwrite the hunt in progress.")
                     }
                 }
                 //draw components
@@ -2015,10 +2015,10 @@ module.exports = {
                             racer_hint.splice(random_hint, 1)
                         }
                         huntBuy
-                        .addField("Racer Hint", racer_hint_text)
-                        .setDescription("`-📀" + tools.numberWithCommas(hints[selection].price) + "`\nBotto has hid a large trugut bonus on a random challenge. You have one hour to find and complete the challenge and claim your bonus! \nHunt Expires: <t:" + Math.round((Date.now()+1000*60*60)/1000) +":t>\n\nIf you use a bribe to successfully find the challenge, you will not be charged.\n" +
-                            "Potential bonus: `📀" + tools.numberWithCommas(hints[selection].bonus) + "`")
-                        .setFooter("Truguts: 📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent))
+                            .addField("Racer Hint", racer_hint_text)
+                            .setDescription("`-📀" + tools.numberWithCommas(hints[selection].price) + "`\nBotto has hid a large trugut bonus on a random challenge. You have one hour to find and complete the challenge and claim your bonus! \nHunt expires: <t:" + Math.round((Date.now() + 1000 * 60 * 60) / 1000) + ":t>\n\nIf you use a bribe to successfully find the challenge, you will not be charged.\n" +
+                                "Potential bonus: `📀" + tools.numberWithCommas(hints[selection].bonus) + "`")
+                            .setFooter("Truguts: 📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent))
                         client.api.interactions(interaction.id, interaction.token).callback.post({
                             data: {
                                 type: 4,
@@ -2048,28 +2048,57 @@ module.exports = {
                     }
                 })
             } else if (args[1] == "settings") {
-                //get input
-                let member = interaction.member.user.id
-                var winnings = undefined, odds_skips = undefined, odds_noupgrades = undefined, odds_non3lap = undefined, odds_mirrormode = undefined, odds_reset = undefined;
-                if (args[0].hasOwnProperty("options")) {
-                    for (let i = 0; i < args[0].options.length; i++) {
-                        if (args[0].options[i].name == "winnings") {
-                            winnings = args[0].options[i].value
-                        } else if (args[0].options[i].name == "skips_odds") {
-                            odds_skips = args[0].options[i].value
-                        } else if (args[0].options[i].name == "no_upgrades_odds") {
-                            odds_noupgrades = args[0].options[i].value
-                        } else if (args[0].options[i].name == "non_3_lap_odds") {
-                            odds_non3lap = args[0].options[i].value
-                        } else if (args[0].options[i].name == "mirrored_odds") {
-                            odds_mirrormode = args[0].options[i].value
-                        } else if (args[0].options[i].name == "reset") {
-                            odds_reset = args[0].options[i].value
+                if (!args.includes("initial")) {
+                    if (args[args.length - 1].startsWith("uid")) {
+                        if (args[args.length - 1].replace("uid", "") !== member) {
+                            const holdUp = new Discord.MessageEmbed()
+                                .setTitle("<:WhyNobodyBuy:589481340957753363> Get Your Own Settings!")
+                                .setDescription("This is someone else's settings menu. Get your own by clicking the button below.")
+                            client.api.interactions(interaction.id, interaction.token).callback.post({
+                                data: {
+                                    type: 4,
+                                    data: {
+                                        content: "",
+                                        embeds: [holdUp],
+                                        flags: 64,
+                                        components: [
+                                            {
+                                                type: 1,
+                                                components: [
+                                                    {
+                                                        type: 2,
+                                                        custom_id: "challenge_random_settings_initial",
+                                                        style: 4,
+                                                        label: "Settings",
+                                                        emoji: {
+                                                            name: "⚙️"
+                                                        }
+                                                    },
+                                                    {
+                                                        type: 2,
+                                                        style: 2,
+                                                        custom_id: "challenge_random_menu_initial",
+                                                        emoji: {
+                                                            name: "menu",
+                                                            id: "862620287735955487"
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                }
+                            })
+                            return
                         }
                     }
                 }
-                var odds_text = ""
-                var desc = "You have not customized your odds. The default odds are listed below. "
+                const settingsEmbed = new Discord.MessageEmbed()
+                    .setTitle(":gear: Settings")
+                    .setAuthor("Random Challenge", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/game-die_1f3b2.png")
+                    .setDescription("Customize the odds for your random challenge conditions and select a winnings pattern.")
+                    .setFooter(interaction.member.user.username, client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
+                    .setColor("#ED4245")
                 var settings_default = {
                     winnings: 1,
                     skips: 25,
@@ -2082,108 +2111,217 @@ module.exports = {
                     { name: "Skilled", text: ":gem: 55%\n:first_place: 27%\n:second_place: 14%\n:third_place: 5%\n<:bumpythumb:703107780860575875> 0%" },
                     { name: "Winner Takes All", text: ":gem: 100%\n:first_place: 0%\n:second_place: 0%\n:third_place: 0%\n<:bumpythumb:703107780860575875> 0%" }
                 ]
-                if (odds_reset) { //resetting to default
-                    if (profiledata[member] !== undefined) {
-                        desc = "You have successfully reset your settings to default. "
-                        profileref.child(member).update({
-                            winnings: settings_default.winnings,
-                            skips: settings_default.skips,
-                            no_upgrades: settings_default.no_upgrades,
-                            non_3_lap: settings_default.non_3_lap,
-                            mirror_mode: settings_default.mirrored
-                        })
+                var components = [], odds_disabled = false, winnings_disabled = false
+                //get input
+                if (args[2] == "winnnings") {
+                    winnings_disabled = true
+                    if (interaction.data.hasOwnProperty("values")) {
+                        profileref.child(member).update({ winnings: Number(interaction.data.values[0]) })
                     }
-                } else if (winnings == undefined && odds_skips == undefined && odds_noupgrades == undefined && odds_non3lap == undefined && odds_mirrormode == undefined) { //no odds submitted
-                    if (profiledata[member] !== undefined) {
-                        desc = "Your current settings are shown below. " + "\n\n**Challenge Condition Odds**\nCustomize your odds by using the `/challenge settings` command and inputting numbers for Skips, No Upgrades, Non 3-lap, and Mirror Mode odds.\n" +
-                            "**Challenge Winnings**\nYou can earn a certain amount of truguts based on the goal time you beat for each challenge. Customize your winnings pattern in the `/challenge settings` command and choose how to split your potential winnings."
-                        winnings = profiledata[member].winnings
-                        odds_skips = profiledata[member].skips
-                        odds_noupgrades = profiledata[member].no_upgrades
-                        odds_non3lap = profiledata[member].non_3_lap
-                        odds_mirrormode = profiledata[member].mirror_mode
-                    } else {
-                        desc = "You have not customized your settings. The default settings are shown below. " + "\n\n**Challenge Condition Odds**\nCustomize your odds by using the `/challenge settings` command and inputting numbers for Skips, No Upgrades, Non 3-lap, and Mirror Mode odds.\n" +
-                            "**Challenge Winnings**\nYou can earn a certain amount of truguts based on the goal time you beat for each challenge. Customize your winnings pattern in the `/challenge settings` command and choose how to split your potential winnings."
-                        winnings = settings_default.winnings
-                        odds_skips = settings_default.skips
-                        odds_noupgrades = settings_default.no_upgrades
-                        odds_non3lap = settings_default.non_3_lap
-                        odds_mirrormode = settings_default.mirrored
-                    }
-                } else { //at least one setting was updated
-                    desc = "You have successfully updated your settings. Your new settings are shown below. "
-                    if (profiledata[member] == undefined) {
-                        var data = {
-                            mirror_mode: 5,
-                            name: interaction.member.user.username,
-                            no_upgrades: 15,
-                            non_3_lap: 5,
-                            skips: 25,
-                            winnings: 1
+                    var winnings_options = []
+                    for (i = 0; i < winnings_map.length; i++) {
+                        var option = {
+                            label: winnings_map[i].name,
+                            value: i
                         }
-                        profileref.child(member).set(data)
-                    }
-                    if (winnings == undefined) {
-                        if (profiledata[member].winnings !== undefined) {
-                            winnings = profiledata[member].winnings
-                        } else {
-                            winnings = settings_default.winnings
+                        if (i == settings_default.winnings) {
+                            option.description = "Default"
                         }
-                    }
-                    if (odds_skips == undefined) {
-                        if (profiledata[member].skips !== undefined) {
-                            odds_skips = profiledata[member].skips
-                        } else {
-                            odds_skips = settings_default.skips
+                        if (profiledata[member].winnings == i) {
+                            option.default = true
                         }
+                        winnings_options.push(option)
                     }
-                    if (odds_noupgrades == undefined) {
-                        if (profiledata[member].no_upgrades !== undefined) {
-                            odds_noupgrades = profiledata[member].no_upgrades
-                        } else {
-                            odds_noupgrades = settings_default.no_upgrades
+                    components.push(
+                        {
+                            type: 1,
+                            components: [
+                                {
+                                    type: 3,
+                                    custom_id: "challenge_random_settings_winnings_uid" + member,
+                                    options: winnings_options,
+                                    placeholder: "Select Winnings",
+                                    min_values: 1,
+                                    max_values: 1
+                                }
+                            ]
                         }
-                    }
-                    if (odds_non3lap == undefined) {
-                        if (profiledata[member].non_3_lap !== undefined) {
-                            odds_non3lap = profiledata[member].non_3_lap
-                        } else {
-                            odds_non3lap = settings_default.non_3_lap
-                        }
-                    }
-                    if (odds_mirrormode == undefined) {
-                        if (profiledata[member].mirror_mode !== undefined) {
-                            odds_mirrormode = profiledata[member].mirror_mode
-                        } else {
-                            odds_mirrormode = settings_default.mirrored
-                        }
-                    }
-                    if (profiledata[member] !== undefined) {
-                        profileref.child(member).update({
-                            winnings: Number(winnings),
-                            skips: odds_skips,
-                            no_upgrades: odds_noupgrades,
-                            non_3_lap: odds_non3lap,
-                            mirror_mode: odds_mirrormode
-                        })
-                    }
+                    )
+                } else if (args[2] == "skips") {
+                    profileref.child(member).update({ skips: Number(interaction.data.values[0]) })
+                } else if (args[2] == "noupgrades") {
+                    profileref.child(member).update({ no_upgrades: Number(interaction.data.values[0]) })
+                } else if (args[2] == "non3lap") {
+                    profileref.child(member).update({ non_3_lap: Number(interaction.data.values[0]) })
+                } else if (args[2] == "mirrormode") {
+                    profileref.child(member).update({ mirror_mode: Number(interaction.data.values[0]) })
+                } else if (args[2] == "default") {
+                    profileref.child(member).update({
+                        winnings: settings_default.winnings,
+                        skips: settings_default.skips,
+                        no_upgrades: settings_default.no_upgrades,
+                        non_3_lap: settings_default.non_3_lap,
+                        mirror_mode: settings_default.mirrored
+                    })
                 }
-                const oddsEmbed = new Discord.MessageEmbed()
-                    .setThumbnail("https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/259/game-die_1f3b2.png")
-                    .setAuthor(interaction.member.user.username, client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
-                    .setTitle("Your `/challenge` Settings")
-                    .setDescription(desc)
-                    .addField("Your Odds", "Skips - " + odds_skips + "%\nNo Upgrades - " + odds_noupgrades + "%\nNon 3-Lap - " + odds_non3lap + "%\nMirror Mode - " + odds_mirrormode + "%", true)
+                if (["skips", "noupgrades", "non3lap", "mirrormode", "odds"].includes(args[2])) {
+                    var skip_options = [], no_upgrades_options = [], non_3_lap_options = [], mirror_mode_options = []
+                    odds_disabled = true
+                    for (i = 0; i < 101; i += 5) {
+                        var option = {
+                            value: i
+                        }
+                        //skips
+                        option.label = "Skips: " + i + "%"
+                        var description = ""
+                        if (i > 0 && i <= 25) {
+                            description.push("📀" + tools.numberWithCommas(truguts.non_standard) + " Bonus")
+                        }
+                        if (i == settings_default.skips) {
+                            description.push("Default")
+                        }
+                        option.description = description.join(" | ")
+                        skip_options.push(option)
+                        //no upgrades
+                        option.label = "No Upgrades: " + i + "%"
+                        description = ""
+                        if (i > 0 && i <= 25) {
+                            description.push("📀" + tools.numberWithCommas(truguts.non_standard) + " Bonus")
+                        }
+                        if (i == settings_default.no_upgrades) {
+                            description.push("Default")
+                        }
+                        option.description = description.join(" | ")
+                        no_upgrades_options.push(option)
+                        //non 3 lap
+                        option.label = "Non 3-lap: " + i + "%"
+                        description = ""
+                        if (i > 0 && i <= 25) {
+                            description.push("📀" + tools.numberWithCommas(truguts.non_standard) + " Bonus")
+                        }
+                        if (i == settings_default.non_3_lap) {
+                            description.push("Default")
+                        }
+                        option.description = description.join(" | ")
+                        non_3_lap_options.push(option)
+                        //mirrored
+                        option.label = "Mirrored: " + i + "%"
+                        description = ""
+                        if (i > 0 && i <= 25) {
+                            description.push("📀" + tools.numberWithCommas(truguts.non_standard) + " Bonus")
+                        }
+                        if (i == settings_default.mirrored) {
+                            description.push("Default")
+                        }
+                        option.description = description.join(" | ")
+                        mirror_mode_options.push(option)
+                    }
+                    components.push(
+                        {
+                            type: 1,
+                            components: [
+                                {
+                                    type: 3,
+                                    custom_id: "challenge_random_settings_skips_uid" + member,
+                                    options: skip_options,
+                                    placeholder: "Select Skip Odds",
+                                    min_values: 1,
+                                    max_values: 1
+                                }
+                            ]
+                        },
+                        {
+                            type: 1,
+                            components: [
+                                {
+                                    type: 3,
+                                    custom_id: "challenge_random_settings_noupgrades_uid" + member,
+                                    options: no_upgrades_options,
+                                    placeholder: "Select No Upgrades Odds",
+                                    min_values: 1,
+                                    max_values: 1
+                                }
+                            ]
+                        },
+                        {
+                            type: 1,
+                            components: [
+                                {
+                                    type: 3,
+                                    custom_id: "challenge_random_settings_non3lap_uid" + member,
+                                    options: non_3_lap_options,
+                                    placeholder: "Select Non 3-Lap Odds",
+                                    min_values: 1,
+                                    max_values: 1
+                                }
+                            ]
+                        },
+                        {
+                            type: 1,
+                            components: [
+                                {
+                                    type: 3,
+                                    custom_id: "challenge_random_settings_mirrormode_uid" + member,
+                                    options: mirror_mode_options,
+                                    placeholder: "Select Mirrored Odds",
+                                    min_values: 1,
+                                    max_values: 1
+                                }
+                            ]
+                        }
+                    )
+                }
+                components.push({
+                    type: 1,
+                    components:[
+                        {
+                            type: 2,
+                            style: 2,
+                            custom_id: "challenge_random_settings_odds_uid" + member,
+                            label: "Odds",
+                            disabled: odds_disabled
+                        },
+                        {
+                            type: 2,
+                            style: 2,
+                            label: "Winnings",
+                            custom_id: "challenge_random_settings_winnings_uid" + member,
+                            disabled: winnings_disabled
+                        },
+                        {
+                            type: 2,
+                            style: 2,
+                            label: "Reset to Default",
+                            custom_id: "challenge_random_settings_default_uid" + member,
+                        },
+                        {
+                            type: 2,
+                            style: 2,
+                            custom_id: "challenge_random_menu_uid" + member,
+                            emoji: {
+                                name: "menu",
+                                id: "862620287735955487"
+                            }
+                        }
+                    ]
+                })
+                var winnings = profiledata[member].winnings
+                var odds = {
+                    skips: profiledata[member].skips,
+                    no_upgrades: profiledata[member].no_upgrades,
+                    non_3_lap: profiledata[member].non_3_lap,
+                    mirror_mode: profiledata[member].mirror_mode
+                }
+                settingsEmbed
+                    .addField("Your Odds", "Skips - " + odds.skips + "%\nNo Upgrades - " + odds.no_upgrades + "%\nNon 3-Lap - " + odds.non_3_lap + "%\nMirror Mode - " + odds.mirror_mode + "%", true)
                     .addField("Your Winnings: " + winnings_map[winnings].name, winnings_map[winnings].text, true)
-                    .setColor("EA596E")
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
-                        type: 4,
+                        type: 7,
                         data: {
                             content: "",
-                            embeds: [oddsEmbed],
-                            flags: 64
+                            embeds: [settingsEmbed],
+                            components: components
                         }
                     }
                 })
