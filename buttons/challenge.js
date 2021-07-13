@@ -1268,15 +1268,17 @@ module.exports = {
                     try {
                         var data = updateChallenge()
                         client.api.interactions(interaction.id, interaction.token).callback.post({
-                            type: 7,
                             data: {
-                                embeds: [data.message],
-                                components: [
-                                    {
-                                        type: 1,
-                                        components: data.components
-                                    }
-                                ]
+                                type: 7,
+                                data: {
+                                    embeds: [data.message],
+                                    components: [
+                                        {
+                                            type: 1,
+                                            components: data.components
+                                        }
+                                    ]
+                                }
                             }
                         })
                     } catch { }
@@ -1313,11 +1315,11 @@ module.exports = {
                     })
                 }
             } else if (["like", "dislike"].includes(args[1])) {
-                if (interaction.message.id == profiledata[member].current.message && profiledata[member].current.rated == false){
-                    profileref.child(member).child("current").update({rated: true})
-                    profileref.child(member).update({truguts_earned: profiledata[member].truguts_earned + truguts.rated})
+                if (interaction.message.id == profiledata[member].current.message && profiledata[member].current.rated == false) {
+                    profileref.child(member).child("current").update({ rated: true })
+                    profileref.child(member).update({ truguts_earned: profiledata[member].truguts_earned + truguts.rated })
                     var feedback = '👍'
-                    if(args[1] == "dislike"){
+                    if (args[1] == "dislike") {
                         feedback = "👎"
                     }
                     var feedbackdata = {
@@ -1336,15 +1338,17 @@ module.exports = {
                     try {
                         var data = updateChallenge()
                         client.api.interactions(interaction.id, interaction.token).callback.post({
-                            type: 7,
                             data: {
-                                embeds: [data.message],
-                                components: [
-                                    {
-                                        type: 1,
-                                        components: data.components
-                                    }
-                                ]
+                                type: 7,
+                                data: {
+                                    embeds: [data.message],
+                                    components: [
+                                        {
+                                            type: 1,
+                                            components: data.components
+                                        }
+                                    ]
+                                }
                             }
                         })
                     } catch { }
