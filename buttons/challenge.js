@@ -1509,8 +1509,8 @@ module.exports = {
                             }
                         }
                     }
-                    for (var i = 0; i < interaction.message.components[0].components[1].options.length; i++) {
-                        var option = interaction.message.components[0].components[1].options[i]
+                    for (var i = 0; i < interaction.message.components[1].components[0].options.length; i++) {
+                        var option = interaction.message.components[1].components[0].options[i]
                         if (option.hasOwnProperty("default")) {
                             if (option.default) {
                                 selection = i
