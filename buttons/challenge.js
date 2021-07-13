@@ -1897,7 +1897,7 @@ module.exports = {
                         var option = interaction.message.components[0].components[0].options[i]
                         if (option.hasOwnProperty("default")) {
                             if (option.default) {
-                                selection = option.value
+                                selection = i
                             }
                         }
                     }
@@ -2000,6 +2000,7 @@ module.exports = {
                             .setColor("#ED4245")
                             .setAuthor(interaction.member.user.username + "'s Challenge Hunt", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
                         var track_hint = track_hints[track]
+                        var track_hint_text = "", racer_hint_text = ""
                         for (var i = 0; i < selection + 1; i++) {
                             var random_hint = Math.floor(Math.random() * track_hint.length)
                             track_hint_text += "○ *" + track_hint[random_hint] + "*\n"
