@@ -1499,7 +1499,7 @@ module.exports = {
                     { name: "Deluxe Hint", price: truguts.hint_deluxe, bonus: truguts.bonus_deluxe, description: "Three-part hint" }
                 ]
                 var achievement = null, selection = null
-                console.log(interaction.message)
+                console.log(interaction)
                 if (!args.includes("initial")){
                     for (var i = 0; i < interaction.message.components[0].components[0].options.length; i++) {
                         var option = interaction.message.components[0].components[0].options[i]
