@@ -1528,8 +1528,51 @@ module.exports = {
                     { name: "Deluxe Hint", price: truguts.hint_deluxe, bonus: truguts.bonus_deluxe, description: "Three-part hint" }
                 ]
                 var achievement = null, selection = null
-                console.log(interaction)
+
                 if (!args.includes("initial")) {
+                    if (args[args.length-1].startsWith("uid")){
+                        if (args[args.length-1].replace("uid", "") !== member) {
+                            const hintMessage = new Discord.MessageEmbed()
+                                .setTitle("<:WhyNobodyBuy:589481340957753363> Get Your Own Hints!")
+                                .setDescription("This is someone else's hint menu. Get your own by clicking the button below.")
+                            client.api.interactions(interaction.id, interaction.token).callback.post({
+                                data: {
+                                    type: 4,
+                                    data: {
+                                        content: "",
+                                        embeds: [hintMessage],
+                                        flags: 64,
+                                        components: [
+                                            {
+                                                type: 1,
+                                                components: [
+                                                    {
+                                                        type: 2,
+                                                        custom_id: "challenge_random_hint_initial",
+                                                        style: 4,
+                                                        label: "Hints",
+                                                        emoji: {
+                                                            name: "💡"
+                                                        }
+                                                    },
+                                                    {
+                                                        type: 2,
+                                                        style: 2,
+                                                        custom_id: "challenge_random_menu",
+                                                        emoji: {
+                                                            name: "menu",
+                                                            id: "862620287735955487"
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                }
+                            })
+                            return
+                        }
+                    }
                     for (var i = 0; i < interaction.message.components[0].components[0].options.length; i++) {
                         var option = interaction.message.components[0].components[0].options[i]
                         if (option.hasOwnProperty("default")) {
@@ -1597,7 +1640,7 @@ module.exports = {
                         components: [
                             {
                                 type: 3,
-                                custom_id: "challenge_random_hint_achievement",
+                                custom_id: "challenge_random_hint_achievement_uid" + member,
                                 options: achievement_options,
                                 placeholder: "Select Achievement",
                                 min_values: 1,
@@ -1610,7 +1653,7 @@ module.exports = {
                             components: [
                                 {
                                     type: 3,
-                                    custom_id: "challenge_random_hint_selection",
+                                    custom_id: "challenge_random_hint_selection_uid" + member,
                                     options: selection_options,
                                     placeholder: "Select Hint Type",
                                     min_values: 1,
@@ -1623,15 +1666,24 @@ module.exports = {
                             components: [
                                 {
                                     type: 2,
-                                    custom_id: "challenge_random_hint_purchase",
+                                    custom_id: "challenge_random_hint_purchase_uid" + member,
                                     label: "Buy Hint",
                                     style: 4
+                                },
+                                {
+                                    type: 2,
+                                    style: 2,
+                                    custom_id: "challenge_random_menu_uid"+member,
+                                    emoji: {
+                                        name: "menu",
+                                        id: "862620287735955487"
+                                    }
                                 }
                             ]
                         })
                     hintEmbed
                         .setDescription("Hints help you narrow down what challenges you need to complete for :trophy: **Achievements**. The more you pay, the better the hint.")
-                        .setFooter("Truguts: 📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent))
+                        .setFooter(interaction.member.user.username + " | Truguts: 📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent), client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
                 } else {
                     hintEmbed.setDescription("Wow! You've already earned all the achievements! This means you have no use for hints, but you may be interested in earning a large Trugut bonus from a :dart: **Challenge Hunt**.")
                     components.push({
@@ -1757,7 +1809,7 @@ module.exports = {
 
                 var type = 7
                 if (args.includes("initial")) {
-                    type = 4
+                    //type = 4
                 }
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
@@ -1787,7 +1839,7 @@ module.exports = {
                     }
                 })
                 hintBuy.setDescription("`-📀" + tools.numberWithCommas(hints[hint_tier].price) + "`\nBotto has randomly hid a large trugut bonus on a random challenge. You have one hour to find and complete the challenge and claim your bonus! If you use a bribe to successfully find the challenge, you will not be charged.\n" +
-                                    "Potential bonus: `📀" + tools.numberWithCommas(hints[hint_tier].bonus) + "`")
+                    "Potential bonus: `📀" + tools.numberWithCommas(hints[hint_tier].bonus) + "`")
 
             } else if (args[1] == "settings") {
                 //get input
