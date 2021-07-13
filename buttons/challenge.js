@@ -59,9 +59,9 @@ module.exports = {
         }
 
         var hints = [
-            { name: "Basic Hint", price: truguts.hint_basic, bonus: truguts.bonus_basic, description: "Single-part hint" },
-            { name: "Standard Hint", price: truguts.hint_standard, bonus: truguts.bonus_standard, description: "Two-part hint" },
-            { name: "Deluxe Hint", price: truguts.hint_deluxe, bonus: truguts.bonus_deluxe, description: "Three-part hint" }
+            { name: "Basic Hint", price: truguts.hint_basic, bonus: truguts.bonus_basic, description: "Single-part hint" , hunt: "Force-Intuitive"},
+            { name: "Standard Hint", price: truguts.hint_standard, bonus: truguts.bonus_standard, description: "Two-part hint", hunt: "Force-Attuned"},
+            { name: "Deluxe Hint", price: truguts.hint_deluxe, bonus: truguts.bonus_deluxe, description: "Three-part hint", hunt: "Force-Sensitive" }
         ]
 
         function getGoalTimes(track, racer, skips, nu, laps) {
@@ -1843,6 +1843,8 @@ module.exports = {
 
             } else if (args[1] == "hunt") {
                 const huntEmbed = new Discord.MessageEmbed()
+                    .setTitle(":dart: Challenge Hunt")
+                    .setAuthor("Random Challenge", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/game-die_1f3b2.png")
                     .setDescription("Challenge Hunt is a way to earn big truguts fast. Based on your hint selection, Botto hides a large trugut bonus on a random challenge. You have one hour to find and complete this challenge to claim your bonus.")
                     .setFooter(interaction.member.user.username + " | Truguts: 📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent), client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
                     .setColor("#ED4245")
@@ -1912,7 +1914,7 @@ module.exports = {
                 var components = [], selection_options = []
                 for (i = 0; i < hints.length; i++) {
                     var option = {
-                        label: hints[i].name,
+                        label: hints[i].hunt,
                         value: i,
                         description: "Price: 📀" + tools.numberWithCommas(hints[i].price) + " | " + hints[i].description + " | Bonus: 📀" + tools.numberWithCommas(hints[i].bonus),
                         emoji: {
@@ -1950,7 +1952,7 @@ module.exports = {
                             {
                                 type: 2,
                                 custom_id: "challenge_random_hunt_start_uid" + member,
-                                label: "Buy Hint",
+                                label: "Start Hunt",
                                 style: 4,
                                 disabled: disabled
                             },
