@@ -2184,7 +2184,7 @@ module.exports = {
                         skip_options.push(option)
                         //no upgrades
                         option.label = "No Upgrades: " + i + "%"
-                        description = ""
+                        description = []
                         if (i > 0 && i <= 25) {
                             description.push("📀" + tools.numberWithCommas(truguts.non_standard) + " Bonus")
                         }
@@ -2195,7 +2195,7 @@ module.exports = {
                         no_upgrades_options.push(option)
                         //non 3 lap
                         option.label = "Non 3-lap: " + i + "%"
-                        description = ""
+                        description = []
                         if (i > 0 && i <= 25) {
                             description.push("📀" + tools.numberWithCommas(truguts.non_standard) + " Bonus")
                         }
@@ -2206,7 +2206,7 @@ module.exports = {
                         non_3_lap_options.push(option)
                         //mirrored
                         option.label = "Mirrored: " + i + "%"
-                        description = ""
+                        description = []
                         if (i > 0 && i <= 25) {
                             description.push("📀" + tools.numberWithCommas(truguts.non_standard) + " Bonus")
                         }
