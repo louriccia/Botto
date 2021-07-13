@@ -1531,7 +1531,7 @@ module.exports = {
                         var option = {
                             label: achievements[ach[i]].name,
                             value: ach[i],
-                            description: achievements[achi[i]].description,
+                            description: achievements[ach[i]].description,
                         }
                         if (achievement == ach[i]) {
                             option.default = true
