@@ -34,7 +34,7 @@ module.exports = {
             light_skipper: { name: "Lightspeed Skipper", description: "Race every track with a skip", role: "819514330985922621", limit: 12, count: 0, collection: {}, array: [], missing: [] },
             slow_steady: { name: "Slow 'n Steady", description: "Race every pod with No Upgrades", role: "819514431472926721", limit: 23, count: 0, collection: {}, array: [], missing: [] },
             mirror_dimension: { name: "Mirror Dimension", description: "Race mirrored on every track", role: "843573636119134219", limit: 25, count: 0, collection: {}, array: [], missing: [] },
-            crowd_favorite: { name: "Crowd Favorite", description: "Race as every track favorite on their track", role: "819514487852761138", limit: 25, count: 0, collection: {}, array: [], missing: [] },
+            crowd_favorite: { name: "Crowd Favorite", description: "Race as every track favorite on his track", role: "819514487852761138", limit: 25, count: 0, collection: {}, array: [], missing: [] },
             true_jedi: { name: "True Jedi", description: "Race every pod on every track", role: "819514600827519008", limit: 575, count: 0, collection: {}, array: [], missing: [] },
             big_time_swindler: { name: "Big-Time Swindler", description: "Earn or spend 1,000,000 total truguts", role: "844307520997949481", limit: 1000000, count: 0, collection: {}, array: [], missing: [] }
         }
@@ -1499,7 +1499,7 @@ module.exports = {
                     { name: "Deluxe Hint", price: truguts.hint_deluxe, bonus: truguts.bonus_deluxe, description: "Three-part hint" }
                 ]
                 var achievement = null, selection = null
-                
+                console.log(interaction.message)
                 if (!args.includes("initial")){
                     for (var i = 0; i < interaction.message.components[0].components[0].options.length; i++) {
                         var option = interaction.message.components[0].components[0].options[i]
@@ -1532,6 +1532,9 @@ module.exports = {
                             label: achievements[ach[i]].name,
                             value: ach[i],
                             description: achievements[ach[i]].description,
+                            emoji: {
+                                name: "🏆"
+                            }
                         }
                         if (achievement == ach[i]) {
                             option.default = true
@@ -1573,8 +1576,8 @@ module.exports = {
                         components: [
                             {
                                 type: 3,
-                                custom_id: "challenge_random_hint_achievement",
-                                options: achievement_options,
+                                custom_id: "challenge_random_hint_selection",
+                                options: selection_options,
                                 placeholder: "Select Hint Type",
                                 min_values: 1,
                                 max_values: 1
