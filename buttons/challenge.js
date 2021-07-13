@@ -737,7 +737,7 @@ module.exports = {
                         } else if (reroll_cost == 0) {
                             reroll_description = "(no charge for record holders)"
                         } else {
-                            reroll_description = "`-📀" + tools.numberWithCommas(truguts.reroll)
+                            reroll_description = "`-📀" + tools.numberWithCommas(truguts.reroll) + "`"
                         }
                         newEmbed.setDescription(reroll_description)
                     }
@@ -1323,8 +1323,7 @@ module.exports = {
                         feedback = "👎"
                     }
                     var feedbackdata = {
-                        user: member.id,
-                        name: member.username,
+                        user: member,
                         feedback: feedback,
                         date: profiledata[member].current.start,
                         racer: profiledata[member].current.racer,
