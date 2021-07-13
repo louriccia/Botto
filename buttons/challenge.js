@@ -32,7 +32,7 @@ module.exports = {
             galaxy_famous: { name: "Galaxy Famous", description: "Race on every track", role: "819514261289828362", limit: 25, count: 0, collection: {}, array: [], missing: [] },
             pod_champ: { name: "Pod Champ", description: "Race as every pod", role: "819514029218463774", limit: 23, count: 0, collection: {}, array: [], missing: [] },
             light_skipper: { name: "Lightspeed Skipper", description: "Race every track with a Skip", role: "819514330985922621", limit: 12, count: 0, collection: {}, array: [], missing: [] },
-            slow_steady: { name: "Slow 'n Steady", description: "Race every pod with No Upgrades", role: "819514431472926721", limit: 23, count: 0, collection: {}, array: [], missing: [] },
+            slow_steady: { name: "Slow 'n Steady", description: "Race as every pod with No Upgrades", role: "819514431472926721", limit: 23, count: 0, collection: {}, array: [], missing: [] },
             mirror_dimension: { name: "Mirror Dimension", description: "Race Mirrored on every track", role: "843573636119134219", limit: 25, count: 0, collection: {}, array: [], missing: [] },
             crowd_favorite: { name: "Crowd Favorite", description: "Race as every track favorite on his track", role: "819514487852761138", limit: 25, count: 0, collection: {}, array: [], missing: [] },
             true_jedi: { name: "True Jedi", description: "Race as every pod on every track", role: "819514600827519008", limit: 575, count: 0, collection: {}, array: [], missing: [] },
@@ -1546,7 +1546,10 @@ module.exports = {
                     var option = {
                         label: hints[i].name,
                         value: i,
-                        description: "📀" + tools.numberWithCommas(hints[i].price) + " | " + hints[i].description
+                        description: "📀" + tools.numberWithCommas(hints[i].price) + " | " + hints[i].description,
+                        emoji: {
+                            name: "💡"
+                        }
                     }
                     if (selection == i) {
                         option.default = true
@@ -1590,7 +1593,7 @@ module.exports = {
                             {
                                 type: 2,
                                 custom_id: "challenge_random_hint_purchase",
-                                label: "Purchase Hint",
+                                label: "Buy Hint",
                                 style: 4
                             }
                         ]
@@ -1774,7 +1777,7 @@ module.exports = {
                             content: "",
                             embeds: [hintEmbed],
                             components: components,
-                            //flags: 64
+                            flags: 64
                         },
                         
                     }
