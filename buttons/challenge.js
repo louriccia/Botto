@@ -1806,7 +1806,7 @@ module.exports = {
 
                         }
                         hintBuy
-                            .setAuthor(interaction.member.user.username + "'s Hint", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
+                            .setAuthor(interaction.member.user.username + "'s Random Challenge Hint", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
                             .setTitle(":bulb: " + hints[selection].name + ": " + achievement_name)
                     }
                     hintBuy.setFooter("Truguts: 📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent))
@@ -1907,7 +1907,7 @@ module.exports = {
                 }
                 if(profiledata[member].hunt !==undefined){
                     if(profiledata[member].hunt.date > Date.now() - 1000*60*60 && profiledata[member].hunt.completed == false){
-                        huntEmbed.addField(":exclamation: Hunt Already in Progress", "You already have an active hunt with " + tools.timefix((profiledata[member].hunt.date + 1000*60*60-Date.now())/1000) + " remaining. Starting a new one will overwrite the hunt in progress.")
+                        huntEmbed.addField(":exclamation: Hunt Already in Progress", "Your current hunt expires <t:" + profiledata[member].hunt.date + 1000*60*60-Date.now()) + ":R>. Starting a new one will overwrite the hunt in progress.")
                     }
                 }
                 //draw components
@@ -1998,7 +1998,7 @@ module.exports = {
                         const huntBuy = new Discord.MessageEmbed()
                             .setTitle(":dart: " + hints[selection].hunt)
                             .setColor("#ED4245")
-                            .setAuthor(interaction.member.user.username + "'s Challenge Hunt", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
+                            .setAuthor(interaction.member.user.username + "'s Random Challenge Hunt", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
                         var track_hint = track_hints[track]
                         var track_hint_text = "", racer_hint_text = ""
                         for (var i = 0; i < selection + 1; i++) {
@@ -2014,9 +2014,11 @@ module.exports = {
                             racer_hint_text += "○ *" + racer_hint[random_hint] + "*\n"
                             racer_hint.splice(random_hint, 1)
                         }
-                        huntBuy.addField("Racer Hint", racer_hint_text)
-                        huntBuy.setDescription("`-📀" + tools.numberWithCommas(hints[selection].price) + "`\nBotto has randomly hid a large trugut bonus on a random challenge. You have one hour to find and complete the challenge and claim your bonus! If you use a bribe to successfully find the challenge, you will not be charged.\n" +
+                        huntBuy
+                        .addField("Racer Hint", racer_hint_text)
+                        .setDescription("`-📀" + tools.numberWithCommas(hints[selection].price) + "`\nBotto has hid a large trugut bonus on a random challenge. You have one hour to find and complete the challenge and claim your bonus! \nHunt Expires: <t:" + Date.now()+1000*60*60 +":t>\n\nIf you use a bribe to successfully find the challenge, you will not be charged.\n" +
                             "Potential bonus: `📀" + tools.numberWithCommas(hints[selection].bonus) + "`")
+                        .setFooter("Truguts: 📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent))
                         client.api.interactions(interaction.id, interaction.token).callback.post({
                             data: {
                                 type: 4,
