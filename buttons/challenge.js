@@ -1991,11 +1991,12 @@ module.exports = {
                                 track: track,
                                 racer: racer,
                                 date: Date.now(),
-                                bonus: hints[hint_tier].bonus,
+                                bonus: hints[selection].bonus,
                                 completed: false
                             }
                         })
                         const huntBuy = new Discord.MessageEmbed()
+                            .setTitle(":dart: " + hints[selection].hunt)
                             .setColor("#ED4245")
                             .setAuthor(interaction.member.user.username + "'s Challenge Hunt", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
                         var track_hint = track_hints[track]
@@ -2013,8 +2014,8 @@ module.exports = {
                             racer_hint.splice(random_hint, 1)
                         }
                         huntBuy.addField("Racer Hint", racer_hint_text)
-                        huntBuy.setDescription("`-📀" + tools.numberWithCommas(hints[hint_tier].price) + "`\nBotto has randomly hid a large trugut bonus on a random challenge. You have one hour to find and complete the challenge and claim your bonus! If you use a bribe to successfully find the challenge, you will not be charged.\n" +
-                            "Potential bonus: `📀" + tools.numberWithCommas(hints[hint_tier].bonus) + "`")
+                        huntBuy.setDescription("`-📀" + tools.numberWithCommas(hints[selection].price) + "`\nBotto has randomly hid a large trugut bonus on a random challenge. You have one hour to find and complete the challenge and claim your bonus! If you use a bribe to successfully find the challenge, you will not be charged.\n" +
+                            "Potential bonus: `📀" + tools.numberWithCommas(hints[selection].bonus) + "`")
                         client.api.interactions(interaction.id, interaction.token).callback.post({
                             data: {
                                 type: 4,
