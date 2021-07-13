@@ -1546,7 +1546,7 @@ module.exports = {
                     var option = {
                         label: hints[i].name,
                         value: i,
-                        description: "📀" + hints[i].price + " | " + hints[i].description
+                        description: "📀" + tools.numberWithCommas(hints[i].price) + " | " + hints[i].description
                     }
                     if (selection == i) {
                         option.default = true
@@ -1774,7 +1774,7 @@ module.exports = {
                             content: "",
                             embeds: [hintEmbed],
                             components: components,
-                            flags: 64
+                            //flags: 64
                         },
                         
                     }
