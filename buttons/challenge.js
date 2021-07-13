@@ -746,7 +746,6 @@ module.exports = {
                     message: newEmbed,
                     components: components
                 }
-                console.log(data)
                 return data
             }
 
@@ -1269,11 +1268,12 @@ module.exports = {
                     try {
                         var data = updateChallenge()
                         client.api.interactions(interaction.id, interaction.token).callback.post({
+                            type: 7,
                             data: {
                                 embeds: [data.message],
                                 components: [
                                     {
-                                        type: 7,
+                                        type: 1,
                                         components: data.components
                                     }
                                 ]
@@ -1336,11 +1336,12 @@ module.exports = {
                     try {
                         var data = updateChallenge()
                         client.api.interactions(interaction.id, interaction.token).callback.post({
+                            type: 7,
                             data: {
                                 embeds: [data.message],
                                 components: [
                                     {
-                                        type: 7,
+                                        type: 1,
                                         components: data.components
                                     }
                                 ]
