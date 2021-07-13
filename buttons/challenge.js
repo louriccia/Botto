@@ -1268,12 +1268,12 @@ module.exports = {
                     ref.child(profiledata[member].current.submission).remove()
                     try {
                         var data = updateChallenge()
-                        client.api.webhooks(client.user.id, profiledata[memeber].current.token).messages('@original').patch({
+                        client.api.interactions(interaction.id, interaction.token).callback.post({
                             data: {
                                 embeds: [data.message],
                                 components: [
                                     {
-                                        type: 1,
+                                        type: 7,
                                         components: data.components
                                     }
                                 ]
@@ -1335,12 +1335,12 @@ module.exports = {
                     feedbackref.push(feedbackdata);
                     try {
                         var data = updateChallenge()
-                        client.api.webhooks(client.user.id, profiledata[member].current.token).messages('@original').patch({
+                        client.api.interactions(interaction.id, interaction.token).callback.post({
                             data: {
                                 embeds: [data.message],
                                 components: [
                                     {
-                                        type: 1,
+                                        type: 7,
                                         components: data.components
                                     }
                                 ]

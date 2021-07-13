@@ -227,6 +227,7 @@ client.once('ready', () => {
                                     return p
                                 }
                             }
+                            return name
                         }
                         if (schedule[i].length > 4) {
                             if (!schedule[i][4].includes("?")) {
