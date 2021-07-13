@@ -359,28 +359,80 @@ module.exports = {
                     } else {
                         price = "📀" + tools.numberWithCommas(price)
                     }
+                    if (!profiledata[member].current.completed) {
+                        components.push({
+                            type: 2,
+                            style: 2,
+                            custom_id: "challenge_random_reroll",
+                            label: "Reroll (" + price + ")",
+                            emoji: {
+                                name: "🎲"
+                            }
+                        })
+                    }
+
+                }
+
+                //draw components
+                if (current_truguts >= truguts.bribe_track || current_truguts >= truguts.bribe_racer) {
+                    if (!profiledata[member].current.completed) {
+                        components.push({
+                            type: 2,
+                            style: 2,
+                            custom_id: "challenge_random_bribe",
+                            label: "Bribe",
+                            emoji: {
+                                name: "💰"
+                            }
+                        })
+                    }
+                }
+                if (profiledata[member].current.completed) {
                     components.push({
                         type: 2,
-                        style: 2,
-                        custom_id: "challenge_random_reroll",
-                        label: "Reroll (" + price + ")",
+                        style: 4,
+                        custom_id: "challenge_random_play",
                         emoji: {
                             name: "🎲"
                         }
-                    })
-                }
-                if (current_truguts >= truguts.bribe_track || current_truguts >= truguts.bribe_racer) {
+                    },
+                        {
+                            type: 2,
+                            style: 2,
+                            custom_id: "challenge_random_undo",
+                            emoji: {
+                                name: "↩️"
+                            }
+                        })
+                    if (!profiledata[member].current.rated) {
+                        components.push({
+                            type: 2,
+                            style: 2,
+                            custom_id: "challenge_random_like",
+                            emoji: {
+                                name: "👍"
+                            }
+                        },
+                            {
+                                type: 2,
+                                style: 2,
+                                custom_id: "challenge_random_dislike",
+                                emoji: {
+                                    name: "👎"
+                                }
+                            })
+
+                    }
                     components.push({
                         type: 2,
                         style: 2,
-                        custom_id: "challenge_random_bribe",
-                        label: "Bribe",
+                        custom_id: "challenge_random_menu",
                         emoji: {
-                            name: "💰"
+                            name: "menu",
+                            id: "862620287735955487"
                         }
                     })
                 }
-
                 //calculate goal time
                 var goals = getGoalTimes(profiledata[member].current.track, profiledata[member].current.racer, profiledata[member].current.skips, profiledata[member].current.nu, profiledata[member].current.laps)
                 var goal_symbols = [":gem:", ":first_place:", ":second_place:", ":third_place:", "<:bumpythumb:703107780860575875>"]
@@ -634,16 +686,12 @@ module.exports = {
                         earnings += "Rated `+📀" + tools.numberWithCommas(truguts.rated) + "`\n"
                         earnings_total += truguts.rated
                     }
-                    var earned = profiledata[member].truguts_earned
-                    if (!profiledata[member].current.rated || profiledata[member].current.undone) {
-                        profileref.child(member).update({ truguts_earned: earned + earnings_total })
-                    } else {
-                        profileref.child(member).update({ truguts_earned: earned + truguts.rated })
+                    if (profiledata[member].truguts_earned == 0) {
+                        profileref.child(member).update({ truguts_earned: earnings_total })
+                        profileref.child(member).child("current").update({ truguts_earned: earnings_total })
                     }
-
-                    //earnings += "\n**Total: **`+📀" + tools.numberWithCommas(earnings_total) + "`"
-                    profileref.child(member).child("current").update({ truguts: earnings_total })
-                    earnings += "\n**New balance: **`📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`"
+                    earnings += "\n**Total: **`+📀" + tools.numberWithCommas(earnings_total) + "`"
+                    //earnings += "\n**New balance: **`📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`"
                 }
 
                 //construct embed
@@ -685,11 +733,11 @@ module.exports = {
                         var reroll_cost = profiledata[member].current.reroll_cost
                         var reroll_description = ""
                         if (reroll_cost == truguts.reroll_discount) {
-                            reroll_description = "`-📀" + tools.numberWithCommas(truguts.reroll_discount) + "` (discounted)\nCurrent balance: `📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`"
+                            reroll_description = "`-📀" + tools.numberWithCommas(truguts.reroll_discount) + "` (discounted)"
                         } else if (reroll_cost == 0) {
                             reroll_description = "(no charge for record holders)"
                         } else {
-                            reroll_description = "`-📀" + tools.numberWithCommas(truguts.reroll) + "`\nCurrent balance: `📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`"
+                            reroll_description = "`-📀" + tools.numberWithCommas(truguts.reroll)
                         }
                         newEmbed.setDescription(reroll_description)
                     }
@@ -796,6 +844,7 @@ module.exports = {
                     truguts: 0,
                     hunt: hunt,
                     hunt_bonus: 0,
+                    truguts_earned: 0,
                     track_bribe: false,
                     racer_bribe: false,
                     rated: false,
@@ -960,49 +1009,7 @@ module.exports = {
                                                     components: [
                                                         {
                                                             type: 1,
-                                                            components: [
-                                                                {
-                                                                    type: 2,
-                                                                    style: 4,
-                                                                    custom_id: "challenge_random_play",
-                                                                    emoji: {
-                                                                        name: "🎲"
-                                                                    }
-                                                                },
-                                                                {
-                                                                    type: 2,
-                                                                    style: 2,
-                                                                    custom_id: "challenge_random_undo",
-                                                                    emoji: {
-                                                                        name: "↩️"
-                                                                    }
-                                                                },
-                                                                {
-                                                                    type: 2,
-                                                                    style: 2,
-                                                                    custom_id: "challenge_random_like",
-                                                                    emoji: {
-                                                                        name: "👍"
-                                                                    }
-                                                                },
-                                                                {
-                                                                    type: 2,
-                                                                    style: 2,
-                                                                    custom_id: "challenge_random_dislike",
-                                                                    emoji: {
-                                                                        name: "👎"
-                                                                    }
-                                                                },
-                                                                {
-                                                                    type: 2,
-                                                                    style: 2,
-                                                                    custom_id: "challenge_random_menu",
-                                                                    emoji: {
-                                                                        name: "menu",
-                                                                        id: "862620287735955487"
-                                                                    }
-                                                                }
-                                                            ]
+                                                            components: data.components
                                                         }
                                                     ]
                                                 }
@@ -1058,7 +1065,7 @@ module.exports = {
                         var noMoney = new Discord.MessageEmbed()
                         noMoney
                             .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
-                            .setDescription("*'No money, no challenge, no reroll!'*\nYou do not have enough truguts to reroll this challenge.\n\nCurrent balance: `📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`\nReroll cost: `📀" + tools.numberWithCommas(truguts.reroll) + "`")
+                            .setDescription("*'No money, no challenge, no reroll!'*\nYou do not have enough truguts to reroll this challenge.\n\nReroll cost: `📀" + tools.numberWithCommas(truguts.reroll) + "`")
                         client.api.interactions(interaction.id, interaction.token).callback.post({
                             data: {
                                 type: 4,
@@ -1074,7 +1081,7 @@ module.exports = {
                     var noMoney = new Discord.MessageEmbed()
                     noMoney
                         .setTitle("<:WhyNobodyBuy:589481340957753363> Get Your Own Challenge!")
-                        .setDescription("This is someone else's challenge, or the option to reroll has expired. Roll a challenge with the button below.")
+                        .setDescription("This is someone else's challenge or the option to reroll has expired. Roll a challenge with the button below.")
                     client.api.interactions(interaction.id, interaction.token).callback.post({
                         data: {
                             type: 4,
@@ -1103,151 +1110,215 @@ module.exports = {
                     })
                 }
             } else if (args[1] == "bribe") {
-                if (interaction.data.hasOwnProperty("values")) {
-                    var purchase = {
-                        date: Date.now(),
-                    }
-                    var bribe_cost = 0
-                    var selection = Number(interaction.data.values[0])
-                    if (args[2] == "track") {
-                        bribe_cost = truguts.bribe_track
-                        purchase.purchased_item = "track bribe"
-                    } else if (args[2] == "racer") {
-                        bribe_cost = truguts.bribe_racer
-                        purchase.purchased_item = "racer bribe"
-                    }
-                    purchase.selection = selection
-                    if (profiledata[member].truguts_earned - profiledata[member].truguts_spent < bribe_cost) {
-                        //player doesn't have enough money
-                        var noMoney = new Discord.MessageEmbed()
-                        noMoney
-                            .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
-                            .setDescription("*'No money, no bribe!'*\nYou do not have enough truguts to make this bribe.\n\nCurrent balance: `" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`\nBribe cost: `" + tools.numberWithCommas(bribe_cost) + "`")
-                        client.api.interactions(interaction.id, interaction.token).callback.post({
-                            data: {
-                                type: 4,
+                if (interaction.message.id == profiledata[member].current.message) {
+                    if (interaction.data.hasOwnProperty("values")) {
+                        var purchase = {
+                            date: Date.now(),
+                        }
+                        var bribe_cost = 0
+                        var selection = Number(interaction.data.values[0])
+                        if (args[2] == "track") {
+                            bribe_cost = truguts.bribe_track
+                            purchase.purchased_item = "track bribe"
+                        } else if (args[2] == "racer") {
+                            bribe_cost = truguts.bribe_racer
+                            purchase.purchased_item = "racer bribe"
+                        }
+                        purchase.selection = selection
+                        if (profiledata[member].truguts_earned - profiledata[member].truguts_spent < bribe_cost) {
+                            //player doesn't have enough money
+                            var noMoney = new Discord.MessageEmbed()
+                            noMoney
+                                .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
+                                .setDescription("*'No money, no bribe!'*\nYou do not have enough truguts to make this bribe.\n\nBribe cost: `" + tools.numberWithCommas(bribe_cost) + "`")
+                            client.api.interactions(interaction.id, interaction.token).callback.post({
                                 data: {
-                                    embeds: [noMoney],
-                                    flags: 64
+                                    type: 4,
+                                    data: {
+                                        embeds: [noMoney],
+                                        flags: 64
+                                    }
                                 }
+                            })
+                            return
+                        } else {
+                            //process purchase
+                            var bribed = false
+                            if (args[2] == "track" && selection !== profiledata[member].current.track) {
+                                profileref.child(member).child("current").update({ track_bribe: true, track: selection })
+                                bribed = true
+                            } else if (args[2] == "racer" && selection !== profiledata[member].current.racer) {
+                                profileref.child(member).child("current").update({ racer_bribe: true, racer: selection })
+                                bribed = true
+                            }
+                            if (bribed) {
+                                profileref.child(member).child("purchases").push(purchase)
+                                profileref.child(member).update({ truguts_spent: profiledata[member].truguts_spent + bribe_cost })
+                            }
+                        }
+                    }
+                    //populate options
+                    var track_selections = []
+                    var racer_selections = []
+                    for (var i = 0; i < 25; i++) {
+                        var racer_option = {
+                            label: racers[i].name,
+                            value: i,
+                            description: racers[i].pod.substring(0, 50),
+                            emoji: {
+                                name: racers[i].flag.split(":")[1],
+                                id: racers[i].flag.split(":")[2].replace(">", "")
+                            }
+                        }
+                        var track_option = {
+                            label: tracks[i].name.replace("The Boonta Training Course", "Boonta Training Course"),
+                            value: i,
+                            description: (circuits[tracks[i].circuit].name + " Circuit | Race " + tracks[i].cirnum + " | " + planets[tracks[i].planet].name).substring(0, 50),
+                            emoji: {
+                                name: planets[tracks[i].planet].emoji.split(":")[1],
+                                id: planets[tracks[i].planet].emoji.split(":")[2].replace(">", "")
+                            }
+                        }
+                        if (i < 23) {
+                            racer_selections.push(racer_option)
+                        }
+                        track_selections.push(track_option)
+                    }
+                    var components = []
+                    if (profiledata[member].current.track_bribe == false) {
+                        components.push(
+                            {
+                                type: 1,
+                                components: [
+                                    {
+                                        type: 3,
+                                        custom_id: "challenge_random_bribe_track",
+                                        options: track_selections,
+                                        placeholder: "Bribe Track (📀" + tools.numberWithCommas(truguts.bribe_track) + ")",
+                                        min_values: 1,
+                                        max_values: 1
+                                    },
+                                ]
+                            }
+                        )
+                    }
+                    if (profiledata[member].current.racer_bribe == false) {
+                        components.push(
+                            {
+                                type: 1,
+                                components: [
+                                    {
+                                        type: 3,
+                                        custom_id: "challenge_random_bribe_racer",
+                                        options: racer_selections,
+                                        placeholder: "Bribe Racer (📀" + tools.numberWithCommas(truguts.bribe_racer) + ")",
+                                        min_values: 1,
+                                        max_values: 1
+                                    }
+                                ]
+                            }
+                        )
+                    }
+                    var data = updateChallenge()
+                    client.api.interactions(interaction.id, interaction.token).callback.post({
+                        data: {
+                            type: 7,
+                            data: {
+                                embeds: [data.message],
+                                components: components
+                            }
+                        }
+                    })
+                } else {
+                    var noMoney = new Discord.MessageEmbed()
+                    noMoney
+                        .setTitle("<:WhyNobodyBuy:589481340957753363> Get Your Own Challenge!")
+                        .setDescription("This is someone else's challenge or the option to bribe has expired. Roll a challenge with the button below.")
+                    client.api.interactions(interaction.id, interaction.token).callback.post({
+                        data: {
+                            type: 4,
+                            data: {
+                                //content: "",
+                                embeds: [noMoney],
+                                flags: 64,
+                                components: [
+                                    {
+                                        type: 1,
+                                        components: [
+                                            {
+                                                type: 2,
+                                                style: 4,
+                                                custom_id: "challenge_random_play",
+                                                emoji: {
+                                                    name: "🎲"
+                                                }
+                                            },
+                                        ]
+                                    }
+
+                                ]
+                            }
+                        }
+                    })
+                }
+            } else if (args[1] == "undo") {
+                if (interaction.message.id == profiledata[member].current.message && profiledata[member].current.completed) {
+                    profileref.child(member).update({ truguts_earned: profiledata[member].truguts_earned - profiledata[member].current.truguts_earned })
+                    profileref.child(member).child("current").update({ truguts_earned: 0, title: "", completed: false, undone: true })
+                    ref.child(profiledata[member].current.submission).remove()
+                    try {
+                        var data = updateChallenge()
+                        client.api.webhooks(client.user.id, profiledata[memeber].current.token).messages('@original').patch({
+                            data: {
+                                embeds: [data.message],
+                                components: [
+                                    {
+                                        type: 1,
+                                        components: data.components
+                                    }
+                                ]
                             }
                         })
-                        return
-                    } else {
-                        //process purchase
-                        var bribed = false
-                        if (args[2] == "track" && selection !== profiledata[member].current.track) {
-                            profileref.child(member).child("current").update({ track_bribe: true, track: selection })
-                            bribed = true
-                        } else if (args[2] == "racer" && selection !== profiledata[member].current.racer) {
-                            profileref.child(member).child("current").update({ racer_bribe: true, racer: selection })
-                            bribed = true
-                        }
-                        if (bribed) {
-                            profileref.child(member).child("purchases").push(purchase)
-                            profileref.child(member).update({ truguts_spent: profiledata[member].truguts_spent + bribe_cost })
-                        }
-                    }
-                }
-                //populate options
-                var track_selections = []
-                var racer_selections = []
-                for (var i = 0; i < 25; i++) {
-                    var racer_option = {
-                        label: racers[i].name,
-                        value: i,
-                        description: racers[i].pod.substring(0, 50),
-                        emoji: {
-                            name: racers[i].flag.split(":")[1],
-                            id: racers[i].flag.split(":")[2].replace(">", "")
-                        }
-                    }
-                    var track_option = {
-                        label: tracks[i].name.replace("The Boonta Training Course", "Boonta Training Course"),
-                        value: i,
-                        description: (circuits[tracks[i].circuit].name + " Circuit | Race " + tracks[i].cirnum + " | " + planets[tracks[i].planet].name).substring(0, 50),
-                        emoji: {
-                            name: planets[tracks[i].planet].emoji.split(":")[1],
-                            id: planets[tracks[i].planet].emoji.split(":")[2].replace(">", "")
-                        }
-                    }
-                    if (i < 23) {
-                        racer_selections.push(racer_option)
-                    }
-                    track_selections.push(track_option)
-                }
-                var components = []
-                if (profiledata[member].current.track_bribe == false) {
-                    components.push(
-                        {
-                            type: 1,
-                            components: [
-                                {
-                                    type: 3,
-                                    custom_id: "challenge_random_bribe_track",
-                                    options: track_selections,
-                                    placeholder: "Bribe Track (📀" + tools.numberWithCommas(truguts.bribe_track) + ")",
-                                    min_values: 1,
-                                    max_values: 1
-                                },
-                            ]
-                        }
-                    )
-                }
-                if (profiledata[member].current.racer_bribe == false) {
-                    components.push(
-                        {
-                            type: 1,
-                            components: [
-                                {
-                                    type: 3,
-                                    custom_id: "challenge_random_bribe_racer",
-                                    options: racer_selections,
-                                    placeholder: "Bribe Racer (📀" + tools.numberWithCommas(truguts.bribe_racer) + ")",
-                                    min_values: 1,
-                                    max_values: 1
-                                }
-                            ]
-                        }
-                    )
-                }
-                var data = updateChallenge()
-                client.api.interactions(interaction.id, interaction.token).callback.post({
-                    data: {
-                        type: 7,
+                    } catch { }
+                } else {
+                    var noMoney = new Discord.MessageEmbed()
+                    noMoney
+                        .setTitle("<:WhyNobodyBuy:589481340957753363> Get Your Own Challenge!")
+                        .setDescription("This is someone else's challenge or the option to undo has expired. Roll a challenge with the button below.")
+                    client.api.interactions(interaction.id, interaction.token).callback.post({
                         data: {
-                            embeds: [data.message],
-                            components: components
+                            type: 4,
+                            data: {
+                                //content: "",
+                                embeds: [noMoney],
+                                flags: 64,
+                                components: [
+                                    {
+                                        type: 1,
+                                        components: [
+                                            {
+                                                type: 2,
+                                                style: 4,
+                                                custom_id: "challenge_random_play",
+                                                emoji: {
+                                                    name: "🎲"
+                                                }
+                                            },
+                                        ]
+                                    }
+
+                                ]
+                            }
                         }
-                    }
-                })
-
-            } else if (args[1] == "undo") {
-                for (let i = 0; i < collection.length; i++) {
-                    if (collection[i].user == user.id) {
-                        profileref.child(member).update({ truguts_earned: profiledata[member].truguts_earned - profiledata[member].current.truguts })
-                        ref.child(collection[i].record).remove()
-                        best.splice(collection[i].index, 1)
-                        title = ""
-                        highlight = ""
-                        try {
-                            profileref.child(member).child("current").update({ completed: false })
-                            sentMessage.edit(updateChallenge())
-                            sentMessage.reactions.removeAll().catch()
-
-                        } catch { }
-                        collected = false
-                        collecting = true
-                        undone = true
-                    }
+                    })
                 }
-            } else if (args[1] == "like") {
-                if (rated == false) {
-                    rated = true
-                    if (reaction.emoji.name === '👍') {
-                        feedback = '👍'
-                    } else {
-                        feedback = '👎'
+            } else if (["like", "dislike"].includes(args[1])) {
+                if (interaction.message.id == profiledata[member].current.message && profiledata[member].current.rated == false){
+                    profileref.child(member).child("current").update({rated: true})
+                    profileref.child(member).update({truguts_earned: profiledata[member].truguts_earned + truguts.rated})
+                    var feedback = '👍'
+                    if(args[1] == "dislike"){
+                        feedback = "👎"
                     }
                     var feedbackdata = {
                         user: user.id,
@@ -1263,14 +1334,51 @@ module.exports = {
                     }
                     feedbackref.push(feedbackdata);
                     try {
-                        sentMessage.edit(updateChallenge())
-                        sentMessage.reactions.resolve("👍").users.remove("545798436105224203")
-                        sentMessage.reactions.resolve("👎").users.remove("545798436105224203")
-                        sentMessage.reactions.resolve("👍").users.remove(member)
-                        sentMessage.reactions.resolve("👎").users.remove(member)
+                        var data = updateChallenge()
+                        client.api.webhooks(client.user.id, profiledata[member].current.token).messages('@original').patch({
+                            data: {
+                                embeds: [data.message],
+                                components: [
+                                    {
+                                        type: 1,
+                                        components: data.components
+                                    }
+                                ]
+                            }
+                        })
                     } catch { }
+                } else {
+                    var noMoney = new Discord.MessageEmbed()
+                    noMoney
+                        .setTitle("<:WhyNobodyBuy:589481340957753363> Get Your Own Challenge!")
+                        .setDescription("This is someone else's challenge or the option to rate has expired. Roll a challenge with the button below.")
+                    client.api.interactions(interaction.id, interaction.token).callback.post({
+                        data: {
+                            type: 4,
+                            data: {
+                                //content: "",
+                                embeds: [noMoney],
+                                flags: 64,
+                                components: [
+                                    {
+                                        type: 1,
+                                        components: [
+                                            {
+                                                type: 2,
+                                                style: 4,
+                                                custom_id: "challenge_random_play",
+                                                emoji: {
+                                                    name: "🎲"
+                                                }
+                                            },
+                                        ]
+                                    }
+
+                                ]
+                            }
+                        }
+                    })
                 }
-            } else if (args[1] == "dislike") {
             } else if (args[1] == "menu") {
                 var type = 7
                 if (args.includes("initial")) {
@@ -1389,7 +1497,7 @@ module.exports = {
                 if (profiledata[member].truguts_earned - profiledata[member].truguts_spent < hints[hint_tier].price) {
                     hintEmbed
                         .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
-                        .setDescription("*'No money, no hint!'*\nYou do not have enough truguts to buy the selected hint.\n\nCurrent balance: `" + (profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`\nHint cost: `" + hints[hint_tier].price + "`")
+                        .setDescription("*'No money, no hint!'*\nYou do not have enough truguts to buy the selected hint.\n\nHint cost: `" + hints[hint_tier].price + "`")
                 } else {
                     //get array of possible hints based on selection
                     var keys = Object.keys(challengedata)
