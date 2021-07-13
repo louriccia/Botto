@@ -1907,7 +1907,7 @@ module.exports = {
                 }
                 if(profiledata[member].hunt !==undefined){
                     if(profiledata[member].hunt.date > Date.now() - 1000*60*60 && profiledata[member].hunt.completed == false){
-                        huntEmbed.addField(":exclamation: Hunt Already in Progress", "Your current hunt expires <t:" + profiledata[member].hunt.date + 1000*60*60-Date.now() + ":R>. Starting a new one will overwrite the hunt in progress.")
+                        huntEmbed.addField(":exclamation: Hunt Already in Progress", "Your current hunt expires <t:" + Math.round((profiledata[member].hunt.date + 1000*60*60)/1000) + ":R>. Starting a new one will overwrite the hunt in progress.")
                     }
                 }
                 //draw components
