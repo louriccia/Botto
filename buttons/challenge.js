@@ -686,8 +686,8 @@ module.exports = {
                         earnings += "Rated `+📀" + tools.numberWithCommas(truguts.rated) + "`\n"
                         earnings_total += truguts.rated
                     }
-                    if (profiledata[member].truguts_earned == 0) {
-                        profileref.child(member).update({ truguts_earned: earnings_total })
+                    if (profiledata[member].current.truguts_earned == 0) {
+                        profileref.child(member).update({ truguts_earned: profiledata[member].truguts_earned + earnings_total })
                         profileref.child(member).child("current").update({ truguts_earned: earnings_total })
                     }
                     earnings += "\n**Total: **`+📀" + tools.numberWithCommas(earnings_total) + "`"
@@ -1323,16 +1323,16 @@ module.exports = {
                         feedback = "👎"
                     }
                     var feedbackdata = {
-                        user: user.id,
-                        name: user.username,
+                        user: member.id,
+                        name: member.username,
                         feedback: feedback,
-                        date: sentMessage.createdTimestamp,
-                        racer: random_racer,
-                        track: random_track,
-                        laps: laps,
-                        nu: nu,
-                        skips: skips,
-                        mirror: mirror
+                        date: profiledata[member].current.start,
+                        racer: profiledata[member].current.racer,
+                        track: profiledata[member].current.track,
+                        laps: profiledata[member].current.laps,
+                        nu: profiledata[member].current.nu,
+                        skips: profiledata[member].current.skips,
+                        mirror: profiledata[member].current.mirror
                     }
                     feedbackref.push(feedbackdata);
                     try {
