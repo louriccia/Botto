@@ -1560,7 +1560,7 @@ module.exports = {
                         var option = {
                             label: achievements[ach[i]].name,
                             value: ach[i],
-                            description: achievements[ach[i]].description + ": " + achievements[ach[1]].array.length + "/" + achievements[ach[1]].limit,
+                            description: achievements[ach[i]].description + ": " + achievements[ach[i]].array.length + "/" + achievements[ach[i]].limit,
                             emoji: {
                                 name: "🏆"
                             }
@@ -1651,7 +1651,6 @@ module.exports = {
                 }
                 if (args[2] == "purchase") {
                     const hintBuy = new Discord.MessageEmbed()
-                    .setFooter("Truguts: 📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent))
                     var flags = 0
                     if (profiledata[member].truguts_earned - profiledata[member].truguts_spent < hints[selection].price) {
                         hintBuy
@@ -1742,6 +1741,7 @@ module.exports = {
                             .setAuthor(interaction.member.user.username + "'s Hint", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
                             .setTitle(":bulb: " + hints[selection].name + ": " + achievement_name)
                     }
+                    hintBuy.setFooter("Truguts: 📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent))
                     client.api.interactions(interaction.id, interaction.token).callback.post({
                         data: {
                             type: 4,
