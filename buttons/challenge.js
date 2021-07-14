@@ -679,7 +679,7 @@ module.exports = {
                     for (var i = 0; i < best.length; i++) {
                         if (best[i].date < submitted_time.date) {
                             first = false
-                            if (best[i].user == member && best[i].date !== date) {
+                            if (best[i].user == member && best[i].date !== submitted_time.date) {
                                 pb = true
                                 if (submitted_time.time > best[i].time) {
                                     pb = false
