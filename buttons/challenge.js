@@ -1254,6 +1254,9 @@ module.exports = {
                             if (args[2] == "track" && selection !== profiledata[member].current.track) {
                                 profileref.child(member).child("current").update({ track_bribe: true, track: selection })
                                 bribed = true
+                                if(!track[selection].hasOwnProperty("parskiptimes")){
+                                    profileref.child(member).child("current").update({ skips: false})
+                                }
                             } else if (args[2] == "racer" && selection !== profiledata[member].current.racer) {
                                 profileref.child(member).child("current").update({ racer_bribe: true, racer: selection })
                                 bribed = true
