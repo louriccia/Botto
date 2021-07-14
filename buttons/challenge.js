@@ -308,11 +308,9 @@ module.exports = {
                     }
                 }
 
-                var hunt = false
                 //hunt condiiton
                 if (profiledata[member].hunt !== undefined) {
                     if (profiledata[member].current.racer == profiledata[member].hunt.racer && profiledata[member].current.track == profiledata[member].hunt.track && !profiledata[member].hunt.completed && Date.now() - 3600000 <= profiledata[member].hunt.date) {
-                        hunt = true
                         profileref.child(member).child("current").update({hunt: true})
                     }
                 }
@@ -702,11 +700,11 @@ module.exports = {
                             winnings_text = i
                         }
                     }
-                    if (hunt) {
+                    if (profiledata[member].current.hunt) {
                         earnings += "Hunt Bonus `+📀" + tools.numberWithCommas(profiledata[member].hunt.bonus) + "`\n"
                         earnings_total += profiledata[member].hunt.bonus
                         profileref.child(member).child("current").update({hunt_bonus: profiledata[member].hunt.bonus})
-                        profileref.child(member).update({ hunt: { completed: true} })
+                        profileref.child(member).child("hunt").update({ completed: true})
                     }
                     if (goal_earnings[winnings_text] > 0) {
                         earnings += goal_symbols[winnings_text] + " `+📀" + tools.numberWithCommas(goal_earnings[winnings_text]) + "`\n"
@@ -852,14 +850,7 @@ module.exports = {
                 var random_racer = Math.floor(Math.random() * 23)
                 var random_track = Math.floor(Math.random() * 25)
                 var laps = 3, alt_laps = [1, 2, 4, 5]
-                var mirror = false, nu = false, skips = false, hunt = false
-
-                //hunt condiiton
-                if (profiledata[member].hunt !== undefined) {
-                    if (random_racer == profiledata[member].hunt.racer && random_track == profiledata[member].hunt.track && !profiledata[member].hunt.completed && Date.now() - 3600000 <= profiledata[member].hunt.date) {
-                        hunt = true
-                    }
-                }
+                var mirror = false, nu = false, skips = false
 
                 //set odds
                 var odds = {
