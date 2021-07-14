@@ -694,7 +694,7 @@ module.exports = {
 
 
                 //calculate winnings
-                var earnings = "", earnings_total = 0, hunt_bonus = 0
+                var earnings = "", earnings_total = 0
                 if (title == ":white_check_mark: Completed: ") {
                     var winnings_text = null
                     for (var i = 4; i > -1; i--) {
@@ -706,7 +706,7 @@ module.exports = {
                         earnings += "Hunt Bonus `+📀" + tools.numberWithCommas(profiledata[member].hunt.bonus) + "`\n"
                         earnings_total += profiledata[member].hunt.bonus
                         profileref.child(member).child("current").update({hunt_bonus: profiledata[member].hunt.bonus})
-                        profileref.child(member).update({ hunt: { completed: true, hunt_bonus: hunt_bonus } })
+                        profileref.child(member).update({ hunt: { completed: true} })
                     }
                     if (goal_earnings[winnings_text] > 0) {
                         earnings += goal_symbols[winnings_text] + " `+📀" + tools.numberWithCommas(goal_earnings[winnings_text]) + "`\n"
