@@ -1475,7 +1475,7 @@ module.exports = {
                                         },
                                         {
                                             type: 2,
-                                            custom_id: "challenge_random_leaderboards",
+                                            custom_id: "challenge_random_leaderboards_initial",
                                             style: 2,
                                             label: "Leaderboards",
                                             emoji: {
@@ -2403,11 +2403,11 @@ module.exports = {
                 }
                 async function sendResponse(embed) {
                     var stats_disabled = false, stats_style = 2, achievements_disabled = false, achievements_style = 2
-                    if(args[2] == "stats"){
+                    if (args[2] == "stats") {
                         stats_disabled = true
                         stats_style = 4
                     }
-                    if(args[2] == "achievements"){
+                    if (args[2] == "achievements") {
                         achievements_disabled = true
                         achievements_style = 4
                     }
@@ -2422,18 +2422,16 @@ module.exports = {
                                             type: 2,
                                             style: stats_style,
                                             custom_id: "challenge_random_profile_stats_uid" + member,
-                                            emoji: {
-                                                name: "📊"
-                                            },
+                                            label: "Stats",
+                                            //emoji: { name: "📊"},
                                             disabled: stats_disabled
                                         },
                                         {
                                             type: 2,
                                             style: achievements_style,
                                             custom_id: "challenge_random_profile_achievements_uid" + member,
-                                            emoji: {
-                                                name: "🏆"
-                                            },
+                                            label: "Achievements",
+                                            //emoji: {    name: "🏆"},
                                             disabled: achievements_disabled
                                         },
                                         {
@@ -2780,181 +2778,279 @@ module.exports = {
                     }
                 })
             } else if (args[1] == "leaderboards") {
-                const tools = require('./../tools.js');
-                const Discord = require('discord.js');
-                const challengeReport = new Discord.MessageEmbed()
-                var trak = null
-                var showall = false
+                const challengeLeaderboard = new Discord.MessageEmbed()
+                var track = Math.floor(Math.random() * 25)
+                var conditions = []
+                var pods = []
                 var desc = []
+                var showall = false
                 //filters out other tracks
-                for (let i = 0; i < args[0].options.length; i++) {
-
-                    if (args[0].options[i].name == "track") {
-                        trak = Number(args[0].options[i].value)
-                        challengeReport
-                            .setTitle(tracks[trak].name + " | Challenge Times")
-                            .setColor(planets[tracks[trak].planet].color)
-                        var challenge = Object.values(challengedata)
-                        var challengefiltered = challenge.filter(element => element.track == trak)
-                    } else if (args[0].options[i].name == "skips") {
-                        var input = args[0].options[i].value.toLowerCase()
-                        if (input == "skips") {
-                            challengefiltered = challengefiltered.filter(element => element.skips == true)
-                            desc.push("Skips")
-                        } else if (input == "ft") {
-                            challengefiltered = challengefiltered.filter(element => element.skips == false)
-                            desc.push("Full Track")
-                        }
-                    } else if (args[0].options[i].name == "upgrades") {
-                        var input = args[0].options[i].value.toLowerCase()
-                        if (input == "mu") {
-                            challengefiltered = challengefiltered.filter(element => element.nu == false)
-                            desc.push("Upgrades")
-                        } else if (input == "nu") {
-                            challengefiltered = challengefiltered.filter(element => element.nu == true)
-                            desc.push("No Upgrades")
-                        }
-                    } else if (args[0].options[i].name == "pod") {
-                        var input = args[0].options[i].value.toLowerCase()
-                        var podfilter = args[0].options[i].value.split(/[\s,]+/)
-                        var filterin = true
-                        for (var p = 0; p < podfilter.length; p++) {
-                            if (podfilter[p] == "no") {
-                                filterin = false
-                            } else {
-                                var numb = null
-                                for (let q = 0; q < racers.length; q++) {
-                                    racers[q].nickname.forEach(nick => {
-                                        if (nick.toLowerCase() == podfilter[p].toLowerCase()) {
-                                            numb = q
-                                            q = racers.length
-                                        }
-                                    })
-                                }
-                                if (numb !== null) {
-                                    if (filterin) {
-                                        challengefiltered = challengefiltered.filter(element => element.racer == numb)
-                                        desc.push(racers[numb].name + " Only")
-                                    } else {
-                                        challengefiltered = challengefiltered.filter(element => element.racer !== numb)
-                                        desc.push("No " + racers[numb].name)
-                                    }
-                                }
+                if (!args.includes("initial")) {
+                    for (var i = 0; i < interaction.message.components[0].components[0].options.length; i++) { //track
+                        var option = interaction.message.components[0].components[0].options[i]
+                        if (option.hasOwnProperty("default")) {
+                            if (option.default) {
+                                track = Number(option.value)
                             }
                         }
-                    } else if (args[0].options[i].name == "laps") {
-                        var input = args[0].options[i].value
-                        challengefiltered = challengefiltered.filter(element => element.laps == input)
-                        if (input == 1) {
-                            desc.push("1 Lap")
-                        } else {
-                            desc.push(input + " Laps")
-                        }
-
-                    } else if (args[0].options[i].name == "mirrored") {
-                        var input = args[0].options[i].value
-                        if (input == "mirrored") {
-                            challengefiltered = challengefiltered.filter(element => element.mirror == true)
-                            desc.push("Mirrored")
-                        } else if (input == "unmirrored") {
-                            challengefiltered = challengefiltered.filter(element => element.mirror == false)
-                            desc.push("Unmirrored")
-                        }
-
-                    } else if (args[0].options[i].name == "player") {
-                        var player = args[0].options[i].value
-                        challengefiltered = challengefiltered.filter(element => element.user == player)
-                        showall = true
-                        const Guild = client.guilds.cache.get(interaction.guild_id);
-                        const Member = Guild.members.cache.get(player)
-                        challengeReport.setAuthor(Member.user.username + "'s Best", client.guilds.resolve(interaction.guild_id).members.resolve(player).user.avatarURL())
                     }
+                    for (var i = 0; i < interaction.message.components[1].components[0].options.length; i++) { //conditions
+                        var option = interaction.message.components[1].components[0].options[i]
+                        if (option.hasOwnProperty("default")) {
+                            if (option.default) {
+                                conditions.push(option.value)
+                            }
+                        }
+                    }
+                    for (var i = 0; i < interaction.message.components[2].components[0].options.length; i++) { //pods
+                        var option = interaction.message.components[2].components[0].options[i]
+                        if (option.hasOwnProperty("default")) {
+                            if (option.default) {
+                                pods.push(option.value)
+                            }
+                        }
+                    }
+                    if (args[2] == "track") {
+                        track = Number(interaction.data.values[0])
+                    } else if (args[2] == "conditions") {
+                        conditions = interaction.data.values
+                    } else if (args[2] == "pods") {
+                        pods = interaction.data.values
+                    }
+                }
+                if (conditions == []) {
+                    conditions = ["mu", "nu", "ft", "skips", "unmirr", "mirr", "lap1", "lap2", "lap3", "lap4", "lap5"]
+                }
+                if (pods == []) {
+                    for (i = 0; i < 23; i++) {
+                        pods.push(i)
+                    }
+                }
+
+                //prepare filters
+                var nu = [], skips = [], mirrored = [], laps = [], user = null
+                if (conditions.includes("mu")) {
+                    nu.push(false)
+                    desc.push("Upgrades")
+                }
+                if (conditions.includes("nu")) {
+                    nu.push(true)
+                    desc.push("No Upgrades")
+                }
+                if (conditions.includes("ft")) {
+                    skips.push(false)
+                    desc.push("Full Track")
+                }
+                if (conditions.includes("skips")) {
+                    skips.push(true)
+                    desc.push("Skips")
+                }
+                if (conditions.includes("unmirr")) {
+                    mirrored.push(false)
+                    desc.push("Unmirrored")
+                }
+                if (conditions.includes("mirr")) {
+                    mirrored.push(true)
+                    desc.push("Mirrored")
+                }
+                if (conditions.includes("lap1")) {
+                    laps.push(1)
+                    desc.push("1 Lap")
+                }
+                if (conditions.includes("lap2")) {
+                    laps.push(2)
+                }
+                if (conditions.includes("lap3")) {
+                    laps.push(3)
+                }
+                if (conditions.includes("lap4")) {
+                    laps.push(4)
+                }
+                if (conditions.includes("lap5")) {
+                    laps.push(5)
+                }
+                if (conditions.includes("user")) {
+                    user = member
+                }
+                //account for missing values
+                if (nu == []) { nu.push(true, false), conditions.push("mu", "nu") }
+                if (skips == []) { skips.push(true, false), conditions.push("ft", "skips") }
+                if (mirrored == []) { mirrored.push(true, false), conditions.push("unmirr", "mirr") }
+                if (laps == []) { laps.push(1, 2, 3, 4, 5), conditions.push("lap1", "lap2", "lap3", "lap4", "lap5") }
+                //filter
+                var challenge = Object.values(challengedata)
+                var challengefiltered = challenge.filter(element => element.track == track)
+                challengefiltered = challengefiltered.filter(element => skips.includes(element.skips))
+                challengefiltered = challengefiltered.filter(element => nu.includes(element.nu))
+                challengefiltered = challengefiltered.filter(element => laps.includes(element.laps))
+                challengefiltered = challengefiltered.filter(element => mirrored.includes(element.mirror))
+                challengefiltered = challengefiltered.filter(element => pods.includes(element.racer))
+                if (user !== null) {
+                    challengefiltered = challengefiltered.filter(element => element.user == user)
                 }
                 challengefiltered.sort(function (a, b) {
                     return a.time - b.time;
                 })
+                //construct embed
+                challengeLeaderboard
+                    .setAuthor("Random Challenge", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/game-die_1f3b2.png")
+                    .setTitle(planets[tracks[track].planet].emoji + " " + tracks[track].name)
+                    .setColor(planets[tracks[track].planet].color)
+                    .setDescription(desc.join(', ') + " `[" + challengefiltered.length + " Total Runs]`")
+                if (user !== null) {
+                    challengeLeaderboard.setAuthor(Member.user.username + "'s Best", client.guilds.resolve(interaction.guild_id).members.resolve(player).user.avatarURL())
+                    showall = true
+                }
                 var pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>", "4th", "5th"]
-                if (trak !== null) {
-                    var j = 0
-                    var players = []
-                    var runs = Object.keys(challengefiltered)
-                    var pod_collection = {}
-                    for (var i = 0; i < runs.length; i++) {
-                        var run = runs[i]
-                        pod_collection[challengefiltered[run].racer] = 1
-                    }
-                    if (challengefiltered.length > 0) {
-                        for (i = 0; i < 5;) {
-                            var skip = false
-                            for (k = 0; k < players.length; k++) {
-                                if (challengefiltered[j].player + challengefiltered[j].skips + challengefiltered[j].racer + challengefiltered[j].nu + challengefiltered[j].laps == players[k] && !showall) {
-                                    skip = true
-                                }
+                var already = []
+                if (challengefiltered.length > 0) {
+                    for (var j = 0; j < challengefiltered.length; j++) {
+                        if (!already.includes((challengefiltered[j].player + challengefiltered[j].skips + challengefiltered[j].racer + challengefiltered[j].nu + challengefiltered[j].laps == players[k])) || showall) {
+                            var stuff = []
+                            stuff.push(challengefiltered[j].laps + " Laps")
+                            var upgr = " | MU"
+                            if (challengefiltered[j].skips == true) {
+                                stuff.push("Skips")
+                            } else {
+                                stuff.push("FT")
                             }
-                            if (skip == false) {
-                                var character = ""
-                                var skps = "FT | "
-                                var upgr = " | MU"
-                                var mirr = ""
-                                var laps = "3 Laps "
-                                if (challengefiltered[j].skips == true) {
-                                    skps = "Skips | "
-                                }
-                                if (challengefiltered[j].nu == true) {
-                                    upgr = " | NU"
-                                }
-                                if (challengefiltered[j].mirror == true) {
-                                    mirr = "| Mirrored "
-                                }
-                                character = racers[challengefiltered[j].racer].flag + " " + racers[challengefiltered[j].racer].name
-                                if (challengefiltered[j].laps !== 3) {
-                                    laps = challengefiltered[j].laps + " Laps "
-                                }
-                                challengeReport
-                                    .addField(pos[i] + " " + challengefiltered[j].name, skps + laps + mirr, true)
-                                    .addField(tools.timefix(Number(challengefiltered[j].time).toFixed(3)), " " + character + upgr, true)
-                                    .addField('\u200B', '\u200B', true)
-                                players.push(challengefiltered[j].player + challengefiltered[j].skips + challengefiltered[j].racer + challengefiltered[j].nu + challengefiltered[j].laps)
-                                i++
+                            if (challengefiltered[j].nu == true) {
+                                upgr = " | NU"
                             }
-                            j++
-                            if (j == challengefiltered.length) {
-                                i = 5
+                            if (challengefiltered[j].mirror == true) {
+                                stuff.push("Mirrored")
+                            }
+                            var character = racers[challengefiltered[j].racer].flag //+ " " + racers[challengefiltered[j].racer].name
+                            challengeLeaderboard
+                                .addField(pos[0] + " " + challengefiltered[j].name, stuff.join(" | "), true)
+                                .addField(tools.timefix(Number(challengefiltered[j].time).toFixed(3)), " " + character + upgr, true)
+                                .addField('\u200B', '\u200B', true)
+                            already.push(challengefiltered[j].player + challengefiltered[j].skips + challengefiltered[j].racer + challengefiltered[j].nu + challengefiltered[j].laps)
+                            if (pos.length > 1) {
+                                pos.splice(0, 1)
+                            } else {
+                                j = challengefiltered.length
                             }
                         }
-                        challengeReport.setDescription(desc.join(', ') + " `[" + challengefiltered.length + " Total Runs]` `[" + Object.keys(pod_collection).length + "/23 Racers]`")
-                        client.api.interactions(interaction.id, interaction.token).callback.post({
-                            data: {
-                                type: 4,
-                                data: {
-                                    //content: "",
-                                    embeds: [challengeReport]
-                                }
-                            }
-                        })
-                    } else {
-                        client.api.interactions(interaction.id, interaction.token).callback.post({
-                            data: {
-                                type: 4,
-                                data: {
-                                    content: "`Error: No challenge runs were found matching that criteria`\n" + errorMessage[Math.floor(Math.random() * errorMessage.length)],
-                                    //embeds: [racerEmbed]
-                                }
-                            }
-                        })
                     }
                 } else {
-                    client.api.interactions(interaction.id, interaction.token).callback.post({
-                        data: {
-                            type: 4,
-                            data: {
-                                content: "`Error: Track not found`\n" + errorMessage[Math.floor(Math.random() * errorMessage.length)],
-                                //embeds: [racerEmbed]
-                            }
-                        }
-                    })
+                    challengeLeaderboard
+                        .addField("<:WhyNobodyBuy:589481340957753363> No Runs", "No runs were found matching that criteria\n`" + errorMessage[Math.floor(Math.random() * errorMessage.length)] + "`")
                 }
+                //construct components
+                var components = []
+                var cond = { mu: "Upgrades", nu: "No Upgrades", ft: "Full Track", skips: "Skips", unmirr: "Unmirrored", mirr: "Mirrored", lap1: "1-Lap", lap2: "2-Laps", lap3: "3-Laps", lap4: "4-Laps", lap5: "5-Laps", user: "My Runs Only" }
+                var track_selections = []
+                var racer_selections = []
+                var cond_selections = []
+                for (var i = 0; i < 25; i++) {
+                    var racer_option = {
+                        label: racers[i].name,
+                        value: i,
+                        description: racers[i].pod.substring(0, 50),
+                        emoji: {
+                            name: racers[i].flag.split(":")[1],
+                            id: racers[i].flag.split(":")[2].replace(">", "")
+                        }
+                    }
+                    if (pods.includes(i)) {
+                        racer_option.default = true
+                    }
+                    var track_option = {
+                        label: tracks[i].name.replace("The Boonta Training Course", "Boonta Training Course"),
+                        value: i,
+                        description: (circuits[tracks[i].circuit].name + " Circuit | Race " + tracks[i].cirnum + " | " + planets[tracks[i].planet].name).substring(0, 50),
+                        emoji: {
+                            name: planets[tracks[i].planet].emoji.split(":")[1],
+                            id: planets[tracks[i].planet].emoji.split(":")[2].replace(">", "")
+                        }
+                    }
+                    if (track == i) {
+                        track_option.default = true
+                    }
+                    if (i < 23) {
+                        racer_selections.push(racer_option)
+                    }
+                    track_selections.push(track_option)
+                    var condkeys = Object.keys(cond)
+                    if (i < condkeys.length) {
+                        var cond_option = {
+                            label: cond[condkeys[i]],
+                            value: condkeys[i],
+                        }
+                        if (conditions.includes(condkeys[i])) {
+                            cond_option.default = true
+                        }
+                        cond_selections.push(cond_option)
+                    }
+                }
+                var components = []
+                components.push(
+                    {
+                        type: 1,
+                        components: [
+                            {
+                                type: 3,
+                                custom_id: "challenge_random_leaderboards_track",
+                                options: track_selections,
+                                placeholder: "Select Track",
+                                min_values: 1,
+                                max_values: 1
+                            },
+                        ]
+                    },
+                    {
+                        type: 1,
+                        components: [
+                            {
+                                type: 3,
+                                custom_id: "challenge_random_leaderboards_conditions",
+                                options: cond_selections,
+                                placeholder: "Select Conditions",
+                                min_values: 1,
+                                max_values: cond_selections.length
+                            },
+                        ]
+                    },
+                    {
+                        type: 1,
+                        components: [
+                            {
+                                type: 3,
+                                custom_id: "challenge_random_leaderboards_pods",
+                                options: racer_selections,
+                                placeholder: "Select Pods",
+                                min_values: 1,
+                                max_values: racer_selections.length
+                            }
+                        ]
+                    },
+                    {
+                        type: 1,
+                        components: [
+                            {
+                                type: 2,
+                                style: 2,
+                                custom_id: "challenge_random_menu_initial",
+                                emoji: {
+                                    name: "menu",
+                                    id: "862620287735955487"
+                                }
+                            }
+                        ]
+                    }
+                )
 
+                client.api.interactions(interaction.id, interaction.token).callback.post({
+                    data: {
+                        type: 7,
+                        data: {
+                            //content: "",
+                            embeds: [challengeLeaderboard],
+                            components: components
+                        }
+                    }
+                })
             }
         } else if (args[0] == "community") {
             if (args[1] == "submit") {
