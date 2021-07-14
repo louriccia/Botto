@@ -2821,11 +2821,6 @@ module.exports = {
                 if (conditions.length == 0) {
                     conditions = ["mu", "nu", "ft", "skips", "unmirr", "mirr", "lap1", "lap2", "lap3", "lap4", "lap5"]
                 }
-                if (pods.length == 0) {
-                    for (i = 0; i < 23; i++) {
-                        pods.push(i)
-                    }
-                }
                 console.log(pods)
                 //prepare filters
                 var nu = [], skips = [], mirrored = [], laps = [], user = null
@@ -2859,15 +2854,19 @@ module.exports = {
                 }
                 if (conditions.includes("lap2")) {
                     laps.push(2)
+                    desc.push("2 Laps")
                 }
                 if (conditions.includes("lap3")) {
                     laps.push(3)
+                    desc.push("3 Laps")
                 }
                 if (conditions.includes("lap4")) {
                     laps.push(4)
+                    desc.push("4 Laps")
                 }
                 if (conditions.includes("lap5")) {
                     laps.push(5)
+                    desc.push("5 Laps")
                 }
                 if (conditions.includes("user")) {
                     user = member
@@ -2884,7 +2883,9 @@ module.exports = {
                 challengefiltered = challengefiltered.filter(element => nu.includes(element.nu))
                 challengefiltered = challengefiltered.filter(element => laps.includes(element.laps))
                 challengefiltered = challengefiltered.filter(element => mirrored.includes(element.mirror))
-                challengefiltered = challengefiltered.filter(element => pods.includes(element.racer))
+                if(pods.length > 0){
+                    challengefiltered = challengefiltered.filter(element => pods.includes(element.racer))
+                }
                 if (user !== null) {
                     challengefiltered = challengefiltered.filter(element => element.user == user)
                 }
@@ -2896,7 +2897,8 @@ module.exports = {
                     .setAuthor("Random Challenge", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/game-die_1f3b2.png")
                     .setTitle(planets[tracks[track].planet].emoji + " " + tracks[track].name)
                     .setColor(planets[tracks[track].planet].color)
-                    .setDescription(desc.join(', ') + " `[" + challengefiltered.length + " Total Runs]`")
+                    .setDescription(desc.join(', '))
+                    .setFooter(challengefiltered.length + " Total Runs")
                 if (user !== null) {
                     challengeLeaderboard.setAuthor(Member.user.username + "'s Best", client.guilds.resolve(interaction.guild_id).members.resolve(user).user.avatarURL())
                     showall = true
