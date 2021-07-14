@@ -2806,20 +2806,24 @@ module.exports = {
                         var option = interaction.message.components[2].components[0].options[i]
                         if (option.hasOwnProperty("default")) {
                             if (option.default) {
-                                pods.push(i)
+                                pods.push(String(i))
                             }
                         }
                     }
                     if (args[2] == "track") {
                         track = Number(interaction.data.values[0])
                     } else if (args[2] == "conditions") {
-                        conditions = interaction.data.values
+                        if (interaction.data.hasOwnProperty("value")) {
+                            conditions = interaction.data.values
+                        }
                     } else if (args[2] == "pods") {
-                        pods = interaction.data.values
+                        if (interaction.data.hasOwnProperty("value")) {
+                            pods = interaction.data.values
+                        }
                     }
                 }
                 if (conditions.length == 0) {
-                    conditions = ["mu", "nu", "ft", "skips", "unmirr", "mirr",  "lap3"]
+                    conditions = ["mu", "nu", "ft", "skips", "unmirr", "mirr", "lap3"]
                 }
                 console.log(pods)
                 //prepare filters
@@ -2883,7 +2887,7 @@ module.exports = {
                 challengefiltered = challengefiltered.filter(element => nu.includes(element.nu))
                 challengefiltered = challengefiltered.filter(element => laps.includes(element.laps))
                 challengefiltered = challengefiltered.filter(element => mirrored.includes(element.mirror))
-                if(pods.length > 0){
+                if (pods.length > 0) {
                     challengefiltered = challengefiltered.filter(element => pods.includes(String(element.racer)))
                 }
                 if (user !== null) {
@@ -2907,7 +2911,7 @@ module.exports = {
                 var already = []
                 if (challengefiltered.length > 0) {
                     for (var j = 0; j < challengefiltered.length; j++) {
-                        if (!already.includes((challengefiltered[j].player + " " +  challengefiltered[j].skips +" " +challengefiltered[j].racer + " " +challengefiltered[j].nu + " " +challengefiltered[j].laps+ " " + challengefiltered[j].mirror)) || showall) {
+                        if (!already.includes((challengefiltered[j].player + " " + challengefiltered[j].skips + " " + challengefiltered[j].racer + " " + challengefiltered[j].nu + " " + challengefiltered[j].laps + " " + challengefiltered[j].mirror)) || showall) {
                             var stuff = []
                             stuff.push(challengefiltered[j].laps + " Laps")
                             var upgr = " | MU"
@@ -2927,7 +2931,7 @@ module.exports = {
                                 .addField(pos[0] + " " + challengefiltered[j].name, stuff.join(" | "), true)
                                 .addField(tools.timefix(Number(challengefiltered[j].time).toFixed(3)), " " + character + upgr, true)
                                 .addField('\u200B', '\u200B', true)
-                            already.push(challengefiltered[j].player + " " +  challengefiltered[j].skips +" " +challengefiltered[j].racer + " " +challengefiltered[j].nu + " " +challengefiltered[j].laps+ " " + challengefiltered[j].mirror)
+                            already.push(challengefiltered[j].player + " " + challengefiltered[j].skips + " " + challengefiltered[j].racer + " " + challengefiltered[j].nu + " " + challengefiltered[j].laps + " " + challengefiltered[j].mirror)
                             if (pos.length > 1) {
                                 pos.splice(0, 1)
                             } else {
@@ -3009,7 +3013,7 @@ module.exports = {
                                 custom_id: "challenge_random_leaderboards_conditions",
                                 options: cond_selections,
                                 placeholder: "Select Conditions",
-                                min_values: 1,
+                                min_values: 0,
                                 max_values: cond_selections.length
                             },
                         ]
