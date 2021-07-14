@@ -1,3 +1,4 @@
+const e = require('express');
 const { get } = require('request');
 
 module.exports = {
@@ -976,6 +977,38 @@ module.exports = {
                                     }
                                 })
                             } catch (error) { console.log(error) }
+                        } else {
+                            try {
+                                await client.api.webhooks(client.user.id, token).messages('@original').patch({
+                                    data: {
+                                        components: [
+                                            {
+                                                type: 1,
+                                                components: [
+                                                    {
+                                                        type: 2,
+                                                        style: 4,
+                                                        custom_id: "challenge_random_play",
+                                                        label: "New Challenge",
+                                                        emoji: {
+                                                            name: "🎲"
+                                                        }
+                                                    },
+                                                    {
+                                                        type: 2,
+                                                        style: 2,
+                                                        custom_id: "challenge_random_menu",
+                                                        emoji: {
+                                                            name: "menu",
+                                                            id: "862620287735955487"
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                })
+                            } catch (error) { console.log(error) }
                         }
                     }, 895000)
                     //collect times
@@ -1023,6 +1056,7 @@ module.exports = {
                                             var data = updateChallenge()
                                             client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({
                                                 data: {
+                                                    content: "",
                                                     embeds: [data.message],
                                                     components: [
                                                         {
