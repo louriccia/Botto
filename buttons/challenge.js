@@ -1466,7 +1466,7 @@ module.exports = {
                                     components: [
                                         {
                                             type: 2,
-                                            custom_id: "challenge_random_profile",
+                                            custom_id: "challenge_random_profile_stats",
                                             style: 2,
                                             label: "Profile",
                                             emoji: {
@@ -2111,26 +2111,28 @@ module.exports = {
                     { name: "Skilled", text: ":gem: 55%\n:first_place: 27%\n:second_place: 14%\n:third_place: 5%\n<:bumpythumb:703107780860575875> 0%" },
                     { name: "Winner Takes All", text: ":gem: 100%\n:first_place: 0%\n:second_place: 0%\n:third_place: 0%\n<:bumpythumb:703107780860575875> 0%" }
                 ]
-                var components = [], odds_disabled = false, winnings_disabled = false
+                var components = [], odds_disabled = false, winnings_disabled = false, odds_style = 2, winnings_style = 2
                 //get input
                 if (args[2] == "winnings") {
                     winnings_disabled = true
-                } else if (["skips", "noupgrades", "non3lap", "mirrormode", "odds"].includes(args[2]) ){
+                    winnings_style = 4
+                } else if (["skips", "noupgrades", "non3lap", "mirrormode", "odds"].includes(args[2])) {
                     odds_disabled = true
+                    odds_style = 4
                 }
                 components.push({
                     type: 1,
-                    components:[
+                    components: [
                         {
                             type: 2,
-                            style: 2,
+                            style: odds_style,
                             custom_id: "challenge_random_settings_odds_uid" + member,
                             label: "Odds",
                             disabled: odds_disabled
                         },
                         {
                             type: 2,
-                            style: 2,
+                            style: winnings_style,
                             label: "Winnings",
                             custom_id: "challenge_random_settings_winnings_uid" + member,
                             disabled: winnings_disabled
@@ -2205,9 +2207,9 @@ module.exports = {
                 if (["skips", "noupgrades", "non3lap", "mirrormode", "odds"].includes(args[2])) {
                     var skip_options = [], no_upgrades_options = [], non_3_lap_options = [], mirror_mode_options = []
                     for (i = 0; i < 101; i += 5) {
-                        
+
                         //skips
-                        var option = {value: i}
+                        var option = { value: i }
                         option.label = "Skips: " + i + "%"
                         var description = []
                         if (i > 0 && i <= 25) {
@@ -2216,13 +2218,13 @@ module.exports = {
                         if (i == settings_default.skips) {
                             description.push("Default")
                         }
-                        if(i == profiledata[member].skips){
+                        if (i == profiledata[member].skips) {
                             option.default = true
                         }
                         option.description = description.join(" | ")
                         skip_options.push(option)
                         //no upgrades
-                        var option = {value: i}
+                        var option = { value: i }
                         option.label = "No Upgrades: " + i + "%"
                         description = []
                         if (i > 0 && i <= 25) {
@@ -2231,13 +2233,13 @@ module.exports = {
                         if (i == settings_default.no_upgrades) {
                             description.push("Default")
                         }
-                        if(i == profiledata[member].no_upgrades){
+                        if (i == profiledata[member].no_upgrades) {
                             option.default = true
                         }
                         option.description = description.join(" | ")
                         no_upgrades_options.push(option)
                         //non 3 lap
-                        var option = {value: i}
+                        var option = { value: i }
                         option.label = "Non 3-lap: " + i + "%"
                         description = []
                         if (i > 0 && i <= 25) {
@@ -2246,13 +2248,13 @@ module.exports = {
                         if (i == settings_default.non_3_lap) {
                             description.push("Default")
                         }
-                        if(i == profiledata[member].non_3_lap){
+                        if (i == profiledata[member].non_3_lap) {
                             option.default = true
                         }
                         option.description = description.join(" | ")
                         non_3_lap_options.push(option)
                         //mirrored
-                        var option = {value: i}
+                        var option = { value: i }
                         option.label = "Mirrored: " + i + "%"
                         description = []
                         if (i > 0 && i <= 25) {
@@ -2261,7 +2263,7 @@ module.exports = {
                         if (i == settings_default.mirrored) {
                             description.push("Default")
                         }
-                        if(i == profiledata[member].mirror_mode){
+                        if (i == profiledata[member].mirror_mode) {
                             option.default = true
                         }
                         option.description = description.join(" | ")
@@ -2322,7 +2324,7 @@ module.exports = {
                         }
                     )
                 }
-                
+
                 var winnings = profiledata[member].winnings
                 var odds = {
                     skips: profiledata[member].skips,
@@ -2344,10 +2346,53 @@ module.exports = {
                     }
                 })
             } else if (args[1] == "profile") {
+                if (args[args.length - 1].startsWith("uid")) {
+                    if (args[args.length - 1].replace("uid", "") !== member) {
+                        const holdUp = new Discord.MessageEmbed()
+                            .setTitle("<:WhyNobodyBuy:589481340957753363> Get Your Own Profile!")
+                            .setDescription("This is someone else's profile. Get your own by clicking the button below.")
+                        client.api.interactions(interaction.id, interaction.token).callback.post({
+                            data: {
+                                type: 4,
+                                data: {
+                                    content: "",
+                                    embeds: [holdUp],
+                                    flags: 64,
+                                    components: [
+                                        {
+                                            type: 1,
+                                            components: [
+                                                {
+                                                    type: 2,
+                                                    custom_id: "challenge_random_profile_stats",
+                                                    style: 4,
+                                                    label: "Settings",
+                                                    emoji: {
+                                                        name: "📊"
+                                                    }
+                                                },
+                                                {
+                                                    type: 2,
+                                                    style: 2,
+                                                    custom_id: "challenge_random_menu_initial",
+                                                    emoji: {
+                                                        name: "menu",
+                                                        id: "862620287735955487"
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        })
+                        return
+                    }
+                }
                 async function sendCallback() {
                     const wait = client.api.interactions(interaction.id, interaction.token).callback.post({
                         data: {
-                            type: 5,
+                            type: 6,
                             data: {
                                 content: "Coming right up..."
                                 //embeds: [racerEmbed]
@@ -2357,23 +2402,61 @@ module.exports = {
                     return wait
                 }
                 async function sendResponse(embed) {
-                    const response = await client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({ data: { embeds: [embed] } })
+                    var stats_disabled = false, stats_style = 2, achievements_disabled = false, achievements_style = 2
+                    if(args[2] == "stats"){
+                        stats_disabled = true
+                        stats_style = 4
+                    }
+                    if(args[2] == "achievements"){
+                        achievements_disabled = true
+                        achievements_style = 4
+                    }
+                    const response = await client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({
+                        data: {
+                            embeds: [embed],
+                            components: [
+                                {
+                                    type: 1,
+                                    components: [
+                                        {
+                                            type: 2,
+                                            style: stats_style,
+                                            custom_id: "challenge_random_profile_stats_uid" + member,
+                                            emoji: {
+                                                name: "📊"
+                                            },
+                                            disabled: stats_disabled
+                                        },
+                                        {
+                                            type: 2,
+                                            style: achievements_style,
+                                            custom_id: "challenge_random_profile_achievements_uid" + member,
+                                            emoji: {
+                                                name: "🏆"
+                                            },
+                                            disabled: achievements_disabled
+                                        },
+                                        {
+                                            type: 2,
+                                            style: 2,
+                                            custom_id: "challenge_random_menu_uid" + member,
+                                            emoji: {
+                                                name: "menu",
+                                                id: "862620287735955487"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    })
                     return response
                 }
                 sendCallback().then(() => {
-                    var member = interaction.member.user.id
-                    const Guild = client.guilds.cache.get(interaction.guild_id); // Getting the guild.
-                    const Member = Guild.members.cache.get(member); // Getting the member.
-                    if (args[0].options[0].hasOwnProperty("options")) {
-                        if (args[0].options[0].options[0].name == "user") {
-                            member = args[0].options[0].options[0].value
-                        }
-                    }
-
                     const profileEmbed = new Discord.MessageEmbed()
                     profileEmbed
-                        .setAuthor(client.guilds.resolve(interaction.guild_id).members.resolve(member).user.username + "'s Profile", client.guilds.resolve(interaction.guild_id).members.resolve(member).user.avatarURL())
-                    if (args[0].options[0].name == "stats") {
+                        .setAuthor(client.guilds.resolve(interaction.guild_id).members.resolve(member).user.username + "'s Random Challenge Profile", client.guilds.resolve(interaction.guild_id).members.resolve(member).user.avatarURL())
+                    if (args[2] == "stats") {
 
                         //console.log(trugutsEarned(member))
                         var keys = Object.keys(challengedata)
@@ -2548,7 +2631,7 @@ module.exports = {
                             }
                         }
                         profileEmbed
-                            .setTitle("Random Challenge Statistics")
+                            .setTitle(":bar_chart: Statistics")
                             .setDescription("Current trugut balance: `📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`")
                         //add goal times achieved for the stat section
                         if (hasraced) {
@@ -2593,7 +2676,7 @@ module.exports = {
                                 "Racer Bribes: `" + purchases.racer_bribes + "`\n" +
                                 "Hints: `" + purchases.hints + "`\n" +
                                 "Total Spending: `📀" + tools.numberWithCommas(purchases.total_spending) + "`", true)
-                    } else if (args[0].options[0].name == "achievements") {
+                    } else if (args[2] == "achievements") {
                         //console.log(trugutsEarned(member))
                         var keys = Object.keys(challengedata)
                         for (var i = 0; i < keys.length; i++) {
@@ -2644,7 +2727,7 @@ module.exports = {
                                         .setAuthor(interaction.member.user.username + " got an achievement!", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
                                         .setDescription(achievements[a].description) //+ " `" + String(Object.keys(achievements[a].collection).length) + "/" + String(achievements[a].limit)) + "`"
                                         .setColor("FFB900")
-                                        .setTitle("**:trophy: " + achievements[a].name + "**")
+                                        .setTitle(":trophy: " + achievements[a].name)
                                     if (interaction.guild_id == "441839750555369474") {
                                         congratsEmbed.setDescription("**<@&" + achievements[a].role + ">** - " + achievements[a].description)
                                         Member.roles.add(achievements[a].role).catch(error => console.log(error))
@@ -2673,13 +2756,10 @@ module.exports = {
                             achievement_text = achievements[a].description
                             profileEmbed.addField(achievement_title, achievement_text, false)
                         }
-                        profileEmbed.setTitle("Random Challenge Achievements (" + achievement_count + "/8)")
+                        profileEmbed.setTitle("Achievements (" + achievement_count + "/8)")
                     }
                     return profileEmbed
                 }).then((embed) => sendResponse(embed))
-
-
-
             } else if (args[1] == "about") {
                 const challengeHelpEmbed = new Discord.MessageEmbed()
                     .setAuthor("Random Challenge", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/game-die_1f3b2.png")
