@@ -703,7 +703,7 @@ module.exports = {
                     if (hunt) {
                         earnings += "Hunt Bonus `+📀" + tools.numberWithCommas(profiledata[member].hunt.bonus) + "`\n"
                         earnings_total += profiledata[member].hunt.bonus
-                        hunt_bonus = profiledata[member].hunt.bonus
+                        profileref.child(member).child("current").update({hunt_bonus: profiledata[member].hunt.bonus})
                         profileref.child(member).update({ hunt: { completed: true, hunt_bonus: hunt_bonus } })
                     }
                     if (goal_earnings[winnings_text] > 0) {
@@ -1100,7 +1100,7 @@ module.exports = {
                                                 skips: profiledata[member].skips,
                                                 mirror_mode: profiledata[member].mirror_mode
                                             },
-                                            hunt: profiledata[member].current.hunt_bonus
+                                            hunt: profiledata[member].hunt.hunt_bonus
                                         }
                                         var newPostRef = ref.push(submissiondata);
                                         profileref.child(member).child("current").update({ submission: newPostRef.key, title: ":white_check_mark: Completed: ", completed: true })
@@ -1119,7 +1119,7 @@ module.exports = {
                                                     ]
                                                 }
                                             })
-                                        } catch { }
+                                        } catch (error) {console.log(error) }
                                         if (message.guild) {
                                             try {
                                                 message.delete() //delete time message
