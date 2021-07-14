@@ -65,6 +65,33 @@ module.exports = {
             { name: "Deluxe Hint", price: truguts.hint_deluxe, bonus: truguts.bonus_deluxe, description: "Three-part hint", hunt: "Force-Sensitive" }
         ]
 
+        var tips = [
+            "You have 15 minutes to complete every challenge",
+            "Don't forget to rate completed challenges for a small bonus",
+            "Need to know what challenges you have left for achievements? Buy a :bulb: Hint!",
+            "The more you pay, the better the :bulb: Hint",
+            "Need truguts? Try the :dart: Challenge Hunt",
+            "You can customize your condition odds in the :gear: Settings",
+            "You can select your winnings pattern in the :gear: Settings",
+            "Rerolls are free for record-holders",
+            "Rerolls are discounted if you've already played a challenge",
+            "Bribes are refunded when used to find a :dart: Challenge Hunt",
+            "The default conditions are max upgrades, 3-lap, full track",
+            "Get a 📀" + truguts.beat_opponent + "bonus for beating another player's best time", 
+            "Get a 📀" + truguts.personal_best + " bonus for beating your own best time",
+            "Get a 📀" + truguts.first + " bonus for being the first to complete a challenge",
+            "You could win up to 📀" + tools.numberWithCommas(truguts.bonus_basic) + " bonus for a :dart: Challenge Hunt",
+            "Earn a 📀" + truguts.non_standard + " bonus for completing non-standard challenges",
+            "After rolling a challenge, you can bribe Botto for a specific track or racer",
+            ":dart: Challenge Hunts give you one hour to find a trugut bonus on a random challenge",
+            "Check out your random challenge profile to check your career stats and achievements",
+            "Earn a special role for getting achievements in the SWE1R Discord",
+            "Hints help you narrow down what challenges you need to complete for :trophy: Achievements",
+            "Check out top-5 times for Random Challenges in :trophy: Leaderboards",
+            "Click :grey_question: About to learn more about Random Challenges",
+            "You can return to the Random Challenge menu from anywhere by clicking <:menu:862620287735955487>"
+        ]
+
         function getGoalTimes(track, racer, skips, nu, laps) {
             var upg = 5
             if (nu) {
@@ -1445,7 +1472,7 @@ module.exports = {
                     .setAuthor("Random Challenge", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/game-die_1f3b2.png")
                     .setTitle("<:menu:862620287735955487> Menu")
                     .setColor("#ED4245")
-                    .setDescription("This is the Random Challenge menu. From here, you can access all options related to random challenges. Press the **Play** button to get rollin'.")
+                    .setDescription("This is the Random Challenge menu. From here, you can access all options related to random challenges. Press the **Play** button to get rollin'.\n\n" + tips[Math.floor(Math.random()*tips.length)])
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
                         type: type,
@@ -2676,7 +2703,7 @@ module.exports = {
                             }
                         }
                         profileEmbed
-                            .setTitle(":bar_chart: Statistics")
+                            .setTitle("Statistics")
                             .setDescription("Current trugut balance: `📀" + tools.numberWithCommas(profiledata[member].truguts_earned - profiledata[member].truguts_spent) + "`")
                         //add goal times achieved for the stat section
                         if (hasraced) {
