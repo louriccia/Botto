@@ -2268,6 +2268,11 @@ module.exports = {
                         }
                         option.description = description.join(" | ")
                         mirror_mode_options.push(option)
+                        if(i == 0){
+                            i -= 4
+                        } else if (i == 1){
+                            i -= 1
+                        }
                     }
                     components.push(
                         {
