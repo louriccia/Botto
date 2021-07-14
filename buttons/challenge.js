@@ -2818,15 +2818,15 @@ module.exports = {
                         pods = interaction.data.values
                     }
                 }
-                if (conditions == []) {
+                if (conditions.length == 0) {
                     conditions = ["mu", "nu", "ft", "skips", "unmirr", "mirr", "lap1", "lap2", "lap3", "lap4", "lap5"]
                 }
-                if (pods == []) {
+                if (pods.length == 0) {
                     for (i = 0; i < 23; i++) {
                         pods.push(i)
                     }
                 }
-
+                console.log(pods)
                 //prepare filters
                 var nu = [], skips = [], mirrored = [], laps = [], user = null
                 if (conditions.includes("mu")) {
@@ -2873,10 +2873,10 @@ module.exports = {
                     user = member
                 }
                 //account for missing values
-                if (nu == []) { nu.push(true, false), conditions.push("mu", "nu") }
-                if (skips == []) { skips.push(true, false), conditions.push("ft", "skips") }
-                if (mirrored == []) { mirrored.push(true, false), conditions.push("unmirr", "mirr") }
-                if (laps == []) { laps.push(1, 2, 3, 4, 5), conditions.push("lap1", "lap2", "lap3", "lap4", "lap5") }
+                if (nu.length == 0) { nu.push(true, false), conditions.push("mu", "nu") }
+                if (skips.length == 0) { skips.push(true, false), conditions.push("ft", "skips") }
+                if (mirrored.length == 0) { mirrored.push(true, false), conditions.push("unmirr", "mirr") }
+                if (laps.length == 0) { laps.push(1, 2, 3, 4, 5), conditions.push("lap1", "lap2", "lap3", "lap4", "lap5") }
                 //filter
                 var challenge = Object.values(challengedata)
                 var challengefiltered = challenge.filter(element => element.track == track)
@@ -3031,7 +3031,7 @@ module.exports = {
                             {
                                 type: 2,
                                 style: 2,
-                                custom_id: "challenge_random_menu_initial",
+                                custom_id: "challenge_random_menu",
                                 emoji: {
                                     name: "menu",
                                     id: "862620287735955487"
