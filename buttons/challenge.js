@@ -2905,7 +2905,7 @@ module.exports = {
                 var already = []
                 if (challengefiltered.length > 0) {
                     for (var j = 0; j < challengefiltered.length; j++) {
-                        if (!already.includes((challengefiltered[j].player + challengefiltered[j].skips + challengefiltered[j].racer + challengefiltered[j].nu + challengefiltered[j].laps == players[k])) || showall) {
+                        if (!already.includes((challengefiltered[j].player + " " +  challengefiltered[j].skips +" " +challengefiltered[j].racer + " " +challengefiltered[j].nu + " " +challengefiltered[j].laps+ " " + challengefiltered[j].mirror)) || showall) {
                             var stuff = []
                             stuff.push(challengefiltered[j].laps + " Laps")
                             var upgr = " | MU"
@@ -2925,7 +2925,7 @@ module.exports = {
                                 .addField(pos[0] + " " + challengefiltered[j].name, stuff.join(" | "), true)
                                 .addField(tools.timefix(Number(challengefiltered[j].time).toFixed(3)), " " + character + upgr, true)
                                 .addField('\u200B', '\u200B', true)
-                            already.push(challengefiltered[j].player + challengefiltered[j].skips + challengefiltered[j].racer + challengefiltered[j].nu + challengefiltered[j].laps)
+                            already.push(challengefiltered[j].player + " " +  challengefiltered[j].skips +" " +challengefiltered[j].racer + " " +challengefiltered[j].nu + " " +challengefiltered[j].laps+ " " + challengefiltered[j].mirror)
                             if (pos.length > 1) {
                                 pos.splice(0, 1)
                             } else {
