@@ -1404,7 +1404,7 @@ module.exports = {
                 }
             } else if (args[1] == "menu") {
                 var type = 7
-                if (args.includes("initial")) {
+                if (args.includes("new")) {
                     type = 4
                 }
                 const myEmbed = new Discord.MessageEmbed()
@@ -1550,7 +1550,7 @@ module.exports = {
                                                 components: [
                                                     {
                                                         type: 2,
-                                                        custom_id: "challenge_random_hint_initial",
+                                                        custom_id: "challenge_random_hint_initial_new",
                                                         style: 4,
                                                         label: "Hints",
                                                         emoji: {
@@ -1560,7 +1560,7 @@ module.exports = {
                                                     {
                                                         type: 2,
                                                         style: 2,
-                                                        custom_id: "challenge_random_menu_initial",
+                                                        custom_id: "challenge_random_menu_new",
                                                         emoji: {
                                                             name: "menu",
                                                             id: "862620287735955487"
@@ -1824,8 +1824,8 @@ module.exports = {
                 }
 
                 var type = 7
-                if (args.includes("initial")) {
-                    //type = 4
+                if (args.includes("new")) {
+                    type = 4
                 }
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
@@ -1868,7 +1868,7 @@ module.exports = {
                                                 components: [
                                                     {
                                                         type: 2,
-                                                        custom_id: "challenge_random_hunt_initial",
+                                                        custom_id: "challenge_random_hunt_initial_new",
                                                         style: 4,
                                                         label: "Challenge Hunt",
                                                         emoji: {
@@ -1878,7 +1878,7 @@ module.exports = {
                                                     {
                                                         type: 2,
                                                         style: 2,
-                                                        custom_id: "challenge_random_menu_initial",
+                                                        custom_id: "challenge_random_menu_new",
                                                         emoji: {
                                                             name: "menu",
                                                             id: "862620287735955487"
@@ -2032,8 +2032,8 @@ module.exports = {
                     }
                 }
                 var type = 7
-                if (args.includes("initial")) {
-                    //type = 4
+                if (args.includes("new")) {
+                    type = 4
                 }
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
@@ -2067,7 +2067,7 @@ module.exports = {
                                                 components: [
                                                     {
                                                         type: 2,
-                                                        custom_id: "challenge_random_settings_initial",
+                                                        custom_id: "challenge_random_settings_initial_new",
                                                         style: 4,
                                                         label: "Settings",
                                                         emoji: {
@@ -2077,7 +2077,7 @@ module.exports = {
                                                     {
                                                         type: 2,
                                                         style: 2,
-                                                        custom_id: "challenge_random_menu_initial",
+                                                        custom_id: "challenge_random_menu_new",
                                                         emoji: {
                                                             name: "menu",
                                                             id: "862620287735955487"
@@ -2340,9 +2340,13 @@ module.exports = {
                 settingsEmbed
                     .addField("Your Odds", "Skips - " + odds.skips + "%\nNo Upgrades - " + odds.no_upgrades + "%\nNon 3-Lap - " + odds.non_3_lap + "%\nMirror Mode - " + odds.mirror_mode + "%", true)
                     .addField("Your Winnings: " + winnings_map[winnings].name, winnings_map[winnings].text, true)
+                var type = 7
+                if(args.includes("new")){
+                    type = 4
+                }
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
-                        type: 7,
+                        type: type,
                         data: {
                             content: "",
                             embeds: [settingsEmbed],
@@ -2369,7 +2373,7 @@ module.exports = {
                                             components: [
                                                 {
                                                     type: 2,
-                                                    custom_id: "challenge_random_profile_stats",
+                                                    custom_id: "challenge_random_profile_stats_new",
                                                     style: 4,
                                                     label: "Settings",
                                                     emoji: {
@@ -2379,7 +2383,7 @@ module.exports = {
                                                 {
                                                     type: 2,
                                                     style: 2,
-                                                    custom_id: "challenge_random_menu_initial",
+                                                    custom_id: "challenge_random_menu_new",
                                                     emoji: {
                                                         name: "menu",
                                                         id: "862620287735955487"
@@ -2395,9 +2399,13 @@ module.exports = {
                     }
                 }
                 async function sendCallback() {
+                    var type = 6
+                    if(args.includes("new")){
+                        type = 5
+                    }
                     const wait = client.api.interactions(interaction.id, interaction.token).callback.post({
                         data: {
-                            type: 6,
+                            type: type,
                             data: {
                                 content: "Coming right up..."
                                 //embeds: [racerEmbed]
@@ -2787,7 +2795,6 @@ module.exports = {
                 var track = Math.floor(Math.random() * 25)
                 var conditions = []
                 var pods = []
-                var desc = []
                 var showall = false
                 //filters out other tracks
                 if (!args.includes("initial")) {
@@ -2835,47 +2842,36 @@ module.exports = {
                 var nu = [], skips = [], mirrored = [], laps = [], user = null
                 if (conditions.includes("mu")) {
                     nu.push(false)
-                    desc.push("Upgrades")
                 }
                 if (conditions.includes("nu")) {
                     nu.push(true)
-                    desc.push("No Upgrades")
                 }
                 if (conditions.includes("ft")) {
                     skips.push(false)
-                    desc.push("Full Track")
                 }
                 if (conditions.includes("skips")) {
                     skips.push(true)
-                    desc.push("Skips")
                 }
                 if (conditions.includes("unmirr")) {
                     mirrored.push(false)
-                    desc.push("Unmirrored")
                 }
                 if (conditions.includes("mirr")) {
                     mirrored.push(true)
-                    desc.push("Mirrored")
                 }
                 if (conditions.includes("lap1")) {
                     laps.push(1)
-                    desc.push("1 Lap")
                 }
                 if (conditions.includes("lap2")) {
                     laps.push(2)
-                    desc.push("2 Laps")
                 }
                 if (conditions.includes("lap3")) {
                     laps.push(3)
-                    desc.push("3 Laps")
                 }
                 if (conditions.includes("lap4")) {
                     laps.push(4)
-                    desc.push("4 Laps")
                 }
                 if (conditions.includes("lap5")) {
                     laps.push(5)
-                    desc.push("5 Laps")
                 }
                 if (conditions.includes("user")) {
                     user = member
@@ -2906,7 +2902,7 @@ module.exports = {
                     .setAuthor("Random Challenge", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/game-die_1f3b2.png")
                     .setTitle(planets[tracks[track].planet].emoji + " " + tracks[track].name)
                     .setColor(planets[tracks[track].planet].color)
-                    .setDescription(desc.join(', '))
+                    .setDescription(circuits[tracks[track].circuit].name + " Circuit | Race " + tracks[track].cirnum + " | " + planets[tracks[track].planet].name)
                     .setFooter(challengefiltered.length + " Total Runs")
                 if (user !== null) {
                     challengeLeaderboard.setAuthor(Member.user.username + "'s Best", client.guilds.resolve(interaction.guild_id).members.resolve(user).user.avatarURL())
