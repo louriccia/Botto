@@ -381,7 +381,9 @@ module.exports = {
                     desc = desc + movieQuotes[Math.floor(Math.random() * movieQuotes.length)]
                 }
                 if (profiledata[member].current.hunt) {
-                    desc += "\nYou found the Challenge Hunt! Complete the challenge to earn a `📀" + tools.numberWithCommas(profiledata[member].hunt.bonus) + "` bonus"
+                    if(!profiledata[member].current.completed){
+                        desc += "\nYou found the Challenge Hunt! Complete the challenge to earn a `📀" + tools.numberWithCommas(profiledata[member].hunt.bonus) + "` bonus"
+                    }
                     if (profiledata[member].current.racer_bribe) {
                         desc += "\n~~Bribed racer `-📀" + tools.numberWithCommas(truguts.bribe_racer) + "`~~"
                     }
