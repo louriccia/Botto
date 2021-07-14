@@ -2819,7 +2819,7 @@ module.exports = {
                     }
                 }
                 if (conditions.length == 0) {
-                    conditions = ["mu", "nu", "ft", "skips", "unmirr", "mirr", "lap1", "lap2", "lap3", "lap4", "lap5"]
+                    conditions = ["mu", "nu", "ft", "skips", "unmirr", "mirr",  "lap3"]
                 }
                 console.log(pods)
                 //prepare filters
@@ -2937,7 +2937,7 @@ module.exports = {
                     }
                 } else {
                     challengeLeaderboard
-                        .addField("<:WhyNobodyBuy:589481340957753363> No Runs", "No runs were found matching that criteria\n`" + errorMessage[Math.floor(Math.random() * errorMessage.length)] + "`")
+                        .addField("<:WhyNobodyBuy:589481340957753363> No Runs", "`No runs were found matching that criteria`\n" + errorMessage[Math.floor(Math.random() * errorMessage.length)])
                 }
                 //construct components
                 var components = []
@@ -2955,7 +2955,7 @@ module.exports = {
                             id: racers[i].flag.split(":")[2].replace(">", "")
                         }
                     }
-                    if (pods.includes(i)) {
+                    if (pods.includes(String(i))) {
                         racer_option.default = true
                     }
                     var track_option = {
