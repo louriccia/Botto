@@ -2790,7 +2790,7 @@ module.exports = {
                         var option = interaction.message.components[0].components[0].options[i]
                         if (option.hasOwnProperty("default")) {
                             if (option.default) {
-                                track = Number(option.value)
+                                track = i
                             }
                         }
                     }
@@ -2806,7 +2806,7 @@ module.exports = {
                         var option = interaction.message.components[2].components[0].options[i]
                         if (option.hasOwnProperty("default")) {
                             if (option.default) {
-                                pods.push(option.value)
+                                pods.push(i)
                             }
                         }
                     }
@@ -2898,7 +2898,7 @@ module.exports = {
                     .setColor(planets[tracks[track].planet].color)
                     .setDescription(desc.join(', ') + " `[" + challengefiltered.length + " Total Runs]`")
                 if (user !== null) {
-                    challengeLeaderboard.setAuthor(Member.user.username + "'s Best", client.guilds.resolve(interaction.guild_id).members.resolve(player).user.avatarURL())
+                    challengeLeaderboard.setAuthor(Member.user.username + "'s Best", client.guilds.resolve(interaction.guild_id).members.resolve(user).user.avatarURL())
                     showall = true
                 }
                 var pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>", "4th", "5th"]
