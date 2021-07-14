@@ -80,7 +80,7 @@ module.exports = {
             "Get a 📀" + truguts.beat_opponent + " bonus for beating another player's best time", 
             "Get a 📀" + truguts.personal_best + " bonus for beating your own best time",
             "Get a 📀" + truguts.first + " bonus for being the first to complete a challenge",
-            "You could win up to 📀" + tools.numberWithCommas(truguts.bonus_basic) + " bonus for a :dart: Challenge Hunt",
+            "You could win up to 📀" + tools.numberWithCommas(truguts.bonus_basic) + " bonus for completing a :dart: Challenge Hunt",
             "Earn a 📀" + truguts.non_standard + " bonus for completing non-standard challenges",
             "After rolling a challenge, you can bribe Botto for a specific track or racer",
             ":dart: Challenge Hunts give you one hour to find a trugut bonus on a random challenge",

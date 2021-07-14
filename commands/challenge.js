@@ -210,7 +210,7 @@ module.exports = {
 
         //const myEmbed = new Discord.MessageEmbed()
         if (args[0].name == "random") {
-            client.buttons.get("challenge").execute(client, interaction, ["random", "menu", "initial"])
+            client.buttons.get("challenge").execute(client, interaction, ["random", "menu", "new"])
         } else if (args[0].name == "hint") {
             const hintEmbed = new Discord.MessageEmbed()
             let member = interaction.member.user.id
