@@ -2813,11 +2813,11 @@ module.exports = {
                     if (args[2] == "track") {
                         track = Number(interaction.data.values[0])
                     } else if (args[2] == "conditions") {
-                        if (interaction.data.hasOwnProperty("value")) {
+                        if (interaction.data.hasOwnProperty("values")) {
                             conditions = interaction.data.values
                         }
                     } else if (args[2] == "pods") {
-                        if (interaction.data.hasOwnProperty("value")) {
+                        if (interaction.data.hasOwnProperty("values")) {
                             pods = interaction.data.values
                         }
                     }
