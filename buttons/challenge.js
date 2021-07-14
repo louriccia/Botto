@@ -1100,7 +1100,7 @@ module.exports = {
                                                 skips: profiledata[member].skips,
                                                 mirror_mode: profiledata[member].mirror_mode
                                             },
-                                            hunt: profiledata[member].hunt.hunt_bonus
+                                            hunt: profiledata[member].hunt.bonus
                                         }
                                         var newPostRef = ref.push(submissiondata);
                                         profileref.child(member).child("current").update({ submission: newPostRef.key, title: ":white_check_mark: Completed: ", completed: true })
