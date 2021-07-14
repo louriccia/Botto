@@ -2884,7 +2884,7 @@ module.exports = {
                 challengefiltered = challengefiltered.filter(element => laps.includes(element.laps))
                 challengefiltered = challengefiltered.filter(element => mirrored.includes(element.mirror))
                 if(pods.length > 0){
-                    challengefiltered = challengefiltered.filter(element => pods.includes(element.racer))
+                    challengefiltered = challengefiltered.filter(element => pods.includes(String(element.racer)))
                 }
                 if (user !== null) {
                     challengefiltered = challengefiltered.filter(element => element.user == user)
@@ -3022,7 +3022,7 @@ module.exports = {
                                 custom_id: "challenge_random_leaderboards_pods",
                                 options: racer_selections,
                                 placeholder: "Select Pods",
-                                min_values: 1,
+                                min_values: 0,
                                 max_values: racer_selections.length
                             }
                         ]
