@@ -2865,6 +2865,8 @@ module.exports = {
                     } else if (args[2] == "pods") {
                         if (interaction.data.hasOwnProperty("values")) {
                             pods = interaction.data.values
+                        } else {
+                            pods = []
                         }
                     }
                 }
