@@ -308,6 +308,15 @@ module.exports = {
                     }
                 }
 
+                var hunt = false
+                //hunt condiiton
+                if (profiledata[member].hunt !== undefined) {
+                    if (profiledata[member].current.racer == profiledata[member].hunt.racer && profiledata[member].current.track == profiledata[member].hunt.track && !profiledata[member].hunt.completed && Date.now() - 3600000 <= profiledata[member].hunt.date) {
+                        hunt = true
+                        profileref.child(member).child("current").update({hunt: true})
+                    }
+                }
+
                 //build title
                 var laptext = "", mirrortext = "", nutext = "", skipstext = "", flag = "", record = "", desc = ""
                 var title = profiledata[member].current.title
@@ -373,6 +382,22 @@ module.exports = {
                 }
                 if (profiledata[member].current.hunt) {
                     desc += "\nYou found the Challenge Hunt! Complete the challenge to earn a `📀" + tools.numberWithCommas(profiledata[member].hunt.bonus) + "` bonus"
+                    if (profiledata[member].current.racer_bribe) {
+                        desc += "\n~~Bribed racer `-📀" + tools.numberWithCommas(truguts.bribe_racer) + "`~~"
+                    }
+                    if (profiledata[member].current.track_bribe) {
+                        desc += "\n~~Bribed track `-📀" + tools.numberWithCommas(truguts.bribe_track) + "`~~"
+                    }
+                    if(!profiledata[member].current.refunded){
+                        if (profiledata[member].current.racer_bribe) {
+                            profileref.child(member).update({truguts_spent: profiledata[member].truguts_spent - truguts.bribe_racer})
+                        }
+                        if (profiledata[member].current.track_bribe) {
+                            profileref.child(member).update({truguts_spent: profiledata[member].truguts_spent - truguts.bribe_track})
+                        }
+                        profileref.child(member).child("current").update({refunded: true})
+                    }
+
                 } else {
                     if (profiledata[member].current.racer_bribe) {
                         desc += "\nBribed racer `-📀" + tools.numberWithCommas(truguts.bribe_racer) + "`"
@@ -897,6 +922,7 @@ module.exports = {
                     revived: false,
                     undone: false,
                     rerolled: false,
+                    refunded: false,
                     title: ""
                 }
                 profileref.child(member).child("current").set(current)
