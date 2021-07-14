@@ -1473,6 +1473,7 @@ module.exports = {
                     .setTitle("<:menu:862620287735955487> Menu")
                     .setColor("#ED4245")
                     .setDescription("This is the Random Challenge menu. From here, you can access all options related to random challenges. Press the **Play** button to get rollin'.\n\n*" + tips[Math.floor(Math.random()*tips.length)] + "*")
+                    .setFooter("/challenge random")
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
                         type: type,
@@ -3134,6 +3135,15 @@ module.exports = {
             } else if (args[1] == "leaderboards") {
 
             }
+            client.api.interactions(interaction.id, interaction.token).callback.post({
+                data: {
+                    type: 4,
+                    data: {
+                        content: "<:WhyNobodyBuy:589481340957753363> This feature isn't available yet ",
+                        flags: 64
+                    }
+                }
+            })
         }
 
     }

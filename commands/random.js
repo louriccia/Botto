@@ -241,7 +241,7 @@ module.exports = {
             })
             tools.getTrackEmbed(numb, client, interaction.channel_id, interaction)
         } else if(args[0].name=="challenge") {
-            client.commands.get("challenge").execute(client, interaction, args);
+            client.buttons.get("challenge").execute(client, interaction, ["random", "menu", "new"])
         } else if(args[0].name=="teams") {
             var teamnum = args[0].options[0].value
             const teamEmbed = new Discord.MessageEmbed()
