@@ -825,7 +825,7 @@ module.exports = {
                 var challengestart = Date.now()
 
                 //check if challenge already in progress
-                if(profiledata[member].hawOwnProperty("current")){
+                if(profiledata[member].hasOwnProperty("current")){
                     if (profiledata[member].current.completed == false && profiledata[member].current.start > challengestart - 900000) {
                         var challengeinProgress = new Discord.MessageEmbed()
                         challengeinProgress
