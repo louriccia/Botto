@@ -262,7 +262,7 @@ module.exports = {
                             .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/crossed-swords_2694-fe0f.png")
                             .setTitle("Match Schedule")
                             .setURL("http://speedgaming.org/swe1racer/")
-                            .setDescription("Upcoming matches on speedgaming.org/swe1racer\n(all times are Eastern Time)")
+                            .setDescription("Upcoming matches on speedgaming.org/swe1racer")
                         schedule.splice(0, 1)
                         if (schedule.length > 0) {
                             for (i = 0; i < schedule.length; i++) {
@@ -276,8 +276,9 @@ module.exports = {
                                         comm = schedule[i][5]
                                     }
                                 }
+                                var datetime = new Date(schedule[i][0].replace(", ", " " + new Date().getFullYear() + " ") + schedule[i][1].replace(" ", " ") + " EDT").getTime()/1000
                                 tourneyReport
-                                    .addField(schedule[i][0] + " " + schedule[i][1], schedule[i][2] + "\n" + channel, true)
+                                    .addField("<t:" + datetime + ":F>", schedule[i][2] + "\n" + channel, true)
                                     .addField(":crossed_swords: " + schedule[i][3].replace(/,/g, " vs."), ":microphone2: " + comm, true)
                                     .addField('\u200B', '\u200B', true)
                             }
