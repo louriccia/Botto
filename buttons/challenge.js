@@ -825,23 +825,25 @@ module.exports = {
                 var challengestart = Date.now()
 
                 //check if challenge already in progress
-                if (profiledata[member].current.completed == false && profiledata[member].current.start > challengestart - 900000) {
-                    var challengeinProgress = new Discord.MessageEmbed()
-                    challengeinProgress
-                        .setTitle("<:WhyNobodyBuy:589481340957753363> Challenge in Progress")
-                        .setDescription("You already have a challenge in progress in the <#" + profiledata[member].current.channel + "> channel.\nIf you have enough truguts, you can reroll the challenge by clicking the :game_die: **Reroll** button on your challenge, otherwise you will need to wait until the challenge expires to roll a new one.")
-                    client.api.interactions(interaction.id, interaction.token).callback.post({
-                        data: {
-                            type: 4,
+                if(profiledata[member].hawOwnProperty("current")){
+                    if (profiledata[member].current.completed == false && profiledata[member].current.start > challengestart - 900000) {
+                        var challengeinProgress = new Discord.MessageEmbed()
+                        challengeinProgress
+                            .setTitle("<:WhyNobodyBuy:589481340957753363> Challenge in Progress")
+                            .setDescription("You already have a challenge in progress in the <#" + profiledata[member].current.channel + "> channel.\nIf you have enough truguts, you can reroll the challenge by clicking the :game_die: **Reroll** button on your challenge, otherwise you will need to wait until the challenge expires to roll a new one.")
+                        client.api.interactions(interaction.id, interaction.token).callback.post({
                             data: {
-                                embeds: [challengeinProgress],
-                                flags: 64
+                                type: 4,
+                                data: {
+                                    embeds: [challengeinProgress],
+                                    flags: 64
+                                }
                             }
-                        }
-                    })
-                    return
+                        })
+                        return
+                    }
                 }
-
+                
                 if (interaction.name !== "revive") {
                     client.api.interactions(interaction.id, interaction.token).callback.post({ data: { type: 5, data: {} } })
                 }
