@@ -906,7 +906,7 @@ module.exports = {
                     skips: skips,
                     mirror: mirror,
                     truguts: 0,
-                    hunt: hunt,
+                    hunt: false,
                     hunt_bonus: 0,
                     truguts_earned: 0,
                     track_bribe: false,
