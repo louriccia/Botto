@@ -30,7 +30,7 @@ module.exports = {
                 var option = interaction.message.components[1].components[0].options[i]
                 if (option.hasOwnProperty("default")) {
                     if (option.default) {
-                        upgrades = i
+                        upgrades = Number(option.value)
                     }
                 }
             }
@@ -38,7 +38,7 @@ module.exports = {
                 var option = interaction.message.components[2].components[0].options[i]
                 if (option.hasOwnProperty("default")) {
                     if (option.default) {
-                        fps = i
+                        fps = Number(option.value)
                     }
                 }
             }
