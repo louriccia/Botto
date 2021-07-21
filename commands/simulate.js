@@ -18,6 +18,8 @@ module.exports = {
             }
         }
         
+        client.buttons.get("simulate").execute(client, interaction, [track, upgrades, fps, "initial"]);
+        /*
         var upgradeName = {0: "No Upgrades", 5: "Max Upgrades"}
 
         var postColumn1 = ""
@@ -49,6 +51,7 @@ module.exports = {
                 }
             }
         })
+        */
     }
     
 }
