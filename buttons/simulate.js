@@ -65,6 +65,7 @@ module.exports = {
         myEmbed
             .setTitle(planets[tracks[track].planet].emoji + " " + tracks[track].name) //track
             .setColor(planets[tracks[track].planet].color)
+            .setAuthor("Simulate")
             .setDescription("Simulation using " + upgradeName[upgrades] + " at " + fps + "fps") //upgrades & fps //"Max Upgrades, 60fps"
             .addField("Racer", postColumn1, true)
             .addField("Speed", postColumn2, true)
@@ -91,23 +92,38 @@ module.exports = {
             }
             track_selections.push(track_option)
         }
-        upg_selections.push(
-            {
-                label: "No Upgrades",
-                value: 0
-            },
-            {
-                label: "Max Upgrades",
-                value: 5
+        for(i = 0; i < 2; i ++){
+            var upg_selection = {}
+            if(i == 0){
+                upg_selection = {
+                    label: "No Upgrades",
+                    value: 0
+                }
+                if(upgrades == 0){
+                    upg_selection.default = true
+                }
+            } else {
+                upg_selection = {
+                    label: "Max Upgrades",
+                    value: 5
+                }
+                if(upgrades == 5){
+                    upg_selection.default = true
+                }
             }
-        )
+            upg_selections.push(upg_selection)
+        }
 
         for (i = 24; i < 61; i += 4) {
+            var fps_selection = {
+                label: i + " FPS",
+                value: i
+            }
+            if(fps == i){
+                fps_selection.default = true
+            }
             fps_selections.push(
-                {
-                    label: i + " FPS",
-                    value: i
-                }
+                fps_selection
             )
         }
 
