@@ -1294,7 +1294,7 @@ module.exports = {
                     type: type,
                     data: {
                         flags: flags,
-                        embeds: rulesetEmbed,
+                        embeds: [rulesetEmbed],
                         components: components
                     }
                 }
