@@ -735,6 +735,8 @@ module.exports = {
             client.buttons.get("tourney").execute(client, interaction, ["ranks", "page0", "initial"]);
         } else if (args[0].name == "schedule") {
             client.buttons.get("tourney").execute(client, interaction, ["schedule"]);
+        } else if (args[0].name == "rulesets") {
+            client.buttons.get("tourney").execute(client, interaction, ["rulesets", "browse"]);
         } else if (args[0].name == "matches") {
             if (args[0].options[0].name == "browse") {
                 client.buttons.get("tourney").execute(client, interaction, ["matches", "browse", "page0", "initial"]);

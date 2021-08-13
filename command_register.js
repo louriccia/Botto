@@ -2150,6 +2150,12 @@ client.api.applications("545798436105224203").commands.post({
                 ]
             },
             {
+                name: 'rulesets',
+                description: 'get and create tournament rulesets',
+                type: 1,
+                options: []
+            },
+            {
                 name: "matches",
                 description: "view or add matches",
                 type: 2,
