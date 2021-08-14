@@ -373,61 +373,109 @@ module.exports = {
                         }
                     ]
                 })
-                //new, 
-                //edit, clone, delete
             } else if (args[1] == "type") {
+                flags = 64
                 //select type
                 rulesetEmbed
                     .setTitle("New Ruleset")
                     .setDescription("create a ruleset")
                 flags = 64
-                components.push({
-                    type: 1,
-                    components: [
-                        {
-                            type: 3,
-                            custom_id: "tourney_rulesets_new",
-                            options: [
-                                {
-                                    label: "Qualifier",
-                                    value: "qual",
-                                    description: "Players have a set time limit to get their best time with multiple attempts"
-                                },
-                                {
-                                    label: "1v1",
-                                    value: "1v1",
-                                    description: "Players race against an opponent until a set score/race limit"
-                                },
-                                {
-                                    label: "1vAll",
-                                    value: "1vall",
-                                    description: "Players race against all other competitors in a set number of races"
-                                },
-                                {
-                                    label: "Team",
-                                    value: "team",
-                                    description: "Teams compete for a better score/time than opposing teams"
-                                }
-                            ],
-                            placeholder: "Select Ruleset Type",
-                            min_values: 1,
-                            max_values: 1
-                        }
-                    ]
-                })
+                components.push(
+                    {
+                        type: 1,
+                        components: [
+                            {
+                                type: 3,
+                                custom_id: "tourney_rulesets_new",
+                                options: [
+                                    {
+                                        label: "Qualifier",
+                                        value: "qual",
+                                        description: "Players have a set time limit to get their best time with multiple attempts"
+                                    },
+                                    {
+                                        label: "1v1",
+                                        value: "1v1",
+                                        description: "Players race against an opponent until a set score/race limit"
+                                    },
+                                    {
+                                        label: "1vAll",
+                                        value: "1vall",
+                                        description: "Players race against all other competitors in a set number of races"
+                                    }/*,
+                                    {
+                                        label: "Team",
+                                        value: "team",
+                                        description: "Teams compete for a better score/time than opposing teams"
+                                    }*/
+                                ],
+                                placeholder: "Select Ruleset Type",
+                                min_values: 1,
+                                max_values: 1
+                            }
+                        ]
+                    },
+                    {
+                        type: 1,
+                        components: [
+                            {
+                                type: 2,
+                                label: "Cancel",
+                                style: 2,
+                                custom_id: "tourney_rulesets_browse",
+                            }
+                        ]
+                    }
+
+                )
             } else if (args[1] == "new") {
+                flags = 64
                 rulesetEmbed
                     .setTitle("New Ruleset")
                     .setDescription("create a ruleset")
 
+                    var ruleset = {}
                 if (interaction.data.values[0] == "qual") {
-
+                    ruleset = {
+                        type: "qual",
+                        podchoice: "player_choice",
+                        races: []
+                    }
                 } else if (interaction.data.values[0] == "1v1") {
-
+                    ruleset = {
+                        type: "1v1",
+                        wins: 5,
+                        default: ["mu", "ft", "um", "3l"],
+                        gents: "disallowed",
+                        firstmethod: "poe",
+                        firsttrack: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24],
+                        ptrackmethod: "disabled",
+                        ptracklimit: 0,
+                        ppodmethod: "disabled",
+                        ppodlimit: 0,
+                        ttrackmethod: "disabled",
+                        ttracklimit: 0,
+                        tpodmethod: "disasbled",
+                        tpodlimit: 0,
+                        trackmethod: "losers_pick",
+                        tracktracks: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24],
+                        dupecondition: "disabled",
+                        dupelimit: 0,
+                        conmethod: "disabled",
+                        conlimit: 0,
+                        conoptions: [],
+                        podmethod: "players_pick",
+                        podpods: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22],
+                    }
                 } if (interaction.data.values[0] == "1vall") {
-
-                } if (interaction.data.values[0] == "team") {
-
+                    ruleset = {
+                        type: "qual",
+                        podchoice: "player_choice",
+                        races: []
+                    }
+                } //if (interaction.data.values[0] == "team") {}
+                if(ruleset !== {}){
+                    tourney_rulesets.child("new").child(interaction.member.user.id).set(ruleset)
                 }
             }
 
@@ -457,7 +505,12 @@ module.exports = {
                 }
                 track_selections.push(track_option)
             }
-
+            if(args[1] == "navigate"){
+                args[2] = interaction.data.values[0]
+            }
+            if(args[3] !== undefined){
+                tourney_rulesets.child("new").child(interaction.member.user.id).child(args[3]).set(interaction.data.values)
+            }
             if (["edit", "new"].includes(args[1])) {
                 components.push({
                     type: 1,
@@ -554,7 +607,7 @@ module.exports = {
                         components: [
                             {
                                 type: 3,
-                                custom_id: "tourney_rulesets_general_cond",
+                                custom_id: "tourney_rulesets_general_default",
                                 options: [
                                     {
                                         label: "Full Track",
@@ -616,11 +669,11 @@ module.exports = {
                                 options: [
                                     {
                                         label: "Allowed",
-                                        value: "true"
+                                        value: "allowed"
                                     },
                                     {
                                         label: "Disallowed",
-                                        value: "false"
+                                        value: "disallowed"
                                     }
                                 ],
                                 placeholder: "Gentleman's Agreement",
@@ -657,7 +710,7 @@ module.exports = {
                         components: [
                             {
                                 type: 3,
-                                custom_id: "tourney_rulesets_firsttrack_method",
+                                custom_id: "tourney_rulesets_firsttrack_firstmethod",
                                 options: [
                                     /*{
                                         label: "Predetermined",
@@ -691,7 +744,7 @@ module.exports = {
                         components: [
                             {
                                 type: 3,
-                                custom_id: "tourney_rulesets_firsttrack_track",
+                                custom_id: "tourney_rulesets_firsttrack_firsttrack",
                                 options: track_selection,
                                 placeholder: "Filter First Track Options",
                                 min_values: 1,
@@ -714,8 +767,13 @@ module.exports = {
                         components: [
                             {
                                 type: 3,
-                                custom_id: "tourney_rulesets_permatrackban_method",
+                                custom_id: "tourney_rulesets_permatrackban_ptrackmethod",
                                 options: [
+                                    {
+                                        label: "Disabled",
+                                        value: "disabled",
+                                        description: "No permanent track ban"
+                                    },
                                     {
                                         label: "Player Pick",
                                         value: "player_pick",
@@ -738,7 +796,7 @@ module.exports = {
                         components: [
                             {
                                 type: 3,
-                                custom_id: "tourney_rulesets_permatrackban_limit",
+                                custom_id: "tourney_rulesets_permatrackban_ptracklimit",
                                 options: limits,
                                 placeholder: "Permanent Track Bans Per Match",
                                 min_values: 1,
@@ -761,8 +819,13 @@ module.exports = {
                         components: [
                             {
                                 type: 3,
-                                custom_id: "tourney_rulesets_permapodban_method",
+                                custom_id: "tourney_rulesets_permapodban_ppodmethod",
                                 options: [
+                                    {
+                                        label: "Disabled",
+                                        value: "disabled",
+                                        description: "No permanent pod ban"
+                                    },
                                     {
                                         label: "Player Pick",
                                         value: "player_pick",
@@ -785,7 +848,7 @@ module.exports = {
                         components: [
                             {
                                 type: 3,
-                                custom_id: "tourney_rulesets_permapodban_limit",
+                                custom_id: "tourney_rulesets_permapodban_ppodlimit",
                                 options: limits,
                                 placeholder: "Permanent Pod Bans Per Match",
                                 max_values: 1
@@ -807,8 +870,13 @@ module.exports = {
                         components: [
                             {
                                 type: 3,
-                                custom_id: "tourney_rulesets_temptrackban_method",
+                                custom_id: "tourney_rulesets_temptrackban_ttrackmethod",
                                 options: [
+                                    {
+                                        label: "Disabled",
+                                        value: "disabled",
+                                        description: "No temporary track ban"
+                                    },
                                     {
                                         label: "Winner's Pick",
                                         value: "winners_pick",
@@ -841,7 +909,7 @@ module.exports = {
                         components: [
                             {
                                 type: 3,
-                                custom_id: "tourney_rulesets_temptrackban_limit",
+                                custom_id: "tourney_rulesets_temptrackban_ttracklimit",
                                 options: limits,
                                 placeholder: "Temporary Track Bans Per Race",
                                 min_values: 1,
@@ -864,8 +932,13 @@ module.exports = {
                         components: [
                             {
                                 type: 3,
-                                custom_id: "tourney_rulesets_temppodban_method",
+                                custom_id: "tourney_rulesets_temppodban_tpodmethod",
                                 options: [
+                                    {
+                                        label: "Disabled",
+                                        value: "disabled",
+                                        description: "No temporary pod ban"
+                                    },
                                     {
                                         label: "Winner's Pick",
                                         value: "winners_pick",
@@ -898,7 +971,7 @@ module.exports = {
                         components: [
                             {
                                 type: 3,
-                                custom_id: "tourney_rulesets_temppodban_limit",
+                                custom_id: "tourney_rulesets_temppodban_tpodlimit",
                                 options: limits,
                                 placeholder: "Temporary Pod Bans Per Race",
                                 min_values: 1,
@@ -934,7 +1007,7 @@ module.exports = {
                         components: [
                             {
                                 type: 3,
-                                custom_id: "tourney_rulesets_trackselect_method",
+                                custom_id: "tourney_rulesets_trackselect_trackmethod",
                                 options: [
                                     /*{
                                         label: "Predetermined",
@@ -973,7 +1046,7 @@ module.exports = {
                         components: [
                             {
                                 type: 3,
-                                custom_id: "tourney_rulesets_trackselect_track",
+                                custom_id: "tourney_rulesets_trackselect_tracktracks",
                                 options: track_selection,
                                 placeholder: "Set Track Selection Options",
                                 min_values: 1,
@@ -996,11 +1069,11 @@ module.exports = {
                         components: [
                             {
                                 type: 3,
-                                custom_id: "tourney_rulesets_trackdup_condition",
+                                custom_id: "tourney_rulesets_trackdup_dupecondition",
                                 options: [
                                     {
-                                        label: "None",
-                                        value: "none",
+                                        label: "Disabled",
+                                        value: "disabled",
                                         description: "duplicate track picks are not allowed"
                                     },
                                     {
@@ -1035,7 +1108,7 @@ module.exports = {
                         components: [
                             {
                                 type: 3,
-                                custom_id: "tourney_rulesets_trackdup_limit",
+                                custom_id: "tourney_rulesets_trackdup_dupelimit",
                                 options: limits,
                                 placeholder: "Duplicate Track Pick Limit",
                                 min_values: 1,
@@ -1070,7 +1143,7 @@ module.exports = {
                         components: [
                             {
                                 type: 3,
-                                custom_id: "tourney_rulesets_trackcon_method",
+                                custom_id: "tourney_rulesets_trackcon_conmethod",
                                 options: [
                                     {
                                         label: "Disabled",
@@ -1109,7 +1182,7 @@ module.exports = {
                         components: [
                             {
                                 type: 3,
-                                custom_id: "tourney_rulesets_trackcon_limit",
+                                custom_id: "tourney_rulesets_trackcon_conlimit",
                                 options: limits,
                                 placeholder: "Conditions (Forces) Per Match",
                                 min_values: 1,
@@ -1122,7 +1195,7 @@ module.exports = {
                         components: [
                             {
                                 type: 3,
-                                custom_id: "tourney_rulesets_trackcon_options",
+                                custom_id: "tourney_rulesets_trackcon_conoptions",
                                 options: [
                                     {
                                         label: "Full Track",
@@ -1191,7 +1264,7 @@ module.exports = {
                         components: [
                             {
                                 type: 3,
-                                custom_id: "tourney_rulesets_podselect_method",
+                                custom_id: "tourney_rulesets_podselect_podmethod",
                                 options: [
                                     /*{
                                         label: "Predetermined",
@@ -1250,7 +1323,7 @@ module.exports = {
                         components: [
                             {
                                 type: 3,
-                                custom_id: "tourney_rulesets_podselect_pods",
+                                custom_id: "tourney_rulesets_podselect_podpods",
                                 options: racer_selections,
                                 placeholder: "Pods",
                                 min_values: 1,
