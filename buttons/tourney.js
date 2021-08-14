@@ -545,51 +545,61 @@ module.exports = {
                 {
                     label: "General Settings",
                     value: "general",
+                    emoji: {name: "🔷"},
                     description: "set win limit, default conditions, and gentleman's agreement",
                 },
                 {
                     label: "First Track",
                     value: "firsttrack",
+                    emoji: {name: "🏁"},
                     description: "configure how the first track is determined",
                 },
                 {
                     label: "Track Permaban",
                     value: "permatrackban",
+                    emoji: {name: "🚫"},
                     description: "set permanent track ban options",
                 },
                 {
                     label: "Pod Permaban",
                     value: "permapodban",
+                    emoji: {name: "🚫"},
                     description: "set permanent pod ban options",
                 },
                 {
                     label: "Track Tempban",
                     value: "temptrackban",
+                    emoji: {name: "❌"},
                     description: "set temporary track ban options",
                 },
                 {
                     label: "Pod Tempban",
                     value: "temppodban",
+                    emoji: {name: "❌"},
                     description: "set temporary pod ban options",
                 },
                 {
                     label: "Track Selection",
                     value: "trackselect",
+                    emoji: {name: "🚩"},
                     description: "configure how tracks are selected",
                 },
                 {
                     label: "Duplicate Tracks",
                     value: "trackdup",
+                    emoji: {name: "🔁"},
                     description: "set duplicate track options",
                 },
                 {
                     label: "Track Conditions",
                     value: "trackcon",
+                    emoji: {name: "*️⃣"},
                     description: "configure track condition options",
                 },
                 {
                     label: "Pod Selection",
                     value: "podselect",
+                    emoji: {name: "Pod1", id: "525755322355417127"},
                     description: "configure how pods are selected",
                 }
             ]
@@ -618,11 +628,82 @@ module.exports = {
                 for (i = 1; i < 14; i++) {
                     win_options.push(
                         {
-                            label: i,
+                            label: "First to " + i + " Wins",
                             value: i,
                             description: "Best of " + (i * 2 - 1)
                         }
                     )
+                }
+                for(i = 0; i < win_options.length; i++){
+                    if(win_options[i].value == tourney_rulesets_data.new[interaction.member.user.id].wins){
+                        win_options[i].default = true
+                    }
+                }
+                var con_options = [
+                    {
+                        label: "Full Track",
+                        value: "ft"
+                    },
+                    {
+                        label: "Skips",
+                        value: "sk"
+                    },
+                    {
+                        label: "Max Upgrades",
+                        value: "mu"
+                    },
+                    {
+                        label: "No Upgrades",
+                        value: "nu"
+                    },
+                    {
+                        label: "Unmirrored",
+                        value: "um"
+                    },
+                    {
+                        label: "Mirrored",
+                        value: "mi"
+                    },
+                    {
+                        label: "1 Lap",
+                        value: "1l"
+                    },
+                    {
+                        label: "2 Lap",
+                        value: "2l"
+                    },
+                    {
+                        label: "3 Lap",
+                        value: "3l"
+                    },
+                    {
+                        label: "4 Lap",
+                        value: "4l"
+                    },
+                    {
+                        label: "5 Lap",
+                        value: "5l"
+                    }
+                ]
+                for(i = 0; i < con_options.length; i++){
+                    if(con_options[i].value == tourney_rulesets_data.new[interaction.member.user.id].default){
+                        con_options[i].default = true
+                    }
+                }
+                var gent_options = [
+                    {
+                        label: "Gentleman's Agreement: Allowed",
+                        value: "allowed"
+                    },
+                    {
+                        label: "Gentleman's Agreement: Disallowed",
+                        value: "disallowed"
+                    }
+                ]
+                for(i = 0; i < gent_options.length; i++){
+                    if(gent_options[i].value == tourney_rulesets_data.new[interaction.member.user.id].gents){
+                        gent_options[i].default = true
+                    }
                 }
                 components.push(
                     {
@@ -644,52 +725,7 @@ module.exports = {
                             {
                                 type: 3,
                                 custom_id: "tourney_rulesets_general_default",
-                                options: [
-                                    {
-                                        label: "Full Track",
-                                        value: "ft"
-                                    },
-                                    {
-                                        label: "Skips",
-                                        value: "sk"
-                                    },
-                                    {
-                                        label: "Max Upgrades",
-                                        value: "mu"
-                                    },
-                                    {
-                                        label: "No Upgrades",
-                                        value: "nu"
-                                    },
-                                    {
-                                        label: "Unmirrored",
-                                        value: "um"
-                                    },
-                                    {
-                                        label: "Mirrored",
-                                        value: "mi"
-                                    },
-                                    {
-                                        label: "1 Lap",
-                                        value: "1l"
-                                    },
-                                    {
-                                        label: "2 Lap",
-                                        value: "2l"
-                                    },
-                                    {
-                                        label: "3 Lap",
-                                        value: "3l"
-                                    },
-                                    {
-                                        label: "4 Lap",
-                                        value: "4l"
-                                    },
-                                    {
-                                        label: "5 Lap",
-                                        value: "5l"
-                                    }
-                                ],
+                                options: con_options,
                                 placeholder: "Set Default Conditions",
                                 min_values: 4,
                                 max_values: 4
@@ -702,16 +738,7 @@ module.exports = {
                             {
                                 type: 3,
                                 custom_id: "tourney_rulesets_general_gents",
-                                options: [
-                                    {
-                                        label: "Allowed",
-                                        value: "allowed"
-                                    },
-                                    {
-                                        label: "Disallowed",
-                                        value: "disallowed"
-                                    }
-                                ],
+                                options: gent_options,
                                 placeholder: "Gentleman's Agreement",
                                 min_values: 1,
                                 max_values: 1
