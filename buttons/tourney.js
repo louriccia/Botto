@@ -508,8 +508,8 @@ module.exports = {
             }
             if(args[1] == "navigate"){
                 args[2] = interaction.data.values[0]
-            } else if(args[2] !== undefined){
-                tourney_rulesets.child("new").child(interaction.member.user.id).child(args[3]).set(interaction.data.values)
+            } else if(![undefined, "initial"].includes(args[2])){
+                tourney_rulesets.child("new").child(interaction.member.user.id).child(args[2]).set(interaction.data.values)
             }
             if (["edit", "new"].includes(args[1])) {
                 components.push({
