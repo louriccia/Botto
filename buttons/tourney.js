@@ -350,7 +350,7 @@ module.exports = {
                         {
                             type: 2,
                             label: "New",
-                            style: 2,
+                            style: 1,
                             custom_id: "tourney_rulesets_type",
                         },
                         {
@@ -368,7 +368,7 @@ module.exports = {
                         {
                             type: 2,
                             label: "Delete",
-                            style: 2,
+                            style: 4,
                             custom_id: "tourney_rulesets_delete",
                         }
                     ]
@@ -511,7 +511,7 @@ module.exports = {
             } else if(![undefined, "initial"].includes(args[2])){
                 tourney_rulesets.child("new").child(interaction.member.user.id).child(args[2]).set(interaction.data.values)
             }
-            if (["edit", "new"].includes(args[1])) {
+            if (!["browse", "type"].includes(args[1])) {
                 components.push({
                     type: 1,
                     components: [
