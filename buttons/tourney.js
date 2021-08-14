@@ -381,35 +381,44 @@ module.exports = {
                     .setTitle("New Ruleset")
                     .setDescription("create a ruleset")
                 flags = 64
+                
+                var options = [
+                    {
+                        label: "Qualifier",
+                        value: "qual",
+                        description: "Players have a set time limit to get their best time with multiple attempts"
+                    },
+                    {
+                        label: "1v1",
+                        value: "1v1",
+                        description: "Players face off until one reaches the win limit"
+                    },
+                    {
+                        label: "1vAll",
+                        value: "1vall",
+                        description: "Players race against all other competitors in a set number of races"
+                    }/*,
+                    {
+                        label: "Team",
+                        value: "team",
+                        description: "Teams compete for a better score/time than opposing teams"
+                    }*/
+                ]
+                if(interaction.data.hasOwnProperty("values")){
+                    for(i = 0; i < options.length; i++){
+                        if(interaction.data.values.includes(options[i].value)){
+                            options[i].default = true
+                        }
+                    }
+                }
                 components.push(
                     {
                         type: 1,
                         components: [
                             {
                                 type: 3,
-                                custom_id: "tourney_rulesets_new",
-                                options: [
-                                    {
-                                        label: "Qualifier",
-                                        value: "qual",
-                                        description: "Players have a set time limit to get their best time with multiple attempts"
-                                    },
-                                    {
-                                        label: "1v1",
-                                        value: "1v1",
-                                        description: "Players race against an opponent until a set score/race limit"
-                                    },
-                                    {
-                                        label: "1vAll",
-                                        value: "1vall",
-                                        description: "Players race against all other competitors in a set number of races"
-                                    }/*,
-                                    {
-                                        label: "Team",
-                                        value: "team",
-                                        description: "Teams compete for a better score/time than opposing teams"
-                                    }*/
-                                ],
+                                custom_id: "tourney_rulesets_type",
+                                options: options,
                                 placeholder: "Select Ruleset Type",
                                 min_values: 1,
                                 max_values: 1
@@ -421,8 +430,14 @@ module.exports = {
                         components: [
                             {
                                 type: 2,
+                                label: "Create",
+                                style: 3,
+                                custom_id: "tourney_rulesets_new",
+                            },
+                            {
+                                type: 2,
                                 label: "Cancel",
-                                style: 2,
+                                style: 4,
                                 custom_id: "tourney_rulesets_browse",
                             }
                         ]
@@ -430,19 +445,28 @@ module.exports = {
 
                 )
             } else if (args[1] == "new") {
+                var ruleset_type = "1v1"
+                for (var i = 0; i < interaction.message.components[0].components[0].options.length; i++) { //track
+                    var option = interaction.message.components[0].components[0].options[i]
+                    if (option.hasOwnProperty("default")) {
+                        if (option.default) {
+                            ruleset_type = option.value
+                        }
+                    }
+                }
                 flags = 64
                 rulesetEmbed
                     .setTitle("New Ruleset")
                     .setDescription("create a ruleset")
 
                     var ruleset = {}
-                if (interaction.data.values[0] == "qual") {
+                if (ruleset_type == "qual") {
                     ruleset = {
                         type: "qual",
                         podchoice: "player_choice",
                         races: []
                     }
-                } else if (interaction.data.values[0] == "1v1") {
+                } else if (ruleset_type == "1v1") {
                     ruleset = {
                         type: "1v1",
                         wins: 5,
@@ -468,13 +492,13 @@ module.exports = {
                         podmethod: "players_pick",
                         podpods: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22],
                     }
-                } if (interaction.data.values[0] == "1vall") {
+                } if (ruleset_type == "1vall") {
                     ruleset = {
                         type: "qual",
                         podchoice: "player_choice",
                         races: []
                     }
-                } //if (interaction.data.values[0] == "team") {}
+                } //if (ruleset_type == "team") {}
                 if(ruleset !== {}){
                     tourney_rulesets.child("new").child(interaction.member.user.id).set(ruleset)
                 }
