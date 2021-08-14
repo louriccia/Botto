@@ -341,63 +341,92 @@ module.exports = {
             var flags = 0
             var components = []
             const rulesetEmbed = new Discord.MessageEmbed()
-            .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/crossed-swords_2694-fe0f.png")
+                .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/crossed-swords_2694-fe0f.png")
             if (args[1] == "browse") {
                 rulesetEmbed.setTitle("Rulesets")
+                components.push({
+                    type: 1,
+                    components: [
+                        {
+                            type: 2,
+                            label: "New",
+                            style: 2,
+                            custom_id: "tourney_rulesets_type",
+                        },
+                        {
+                            type: 2,
+                            label: "Edit",
+                            style: 2,
+                            custom_id: "tourney_rulesets_edit",
+                        },
+                        {
+                            type: 2,
+                            label: "Clone",
+                            style: 2,
+                            custom_id: "tourney_rulesets_clone",
+                        },
+                        {
+                            type: 2,
+                            label: "Delete",
+                            style: 2,
+                            custom_id: "tourney_rulesets_delete",
+                        }
+                    ]
+                })
                 //new, 
                 //edit, clone, delete
             } else if (args[1] == "type") {
                 //select type
                 rulesetEmbed
-                .setTitle("New Ruleset")
-                .setDescription("create a ruleset")
+                    .setTitle("New Ruleset")
+                    .setDescription("create a ruleset")
                 flags = 64
                 components.push({
                     type: 1,
-                        components: [
-                            {
-                                type: 3,
-                                custom_id: "tourney_rulesets_new",
-                                options: [
-                                    {
-                                        label: "Qualifier",
-                                        value: "qual",
-                                        description: "Players have a set time limit to get their best time with multiple attempts"
-                                    },
-                                    {
-                                        label: "1v1",
-                                        value: "1v1",
-                                        description: "Players race against an opponent until a set score/race limit"
-                                    },
-                                    {
-                                        label: "1vAll",
-                                        value: "1vall",
-                                        description: "Players race against all other competitors in a set number of races"
-                                    },
-                                    {
-                                        label: "Team",
-                                        value: "team",
-                                        description: "Teams compete for a better score/time than opposing teams"
-                                    }
-                                ],
-                                placeholder: "Select Ruleset Type",
-                                min_values: 1,
-                                max_values: 1
-                            }
-                        ]
+                    components: [
+                        {
+                            type: 3,
+                            custom_id: "tourney_rulesets_new",
+                            options: [
+                                {
+                                    label: "Qualifier",
+                                    value: "qual",
+                                    description: "Players have a set time limit to get their best time with multiple attempts"
+                                },
+                                {
+                                    label: "1v1",
+                                    value: "1v1",
+                                    description: "Players race against an opponent until a set score/race limit"
+                                },
+                                {
+                                    label: "1vAll",
+                                    value: "1vall",
+                                    description: "Players race against all other competitors in a set number of races"
+                                },
+                                {
+                                    label: "Team",
+                                    value: "team",
+                                    description: "Teams compete for a better score/time than opposing teams"
+                                }
+                            ],
+                            placeholder: "Select Ruleset Type",
+                            min_values: 1,
+                            max_values: 1
+                        }
+                    ]
                 })
             } else if (args[1] == "new") {
                 rulesetEmbed
-                .setTitle("New Ruleset")
-                .setDescription("create a ruleset")
+                    .setTitle("New Ruleset")
+                    .setDescription("create a ruleset")
 
-                if(interaction.data.values[0] == "qual"){
+                if (interaction.data.values[0] == "qual") {
 
-                } else if(interaction.data.values[0] == "1v1"){
+                } else if (interaction.data.values[0] == "1v1") {
 
-                }if(interaction.data.values[0] == "1vall"){
+                } if (interaction.data.values[0] == "1vall") {
 
-                }if(interaction.data.values[0] == "team"){
+                } if (interaction.data.values[0] == "team") {
 
                 }
             }
@@ -630,20 +659,20 @@ module.exports = {
                                 type: 3,
                                 custom_id: "tourney_rulesets_firsttrack_method",
                                 options: [
-                                    {
+                                    /*{
                                         label: "Predetermined",
                                         value: "predetermined",
                                         description: "first track is already determined"
-                                    },
+                                    },*/
                                     {
                                         label: "Process of Elimination",
                                         value: "poe",
                                         description: "players alternate bans until one track is left"
                                     },
                                     {
-                                        label: "Random Player Pick",
-                                        value: "random_pick",
-                                        description: "random player gets to pick the first track"
+                                        label: "Chance Cube",
+                                        value: "chance_cube",
+                                        description: "winner of chance cube gets to pick the first track"
                                     },
                                     {
                                         label: "Random",
@@ -656,38 +685,21 @@ module.exports = {
                                 max_values: 1
                             }
                         ]
-                    }
-                )
-                if (false) { //if not predetermined
-                    components.push({
-                        type: 1,
-                        components: [
-                            {
-                                type: 3,
-                                custom_id: "tourney_rulesets_firsttrack_filter",
-                                options: planetsncircuits,
-                                placeholder: "Filter First Track Selection",
-                                min_values: 1,
-                                max_values: 12
-                            }
-                        ]
-                    })
-                }
-                if (false) { //if determined
-                    components.push({
+                    },
+                    {
                         type: 1,
                         components: [
                             {
                                 type: 3,
                                 custom_id: "tourney_rulesets_firsttrack_track",
                                 options: track_selection,
-                                placeholder: "Select First Track",
+                                placeholder: "Filter First Track Options",
                                 min_values: 1,
                                 max_values: 1
                             }
                         ]
-                    })
-                }
+                    }
+                )
             } else if (args[2] == "permatrackban") {
                 var limits = []
                 for (i = 0; i < 6; i++) {
@@ -728,7 +740,7 @@ module.exports = {
                                 type: 3,
                                 custom_id: "tourney_rulesets_permatrackban_limit",
                                 options: limits,
-                                placeholder: "Permanent Track Ban Limit",
+                                placeholder: "Permanent Track Bans Per Match",
                                 min_values: 1,
                                 max_values: 1
                             }
@@ -775,8 +787,7 @@ module.exports = {
                                 type: 3,
                                 custom_id: "tourney_rulesets_permapodban_limit",
                                 options: limits,
-                                placeholder: "Permanent Pod Ban Limit",
-                                min_values: 1,
+                                placeholder: "Permanent Pod Bans Per Match",
                                 max_values: 1
                             }
                         ]
@@ -809,9 +820,9 @@ module.exports = {
                                         description: "Loser gets to select temporary track ban"
                                     },
                                     {
-                                        label: "Random Player Pick",
-                                        value: "random_pick",
-                                        description: "Random player gets to select temporary track ban"
+                                        label: "Chance Cube",
+                                        value: "chance_cube",
+                                        description: "Winner of Chance Cube gets to select temporary track ban"
                                     },
                                     {
                                         label: "Random",
@@ -832,7 +843,7 @@ module.exports = {
                                 type: 3,
                                 custom_id: "tourney_rulesets_temptrackban_limit",
                                 options: limits,
-                                placeholder: "Temporary Track Ban Limit",
+                                placeholder: "Temporary Track Bans Per Race",
                                 min_values: 1,
                                 max_values: 1
                             }
@@ -866,9 +877,9 @@ module.exports = {
                                         description: "Loser gets to pick temporary pod ban"
                                     },
                                     {
-                                        label: "Random Player Pick",
-                                        value: "random_pick",
-                                        description: "Random player gets to pick temporary pod ban"
+                                        label: "Chance Cube",
+                                        value: "chance_cube",
+                                        description: "Winner of Chance Cube gets to pick temporary pod ban"
                                     },
                                     {
                                         label: "Random",
@@ -889,7 +900,7 @@ module.exports = {
                                 type: 3,
                                 custom_id: "tourney_rulesets_temppodban_limit",
                                 options: limits,
-                                placeholder: "Temporary Pod Ban Limit",
+                                placeholder: "Temporary Pod Bans Per Race",
                                 min_values: 1,
                                 max_values: 1
                             }
@@ -925,11 +936,11 @@ module.exports = {
                                 type: 3,
                                 custom_id: "tourney_rulesets_trackselect_method",
                                 options: [
-                                    {
+                                    /*{
                                         label: "Predetermined",
                                         value: "predetermined",
                                         description: "track selection is already determined"
-                                    },
+                                    },*/
                                     {
                                         label: "Loser's Pick",
                                         value: "losers_pick",
@@ -941,9 +952,9 @@ module.exports = {
                                         description: "Winner gets to pick the track for the next race"
                                     },
                                     {
-                                        label: "Random Player Pick",
+                                        label: "Chance Cube",
                                         value: "random_pick",
-                                        description: "random player gets to pick the track for the next race"
+                                        description: "Winner of Chance Cube gets to pick the track for the next race"
                                     },
                                     {
                                         label: "Random",
@@ -956,38 +967,21 @@ module.exports = {
                                 max_values: 1
                             }
                         ]
-                    }
-                )
-                if (false) { //if not predetermined
-                    components.push({
-                        type: 1,
-                        components: [
-                            {
-                                type: 3,
-                                custom_id: "tourney_rulesets_trackselect_filter",
-                                options: planetsncircuits,
-                                placeholder: "Filter First Track Selection",
-                                min_values: 1,
-                                max_values: 12
-                            }
-                        ]
-                    })
-                }
-                if (false) { //if determined
-                    components.push({
+                    },
+                    {
                         type: 1,
                         components: [
                             {
                                 type: 3,
                                 custom_id: "tourney_rulesets_trackselect_track",
                                 options: track_selection,
-                                placeholder: "Select First Track",
+                                placeholder: "Set Track Selection Options",
                                 min_values: 1,
                                 max_values: 1
                             }
                         ]
-                    })
-                }
+                    }
+                )
             } else if (args[2] == "trackdup") {
                 var limits = []
                 for (i = 0; i < 6; i++) {
@@ -1017,12 +1011,12 @@ module.exports = {
                                     {
                                         label: "Saltier Runback",
                                         value: "saltier_runback",
-                                        description: "players can salty runback a runback"
+                                        description: "in addition to Salty Runbacks, players can salty runback a runback"
                                     },
                                     {
                                         label: "Saltiest Runback",
                                         value: "saltiest_runback",
-                                        description: "players can salty runback a runbacked runback"
+                                        description: "in addition to Saltier Runbacks, players can salty runback a runbacked runback"
                                     },
                                     {
                                         label: "Any Condition",
@@ -1052,6 +1046,18 @@ module.exports = {
                 )
             } else if (args[2] == "trackcon") {
                 var limits = []
+                limits.push(
+                    {
+                        label: "Wins",
+                        value: "wins",
+                        description: "Players earn forces for each race win"
+                    },
+                    {
+                        label: "Losses",
+                        value: "lossess",
+                        description: "Players earn forces for each race loss"
+                    }
+                )
                 for (i = 0; i < 13; i++) {
                     limits.push({
                         label: i,
@@ -1067,19 +1073,24 @@ module.exports = {
                                 custom_id: "tourney_rulesets_trackcon_method",
                                 options: [
                                     {
-                                        label: "Winner's Pick (Force)",
+                                        label: "Disabled",
+                                        value: "disabled",
+                                        description: "No special conditions are allowed"
+                                    },
+                                    {
+                                        label: "Winner's Pick",
                                         value: "winners_pick",
                                         description: "Winner gets to pick conditions for the next track"
                                     },
                                     {
-                                        label: "Loser's Pick (Force)",
+                                        label: "Loser's Pick",
                                         value: "losers_pick",
                                         description: "Loser gets to pick conditions for the next track"
                                     },
                                     {
-                                        label: "Random Player Pick (Force)",
-                                        value: "random_pick",
-                                        description: "Random player gets to pick conditions for the next track"
+                                        label: "Chance Cube",
+                                        value: "chance_cube",
+                                        description: "Winner of Chance Cube gets to pick conditions for the next track"
                                     },
                                     {
                                         label: "Random",
@@ -1098,9 +1109,9 @@ module.exports = {
                         components: [
                             {
                                 type: 3,
-                                custom_id: "tourney_rulset_trackcon_limit",
+                                custom_id: "tourney_rulesets_trackcon_limit",
                                 options: limits,
-                                placeholder: "Condition Limit",
+                                placeholder: "Conditions (Forces) Per Match",
                                 min_values: 1,
                                 max_values: 1
                             }
@@ -1171,28 +1182,6 @@ module.exports = {
                                 max_values: 13
                             }
                         ]
-                    },
-                    {
-                        type: 1,
-                        components: [
-                            {
-                                type: 3,
-                                custom_id: "tourney_rulesets_general_gents",
-                                options: [
-                                    {
-                                        label: "Allowed",
-                                        value: "true"
-                                    },
-                                    {
-                                        label: "Disallowed",
-                                        value: "false"
-                                    }
-                                ],
-                                placeholder: "Gentleman's Agreement",
-                                min_values: 1,
-                                max_values: 1
-                            }
-                        ]
                     }
                 )
             } else if (args[2] == "podselect") {
@@ -1204,11 +1193,11 @@ module.exports = {
                                 type: 3,
                                 custom_id: "tourney_rulesets_podselect_method",
                                 options: [
-                                    {
+                                    /*{
                                         label: "Predetermined",
                                         value: "predetermined",
                                         description: "Pod selection is already determined"
-                                    },
+                                    },*/
                                     {
                                         label: "Players's Pick",
                                         value: "players_pick",
@@ -1225,14 +1214,14 @@ module.exports = {
                                         description: "Winner gets to pick the pod for both players for the next race"
                                     },
                                     {
-                                        label: "Random Player Pick",
-                                        value: "random_pick",
-                                        description: "random player gets to pick the pod for both players for the next race"
+                                        label: "Chance Cube",
+                                        value: "chance_cube",
+                                        description: "Winner of Chance Cube gets to pick the pod for both players for the next race"
                                     },
                                     {
                                         label: "Random Mirrored",
                                         value: "random_mirrored",
-                                        description: "players are assigned the same random pod"
+                                        description: "players are assigned the same random pod for the next race"
                                     },
                                     {
                                         label: "Limited Choice",
@@ -1247,7 +1236,7 @@ module.exports = {
                                     {
                                         label: "Pod Pool",
                                         value: "pod_pool",
-                                        description: "players can use each pod a limited number of times"
+                                        description: "players can only use each pod a limited number of times"
                                     }
                                 ],
                                 placeholder: "Pod Selection Method",
@@ -1271,6 +1260,8 @@ module.exports = {
 
                     }
                 )
+                //add random limited choice limit
+                //add pod pool limit
             } else if (args[2] == "qual") {
                 //pod select
                 //add race
@@ -1283,12 +1274,12 @@ module.exports = {
                 //add race
                 //track
                 //conditions
-            } 
+            }
 
             //create embed
             rulesetEmbed
-                
-                
+
+
             client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {
                     type: type,
