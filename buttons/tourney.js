@@ -410,6 +410,7 @@ module.exports = {
                             options[i].default = true
                         }
                     }
+                    type = 7
                 }
                 components.push(
                     {
@@ -502,6 +503,7 @@ module.exports = {
                 if(ruleset !== {}){
                     tourney_rulesets.child("new").child(interaction.member.user.id).set(ruleset)
                 }
+                args[1] = "general"
             }
 
             var track_selections = []
@@ -539,6 +541,63 @@ module.exports = {
                 }
                 tourney_rulesets.child("new").child(interaction.member.user.id).child(args[2]).set(data)
             }
+            var options = [
+                {
+                    label: "General Settings",
+                    value: "general",
+                    description: "set win limit, default conditions, and gentleman's agreement",
+                },
+                {
+                    label: "First Track",
+                    value: "firsttrack",
+                    description: "configure how the first track is determined",
+                },
+                {
+                    label: "Track Permaban",
+                    value: "permatrackban",
+                    description: "set permanent track ban options",
+                },
+                {
+                    label: "Pod Permaban",
+                    value: "permapodban",
+                    description: "set permanent pod ban options",
+                },
+                {
+                    label: "Track Tempban",
+                    value: "temptrackban",
+                    description: "set temporary track ban options",
+                },
+                {
+                    label: "Pod Tempban",
+                    value: "temppodban",
+                    description: "set temporary pod ban options",
+                },
+                {
+                    label: "Track Selection",
+                    value: "trackselect",
+                    description: "configure how tracks are selected",
+                },
+                {
+                    label: "Duplicate Tracks",
+                    value: "trackdup",
+                    description: "set duplicate track options",
+                },
+                {
+                    label: "Track Conditions",
+                    value: "trackcon",
+                    description: "configure track condition options",
+                },
+                {
+                    label: "Pod Selection",
+                    value: "podselect",
+                    description: "configure how pods are selected",
+                }
+            ]
+            for(i = 0; i < options.length; i++){
+                if(args[1] == options[i].value){
+                    options[i].default = true
+                }
+            }
             if (!["browse", "type"].includes(args[1])) {
                 components.push({
                     type: 1,
@@ -546,58 +605,7 @@ module.exports = {
                         {
                             type: 3,
                             custom_id: "tourney_rulesets_navigate",
-                            options: [
-                                {
-                                    label: "General Settings",
-                                    value: "general",
-                                    description: "set win limit, default conditions, and gentleman's agreement",
-                                },
-                                {
-                                    label: "First Track",
-                                    value: "firsttrack",
-                                    description: "configure how the first track is determined",
-                                },
-                                {
-                                    label: "Track Permaban",
-                                    value: "permatrackban",
-                                    description: "set permanent track ban options",
-                                },
-                                {
-                                    label: "Pod Permaban",
-                                    value: "permapodban",
-                                    description: "set permanent pod ban options",
-                                },
-                                {
-                                    label: "Track Tempban",
-                                    value: "temptrackban",
-                                    description: "set temporary track ban options",
-                                },
-                                {
-                                    label: "Pod Tempban",
-                                    value: "temppodban",
-                                    description: "set temporary pod ban options",
-                                },
-                                {
-                                    label: "Track Selection",
-                                    value: "trackselect",
-                                    description: "configure how tracks are selected",
-                                },
-                                {
-                                    label: "Duplicate Tracks",
-                                    value: "trackdup",
-                                    description: "set duplicate track options",
-                                },
-                                {
-                                    label: "Track Conditions",
-                                    value: "trackcon",
-                                    description: "configure track condition options",
-                                },
-                                {
-                                    label: "Pod Selection",
-                                    value: "podselect",
-                                    description: "configure how pods are selected",
-                                }
-                            ],
+                            options: options,
                             placeholder: "Settings",
                             min_values: 1,
                             max_values: 1
