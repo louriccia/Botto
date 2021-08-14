@@ -507,7 +507,7 @@ module.exports = {
                 track_selections.push(track_option)
             }
             if(args[1] == "navigate"){
-                args[2] = interaction.data.values[0]
+                args[1] = interaction.data.values[0]
             } else if(![undefined, "initial"].includes(args[2])){
                 tourney_rulesets.child("new").child(interaction.member.user.id).child(args[2]).set(interaction.data.values)
             }
