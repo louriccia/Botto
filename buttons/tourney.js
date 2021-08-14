@@ -539,7 +539,7 @@ module.exports = {
                 args[1] = interaction.data.values[0]
             } else if (![undefined, "initial"].includes(args[2])) {
                 var data = interaction.data.values
-                if (!["default", "firsttrack", "podpods", "tracktracks"].includes(args[2])) {
+                if (!["default", "firsttrack", "podpods", "tracktracks", "conoptions"].includes(args[2])) {
                     data = interaction.data.values[0]
                 }
                 tourney_rulesets.child("new").child(interaction.member.user.id).child(args[2]).set(data)
@@ -1260,17 +1260,17 @@ module.exports = {
                 var limits = []
                 limits.push(
                     {
-                        label: "Wins",
+                        label: "1 Per Win",
                         value: "wins",
                         description: "Players earn forces for each race win"
                     },
                     {
-                        label: "Losses",
+                        label: "1 Per Loss",
                         value: "lossess",
                         description: "Players earn forces for each race loss"
                     }
                 )
-                for (i = 0; i < 13; i++) {
+                for (i = 1; i < 13; i++) {
                     limits.push({
                         label: i + " Per Player Per Match",
                         value: i
@@ -1533,6 +1533,7 @@ module.exports = {
                         if (limit.value == tourney_rulesets_data.new[interaction.member.user.id].rndlimited) {
                             limit.default = true
                         }
+                        limits.push(limit)
                     }
                     components.push(
                         {
@@ -1561,6 +1562,7 @@ module.exports = {
                         if (limit.value == tourney_rulesets_data.new[interaction.member.user.id].poollimit) {
                             limit.default = true
                         }
+                        limits.push(limit)
                     }
                     components.push(
                         {
