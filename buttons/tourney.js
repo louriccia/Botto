@@ -350,7 +350,7 @@ module.exports = {
                         {
                             type: 2,
                             label: "New",
-                            style: 1,
+                            style: 3,
                             custom_id: "tourney_rulesets_type",
                         },
                         {
@@ -509,7 +509,11 @@ module.exports = {
             if(args[1] == "navigate"){
                 args[1] = interaction.data.values[0]
             } else if(![undefined, "initial"].includes(args[2])){
-                tourney_rulesets.child("new").child(interaction.member.user.id).child(args[2]).set(interaction.data.values)
+                var data = interaction.data.values
+                if(interaction.data.values.length == 1){
+                    data = interaction.data.values[0]
+                }
+                tourney_rulesets.child("new").child(interaction.member.user.id).child(args[2]).set(data)
             }
             if (!["browse", "type"].includes(args[1])) {
                 components.push({
@@ -745,7 +749,7 @@ module.exports = {
                             {
                                 type: 3,
                                 custom_id: "tourney_rulesets_firsttrack_firsttrack",
-                                options: track_selection,
+                                options: track_selections,
                                 placeholder: "Filter First Track Options",
                                 min_values: 1,
                                 max_values: 1
@@ -1047,7 +1051,7 @@ module.exports = {
                             {
                                 type: 3,
                                 custom_id: "tourney_rulesets_trackselect_tracktracks",
-                                options: track_selection,
+                                options: track_selections,
                                 placeholder: "Set Track Selection Options",
                                 min_values: 1,
                                 max_values: 1
@@ -1079,17 +1083,17 @@ module.exports = {
                                     {
                                         label: "Salty Runback",
                                         value: "salty_runback",
-                                        description: "players can replay an already played track if they haven’t won"
+                                        description: "players can runback a track only if they haven’t won"
                                     },
                                     {
                                         label: "Saltier Runback",
                                         value: "saltier_runback",
-                                        description: "in addition to Salty Runbacks, players can salty runback a runback"
+                                        description: "players can runback a Salty Runback"
                                     },
                                     {
                                         label: "Saltiest Runback",
                                         value: "saltiest_runback",
-                                        description: "in addition to Saltier Runbacks, players can salty runback a runbacked runback"
+                                        description: "players can runback a Saltier runback"
                                     },
                                     {
                                         label: "Any Condition",
@@ -1327,7 +1331,7 @@ module.exports = {
                                 options: racer_selections,
                                 placeholder: "Pods",
                                 min_values: 1,
-                                max_values: 25
+                                max_values: 23
                             }
                         ]
 
