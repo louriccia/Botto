@@ -539,7 +539,7 @@ module.exports = {
                 args[1] = interaction.data.values[0]
             } else if (![undefined, "initial"].includes(args[2])) {
                 var data = interaction.data.values
-                if (!["default", "firsttrack", "podpods", "tracktracks"].includes(args[1])) {
+                if (!["default", "firsttrack", "podpods", "tracktracks"].includes(args[2])) {
                     data = interaction.data.values[0]
                 }
                 tourney_rulesets.child("new").child(interaction.member.user.id).child(args[2]).set(data)
@@ -588,10 +588,10 @@ module.exports = {
                     description: "configure how tracks are selected",
                 },
                 {
-                    label: "Duplicate Tracks",
+                    label: "Repeat Tracks",
                     value: "trackdup",
                     emoji: { name: "🔁" },
-                    description: "set duplicate track options",
+                    description: "set repeat track options",
                 },
                 {
                     label: "Track Conditions",
@@ -1196,7 +1196,7 @@ module.exports = {
                     {
                         label: "Disabled",
                         value: "disabled",
-                        description: "duplicate track picks are not allowed"
+                        description: "repeat track picks are not allowed"
                     },
                     {
                         label: "Salty Runback",
@@ -1216,7 +1216,7 @@ module.exports = {
                     {
                         label: "Any Condition",
                         value: "any",
-                        description: "duplicate track picks are allowed under any condition"
+                        description: "repeat track picks are allowed under any condition"
                     }
                 ]
                 for (i = 0; i < methods.length; i++) {
@@ -1232,7 +1232,7 @@ module.exports = {
                                 type: 3,
                                 custom_id: "tourney_rulesets_trackdup_dupecondition",
                                 options: methods,
-                                placeholder: "Duplicate Track Condition",
+                                placeholder: "Repeat Track Condition",
                                 min_values: 1,
                                 max_values: 1
                             }
@@ -1248,7 +1248,7 @@ module.exports = {
                                     type: 3,
                                     custom_id: "tourney_rulesets_trackdup_dupelimit",
                                     options: limits,
-                                    placeholder: "Duplicate Track Pick Limit",
+                                    placeholder: "Repeat Track Pick Limit",
                                     min_values: 1,
                                     max_values: 1
                                 }
@@ -1275,8 +1275,10 @@ module.exports = {
                         label: i + " Per Player Per Match",
                         value: i
                     })
-                    if (tourney_rulesets_data.new[interaction.member.user.id].conmethod == "random") {
-                        limit.label = i + " Random Conditions Per Race"
+                }
+                for(i = 0; i < limits.length; i ++){
+                    if (tourney_rulesets_data.new[interaction.member.user.id].conlimit == limits[i].value) {
+                        limits[i].default = true
                     }
                 }
                 var conmax = []
@@ -1286,6 +1288,102 @@ module.exports = {
                         value: i
                     })
                 }
+                for(i = 0; i < conmax.length; i ++){
+                    if (tourney_rulesets_data.new[interaction.member.user.id].conmax == conmax[i].value) {
+                        conmax[i].default = true
+                    }
+                }
+                var methods = [
+                    {
+                        label: "Disabled",
+                        value: "disabled",
+                        description: "No special conditions are allowed"
+                    },
+                    {
+                        label: "Winner's Pick",
+                        value: "winners_pick",
+                        description: "Winner gets to pick conditions for the next track"
+                    },
+                    {
+                        label: "Loser's Pick",
+                        value: "losers_pick",
+                        description: "Loser gets to pick conditions for the next track"
+                    },
+                    {
+                        label: "Chance Cube",
+                        value: "chance_cube",
+                        description: "Winner of Chance Cube gets to pick conditions for the next track"
+                    },
+                    {
+                        label: "Random",
+                        value: "random",
+                        description: "conditions for the next track are randomly selected"
+                    }
+                ]
+                for(i = 0; i < methods.length; i ++){
+                    if (tourney_rulesets_data.new[interaction.member.user.id].conmethod == methods[i].value) {
+                        methods[i].default = true
+                    }
+                }
+                var conoptions = [
+                    {
+                        label: "Full Track",
+                        value: "ft"
+                    },
+                    {
+                        label: "Skips",
+                        value: "sk"
+                    },
+                    {
+                        label: "Max Upgrades",
+                        value: "mu"
+                    },
+                    {
+                        label: "No Upgrades",
+                        value: "nu"
+                    },
+                    {
+                        label: "Pod Ban",
+                        value: "pb"
+                    },
+                    {
+                        label: "Pod Choice",
+                        value: "pc"
+                    },
+                    {
+                        label: "Unmirrored",
+                        value: "um"
+                    },
+                    {
+                        label: "Mirrored",
+                        value: "mi"
+                    },
+                    {
+                        label: "1 Lap",
+                        value: "1l"
+                    },
+                    {
+                        label: "2 Lap",
+                        value: "2l"
+                    },
+                    {
+                        label: "3 Lap",
+                        value: "3l"
+                    },
+                    {
+                        label: "4 Lap",
+                        value: "4l"
+                    },
+                    {
+                        label: "5 Lap",
+                        value: "5l"
+                    }
+                ]
+                for(i = 0; i < conoptions.length; i ++){
+                    if (Object.values(tourney_rulesets_data.new[interaction.member.user.id].conoptions).includes(conoptions[i].value)) {
+                        conoptions[i].default = true
+                    }
+                }
                 components.push(
                     {
                         type: 1,
@@ -1293,33 +1391,7 @@ module.exports = {
                             {
                                 type: 3,
                                 custom_id: "tourney_rulesets_trackcon_conmethod",
-                                options: [
-                                    {
-                                        label: "Disabled",
-                                        value: "disabled",
-                                        description: "No special conditions are allowed"
-                                    },
-                                    {
-                                        label: "Winner's Pick",
-                                        value: "winners_pick",
-                                        description: "Winner gets to pick conditions for the next track"
-                                    },
-                                    {
-                                        label: "Loser's Pick",
-                                        value: "losers_pick",
-                                        description: "Loser gets to pick conditions for the next track"
-                                    },
-                                    {
-                                        label: "Chance Cube",
-                                        value: "chance_cube",
-                                        description: "Winner of Chance Cube gets to pick conditions for the next track"
-                                    },
-                                    {
-                                        label: "Random",
-                                        value: "random",
-                                        description: "conditions for the next track are randomly selected"
-                                    }
-                                ],
+                                options: methods,
                                 placeholder: "Condition Method",
                                 min_values: 1,
                                 max_values: 1
@@ -1327,8 +1399,8 @@ module.exports = {
                         ]
                     }
                 )
-                if (tourney_rulesets_data.new[interaction.member.user.id].ttrackmethod !== "disabled") {
-                    if (tourney_rulesets_data.new[interaction.member.user.id].ttrackmethod !== "random") {
+                if (tourney_rulesets_data.new[interaction.member.user.id].conmethod !== "disabled") {
+                    if (tourney_rulesets_data.new[interaction.member.user.id].conmethod !== "random") {
                         components.push(
                             {
                                 type: 1,
@@ -1364,60 +1436,7 @@ module.exports = {
                                 {
                                     type: 3,
                                     custom_id: "tourney_rulesets_trackcon_conoptions",
-                                    options: [
-                                        {
-                                            label: "Full Track",
-                                            value: "ft"
-                                        },
-                                        {
-                                            label: "Skips",
-                                            value: "sk"
-                                        },
-                                        {
-                                            label: "Max Upgrades",
-                                            value: "mu"
-                                        },
-                                        {
-                                            label: "No Upgrades",
-                                            value: "nu"
-                                        },
-                                        {
-                                            label: "Pod Ban",
-                                            value: "pb"
-                                        },
-                                        {
-                                            label: "Pod Choice",
-                                            value: "pc"
-                                        },
-                                        {
-                                            label: "Unmirrored",
-                                            value: "um"
-                                        },
-                                        {
-                                            label: "Mirrored",
-                                            value: "mi"
-                                        },
-                                        {
-                                            label: "1 Lap",
-                                            value: "1l"
-                                        },
-                                        {
-                                            label: "2 Lap",
-                                            value: "2l"
-                                        },
-                                        {
-                                            label: "3 Lap",
-                                            value: "3l"
-                                        },
-                                        {
-                                            label: "4 Lap",
-                                            value: "4l"
-                                        },
-                                        {
-                                            label: "5 Lap",
-                                            value: "5l"
-                                        }
-                                    ],
+                                    options: conoptions,
                                     placeholder: "Condition Options",
                                     min_values: 1,
                                     max_values: 13
@@ -1522,7 +1541,7 @@ module.exports = {
                                 {
                                     type: 3,
                                     custom_id: "tourney_rulesets_podselect_rndlimited",
-                                    options: pod_options,
+                                    options: limits,
                                     placeholder: "Random Limited Choice Count",
                                     min_values: 1,
                                     max_values: 1
@@ -1550,7 +1569,7 @@ module.exports = {
                                 {
                                     type: 3,
                                     custom_id: "tourney_rulesets_podselect_poollimit",
-                                    options: pod_options,
+                                    options: limits,
                                     placeholder: "Pod Pool Use Limit",
                                     min_values: 1,
                                     max_values: 1
