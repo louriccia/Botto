@@ -625,7 +625,7 @@ module.exports = {
             }
             if (args[1] == "general") {
                 var win_options = []
-                for (i = 1; i < 14; i++) {
+                for (i = 2; i < 14; i++) {
                     win_options.push(
                         {
                             label: "First to " + i + " Wins",
@@ -686,7 +686,7 @@ module.exports = {
                     }
                 ]
                 for(i = 0; i < con_options.length; i++){
-                    if(con_options[i].value == tourney_rulesets_data.new[interaction.member.user.id].default){
+                    if(Object.values(tourney_rulesets_data.new[interaction.member.user.id].default).includes(con_options[i].value)){
                         con_options[i].default = true
                     }
                 }
@@ -766,7 +766,49 @@ module.exports = {
                         description: circuits[i].races + " Races"
                     })
                 }
-
+                var first_options = [
+                    /*{
+                        label: "Predetermined",
+                        value: "predetermined",
+                        description: "first track is already determined"
+                    },*/
+                    {
+                        label: "Process of Elimination",
+                        value: "poe",
+                        description: "players alternate bans until one track is left"
+                    },
+                    {
+                        label: "Chance Cube",
+                        value: "chance_cube",
+                        description: "winner of chance cube gets to pick the first track"
+                    },
+                    {
+                        label: "Random",
+                        value: "random",
+                        description: "first track is randomly selected"
+                    }
+                ]
+                for(i = 0; i < first_options.length; i++){
+                    if(first_options[i].value == tourney_rulesets_data.new[interaction.member.user.id].firstmethod){
+                        first_options[i].default = true
+                    }
+                }
+                var first_track = []
+                for (var i = 0; i < 25; i++) {
+                    var track_option = {
+                        label: tracks[i].name,
+                        value: i,
+                        description: (circuits[tracks[i].circuit].name + " Circuit | Race " + tracks[i].cirnum + " | " + planets[tracks[i].planet].name).substring(0, 50),
+                        emoji: {
+                            name: planets[tracks[i].planet].emoji.split(":")[1],
+                            id: planets[tracks[i].planet].emoji.split(":")[2].replace(">", "")
+                        }
+                    }
+                    if(Object.values(tourney_rulesets_data.new[interaction.member.user.id].firsttrack).includes(track_option.value)){
+                        track_option.default = true
+                    }
+                    first_track.push(track_option)
+                }
                 components.push(
                     {
                         type: 1,
@@ -774,28 +816,7 @@ module.exports = {
                             {
                                 type: 3,
                                 custom_id: "tourney_rulesets_firsttrack_firstmethod",
-                                options: [
-                                    /*{
-                                        label: "Predetermined",
-                                        value: "predetermined",
-                                        description: "first track is already determined"
-                                    },*/
-                                    {
-                                        label: "Process of Elimination",
-                                        value: "poe",
-                                        description: "players alternate bans until one track is left"
-                                    },
-                                    {
-                                        label: "Chance Cube",
-                                        value: "chance_cube",
-                                        description: "winner of chance cube gets to pick the first track"
-                                    },
-                                    {
-                                        label: "Random",
-                                        value: "random",
-                                        description: "first track is randomly selected"
-                                    }
-                                ],
+                                options: first_options,
                                 placeholder: "Selection Method",
                                 min_values: 1,
                                 max_values: 1
