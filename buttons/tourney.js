@@ -375,6 +375,7 @@ module.exports = {
                 })
             } else if (args[1] == "type") {
                 flags = 64
+                type = 4
                 //select type
                 rulesetEmbed
                     .setTitle("New Ruleset")
@@ -507,8 +508,7 @@ module.exports = {
             }
             if(args[1] == "navigate"){
                 args[2] = interaction.data.values[0]
-            }
-            if(args[3] !== undefined){
+            } else if(args[2] !== undefined){
                 tourney_rulesets.child("new").child(interaction.member.user.id).child(args[3]).set(interaction.data.values)
             }
             if (["edit", "new"].includes(args[1])) {
@@ -577,7 +577,7 @@ module.exports = {
                     ]
                 })
             }
-            if (args[2] == "general") {
+            if (args[1] == "general") {
                 var win_options = []
                 for (i = 1; i < 14; i++) {
                     win_options.push(
@@ -683,7 +683,7 @@ module.exports = {
                         ]
                     }
                 )
-            } else if (args[2] == "firsttrack") {
+            } else if (args[1] == "firsttrack") {
                 var planetsncircuits = []
                 for (i = 0; i < planets.length; i++) {
                     planetsncircuits.push({
@@ -753,7 +753,7 @@ module.exports = {
                         ]
                     }
                 )
-            } else if (args[2] == "permatrackban") {
+            } else if (args[1] == "permatrackban") {
                 var limits = []
                 for (i = 0; i < 6; i++) {
                     limits.push({
@@ -805,7 +805,7 @@ module.exports = {
                         ]
                     }
                 )
-            } else if (args[2] == "permapodban") {
+            } else if (args[1] == "permapodban") {
                 var limits = []
                 for (i = 0; i < 6; i++) {
                     limits.push({
@@ -856,7 +856,7 @@ module.exports = {
                         ]
                     }
                 )
-            } else if (args[2] == "temptrackban") {
+            } else if (args[1] == "temptrackban") {
                 var limits = []
                 for (i = 0; i < 6; i++) {
                     limits.push({
@@ -918,7 +918,7 @@ module.exports = {
                         ]
                     }
                 )
-            } else if (args[2] == "temppodban") {
+            } else if (args[1] == "temppodban") {
                 var limits = []
                 for (i = 0; i < 6; i++) {
                     limits.push({
@@ -980,7 +980,7 @@ module.exports = {
                         ]
                     }
                 )
-            } else if (args[2] == "trackselect") {
+            } else if (args[1] == "trackselect") {
                 var planetsncircuits = []
                 for (i = 0; i < planets.length; i++) {
                     planetsncircuits.push({
@@ -1055,7 +1055,7 @@ module.exports = {
                         ]
                     }
                 )
-            } else if (args[2] == "trackdup") {
+            } else if (args[1] == "trackdup") {
                 var limits = []
                 for (i = 0; i < 6; i++) {
                     limits.push({
@@ -1117,7 +1117,7 @@ module.exports = {
                         ]
                     }
                 )
-            } else if (args[2] == "trackcon") {
+            } else if (args[1] == "trackcon") {
                 var limits = []
                 limits.push(
                     {
@@ -1257,7 +1257,7 @@ module.exports = {
                         ]
                     }
                 )
-            } else if (args[2] == "podselect") {
+            } else if (args[1] == "podselect") {
                 components.push(
                     {
                         type: 1,
@@ -1335,14 +1335,14 @@ module.exports = {
                 )
                 //add random limited choice limit
                 //add pod pool limit
-            } else if (args[2] == "qual") {
+            } else if (args[1] == "qual") {
                 //pod select
                 //add race
                 //track
                 //conditions
                 //time limit
                 //penalty time
-            } else if (args[2] == "1vall") {
+            } else if (args[1] == "1vall") {
                 //pod select
                 //add race
                 //track
