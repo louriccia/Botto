@@ -1610,23 +1610,24 @@ module.exports = {
                 )
                 if(args[2] == "rename"){
                     type = 6
-                    client.api.webhooks(client.user.id, interaction.token).post({
+                    /*client.api.webhooks(client.user.id, interaction.token).post({
                         data: {
                             content: "Send the new name for your ruleset in this channel",
                             flags: 64
                         }
-                    })
+                    })*/
                     //const filter = m => m.author.id == interaction.member.user.id
                     const collector = new Discord.MessageCollector(client.channels.cache.get(interaction.channel_id), m =>m.author.id == interaction.member.user.id, {max: 1, time: 300000 }); //messages
                     collector.on('collect', message => {
                         tourney_rulesets.child("new").child(interaction.member.user.id).child("name").set(message.content)
+                        message.delete()
                         client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({
                             data: {
-                                embeds:[rulesetEmbed] ,
+                                embeds:[rulesetEmbed],
                                 components: components
                             }
                         })
-                        message.delete()
+                        
                     })
                 }
                 
