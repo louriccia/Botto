@@ -374,13 +374,13 @@ module.exports = {
                     ]
                 })
             } else if (args[1] == "type") {
-                flags = 64
+                //flags = 64
                 type = 4
                 //select type
                 rulesetEmbed
                     .setTitle("New Ruleset")
                     .setDescription("create a ruleset")
-                flags = 64
+                //flags = 64
 
                 var options = [
                     {
@@ -458,7 +458,7 @@ module.exports = {
                         }
                     }
                 }
-                flags = 64
+                //flags = 64
                 rulesetEmbed
                     .setTitle("New Ruleset")
                     .setDescription("create a ruleset")
