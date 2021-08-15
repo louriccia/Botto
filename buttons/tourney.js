@@ -1589,28 +1589,10 @@ module.exports = {
                 //add random limited choice limit
                 //add pod pool limit
             } else if (args[1] == "finalize") {
-                components.push(
-                    {
-                        type: 1,
-                        components: [
-                            {
-                                type: 2,
-                                label: "Rename",
-                                style: 1,
-                                custom_id: "tourney_rulesets_finalize_rename"
-                            },
-                            {
-                                type: 2,
-                                label: "Save",
-                                style: 3,
-                                custom_id: "tourney_rulesets_finalize_save",
-                            }
-                        ]
-                    }
-                )
+                var rename = true
                 if(args[2] == "rename"){
-                    type = 1
-                    
+                    type = 7
+                    rename = false
                     client.api.webhooks(client.user.id, interaction.token).post({
                         data: {
                             content: "Send the new name for your ruleset in this channel",
@@ -1631,7 +1613,29 @@ module.exports = {
                         })
                         
                     })
+                    //client.api.interactions(interaction.id, interaction.token).callback.post({ data: { type: 6, data: {} } })
+                    //return
                 }
+                components.push(
+                    {
+                        type: 1,
+                        components: [
+                            {
+                                type: 2,
+                                label: "Rename",
+                                style: 1,
+                                custom_id: "tourney_rulesets_finalize_rename",
+                                disabled: !rename
+                            },
+                            {
+                                type: 2,
+                                label: "Save",
+                                style: 3,
+                                custom_id: "tourney_rulesets_finalize_save",
+                            }
+                        ]
+                    }
+                )
                 
             } else if (args[1] == "qual") {
                 //pod select
