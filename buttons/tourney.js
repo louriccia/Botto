@@ -376,10 +376,17 @@ module.exports = {
             } else if (args[1] == "type") {
                 flags = 64
                 type = 4
+                /*
+                if(tourney_rulesets_data.new[interaction.member.user.id] !== undefined){
+                    rulesetEmbed
+                    .setTitle(":exclamation: Unsaved Ruleset")
+                    .setDescription("You have an unsaved ruleset. Would you like to continue editing ")
+                }*/
+
                 //select type
                 rulesetEmbed
-                    .setTitle("New Ruleset")
-                    .setDescription("create a ruleset")
+                    .setTitle("Create a New Ruleset")
+                    .setDescription("First, select the type of ruleset you'd like to create.")
 
                 var options = [
                     {
@@ -472,7 +479,7 @@ module.exports = {
                 } else if (ruleset_type == "1v1") {
                     ruleset = {
                         type: "1v1",
-                        name: interaction.member.user.username + "'s 1v1 Ruleset",
+                        name: interaction.member.user.username + "'s Unnamed 1v1 Ruleset",
                         author: interaction.member.user.id,
                         wins: 5,
                         default: ["mu", "ft", "um", "3l"],
@@ -614,6 +621,104 @@ module.exports = {
                     ]
                 })
             }
+            if (tourney_rulesets_data.new[interaction.member.user.id].type == "1v1") {
+                rulesetEmbed
+                    .setDescription("Creating New 1v1 Ruleset")
+                var ruleset = tourney_rulesets_data.new[interaction.member.user.id]
+                var fields = []
+                //wins
+                var field = {}
+                field.name = "First to " + ruleset.wins + " Wins"
+                field.value = "(Best of " + (ruleset.wins * 2 - 1) + ")"
+                fields.push(field)
+                //default
+                field = {}
+                field.name = "Default Conditions"
+                var conditions = {
+                    mu: "Max Upgrades",
+                    nu: "No Upgrades",
+                    ft: "Full Track",
+                    sk: "Skips",
+                    pb: "Pod Ban",
+                    pc: "Pod Choice",
+                    um: "Unmirrored",
+                    mi: "Mirrored",
+                    l1: "1 Lap",
+                    l2: "2 Laps",
+                    l3: "3 Laps",
+                    l4: "4 Laps",
+                    l5: "5 Laps"
+                }
+                var cond = Object.values(ruleset.default)
+                var cons = []
+                cond.forEach(con => {
+                    cons += conditions[cond]
+                })
+                field.value = cons.join(", ")
+                fields.push(field)
+                //gents
+                field = {}
+                field.name = "Gentleman's Agreement"
+                field.value = ruleset.gents
+                //first track
+                field = {}
+                field.name = "First Track"
+                firsttracks = Object.values(ruleset.firsttrack)
+                var methods = {
+                    poe: "Process of Elimination",
+                    chance_cube: "Chance Cube",
+                    random: "Random"
+                }
+                field.value = methods[ruleset.firstmethod] + "\n"
+                var amc = 0, spc = 0, gal = 0, inv = 0
+                var first_nicks = []
+                for (i = 0; i < firsttracks.length; i++) {
+                    if (i >= 0 && i < 7) {
+                        amc++
+                    }
+                    if (i >= 7 && i < 14) {
+                        spc++
+                    }
+                    if (i >= 14 && i < 21) {
+                        gal++
+                    }
+                    if (i >= 21 && i < 25) {
+                        inv++
+                    }
+                    first_nicks.push(tracks[Number(firsttracks[i])].nickname[0])
+                }
+                var missing = []
+                for(i = 0; i < 25; i++){
+                    if(!first_nicks.includes(i)){
+                        missing.push(tracks[i].nickname[0])
+                    }
+                }
+                if (firsttracks.length == 25) {
+                    field.value += "Any Track"
+                } else if ((firsttracks.length == 7 && [amc, spc, gal].includes(7))|| firsttracks.length == 4 && inv == 4) {
+                    if (amc == 7) {
+                        field.value += "Amateur Circuit"
+                    } else if (spc == 7) {
+                        field.value += "Semi-Pro Circuit"
+                    } else if (gal == 7) {
+                        field.value += "Galactic Circuit"
+                    } else if (inv == 4) {
+                        field.value += "Invitational Circuit"
+                    } 
+                } else {
+                    if(missing.length < first_nicks.length){
+                        field.value += "No " + missing.join(", ")
+                    } else {
+                        field.value += first_nicks.join(", ")
+                    }
+                    
+                }
+                for(i = 0; i < fields.length; i++){
+                    rulesetEmbed.addField(fields[i].name, fields[i].value, true)
+                }
+                
+
+            }
             if (args[1] == "general") {
                 var win_options = []
                 for (i = 2; i < 14; i++) {
@@ -657,23 +762,23 @@ module.exports = {
                     },
                     {
                         label: "1 Lap",
-                        value: "1l"
+                        value: "l1"
                     },
                     {
                         label: "2 Laps",
-                        value: "2l"
+                        value: "l2"
                     },
                     {
                         label: "3 Laps",
-                        value: "3l"
+                        value: "l3"
                     },
                     {
                         label: "4 Laps",
-                        value: "4l"
+                        value: "l4"
                     },
                     {
                         label: "5 Laps",
-                        value: "5l"
+                        value: "l5"
                     }
                 ]
                 for (i = 0; i < con_options.length; i++) {
@@ -1264,7 +1369,7 @@ module.exports = {
                         value: i
                     })
                 }
-                for(i = 0; i < limits.length; i ++){
+                for (i = 0; i < limits.length; i++) {
                     if (tourney_rulesets_data.new[interaction.member.user.id].conlimit == limits[i].value) {
                         limits[i].default = true
                     }
@@ -1276,7 +1381,7 @@ module.exports = {
                         value: i
                     })
                 }
-                for(i = 0; i < conmax.length; i ++){
+                for (i = 0; i < conmax.length; i++) {
                     if (tourney_rulesets_data.new[interaction.member.user.id].conmax == conmax[i].value) {
                         conmax[i].default = true
                     }
@@ -1308,7 +1413,7 @@ module.exports = {
                         description: "conditions for the next track are randomly selected"
                     }
                 ]
-                for(i = 0; i < methods.length; i ++){
+                for (i = 0; i < methods.length; i++) {
                     if (tourney_rulesets_data.new[interaction.member.user.id].conmethod == methods[i].value) {
                         methods[i].default = true
                     }
@@ -1348,26 +1453,26 @@ module.exports = {
                     },
                     {
                         label: "1 Lap",
-                        value: "1l"
+                        value: "l1"
                     },
                     {
                         label: "2 Lap",
-                        value: "2l"
+                        value: "l2"
                     },
                     {
                         label: "3 Lap",
-                        value: "3l"
+                        value: "l3"
                     },
                     {
                         label: "4 Lap",
-                        value: "4l"
+                        value: "l4"
                     },
                     {
                         label: "5 Lap",
-                        value: "5l"
+                        value: "l5"
                     }
                 ]
-                for(i = 0; i < conoptions.length; i ++){
+                for (i = 0; i < conoptions.length; i++) {
                     if (Object.values(tourney_rulesets_data.new[interaction.member.user.id].conoptions).includes(conoptions[i].value)) {
                         conoptions[i].default = true
                     }
@@ -1491,7 +1596,7 @@ module.exports = {
                             id: racers[i].flag.split(":")[2].replace(">", "")
                         }
                     }
-                    if(Object.values(tourney_rulesets_data.new[interaction.member.user.id].podpods).includes(String(racer_option.value))){
+                    if (Object.values(tourney_rulesets_data.new[interaction.member.user.id].podpods).includes(String(racer_option.value))) {
                         racer_option.default = true
                     }
                     pod_options.push(racer_option)
@@ -1511,9 +1616,9 @@ module.exports = {
                         ]
                     }
                 )
-                if (tourney_rulesets_data.new[interaction.member.user.id].podmethod == "random_limited_choice"){
+                if (tourney_rulesets_data.new[interaction.member.user.id].podmethod == "random_limited_choice") {
                     var limits = []
-                    for(i = 2; i < 11; i++){
+                    for (i = 2; i < 11; i++) {
                         var limit = {
                             label: i + " Choice(s)",
                             value: i
@@ -1536,13 +1641,13 @@ module.exports = {
                                     max_values: 1
                                 }
                             ]
-    
+
                         }
                     )
                 }
-                if (tourney_rulesets_data.new[interaction.member.user.id].podmethod == "pod_pool"){
+                if (tourney_rulesets_data.new[interaction.member.user.id].podmethod == "pod_pool") {
                     var limits = []
-                    for(i = 1; i < 6; i++){
+                    for (i = 1; i < 6; i++) {
                         var limit = {
                             label: i + " Use(s) Per Pod",
                             value: i
@@ -1565,7 +1670,7 @@ module.exports = {
                                     max_values: 1
                                 }
                             ]
-    
+
                         }
                     )
                 }
@@ -1589,7 +1694,7 @@ module.exports = {
                 //add pod pool limit
             } else if (args[1] == "finalize") {
                 var rename = true
-                if(args[2] == "rename"){
+                if (args[2] == "rename") {
                     type = 7
                     rename = false
                     client.api.webhooks(client.user.id, interaction.token).post({
@@ -1598,7 +1703,7 @@ module.exports = {
                             flags: 64
                         }
                     })
-                    
+
                     async function sendResponse() {
                         response = await client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({
                             data: {
@@ -1609,7 +1714,7 @@ module.exports = {
                         return response
                     }
                     //const filter = m => m.author.id == interaction.member.user.id
-                    const collector = new Discord.MessageCollector(client.channels.cache.get(interaction.channel_id), m =>m.author.id == interaction.member.user.id, {max: 1, time: 300000 }); //messages
+                    const collector = new Discord.MessageCollector(client.channels.cache.get(interaction.channel_id), m => m.author.id == interaction.member.user.id, { max: 1, time: 300000 }); //messages
                     collector.on('collect', message => {
                         tourney_rulesets.child("new").child(interaction.member.user.id).child("name").set(message.content)
                         rulesetEmbed.setTitle(message.content)
@@ -1639,7 +1744,7 @@ module.exports = {
                         ]
                     }
                 )
-                
+
             } else if (args[1] == "qual") {
                 //pod select
                 //add race
