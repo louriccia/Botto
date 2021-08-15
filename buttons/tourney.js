@@ -473,6 +473,8 @@ module.exports = {
                 } else if (ruleset_type == "1v1") {
                     ruleset = {
                         type: "1v1",
+                        name: interaction.member.user.username + "'s 1v1 Ruleset",
+                        author: interaction.member.user.id,
                         wins: 5,
                         default: ["mu", "ft", "um", "3l"],
                         gents: "disallowed",
@@ -595,6 +597,10 @@ module.exports = {
                 }
             }
             if (!["browse", "type"].includes(args[1])) {
+                rulesetEmbed
+                    .setTitle(tourney_rulesets_data.new[interaction.member.user.id].name)
+                    .setFooter(interaction.member.user.username, client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
+
                 components.push({
                     type: 1,
                     components: [
@@ -1583,7 +1589,6 @@ module.exports = {
                 //add random limited choice limit
                 //add pod pool limit
             } else if (args[1] == "finalize") {
-
                 components.push(
                     {
                         type: 1,
@@ -1592,7 +1597,7 @@ module.exports = {
                                 type: 2,
                                 label: "Rename",
                                 style: 3,
-                                custom_id: "tourney_rulesets_finalize_rename",
+                                custom_id: "tourney_rulesets_finalize_rename"
                             },
                             {
                                 type: 2,
@@ -1603,6 +1608,20 @@ module.exports = {
                         ]
                     }
                 )
+                if(args[2] == "rename"){
+                    type = 6
+                    const collector = new Discord.MessageCollector(client.channels.cache.get(interaction.channel_id), m => m, {max: 1, time: 300000 }); //messages
+                    collector.on('collect', message => {
+                        tourney_rulesets.child("new").child(interaction.member.user.id).child("name").set(message.content)
+                        client.api.webhooks(client.user.id, token).messages('@original').patch({
+                            data: {
+                                embeds:[rulesetEmbed] ,
+                                components: components
+                            }
+                        })
+                    })
+                }
+                
             } else if (args[1] == "qual") {
                 //pod select
                 //add race
