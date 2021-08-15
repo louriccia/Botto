@@ -404,6 +404,7 @@ module.exports = {
                         description: "Teams compete for a better score/time than opposing teams"
                     }*/
                 ]
+                var create = false
                 if (interaction.data.hasOwnProperty("values")) {
                     for (i = 0; i < options.length; i++) {
                         if (interaction.data.values.includes(options[i].value)) {
@@ -411,6 +412,7 @@ module.exports = {
                         }
                     }
                     type = 7
+                    create = true
                 }
                 components.push(
                     {
@@ -434,6 +436,7 @@ module.exports = {
                                 label: "Create",
                                 style: 3,
                                 custom_id: "tourney_rulesets_new",
+                                disabled: !create
                             },
                             {
                                 type: 2,
@@ -509,35 +512,9 @@ module.exports = {
                 args[1] = "general"
             }
 
-            var track_selections = []
-            var racer_selections = []
-            for (var i = 0; i < 25; i++) {
-                var racer_option = {
-                    label: racers[i].name,
-                    value: i,
-                    description: racers[i].pod.substring(0, 50),
-                    emoji: {
-                        name: racers[i].flag.split(":")[1],
-                        id: racers[i].flag.split(":")[2].replace(">", "")
-                    }
-                }
-                var track_option = {
-                    label: tracks[i].name,
-                    value: i,
-                    description: (circuits[tracks[i].circuit].name + " Circuit | Race " + tracks[i].cirnum + " | " + planets[tracks[i].planet].name).substring(0, 50),
-                    emoji: {
-                        name: planets[tracks[i].planet].emoji.split(":")[1],
-                        id: planets[tracks[i].planet].emoji.split(":")[2].replace(">", "")
-                    }
-                }
-                if (i < 23) {
-                    racer_selections.push(racer_option)
-                }
-                track_selections.push(track_option)
-            }
             if (args[1] == "navigate") {
                 args[1] = interaction.data.values[0]
-            } else if (![undefined, "initial"].includes(args[2])) {
+            } else if (![undefined, "initial", "rename", "save"].includes(args[2])) {
                 var data = interaction.data.values
                 if (!["default", "firsttrack", "podpods", "tracktracks", "conoptions"].includes(args[2])) {
                     data = interaction.data.values[0]
@@ -604,6 +581,12 @@ module.exports = {
                     value: "podselect",
                     emoji: { name: "Pod1", id: "525755322355417127" },
                     description: "configure how pods are selected",
+                },
+                {
+                    label: "Name and Save",
+                    value: "finalize",
+                    emoji: { name: "✅" },
+                    description: "finalize ruleset and submit changes",
                 }
             ]
             for (i = 0; i < options.length; i++) {
@@ -1599,6 +1582,27 @@ module.exports = {
                 )
                 //add random limited choice limit
                 //add pod pool limit
+            } else if (args[1] == "finalize") {
+
+                components.push(
+                    {
+                        type: 1,
+                        components: [
+                            {
+                                type: 2,
+                                label: "Rename",
+                                style: 3,
+                                custom_id: "tourney_rulesets_finalize_rename",
+                            },
+                            {
+                                type: 2,
+                                label: "Save",
+                                style: 2,
+                                custom_id: "tourney_rulesets_finalize_save",
+                            }
+                        ]
+                    }
+                )
             } else if (args[1] == "qual") {
                 //pod select
                 //add race
