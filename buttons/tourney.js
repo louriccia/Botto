@@ -1599,19 +1599,20 @@ module.exports = {
                             flags: 64
                         }
                     })
+                    async function sendResponse() {
+                        response = await client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({
+                            data: {
+                                embeds: [rulesetEmbed],
+                                components: components
+                            }
+                        })
+                        return response
+                    }
                     //const filter = m => m.author.id == interaction.member.user.id
                     const collector = new Discord.MessageCollector(client.channels.cache.get(interaction.channel_id), m =>m.author.id == interaction.member.user.id, {max: 1, time: 300000 }); //messages
                     collector.on('collect', message => {
                         tourney_rulesets.child("new").child(interaction.member.user.id).child("name").set(message.content)
-                        message.delete()
-                        client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({
-                            data: {
-                                content: "",
-                                embeds:[rulesetEmbed],
-                                components: components
-                            }
-                        })
-                        
+                        message.delete().then(sendResponse())
                     })
                     //client.api.interactions(interaction.id, interaction.token).callback.post({ data: { type: 6, data: {} } })
                     //return
