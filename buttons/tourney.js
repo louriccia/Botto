@@ -1609,7 +1609,7 @@ module.exports = {
                     }
                 )
                 if(args[2] == "rename"){
-                    type = 6
+                    type = 1
                     
                     client.api.webhooks(client.user.id, interaction.token).post({
                         data: {
