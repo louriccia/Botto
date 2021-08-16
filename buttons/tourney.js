@@ -623,17 +623,17 @@ module.exports = {
             }
             if (tourney_rulesets_data.new[interaction.member.user.id].type == "1v1") {
                 rulesetEmbed
-                    .setDescription("Creating New 1v1 Ruleset")
+                    .setDescription("Ruleset Type: 1v1")
                 var ruleset = tourney_rulesets_data.new[interaction.member.user.id]
                 var fields = []
                 //wins
                 var field = {}
-                field.name = "Wins"
+                field.name = ":trophy: Wins"
                 field.value = "First to " + ruleset.wins + "\nBest of " + (ruleset.wins * 2 - 1)
                 fields.push(field)
                 //default
                 field = {}
-                field.name = "Default Conditions"
+                field.name = ":eight_spoked_asterisk: Default Conditions"
                 var conditions = {
                     mu: "Max Upgrades",
                     nu: "No Upgrades",
@@ -658,12 +658,12 @@ module.exports = {
                 fields.push(field)
                 //gents
                 field = {}
-                field.name = "Gentleman's Agreement"
+                field.name = ":tophat: Gentleman's Agreement"
                 field.value = ruleset.gents
                 fields.push(field)
                 //first track
                 field = {}
-                field.name = "First Track"
+                field.name = ":triangular_flag_on_post: First Track"
                 firsttracks = Object.values(ruleset.firsttrack)
                 var methods = {
                     poe: "Process of Elimination",
@@ -674,23 +674,23 @@ module.exports = {
                 var amc = 0, spc = 0, gal = 0, inv = 0
                 var first_nicks = []
                 for (i = 0; i < firsttracks.length; i++) {
-                    if (i >= 0 && i < 7) {
+                    if (firsttracks[i] >= 0 && firsttracks[i] < 7) {
                         amc++
                     }
-                    if (i >= 7 && i < 14) {
+                    if (firsttracks[i] >= 7 && firsttracks[i] < 14) {
                         spc++
                     }
-                    if (i >= 14 && i < 21) {
+                    if (firsttracks[i] >= 14 && firsttracks[i] < 21) {
                         gal++
                     }
-                    if (i >= 21 && i < 25) {
+                    if (firsttracks[i] >= 21 && firsttracks[i] < 25) {
                         inv++
                     }
                     first_nicks.push(tracks[Number(firsttracks[i])].nickname[0])
                 }
                 var missing = []
                 for(i = 0; i < 25; i++){
-                    if(!first_nicks.includes(i)){
+                    if(!first_nicks.includes(tracks[i].nickname[0])){
                         missing.push(tracks[i].nickname[0])
                     }
                 }
@@ -715,6 +715,47 @@ module.exports = {
                     
                 }
                 fields.push(field)
+                //track permabans
+                field = {}
+                field.name = ":no_entry_sign: Track Permaban"
+                field.value = ruleset.ptrackmethod + "\n"
+                if(ruleset.ptrackmethod !== "disabled"){
+                    if(ruleset.ptrackmethod == "random"){
+                        field.value += ruleset.ptrackmethod + " random ban(s) per match"
+                    } else {
+                        field.value += ruleset.ptrackmethod + " ban(s) per player per match"
+                    }
+                }
+                fields.push(field)
+                //pod permabans
+                field = {}
+                field.name = ":no_entry_sign: Pod Permaban"
+                field.value = ruleset.ppodmethod + "\n"
+                if(ruleset.ppodmethod !== "disabled"){
+                    if(ruleset.ppodmethod == "random"){
+                        field.value += ruleset.ppodmethod + " random ban(s) per match"
+                    } else {
+                        field.value += ruleset.ppodmethod + " ban(s) per player per match"
+                    }
+                }
+                fields.push(field)
+                //track permabans
+                field = {}
+                field.name = ":x: Track Tempban"
+                field.value = ruleset.ttrackmethod + "\n"
+                if(ruleset.ttrackmethod !== "disabled"){
+                    field.value += ruleset.ttrackmethod + " ban(s) per race"
+                }
+                fields.push(field)
+                //track permabans
+                field = {}
+                field.name = ":x: Pod Tempban"
+                field.value = ruleset.tpodmethod + "\n"
+                if(ruleset.tpodmethod !== "disabled"){
+                    field.value += ruleset.tpodmethod + " ban(s) per race"
+                }
+                fields.push(field)
+                //construct fields
                 for(i = 0; i < fields.length; i++){
                     rulesetEmbed.addField(fields[i].name, fields[i].value, true)
                 }
