@@ -628,8 +628,8 @@ module.exports = {
                 var fields = []
                 //wins
                 var field = {}
-                field.name = "First to " + ruleset.wins + " Wins"
-                field.value = "(Best of " + (ruleset.wins * 2 - 1) + ")"
+                field.name = "Wins"
+                field.value = "First to " + ruleset.wins + "\nBest of " + (ruleset.wins * 2 - 1)
                 fields.push(field)
                 //default
                 field = {}
@@ -652,7 +652,7 @@ module.exports = {
                 var cond = Object.values(ruleset.default)
                 var cons = []
                 cond.forEach(con => {
-                    cons.push(conditions[cond])
+                    cons.push(conditions[con])
                 })
                 field.value = cons.join(", ")
                 fields.push(field)
@@ -660,6 +660,7 @@ module.exports = {
                 field = {}
                 field.name = "Gentleman's Agreement"
                 field.value = ruleset.gents
+                fields.push(field)
                 //first track
                 field = {}
                 field.name = "First Track"
@@ -713,6 +714,7 @@ module.exports = {
                     }
                     
                 }
+                fields.push(field)
                 for(i = 0; i < fields.length; i++){
                     rulesetEmbed.addField(fields[i].name, fields[i].value, true)
                 }
