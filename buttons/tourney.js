@@ -652,7 +652,7 @@ module.exports = {
                 var cond = Object.values(ruleset.default)
                 var cons = []
                 cond.forEach(con => {
-                    cons += conditions[cond]
+                    cons.push(conditions[cond])
                 })
                 field.value = cons.join(", ")
                 fields.push(field)
