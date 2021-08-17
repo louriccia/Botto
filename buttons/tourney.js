@@ -376,7 +376,7 @@ module.exports = {
             } else if (args[1] == "type") {
                 flags = 64
                 type = 4
-                if(tourney_rulesets_data !== undefined){
+                if(![null, undefined].includes(tourney_rulesets_data)){
                     if (tourney_rulesets_data.hasOwnProperty("new")) {
                         if (args[2] == "new") {
                             tourney_rulesets.child("new").child(interaction.member.user.id).remove()
