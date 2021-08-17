@@ -1114,17 +1114,49 @@ module.exports = {
                         ]
                     }
                 )
-            } else if (args[1] == "permatrackban") {
+            } else if (["permatrackban", "permapodban", "permaconban"].includes(args[1])) {
+                var bans = [
+                    {
+                        name: "Track",
+                        command: "permatrackban",
+                        method: "ptrackmethod",
+                        limit: "ptracklimit"
+                    },
+                    {
+                        name: "Pod",
+                        command: "permapodban",
+                        method: "ppodmethod",
+                        limit: "ppodlimit"
+                    },
+                    {
+                        name: "Condition",
+                        command: "permaconban",
+                        method: "pconmethod",
+                        limit: "pconlimit"
+                    }
+                ]
+                var ban = null
+                for (b = 0; b < bans.length; b++) {
+                    if (bans[b].command == args[1]) {
+                        ban = b
+                    }
+                }
                 var limits = []
                 for (i = 1; i < 6; i++) {
                     var limit = {
-                        label: i + " Ban(s) Per Player Per Match",
+                        label: i + " Bans Per Player Per Match",
                         value: i
                     }
-                    if (tourney_rulesets_data.new[interaction.member.user.id].ptrackmethod == "random") {
-                        limit.label = i + " Random Ban(s) Per Match"
+                    if (i == 1) {
+                        limit.label == " Ban Per Player Per Match"
                     }
-                    if (limit.value == tourney_rulesets_data.new[interaction.member.user.id].ptracklimit) {
+                    if (tourney_rulesets_data.new[interaction.member.user.id][bans[ban].method] == "random") {
+                        limit.label = i + " Random Bans Per Match"
+                        if (i == 1) {
+                            limit.label == " Random Ban Per Match"
+                        }
+                    }
+                    if (limit.value == tourney_rulesets_data.new[interaction.member.user.id][bans[ban].limit]) {
                         limit.default = true
                     }
                     limits.push(limit)
@@ -1133,12 +1165,12 @@ module.exports = {
                     {
                         label: "Disabled",
                         value: "disabled",
-                        description: "No permanent track ban"
+                        description: "No permanent " + bans[ban].name.toLowerCase() + " ban"
                     },
                     {
                         label: "Player Pick",
                         value: "player_pick",
-                        description: "Each player gets to pick a permanent track ban"
+                        description: "Each player gets to pick a permanent " + bans[ban].name.toLowerCase() + " ban"
                     },
                     {
                         label: "Earned via Win",
@@ -1158,11 +1190,11 @@ module.exports = {
                     {
                         label: "Random",
                         value: "random",
-                        description: "Tracks are permanently banned randomly"
+                        description: bans[b].name + "s are permanently banned randomly"
                     }
                 ]
                 for (i = 0; i < methods.length; i++) {
-                    if (methods[i].value == tourney_rulesets_data.new[interaction.member.user.id].ptrackmethod) {
+                    if (methods[i].value == tourney_rulesets_data.new[interaction.member.user.id][bans[ban].method]) {
                         methods[i].default = true
                     }
                 }
@@ -1172,354 +1204,69 @@ module.exports = {
                         components: [
                             {
                                 type: 3,
-                                custom_id: "tourney_rulesets_permatrackban_ptrackmethod",
+                                custom_id: "tourney_rulesets_" + bans[ban].command + "_" + bans[ban].method,
                                 options: methods,
-                                placeholder: "Permanent Track Ban Method",
+                                placeholder: "Permanent " + bans[ban].name + " Ban Method",
                                 min_values: 1,
                                 max_values: 1
                             }
                         ]
                     },
                 )
-                if (tourney_rulesets_data.new[interaction.member.user.id].ptrackmethod !== "disabled") {
+                if (tourney_rulesets_data.new[interaction.member.user.id][bans[ban].method] !== "disabled") {
                     components.push({
                         type: 1,
                         components: [
                             {
                                 type: 3,
-                                custom_id: "tourney_rulesets_permatrackban_ptracklimit",
+                                custom_id: "tourney_rulesets_" + bans[ban].command + "_" + bans[ban].limit,
                                 options: limits,
-                                placeholder: "Permanent Track Bans Per Match",
+                                placeholder: "Permanent " + bans[ban].name + " Bans Per Match",
                                 min_values: 1,
                                 max_values: 1
                             }
                         ]
                     })
                 }
-            } else if (args[1] == "permapodban") {
-                var limits = []
-                for (i = 1; i < 6; i++) {
-                    var limit = {
-                        label: i + " Ban(s) Per Player Per Match",
-                        value: i
-                    }
-                    if (tourney_rulesets_data.new[interaction.member.user.id].ppodmethod == "random") {
-                        limit.label = i + " Random Ban(s) Per Match"
-                    }
-                    if (limit.value == tourney_rulesets_data.new[interaction.member.user.id].ppodlimit) {
-                        limit.default = true
-                    }
-                    limits.push(limit)
-                }
-                var methods = [
-                    {
-                        label: "Disabled",
-                        value: "disabled",
-                        description: "No permanent pod ban"
-                    },
-                    {
-                        label: "Player Pick",
-                        value: "player_pick",
-                        description: "Each player gets to pick a permanent pod ban"
-                    },
-                    {
-                        label: "Earned via Win",
-                        value: "win",
-                        description: "Players only get access to this permaban if they win the first track"
-                    },
-                    {
-                        label: "Earned via Loss",
-                        value: "loss",
-                        description: "Players only get access to this permaban if they lose the first track"
-                    },
-                    {
-                        label: "Either/Or",
-                        value: "either_or",
-                        description: "Players must choose between this permaban or another permaban with the same setting"
-                    },
-                    {
-                        label: "Random",
-                        value: "random",
-                        description: "Pods are permanently banned randomly"
-                    }
-                ]
-                for (i = 0; i < methods.length; i++) {
-                    if (methods[i].value == tourney_rulesets_data.new[interaction.member.user.id].ppodmethod) {
-                        methods[i].default = true
-                    }
-                }
-                components.push(
-                    {
-                        type: 1,
-                        components: [
-                            {
-                                type: 3,
-                                custom_id: "tourney_rulesets_permapodban_ppodmethod",
-                                options: methods,
-                                placeholder: "Permanent Pod Ban Method",
-                                min_values: 1,
-                                max_values: 1
-                            }
-                        ]
-                    }
-                )
-                if (tourney_rulesets_data.new[interaction.member.user.id].ppodmethod !== "disabled") {
-                    components.push({
-                        type: 1,
-                        components: [
-                            {
-                                type: 3,
-                                custom_id: "tourney_rulesets_permapodban_ppodlimit",
-                                options: limits,
-                                placeholder: "Permanent Pod Bans Per Match",
-                                max_values: 1
-                            }
-                        ]
-                    })
-                }
-            } else if (args[1] == "permaconban") {
-                var limits = []
-                for (i = 1; i < 6; i++) {
-                    var limit = {
-                        label: i + " Ban(s) Per Player Per Match",
-                        value: i
-                    }
-                    if (tourney_rulesets_data.new[interaction.member.user.id].pconmethod == "random") {
-                        limit.label = i + " Random Ban(s) Per Match"
-                    }
-                    if (limit.value == tourney_rulesets_data.new[interaction.member.user.id].pconlimit) {
-                        limit.default = true
-                    }
-                    limits.push(limit)
-                }
-                var methods = [
-                    {
-                        label: "Disabled",
-                        value: "disabled",
-                        description: "No permanent condition ban"
-                    },
-                    {
-                        label: "Player Pick",
-                        value: "player_pick",
-                        description: "Each player gets to pick a permanent condition ban"
-                    },
-                    {
-                        label: "Earned via Win",
-                        value: "win",
-                        description: "Players only get access to this permaban if they win the first track"
-                    },
-                    {
-                        label: "Earned via Loss",
-                        value: "loss",
-                        description: "Players only get access to this permaban if they lose the first track"
-                    },
-                    {
-                        label: "Either/Or",
-                        value: "either_or",
-                        description: "Players must choose between this permaban or another permaban with the same setting"
-                    },
-                    {
-                        label: "Random",
-                        value: "random",
-                        description: "Conditions are permanently banned randomly"
-                    },
-                ]
-                for (i = 0; i < methods.length; i++) {
-                    if (methods[i].value == tourney_rulesets_data.new[interaction.member.user.id].pconmethod) {
-                        methods[i].default = true
-                    }
-                }
-                components.push(
-                    {
-                        type: 1,
-                        components: [
-                            {
-                                type: 3,
-                                custom_id: "tourney_rulesets_permaconban_pconmethod",
-                                options: methods,
-                                placeholder: "Permanent Condition Ban Method",
-                                min_values: 1,
-                                max_values: 1
-                            }
-                        ]
-                    }
-                )
-                if (tourney_rulesets_data.new[interaction.member.user.id].pconmethod !== "disabled") {
-                    components.push({
-                        type: 1,
-                        components: [
-                            {
-                                type: 3,
-                                custom_id: "tourney_rulesets_permaconban_pconlimit",
-                                options: limits,
-                                placeholder: "Permanent Condition Bans Per Match",
-                                min_values: 1,
-                                max_values: 1
-                            }
-                        ]
-                    })
-                }
-            } else if (args[1] == "temptrackban") {
-                var limits = []
-                for (i = 1; i < 6; i++) {
-                    var limit = {
-                        label: i + " Ban(s) Per Race",
-                        value: i
-                    }
-                    if (limit.value == tourney_rulesets_data.new[interaction.member.user.id].ttracklimit) {
-                        limit.default = true
-                    }
-                    limits.push(limit)
-                }
-                var methods = [
-                    {
-                        label: "Disabled",
-                        value: "disabled",
-                        description: "No temporary track ban"
-                    },
-                    {
-                        label: "Winner's Pick",
-                        value: "winners_pick",
-                        description: "Winner gets to select temporary track ban"
-                    },
-                    {
-                        label: "Loser's Pick",
-                        value: "losers_pick",
-                        description: "Loser gets to select temporary track ban"
-                    },
-                    {
-                        label: "Chance Cube",
-                        value: "chance_cube",
-                        description: "Winner of Chance Cube gets to select temporary track ban"
-                    },
-                    {
-                        label: "Random",
-                        value: "random",
-                        description: "Tracks are temporarily banned randomly"
-                    }
-                ]
-                for (i = 0; i < methods.length; i++) {
-                    if (methods[i].value == tourney_rulesets_data.new[interaction.member.user.id].ttrackmethod) {
-                        methods[i].default = true
-                    }
-                }
-                components.push(
-                    {
-                        type: 1,
-                        components: [
-                            {
-                                type: 3,
-                                custom_id: "tourney_rulesets_temptrackban_ttrackmethod",
-                                options: methods,
-                                placeholder: "Temporary Track Ban Method",
-                                min_values: 1,
-                                max_values: 1
-                            }
-                        ]
-                    }
-                )
-                if (tourney_rulesets_data.new[interaction.member.user.id].ttrackmethod !== "disabled") {
-                    components.push(
-                        {
-                            type: 1,
-                            components: [
-                                {
-                                    type: 3,
-                                    custom_id: "tourney_rulesets_temptrackban_ttracklimit",
-                                    options: limits,
-                                    placeholder: "Temporary Track Bans Per Race",
-                                    min_values: 1,
-                                    max_values: 1
-                                }
-                            ]
-                        }
-                    )
 
-                }
-            } else if (args[1] == "temppodban") {
-                var limits = []
-                for (i = 1; i < 6; i++) {
-                    var limit = {
-                        label: i + " Ban(s) Per Race",
-                        value: i
-                    }
-                    if (limit.value == tourney_rulesets_data.new[interaction.member.user.id].tpodlimit) {
-                        limit.default = true
-                    }
-                    limits.push(limit)
-                }
-                var methods = [
+
+            } else if (["temptrackban", "temppodban", "tempconban"].includes(args[1])) {
+                var bans = [
                     {
-                        label: "Disabled",
-                        value: "disabled",
-                        description: "No temporary pod ban"
+                        name: "Track",
+                        command: "temptrackban",
+                        method: "ttrackmethod",
+                        limit: "ttracklimit",
+                        mlimit: "ttrackmlimit"
                     },
                     {
-                        label: "Winner's Pick",
-                        value: "winners_pick",
-                        description: "Winner gets to pick temporary pod ban"
+                        name: "Pod",
+                        command: "temppodban",
+                        method: "tpodmethod",
+                        limit: "tpodlimit",
+                        mlimit: "tpodmlimit"
                     },
                     {
-                        label: "Loser's Pick",
-                        value: "losers_pick",
-                        description: "Loser gets to pick temporary pod ban"
-                    },
-                    {
-                        label: "Chance Cube",
-                        value: "chance_cube",
-                        description: "Winner of Chance Cube gets to pick temporary pod ban"
-                    },
-                    {
-                        label: "Random",
-                        value: "random",
-                        description: "Pods are temporarily banned randomly"
+                        name: "Condition",
+                        command: "tempconban",
+                        method: "tconmethod",
+                        limit: "tconlimit",
+                        mlimit: "tconmlimit"
                     }
                 ]
-                for (i = 0; i < methods.length; i++) {
-                    if (methods[i].value == tourney_rulesets_data.new[interaction.member.user.id].tpodmethod) {
-                        methods[i].default = true
+                var ban = null
+                for (b = 0; b < bans.length; b++) {
+                    if (bans[b].command == args[1]) {
+                        ban = b
                     }
                 }
-                components.push(
-                    {
-                        type: 1,
-                        components: [
-                            {
-                                type: 3,
-                                custom_id: "tourney_rulesets_temppodban_tpodmethod",
-                                options: methods,
-                                placeholder: "Temporary Pod Ban Method",
-                                min_values: 1,
-                                max_values: 1
-                            }
-                        ]
-                    }
-                )
-                if (tourney_rulesets_data.new[interaction.member.user.id].tpodmethod !== "disabled") {
-                    components.push(
-                        {
-                            type: 1,
-                            components: [
-                                {
-                                    type: 3,
-                                    custom_id: "tourney_rulesets_temppodban_tpodlimit",
-                                    options: limits,
-                                    placeholder: "Temporary Pod Ban Limit",
-                                    min_values: 1,
-                                    max_values: 1
-                                }
-                            ]
-                        }
-                    )
-                }
-            } else if (args[1] == "tempconban") {
                 var limits = []
                 for (i = 1; i < 6; i++) {
                     var limit = {
                         label: i + " Max Ban(s) Per Race",
                         value: i
                     }
-                    if (limit.value == tourney_rulesets_data.new[interaction.member.user.id].tpodlimit) {
+                    if (limit.value == tourney_rulesets_data.new[interaction.member.user.id][bans[b].limit]) {
                         limit.default = true
                     }
                     limits.push(limit)
@@ -1528,77 +1275,119 @@ module.exports = {
                     {
                         label: "Disabled",
                         value: "disabled",
-                        description: "No temporary pod ban"
+                        description: "No temporary " + bans[b].name.toLowerCase() + " ban"
+                    },
+                    {
+                        label: "Player Pick",
+                        value: "player_pick",
+                        description: "Each player gets to make a " + bans[b].name.toLowerCase() + " ban"
                     },
                     {
                         label: "Winner's Pick",
                         value: "winners_pick",
-                        description: "Winner of last race gets to pick temporary pod ban"
+                        description: "Winner of last race gets to select temporary " + bans[b].name.toLowerCase() + " ban"
                     },
                     {
                         label: "Loser's Pick",
                         value: "losers_pick",
-                        description: "Loser of last race gets to pick temporary pod ban"
+                        description: "Loser of last race gets to select temporary " + bans[b].name.toLowerCase() + " ban"
+                    },
+                    {
+                        label: "Winner's Either/Or",
+                        value: "winners_either",
+                        description: "Winner of last race must choose between this ban or another ban"
+                    },
+                    {
+                        label: "Loser's Either/Or",
+                        value: "losers_either",
+                        description: "Loser of last race must choose between this ban or another ban"
                     },
                     {
                         label: "Chance Cube",
                         value: "chance_cube",
-                        description: "Winner of Chance Cube gets to pick temporary pod ban"
+                        description: "Winner of Chance Cube gets to select temporary " + bans[b].name.toLowerCase() + " ban"
                     },
                     {
                         label: "Random",
                         value: "random",
-                        description: "Pods are temporarily banned randomly"
+                        description: bans[b].name + "s are temporarily banned randomly"
                     }
                 ]
                 for (i = 0; i < methods.length; i++) {
-                    if (methods[i].value == tourney_rulesets_data.new[interaction.member.user.id].tpodmethod) {
+                    if (methods[i].value == tourney_rulesets_data.new[interaction.member.user.id][bans[b].method]) {
                         methods[i].default = true
                     }
                 }
                 var match_limits = [
                     {
-                        label: "1 Ban Per Win",
-                        value: "wins",
-                        description: "players earn this ban for every win"
+                        label: "No Limit",
+                        value: "no_limit",
+                        description: "Players always have the max number of bans to use for each race"
                     },
                     {
-                        label: "1 Ban Per Loss",
+                        label: "One Per Win",
+                        value: "wins",
+                        description: "Players earn one use of this tempban for each race win"
+                    },
+                    {
+                        label: "One Per Loss",
                         value: "losses",
-                        description: "players earn this ban for every loss"
+                        description: "Players earn one use of this tempban for each race loss"
                     }
                 ]
+                for (i = 0; i < match_limits.length; i++) {
+                    if (match_limits[i].value == tourney_rulesets_data.new[interaction.member.user.id][bans[b].method]) {
+                        match_limits[i].default = true
+                    }
+                }
                 components.push(
                     {
                         type: 1,
                         components: [
                             {
                                 type: 3,
-                                custom_id: "tourney_rulesets_temppodban_tpodmethod",
+                                custom_id: "tourney_rulesets_" + bans[b].command + "_" + bans[b].method,
                                 options: methods,
-                                placeholder: "Temporary Pod Ban Method",
+                                placeholder: "Temporary " + bans[b].name + " Ban Method",
                                 min_values: 1,
                                 max_values: 1
                             }
                         ]
                     }
                 )
-                if (tourney_rulesets_data.new[interaction.member.user.id].tpodmethod !== "disabled") {
+                if (tourney_rulesets_data.new[interaction.member.user.id][bans[b].method] !== "disabled") {
                     components.push(
                         {
                             type: 1,
                             components: [
                                 {
                                     type: 3,
-                                    custom_id: "tourney_rulesets_temppodban_tpodlimit",
+                                    custom_id: "tourney_rulesets_" + bans[b].command + "_" + bans[b].limit,
                                     options: limits,
-                                    placeholder: "Temporary Pod Ban Limit",
+                                    placeholder: "Max Temporary " + bans[b].name + " Bans Per Race",
                                     min_values: 1,
                                     max_values: 1
                                 }
                             ]
                         }
                     )
+                    if (tourney_rulesets_data.new[interaction.member.user.id][bans[b].method] !== "random") {
+                        components.push(
+                            {
+                                type: 1,
+                                components: [
+                                    {
+                                        type: 3,
+                                        custom_id: "tourney_rulesets_" + bans[b].command + "_" + bans[b].mlimit,
+                                        options: limits,
+                                        placeholder: "Temporary " + bans[b].name + " Bans Per Player Per Match",
+                                        min_values: 1,
+                                        max_values: 1
+                                    }
+                                ]
+                            }
+                        )
+                    }
                 }
             } else if (args[1] == "trackselect") {
                 var methods = [
