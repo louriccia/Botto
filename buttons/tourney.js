@@ -376,11 +376,11 @@ module.exports = {
             } else if (args[1] == "type") {
                 flags = 64
                 type = 4
-                if (tourney_rulesets.new !== undefined) {
+                if (tourney_rulesets.hasOwnProperty("new")) {
                     if (args[2] == "new") {
                         tourney_rulesets.child("new").child(interaction.member.user.id).remove()
                     }
-                    if (tourney_rulesets_data.new[interaction.member.user.id] !== undefined) {
+                    if (tourney_rulesets_data.new.hasOwnProperty(interaction.member.user.id)) {
                         rulesetEmbed
                             .setTitle(":exclamation: Unsaved Ruleset")
                             .setDescription("You have an unsaved ruleset. Would you like to continue editing that one or start a new one?")
@@ -781,46 +781,75 @@ module.exports = {
 
                     }
                     fields.push(field)
+                    var styles = {
+                        win: "Earned by First Win",
+                        loss: "Earned by First Loss",
+                        guaranteed: "Guaranteed",
+                        either_or: "Either/Or"
+                    }
                     //track permabans
-                    field = {}
-                    field.name = ":no_entry_sign: Track Permaban"
-                    field.value = methods[ruleset.ptrackmethod] + "\n"
                     if (ruleset.ptrackmethod !== "disabled") {
+                        field = {}
+                        field.name = ":no_entry_sign: Track Permaban"
+                        field.value = methods[ruleset.ptrackmethod] + "\n"
                         if (ruleset.ptrackmethod == "random") {
                             field.value += ruleset.ptracklimit + " random ban(s) per match"
                         } else {
                             field.value += ruleset.ptracklimit + " ban(s) per player per match"
+                            field.value += "\n" + styles[ruleset.ptrackstyle]
                         }
+                        fields.push(field)
                     }
-                    fields.push(field)
                     //pod permabans
-                    field = {}
-                    field.name = ":no_entry_sign: Pod Permaban"
-                    field.value = methods[ruleset.ppodmethod] + "\n"
                     if (ruleset.ppodmethod !== "disabled") {
+                        field = {}
+                        field.name = ":no_entry_sign: Pod Permaban"
+                        field.value = methods[ruleset.ppodmethod] + "\n"
                         if (ruleset.ppodmethod == "random") {
                             field.value += ruleset.ppodlimit + " random ban(s) per match"
                         } else {
                             field.value += ruleset.ppodlimit + " ban(s) per player per match"
+                            field.value += "\n" + styles[ruleset.ppodstyle]
                         }
+                        fields.push(field)
                     }
-                    fields.push(field)
-                    //track permabans
-                    field = {}
-                    field.name = ":x: Track Tempban"
-                    field.value = methods[ruleset.ttrackmethod] + "\n"
+                    //condition permabans
+                    if (ruleset.pconmethod !== "disabled") {
+                        field = {}
+                        field.name = ":no_entry_sign: Condition Permaban"
+                        field.value = methods[ruleset.pconmethod] + "\n"
+                        if (ruleset.pconmethod == "random") {
+                            field.value += ruleset.pconlimit + " random ban(s) per match"
+                        } else {
+                            field.value += ruleset.pconlimit + " ban(s) per player per match"
+                            field.value += "\n" + styles[ruleset.pconstyle]
+                        }
+                        fields.push(field)
+                    }
+                    //track tempbans
                     if (ruleset.ttrackmethod !== "disabled") {
-                        field.value += ruleset.ttracklimit + " ban(s) per race"
+                        field = {}
+                        field.name = ":x: Track Tempban"
+                        field.value = methods[ruleset.ttrackmethod] + "\n"
+                        field.value += ruleset.ttracklimit + " max ban(s) per race"
+                        fields.push(field)
                     }
-                    fields.push(field)
-                    //pod permabans
-                    field = {}
-                    field.name = ":x: Pod Tempban"
-                    field.value = methods[ruleset.tpodmethod] + "\n"
+                    //pod tempbans
                     if (ruleset.tpodmethod !== "disabled") {
-                        field.value += ruleset.tpodlimit + " ban(s) per race"
+                        field = {}
+                        field.name = ":x: Pod Tempban"
+                        field.value = methods[ruleset.tpodmethod] + "\n"
+                        field.value += ruleset.tpodlimit + " max ban(s) per race"
+                        fields.push(field)
                     }
-                    fields.push(field)
+                    //condition tempbans
+                    if (ruleset.tconmethod !== "disabled") {
+                        field = {}
+                        field.name = ":x: Condition Tempban"
+                        field.value = methods[ruleset.tconmethod] + "\n"
+                        field.value += ruleset.tconlimit + " max ban(s) per race"
+                        fields.push(field)
+                    }
                     //track selection
                     field = {}
                     field.name = ":triangular_flag_on_post: Track Selection"
@@ -1117,6 +1146,33 @@ module.exports = {
                         methods[i].default = true
                     }
                 }
+                var styles = [
+                    {
+                        label: "Earned by Win",
+                        value: "win",
+                        description: "Players only get access to this permaban if they win the first track"
+                    },
+                    {
+                        label: "Earned by Loss",
+                        value: "loss",
+                        description: "Players only get access to this permaban if they lose the first track"
+                    },
+                    {
+                        label: "Guaranteed",
+                        value: "guaranteed",
+                        description: "Players are guaranteed this permaban"
+                    },
+                    {
+                        label: "Either/Or",
+                        value: "either_or",
+                        description: "Players must choose between this permaban or another permaban with the same setting"
+                    }
+                ]
+                for (i = 0; i < styles.length; i++) {
+                    if (styles[i].value == tourney_rulesets_data.new[interaction.member.user.id].ptrackstyle) {
+                        styles[i].default = true
+                    }
+                }
                 components.push(
                     {
                         type: 1,
@@ -1146,6 +1202,21 @@ module.exports = {
                             }
                         ]
                     })
+                    if (tourney_rulesets_data.new[interaction.member.user.id].ptrackmethod == "player_pick") {
+                        components.push({
+                            type: 1,
+                            components: [
+                                {
+                                    type: 3,
+                                    custom_id: "tourney_rulesets_permatrackban_ptrackstyle",
+                                    options: styles,
+                                    placeholder: "Permanent Track Ban Style",
+                                    min_values: 1,
+                                    max_values: 1
+                                }
+                            ]
+                        })
+                    }
                 }
             } else if (args[1] == "permapodban") {
                 var limits = []
@@ -1184,6 +1255,33 @@ module.exports = {
                         methods[i].default = true
                     }
                 }
+                var styles = [
+                    {
+                        label: "Earned by Win",
+                        value: "win",
+                        description: "Players only get access to this permaban if they win the first track"
+                    },
+                    {
+                        label: "Earned by Loss",
+                        value: "loss",
+                        description: "Players only get access to this permaban if they lose the first track"
+                    },
+                    {
+                        label: "Guaranteed",
+                        value: "guaranteed",
+                        description: "Players are guaranteed this permaban"
+                    },
+                    {
+                        label: "Either/Or",
+                        value: "either_or",
+                        description: "Players must choose between this permaban or another permaban with the same setting"
+                    }
+                ]
+                for (i = 0; i < styles.length; i++) {
+                    if (styles[i].value == tourney_rulesets_data.new[interaction.member.user.id].ppodstyle) {
+                        styles[i].default = true
+                    }
+                }
                 components.push(
                     {
                         type: 1,
@@ -1212,7 +1310,21 @@ module.exports = {
                             }
                         ]
                     })
-
+                    if (tourney_rulesets_data.new[interaction.member.user.id].ppodmethod == "player_pick") {
+                        components.push({
+                            type: 1,
+                            components: [
+                                {
+                                    type: 3,
+                                    custom_id: "tourney_rulesets_permapodban_ppodstyle",
+                                    options: styles,
+                                    placeholder: "Permanent Pod Ban Style",
+                                    min_values: 1,
+                                    max_values: 1
+                                }
+                            ]
+                        })
+                    }
                 }
             } else if (args[1] == "permaconban") {
                 var limits = []
@@ -1293,7 +1405,7 @@ module.exports = {
                         ]
                     }
                 )
-                if (tourney_rulesets_data.new[interaction.member.user.id].ppodmethod !== "disabled") {
+                if (tourney_rulesets_data.new[interaction.member.user.id].pconmethod !== "disabled") {
                     components.push({
                         type: 1,
                         components: [
@@ -1315,7 +1427,7 @@ module.exports = {
                                     type: 3,
                                     custom_id: "tourney_rulesets_permaconban_pconstyle",
                                     options: styles,
-                                    placeholder: "Permanent Condition Style",
+                                    placeholder: "Permanent Condition Ban Style",
                                     min_values: 1,
                                     max_values: 1
                                 }
@@ -1444,6 +1556,89 @@ module.exports = {
                         methods[i].default = true
                     }
                 }
+                components.push(
+                    {
+                        type: 1,
+                        components: [
+                            {
+                                type: 3,
+                                custom_id: "tourney_rulesets_temppodban_tpodmethod",
+                                options: methods,
+                                placeholder: "Temporary Pod Ban Method",
+                                min_values: 1,
+                                max_values: 1
+                            }
+                        ]
+                    }
+                )
+                if (tourney_rulesets_data.new[interaction.member.user.id].tpodmethod !== "disabled") {
+                    components.push(
+                        {
+                            type: 1,
+                            components: [
+                                {
+                                    type: 3,
+                                    custom_id: "tourney_rulesets_temppodban_tpodlimit",
+                                    options: limits,
+                                    placeholder: "Temporary Pod Ban Limit",
+                                    min_values: 1,
+                                    max_values: 1
+                                }
+                            ]
+                        }
+                    )
+                }
+            } else if (args[1] == "tempconban") {
+                var limits = []
+                for (i = 1; i < 6; i++) {
+                    var limit = {
+                        label: i + " Max Ban(s) Per Race",
+                        value: i
+                    }
+                    if (limit.value == tourney_rulesets_data.new[interaction.member.user.id].tpodlimit) {
+                        limit.default = true
+                    }
+                    limits.push(limit)
+                }
+                var methods = [
+                    {
+                        label: "Disabled",
+                        value: "disabled",
+                        description: "No temporary pod ban"
+                    },
+                    {
+                        label: "Winner's Pick",
+                        value: "winners_pick",
+                        description: "Winner of last race gets to pick temporary pod ban"
+                    },
+                    {
+                        label: "Loser's Pick",
+                        value: "losers_pick",
+                        description: "Loser of last race gets to pick temporary pod ban"
+                    },
+                    {
+                        label: "Chance Cube",
+                        value: "chance_cube",
+                        description: "Winner of Chance Cube gets to pick temporary pod ban"
+                    },
+                    {
+                        label: "Random",
+                        value: "random",
+                        description: "Pods are temporarily banned randomly"
+                    }
+                ]
+                for (i = 0; i < methods.length; i++) {
+                    if (methods[i].value == tourney_rulesets_data.new[interaction.member.user.id].tpodmethod) {
+                        methods[i].default = true
+                    }
+                }
+                var match_limits = [
+                    {
+                        label: "1 Ban Per Win",
+                        value: "wins",
+                        description: "players earn this temp ban with every win"
+                    }
+                ]
                 components.push(
                     {
                         type: 1,
