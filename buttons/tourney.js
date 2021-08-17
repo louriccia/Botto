@@ -376,48 +376,51 @@ module.exports = {
             } else if (args[1] == "type") {
                 flags = 64
                 type = 4
-                if (tourney_rulesets_data.hasOwnProperty("new")) {
-                    if (args[2] == "new") {
-                        tourney_rulesets.child("new").child(interaction.member.user.id).remove()
-                    }
-                    if (tourney_rulesets_data.new.hasOwnProperty(interaction.member.user.id)) {
-                        rulesetEmbed
-                            .setTitle(":exclamation: Unsaved Ruleset")
-                            .setDescription("You have an unsaved ruleset. Would you like to continue editing that one or start a new one?")
-
-                        components.push(
-                            {
-                                type: 1,
-                                components: [
-                                    {
-                                        type: 2,
-                                        label: "Continue",
-                                        style: 3,
-                                        custom_id: "tourney_rulesets_general",
-                                    },
-                                    {
-                                        type: 2,
-                                        label: "Start New",
-                                        style: 4,
-                                        custom_id: "tourney_rulesets_type_new",
-                                    }
-                                ]
-                            }
-                        )
-
-                        client.api.interactions(interaction.id, interaction.token).callback.post({
-                            data: {
-                                type: type,
-                                data: {
-                                    flags: flags,
-                                    embeds: [rulesetEmbed],
-                                    components: components
+                if(tourney_rulesets_data !== undefined){
+                    if (tourney_rulesets_data.hasOwnProperty("new")) {
+                        if (args[2] == "new") {
+                            tourney_rulesets.child("new").child(interaction.member.user.id).remove()
+                        }
+                        if (tourney_rulesets_data.new.hasOwnProperty(interaction.member.user.id)) {
+                            rulesetEmbed
+                                .setTitle(":exclamation: Unsaved Ruleset")
+                                .setDescription("You have an unsaved ruleset. Would you like to continue editing that one or start a new one?")
+    
+                            components.push(
+                                {
+                                    type: 1,
+                                    components: [
+                                        {
+                                            type: 2,
+                                            label: "Continue",
+                                            style: 3,
+                                            custom_id: "tourney_rulesets_general",
+                                        },
+                                        {
+                                            type: 2,
+                                            label: "Start New",
+                                            style: 4,
+                                            custom_id: "tourney_rulesets_type_new",
+                                        }
+                                    ]
                                 }
-                            }
-                        })
-                        return
+                            )
+    
+                            client.api.interactions(interaction.id, interaction.token).callback.post({
+                                data: {
+                                    type: type,
+                                    data: {
+                                        flags: flags,
+                                        embeds: [rulesetEmbed],
+                                        components: components
+                                    }
+                                }
+                            })
+                            return
+                        }
                     }
                 }
+                
 
                 //select type
                 rulesetEmbed
