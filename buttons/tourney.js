@@ -1190,7 +1190,7 @@ module.exports = {
                     {
                         label: "Random",
                         value: "random",
-                        description: bans[b].name + "s are permanently banned randomly"
+                        description: bans[ban].name + "s are permanently banned randomly"
                     }
                 ]
                 for (i = 0; i < methods.length; i++) {
@@ -1266,7 +1266,7 @@ module.exports = {
                         label: i + " Max Ban(s) Per Race",
                         value: i
                     }
-                    if (limit.value == tourney_rulesets_data.new[interaction.member.user.id][bans[b].limit]) {
+                    if (limit.value == tourney_rulesets_data.new[interaction.member.user.id][bans[ban].limit]) {
                         limit.default = true
                     }
                     limits.push(limit)
@@ -1275,22 +1275,22 @@ module.exports = {
                     {
                         label: "Disabled",
                         value: "disabled",
-                        description: "No temporary " + bans[b].name.toLowerCase() + " ban"
+                        description: "No temporary " + bans[ban].name.toLowerCase() + " ban"
                     },
                     {
                         label: "Player Pick",
                         value: "player_pick",
-                        description: "Each player gets to make a " + bans[b].name.toLowerCase() + " ban"
+                        description: "Each player gets to make a " + bans[ban].name.toLowerCase() + " ban"
                     },
                     {
                         label: "Winner's Pick",
                         value: "winners_pick",
-                        description: "Winner of last race gets to select temporary " + bans[b].name.toLowerCase() + " ban"
+                        description: "Winner of last race gets to select temporary " + bans[ban].name.toLowerCase() + " ban"
                     },
                     {
                         label: "Loser's Pick",
                         value: "losers_pick",
-                        description: "Loser of last race gets to select temporary " + bans[b].name.toLowerCase() + " ban"
+                        description: "Loser of last race gets to select temporary " + bans[ban].name.toLowerCase() + " ban"
                     },
                     {
                         label: "Winner's Either/Or",
@@ -1305,16 +1305,16 @@ module.exports = {
                     {
                         label: "Chance Cube",
                         value: "chance_cube",
-                        description: "Winner of Chance Cube gets to select temporary " + bans[b].name.toLowerCase() + " ban"
+                        description: "Winner of Chance Cube gets to select temporary " + bans[ban].name.toLowerCase() + " ban"
                     },
                     {
                         label: "Random",
                         value: "random",
-                        description: bans[b].name + "s are temporarily banned randomly"
+                        description: bans[ban].name + "s are temporarily banned randomly"
                     }
                 ]
                 for (i = 0; i < methods.length; i++) {
-                    if (methods[i].value == tourney_rulesets_data.new[interaction.member.user.id][bans[b].method]) {
+                    if (methods[i].value == tourney_rulesets_data.new[interaction.member.user.id][bans[ban].method]) {
                         methods[i].default = true
                     }
                 }
@@ -1336,7 +1336,7 @@ module.exports = {
                     }
                 ]
                 for (i = 0; i < match_limits.length; i++) {
-                    if (match_limits[i].value == tourney_rulesets_data.new[interaction.member.user.id][bans[b].method]) {
+                    if (match_limits[i].value == tourney_rulesets_data.new[interaction.member.user.id][bans[ban].method]) {
                         match_limits[i].default = true
                     }
                 }
@@ -1346,41 +1346,41 @@ module.exports = {
                         components: [
                             {
                                 type: 3,
-                                custom_id: "tourney_rulesets_" + bans[b].command + "_" + bans[b].method,
+                                custom_id: "tourney_rulesets_" + bans[ban].command + "_" + bans[ban].method,
                                 options: methods,
-                                placeholder: "Temporary " + bans[b].name + " Ban Method",
+                                placeholder: "Temporary " + bans[ban].name + " Ban Method",
                                 min_values: 1,
                                 max_values: 1
                             }
                         ]
                     }
                 )
-                if (tourney_rulesets_data.new[interaction.member.user.id][bans[b].method] !== "disabled") {
+                if (tourney_rulesets_data.new[interaction.member.user.id][bans[ban].method] !== "disabled") {
                     components.push(
                         {
                             type: 1,
                             components: [
                                 {
                                     type: 3,
-                                    custom_id: "tourney_rulesets_" + bans[b].command + "_" + bans[b].limit,
+                                    custom_id: "tourney_rulesets_" + bans[ban].command + "_" + bans[ban].limit,
                                     options: limits,
-                                    placeholder: "Max Temporary " + bans[b].name + " Bans Per Race",
+                                    placeholder: "Max Temporary " + bans[ban].name + " Bans Per Race",
                                     min_values: 1,
                                     max_values: 1
                                 }
                             ]
                         }
                     )
-                    if (tourney_rulesets_data.new[interaction.member.user.id][bans[b].method] !== "random") {
+                    if (tourney_rulesets_data.new[interaction.member.user.id][bans[ban].method] !== "random") {
                         components.push(
                             {
                                 type: 1,
                                 components: [
                                     {
                                         type: 3,
-                                        custom_id: "tourney_rulesets_" + bans[b].command + "_" + bans[b].mlimit,
+                                        custom_id: "tourney_rulesets_" + bans[ban].command + "_" + bans[ban].mlimit,
                                         options: limits,
-                                        placeholder: "Temporary " + bans[b].name + " Bans Per Player Per Match",
+                                        placeholder: "Temporary " + bans[ban].name + " Bans Per Player Per Match",
                                         min_values: 1,
                                         max_values: 1
                                     }
