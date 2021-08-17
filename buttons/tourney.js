@@ -674,7 +674,7 @@ module.exports = {
                     ]
                 })
             }
-            if (tourney_rulesets_data.new !== undefined) {
+            if (tourney_rulesets_data.hasOwnProperty("new")) {
                 if (tourney_rulesets_data.new[interaction.member.user.id].type == "1v1") {
                     rulesetEmbed
                         .setDescription("Ruleset Type: 1v1")
