@@ -745,7 +745,8 @@ module.exports = {
                             losers_either: "Loser's Either/Or",
                             win: "Earned via Win",
                             loss: "Earned via Loss",
-                            either_or: "Either/Or"
+                            either_or: "Either/Or",
+                            no_limit: "No Match Limit"
                         }
                         field.value = methods[ruleset.firstmethod] + "\n"
                         var amc = 0, spc = 0, gal = 0, inv = 0
@@ -855,9 +856,17 @@ module.exports = {
                                 field = {}
                                 field.name = ":x: " + bans[b].name + " Tempban"
                                 field.value = methods[ruleset[bans[b].method]] + "\n"
-                                field.value += ruleset[bans[b].method] + " max per race\n"
+                                field.value += ruleset[bans[b].limit] + " max per race\n"
                                 if(ruleset[bans[b].method] !== "random"){
-                                    field.value += bans[b].mlimit + " per player per match"
+                                    if(ruleset[bans[b].mlimit] == "no_limit"){
+                                        field.value += "no match limit"
+                                    } else if(ruleset[bans[b].mlimit] == "wins"){
+                                        field.value += "one per win"
+                                    } else if(ruleset[bans[b].mlimit] == "losses"){
+                                        field.value += "one per loss"
+                                    } else{
+                                        field.value += ruleset[bans[b].mlimit] + " per player per match"
+                                    }
                                 }
                                 fields.push(field)
                             }
@@ -1324,7 +1333,7 @@ module.exports = {
                 }
                 var match_limits = [
                     {
-                        label: "No Limit",
+                        label: "No Match Limit",
                         value: "no_limit",
                         description: "Players always have the max number of bans to use for each race"
                     },
