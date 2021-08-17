@@ -482,14 +482,19 @@ module.exports = {
                         name: interaction.member.user.username + "'s Unnamed 1v1 Ruleset",
                         author: interaction.member.user.id,
                         wins: 5,
-                        default: ["mu", "ft", "um", "3l"],
+                        default: ["mu", "ft", "um", "l3"],
                         gents: "disallowed",
                         firstmethod: "poe",
                         firsttrack: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24"],
                         ptrackmethod: "disabled",
                         ptracklimit: 1,
+                        ptrackstyle: "guaranteed",
                         ppodmethod: "disabled",
                         ppodlimit: 1,
+                        ppodstyle: "guaranteed",
+                        pconmethod: "disabled",
+                        pconlimit: 1,
+                        pconstyle: "guaranteed",
                         ttrackmethod: "disabled",
                         ttracklimit: 1,
                         tpodmethod: "disabled",
@@ -663,12 +668,24 @@ module.exports = {
                 fields.push(field)
                 //first track
                 field = {}
-                field.name = ":triangular_flag_on_post: First Track"
+                field.name = ":checkered_flag: First Track"
                 firsttracks = Object.values(ruleset.firsttrack)
                 var methods = {
                     poe: "Process of Elimination",
                     chance_cube: "Chance Cube",
-                    random: "Random"
+                    random: "Random",
+                    player_pick: "Player's Pick",
+                    disabled: "Disabled",
+                    winners_pick: "Winner's Pick",
+                    losers_pick: "Loser's Pick",
+                    salty_runback: "Salty Runback",
+                    saltier_runback: "Saltier Runback",
+                    saltiest_runback: "Saltiest Runback",
+                    any: "Any Condition",
+                    random_mirrored: "Random Mirrored",
+                    limited_choice: "Limited Choice",
+                    random_limited_choice: "Random Limited Choice",
+                    pod_pool: "Pod Pool"
                 }
                 field.value = methods[ruleset.firstmethod] + "\n"
                 var amc = 0, spc = 0, gal = 0, inv = 0
@@ -718,43 +735,104 @@ module.exports = {
                 //track permabans
                 field = {}
                 field.name = ":no_entry_sign: Track Permaban"
-                field.value = ruleset.ptrackmethod + "\n"
+                field.value = methods[ruleset.ptrackmethod] + "\n"
                 if(ruleset.ptrackmethod !== "disabled"){
                     if(ruleset.ptrackmethod == "random"){
-                        field.value += ruleset.ptrackmethod + " random ban(s) per match"
+                        field.value += ruleset.ptracklimit + " random ban(s) per match"
                     } else {
-                        field.value += ruleset.ptrackmethod + " ban(s) per player per match"
+                        field.value += ruleset.ptracklimit + " ban(s) per player per match"
                     }
                 }
                 fields.push(field)
                 //pod permabans
                 field = {}
                 field.name = ":no_entry_sign: Pod Permaban"
-                field.value = ruleset.ppodmethod + "\n"
+                field.value = methods[ruleset.ppodmethod] + "\n"
                 if(ruleset.ppodmethod !== "disabled"){
                     if(ruleset.ppodmethod == "random"){
-                        field.value += ruleset.ppodmethod + " random ban(s) per match"
+                        field.value += ruleset.ppodlimit + " random ban(s) per match"
                     } else {
-                        field.value += ruleset.ppodmethod + " ban(s) per player per match"
+                        field.value += ruleset.ppodlimit + " ban(s) per player per match"
                     }
                 }
                 fields.push(field)
                 //track permabans
                 field = {}
                 field.name = ":x: Track Tempban"
-                field.value = ruleset.ttrackmethod + "\n"
+                field.value = methods[ruleset.ttrackmethod] + "\n"
                 if(ruleset.ttrackmethod !== "disabled"){
-                    field.value += ruleset.ttrackmethod + " ban(s) per race"
+                    field.value += ruleset.ttracklimit + " ban(s) per race"
                 }
                 fields.push(field)
                 //track permabans
                 field = {}
                 field.name = ":x: Pod Tempban"
-                field.value = ruleset.tpodmethod + "\n"
+                field.value = methods[ruleset.tpodmethod] + "\n"
                 if(ruleset.tpodmethod !== "disabled"){
-                    field.value += ruleset.tpodmethod + " ban(s) per race"
+                    field.value += ruleset.tpodlimit + " ban(s) per race"
                 }
                 fields.push(field)
+                //first track
+                field = {}
+                field.name = ":triangular_flag_on_post: Track Selection"
+                track_tracks = Object.values(ruleset.tracktracks)
+                var methods = {
+                    poe: "Process of Elimination",
+                    chance_cube: "Chance Cube",
+                    random: "Random"
+                }
+                field.value = methods[ruleset.firstmethod] + "\n"
+                var amc = 0, spc = 0, gal = 0, inv = 0
+                var first_nicks = []
+                for (i = 0; i < track_tracks.length; i++) {
+                    if (track_tracks[i] >= 0 && track_tracks[i] < 7) {
+                        amc++
+                    }
+                    if (track_tracks[i] >= 7 && track_tracks[i] < 14) {
+                        spc++
+                    }
+                    if (track_tracks[i] >= 14 && track_tracks[i] < 21) {
+                        gal++
+                    }
+                    if (track_tracks[i] >= 21 && track_tracks[i] < 25) {
+                        inv++
+                    }
+                    first_nicks.push(tracks[Number(track_tracks[i])].nickname[0])
+                }
+                var missing = []
+                for(i = 0; i < 25; i++){
+                    if(!first_nicks.includes(tracks[i].nickname[0])){
+                        missing.push(tracks[i].nickname[0])
+                    }
+                }
+                if (track_tracks.length == 25) {
+                    field.value += "Any Track"
+                } else if ((track_tracks.length == 7 && [amc, spc, gal].includes(7))|| track_tracks.length == 4 && inv == 4) {
+                    if (amc == 7) {
+                        field.value += "Amateur Circuit"
+                    } else if (spc == 7) {
+                        field.value += "Semi-Pro Circuit"
+                    } else if (gal == 7) {
+                        field.value += "Galactic Circuit"
+                    } else if (inv == 4) {
+                        field.value += "Invitational Circuit"
+                    } 
+                } else {
+                    if(missing.length < first_nicks.length){
+                        field.value += "No " + missing.join(", ")
+                    } else {
+                        field.value += first_nicks.join(", ")
+                    }
+                    
+                }
+                fields.push(field)
+                //Repeat Tracks
+                field = {}
+                field.name = ":repeat: Repeat Tracks",
+                field.value = methods[ruleset.dupecondition] + "\n"
+                if(ruleset.dupecondition !== "disabled"){
+                    field.value += ruleset.dupelimit + " Per Player Per Match"
+                }
                 //construct fields
                 for(i = 0; i < fields.length; i++){
                     rulesetEmbed.addField(fields[i].name, fields[i].value, true)
@@ -1091,6 +1169,115 @@ module.exports = {
                     })
 
                 }
+            } else if (args[1] == "permaconban") {
+                var limits = []
+                for (i = 1; i < 6; i++) {
+                    var limit = {
+                        label: i + " Ban(s) Per Player Per Match",
+                        value: i
+                    }
+                    if (tourney_rulesets_data.new[interaction.member.user.id].pconmethod == "random") {
+                        limit.label = i + " Random Ban(s) Per Match"
+                    }
+                    if (limit.value == tourney_rulesets_data.new[interaction.member.user.id].pconlimit) {
+                        limit.default = true
+                    }
+                    limits.push(limit)
+                }
+                var methods = [
+                    {
+                        label: "Disabled",
+                        value: "disabled",
+                        description: "No permanent condition ban"
+                    },
+                    {
+                        label: "Player Pick",
+                        value: "player_pick",
+                        description: "Each player gets to pick their permanent condition ban"
+                    },
+                    {
+                        label: "Random",
+                        value: "random",
+                        description: "Conditions are permanently banned randomly"
+                    }
+                ]
+                for (i = 0; i < methods.length; i++) {
+                    if (methods[i].value == tourney_rulesets_data.new[interaction.member.user.id].pconmethod) {
+                        methods[i].default = true
+                    }
+                }
+                var styles = [
+                    {
+                        label: "Earned by Win",
+                        value: "win",
+                        description: "Players only get access to this permaban if they win the first track"
+                    },
+                    {
+                        label: "Earned by Loss",
+                        value: "loss",
+                        description: "Players only get access to this permaban if they lose the first track"
+                    },
+                    {
+                        label: "Guaranteed",
+                        value: "guaranteed",
+                        description: "Players are guaranteed this permaban"
+                    },
+                    {
+                        label: "Either/Or",
+                        value: "either_or",
+                        description: "Players must choose between this permaban or another permaban with the same setting"
+                    }
+                ]
+                for(i = 0 ; i < styles.length; i ++){
+                    if (styles[i].value == tourney_rulesets_data.new[interaction.member.user.id].pconstyle) {
+                        styles[i].default = true
+                    }
+                }
+                components.push(
+                    {
+                        type: 1,
+                        components: [
+                            {
+                                type: 3,
+                                custom_id: "tourney_rulesets_permaconban_pconmethod",
+                                options: methods,
+                                placeholder: "Permanent Condition Ban Method",
+                                min_values: 1,
+                                max_values: 1
+                            }
+                        ]
+                    }
+                )
+                if (tourney_rulesets_data.new[interaction.member.user.id].ppodmethod !== "disabled") {
+                    components.push({
+                        type: 1,
+                        components: [
+                            {
+                                type: 3,
+                                custom_id: "tourney_rulesets_permaconban_pconlimit",
+                                options: limits,
+                                placeholder: "Permanent Condition Bans Per Match",
+                                min_values: 1,
+                                max_values: 1
+                            }
+                        ]
+                    })
+                    if(tourney_rulesets_data.new[interaction.member.user.id].pconmethod == "player_pick"){
+                        components.push({
+                            type: 1,
+                            components: [
+                                {
+                                    type: 3,
+                                    custom_id: "tourney_rulesets_permaconban_pconstyle",
+                                    options: styles,
+                                    placeholder: "Permanent Condition Style",
+                                    min_values: 1,
+                                    max_values: 1
+                                }
+                            ]
+                        })
+                    }
+                }
             } else if (args[1] == "temptrackban") {
                 var limits = []
                 for (i = 1; i < 6; i++) {
@@ -1283,7 +1470,7 @@ module.exports = {
                             id: planets[tracks[i].planet].emoji.split(":")[2].replace(">", "")
                         }
                     }
-                    if (Object.values(tourney_rulesets_data.new[interaction.member.user.id].firsttrack).includes(String(track_option.value))) {
+                    if (Object.values(tourney_rulesets_data.new[interaction.member.user.id].tracktracks).includes(String(track_option.value))) {
                         track_option.default = true
                     }
                     track_options.push(track_option)
