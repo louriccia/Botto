@@ -376,7 +376,7 @@ module.exports = {
             } else if (args[1] == "type") {
                 flags = 64
                 type = 4
-                if (tourney_rulesets.hasOwnProperty("new")) {
+                if (tourney_rulesets_data.hasOwnProperty("new")) {
                     if (args[2] == "new") {
                         tourney_rulesets.child("new").child(interaction.member.user.id).remove()
                     }
@@ -524,17 +524,16 @@ module.exports = {
                         firsttrack: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24"],
                         ptrackmethod: "disabled",
                         ptracklimit: 1,
-                        ptrackstyle: "guaranteed",
                         ppodmethod: "disabled",
                         ppodlimit: 1,
-                        ppodstyle: "guaranteed",
                         pconmethod: "disabled",
                         pconlimit: 1,
-                        pconstyle: "guaranteed",
                         ttrackmethod: "disabled",
                         ttracklimit: 1,
                         tpodmethod: "disabled",
                         tpodlimit: 1,
+                        tconmethod: "disabled",
+                        tconlimit: 1,
                         trackmethod: "losers_pick",
                         tracktracks: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24"],
                         dupecondition: "disabled",
@@ -782,8 +781,8 @@ module.exports = {
                     }
                     fields.push(field)
                     var styles = {
-                        win: "Earned by First Win",
-                        loss: "Earned by First Loss",
+                        win: "Earned via First Win",
+                        loss: "Earned via First Loss",
                         guaranteed: "Guaranteed",
                         either_or: "Either/Or"
                     }
@@ -1133,7 +1132,22 @@ module.exports = {
                     {
                         label: "Player Pick",
                         value: "player_pick",
-                        description: "Each player gets to pick their permanent track ban"
+                        description: "Each player gets to pick a permanent track ban"
+                    },
+                    {
+                        label: "Earned via Win",
+                        value: "win",
+                        description: "Players get access to this ban if they win the first track"
+                    },
+                    {
+                        label: "Earned via Loss",
+                        value: "loss",
+                        description: "Players get access to this ban if they lose the first track"
+                    },
+                    {
+                        label: "Either/Or",
+                        value: "either_or",
+                        description: "Players must choose between this permaban or another permaban with the same setting"
                     },
                     {
                         label: "Random",
@@ -1144,33 +1158,6 @@ module.exports = {
                 for (i = 0; i < methods.length; i++) {
                     if (methods[i].value == tourney_rulesets_data.new[interaction.member.user.id].ptrackmethod) {
                         methods[i].default = true
-                    }
-                }
-                var styles = [
-                    {
-                        label: "Earned by Win",
-                        value: "win",
-                        description: "Players only get access to this permaban if they win the first track"
-                    },
-                    {
-                        label: "Earned by Loss",
-                        value: "loss",
-                        description: "Players only get access to this permaban if they lose the first track"
-                    },
-                    {
-                        label: "Guaranteed",
-                        value: "guaranteed",
-                        description: "Players are guaranteed this permaban"
-                    },
-                    {
-                        label: "Either/Or",
-                        value: "either_or",
-                        description: "Players must choose between this permaban or another permaban with the same setting"
-                    }
-                ]
-                for (i = 0; i < styles.length; i++) {
-                    if (styles[i].value == tourney_rulesets_data.new[interaction.member.user.id].ptrackstyle) {
-                        styles[i].default = true
                     }
                 }
                 components.push(
@@ -1202,21 +1189,6 @@ module.exports = {
                             }
                         ]
                     })
-                    if (tourney_rulesets_data.new[interaction.member.user.id].ptrackmethod == "player_pick") {
-                        components.push({
-                            type: 1,
-                            components: [
-                                {
-                                    type: 3,
-                                    custom_id: "tourney_rulesets_permatrackban_ptrackstyle",
-                                    options: styles,
-                                    placeholder: "Permanent Track Ban Style",
-                                    min_values: 1,
-                                    max_values: 1
-                                }
-                            ]
-                        })
-                    }
                 }
             } else if (args[1] == "permapodban") {
                 var limits = []
@@ -1242,7 +1214,22 @@ module.exports = {
                     {
                         label: "Player Pick",
                         value: "player_pick",
-                        description: "Each player gets to pick their permanent pod ban"
+                        description: "Each player gets to pick a permanent pod ban"
+                    },
+                    {
+                        label: "Earned via Win",
+                        value: "win",
+                        description: "Players only get access to this permaban if they win the first track"
+                    },
+                    {
+                        label: "Earned via Loss",
+                        value: "loss",
+                        description: "Players only get access to this permaban if they lose the first track"
+                    },
+                    {
+                        label: "Either/Or",
+                        value: "either_or",
+                        description: "Players must choose between this permaban or another permaban with the same setting"
                     },
                     {
                         label: "Random",
@@ -1253,33 +1240,6 @@ module.exports = {
                 for (i = 0; i < methods.length; i++) {
                     if (methods[i].value == tourney_rulesets_data.new[interaction.member.user.id].ppodmethod) {
                         methods[i].default = true
-                    }
-                }
-                var styles = [
-                    {
-                        label: "Earned by Win",
-                        value: "win",
-                        description: "Players only get access to this permaban if they win the first track"
-                    },
-                    {
-                        label: "Earned by Loss",
-                        value: "loss",
-                        description: "Players only get access to this permaban if they lose the first track"
-                    },
-                    {
-                        label: "Guaranteed",
-                        value: "guaranteed",
-                        description: "Players are guaranteed this permaban"
-                    },
-                    {
-                        label: "Either/Or",
-                        value: "either_or",
-                        description: "Players must choose between this permaban or another permaban with the same setting"
-                    }
-                ]
-                for (i = 0; i < styles.length; i++) {
-                    if (styles[i].value == tourney_rulesets_data.new[interaction.member.user.id].ppodstyle) {
-                        styles[i].default = true
                     }
                 }
                 components.push(
@@ -1310,21 +1270,6 @@ module.exports = {
                             }
                         ]
                     })
-                    if (tourney_rulesets_data.new[interaction.member.user.id].ppodmethod == "player_pick") {
-                        components.push({
-                            type: 1,
-                            components: [
-                                {
-                                    type: 3,
-                                    custom_id: "tourney_rulesets_permapodban_ppodstyle",
-                                    options: styles,
-                                    placeholder: "Permanent Pod Ban Style",
-                                    min_values: 1,
-                                    max_values: 1
-                                }
-                            ]
-                        })
-                    }
                 }
             } else if (args[1] == "permaconban") {
                 var limits = []
@@ -1350,44 +1295,32 @@ module.exports = {
                     {
                         label: "Player Pick",
                         value: "player_pick",
-                        description: "Each player gets to pick their permanent condition ban"
+                        description: "Each player gets to pick a permanent condition ban"
                     },
                     {
-                        label: "Random",
-                        value: "random",
-                        description: "Conditions are permanently banned randomly"
-                    }
-                ]
-                for (i = 0; i < methods.length; i++) {
-                    if (methods[i].value == tourney_rulesets_data.new[interaction.member.user.id].pconmethod) {
-                        methods[i].default = true
-                    }
-                }
-                var styles = [
-                    {
-                        label: "Earned by Win",
+                        label: "Earned via Win",
                         value: "win",
                         description: "Players only get access to this permaban if they win the first track"
                     },
                     {
-                        label: "Earned by Loss",
+                        label: "Earned via Loss",
                         value: "loss",
                         description: "Players only get access to this permaban if they lose the first track"
-                    },
-                    {
-                        label: "Guaranteed",
-                        value: "guaranteed",
-                        description: "Players are guaranteed this permaban"
                     },
                     {
                         label: "Either/Or",
                         value: "either_or",
                         description: "Players must choose between this permaban or another permaban with the same setting"
-                    }
+                    },
+                    {
+                        label: "Random",
+                        value: "random",
+                        description: "Conditions are permanently banned randomly"
+                    },
                 ]
-                for (i = 0; i < styles.length; i++) {
-                    if (styles[i].value == tourney_rulesets_data.new[interaction.member.user.id].pconstyle) {
-                        styles[i].default = true
+                for (i = 0; i < methods.length; i++) {
+                    if (methods[i].value == tourney_rulesets_data.new[interaction.member.user.id].pconmethod) {
+                        methods[i].default = true
                     }
                 }
                 components.push(
@@ -1419,21 +1352,6 @@ module.exports = {
                             }
                         ]
                     })
-                    if (tourney_rulesets_data.new[interaction.member.user.id].pconmethod == "player_pick") {
-                        components.push({
-                            type: 1,
-                            components: [
-                                {
-                                    type: 3,
-                                    custom_id: "tourney_rulesets_permaconban_pconstyle",
-                                    options: styles,
-                                    placeholder: "Permanent Condition Ban Style",
-                                    min_values: 1,
-                                    max_values: 1
-                                }
-                            ]
-                        })
-                    }
                 }
             } else if (args[1] == "temptrackban") {
                 var limits = []
@@ -1636,7 +1554,12 @@ module.exports = {
                     {
                         label: "1 Ban Per Win",
                         value: "wins",
-                        description: "players earn this temp ban with every win"
+                        description: "players earn this ban for every win"
+                    },
+                    {
+                        label: "1 Ban Per Loss",
+                        value: "losses",
+                        description: "players earn this ban for every loss"
                     }
                 ]
                 components.push(
