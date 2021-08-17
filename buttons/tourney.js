@@ -376,7 +376,7 @@ module.exports = {
             } else if (args[1] == "type") {
                 flags = 64
                 type = 4
-                if(![null, undefined].includes(tourney_rulesets_data)){
+                if (![null, undefined].includes(tourney_rulesets_data)) {
                     if (tourney_rulesets_data.hasOwnProperty("new")) {
                         if (args[2] == "new") {
                             tourney_rulesets.child("new").child(interaction.member.user.id).remove()
@@ -385,7 +385,7 @@ module.exports = {
                             rulesetEmbed
                                 .setTitle(":exclamation: Unsaved Ruleset")
                                 .setDescription("You have an unsaved ruleset. Would you like to continue editing that one or start a new one?")
-    
+
                             components.push(
                                 {
                                     type: 1,
@@ -405,7 +405,7 @@ module.exports = {
                                     ]
                                 }
                             )
-    
+
                             client.api.interactions(interaction.id, interaction.token).callback.post({
                                 data: {
                                     type: type,
@@ -420,7 +420,7 @@ module.exports = {
                         }
                     }
                 }
-                
+
 
                 //select type
                 rulesetEmbed
@@ -676,246 +676,249 @@ module.exports = {
                     ]
                 })
             }
-            if (tourney_rulesets_data.hasOwnProperty("new")) {
-                if (tourney_rulesets_data.new[interaction.member.user.id].type == "1v1") {
-                    rulesetEmbed
-                        .setDescription("Ruleset Type: 1v1")
-                    var ruleset = tourney_rulesets_data.new[interaction.member.user.id]
-                    var fields = []
-                    //wins
-                    var field = {}
-                    field.name = ":trophy: Wins"
-                    field.value = "First to " + ruleset.wins + "\nBest of " + (ruleset.wins * 2 - 1)
-                    fields.push(field)
-                    //default
-                    field = {}
-                    field.name = ":eight_spoked_asterisk: Default Conditions"
-                    var conditions = {
-                        mu: "Max Upgrades",
-                        nu: "No Upgrades",
-                        ft: "Full Track",
-                        sk: "Skips",
-                        pb: "Pod Ban",
-                        pc: "Pod Choice",
-                        um: "Unmirrored",
-                        mi: "Mirrored",
-                        l1: "1 Lap",
-                        l2: "2 Laps",
-                        l3: "3 Laps",
-                        l4: "4 Laps",
-                        l5: "5 Laps"
-                    }
-                    var cond = Object.values(ruleset.default)
-                    var cons = []
-                    cond.forEach(con => {
-                        cons.push(conditions[con])
-                    })
-                    field.value = cons.join(", ")
-                    fields.push(field)
-                    //gents
-                    field = {}
-                    field.name = ":tophat: Gentleman's Agreement"
-                    field.value = ruleset.gents
-                    fields.push(field)
-                    //first track
-                    field = {}
-                    field.name = ":checkered_flag: First Track"
-                    firsttracks = Object.values(ruleset.firsttrack)
-                    var methods = {
-                        poe: "Process of Elimination",
-                        chance_cube: "Chance Cube",
-                        random: "Random",
-                        player_pick: "Player's Pick",
-                        disabled: "Disabled",
-                        winners_pick: "Winner's Pick",
-                        losers_pick: "Loser's Pick",
-                        salty_runback: "Salty Runback",
-                        saltier_runback: "Saltier Runback",
-                        saltiest_runback: "Saltiest Runback",
-                        any: "Any Condition",
-                        random_mirrored: "Random Mirrored",
-                        limited_choice: "Limited Choice",
-                        random_limited_choice: "Random Limited Choice",
-                        pod_pool: "Pod Pool"
-                    }
-                    field.value = methods[ruleset.firstmethod] + "\n"
-                    var amc = 0, spc = 0, gal = 0, inv = 0
-                    var first_nicks = []
-                    for (i = 0; i < firsttracks.length; i++) {
-                        if (firsttracks[i] >= 0 && firsttracks[i] < 7) {
-                            amc++
+            if (![null, undefined].includes(tourney_rulesets_data)) {
+                if (![null, undefined].includes(tourney_rulesets_data.new)) {
+                    if (tourney_rulesets_data.new[interaction.member.user.id].type == "1v1") {
+                        rulesetEmbed
+                            .setDescription("Ruleset Type: 1v1")
+                        var ruleset = tourney_rulesets_data.new[interaction.member.user.id]
+                        var fields = []
+                        //wins
+                        var field = {}
+                        field.name = ":trophy: Wins"
+                        field.value = "First to " + ruleset.wins + "\nBest of " + (ruleset.wins * 2 - 1)
+                        fields.push(field)
+                        //default
+                        field = {}
+                        field.name = ":eight_spoked_asterisk: Default Conditions"
+                        var conditions = {
+                            mu: "Max Upgrades",
+                            nu: "No Upgrades",
+                            ft: "Full Track",
+                            sk: "Skips",
+                            pb: "Pod Ban",
+                            pc: "Pod Choice",
+                            um: "Unmirrored",
+                            mi: "Mirrored",
+                            l1: "1 Lap",
+                            l2: "2 Laps",
+                            l3: "3 Laps",
+                            l4: "4 Laps",
+                            l5: "5 Laps"
                         }
-                        if (firsttracks[i] >= 7 && firsttracks[i] < 14) {
-                            spc++
+                        var cond = Object.values(ruleset.default)
+                        var cons = []
+                        cond.forEach(con => {
+                            cons.push(conditions[con])
+                        })
+                        field.value = cons.join(", ")
+                        fields.push(field)
+                        //gents
+                        field = {}
+                        field.name = ":tophat: Gentleman's Agreement"
+                        field.value = ruleset.gents
+                        fields.push(field)
+                        //first track
+                        field = {}
+                        field.name = ":checkered_flag: First Track"
+                        firsttracks = Object.values(ruleset.firsttrack)
+                        var methods = {
+                            poe: "Process of Elimination",
+                            chance_cube: "Chance Cube",
+                            random: "Random",
+                            player_pick: "Player's Pick",
+                            disabled: "Disabled",
+                            winners_pick: "Winner's Pick",
+                            losers_pick: "Loser's Pick",
+                            salty_runback: "Salty Runback",
+                            saltier_runback: "Saltier Runback",
+                            saltiest_runback: "Saltiest Runback",
+                            any: "Any Condition",
+                            random_mirrored: "Random Mirrored",
+                            limited_choice: "Limited Choice",
+                            random_limited_choice: "Random Limited Choice",
+                            pod_pool: "Pod Pool"
                         }
-                        if (firsttracks[i] >= 14 && firsttracks[i] < 21) {
-                            gal++
+                        field.value = methods[ruleset.firstmethod] + "\n"
+                        var amc = 0, spc = 0, gal = 0, inv = 0
+                        var first_nicks = []
+                        for (i = 0; i < firsttracks.length; i++) {
+                            if (firsttracks[i] >= 0 && firsttracks[i] < 7) {
+                                amc++
+                            }
+                            if (firsttracks[i] >= 7 && firsttracks[i] < 14) {
+                                spc++
+                            }
+                            if (firsttracks[i] >= 14 && firsttracks[i] < 21) {
+                                gal++
+                            }
+                            if (firsttracks[i] >= 21 && firsttracks[i] < 25) {
+                                inv++
+                            }
+                            first_nicks.push(tracks[Number(firsttracks[i])].nickname[0])
                         }
-                        if (firsttracks[i] >= 21 && firsttracks[i] < 25) {
-                            inv++
+                        var missing = []
+                        for (i = 0; i < 25; i++) {
+                            if (!first_nicks.includes(tracks[i].nickname[0])) {
+                                missing.push(tracks[i].nickname[0])
+                            }
                         }
-                        first_nicks.push(tracks[Number(firsttracks[i])].nickname[0])
-                    }
-                    var missing = []
-                    for (i = 0; i < 25; i++) {
-                        if (!first_nicks.includes(tracks[i].nickname[0])) {
-                            missing.push(tracks[i].nickname[0])
-                        }
-                    }
-                    if (firsttracks.length == 25) {
-                        field.value += "Any Track"
-                    } else if ((firsttracks.length == 7 && [amc, spc, gal].includes(7)) || firsttracks.length == 4 && inv == 4) {
-                        if (amc == 7) {
-                            field.value += "Amateur Circuit"
-                        } else if (spc == 7) {
-                            field.value += "Semi-Pro Circuit"
-                        } else if (gal == 7) {
-                            field.value += "Galactic Circuit"
-                        } else if (inv == 4) {
-                            field.value += "Invitational Circuit"
-                        }
-                    } else {
-                        if (missing.length < first_nicks.length) {
-                            field.value += "No " + missing.join(", ")
+                        if (firsttracks.length == 25) {
+                            field.value += "Any Track"
+                        } else if ((firsttracks.length == 7 && [amc, spc, gal].includes(7)) || firsttracks.length == 4 && inv == 4) {
+                            if (amc == 7) {
+                                field.value += "Amateur Circuit"
+                            } else if (spc == 7) {
+                                field.value += "Semi-Pro Circuit"
+                            } else if (gal == 7) {
+                                field.value += "Galactic Circuit"
+                            } else if (inv == 4) {
+                                field.value += "Invitational Circuit"
+                            }
                         } else {
-                            field.value += first_nicks.join(", ")
+                            if (missing.length < first_nicks.length) {
+                                field.value += "No " + missing.join(", ")
+                            } else {
+                                field.value += first_nicks.join(", ")
+                            }
+
+                        }
+                        fields.push(field)
+                        var styles = {
+                            win: "Earned via First Win",
+                            loss: "Earned via First Loss",
+                            guaranteed: "Guaranteed",
+                            either_or: "Either/Or"
+                        }
+                        //track permabans
+                        if (ruleset.ptrackmethod !== "disabled") {
+                            field = {}
+                            field.name = ":no_entry_sign: Track Permaban"
+                            field.value = methods[ruleset.ptrackmethod] + "\n"
+                            if (ruleset.ptrackmethod == "random") {
+                                field.value += ruleset.ptracklimit + " random ban(s) per match"
+                            } else {
+                                field.value += ruleset.ptracklimit + " ban(s) per player per match"
+                                field.value += "\n" + styles[ruleset.ptrackstyle]
+                            }
+                            fields.push(field)
+                        }
+                        //pod permabans
+                        if (ruleset.ppodmethod !== "disabled") {
+                            field = {}
+                            field.name = ":no_entry_sign: Pod Permaban"
+                            field.value = methods[ruleset.ppodmethod] + "\n"
+                            if (ruleset.ppodmethod == "random") {
+                                field.value += ruleset.ppodlimit + " random ban(s) per match"
+                            } else {
+                                field.value += ruleset.ppodlimit + " ban(s) per player per match"
+                                field.value += "\n" + styles[ruleset.ppodstyle]
+                            }
+                            fields.push(field)
+                        }
+                        //condition permabans
+                        if (ruleset.pconmethod !== "disabled") {
+                            field = {}
+                            field.name = ":no_entry_sign: Condition Permaban"
+                            field.value = methods[ruleset.pconmethod] + "\n"
+                            if (ruleset.pconmethod == "random") {
+                                field.value += ruleset.pconlimit + " random ban(s) per match"
+                            } else {
+                                field.value += ruleset.pconlimit + " ban(s) per player per match"
+                                field.value += "\n" + styles[ruleset.pconstyle]
+                            }
+                            fields.push(field)
+                        }
+                        //track tempbans
+                        if (ruleset.ttrackmethod !== "disabled") {
+                            field = {}
+                            field.name = ":x: Track Tempban"
+                            field.value = methods[ruleset.ttrackmethod] + "\n"
+                            field.value += ruleset.ttracklimit + " max ban(s) per race"
+                            fields.push(field)
+                        }
+                        //pod tempbans
+                        if (ruleset.tpodmethod !== "disabled") {
+                            field = {}
+                            field.name = ":x: Pod Tempban"
+                            field.value = methods[ruleset.tpodmethod] + "\n"
+                            field.value += ruleset.tpodlimit + " max ban(s) per race"
+                            fields.push(field)
+                        }
+                        //condition tempbans
+                        if (ruleset.tconmethod !== "disabled") {
+                            field = {}
+                            field.name = ":x: Condition Tempban"
+                            field.value = methods[ruleset.tconmethod] + "\n"
+                            field.value += ruleset.tconlimit + " max ban(s) per race"
+                            fields.push(field)
+                        }
+                        //track selection
+                        field = {}
+                        field.name = ":triangular_flag_on_post: Track Selection"
+                        track_tracks = Object.values(ruleset.tracktracks)
+                        field.value = methods[ruleset.trackmethod] + "\n"
+                        var amc = 0, spc = 0, gal = 0, inv = 0
+                        var first_nicks = []
+                        for (i = 0; i < track_tracks.length; i++) {
+                            if (track_tracks[i] >= 0 && track_tracks[i] < 7) {
+                                amc++
+                            }
+                            if (track_tracks[i] >= 7 && track_tracks[i] < 14) {
+                                spc++
+                            }
+                            if (track_tracks[i] >= 14 && track_tracks[i] < 21) {
+                                gal++
+                            }
+                            if (track_tracks[i] >= 21 && track_tracks[i] < 25) {
+                                inv++
+                            }
+                            first_nicks.push(tracks[Number(track_tracks[i])].nickname[0])
+                        }
+                        var missing = []
+                        for (i = 0; i < 25; i++) {
+                            if (!first_nicks.includes(tracks[i].nickname[0])) {
+                                missing.push(tracks[i].nickname[0])
+                            }
+                        }
+                        if (track_tracks.length == 25) {
+                            field.value += "Any Track"
+                        } else if ((track_tracks.length == 7 && [amc, spc, gal].includes(7)) || track_tracks.length == 4 && inv == 4) {
+                            if (amc == 7) {
+                                field.value += "Amateur Circuit"
+                            } else if (spc == 7) {
+                                field.value += "Semi-Pro Circuit"
+                            } else if (gal == 7) {
+                                field.value += "Galactic Circuit"
+                            } else if (inv == 4) {
+                                field.value += "Invitational Circuit"
+                            }
+                        } else {
+                            if (missing.length < first_nicks.length) {
+                                field.value += "No " + missing.join(", ")
+                            } else {
+                                field.value += first_nicks.join(", ")
+                            }
+
+                        }
+                        fields.push(field)
+                        //Repeat Tracks
+                        field = {}
+                        field.name = ":repeat: Repeat Tracks",
+                            field.value = methods[ruleset.dupecondition] + "\n"
+                        if (ruleset.dupecondition !== "disabled") {
+                            field.value += ruleset.dupelimit + " Per Player Per Match"
+                        }
+                        //construct fields
+                        for (i = 0; i < fields.length; i++) {
+                            rulesetEmbed.addField(fields[i].name, fields[i].value, true)
                         }
 
-                    }
-                    fields.push(field)
-                    var styles = {
-                        win: "Earned via First Win",
-                        loss: "Earned via First Loss",
-                        guaranteed: "Guaranteed",
-                        either_or: "Either/Or"
-                    }
-                    //track permabans
-                    if (ruleset.ptrackmethod !== "disabled") {
-                        field = {}
-                        field.name = ":no_entry_sign: Track Permaban"
-                        field.value = methods[ruleset.ptrackmethod] + "\n"
-                        if (ruleset.ptrackmethod == "random") {
-                            field.value += ruleset.ptracklimit + " random ban(s) per match"
-                        } else {
-                            field.value += ruleset.ptracklimit + " ban(s) per player per match"
-                            field.value += "\n" + styles[ruleset.ptrackstyle]
-                        }
-                        fields.push(field)
-                    }
-                    //pod permabans
-                    if (ruleset.ppodmethod !== "disabled") {
-                        field = {}
-                        field.name = ":no_entry_sign: Pod Permaban"
-                        field.value = methods[ruleset.ppodmethod] + "\n"
-                        if (ruleset.ppodmethod == "random") {
-                            field.value += ruleset.ppodlimit + " random ban(s) per match"
-                        } else {
-                            field.value += ruleset.ppodlimit + " ban(s) per player per match"
-                            field.value += "\n" + styles[ruleset.ppodstyle]
-                        }
-                        fields.push(field)
-                    }
-                    //condition permabans
-                    if (ruleset.pconmethod !== "disabled") {
-                        field = {}
-                        field.name = ":no_entry_sign: Condition Permaban"
-                        field.value = methods[ruleset.pconmethod] + "\n"
-                        if (ruleset.pconmethod == "random") {
-                            field.value += ruleset.pconlimit + " random ban(s) per match"
-                        } else {
-                            field.value += ruleset.pconlimit + " ban(s) per player per match"
-                            field.value += "\n" + styles[ruleset.pconstyle]
-                        }
-                        fields.push(field)
-                    }
-                    //track tempbans
-                    if (ruleset.ttrackmethod !== "disabled") {
-                        field = {}
-                        field.name = ":x: Track Tempban"
-                        field.value = methods[ruleset.ttrackmethod] + "\n"
-                        field.value += ruleset.ttracklimit + " max ban(s) per race"
-                        fields.push(field)
-                    }
-                    //pod tempbans
-                    if (ruleset.tpodmethod !== "disabled") {
-                        field = {}
-                        field.name = ":x: Pod Tempban"
-                        field.value = methods[ruleset.tpodmethod] + "\n"
-                        field.value += ruleset.tpodlimit + " max ban(s) per race"
-                        fields.push(field)
-                    }
-                    //condition tempbans
-                    if (ruleset.tconmethod !== "disabled") {
-                        field = {}
-                        field.name = ":x: Condition Tempban"
-                        field.value = methods[ruleset.tconmethod] + "\n"
-                        field.value += ruleset.tconlimit + " max ban(s) per race"
-                        fields.push(field)
-                    }
-                    //track selection
-                    field = {}
-                    field.name = ":triangular_flag_on_post: Track Selection"
-                    track_tracks = Object.values(ruleset.tracktracks)
-                    field.value = methods[ruleset.trackmethod] + "\n"
-                    var amc = 0, spc = 0, gal = 0, inv = 0
-                    var first_nicks = []
-                    for (i = 0; i < track_tracks.length; i++) {
-                        if (track_tracks[i] >= 0 && track_tracks[i] < 7) {
-                            amc++
-                        }
-                        if (track_tracks[i] >= 7 && track_tracks[i] < 14) {
-                            spc++
-                        }
-                        if (track_tracks[i] >= 14 && track_tracks[i] < 21) {
-                            gal++
-                        }
-                        if (track_tracks[i] >= 21 && track_tracks[i] < 25) {
-                            inv++
-                        }
-                        first_nicks.push(tracks[Number(track_tracks[i])].nickname[0])
-                    }
-                    var missing = []
-                    for (i = 0; i < 25; i++) {
-                        if (!first_nicks.includes(tracks[i].nickname[0])) {
-                            missing.push(tracks[i].nickname[0])
-                        }
-                    }
-                    if (track_tracks.length == 25) {
-                        field.value += "Any Track"
-                    } else if ((track_tracks.length == 7 && [amc, spc, gal].includes(7)) || track_tracks.length == 4 && inv == 4) {
-                        if (amc == 7) {
-                            field.value += "Amateur Circuit"
-                        } else if (spc == 7) {
-                            field.value += "Semi-Pro Circuit"
-                        } else if (gal == 7) {
-                            field.value += "Galactic Circuit"
-                        } else if (inv == 4) {
-                            field.value += "Invitational Circuit"
-                        }
-                    } else {
-                        if (missing.length < first_nicks.length) {
-                            field.value += "No " + missing.join(", ")
-                        } else {
-                            field.value += first_nicks.join(", ")
-                        }
 
                     }
-                    fields.push(field)
-                    //Repeat Tracks
-                    field = {}
-                    field.name = ":repeat: Repeat Tracks",
-                        field.value = methods[ruleset.dupecondition] + "\n"
-                    if (ruleset.dupecondition !== "disabled") {
-                        field.value += ruleset.dupelimit + " Per Player Per Match"
-                    }
-                    //construct fields
-                    for (i = 0; i < fields.length; i++) {
-                        rulesetEmbed.addField(fields[i].name, fields[i].value, true)
-                    }
-
-
                 }
             }
+
             if (args[1] == "general") {
                 var win_options = []
                 for (i = 2; i < 14; i++) {
