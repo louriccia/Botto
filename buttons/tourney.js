@@ -744,7 +744,8 @@ module.exports = {
                             winners_either: "Winner's Either/Or",
                             losers_either: "Loser's Either/Or",
                             win: "Earned via Win",
-                            loss: "Earned via Loss"
+                            loss: "Earned via Loss",
+                            either_or: "Either/Or"
                         }
                         field.value = methods[ruleset.firstmethod] + "\n"
                         var amc = 0, spc = 0, gal = 0, inv = 0
@@ -818,9 +819,9 @@ module.exports = {
                                 field.name = ":no_entry_sign: " + bans[b].name + " Permaban"
                                 field.value = methods[ruleset[bans[b].method]] + "\n"
                                 if (ruleset[bans[b].method] == "random") {
-                                    field.value += ruleset[bans[b].limit] + " random ban(s) per match"
+                                    field.value += ruleset[bans[b].limit] + " per match"
                                 } else {
-                                    field.value += ruleset[bans[b].limit] + " ban(s) per player per match"
+                                    field.value += ruleset[bans[b].limit] + " per player per match"
                                 }
                                 fields.push(field)
                             }
@@ -854,31 +855,14 @@ module.exports = {
                                 field = {}
                                 field.name = ":x: " + bans[b].name + " Tempban"
                                 field.value = methods[ruleset[bans[b].method]] + "\n"
-                                field.value += ruleset[bans[b].method] + " max ban(s) per race\n"
+                                field.value += ruleset[bans[b].method] + " max per race\n"
                                 if(ruleset[bans[b].method] !== "random"){
                                     field.value += bans[b].mlimit + " per player per match"
                                 }
                                 fields.push(field)
                             }
                         }
-                        //track tempbans
-                        
-                        //pod tempbans
-                        if (ruleset.tpodmethod !== "disabled") {
-                            field = {}
-                            field.name = ":x: Pod Tempban"
-                            field.value = methods[ruleset.tpodmethod] + "\n"
-                            field.value += ruleset.tpodlimit + " max ban(s) per race"
-                            fields.push(field)
-                        }
-                        //condition tempbans
-                        if (ruleset.tconmethod !== "disabled") {
-                            field = {}
-                            field.name = ":x: Condition Tempban"
-                            field.value = methods[ruleset.tconmethod] + "\n"
-                            field.value += ruleset.tconlimit + " max ban(s) per race"
-                            fields.push(field)
-                        }
+
                         //track selection
                         field = {}
                         field.name = ":triangular_flag_on_post: Track Selection"
@@ -1170,17 +1154,11 @@ module.exports = {
                 var limits = []
                 for (i = 1; i < 6; i++) {
                     var limit = {
-                        label: i + " Bans Per Player Per Match",
+                        label: i + " Per Player Per Match",
                         value: i
                     }
-                    if (i == 1) {
-                        limit.label == " Ban Per Player Per Match"
-                    }
                     if (tourney_rulesets_data.new[interaction.member.user.id][bans[ban].method] == "random") {
-                        limit.label = i + " Random Bans Per Match"
-                        if (i == 1) {
-                            limit.label == " Random Ban Per Match"
-                        }
+                        limit.label = i + " Per Match"
                     }
                     if (limit.value == tourney_rulesets_data.new[interaction.member.user.id][bans[ban].limit]) {
                         limit.default = true
@@ -1289,7 +1267,7 @@ module.exports = {
                 var limits = []
                 for (i = 1; i < 6; i++) {
                     var limit = {
-                        label: i + " Max Ban(s) Per Race",
+                        label: i + " Max Per Race",
                         value: i
                     }
                     if (limit.value == tourney_rulesets_data.new[interaction.member.user.id][bans[ban].limit]) {
@@ -1351,16 +1329,23 @@ module.exports = {
                         description: "Players always have the max number of bans to use for each race"
                     },
                     {
-                        label: "One Per Win",
+                        label: "1 Per Win",
                         value: "wins",
                         description: "Players earn one use of this tempban for each race win"
                     },
                     {
-                        label: "One Per Loss",
+                        label: "1 Per Loss",
                         value: "losses",
                         description: "Players earn one use of this tempban for each race loss"
                     }
                 ]
+                for (i = 1; i < 6; i++) {
+                    var limit = {
+                        label: i + " Per Player Per Match",
+                        value: i
+                    }
+                    match_limits.push(limit)
+                }
                 for (i = 0; i < match_limits.length; i++) {
                     if (match_limits[i].value == tourney_rulesets_data.new[interaction.member.user.id][bans[ban].method]) {
                         match_limits[i].default = true
