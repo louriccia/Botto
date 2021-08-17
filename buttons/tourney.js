@@ -533,10 +533,13 @@ module.exports = {
                         pconlimit: 1,
                         ttrackmethod: "disabled",
                         ttracklimit: 1,
+                        ttrackmlimit: "no_limit",
                         tpodmethod: "disabled",
                         tpodlimit: 1,
+                        tpodmlimit: "no_limit",
                         tconmethod: "disabled",
                         tconlimit: 1,
+                        tconmlimit: "no_limit",
                         trackmethod: "losers_pick",
                         tracktracks: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24"],
                         dupecondition: "disabled",
@@ -737,7 +740,11 @@ module.exports = {
                             random_mirrored: "Random Mirrored",
                             limited_choice: "Limited Choice",
                             random_limited_choice: "Random Limited Choice",
-                            pod_pool: "Pod Pool"
+                            pod_pool: "Pod Pool",
+                            winners_either: "Winner's Either/Or",
+                            losers_either: "Loser's Either/Or",
+                            win: "Earned via Win",
+                            loss: "Earned via Loss"
                         }
                         field.value = methods[ruleset.firstmethod] + "\n"
                         var amc = 0, spc = 0, gal = 0, inv = 0
@@ -784,59 +791,78 @@ module.exports = {
 
                         }
                         fields.push(field)
-                        var styles = {
-                            win: "Earned via First Win",
-                            loss: "Earned via First Loss",
-                            guaranteed: "Guaranteed",
-                            either_or: "Either/Or"
-                        }
-                        //track permabans
-                        if (ruleset.ptrackmethod !== "disabled") {
-                            field = {}
-                            field.name = ":no_entry_sign: Track Permaban"
-                            field.value = methods[ruleset.ptrackmethod] + "\n"
-                            if (ruleset.ptrackmethod == "random") {
-                                field.value += ruleset.ptracklimit + " random ban(s) per match"
-                            } else {
-                                field.value += ruleset.ptracklimit + " ban(s) per player per match"
-                                field.value += "\n" + styles[ruleset.ptrackstyle]
+                        //permabans
+                        var bans = [
+                            {
+                                name: "Track",
+                                command: "permatrackban",
+                                method: "ptrackmethod",
+                                limit: "ptracklimit"
+                            },
+                            {
+                                name: "Pod",
+                                command: "permapodban",
+                                method: "ppodmethod",
+                                limit: "ppodlimit"
+                            },
+                            {
+                                name: "Condition",
+                                command: "permaconban",
+                                method: "pconmethod",
+                                limit: "pconlimit"
                             }
-                            fields.push(field)
-                        }
-                        //pod permabans
-                        if (ruleset.ppodmethod !== "disabled") {
-                            field = {}
-                            field.name = ":no_entry_sign: Pod Permaban"
-                            field.value = methods[ruleset.ppodmethod] + "\n"
-                            if (ruleset.ppodmethod == "random") {
-                                field.value += ruleset.ppodlimit + " random ban(s) per match"
-                            } else {
-                                field.value += ruleset.ppodlimit + " ban(s) per player per match"
-                                field.value += "\n" + styles[ruleset.ppodstyle]
+                        ]
+                        for(b = 0; b < bans.length; b++){
+                            if (ruleset[bans[b].method] !== "disabled") {
+                                field = {}
+                                field.name = ":no_entry_sign: " + bans[b].name + " Permaban"
+                                field.value = methods[ruleset[bans[b].method]] + "\n"
+                                if (ruleset[bans[b].method] == "random") {
+                                    field.value += ruleset[bans[b].limit] + " random ban(s) per match"
+                                } else {
+                                    field.value += ruleset[bans[b].limit] + " ban(s) per player per match"
+                                }
+                                fields.push(field)
                             }
-                            fields.push(field)
                         }
-                        //condition permabans
-                        if (ruleset.pconmethod !== "disabled") {
-                            field = {}
-                            field.name = ":no_entry_sign: Condition Permaban"
-                            field.value = methods[ruleset.pconmethod] + "\n"
-                            if (ruleset.pconmethod == "random") {
-                                field.value += ruleset.pconlimit + " random ban(s) per match"
-                            } else {
-                                field.value += ruleset.pconlimit + " ban(s) per player per match"
-                                field.value += "\n" + styles[ruleset.pconstyle]
+                        //tempbans
+                        var bans = [
+                            {
+                                name: "Track",
+                                command: "temptrackban",
+                                method: "ttrackmethod",
+                                limit: "ttracklimit",
+                                mlimit: "ttrackmlimit"
+                            },
+                            {
+                                name: "Pod",
+                                command: "temppodban",
+                                method: "tpodmethod",
+                                limit: "tpodlimit",
+                                mlimit: "tpodmlimit"
+                            },
+                            {
+                                name: "Condition",
+                                command: "tempconban",
+                                method: "tconmethod",
+                                limit: "tconlimit",
+                                mlimit: "tconmlimit"
                             }
-                            fields.push(field)
+                        ]
+                        for(b = 0; b < bans.length; b++){
+                            if (ruleset[bans[b].method] !== "disabled") {
+                                field = {}
+                                field.name = ":x: " + bans[b].name + " Tempban"
+                                field.value = methods[ruleset[bans[b].method]] + "\n"
+                                field.value += ruleset[bans[b].method] + " max ban(s) per race\n"
+                                if(ruleset[bans[b].method] !== "random"){
+                                    field.value += bans[b].mlimit + " per player per match"
+                                }
+                                fields.push(field)
+                            }
                         }
                         //track tempbans
-                        if (ruleset.ttrackmethod !== "disabled") {
-                            field = {}
-                            field.name = ":x: Track Tempban"
-                            field.value = methods[ruleset.ttrackmethod] + "\n"
-                            field.value += ruleset.ttracklimit + " max ban(s) per race"
-                            fields.push(field)
-                        }
+                        
                         //pod tempbans
                         if (ruleset.tpodmethod !== "disabled") {
                             field = {}
@@ -1379,7 +1405,7 @@ module.exports = {
                                     {
                                         type: 3,
                                         custom_id: "tourney_rulesets_" + bans[ban].command + "_" + bans[ban].mlimit,
-                                        options: limits,
+                                        options: match_limits,
                                         placeholder: "Temporary " + bans[ban].name + " Bans Per Player Per Match",
                                         min_values: 1,
                                         max_values: 1
