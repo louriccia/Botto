@@ -594,6 +594,12 @@ module.exports = {
                     description: "set permanent pod ban options",
                 },
                 {
+                    label: "Condition Permaban",
+                    value: "permaconban",
+                    emoji: { name: "🚫" },
+                    description: "set permanent condition ban options",
+                },
+                {
                     label: "Track Tempban",
                     value: "temptrackban",
                     emoji: { name: "❌" },
@@ -604,6 +610,12 @@ module.exports = {
                     value: "temppodban",
                     emoji: { name: "❌" },
                     description: "set temporary pod ban options",
+                },
+                {
+                    label: "Condition Tempban",
+                    value: "tempconban",
+                    emoji: { name: "❌" },
+                    description: "set temporary condition ban options",
                 },
                 {
                     label: "Track Selection",
