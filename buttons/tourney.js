@@ -725,16 +725,16 @@ module.exports = {
 
                         var permabans = [
                             {
-                                name: "Track",
-                                command: "permatrackban",
-                                method: "ptrackmethod",
-                                limit: "ptracklimit"
-                            },
-                            {
                                 name: "Pod",
                                 command: "permapodban",
                                 method: "ppodmethod",
                                 limit: "ppodlimit"
+                            },
+                            {
+                                name: "Track",
+                                command: "permatrackban",
+                                method: "ptrackmethod",
+                                limit: "ptracklimit"
                             },
                             {
                                 name: "Condition",
@@ -746,18 +746,18 @@ module.exports = {
 
                         var tempbans = [
                             {
-                                name: "Track",
-                                command: "temptrackban",
-                                method: "ttrackmethod",
-                                limit: "ttracklimit",
-                                mlimit: "ttrackmlimit"
-                            },
-                            {
                                 name: "Pod",
                                 command: "temppodban",
                                 method: "tpodmethod",
                                 limit: "tpodlimit",
                                 mlimit: "tpodmlimit"
+                            },
+                            {
+                                name: "Track",
+                                command: "temptrackban",
+                                method: "ttrackmethod",
+                                limit: "ttracklimit",
+                                mlimit: "ttrackmlimit"
                             },
                             {
                                 name: "Condition",
@@ -794,7 +794,7 @@ module.exports = {
                                 }
                             }
                             if (collection.length == 25) {
-                                result = "Any Track"
+                                result = "`Any Track`"
                             } else if ((collection.length == 7 && [amc, spc, gal].includes(7)) || collection.length == 4 && inv == 4) {
                                 if (amc == 7) {
                                     result = "`Amateur Circuit`"
@@ -844,7 +844,7 @@ module.exports = {
                         field = {}
                         field.name = ":checkered_flag: First Track"
                         field.value = "`" + methods[ruleset.firstmethod] + "`\n"
-                        fields.value += trackSelection(Object.values(ruleset.firsttrack))
+                        field.value += trackSelection(Object.values(ruleset.firsttrack))
                         fields.push(field)
                         //permabans
                         for (b = 0; b < permabans.length; b++) {
@@ -881,7 +881,6 @@ module.exports = {
                                 fields.push(field)
                             }
                         }
-
                         //track selection
                         field = {}
                         field.name = ":triangular_flag_on_post: Track Selection"
@@ -1367,7 +1366,7 @@ module.exports = {
                     match_limits.push(limit)
                 }
                 for (i = 0; i < match_limits.length; i++) {
-                    if (match_limits[i].value == tourney_rulesets_data.new[interaction.member.user.id][bans[ban].method]) {
+                    if (match_limits[i].value == tourney_rulesets_data.new[interaction.member.user.id][bans[ban].mlimit]) {
                         match_limits[i].default = true
                     }
                 }
