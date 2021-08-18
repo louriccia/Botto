@@ -589,16 +589,16 @@ module.exports = {
                     description: "configure how the first track is determined",
                 },
                 {
-                    label: "Track Permaban",
-                    value: "permatrackban",
-                    emoji: { name: "🚫" },
-                    description: "set permanent track ban options",
-                },
-                {
                     label: "Pod Permaban",
                     value: "permapodban",
                     emoji: { name: "🚫" },
                     description: "set permanent pod ban options",
+                },
+                {
+                    label: "Track Permaban",
+                    value: "permatrackban",
+                    emoji: { name: "🚫" },
+                    description: "set permanent track ban options",
                 },
                 {
                     label: "Condition Permaban",
@@ -607,16 +607,16 @@ module.exports = {
                     description: "set permanent condition ban options",
                 },
                 {
-                    label: "Track Tempban",
-                    value: "temptrackban",
-                    emoji: { name: "❌" },
-                    description: "set temporary track ban options",
-                },
-                {
                     label: "Pod Tempban",
                     value: "temppodban",
                     emoji: { name: "❌" },
                     description: "set temporary pod ban options",
+                },
+                {
+                    label: "Track Tempban",
+                    value: "temptrackban",
+                    emoji: { name: "❌" },
+                    description: "set temporary track ban options",
                 },
                 {
                     label: "Condition Tempban",
@@ -789,7 +789,7 @@ module.exports = {
                             }
                             var missing = []
                             for (i = 0; i < 25; i++) {
-                                if (!first_nicks.includes(tracks[i].nickname[0])) {
+                                if (!first_nicks.includes("`" + tracks[i].nickname[0]) + "`") {
                                     missing.push("`No " + tracks[i].nickname[0] + "`")
                                 }
                             }
@@ -906,14 +906,14 @@ module.exports = {
                             } else if(ruleset.conlimit == "losses"){
                                 field.value += "`One Per Loss`"
                             } else {
-                                field.value += "`" + ruleset.conlimit + " Per Player Per Match`"
+                                field.value += "`" + ruleset.conlimit + " Per Player Per Match`\n"
                             }
-                            var cond = Object.values(ruleset.default)
+                            var cond = Object.values(ruleset.conoptions)
                             var cons = []
                             cond.forEach(con => {
                                 cons.push("`" + conditions[con] + "`")
                             })
-                            field.value += cons.join(" ")
+                            field.value += "Options: " + cons.join(" ")
                             fields.push(field)
                         }
                         //Pod Selection
@@ -938,7 +938,7 @@ module.exports = {
                                     missing_pods.push("No " + racers[i].flag)
                                 }
                             }
-                            if(missing_pods.length > 5){
+                            if(missing_pods.length < pods.length){
                                 field.value += missing_pods.join(", ")
                             } else {
                                 field.value += pods.join("")
