@@ -843,7 +843,7 @@ module.exports = {
                         field = {}
                         field.name = ":checkered_flag: First Track"
                         field.value = methods[ruleset.firstmethod] + "\n"
-                        fields.value += trackSelection(Object.values(ruleset.firsttracks))
+                        fields.value += trackSelection(Object.values(ruleset.firsttrack))
                         fields.push(field)
                         //permabans
                         for (b = 0; b < permabans.length; b++) {
