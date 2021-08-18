@@ -1949,32 +1949,35 @@ module.exports = {
                     .setTitle("Ruleset Saved")
                     .setDescription("Successfully saved **" + tourney_rulesets_data.new[interaction.member.user.id].name + "** to rulesets.")
                     rulesetEmbed.fields = []
-                    rulesetEmbed.setFooter()
+                    rulesetEmbed.setFooter("")
                     components = []
                     var ruleset = tourney_rulesets_data.new[interaction.member.user.id]
                     tourney_rulesets.child("saved").push(ruleset)
                     tourney_rulesets.child("new").child(interaction.member.user.id).remove()
                 }
-                components.push(
-                    {
-                        type: 1,
-                        components: [
-                            {
-                                type: 2,
-                                label: "Rename",
-                                style: 1,
-                                custom_id: "tourney_rulesets_finalize_rename",
-                                disabled: !rename
-                            },
-                            {
-                                type: 2,
-                                label: "Save",
-                                style: 3,
-                                custom_id: "tourney_rulesets_finalize_save",
-                            }
-                        ]
-                    }
-                )
+                if(args[2] !== "save"){
+                    components.push(
+                        {
+                            type: 1,
+                            components: [
+                                {
+                                    type: 2,
+                                    label: "Rename",
+                                    style: 1,
+                                    custom_id: "tourney_rulesets_finalize_rename",
+                                    disabled: !rename
+                                },
+                                {
+                                    type: 2,
+                                    label: "Save",
+                                    style: 3,
+                                    custom_id: "tourney_rulesets_finalize_save",
+                                }
+                            ]
+                        }
+                    )
+                }
+                
 
             } else if (args[1] == "qual") {
                 //pod select
