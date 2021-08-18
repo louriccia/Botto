@@ -1761,7 +1761,7 @@ module.exports = {
                 var methods = [
                     {
                         label: "Player's Pick",
-                        value: "players_pick",
+                        value: "player_pick",
                         description: "Players get to pick their own pods for the next race"
                     },
                     {
@@ -1943,6 +1943,14 @@ module.exports = {
                     })
                     //client.api.interactions(interaction.id, interaction.token).callback.post({ data: { type: 6, data: {} } })
                     //return
+                } else if (args[2] == "save"){
+                    type = 7
+                    rulesetEmbed
+                    .setTitle("Ruleset Saved")
+                    .setDescription("Successfully saved **" + tourney_rulesets_data.new[interaction.member.user.id] + "** to rulesets.")
+                    var ruleset = tourney_rulesets_data.new[interaction.member.user.id]
+                    tourney_rulesets.child("saved").push(ruleset)
+                    tourney_rulesets.child("new").child(interaction.member.user.id).remove()
                 }
                 components.push(
                     {
