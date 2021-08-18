@@ -787,7 +787,7 @@ module.exports = {
                                     if (collection[i] >= 21 && collection[i] < 25) {
                                         inv++
                                     }
-                                    first_nicks.push("`" + tracks[Number(collection[i])].nickname[0] + "`")
+                                    first_nicks.push("`" + tracks[i].nickname[0] + "`")
                                 } else {
                                     missing.push("`No " + tracks[i].nickname[0] + "`")
                                 }
