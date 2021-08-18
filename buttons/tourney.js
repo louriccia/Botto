@@ -813,6 +813,7 @@ module.exports = {
                                 }
 
                             }
+                            return result
                         }
 
                         rulesetEmbed
@@ -842,7 +843,7 @@ module.exports = {
                         //first track
                         field = {}
                         field.name = ":checkered_flag: First Track"
-                        field.value = methods[ruleset.firstmethod] + "\n"
+                        field.value = "`" + methods[ruleset.firstmethod] + "`\n"
                         fields.value += trackSelection(Object.values(ruleset.firsttrack))
                         fields.push(field)
                         //permabans
@@ -884,7 +885,7 @@ module.exports = {
                         //track selection
                         field = {}
                         field.name = ":triangular_flag_on_post: Track Selection"
-                        field.value = methods[ruleset.trackmethod] + "\n"
+                        field.value = "`" + methods[ruleset.trackmethod] + "`\n"
                         field.value += trackSelection(Object.values(ruleset.tracktracks))
                         fields.push(field)
                         //Repeat Tracks
@@ -900,10 +901,10 @@ module.exports = {
                             field = {}
                             field.name = ":asterisk: Conditions"
                             field.value = "`" + methods[ruleset.conmethod] + "`\n"
-                            field.value += "`" + ruleset.conmax + " Max Per Race"
+                            field.value += "`" + ruleset.conmax + " Max Per Race`\n"
                             if(ruleset.conlimit == "wins"){
                                 field.value += "`One Per Win`"
-                            } else if(ruleset.conlimit == "wins"){
+                            } else if(ruleset.conlimit == "losses"){
                                 field.value += "`One Per Loss`"
                             } else {
                                 field.value += "`" + ruleset.conlimit + " Per Player Per Match`"
@@ -932,10 +933,10 @@ module.exports = {
                             var pods = []
                             var missing_pods = []
                             for(i = 0 ; i < 23; i++){
-                                if(podpods.includes(i)){
+                                if(podpods.includes(String(i))){
                                     pods.push(racers[i].flag)
                                 } else {
-                                    missing_pods.push(racers[i].flag)
+                                    missing_pods.push("No " + racers[i].flag)
                                 }
                             }
                             if(missing_pods.length > 5){
