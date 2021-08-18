@@ -772,27 +772,28 @@ module.exports = {
                             var amc = 0, spc = 0, gal = 0, inv = 0
                             var result = ""
                             var first_nicks = []
-                            for (i = 0; i < collection.length; i++) {
-                                if (collection[i] >= 0 && collection[i] < 7) {
-                                    amc++
-                                }
-                                if (collection[i] >= 7 && collection[i] < 14) {
-                                    spc++
-                                }
-                                if (collection[i] >= 14 && collection[i] < 21) {
-                                    gal++
-                                }
-                                if (collection[i] >= 21 && collection[i] < 25) {
-                                    inv++
-                                }
-                                first_nicks.push("`" + tracks[Number(collection[i])].nickname[0] + "`")
-                            }
                             var missing = []
                             for (i = 0; i < 25; i++) {
-                                if (!first_nicks.includes("`" + tracks[i].nickname[0]) + "`") {
+                                if(collection.includes(String(i))){
+                                    if (collection[i] >= 0 && collection[i] < 7) {
+                                        amc++
+                                    }
+                                    if (collection[i] >= 7 && collection[i] < 14) {
+                                        spc++
+                                    }
+                                    if (collection[i] >= 14 && collection[i] < 21) {
+                                        gal++
+                                    }
+                                    if (collection[i] >= 21 && collection[i] < 25) {
+                                        inv++
+                                    }
+                                    first_nicks.push("`" + tracks[Number(collection[i])].nickname[0] + "`")
+                                } else {
                                     missing.push("`No " + tracks[i].nickname[0] + "`")
                                 }
+                                
                             }
+
                             if (collection.length == 25) {
                                 result = "`Any Track`"
                             } else if ((collection.length == 7 && [amc, spc, gal].includes(7)) || collection.length == 4 && inv == 4) {
@@ -811,7 +812,6 @@ module.exports = {
                                 } else {
                                     result = first_nicks.join(" ")
                                 }
-
                             }
                             return result
                         }
@@ -844,7 +844,7 @@ module.exports = {
                         field = {}
                         field.name = ":checkered_flag: First Track"
                         field.value = "`" + methods[ruleset.firstmethod] + "`\n"
-                        field.value += trackSelection(Object.values(ruleset.firsttrack))
+                        field.value += "Options: " + trackSelection(Object.values(ruleset.firsttrack))
                         fields.push(field)
                         //permabans
                         for (b = 0; b < permabans.length; b++) {
@@ -939,9 +939,9 @@ module.exports = {
                                 }
                             }
                             if(missing_pods.length < pods.length){
-                                field.value += missing_pods.join(", ")
+                                field.value += "Options: " + missing_pods.join(", ")
                             } else {
-                                field.value += pods.join("")
+                                field.value += "Options: " + pods.join("")
                             }
                         }
                         fields.push(field)
