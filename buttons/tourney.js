@@ -548,7 +548,7 @@ module.exports = {
                         conlimit: 1,
                         conmax: 1,
                         conoptions: ["sk"],
-                        podmethod: "players_pick",
+                        podmethod: "player_pick",
                         podpods: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22"],
                         rndlimited: 2,
                         poollimit: 1
@@ -1945,9 +1945,10 @@ module.exports = {
                     //return
                 } else if (args[2] == "save"){
                     type = 7
-                    rulesetEmbed
+                    rulesetEmbed = new Discord.MessageEmbed()
                     .setTitle("Ruleset Saved")
                     .setDescription("Successfully saved **" + tourney_rulesets_data.new[interaction.member.user.id] + "** to rulesets.")
+                    components = []
                     var ruleset = tourney_rulesets_data.new[interaction.member.user.id]
                     tourney_rulesets.child("saved").push(ruleset)
                     tourney_rulesets.child("new").child(interaction.member.user.id).remove()
