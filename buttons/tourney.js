@@ -425,7 +425,7 @@ module.exports = {
                 //select type
                 rulesetEmbed
                     .setTitle("Create a New Ruleset")
-                    .setDescription("First, select the type of ruleset you'd like to create.")
+                    .setDescription("Select the type of ruleset you'd like to create.")
 
                 var options = [
                     {
@@ -1945,9 +1945,11 @@ module.exports = {
                     //return
                 } else if (args[2] == "save"){
                     type = 7
-                    rulesetEmbed = new Discord.MessageEmbed()
+                    rulesetEmbed
                     .setTitle("Ruleset Saved")
-                    .setDescription("Successfully saved **" + tourney_rulesets_data.new[interaction.member.user.id] + "** to rulesets.")
+                    .setDescription("Successfully saved **" + tourney_rulesets_data.new[interaction.member.user.id].name + "** to rulesets.")
+                    .setFields()
+                    .setFooter()
                     components = []
                     var ruleset = tourney_rulesets_data.new[interaction.member.user.id]
                     tourney_rulesets.child("saved").push(ruleset)
