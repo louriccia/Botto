@@ -1948,8 +1948,8 @@ module.exports = {
                     rulesetEmbed
                     .setTitle("Ruleset Saved")
                     .setDescription("Successfully saved **" + tourney_rulesets_data.new[interaction.member.user.id].name + "** to rulesets.")
-                    .setFields()
-                    .setFooter()
+                    rulesetEmbed.fields = []
+                    rulesetEmbed.setFooter()
                     components = []
                     var ruleset = tourney_rulesets_data.new[interaction.member.user.id]
                     tourney_rulesets.child("saved").push(ruleset)
