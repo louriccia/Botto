@@ -622,6 +622,15 @@ module.exports = {
             }
             
             if (args[1] == "browse") {
+                rulesetEmbed.setTitle("Rulesets")
+                var buttons = [
+                    {
+                        type: 2,
+                        label: "New",
+                        style: 3,
+                        custom_id: "tourney_rulesets_type",
+                    }
+                ]
                 if (![undefined, null].includes(tourney_rulesets_data.saved)) {
                     var saved = Object.keys(tourney_rulesets_data.saved)
                     var rulesets = []
@@ -630,7 +639,7 @@ module.exports = {
                         var r = {
                             label: tourney_rulesets_data.saved[s].name,
                             value: s,
-                            description: tourney_rulesets_data.saved[s].name + " Ruleset by " + client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.username,
+                            description: tourney_rulesets_data.saved[s].type + " Ruleset by " + client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.username,
                         }
                         if(interaction.data.hasOwnProperty("values")){
                             if(r.value == interaction.data.values[0]){
@@ -642,9 +651,30 @@ module.exports = {
                     }
                     if(interaction.data.hasOwnProperty("values")){
                         var ruleset = tourney_rulesets_data.saved[interaction.data.values[0]]
-                        rulesetEmbed.setTitle(ruleset.name)
+                        rulesetEmbed.setTitle("Rulesets: "+ ruleset.name)
                         .setDescription("Type: " + ruleset.type)
                         .addFields(showRuleset(ruleset))
+                        .setFooter(client.guilds.resolve(interaction.guild_id).members.resolve(ruleset.author).user.avatarURL(), client.guilds.resolve(interaction.guild_id).members.resolve(ruleset.author).user.avatarURL())
+                        buttons.push([
+                            {
+                                type: 2,
+                                label: "Edit",
+                                style: 2,
+                                custom_id: "tourney_rulesets_edit_" + interaction.data.values[0],
+                            },
+                            {
+                                type: 2,
+                                label: "Clone",
+                                style: 2,
+                                custom_id: "tourney_rulesets_clone_" + interaction.data.values[0],
+                            },
+                            {
+                                type: 2,
+                                label: "Delete",
+                                style: 4,
+                                custom_id: "tourney_rulesets_delete_" + interaction.data.values[0],
+                            }
+                        ])
                     }
 
                     components.push({
@@ -661,35 +691,10 @@ module.exports = {
                         ]
                     })
                 }
-                rulesetEmbed.setTitle("Rulesets")
+                
                 components.push({
                     type: 1,
-                    components: [
-                        {
-                            type: 2,
-                            label: "New",
-                            style: 3,
-                            custom_id: "tourney_rulesets_type",
-                        },
-                        {
-                            type: 2,
-                            label: "Edit",
-                            style: 2,
-                            custom_id: "tourney_rulesets_edit",
-                        },
-                        {
-                            type: 2,
-                            label: "Clone",
-                            style: 2,
-                            custom_id: "tourney_rulesets_clone",
-                        },
-                        {
-                            type: 2,
-                            label: "Delete",
-                            style: 4,
-                            custom_id: "tourney_rulesets_delete",
-                        }
-                    ]
+                    components: buttons
                 })
             } else if (args[1] == "type") {
                 flags = 64
