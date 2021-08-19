@@ -632,9 +632,12 @@ module.exports = {
                             value: s,
                             description: tourney_rulesets_data.saved[s].name + " Ruleset by " + client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.username,
                         }
-                        if(r.value == interaction.data.values[0]){
-                            r.default = true
+                        if(interaction.data.hasOwnProperty("values")){
+                            if(r.value == interaction.data.values[0]){
+                                r.default = true
+                            }
                         }
+                        
                         rulesets.push(r)
                     }
                     if(interaction.data.hasOwnProperty("values")){
