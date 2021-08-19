@@ -655,7 +655,7 @@ module.exports = {
                         .setDescription("Type: " + ruleset.type)
                         .addFields(showRuleset(ruleset))
                         .setFooter(client.guilds.resolve(interaction.guild_id).members.resolve(ruleset.author).user.avatarURL(), client.guilds.resolve(interaction.guild_id).members.resolve(ruleset.author).user.avatarURL())
-                        buttons.push([
+                        buttons.push(
                             {
                                 type: 2,
                                 label: "Edit",
@@ -674,7 +674,7 @@ module.exports = {
                                 style: 4,
                                 custom_id: "tourney_rulesets_delete_" + interaction.data.values[0],
                             }
-                        ])
+                        )
                     }
 
                     components.push({
