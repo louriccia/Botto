@@ -343,7 +343,7 @@ module.exports = {
             const rulesetEmbed = new Discord.MessageEmbed()
                 .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/crossed-swords_2694-fe0f.png")
 
-            function showRuleset(ruleset){
+            function showRuleset(ruleset) {
                 if (ruleset.type == "1v1") {
                     var conditions = {
                         mu: "Max Upgrades",
@@ -620,9 +620,10 @@ module.exports = {
                     return fields
                 }
             }
-            
+
             if (args[1] == "browse") {
                 rulesetEmbed.setTitle("Rulesets")
+                    .setDescription("This is the tournament ruleset manager. Browse existing rulesets using the dropdown below or make your own by pressing the New button.")
                 var buttons = [
                     {
                         type: 2,
@@ -641,40 +642,44 @@ module.exports = {
                             value: s,
                             description: tourney_rulesets_data.saved[s].type + " Ruleset by " + client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.username,
                         }
-                        if(interaction.data.hasOwnProperty("values")){
-                            if(r.value == interaction.data.values[0]){
+                        if (interaction.data.hasOwnProperty("values")) {
+                            if (r.value == interaction.data.values[0]) {
                                 r.default = true
                             }
                         }
-                        
+
                         rulesets.push(r)
                     }
-                    if(interaction.data.hasOwnProperty("values")){
+                    if (interaction.data.hasOwnProperty("values")) {
                         var ruleset = tourney_rulesets_data.saved[interaction.data.values[0]]
-                        rulesetEmbed.setTitle("Rulesets: "+ ruleset.name)
-                        .setDescription("Type: " + ruleset.type)
-                        .addFields(showRuleset(ruleset))
-                        .setFooter(client.guilds.resolve(interaction.guild_id).members.resolve(ruleset.author).user.avatarURL(), client.guilds.resolve(interaction.guild_id).members.resolve(ruleset.author).user.avatarURL())
+                        rulesetEmbed.setTitle("Rulesets: " + ruleset.name)
+                            .setDescription("Type: " + ruleset.type)
+                            .addFields(showRuleset(ruleset))
+                            .setFooter(client.guilds.resolve(interaction.guild_id).members.resolve(ruleset.author).user.username, client.guilds.resolve(interaction.guild_id).members.resolve(ruleset.author).user.avatarURL())
                         buttons.push(
-                            {
-                                type: 2,
-                                label: "Edit",
-                                style: 2,
-                                custom_id: "tourney_rulesets_edit_" + interaction.data.values[0],
-                            },
                             {
                                 type: 2,
                                 label: "Clone",
                                 style: 2,
                                 custom_id: "tourney_rulesets_clone_" + interaction.data.values[0],
-                            },
-                            {
-                                type: 2,
-                                label: "Delete",
-                                style: 4,
-                                custom_id: "tourney_rulesets_delete_" + interaction.data.values[0],
                             }
                         )
+                        if(interaction.member.user.id == ruleset.author){
+                            buttons.push(
+                                {
+                                    type: 2,
+                                    label: "Edit",
+                                    style: 2,
+                                    custom_id: "tourney_rulesets_edit_" + interaction.data.values[0],
+                                },
+                                {
+                                    type: 2,
+                                    label: "Delete",
+                                    style: 4,
+                                    custom_id: "tourney_rulesets_delete_" + interaction.data.values[0],
+                                }
+                            )
+                        }
                     }
 
                     components.push({
@@ -691,7 +696,7 @@ module.exports = {
                         ]
                     })
                 }
-                
+
                 components.push({
                     type: 1,
                     components: buttons
@@ -866,6 +871,7 @@ module.exports = {
                         trackmethod: "losers_pick",
                         tracktracks: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24"],
                         dupecondition: "disabled",
+                        dupestyle: "default_repeat",
                         dupelimit: 1,
                         conmethod: "disabled",
                         conlimit: 1,
@@ -1142,6 +1148,16 @@ module.exports = {
                             label: "Chance Cube",
                             value: "chance_cube",
                             description: "winner of chance cube gets to pick the first track"
+                        },
+                        {
+                            label: "Lower Rated",
+                            value: "lower",
+                            description: "The lower rated player gets to pick the first track"
+                        },
+                        {
+                            label: "Higher Rated",
+                            value: "higher",
+                            description: "The higher rated player gets to pick the first track"
                         },
                         {
                             label: "Random",
@@ -1467,7 +1483,7 @@ module.exports = {
                                             options: match_limits,
                                             placeholder: "Temporary " + bans[ban].name + " Bans Per Player Per Match",
                                             min_values: 1,
-                                            max_values: 1
+                                            max_values: 2
                                         }
                                     ]
                                 }
@@ -1590,6 +1606,28 @@ module.exports = {
                             methods[i].default = true
                         }
                     }
+                    var styles = [
+                        {
+                            label: "Default Repeat",
+                            value: "default_repeat",
+                            description: "repeat tracks must use the default conditions"
+                        },
+                        {
+                            label: "Hard Repeat",
+                            value: "hard_repeat",
+                            description: "repeat tracks must use the same conditions as originally used"
+                        },
+                        {
+                            label: "Soft Repeat",
+                            value: "soft_repeat",
+                            description: "repeat tracks may have different conditions than originally used"
+                        }
+                    ]
+                    for (i = 0; i < styles.length; i++) {
+                        if (styles[i].value == tourney_rulesets_data.new[interaction.member.user.id].dupestyle) {
+                            styles[i].default = true
+                        }
+                    }
                     components.push(
                         {
                             type: 1,
@@ -1607,6 +1645,19 @@ module.exports = {
                     )
                     if (tourney_rulesets_data.new[interaction.member.user.id].dupecondition !== "disabled") {
                         components.push(
+                            {
+                                type: 1,
+                                components: [
+                                    {
+                                        type: 3,
+                                        custom_id: "tourney_rulesets_trackdup_dupestyle",
+                                        options: styles,
+                                        placeholder: "Repeat Track Style",
+                                        min_values: 1,
+                                        max_values: 1
+                                    }
+                                ]
+                            },
                             {
                                 type: 1,
                                 components: [
@@ -1840,6 +1891,16 @@ module.exports = {
                             description: "players are assigned the same random pod for the next race"
                         },
                         {
+                            label: "Random by Tier",
+                            value: "random_tier",
+                            description: "players are individually assigned random pods from the same tier for the next race"
+                        },
+                        {
+                            label: "Random",
+                            value: "random",
+                            description: "players are individually assigned completely random pods for the next race"
+                        },
+                        {
                             label: "Limited Choice",
                             value: "limited_choice",
                             description: "players choose their pod from a limited predetermined selection of pods"
@@ -1853,6 +1914,11 @@ module.exports = {
                             label: "Pod Pool",
                             value: "pod_pool",
                             description: "players can only use each pod a limited number of times"
+                        },
+                        {
+                            label: "Track Favorite",
+                            value: "favorite",
+                            description: "players must use the favorite of the selected track for the next race"
                         }
                     ]
                     for (i = 0; i < methods.length; i++) {
@@ -2048,9 +2114,6 @@ module.exports = {
                     //conditions
                 }
             }
-
-
-
 
             client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {
