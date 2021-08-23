@@ -668,7 +668,9 @@ module.exports = {
                         win: "Earned via Win",
                         loss: "Earned via Loss",
                         either_or: "Either/Or",
-                        no_limit: "No Match Limit"
+                        no_limit: "No Match Limit",
+                        lower: "Lower Rated",
+                        higher: "Higher Rated"
                     }
 
                     var permabans = [
@@ -1186,7 +1188,7 @@ module.exports = {
                     args[2] = interaction.data.values[0]
                 } else if (![undefined, "initial", "rename", "save"].includes(args[3])) {
                     var data = interaction.data.values
-                    if (!["default", "firsttrack", "podpods", "tracktracks", "conoptions"].includes(args[3])) {
+                    if (!["default", "firsttrack", "podpods", "tracktracks", "conoptions", "ttrackmlimit", "tpodmlimit", "tconmlimit"].includes(args[3])) {
                         data = interaction.data.values[0]
                     }
                     tourney_rulesets.child("new").child(interaction.member.user.id).child(args[3]).set(data)
@@ -1525,7 +1527,7 @@ module.exports = {
                     ]
                     var ban = null
                     for (b = 0; b < bans.length; b++) {
-                        if (bans[b].command == args[3]) {
+                        if (bans[b].command == args[2]) {
                             ban = b
                         }
                     }
@@ -1725,7 +1727,7 @@ module.exports = {
                         match_limits.push(limit)
                     }
                     for (i = 0; i < match_limits.length; i++) {
-                        if (match_limits[i].value == tourney_rulesets_data.new[interaction.member.user.id][bans[ban].mlimit]) {
+                        if (Object.values(tourney_rulesets_data.new[interaction.member.user.id][bans[ban].mlimit]).includes(match_limits[i].value)) {
                             match_limits[i].default = true
                         }
                     }
