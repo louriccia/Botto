@@ -289,7 +289,7 @@ client.once('ready', () => {
                 var tsd = Object.keys(tourney_scheduled_data)
                 for (i = 0; i < tsd.length; i++) {
                     var s = tsd[i]
-                    if (tourney_scheduled_data[s].stream_notification == false && Date.parse(tourney_scheduled_data[s].datetime) <= Date.now() + 1000 * 60 * 5) {
+                    if (tourney_scheduled_data[s].stream_notification == false && Date.parse(tourney_scheduled_data[s].datetime) <= Date.now() + 1000 * 60 * 5 && Date.now() <= Date.parse(tourney_scheduled_data[s].datetime + 1000 * 60 * 10)) {
                         var players = []
                         var commentators = []
                         Object.values(tourney_scheduled_data[s].commentators).forEach(c => {

@@ -420,7 +420,7 @@ module.exports = {
             if (forces.length == 0) { forces.push("", "NU", "Skips"), conditions.push("muft", "nu", "skips") }
             //get runs and apply filters
             var runs = []
-            
+
             var rns = Object.keys(tourney_races_data)
             for (var i = 0; i < rns.length; i++) {
                 var r = tourney_races_data[rns[i]]
@@ -513,7 +513,7 @@ module.exports = {
                         }
                     }
                 }
-                
+
             } else {
                 tourneyReport
                     .addField("<:WhyNobodyBuy:589481340957753363> No Runs", "`No runs were found matching that criteria`\n" + errorMessage[Math.floor(Math.random() * errorMessage.length)])
@@ -1008,7 +1008,7 @@ module.exports = {
                                             type: 2,
                                             label: "Continue",
                                             style: 3,
-                                            custom_id: "tourney_rulesets_general",
+                                            custom_id: "tourney_rulesets_new_general",
                                         },
                                         {
                                             type: 2,
@@ -1094,7 +1094,7 @@ module.exports = {
                                 type: 2,
                                 label: "Create",
                                 style: 3,
-                                custom_id: "tourney_rulesets_new",
+                                custom_id: "tourney_rulesets_new_create",
                                 disabled: !create
                             },
                             {
@@ -1108,85 +1108,88 @@ module.exports = {
 
                 )
             } else if (args[1] == "new") {
-                var ruleset_type = "1v1"
-                for (var i = 0; i < interaction.message.components[0].components[0].options.length; i++) { //track
-                    var option = interaction.message.components[0].components[0].options[i]
-                    if (option.hasOwnProperty("default")) {
-                        if (option.default) {
-                            ruleset_type = option.value
+                if (args[2] == "create") {
+                    var ruleset_type = "1v1"
+                    for (var i = 0; i < interaction.message.components[0].components[0].options.length; i++) { //track
+                        var option = interaction.message.components[0].components[0].options[i]
+                        if (option.hasOwnProperty("default")) {
+                            if (option.default) {
+                                ruleset_type = option.value
+                            }
                         }
                     }
-                }
-                flags = 64
-                rulesetEmbed
-                    .setTitle("New Ruleset")
-                    .setDescription("create a ruleset")
+                    flags = 64
+                    rulesetEmbed
+                        .setTitle("New Ruleset")
+                        .setDescription("create a ruleset")
 
-                var ruleset = {}
-                if (ruleset_type == "qual") {
-                    ruleset = {
-                        type: "qual",
-                        podchoice: "player_choice",
-                        races: []
+                    var ruleset = {}
+                    if (ruleset_type == "qual") {
+                        ruleset = {
+                            type: "qual",
+                            podchoice: "player_choice",
+                            races: []
+                        }
+                    } else if (ruleset_type == "1v1") {
+                        ruleset = {
+                            type: "1v1",
+                            name: interaction.member.user.username + "'s Unnamed 1v1 Ruleset",
+                            author: interaction.member.user.id,
+                            wins: 5,
+                            default: ["mu", "ft", "um", "l3"],
+                            gents: "disallowed",
+                            firstmethod: "poe",
+                            firsttrack: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24"],
+                            ptrackmethod: "disabled",
+                            ptracklimit: 1,
+                            ppodmethod: "disabled",
+                            ppodlimit: 1,
+                            pconmethod: "disabled",
+                            pconlimit: 1,
+                            ttrackmethod: "disabled",
+                            ttracklimit: 1,
+                            ttrackmlimit: "no_limit",
+                            tpodmethod: "disabled",
+                            tpodlimit: 1,
+                            tpodmlimit: "no_limit",
+                            tconmethod: "disabled",
+                            tconlimit: 1,
+                            tconmlimit: "no_limit",
+                            trackmethod: "losers_pick",
+                            tracktracks: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24"],
+                            dupecondition: "disabled",
+                            dupestyle: "default_repeat",
+                            dupelimit: 1,
+                            conmethod: "disabled",
+                            conlimit: 1,
+                            conmax: 1,
+                            conoptions: ["sk"],
+                            podmethod: "player_pick",
+                            podpods: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22"],
+                            rndlimited: 2,
+                            poollimit: 1
+                        }
+                    } if (ruleset_type == "1vall") {
+                        ruleset = {
+                            type: "qual",
+                            podchoice: "player_choice",
+                            races: []
+                        }
+                    } //if (ruleset_type == "team") {}
+                    if (ruleset !== {}) {
+                        tourney_rulesets.child("new").child(interaction.member.user.id).set(ruleset)
                     }
-                } else if (ruleset_type == "1v1") {
-                    ruleset = {
-                        type: "1v1",
-                        name: interaction.member.user.username + "'s Unnamed 1v1 Ruleset",
-                        author: interaction.member.user.id,
-                        wins: 5,
-                        default: ["mu", "ft", "um", "l3"],
-                        gents: "disallowed",
-                        firstmethod: "poe",
-                        firsttrack: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24"],
-                        ptrackmethod: "disabled",
-                        ptracklimit: 1,
-                        ppodmethod: "disabled",
-                        ppodlimit: 1,
-                        pconmethod: "disabled",
-                        pconlimit: 1,
-                        ttrackmethod: "disabled",
-                        ttracklimit: 1,
-                        ttrackmlimit: "no_limit",
-                        tpodmethod: "disabled",
-                        tpodlimit: 1,
-                        tpodmlimit: "no_limit",
-                        tconmethod: "disabled",
-                        tconlimit: 1,
-                        tconmlimit: "no_limit",
-                        trackmethod: "losers_pick",
-                        tracktracks: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24"],
-                        dupecondition: "disabled",
-                        dupestyle: "default_repeat",
-                        dupelimit: 1,
-                        conmethod: "disabled",
-                        conlimit: 1,
-                        conmax: 1,
-                        conoptions: ["sk"],
-                        podmethod: "player_pick",
-                        podpods: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22"],
-                        rndlimited: 2,
-                        poollimit: 1
-                    }
-                } if (ruleset_type == "1vall") {
-                    ruleset = {
-                        type: "qual",
-                        podchoice: "player_choice",
-                        races: []
-                    }
-                } //if (ruleset_type == "team") {}
-                if (ruleset !== {}) {
-                    tourney_rulesets.child("new").child(interaction.member.user.id).set(ruleset)
+                    args[2] = "general"
                 }
 
-                if (args[1] == "navigate") {
-                    args[1] = interaction.data.values[0]
-                } else if (![undefined, "initial", "rename", "save"].includes(args[2])) {
+                if (args[2] == "navigate") {
+                    args[2] = interaction.data.values[0]
+                } else if (![undefined, "initial", "rename", "save"].includes(args[3])) {
                     var data = interaction.data.values
-                    if (!["default", "firsttrack", "podpods", "tracktracks", "conoptions"].includes(args[2])) {
+                    if (!["default", "firsttrack", "podpods", "tracktracks", "conoptions"].includes(args[3])) {
                         data = interaction.data.values[0]
                     }
-                    tourney_rulesets.child("new").child(interaction.member.user.id).child(args[2]).set(data)
+                    tourney_rulesets.child("new").child(interaction.member.user.id).child(args[3]).set(data)
                 }
                 args[1] = "general"
                 var options = [
@@ -1274,25 +1277,25 @@ module.exports = {
                         options[i].default = true
                     }
                 }
-                if (!["browse", "type"].includes(args[1])) {
-                    rulesetEmbed
-                        .setTitle(tourney_rulesets_data.new[interaction.member.user.id].name)
-                        .setFooter(interaction.member.user.username, client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
 
-                    components.push({
-                        type: 1,
-                        components: [
-                            {
-                                type: 3,
-                                custom_id: "tourney_rulesets_navigate",
-                                options: options,
-                                placeholder: "Settings",
-                                min_values: 1,
-                                max_values: 1
-                            }
-                        ]
-                    })
-                }
+                rulesetEmbed
+                    .setTitle(tourney_rulesets_data.new[interaction.member.user.id].name)
+                    .setFooter(interaction.member.user.username, client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
+
+                components.push({
+                    type: 1,
+                    components: [
+                        {
+                            type: 3,
+                            custom_id: "tourney_rulesets_new_navigate",
+                            options: options,
+                            placeholder: "Settings",
+                            min_values: 1,
+                            max_values: 1
+                        }
+                    ]
+                })
+
 
                 if (![null, undefined].includes(tourney_rulesets_data)) {
                     if (![null, undefined].includes(tourney_rulesets_data.new)) {
@@ -1300,7 +1303,7 @@ module.exports = {
                     }
                 }
 
-                if (args[1] == "general") {
+                if (args[2] == "general") {
                     var win_options = []
                     for (i = 2; i < 14; i++) {
                         win_options.push(
@@ -1388,7 +1391,7 @@ module.exports = {
                             components: [
                                 {
                                     type: 3,
-                                    custom_id: "tourney_rulesets_general_wins",
+                                    custom_id: "tourney_rulesets_new_general_wins",
                                     options: win_options,
                                     placeholder: "Set Win Limit",
                                     min_values: 1,
@@ -1401,7 +1404,7 @@ module.exports = {
                             components: [
                                 {
                                     type: 3,
-                                    custom_id: "tourney_rulesets_general_default",
+                                    custom_id: "tourney_rulesets_new_general_default",
                                     options: con_options,
                                     placeholder: "Set Default Conditions",
                                     min_values: 4,
@@ -1414,7 +1417,7 @@ module.exports = {
                             components: [
                                 {
                                     type: 3,
-                                    custom_id: "tourney_rulesets_general_gents",
+                                    custom_id: "tourney_rulesets_new_general_gents",
                                     options: gent_options,
                                     placeholder: "Gentleman's Agreement",
                                     min_values: 1,
@@ -1478,7 +1481,7 @@ module.exports = {
                             components: [
                                 {
                                     type: 3,
-                                    custom_id: "tourney_rulesets_firsttrack_firstmethod",
+                                    custom_id: "tourney_rulesets_new_firsttrack_firstmethod",
                                     options: first_options,
                                     placeholder: "Selection Method",
                                     min_values: 1,
@@ -1491,7 +1494,7 @@ module.exports = {
                             components: [
                                 {
                                     type: 3,
-                                    custom_id: "tourney_rulesets_firsttrack_firsttrack",
+                                    custom_id: "tourney_rulesets_new_firsttrack_firsttrack",
                                     options: first_track,
                                     placeholder: "Filter First Track Options",
                                     min_values: 1,
@@ -1500,7 +1503,7 @@ module.exports = {
                             ]
                         }
                     )
-                } else if (["permatrackban", "permapodban", "permaconban"].includes(args[1])) {
+                } else if (["permatrackban", "permapodban", "permaconban"].includes(args[2])) {
                     var bans = [
                         {
                             name: "Track",
@@ -1523,7 +1526,7 @@ module.exports = {
                     ]
                     var ban = null
                     for (b = 0; b < bans.length; b++) {
-                        if (bans[b].command == args[1]) {
+                        if (bans[b].command == args[2]) {
                             ban = b
                         }
                     }
@@ -1584,7 +1587,7 @@ module.exports = {
                             components: [
                                 {
                                     type: 3,
-                                    custom_id: "tourney_rulesets_" + bans[ban].command + "_" + bans[ban].method,
+                                    custom_id: "tourney_rulesets_new_" + bans[ban].command + "_" + bans[ban].method,
                                     options: methods,
                                     placeholder: "Permanent " + bans[ban].name + " Ban Method",
                                     min_values: 1,
@@ -1599,7 +1602,7 @@ module.exports = {
                             components: [
                                 {
                                     type: 3,
-                                    custom_id: "tourney_rulesets_" + bans[ban].command + "_" + bans[ban].limit,
+                                    custom_id: "tourney_rulesets_new_" + bans[ban].command + "_" + bans[ban].limit,
                                     options: limits,
                                     placeholder: "Permanent " + bans[ban].name + " Bans Per Match",
                                     min_values: 1,
@@ -1610,7 +1613,7 @@ module.exports = {
                     }
 
 
-                } else if (["temptrackban", "temppodban", "tempconban"].includes(args[1])) {
+                } else if (["temptrackban", "temppodban", "tempconban"].includes(args[2])) {
                     var bans = [
                         {
                             name: "Track",
@@ -1733,7 +1736,7 @@ module.exports = {
                             components: [
                                 {
                                     type: 3,
-                                    custom_id: "tourney_rulesets_" + bans[ban].command + "_" + bans[ban].method,
+                                    custom_id: "tourney_rulesets_new_" + bans[ban].command + "_" + bans[ban].method,
                                     options: methods,
                                     placeholder: "Temporary " + bans[ban].name + " Ban Method",
                                     min_values: 1,
@@ -1749,7 +1752,7 @@ module.exports = {
                                 components: [
                                     {
                                         type: 3,
-                                        custom_id: "tourney_rulesets_" + bans[ban].command + "_" + bans[ban].limit,
+                                        custom_id: "tourney_rulesets_new_" + bans[ban].command + "_" + bans[ban].limit,
                                         options: limits,
                                         placeholder: "Max Temporary " + bans[ban].name + " Bans Per Race",
                                         min_values: 1,
@@ -1765,7 +1768,7 @@ module.exports = {
                                     components: [
                                         {
                                             type: 3,
-                                            custom_id: "tourney_rulesets_" + bans[ban].command + "_" + bans[ban].mlimit,
+                                            custom_id: "tourney_rulesets_new_" + bans[ban].command + "_" + bans[ban].mlimit,
                                             options: match_limits,
                                             placeholder: "Temporary " + bans[ban].name + " Bans Per Player Per Match",
                                             min_values: 1,
@@ -1776,7 +1779,7 @@ module.exports = {
                             )
                         }
                     }
-                } else if (args[1] == "trackselect") {
+                } else if (args[2] == "trackselect") {
                     var methods = [
                         {
                             label: "Loser's Pick",
@@ -1826,7 +1829,7 @@ module.exports = {
                             components: [
                                 {
                                     type: 3,
-                                    custom_id: "tourney_rulesets_trackselect_trackmethod",
+                                    custom_id: "tourney_rulesets_new_trackselect_trackmethod",
                                     options: methods,
                                     placeholder: "Track Selection Method",
                                     min_values: 1,
@@ -1839,7 +1842,7 @@ module.exports = {
                             components: [
                                 {
                                     type: 3,
-                                    custom_id: "tourney_rulesets_trackselect_tracktracks",
+                                    custom_id: "tourney_rulesets_new_trackselect_tracktracks",
                                     options: track_options,
                                     placeholder: "Track Selection Options",
                                     min_values: 1,
@@ -1848,7 +1851,7 @@ module.exports = {
                             ]
                         }
                     )
-                } else if (args[1] == "trackdup") {
+                } else if (args[2] == "trackdup") {
                     var limits = []
                     for (i = 1; i < 6; i++) {
                         var limit = {
@@ -1920,7 +1923,7 @@ module.exports = {
                             components: [
                                 {
                                     type: 3,
-                                    custom_id: "tourney_rulesets_trackdup_dupecondition",
+                                    custom_id: "tourney_rulesets_new_trackdup_dupecondition",
                                     options: methods,
                                     placeholder: "Repeat Track Condition",
                                     min_values: 1,
@@ -1936,7 +1939,7 @@ module.exports = {
                                 components: [
                                     {
                                         type: 3,
-                                        custom_id: "tourney_rulesets_trackdup_dupestyle",
+                                        custom_id: "tourney_rulesets_new_trackdup_dupestyle",
                                         options: styles,
                                         placeholder: "Repeat Track Style",
                                         min_values: 1,
@@ -1949,7 +1952,7 @@ module.exports = {
                                 components: [
                                     {
                                         type: 3,
-                                        custom_id: "tourney_rulesets_trackdup_dupelimit",
+                                        custom_id: "tourney_rulesets_new_trackdup_dupelimit",
                                         options: limits,
                                         placeholder: "Repeat Track Pick Limit",
                                         min_values: 1,
@@ -1959,7 +1962,7 @@ module.exports = {
                             }
                         )
                     }
-                } else if (args[1] == "trackcon") {
+                } else if (args[2] == "trackcon") {
                     var limits = []
                     limits.push(
                         {
@@ -2093,7 +2096,7 @@ module.exports = {
                             components: [
                                 {
                                     type: 3,
-                                    custom_id: "tourney_rulesets_trackcon_conmethod",
+                                    custom_id: "tourney_rulesets_new_trackcon_conmethod",
                                     options: methods,
                                     placeholder: "Condition Method",
                                     min_values: 1,
@@ -2109,7 +2112,7 @@ module.exports = {
                             components: [
                                 {
                                     type: 3,
-                                    custom_id: "tourney_rulesets_trackcon_conmax",
+                                    custom_id: "tourney_rulesets_new_trackcon_conmax",
                                     options: conmax,
                                     placeholder: "Max Conditions (Forces) Per Race",
                                     min_values: 1,
@@ -2124,7 +2127,7 @@ module.exports = {
                                     components: [
                                         {
                                             type: 3,
-                                            custom_id: "tourney_rulesets_trackcon_conlimit",
+                                            custom_id: "tourney_rulesets_new_trackcon_conlimit",
                                             options: limits,
                                             placeholder: "Conditions (Forces) Per Match",
                                             min_values: 1,
@@ -2140,7 +2143,7 @@ module.exports = {
                                 components: [
                                     {
                                         type: 3,
-                                        custom_id: "tourney_rulesets_trackcon_conoptions",
+                                        custom_id: "tourney_rulesets_new_trackcon_conoptions",
                                         options: conoptions,
                                         placeholder: "Condition Options",
                                         min_values: 1,
@@ -2149,7 +2152,7 @@ module.exports = {
                                 ]
                             })
                     }
-                } else if (args[1] == "podselect") {
+                } else if (args[2] == "podselect") {
                     var methods = [
                         {
                             label: "Player's Pick",
@@ -2234,7 +2237,7 @@ module.exports = {
                             components: [
                                 {
                                     type: 3,
-                                    custom_id: "tourney_rulesets_podselect_podmethod",
+                                    custom_id: "tourney_rulesets_new_podselect_podmethod",
                                     options: methods,
                                     placeholder: "Pod Selection Method",
                                     min_values: 1,
@@ -2261,7 +2264,7 @@ module.exports = {
                                 components: [
                                     {
                                         type: 3,
-                                        custom_id: "tourney_rulesets_podselect_rndlimited",
+                                        custom_id: "tourney_rulesets_new_podselect_rndlimited",
                                         options: limits,
                                         placeholder: "Random Limited Choice Count",
                                         min_values: 1,
@@ -2290,7 +2293,7 @@ module.exports = {
                                 components: [
                                     {
                                         type: 3,
-                                        custom_id: "tourney_rulesets_podselect_poollimit",
+                                        custom_id: "tourney_rulesets_new_podselect_poollimit",
                                         options: limits,
                                         placeholder: "Pod Pool Use Limit",
                                         min_values: 1,
@@ -2307,7 +2310,7 @@ module.exports = {
                             components: [
                                 {
                                     type: 3,
-                                    custom_id: "tourney_rulesets_podselect_podpods",
+                                    custom_id: "tourney_rulesets_new_podselect_podpods",
                                     options: pod_options,
                                     placeholder: "Pod Options",
                                     min_values: 1,
@@ -2319,9 +2322,9 @@ module.exports = {
                     )
                     //add random limited choice limit
                     //add pod pool limit
-                } else if (args[1] == "finalize") {
+                } else if (args[2] == "finalize") {
                     var rename = true
-                    if (args[2] == "rename") {
+                    if (args[3] == "rename") {
                         type = 7
                         rename = false
                         client.api.webhooks(client.user.id, interaction.token).post({
@@ -2350,7 +2353,7 @@ module.exports = {
                         })
                         //client.api.interactions(interaction.id, interaction.token).callback.post({ data: { type: 6, data: {} } })
                         //return
-                    } else if (args[2] == "save") {
+                    } else if (args[3] == "save") {
                         type = 7
                         rulesetEmbed
                             .setTitle("Ruleset Saved")
@@ -2371,14 +2374,14 @@ module.exports = {
                                         type: 2,
                                         label: "Rename",
                                         style: 1,
-                                        custom_id: "tourney_rulesets_finalize_rename",
+                                        custom_id: "tourney_rulesets_new_finalize_rename",
                                         disabled: !rename
                                     },
                                     {
                                         type: 2,
                                         label: "Save",
                                         style: 3,
-                                        custom_id: "tourney_rulesets_finalize_save",
+                                        custom_id: "tourney_rulesets_new_finalize_save",
                                     }
                                 ]
                             }
@@ -2386,14 +2389,14 @@ module.exports = {
                     }
 
 
-                } else if (args[1] == "qual") {
+                } else if (args[2] == "qual") {
                     //pod select
                     //add race
                     //track
                     //conditions
                     //time limit
                     //penalty time
-                } else if (args[1] == "1vall") {
+                } else if (args[2] == "1vall") {
                     //pod select
                     //add race
                     //track
