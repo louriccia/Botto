@@ -934,23 +934,55 @@ module.exports = {
                 }
             }
 
-            if (args[1] == "edit"){
+            if (args[1] == "edit") {
                 var key = args.slice(2).join("_")
                 var ruleset = tourney_rulesets_data.saved[key]
-                ruleset.edit = key
+                if (ruleset.author !== interaction.member.user.id) {
+                    client.api.interactions(interaction.id, interaction.token).callback.post({
+                        data: {
+                            type: 4,
+                            flags: 64,
+                            data: {
+                                content: "Only the ruleset author can edit or delete their ruleset."
+                            }
+                        }
+                    })
+                    return
+                } else {
+                    ruleset.edit = key
+                    tourney_rulesets.child("new").child(interaction.member.user.id).set(ruleset)
+                    args[1] = "new"
+                    args[2] = "general"
+                }
+                type = 4
+                flags = 64
+            } else if (args[1] == "clone") {
+                var key = args.slice(2).join("_")
+                var ruleset = tourney_rulesets_data.saved[key]
                 tourney_rulesets.child("new").child(interaction.member.user.id).set(ruleset)
                 args[1] = "new"
                 args[2] = "general"
-            } else if (args[1] == "clone"){
+                type = 4
+                flags = 64
+            } else if (args[1] == "delete") {
                 var key = args.slice(2).join("_")
                 var ruleset = tourney_rulesets_data.saved[key]
-                tourney_rulesets.child("new").child(interaction.member.user.id).set(ruleset)
-                args[1] = "new"
-                args[2] = "general"
-            } else if (args[1] == "delete"){
+                if (ruleset.author !== interaction.member.user.id) {
+                    client.api.interactions(interaction.id, interaction.token).callback.post({
+                        data: {
+                            type: 4,
+                            flags: 64,
+                            data: {
+                                content: "Only the ruleset author can edit or delete their ruleset."
+                            }
+                        }
+                    })
+                    return
+                } else {
                 var key = args.slice(2).join("_")
                 tourney_rulesets.child("saved").child(key).remove()
                 args[1] = "browse"
+                }
             }
 
             if (args[1] == "browse") {
@@ -2426,7 +2458,7 @@ module.exports = {
                         components = []
 
                         var ruleset = tourney_rulesets_data.new[interaction.member.user.id]
-                        if(ruleset.hasOwnProperty("edit")){
+                        if (ruleset.hasOwnProperty("edit")) {
                             var key = ruleset.edit
                             delete ruleset.edit
                             tourney_rulesets.child("saved").child(key).set(ruleset)
@@ -2473,10 +2505,10 @@ module.exports = {
                     //track
                     //conditions
                 }
-            } else if (args[1] == "clone"){
-                
-            } else if (args[1] == "delete"){
-                
+            } else if (args[1] == "clone") {
+
+            } else if (args[1] == "delete") {
+
             }
 
             client.api.interactions(interaction.id, interaction.token).callback.post({
