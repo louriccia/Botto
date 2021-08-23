@@ -456,7 +456,7 @@ module.exports = {
                 .setTitle(planets[tracks[track].planet].emoji + " " + tracks[track].name)
                 .setColor(planets[tracks[track].planet].color)
                 .setDescription(circuits[tracks[track].circuit].name + " Circuit | Race " + tracks[track].cirnum + " | " + planets[tracks[track].planet].name)
-                .setFooter(challengefiltered.length + " Total Runs")
+                .setFooter(runs.length + " Total Runs")
             if (user !== null) {
                 const Guild = client.guilds.cache.get(interaction.guild_id);
                 const Member = Guild.members.cache.get(player)
