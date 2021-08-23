@@ -984,7 +984,9 @@ module.exports = {
                 args[1] = "browse"
                 }
             }
-
+            if(args[1] == "refresh"){
+                args[1] = "browse"
+            }
             if (args[1] == "browse") {
                 rulesetEmbed.setTitle(":scroll: Rulesets")
                     .setDescription("This is the tournament ruleset manager. Browse existing rulesets using the dropdown below or make your own by pressing the New button.")
@@ -997,7 +999,7 @@ module.exports = {
                             name: "refresh"
                         },
                         style: 2,
-                        custom_id: "tourney_rulesets_browse",
+                        custom_id: "tourney_rulesets_refresh",
                     },
                     {
                         type: 2,
