@@ -670,7 +670,12 @@ module.exports = {
                         either_or: "Either/Or",
                         no_limit: "No Match Limit",
                         lower: "Lower Rated",
-                        higher: "Higher Rated"
+                        higher: "Higher Rated",
+                        default_repeat: "Default Repeat",
+                        soft_repeat: "Soft Repeat",
+                        hard_repeat: "Hard Repeat",
+                        favorite: "Track Favorite",
+                        random_tier: "Random by Tier"
                     }
 
                     var permabans = [
@@ -822,15 +827,20 @@ module.exports = {
                             field.value = "`" + methods[ruleset[tempbans[b].method]] + "`\n"
                             field.value += "`" + ruleset[tempbans[b].limit] + " Max Per Race`\n"
                             if (ruleset[tempbans[b].method] !== "random") {
-                                if (ruleset[tempbans[b].mlimit] == "no_limit") {
-                                    field.value += "`No Match Limit`"
-                                } else if (ruleset[tempbans[b].mlimit] == "wins") {
-                                    field.value += "`One Per Win`"
-                                } else if (ruleset[tempbans[b].mlimit] == "losses") {
-                                    field.value += "`One Per Loss`"
-                                } else {
-                                    field.value += "`" + ruleset[tempbans[b].mlimit] + " Per Player Per Match`"
+                                ml = Object.values(ruleset[tempbans[b].mlimit])
+                                var ms = []
+                                for(i = 0; i < ml.length; i++){
+                                    if (ml[i] == "no_limit") {
+                                        ms.push("`No Match Limit`")
+                                    } else if (ml[i] == "wins") {
+                                        ms.push("`One Per Win`")
+                                    } else if (ml[i] == "losses") {
+                                        ms.push("`One Per Loss`")
+                                    } else {
+                                        ms.push("`" + ml[i] + " Per Player Per Match`")
+                                    } 
                                 }
+                               field.value += ms.join(" + ")
                             }
                             field.inline = true
                             fields.push(field)
@@ -849,6 +859,7 @@ module.exports = {
                         field.name = ":repeat: Repeat Tracks"
                         field.value = "`" + methods[ruleset.dupecondition] + "`\n"
                         field.value += "`" + ruleset.dupelimit + " Per Player Per Match`"
+                        field.value += "`" + methods[ruleset.dupestyle] + "`"
                         field.inline = true
                         fields.push(field)
                     }
@@ -1886,9 +1897,9 @@ module.exports = {
                             description: "players can runback a Saltier runback"
                         },
                         {
-                            label: "Any Condition",
+                            label: "Allowed",
                             value: "any",
-                            description: "repeat track picks are allowed under any condition"
+                            description: "repeat track picks are always allowed"
                         }
                     ]
                     for (i = 0; i < methods.length; i++) {
@@ -1900,17 +1911,17 @@ module.exports = {
                         {
                             label: "Default Repeat",
                             value: "default_repeat",
-                            description: "repeat tracks must use the default conditions"
+                            description: "repeat tracks must use the default track conditions"
                         },
                         {
                             label: "Hard Repeat",
                             value: "hard_repeat",
-                            description: "repeat tracks must use the same conditions as originally used"
+                            description: "repeat tracks must use the same track conditions as originally used"
                         },
                         {
                             label: "Soft Repeat",
                             value: "soft_repeat",
-                            description: "repeat tracks may have different conditions than originally used"
+                            description: "repeat tracks may have different track conditions than originally used"
                         }
                     ]
                     for (i = 0; i < styles.length; i++) {
