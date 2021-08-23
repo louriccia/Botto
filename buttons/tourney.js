@@ -934,6 +934,25 @@ module.exports = {
                 }
             }
 
+            if (args[1] == "edit"){
+                var key = args.slice(2).join("_")
+                var ruleset = tourney_rulesets_data.saved[key]
+                ruleset.edit = key
+                tourney_rulesets.child(interaction.member.user.id).set(ruleset)
+                args[1] = "new"
+                args[2] = "general"
+            } else if (args[1] == "clone"){
+                var key = args.slice(2).join("_")
+                var ruleset = tourney_rulesets_data.saved[key]
+                tourney_rulesets.child(interaction.member.user.id).set(ruleset)
+                args[1] = "new"
+                args[2] = "general"
+            } else if (args[1] == "delete"){
+                var key = args.slice(2).join("_")
+                tourney_rulesets.child("saved").child(key).remove()
+                args[1] = "browse"
+            }
+
             if (args[1] == "browse") {
                 rulesetEmbed.setTitle(":scroll: Rulesets")
                     .setDescription("This is the tournament ruleset manager. Browse existing rulesets using the dropdown below or make your own by pressing the New button.")
@@ -965,7 +984,7 @@ module.exports = {
                     }
                     if (interaction.data.hasOwnProperty("values")) {
                         var ruleset = tourney_rulesets_data.saved[interaction.data.values[0]]
-                        rulesetEmbed.setTitle("Rulesets: " + ruleset.name)
+                        rulesetEmbed.setTitle(":scroll: Rulesets: " + ruleset.name)
                             .setDescription("Type: " + ruleset.type)
                             .addFields(showRuleset(ruleset))
                             .setFooter(client.guilds.resolve(interaction.guild_id).members.resolve(ruleset.author).user.username, client.guilds.resolve(interaction.guild_id).members.resolve(ruleset.author).user.avatarURL())
@@ -1174,13 +1193,13 @@ module.exports = {
                             pconlimit: 1,
                             ttrackmethod: "disabled",
                             ttracklimit: 1,
-                            ttrackmlimit: "no_limit",
+                            ttrackmlimit: ["no_limit"],
                             tpodmethod: "disabled",
                             tpodlimit: 1,
-                            tpodmlimit: "no_limit",
+                            tpodmlimit: ["no_limit"],
                             tconmethod: "disabled",
                             tconlimit: 1,
-                            tconmlimit: "no_limit",
+                            tconmlimit: ["no_limit"],
                             trackmethod: "losers_pick",
                             tracktracks: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24"],
                             dupecondition: "disabled",
@@ -2411,11 +2430,19 @@ module.exports = {
                         rulesetEmbed.fields = []
                         rulesetEmbed.setFooter("")
                         components = []
+
                         var ruleset = tourney_rulesets_data.new[interaction.member.user.id]
-                        tourney_rulesets.child("saved").push(ruleset)
-                        tourney_rulesets.child("new").child(interaction.member.user.id).remove()
+                        if(ruleset.hasOwnProperty("edit")){
+                            var key = ruleset.edit
+                            delete ruleset.edit
+                            tourney_rulesets.child("saved").child(key).set(ruleset)
+                            tourney_rulesets.child("new").child(interaction.member.user.id).remove()
+                        } else {
+                            tourney_rulesets.child("saved").push(ruleset)
+                            tourney_rulesets.child("new").child(interaction.member.user.id).remove()
+                        }
                     }
-                    if (args[2] !== "save") {
+                    if (args[3] !== "save") {
                         components.push(
                             {
                                 type: 1,
@@ -2452,6 +2479,10 @@ module.exports = {
                     //track
                     //conditions
                 }
+            } else if (args[1] == "clone"){
+                
+            } else if (args[1] == "delete"){
+                
             }
 
             client.api.interactions(interaction.id, interaction.token).callback.post({
