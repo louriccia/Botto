@@ -1272,7 +1272,7 @@ module.exports = {
                     }
                 ]
                 for (i = 0; i < options.length; i++) {
-                    if (args[1] == options[i].value) {
+                    if (args[2] == options[i].value) {
                         options[i].default = true
                     }
                 }
@@ -1525,7 +1525,7 @@ module.exports = {
                     ]
                     var ban = null
                     for (b = 0; b < bans.length; b++) {
-                        if (bans[b].command == args[2]) {
+                        if (bans[b].command == args[3]) {
                             ban = b
                         }
                     }
@@ -1638,7 +1638,7 @@ module.exports = {
                     ]
                     var ban = null
                     for (b = 0; b < bans.length; b++) {
-                        if (bans[b].command == args[1]) {
+                        if (bans[b].command == args[2]) {
                             ban = b
                         }
                     }
