@@ -779,14 +779,14 @@ module.exports = {
                     field.name = ":trophy: Win Condition"
                     var winstuff = Object.values(ruleset.wins)
                     var winstring = []
-                    for(i = 0; i < winstuff.length; i++){
-                        if(winstuff[i].includes("_max")){
+                    for (i = 0; i < winstuff.length; i++) {
+                        if (winstuff[i].includes("_max")) {
                             winstring.push("`" + winstuff[i].replace("_max", " Max Wins") + "`")
-                        } else if(winstuff[i].includes("_min")){
+                        } else if (winstuff[i].includes("_min")) {
                             winstring.push("`" + winstuff[i].replace("_min", " Minimum Wins") + "`")
-                        } else if(winstuff[i].includes("_row")){
+                        } else if (winstuff[i].includes("_row")) {
                             winstring.push("`" + winstuff[i].replace("_row", " Wins in a Row") + "`")
-                        } else if(winstuff[i].includes("_by")){
+                        } else if (winstuff[i].includes("_by")) {
                             winstring.push("`Win by " + winstuff[i].replace("_max", "") + "`")
                         }
                     }
@@ -806,7 +806,7 @@ module.exports = {
                     fields.push(field)
                     //gents
                     field = {}
-                    yesno = {disallowed: "Disallowed", allowed: "Allowed"}
+                    yesno = { disallowed: "Disallowed", allowed: "Allowed" }
                     field.name = ":tophat: Gentleman's Agreement"
                     field.value = "`" + yesno[ruleset.gents] + "`"
                     field.inline = true
@@ -843,7 +843,7 @@ module.exports = {
                             if (ruleset[tempbans[b].method] !== "random") {
                                 ml = Object.values(ruleset[tempbans[b].mlimit])
                                 var ms = []
-                                for(i = 0; i < ml.length; i++){
+                                for (i = 0; i < ml.length; i++) {
                                     if (ml[i] == "no_limit") {
                                         ms.push("`No Match Limit`")
                                     } else if (ml[i] == "wins") {
@@ -852,9 +852,9 @@ module.exports = {
                                         ms.push("`One Per Loss`")
                                     } else {
                                         ms.push("`" + ml[i] + " Per Player Per Match`")
-                                    } 
+                                    }
                                 }
-                               field.value += ms.join(" + ")
+                                field.value += ms.join(" + ")
                             }
                             field.inline = true
                             fields.push(field)
@@ -1337,17 +1337,27 @@ module.exports = {
                                 label: i + " Wins Max",
                                 value: i + "_max",
                                 description: "if no other condition is met, fist to " + i + " wins the match"
-                            },
+                            }
+                        )
+                    }
+                    for (i = 2; i < 8; i++) {
+                        win_options.push(
                             {
                                 label: i + " Wins Minimum",
                                 value: i + "_min",
                                 description: "in addition to other conditions, at least " + i + " is required to win"
-                            },
+                            })
+                    }
+                    for (i = 2; i < 8; i++) {
+                        win_options.push(
                             {
                                 label: i + " Wins in a Row",
                                 value: i + "_row",
                                 description: "winner must get " + i + " sequential wins"
-                            },
+                            })
+                    }
+                    for (i = 2; i < 8; i++) {
+                        win_options.push(
                             {
                                 label: "Win by " + i,
                                 value: i + "_by",
