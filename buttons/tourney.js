@@ -432,10 +432,10 @@ module.exports = {
                 }
             }
             runs = runs.filter(e => forces.includes(e.force))
-            if (deaths.includes(true)) {
-                runs = runs.filter(e => e.totaldeaths > 0)
-            } else if (deaths.includes(true)) {
+            if (!deaths.includes(true)) {
                 runs = runs.filter(e => e.totaldeaths == 0)
+            } else if (!deaths.includes(true)) {
+                runs = runs.filter(e => e.totaldeaths > 0)
             }
             if (pods.length > 0) {
                 runs = runs.filter(e => pods.includes(e.pod))
@@ -459,8 +459,8 @@ module.exports = {
                 .setFooter(runs.length + " Total Runs")
             if (user !== null) {
                 const Guild = client.guilds.cache.get(interaction.guild_id);
-                const Member = Guild.members.cache.get(player)
-                tourneyReport.setAuthor(Member.user.username + "'s Best", client.guilds.resolve(interaction.guild_id).members.resolve(player).user.avatarURL())
+                const Member = Guild.members.cache.get(user)
+                tourneyReport.setAuthor(Member.user.username + "'s Best", client.guilds.resolve(interaction.guild_id).members.resolve(user).user.avatarURL())
                 showall = true
             }
             var pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>", "4th", "5th"]
@@ -524,7 +524,7 @@ module.exports = {
 
             //construct components
             var components = []
-            var cond = { mu: "Upgrades", nu: "No Upgrades", ft: "Full Track", skips: "Skips", deaths: "Deaths", deathless: "Deathless", lap1: "1-Lap", qual: "Include Qualifying Runs", user: "My Runs Only" }
+            var cond = { mu: "Upgrades", nu: "No Upgrades", ft: "Full Track", skips: "Skips", deaths: "Deaths", deathless: "Deathless", qual: "Include Qualifying Runs", user: "My Runs Only" }
             var track_selections = []
             var racer_selections = []
             var cond_selections = []
