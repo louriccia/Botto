@@ -781,13 +781,13 @@ module.exports = {
                     var winstring = []
                     for (i = 0; i < winstuff.length; i++) {
                         if (winstuff[i].includes("_max")) {
-                            winstring.push("`" + winstuff[i].replace("_max", " Max Wins") + "`")
+                            winstring.push("`" + winstuff[i].replace("_max", " Wins Max") + "`")
                         } else if (winstuff[i].includes("_min")) {
-                            winstring.push("`" + winstuff[i].replace("_min", " Minimum Wins") + "`")
+                            winstring.push("`" + winstuff[i].replace("_min", " Wins Minimum") + "`")
                         } else if (winstuff[i].includes("_row")) {
                             winstring.push("`" + winstuff[i].replace("_row", " Wins in a Row") + "`")
                         } else if (winstuff[i].includes("_by")) {
-                            winstring.push("`Win by " + winstuff[i].replace("_max", "") + "`")
+                            winstring.push("`Win by " + winstuff[i].replace("_by", "") + "`")
                         }
                     }
                     field.value = winstring.join(" and ")
@@ -1021,8 +1021,7 @@ module.exports = {
                     if (![null, undefined].includes(tourney_rulesets_data.new)) {
                         if (args[2] == "new") {
                             tourney_rulesets.child("new").child(interaction.member.user.id).remove()
-                        }
-                        if (tourney_rulesets_data.new.hasOwnProperty(interaction.member.user.id)) {
+                        } else if (tourney_rulesets_data.new.hasOwnProperty(interaction.member.user.id)) {
                             rulesetEmbed
                                 .setTitle(":exclamation: Unsaved Ruleset")
                                 .setDescription("You have an unsaved ruleset. Would you like to continue editing that one or start a new one?")
