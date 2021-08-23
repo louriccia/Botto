@@ -162,7 +162,7 @@ module.exports = {
         const attachment = new Discord
             .MessageAttachment('./img/tracks/' + (numb + 1) + '.png', (numb + 1) + '.png');
         const trackEmbed = new Discord.MessageEmbed()
-            .setThumbnail(planets[tracks[numb].planet].img)
+            //.setThumbnail(planets[tracks[numb].planet].img)
             //.setFooter(footer)
             .setColor(planets[tracks[numb].planet].color)
             .attachFiles(attachment)

@@ -8,9 +8,33 @@ module.exports = {
         var database = admin.database();
         var firebase = require("firebase/app");
         var tourney_rulesets = database.ref('tourney/rulesets');
-        var tourney_rulesets_data = {}
+        var tourney_rulesets_data = {}, tourney_races_data = {}, tourney_matches_data = {}, tourney_participants_data = {}, tourney_tournaments_data = {}
         tourney_rulesets.on("value", function (snapshot) {
             tourney_rulesets_data = snapshot.val();
+        }, function (errorObject) {
+            console.log("The read failed: " + errorObject);
+        });
+        var tourney_matches = database.ref('tourney/matches')
+        tourney_matches.on("value", function (snapshot) {
+            tourney_matches_data = snapshot.val();
+        }, function (errorObject) {
+            console.log("The read failed: " + errorObject);
+        });
+        var tourney_participants = database.ref('tourney/participants')
+        tourney_participants.on("value", function (snapshot) {
+            tourney_participants_data = snapshot.val();
+        }, function (errorObject) {
+            console.log("The read failed: " + errorObject);
+        });
+        var tourney_tournaments = database.ref('tourney/tournaments')
+        tourney_tournaments.on("value", function (snapshot) {
+            tourney_tournaments_data = snapshot.val();
+        }, function (errorObject) {
+            console.log("The read failed: " + errorObject);
+        });
+        var tourney_races = database.ref('tourney/races');
+        tourney_races.on("value", function (snapshot) {
+            tourney_races_data = snapshot.val();
         }, function (errorObject) {
             console.log("The read failed: " + errorObject);
         });
@@ -107,24 +131,7 @@ module.exports = {
         } else if (args[0] == "matches") {
             if (args[1] == "browse") {
                 if (args[2].startsWith("page")) {
-                    var tourney_matches = database.ref('tourney/matches')
-                    tourney_matches.on("value", function (snapshot) {
-                        tourney_matches_data = snapshot.val();
-                    }, function (errorObject) {
-                        console.log("The read failed: " + errorObject);
-                    });
-                    var tourney_participants = database.ref('tourney/participants')
-                    tourney_participants.on("value", function (snapshot) {
-                        tourney_participants_data = snapshot.val();
-                    }, function (errorObject) {
-                        console.log("The read failed: " + errorObject);
-                    });
-                    var tourney_tournaments = database.ref('tourney/tournaments')
-                    tourney_tournaments.on("value", function (snapshot) {
-                        tourney_tournaments_data = snapshot.val();
-                    }, function (errorObject) {
-                        console.log("The read failed: " + errorObject);
-                    });
+
                     var offset = Number(args[2].replace("page", ""))
                     var type = 7
                     var pages = 0
@@ -333,6 +340,289 @@ module.exports = {
                         }
                     })
                 })
+        } else if (args[0] == "leaderboards") {
+            const tourneyReport = new Discord.MessageEmbed()
+            var type = 7
+            if (args.includes("initial")) {
+                type = 4
+            }
+            var track = Math.floor(Math.random() * 25)
+            var pods = []
+            var conditions = []
+            var showall = false
+            if (!args.includes("initial")) {
+                for (var i = 0; i < interaction.message.components[0].components[0].options.length; i++) { //track
+                    var option = interaction.message.components[0].components[0].options[i]
+                    if (option.hasOwnProperty("default")) {
+                        if (option.default) {
+                            track = i
+                        }
+                    }
+                }
+                for (var i = 0; i < interaction.message.components[1].components[0].options.length; i++) { //conditions
+                    var option = interaction.message.components[1].components[0].options[i]
+                    if (option.hasOwnProperty("default")) {
+                        if (option.default) {
+                            conditions.push(option.value)
+                        }
+                    }
+                }
+                for (var i = 0; i < interaction.message.components[2].components[0].options.length; i++) { //pods
+                    var option = interaction.message.components[2].components[0].options[i]
+                    if (option.hasOwnProperty("default")) {
+                        if (option.default) {
+                            pods.push(String(i))
+                        }
+                    }
+                }
+                if (args[1] == "track") {
+                    track = Number(interaction.data.values[0])
+                } else if (args[1] == "conditions") {
+                    if (interaction.data.hasOwnProperty("values")) {
+                        conditions = interaction.data.values
+                    }
+                } else if (args[1] == "pods") {
+                    if (interaction.data.hasOwnProperty("values")) {
+                        pods = interaction.data.values
+                    } else {
+                        pods = []
+                    }
+                }
+            }
+            if (conditions.length == 0) {
+                conditions = ["mu", "nu", "ft", "skips", "deaths", "deathless"]
+            }
+            //prepare filters
+            var forces = [], user = null, qual = false, deaths = []
+            if (conditions.includes("mu")) {
+                forces.push("")
+            }
+            if (conditions.includes("nu")) {
+                forces.push("NU")
+            }
+            if (conditions.includes("ft")) {
+                forces.push("")
+            }
+            if (conditions.includes("skips")) {
+                forces.push("Skips")
+            }
+            if (conditions.includes("qual")) {
+                qual = true
+            }
+            if (conditions.includes("deaths")) {
+                deaths.push(true)
+            }
+            if (conditions.includes("deathless")) {
+                deaths.push(false)
+            }
+            if (conditions.includes("user")) {
+                user = interaction.member.user.id
+            }
+            //account for missing values
+            if (deaths.length == 0) { deaths.push(true, false), conditions.push("deaths", "deathless") }
+            if (forces.length == 0) { forces.push("", "NU", "Skips"), conditions.push("mu", "nu", "ft", "skips") }
+            //get runs and apply filters
+            var runs = []
+            
+            var rns = Object.keys(tourney_races_data)
+            for (var i = 0; i < rns.length; i++) {
+                var r = tourney_races_data[rns[i]]
+                if (r.track == track && r.hasOwnProperty("totaltime")) {
+                    runs.push(r)
+                }
+            }
+            runs = runs.filter(e => forces.includes(e.force))
+            if (deaths.includes(true)) {
+                runs = runs.filter(e => e.totaldeaths > 0)
+            } else if (deaths.includes(true)) {
+                runs = runs.filter(e => e.totaldeaths == 0)
+            }
+            if (pods.length > 0) {
+                runs = runs.filter(e => pods.includes(e.pod))
+            }
+            if (user !== null) {
+                runs = runs.filter(e => tourney_participants_data[e.player].id == player)
+            }
+            if (qual === false) {
+                runs = runs.filter(e => tourney_matches_data[e.datetime].bracket !== "Qual")
+            }
+            runs.sort(function (a, b) {
+                return Number(a.totaltime) - Number(b.totaltime);
+            })
+
+            //create embed
+            tourneyReport
+                .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/crossed-swords_2694-fe0f.png")
+                .setTitle(planets[tracks[track].planet].emoji + " " + tracks[track].name)
+                .setColor(planets[tracks[track].planet].color)
+                .setDescription(circuits[tracks[track].circuit].name + " Circuit | Race " + tracks[track].cirnum + " | " + planets[tracks[track].planet].name)
+                .setFooter(challengefiltered.length + " Total Runs")
+            if (user !== null) {
+                const Guild = client.guilds.cache.get(interaction.guild_id);
+                const Member = Guild.members.cache.get(player)
+                tourneyReport.setAuthor(Member.user.username + "'s Best", client.guilds.resolve(interaction.guild_id).members.resolve(player).user.avatarURL())
+                showall = true
+            }
+            var pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>", "4th", "5th"]
+            var already = []
+            if (runs.length > 0) {
+                for (i = 0; i < runs.length; i++) {
+                    if (runs[i].hasOwnProperty("totaltime") && !already.includes(runs[i].player + runs[i].force)) {
+                        var character = ""
+                        var deaths = ""
+                        var characterban = ""
+                        var link = ""
+                        var forc = "MU "
+                        var opponent = ""
+                        var bracket = ""
+                        if (runs[i].hasOwnProperty("force")) {
+                            if (runs[i].force == "Skips") {
+                                forc = "Skips "
+                            } else if (runs[i].force == "NU") {
+                                forc = "NU "
+                            }
+                        }
+                        link = tourney_matches_data[runs[i].datetime].url
+                        if (runs[i].hasOwnProperty("podtempban")) {
+                            if (!["", "none"].includes(runs[i].podtempban)) {
+                                characterban = "\n~~" + racers[runs[i].podtempban].name + "~~"
+                            }
+                        }
+                        if (runs[i].hasOwnProperty("opponent")) {
+                            opponent = " vs " + tourney_participants_data[runs[i].opponent].name
+                        }
+                        if (runs[i].totaldeaths > 0) {
+                            if (runs[i].totaldeaths > 1) {
+                                deaths = ":skull:×" + runs[i].totaldeaths
+                            } else {
+                                deaths = ":skull:"
+                            }
+                        }
+                        if (![undefined, "", null].includes(tourney_matches_data[runs[i].datetime].bracket)) {
+                            bracket = " | " + tourney_matches_data[runs[i].datetime].bracket
+                            if (![undefined, "", null].includes(tourney_matches_data[runs[i].datetime].round)) {
+                                bracket += ": " + tourney_matches_data[runs[i].datetime].round
+                            }
+                        }
+                        character = racers[runs[i].pod].flag
+                        tourneyReport
+                            .addField(pos[0] + " " + tourney_participants_data[runs[i].player].name, tourney_tournaments_data[tourney_matches_data[runs[i].datetime].tourney].nickname + bracket + "\n[Race " + runs[i].race + opponent + "](" + link + ")", true)
+                            .addField(tools.timefix(Number(runs[i].totaltime).toFixed(3)), " " + character + " " + forc + " " + deaths + characterban, true)
+                            .addField('\u200B', '\u200B', true)
+                            .setDescription(desc.join(', ') + " `[" + runs.length + " Total Runs]`")
+                        if (showall == false) { already.push(runs[i].player + runs[i].force) }
+                        pos.splice(0, 1)
+                        if (pos.length == 0) {
+                            i = runs.length
+                        }
+                    }
+                }
+                
+            } else {
+                tourneyReport
+                    .addField("<:WhyNobodyBuy:589481340957753363> No Runs", "`No runs were found matching that criteria`\n" + errorMessage[Math.floor(Math.random() * errorMessage.length)])
+            }
+
+            //construct components
+            var components = []
+            var cond = { mu: "Upgrades", nu: "No Upgrades", ft: "Full Track", skips: "Skips", deaths: "Deaths", deathless: "Deathless", lap1: "1-Lap", qual: "Include Qualifying Runs", user: "My Runs Only" }
+            var track_selections = []
+            var racer_selections = []
+            var cond_selections = []
+            for (var i = 0; i < 25; i++) {
+                var racer_option = {
+                    label: racers[i].name,
+                    value: i,
+                    description: racers[i].pod.substring(0, 50),
+                    emoji: {
+                        name: racers[i].flag.split(":")[1],
+                        id: racers[i].flag.split(":")[2].replace(">", "")
+                    }
+                }
+                if (pods.includes(String(i))) {
+                    racer_option.default = true
+                }
+                var track_option = {
+                    label: tracks[i].name.replace("The Boonta Training Course", "Boonta Training Course"),
+                    value: i,
+                    description: (circuits[tracks[i].circuit].name + " Circuit | Race " + tracks[i].cirnum + " | " + planets[tracks[i].planet].name).substring(0, 50),
+                    emoji: {
+                        name: planets[tracks[i].planet].emoji.split(":")[1],
+                        id: planets[tracks[i].planet].emoji.split(":")[2].replace(">", "")
+                    }
+                }
+                if (track == i) {
+                    track_option.default = true
+                }
+                if (i < 23) {
+                    racer_selections.push(racer_option)
+                }
+                track_selections.push(track_option)
+                var condkeys = Object.keys(cond)
+                if (i < condkeys.length) {
+                    var cond_option = {
+                        label: cond[condkeys[i]],
+                        value: condkeys[i],
+                    }
+                    if (conditions.includes(condkeys[i])) {
+                        cond_option.default = true
+                    }
+                    cond_selections.push(cond_option)
+                }
+            }
+            var components = []
+            components.push(
+                {
+                    type: 1,
+                    components: [
+                        {
+                            type: 3,
+                            custom_id: "tourney_leaderboards_track",
+                            options: track_selections,
+                            placeholder: "Select Track",
+                            min_values: 1,
+                            max_values: 1
+                        },
+                    ]
+                },
+                {
+                    type: 1,
+                    components: [
+                        {
+                            type: 3,
+                            custom_id: "tourney_leaderboards_conditions",
+                            options: cond_selections,
+                            placeholder: "Select Conditions",
+                            min_values: 0,
+                            max_values: cond_selections.length
+                        },
+                    ]
+                },
+                {
+                    type: 1,
+                    components: [
+                        {
+                            type: 3,
+                            custom_id: "tourney_leaderboards_pods",
+                            options: racer_selections,
+                            placeholder: "Select Pods",
+                            min_values: 0,
+                            max_values: racer_selections.length
+                        }
+                    ]
+                }
+            )
+
+            client.api.interactions(interaction.id, interaction.token).callback.post({
+                data: {
+                    type: type,
+                    data: {
+                        //content: "",
+                        embeds: [tourneyReport],
+                        components: components
+                    }
+                }
+            })
         } else if (args[0] == "rulesets") {
             var type = 7
             if (args.includes("initial")) {
@@ -664,7 +954,7 @@ module.exports = {
                                 custom_id: "tourney_rulesets_clone_" + interaction.data.values[0],
                             }
                         )
-                        if(interaction.member.user.id == ruleset.author){
+                        if (interaction.member.user.id == ruleset.author) {
                             buttons.push(
                                 {
                                     type: 2,
