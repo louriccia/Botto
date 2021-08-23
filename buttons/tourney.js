@@ -390,18 +390,15 @@ module.exports = {
                 }
             }
             if (conditions.length == 0) {
-                conditions = ["mu", "nu", "ft", "skips", "deaths", "deathless"]
+                conditions = ["mu", "nu", "muft", "skips", "deaths", "deathless"]
             }
             //prepare filters
             var forces = [], user = null, qual = false, deaths = []
-            if (conditions.includes("mu")) {
+            if (conditions.includes("muft")) {
                 forces.push("")
             }
             if (conditions.includes("nu")) {
                 forces.push("NU")
-            }
-            if (conditions.includes("ft")) {
-                forces.push("")
             }
             if (conditions.includes("skips")) {
                 forces.push("Skips")
@@ -420,7 +417,7 @@ module.exports = {
             }
             //account for missing values
             if (deaths.length == 0) { deaths.push(true, false), conditions.push("deaths", "deathless") }
-            if (forces.length == 0) { forces.push("", "NU", "Skips"), conditions.push("mu", "nu", "ft", "skips") }
+            if (forces.length == 0) { forces.push("", "NU", "Skips"), conditions.push("muft", "nu", "skips") }
             //get runs and apply filters
             var runs = []
             
@@ -434,7 +431,7 @@ module.exports = {
             runs = runs.filter(e => forces.includes(e.force))
             if (!deaths.includes(true)) {
                 runs = runs.filter(e => e.totaldeaths == 0)
-            } else if (!deaths.includes(true)) {
+            } else if (!deaths.includes(false)) {
                 runs = runs.filter(e => e.totaldeaths > 0)
             }
             if (pods.length > 0) {
@@ -524,7 +521,7 @@ module.exports = {
 
             //construct components
             var components = []
-            var cond = { mu: "Upgrades", nu: "No Upgrades", ft: "Full Track", skips: "Skips", deaths: "Deaths", deathless: "Deathless", qual: "Include Qualifying Runs", user: "My Runs Only" }
+            var cond = { muft: "Upgrades/Full Track", nu: "No Upgrades", skips: "Skips", deaths: "Deaths", deathless: "Deathless", qual: "Include Qualifying Runs", user: "My Runs Only" }
             var track_selections = []
             var racer_selections = []
             var cond_selections = []
