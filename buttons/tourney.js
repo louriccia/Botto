@@ -1162,7 +1162,7 @@ module.exports = {
                             type: "1v1",
                             name: interaction.member.user.username + "'s Unnamed 1v1 Ruleset",
                             author: interaction.member.user.id,
-                            wins: 5,
+                            wins: ["5_max"],
                             default: ["mu", "ft", "um", "l3"],
                             gents: "disallowed",
                             firstmethod: "poe",
