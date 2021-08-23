@@ -991,6 +991,16 @@ module.exports = {
                 var buttons = [
                     {
                         type: 2,
+                        label: "",
+                        emoji: {
+                            id: "854097998357987418",
+                            name: "refresh"
+                        },
+                        style: 2,
+                        custom_id: "tourney_rulesets_browse",
+                    },
+                    {
+                        type: 2,
                         label: "New",
                         style: 3,
                         custom_id: "tourney_rulesets_type",
