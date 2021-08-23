@@ -779,7 +779,7 @@ module.exports = {
                     field.name = ":trophy: Win Condition"
                     var winstuff = Object.values(ruleset.wins)
                     var winstring = []
-                    for(i = 0; i < winstuff; i++){
+                    for(i = 0; i < winstuff.length; i++){
                         if(winstuff[i].includes("_max")){
                             winstring.push("`" + winstuff[i].replace("_max", " Max Wins") + "`")
                         } else if(winstuff[i].includes("_min")){
