@@ -1191,7 +1191,6 @@ module.exports = {
                     }
                     tourney_rulesets.child("new").child(interaction.member.user.id).child(args[3]).set(data)
                 }
-                args[1] = "general"
                 var options = [
                     {
                         label: "General Settings",
@@ -1426,7 +1425,7 @@ module.exports = {
                             ]
                         }
                     )
-                } else if (args[1] == "firsttrack") {
+                } else if (args[2] == "firsttrack") {
                     var first_options = [
                         {
                             label: "Process of Elimination",
