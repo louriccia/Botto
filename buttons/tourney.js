@@ -438,7 +438,7 @@ module.exports = {
                 runs = runs.filter(e => e.totaldeaths > 0)
             }
             if (pods.length > 0) {
-                runs = runs.filter(e => pods.includes(e.pod))
+                runs = runs.filter(e => pods.includes(String(e.pod)))
             }
             if (user !== null) {
                 runs = runs.filter(e => tourney_participants_data[e.player].id == user)
