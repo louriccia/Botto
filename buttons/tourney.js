@@ -441,7 +441,7 @@ module.exports = {
                 runs = runs.filter(e => pods.includes(e.pod))
             }
             if (user !== null) {
-                runs = runs.filter(e => tourney_participants_data[e.player].id == player)
+                runs = runs.filter(e => tourney_participants_data[e.player].id == user)
             }
             if (qual === false) {
                 runs = runs.filter(e => tourney_matches_data[e.datetime].bracket !== "Qual")
