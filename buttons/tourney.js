@@ -509,7 +509,6 @@ module.exports = {
                             .addField(pos[0] + " " + tourney_participants_data[runs[i].player].name, tourney_tournaments_data[tourney_matches_data[runs[i].datetime].tourney].nickname + bracket + "\n[Race " + runs[i].race + opponent + "](" + link + ")", true)
                             .addField(tools.timefix(Number(runs[i].totaltime).toFixed(3)), " " + character + " " + forc + " " + deaths + characterban, true)
                             .addField('\u200B', '\u200B', true)
-                            .setDescription(desc.join(', ') + " `[" + runs.length + " Total Runs]`")
                         if (showall == false) { already.push(runs[i].player + runs[i].force) }
                         pos.splice(0, 1)
                         if (pos.length == 0) {
