@@ -622,7 +622,7 @@ module.exports = {
             }
 
             if (args[1] == "browse") {
-                rulesetEmbed.setTitle("Rulesets")
+                rulesetEmbed.setTitle(":scroll: Rulesets")
                     .setDescription("This is the tournament ruleset manager. Browse existing rulesets using the dropdown below or make your own by pressing the New button.")
                 var buttons = [
                     {

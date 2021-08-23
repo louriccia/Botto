@@ -1,50 +1,6 @@
 module.exports = {
     name: 'lookup',
     execute(client, interaction, args) {
-        function getRacer(input){
-            var numb = null
-            if(Number(input)<25 && Number(input) >= 0){
-                numb = Number(input)
-            } else {
-                for(let i = 0; i<racers.length; i++){
-                    if(input == racers[i].name.toLowerCase() || input == racers[i].name.toLowerCase().replace(/ /g, '')){
-                        numb = i
-                        i = racers.length
-                    }
-                    if(i<racers.length){
-                        racers[i].nickname.forEach(nick => {
-                            if(nick.toLowerCase() == input){
-                                numb = i
-                                i = racers.length
-                            }
-                        })  
-                    }
-                }
-            }
-            return numb
-        }
-        function getTrack(input){
-            var numb = null
-            if(Number(input)<25 && Number(input) >= 0){
-                numb = Number(input)
-            } else {
-                for(let i = 0; i<tracks.length; i++){
-                    if(input == tracks[i].name.toLowerCase() || input == tracks[i].name.toLowerCase().replace(/ /g, '')){
-                        numb = i
-                        i = tracks.length
-                    }
-                    if(i<tracks.length){
-                        tracks[i].nickname.forEach(nick => {
-                            if(nick.toLowerCase() == input){
-                                numb = i
-                                i = tracks.length
-                            }
-                        })    
-                    }
-                }
-            }
-            return numb
-        }
         const fetch = require('node-fetch');
         var tools = require('./../tools.js');
         const Discord = require('discord.js');
@@ -54,30 +10,7 @@ module.exports = {
             client.buttons.get("lookup").execute(client, interaction, ["racer", input, "initial"]);
         } else if(args[0].name=="track") {
             var input = args[0].options[0].value.toLowerCase()
-            var numb = getTrack(input)
-            if(numb == null){ 
-                client.api.interactions(interaction.id, interaction.token).callback.post({
-                    data: {
-                        type: 4,
-                        data: {
-                            content: "`Error: Track not found `\n" + errorMessage[Math.floor(Math.random()*errorMessage.length)],
-                            //embeds: [racerEmbed]
-                        }
-                    }
-                })
-            } else {
-                
-                client.api.interactions(interaction.id, interaction.token).callback.post({
-                    data: {
-                        type: 5,
-                        data: {
-                            content: "Coming right up..."
-                            //embeds: [racerEmbed]
-                        }
-                    }
-                })
-                tools.getTrackEmbed(numb, client, interaction.channel_id, interaction)
-            }
+            client.buttons.get("lookup").execute(client, interaction, ["track", input, "initial"]);
         } else if(args[0].name=="times") {
             if(args[0].options[0].name == "par_times"){
                 var input = args[0].options[0].options[0].value.toLowerCase()
