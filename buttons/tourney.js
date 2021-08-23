@@ -776,8 +776,21 @@ module.exports = {
                     var fields = []
                     //wins
                     var field = {}
-                    field.name = ":trophy: Wins"
-                    field.value = "`First to " + ruleset.wins + "`\n`Best of " + (ruleset.wins * 2 - 1) + "`"
+                    field.name = ":trophy: Win Condition"
+                    var winstuff = Object.values(ruleset.wins)
+                    var winstring = []
+                    for(i = 0; i < winstuff; i++){
+                        if(winstuff[i].includes("_max")){
+                            winstring.push("`" + winstuff[i].replace("_max", " Max Wins") + "`")
+                        } else if(winstuff[i].includes("_min")){
+                            winstring.push("`" + winstuff[i].replace("_min", " Minimum Wins") + "`")
+                        } else if(winstuff[i].includes("_row")){
+                            winstring.push("`" + winstuff[i].replace("_row", " Wins in a Row") + "`")
+                        } else if(winstuff[i].includes("_by")){
+                            winstring.push("`Win by " + winstuff[i].replace("_max", "") + "`")
+                        }
+                    }
+                    field.value = winstring.join(" and ")
                     field.inline = true
                     fields.push(field)
                     //default
@@ -793,8 +806,9 @@ module.exports = {
                     fields.push(field)
                     //gents
                     field = {}
+                    yesno = {disallowed: "Disallowed", allowed: "Allowed"}
                     field.name = ":tophat: Gentleman's Agreement"
-                    field.value = "`" + ruleset.gents + "`"
+                    field.value = "`" + yesno[ruleset.gents] + "`"
                     field.inline = true
                     fields.push(field)
                     //first track
@@ -858,8 +872,8 @@ module.exports = {
                         field = {}
                         field.name = ":repeat: Repeat Tracks"
                         field.value = "`" + methods[ruleset.dupecondition] + "`\n"
+                        field.value += "`" + methods[ruleset.dupestyle] + "`\n"
                         field.value += "`" + ruleset.dupelimit + " Per Player Per Match`"
-                        field.value += "`" + methods[ruleset.dupestyle] + "`"
                         field.inline = true
                         fields.push(field)
                     }
@@ -1063,7 +1077,7 @@ module.exports = {
                     {
                         label: "1v1",
                         value: "1v1",
-                        description: "Players face off until one reaches the win limit"
+                        description: "Players face off until one satisfies the win conditions"
                     },
                     {
                         label: "1vAll",
@@ -1199,7 +1213,7 @@ module.exports = {
                     args[2] = interaction.data.values[0]
                 } else if (![undefined, "initial", "rename", "save"].includes(args[3])) {
                     var data = interaction.data.values
-                    if (!["default", "firsttrack", "podpods", "tracktracks", "conoptions", "ttrackmlimit", "tpodmlimit", "tconmlimit"].includes(args[3])) {
+                    if (!["default", "firsttrack", "podpods", "tracktracks", "conoptions", "ttrackmlimit", "tpodmlimit", "tconmlimit", "wins"].includes(args[3])) {
                         data = interaction.data.values[0]
                     }
                     tourney_rulesets.child("new").child(interaction.member.user.id).child(args[3]).set(data)
@@ -1317,17 +1331,32 @@ module.exports = {
 
                 if (args[2] == "general") {
                     var win_options = []
-                    for (i = 2; i < 14; i++) {
+                    for (i = 2; i < 8; i++) {
                         win_options.push(
                             {
-                                label: "First to " + i + " Wins",
-                                value: i,
-                                description: "Best of " + (i * 2 - 1)
+                                label: i + " Wins Max",
+                                value: i + "_max",
+                                description: "if no other condition is met, fist to " + i + " wins the match"
+                            },
+                            {
+                                label: i + " Wins Minimum",
+                                value: i + "_min",
+                                description: "in addition to other conditions, at least " + i + " is required to win"
+                            },
+                            {
+                                label: i + " Wins in a Row",
+                                value: i + "_row",
+                                description: "winner must get " + i + " sequential wins"
+                            },
+                            {
+                                label: "Win by " + i,
+                                value: i + "_by",
+                                description: "winner must exceed opponent's score by " + i
                             }
                         )
                     }
                     for (i = 0; i < win_options.length; i++) {
-                        if (win_options[i].value == tourney_rulesets_data.new[interaction.member.user.id].wins) {
+                        if (Object.values(tourney_rulesets_data.new[interaction.member.user.id].wins).includes(win_options[i].value)) {
                             win_options[i].default = true
                         }
                     }
@@ -1405,9 +1434,9 @@ module.exports = {
                                     type: 3,
                                     custom_id: "tourney_rulesets_new_general_wins",
                                     options: win_options,
-                                    placeholder: "Set Win Limit",
+                                    placeholder: "Set Win Conditions",
                                     min_values: 1,
-                                    max_values: 1
+                                    max_values: 3
                                 }
                             ]
                         },
@@ -1453,12 +1482,12 @@ module.exports = {
                         {
                             label: "Lower Rated",
                             value: "lower",
-                            description: "The lower rated player gets to pick the first track"
+                            description: "the lower rated player gets to pick the first track"
                         },
                         {
                             label: "Higher Rated",
                             value: "higher",
-                            description: "The higher rated player gets to pick the first track"
+                            description: "the higher rated player gets to pick the first track"
                         },
                         {
                             label: "Random",
@@ -1715,7 +1744,7 @@ module.exports = {
                     }
                     var match_limits = [
                         {
-                            label: "No Match Limit",
+                            label: "Unlimited",
                             value: "no_limit",
                             description: "Players always have the max number of bans to use for each race"
                         },
@@ -1733,7 +1762,7 @@ module.exports = {
                     for (i = 1; i < 6; i++) {
                         var limit = {
                             label: i + " Per Player Per Match",
-                            value: i
+                            value: String(i)
                         }
                         match_limits.push(limit)
                     }
@@ -1884,7 +1913,7 @@ module.exports = {
                         {
                             label: "Salty Runback",
                             value: "salty_runback",
-                            description: "players can runback a track only if they haven’t won"
+                            description: "players can repeat a track only if they haven’t won"
                         },
                         {
                             label: "Saltier Runback",
