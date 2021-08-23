@@ -938,13 +938,13 @@ module.exports = {
                 var key = args.slice(2).join("_")
                 var ruleset = tourney_rulesets_data.saved[key]
                 ruleset.edit = key
-                tourney_rulesets.child(interaction.member.user.id).set(ruleset)
+                tourney_rulesets.child("new").child(interaction.member.user.id).set(ruleset)
                 args[1] = "new"
                 args[2] = "general"
             } else if (args[1] == "clone"){
                 var key = args.slice(2).join("_")
                 var ruleset = tourney_rulesets_data.saved[key]
-                tourney_rulesets.child(interaction.member.user.id).set(ruleset)
+                tourney_rulesets.child("new").child(interaction.member.user.id).set(ruleset)
                 args[1] = "new"
                 args[2] = "general"
             } else if (args[1] == "delete"){
@@ -1141,12 +1141,6 @@ module.exports = {
                                 style: 3,
                                 custom_id: "tourney_rulesets_new_create",
                                 disabled: !create
-                            },
-                            {
-                                type: 2,
-                                label: "Cancel",
-                                style: 4,
-                                custom_id: "tourney_rulesets_browse",
                             }
                         ]
                     }
