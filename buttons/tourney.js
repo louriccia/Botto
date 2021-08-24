@@ -2632,9 +2632,9 @@ module.exports = {
                             }
                         )
                     }
-                    for (i = 0; i < win_options.length; i++) {
-                        if (Object.values(tourney_rulesets_data.new[interaction.member.user.id].wins).includes(win_options[i].value)) {
-                            win_options[i].default = true
+                    for (i = 0; i < race_options.length; i++) {
+                        if (tourney_rulesets_data.new[interaction.member.user.id].racenum == String(race_options[i].value)) {
+                            race_options[i].default = true
                         }
                     }
                     var methods = [
