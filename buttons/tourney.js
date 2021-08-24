@@ -1345,7 +1345,7 @@ module.exports = {
                     args[2] = interaction.data.values[0]
                 } else if (![undefined, "initial", "rename", "save"].includes(args[3])) {
                     var data = interaction.data.values
-                    if(args[2].contains("race")){
+                    if(args[2].includes("race")){
                         
                         var race = Number(args[2].replace("race", "")) -1 
                         var races = tourney_rulesets_data.new[interaction.member.user.id].races
