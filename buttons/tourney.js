@@ -1270,6 +1270,7 @@ module.exports = {
                             podchoice: "player_pick",
                             races: []
                         }
+                        args[2] = "qual"
                     } else if (ruleset_type == "1v1") {
                         ruleset = {
                             type: "1v1",
@@ -1309,6 +1310,7 @@ module.exports = {
                             rndlimited: 2,
                             poollimit: 1
                         }
+                        args[2] = "general"
                     } if (ruleset_type == "1vall") {
                         ruleset = {
                             type: "1vall",
@@ -1326,11 +1328,12 @@ module.exports = {
                                 }
                             )
                         }
+                        args[2] = "1vall"
                     } //if (ruleset_type == "team") {}
                     if (ruleset !== {}) {
                         tourney_rulesets.child("new").child(interaction.member.user.id).set(ruleset)
                     }
-                    args[2] = "general"
+                    
                 }
 
                 if (args[2] == "navigate") {
