@@ -630,99 +630,121 @@ module.exports = {
                 .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/crossed-swords_2694-fe0f.png")
 
             function showRuleset(ruleset) {
+                var conditions = {
+                    mu: "Max Upgrades",
+                    nu: "No Upgrades",
+                    ft: "Full Track",
+                    sk: "Skips",
+                    pb: "Pod Ban",
+                    pc: "Pod Choice",
+                    um: "Unmirrored",
+                    mi: "Mirrored",
+                    l1: "1 Lap",
+                    l2: "2 Laps",
+                    l3: "3 Laps",
+                    l4: "4 Laps",
+                    l5: "5 Laps"
+                }
+
+                var methods = {
+                    poe: "Process of Elimination",
+                    chance_cube: "Chance Cube",
+                    random: "Random",
+                    player_pick: "Player's Pick",
+                    disabled: "Disabled",
+                    winners_pick: "Winner's Pick",
+                    losers_pick: "Loser's Pick",
+                    salty_runback: "Salty Runback",
+                    saltier_runback: "Saltier Runback",
+                    saltiest_runback: "Saltiest Runback",
+                    any: "Any Condition",
+                    random_mirrored: "Random Mirrored",
+                    limited_choice: "Limited Choice",
+                    random_limited_choice: "Random Limited Choice",
+                    pod_pool: "Pod Pool",
+                    winners_either: "Winner's Either/Or",
+                    losers_either: "Loser's Either/Or",
+                    win: "Earned via Win",
+                    loss: "Earned via Loss",
+                    either_or: "Either/Or",
+                    no_limit: "No Match Limit",
+                    lower: "Lower Rated",
+                    higher: "Higher Rated",
+                    default_repeat: "Default Repeat",
+                    soft_repeat: "Soft Repeat",
+                    hard_repeat: "Hard Repeat",
+                    favorite: "Track Favorite",
+                    random_tier: "Random by Tier"
+                }
+
+                var permabans = [
+                    {
+                        name: "Pod",
+                        command: "permapodban",
+                        method: "ppodmethod",
+                        limit: "ppodlimit"
+                    },
+                    {
+                        name: "Track",
+                        command: "permatrackban",
+                        method: "ptrackmethod",
+                        limit: "ptracklimit"
+                    },
+                    {
+                        name: "Condition",
+                        command: "permaconban",
+                        method: "pconmethod",
+                        limit: "pconlimit"
+                    }
+                ]
+
+                var tempbans = [
+                    {
+                        name: "Pod",
+                        command: "temppodban",
+                        method: "tpodmethod",
+                        limit: "tpodlimit",
+                        mlimit: "tpodmlimit"
+                    },
+                    {
+                        name: "Track",
+                        command: "temptrackban",
+                        method: "ttrackmethod",
+                        limit: "ttracklimit",
+                        mlimit: "ttrackmlimit"
+                    },
+                    {
+                        name: "Condition",
+                        command: "tempconban",
+                        method: "tconmethod",
+                        limit: "tconlimit",
+                        mlimit: "tconmlimit"
+                    }
+                ]
+                function podSelection(collection){
+                    var result = null
+                    if (collection.length == 23) {
+                        result = "`Any Pod`"
+                    } else {
+                        var pods = []
+                        var missing_pods = []
+                        for (i = 0; i < 23; i++) {
+                            if (collection.includes(String(i))) {
+                                pods.push(racers[i].flag)
+                            } else {
+                                missing_pods.push("No " + racers[i].flag)
+                            }
+                        }
+                        if (missing_pods.length < pods.length) {
+                            result = missing_pods.join(", ")
+                        } else {
+                            result = pods.join("")
+                        }
+                    }
+                    return result
+                }
                 if (ruleset.type == "1v1") {
-                    var conditions = {
-                        mu: "Max Upgrades",
-                        nu: "No Upgrades",
-                        ft: "Full Track",
-                        sk: "Skips",
-                        pb: "Pod Ban",
-                        pc: "Pod Choice",
-                        um: "Unmirrored",
-                        mi: "Mirrored",
-                        l1: "1 Lap",
-                        l2: "2 Laps",
-                        l3: "3 Laps",
-                        l4: "4 Laps",
-                        l5: "5 Laps"
-                    }
-
-                    var methods = {
-                        poe: "Process of Elimination",
-                        chance_cube: "Chance Cube",
-                        random: "Random",
-                        player_pick: "Player's Pick",
-                        disabled: "Disabled",
-                        winners_pick: "Winner's Pick",
-                        losers_pick: "Loser's Pick",
-                        salty_runback: "Salty Runback",
-                        saltier_runback: "Saltier Runback",
-                        saltiest_runback: "Saltiest Runback",
-                        any: "Any Condition",
-                        random_mirrored: "Random Mirrored",
-                        limited_choice: "Limited Choice",
-                        random_limited_choice: "Random Limited Choice",
-                        pod_pool: "Pod Pool",
-                        winners_either: "Winner's Either/Or",
-                        losers_either: "Loser's Either/Or",
-                        win: "Earned via Win",
-                        loss: "Earned via Loss",
-                        either_or: "Either/Or",
-                        no_limit: "No Match Limit",
-                        lower: "Lower Rated",
-                        higher: "Higher Rated",
-                        default_repeat: "Default Repeat",
-                        soft_repeat: "Soft Repeat",
-                        hard_repeat: "Hard Repeat",
-                        favorite: "Track Favorite",
-                        random_tier: "Random by Tier"
-                    }
-
-                    var permabans = [
-                        {
-                            name: "Pod",
-                            command: "permapodban",
-                            method: "ppodmethod",
-                            limit: "ppodlimit"
-                        },
-                        {
-                            name: "Track",
-                            command: "permatrackban",
-                            method: "ptrackmethod",
-                            limit: "ptracklimit"
-                        },
-                        {
-                            name: "Condition",
-                            command: "permaconban",
-                            method: "pconmethod",
-                            limit: "pconlimit"
-                        }
-                    ]
-
-                    var tempbans = [
-                        {
-                            name: "Pod",
-                            command: "temppodban",
-                            method: "tpodmethod",
-                            limit: "tpodlimit",
-                            mlimit: "tpodmlimit"
-                        },
-                        {
-                            name: "Track",
-                            command: "temptrackban",
-                            method: "ttrackmethod",
-                            limit: "ttracklimit",
-                            mlimit: "ttrackmlimit"
-                        },
-                        {
-                            name: "Condition",
-                            command: "tempconban",
-                            method: "tconmethod",
-                            limit: "tconlimit",
-                            mlimit: "tconmlimit"
-                        }
-                    ]
-
+                
                     function trackSelection(collection) {
                         var amc = 0, spc = 0, gal = 0, inv = 0
                         var result = ""
@@ -790,7 +812,7 @@ module.exports = {
                             winstring.push("`Win by " + winstuff[i].replace("_by", "") + "`")
                         }
                     }
-                    field.value = winstring.join(" and ")
+                    field.value = winstring.join(" ")
                     field.inline = true
                     fields.push(field)
                     //default
@@ -931,6 +953,41 @@ module.exports = {
                     fields.push(field)
                     //construct fields
                     return fields
+                } else if (ruleset.type == "1vall"){
+                    var fields = []
+                    var ruleset = tourney_rulesets_data.new[interaction.member.user.id]
+                    //races
+                    var field = {}
+                    field.name = ":checkered_flag: Races"
+                    field.value = "`" + ruleset.racenum + "`"
+                    field.inline = true
+                    fields.push(field)
+                    //pod selection
+                    field = {}
+                    field.name = "<:Pod1:525755322355417127> Pod Selection"
+                    field.value = "`" + methods[ruleset.podmethod] + "`\n"
+                    if (ruleset.podmethod == "pod_pool") {
+                        field.value += "`" + ruleset.poollimit + " Uses Per Pod`"
+                    }
+                    field.inline = true
+                    fields.push(field)
+                    //races
+                    for(i = 0; i < ruleset.racenum; i++){
+                        field = {}
+                        field.name = ":triangular_flag_on_post: Race " + (i+1)
+                        field.value = "Track: `" + tracks[Number(ruleset.races[i].track)].name + "`\n"
+                        var cons = []
+                        for(j = 0; j < cons.length; j++){
+                            cons.push("`" + conditions[ruleset.races[i].conditions[j]] + "`")
+                        }
+                        field.value += "Conditions: " + cons.join(" ")
+                        if(["player_pick", "limited_choice"].includes(tourney_rulesets_data.new[interaction.member.user.id].podmethod)){
+                            field.value += "Pods: " + podSelection(ruleset.races[i].pods)
+                        }
+                        fields.push(field)
+                    }
+                    //construct fields
+                    return fields
                 }
             }
 
@@ -979,12 +1036,12 @@ module.exports = {
                     })
                     return
                 } else {
-                var key = args.slice(2).join("_")
-                tourney_rulesets.child("saved").child(key).remove()
-                args[1] = "browse"
+                    var key = args.slice(2).join("_")
+                    tourney_rulesets.child("saved").child(key).remove()
+                    args[1] = "browse"
                 }
             }
-            if(args[1] == "refresh"){
+            if (args[1] == "refresh") {
                 args[1] = "browse"
             }
             if (args[1] == "browse") {
@@ -1016,7 +1073,7 @@ module.exports = {
                         var r = {
                             label: tourney_rulesets_data.saved[s].name,
                             value: s,
-                            description: tourney_rulesets_data.saved[s].type + " Ruleset by " + client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.username,
+                            description: tourney_rulesets_data.saved[s].type + " Ruleset by " + client.guilds.resolve(interaction.guild_id).members.resolve(tourney_rulesets_data.saved[s].author).user.username,
                         }
                         if (interaction.data.hasOwnProperty("values")) {
                             if (r.value == interaction.data.values[0]) {
@@ -1210,7 +1267,7 @@ module.exports = {
                     if (ruleset_type == "qual") {
                         ruleset = {
                             type: "qual",
-                            podchoice: "player_choice",
+                            podchoice: "player_pick",
                             races: []
                         }
                     } else if (ruleset_type == "1v1") {
@@ -1254,9 +1311,20 @@ module.exports = {
                         }
                     } if (ruleset_type == "1vall") {
                         ruleset = {
-                            type: "qual",
-                            podchoice: "player_choice",
+                            type: "1vall",
+                            podchoice: "player_pick",
+                            poollimit: 1,
+                            racenum: 7,
                             races: []
+                        }
+                        for(i = 0; i < 14; i++){
+                            ruleset.races.push(
+                                {
+                                    track: String(i),
+                                    conditions: ["mu", "ft", "um", "l3"],
+                                    pods: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22"]
+                                }
+                            )
                         }
                     } //if (ruleset_type == "team") {}
                     if (ruleset !== {}) {
@@ -1274,110 +1342,151 @@ module.exports = {
                     }
                     tourney_rulesets.child("new").child(interaction.member.user.id).child(args[3]).set(data)
                 }
-                var options = [
-                    {
-                        label: "General Settings",
-                        value: "general",
-                        emoji: { name: "🔷" },
-                        description: "set win limit, default conditions, and gentleman's agreement",
-                    },
-                    {
-                        label: "First Track",
-                        value: "firsttrack",
-                        emoji: { name: "🏁" },
-                        description: "configure how the first track is determined",
-                    },
-                    {
-                        label: "Pod Permaban",
-                        value: "permapodban",
-                        emoji: { name: "🚫" },
-                        description: "set permanent pod ban options",
-                    },
-                    {
-                        label: "Track Permaban",
-                        value: "permatrackban",
-                        emoji: { name: "🚫" },
-                        description: "set permanent track ban options",
-                    },
-                    {
-                        label: "Condition Permaban",
-                        value: "permaconban",
-                        emoji: { name: "🚫" },
-                        description: "set permanent condition ban options",
-                    },
-                    {
-                        label: "Pod Tempban",
-                        value: "temppodban",
-                        emoji: { name: "❌" },
-                        description: "set temporary pod ban options",
-                    },
-                    {
-                        label: "Track Tempban",
-                        value: "temptrackban",
-                        emoji: { name: "❌" },
-                        description: "set temporary track ban options",
-                    },
-                    {
-                        label: "Condition Tempban",
-                        value: "tempconban",
-                        emoji: { name: "❌" },
-                        description: "set temporary condition ban options",
-                    },
-                    {
-                        label: "Track Selection",
-                        value: "trackselect",
-                        emoji: { name: "🚩" },
-                        description: "configure how tracks are selected",
-                    },
-                    {
-                        label: "Repeat Tracks",
-                        value: "trackdup",
-                        emoji: { name: "🔁" },
-                        description: "set repeat track options",
-                    },
-                    {
-                        label: "Conditions",
-                        value: "trackcon",
-                        emoji: { name: "*️⃣" },
-                        description: "configure track condition options",
-                    },
-                    {
-                        label: "Pod Selection",
-                        value: "podselect",
-                        emoji: { name: "Pod1", id: "525755322355417127" },
-                        description: "configure how pods are selected",
-                    },
-                    {
-                        label: "Name and Save",
-                        value: "finalize",
-                        emoji: { name: "✅" },
-                        description: "finalize ruleset and submit changes",
+
+                var ruleset = tourney_rulesets_data.new[interaction.member.user.id]
+
+                if (ruleset.type == "1v1") {
+                    var options = [
+                        {
+                            label: "General Settings",
+                            value: "general",
+                            emoji: { name: "🔷" },
+                            description: "set win limit, default conditions, and gentleman's agreement",
+                        },
+                        {
+                            label: "First Track",
+                            value: "firsttrack",
+                            emoji: { name: "🏁" },
+                            description: "configure how the first track is determined",
+                        },
+                        {
+                            label: "Pod Permaban",
+                            value: "permapodban",
+                            emoji: { name: "🚫" },
+                            description: "set permanent pod ban options",
+                        },
+                        {
+                            label: "Track Permaban",
+                            value: "permatrackban",
+                            emoji: { name: "🚫" },
+                            description: "set permanent track ban options",
+                        },
+                        {
+                            label: "Condition Permaban",
+                            value: "permaconban",
+                            emoji: { name: "🚫" },
+                            description: "set permanent condition ban options",
+                        },
+                        {
+                            label: "Pod Tempban",
+                            value: "temppodban",
+                            emoji: { name: "❌" },
+                            description: "set temporary pod ban options",
+                        },
+                        {
+                            label: "Track Tempban",
+                            value: "temptrackban",
+                            emoji: { name: "❌" },
+                            description: "set temporary track ban options",
+                        },
+                        {
+                            label: "Condition Tempban",
+                            value: "tempconban",
+                            emoji: { name: "❌" },
+                            description: "set temporary condition ban options",
+                        },
+                        {
+                            label: "Track Selection",
+                            value: "trackselect",
+                            emoji: { name: "🚩" },
+                            description: "configure how tracks are selected",
+                        },
+                        {
+                            label: "Repeat Tracks",
+                            value: "trackdup",
+                            emoji: { name: "🔁" },
+                            description: "set repeat track options",
+                        },
+                        {
+                            label: "Conditions",
+                            value: "trackcon",
+                            emoji: { name: "*️⃣" },
+                            description: "configure track condition options",
+                        },
+                        {
+                            label: "Pod Selection",
+                            value: "podselect",
+                            emoji: { name: "Pod1", id: "525755322355417127" },
+                            description: "configure how pods are selected",
+                        },
+                        {
+                            label: "Name and Save",
+                            value: "finalize",
+                            emoji: { name: "✅" },
+                            description: "finalize ruleset and submit changes",
+                        }
+                    ]
+                    for (i = 0; i < options.length; i++) {
+                        if (args[2] == options[i].value) {
+                            options[i].default = true
+                        }
                     }
-                ]
-                for (i = 0; i < options.length; i++) {
-                    if (args[2] == options[i].value) {
-                        options[i].default = true
+                    components.push({
+                        type: 1,
+                        components: [
+                            {
+                                type: 3,
+                                custom_id: "tourney_rulesets_new_navigate",
+                                options: options,
+                                placeholder: "Settings",
+                                min_values: 1,
+                                max_values: 1
+                            }
+                        ]
+                    })
+                } else if (ruleset.type == "1vall") {
+                    var options = [
+                        {
+                            label: "General Settings",
+                            value: "1vall",
+                            emoji: { name: "🔷" },
+                            description: "set number of races and pod selection options",
+                        }
+                    ]
+                    for (i = 0; i < Number(tourney_rulesets_data.new[interaction.member.user.id].racenum); i++) {
+                        options.push(
+                            {
+                                label: "Race " + i,
+                                value: "race" + i,
+                                emoji: { name: "🏁" },
+                                description: "set race " + i + " options",
+                            }
+                        )
                     }
+                    for (i = 0; i < options.length; i++) {
+                        if (args[2] == options[i].value) {
+                            options[i].default = true
+                        }
+                    }
+                    components.push({
+                        type: 1,
+                        components: [
+                            {
+                                type: 3,
+                                custom_id: "tourney_rulesets_new_navigate",
+                                options: options,
+                                placeholder: "Settings",
+                                min_values: 1,
+                                max_values: 1
+                            }
+                        ]
+                    })
                 }
+
 
                 rulesetEmbed
                     .setTitle(tourney_rulesets_data.new[interaction.member.user.id].name)
                     .setFooter(interaction.member.user.username, client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
-
-                components.push({
-                    type: 1,
-                    components: [
-                        {
-                            type: 3,
-                            custom_id: "tourney_rulesets_new_navigate",
-                            options: options,
-                            placeholder: "Settings",
-                            min_values: 1,
-                            max_values: 1
-                        }
-                    ]
-                })
-
 
                 if (![null, undefined].includes(tourney_rulesets_data)) {
                     if (![null, undefined].includes(tourney_rulesets_data.new)) {
@@ -2507,20 +2616,244 @@ module.exports = {
                 } else if (args[2] == "qual") {
                     //pod select
                     //add race
-                    //track
-                    //conditions
+
                     //time limit
                     //penalty time
                 } else if (args[2] == "1vall") {
-                    //pod select
-                    //add race
-                    //track
-                    //conditions
+                    var race_options = []
+                    for (i = 3; i < 14; i++) {
+                        race_options.push(
+                            {
+                                label: i + " Races",
+                                value: i
+                            }
+                        )
+                    }
+                    for (i = 0; i < win_options.length; i++) {
+                        if (Object.values(tourney_rulesets_data.new[interaction.member.user.id].wins).includes(win_options[i].value)) {
+                            win_options[i].default = true
+                        }
+                    }
+                    var methods = [
+                        {
+                            label: "Player's Pick",
+                            value: "player_pick",
+                            description: "Players get to pick their own pods for each race"
+                        },
+                        {
+                            label: "Limited Choice",
+                            value: "limited_choice",
+                            description: "players choose their pod from a limited predetermined selection of pods"
+                        },
+                        {
+                            label: "Pod Pool",
+                            value: "pod_pool",
+                            description: "players can only use each pod a limited number of times"
+                        },
+                        {
+                            label: "Track Favorite",
+                            value: "favorite",
+                            description: "players must use the favorite of the selected track for each race"
+                        }
+                    ]
+                    for (i = 0; i < methods.length; i++) {
+                        if (methods[i].value == tourney_rulesets_data.new[interaction.member.user.id].podmethod) {
+                            methods[i].default = true
+                        }
+                    }
+                    components.push(
+                        {
+                            type: 1,
+                            components: [
+                                {
+                                    type: 3,
+                                    custom_id: "tourney_rulesets_new_1vall_races",
+                                    options: race_options,
+                                    placeholder: "Number of Races",
+                                    min_values: 1,
+                                    max_values: 1
+                                }
+                            ]
+                        },
+                        {
+                            type: 1,
+                            components: [
+                                {
+                                    type: 3,
+                                    custom_id: "tourney_rulesets_new_1vall_podmethod",
+                                    options: methods,
+                                    placeholder: "Pod Selection Method",
+                                    min_values: 1,
+                                    max_values: 1
+                                }
+                            ]
+                        }
+                    )
+                    if (tourney_rulesets_data.new[interaction.member.user.id].podmethod == "pod_pool") {
+                        var limits = []
+                        for (i = 1; i < 6; i++) {
+                            var limit = {
+                                label: i + " Use(s) Per Pod",
+                                value: i
+                            }
+                            if (limit.value == tourney_rulesets_data.new[interaction.member.user.id].poollimit) {
+                                limit.default = true
+                            }
+                            limits.push(limit)
+                        }
+                        components.push(
+                            {
+                                type: 1,
+                                components: [
+                                    {
+                                        type: 3,
+                                        custom_id: "tourney_rulesets_new_podselect_poollimit",
+                                        options: limits,
+                                        placeholder: "Pod Pool Use Limit",
+                                        min_values: 1,
+                                        max_values: 1
+                                    }
+                                ]
+
+                            }
+                        )
+                    }
+                } else if (args[2].contains("race")) {
+                    var race_num = Number(args[2].replace("race", "")) - 1
+                    var races = Object.values(tourney_rulesets_data.new[interaction.member.user.id].races)
+
+                    var track_options = []
+                    for (var i = 0; i < 25; i++) {
+                        var track_option = {
+                            label: tracks[i].name,
+                            value: i,
+                            description: (circuits[tracks[i].circuit].name + " Circuit | Race " + tracks[i].cirnum + " | " + planets[tracks[i].planet].name).substring(0, 50),
+                            emoji: {
+                                name: planets[tracks[i].planet].emoji.split(":")[1],
+                                id: planets[tracks[i].planet].emoji.split(":")[2].replace(">", "")
+                            }
+                        }
+                        if (races[race_num].track == track_option.value) {
+                            track_option.default = true
+                        }
+                        track_options.push(track_option)
+                    }
+                    var conoptions = [
+                        {
+                            label: "Full Track",
+                            value: "ft"
+                        },
+                        {
+                            label: "Skips",
+                            value: "sk"
+                        },
+                        {
+                            label: "Max Upgrades",
+                            value: "mu"
+                        },
+                        {
+                            label: "No Upgrades",
+                            value: "nu"
+                        },
+                        {
+                            label: "Unmirrored",
+                            value: "um"
+                        },
+                        {
+                            label: "Mirrored",
+                            value: "mi"
+                        },
+                        {
+                            label: "1 Lap",
+                            value: "l1"
+                        },
+                        {
+                            label: "2 Lap",
+                            value: "l2"
+                        },
+                        {
+                            label: "3 Lap",
+                            value: "l3"
+                        },
+                        {
+                            label: "4 Lap",
+                            value: "l4"
+                        },
+                        {
+                            label: "5 Lap",
+                            value: "l5"
+                        }
+                    ]
+                    for (i = 0; i < conoptions.length; i++) {
+                        if (races[race_num].conditions.includes(conoptions[i].value)) {
+                            conoptions[i].default = true
+                        }
+                    }
+                    var pod_options = []
+                    for (var i = 0; i < 23; i++) {
+                        var racer_option = {
+                            label: racers[i].name,
+                            value: i,
+                            description: racers[i].pod.substring(0, 50),
+                            emoji: {
+                                name: racers[i].flag.split(":")[1],
+                                id: racers[i].flag.split(":")[2].replace(">", "")
+                            }
+                        }
+                        if (races[race_num].pods.includes(String(racer_option.value))) {
+                            racer_option.default = true
+                        }
+                        pod_options.push(racer_option)
+                    }
+                    components.push(
+                        {
+                            type: 1,
+                            components: [
+                                {
+                                    type: 3,
+                                    custom_id: "tourney_rulesets_new_" + args[2] + "_track",
+                                    options: track_options,
+                                    placeholder: "Select Track",
+                                    min_values: 1,
+                                    max_values: 1
+                                }
+                            ]
+                        },
+                        {
+                            type: 1,
+                            components: [
+                                {
+                                    type: 3,
+                                    custom_id: "tourney_rulesets_new_" + args[2] + "_conditions",
+                                    options: conoptions,
+                                    placeholder: "Track Conditions",
+                                    min_values: 4,
+                                    max_values: 4
+                                }
+                            ]
+                        }
+                    )
+                    if(["player_pick", "limited_choice"].includes(tourney_rulesets_data.new[interaction.member.user.id].podmethod)){
+                        components.push(
+                            {
+                                type: 1,
+                                components: [
+                                    {
+                                        type: 3,
+                                        custom_id: "tourney_rulesets_new_" + args[2] + "_pods",
+                                        options: methods,
+                                        placeholder: "Pod Selection Method",
+                                        min_values: 1,
+                                        max_values: 1
+                                    }
+                                ]
+                            }
+                        )
+                    }
+                   
+                    //time limit
+                    //penalty time
                 }
-            } else if (args[1] == "clone") {
-
-            } else if (args[1] == "delete") {
-
             }
 
             client.api.interactions(interaction.id, interaction.token).callback.post({
