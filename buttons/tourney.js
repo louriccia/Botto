@@ -1343,7 +1343,7 @@ module.exports = {
 
                 if (args[2] == "navigate") {
                     args[2] = interaction.data.values[0]
-                } else if (![undefined, "initial", "rename", "save"].includes(args[3])) {
+                } else if (![undefined, "initial", "rename", "save", "races"].includes(args[3])) {
                     var data = interaction.data.values
                     if(args[2].includes("race")){
                         
