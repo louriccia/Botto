@@ -982,7 +982,7 @@ module.exports = {
                         for(j = 0; j < ruleset.races[i].conditions.length; j++){
                             cons.push("`" + conditions[ruleset.races[i].conditions[j]] + "`")
                         }
-                        field.value += "Conditions: " + cons.join(" ")
+                        field.value += "Conditions: " + cons.join(" ") + "\n"
                         if(["player_pick", "limited_choice"].includes(tourney_rulesets_data.new[interaction.member.user.id].podchoice)){
                             field.value += "Pods: " + podSelection(ruleset.races[i].pods)
                         }
@@ -1345,10 +1345,25 @@ module.exports = {
                     args[2] = interaction.data.values[0]
                 } else if (![undefined, "initial", "rename", "save"].includes(args[3])) {
                     var data = interaction.data.values
-                    if (!["default", "firsttrack", "podpods", "tracktracks", "conoptions", "ttrackmlimit", "tpodmlimit", "tconmlimit", "wins"].includes(args[3])) {
-                        data = interaction.data.values[0]
+                    if(args[2].contains("race")){
+                        
+                        var race = Number(args[2].replace("race", "")) -1 
+                        var races = tourney_rulesets_data.new[interaction.member.user.id].races
+                        if(args[3] == "track"){
+                            data = interaction.data.values[0]
+                            races[race].track = data
+                        } else if(args[3] == "conditions"){
+                            races[race].conditions = data
+                        } else if(args[3] == "pods"){
+                            races[race].pods = data
+                        }
+                        tourney_rulesets.child("new").child(interaction.member.user.id).child(races).update(races)
+                    } else {
+                        if (!["default", "firsttrack", "podpods", "tracktracks", "conoptions", "ttrackmlimit", "tpodmlimit", "tconmlimit", "wins"].includes(args[3])) {
+                            data = interaction.data.values[0]
+                        }
+                        tourney_rulesets.child("new").child(interaction.member.user.id).child(args[3]).set(data)
                     }
-                    tourney_rulesets.child("new").child(interaction.member.user.id).child(args[3]).set(data)
                 }
 
                 var ruleset = tourney_rulesets_data.new[interaction.member.user.id]
@@ -1467,10 +1482,18 @@ module.exports = {
                                 label: "Race " + (i+1),
                                 value: "race" + (i + 1),
                                 emoji: { name: "🏁" },
-                                description: "set race " + i + " options",
+                                description: "set race " + (i+1) + " options",
                             }
                         )
                     }
+                    options.push(
+                        {
+                            label: "Name and Save",
+                            value: "finalize",
+                            emoji: { name: "✅" },
+                            description: "finalize ruleset and submit changes",
+                        }
+                    )
                     for (i = 0; i < options.length; i++) {
                         if (args[2] == options[i].value) {
                             options[i].default = true
@@ -2726,7 +2749,7 @@ module.exports = {
                             }
                         )
                     }
-                } else if (args[2].contains("race")) {
+                } else if (args[2].includes("race")) {
                     var race_num = Number(args[2].replace("race", "")) - 1
                     var races = Object.values(tourney_rulesets_data.new[interaction.member.user.id].races)
 
