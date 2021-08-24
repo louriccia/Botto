@@ -954,6 +954,8 @@ module.exports = {
                     //construct fields
                     return fields
                 } else if (ruleset.type == "1vall"){
+                    rulesetEmbed
+                        .setDescription("Ruleset Type: 1vAll")
                     var fields = []
                     var ruleset = tourney_rulesets_data.new[interaction.member.user.id]
                     //races
@@ -965,8 +967,8 @@ module.exports = {
                     //pod selection
                     field = {}
                     field.name = "<:Pod1:525755322355417127> Pod Selection"
-                    field.value = "`" + methods[ruleset.podmethod] + "`\n"
-                    if (ruleset.podmethod == "pod_pool") {
+                    field.value = "`" + methods[ruleset.podchoice] + "`\n"
+                    if (ruleset.podchoice == "pod_pool") {
                         field.value += "`" + ruleset.poollimit + " Uses Per Pod`"
                     }
                     field.inline = true
@@ -977,13 +979,14 @@ module.exports = {
                         field.name = ":triangular_flag_on_post: Race " + (i+1)
                         field.value = "Track: `" + tracks[Number(ruleset.races[i].track)].name + "`\n"
                         var cons = []
-                        for(j = 0; j < cons.length; j++){
+                        for(j = 0; j < ruleset.races[i].conditions.length; j++){
                             cons.push("`" + conditions[ruleset.races[i].conditions[j]] + "`")
                         }
                         field.value += "Conditions: " + cons.join(" ")
-                        if(["player_pick", "limited_choice"].includes(tourney_rulesets_data.new[interaction.member.user.id].podmethod)){
+                        if(["player_pick", "limited_choice"].includes(tourney_rulesets_data.new[interaction.member.user.id].podchoice)){
                             field.value += "Pods: " + podSelection(ruleset.races[i].pods)
                         }
+                        field.inline = true
                         fields.push(field)
                     }
                     //construct fields
@@ -1314,6 +1317,8 @@ module.exports = {
                     } if (ruleset_type == "1vall") {
                         ruleset = {
                             type: "1vall",
+                            name: interaction.member.user.username + "'s Unnamed 1v1 Ruleset",
+                            author: interaction.member.user.id,
                             podchoice: "player_pick",
                             poollimit: 1,
                             racenum: 7,
@@ -1459,8 +1464,8 @@ module.exports = {
                     for (i = 0; i < Number(tourney_rulesets_data.new[interaction.member.user.id].racenum); i++) {
                         options.push(
                             {
-                                label: "Race " + i,
-                                value: "race" + i,
+                                label: "Race " + (i+1),
+                                value: "race" + (i + 1),
                                 emoji: { name: "🏁" },
                                 description: "set race " + i + " options",
                             }
@@ -2660,7 +2665,7 @@ module.exports = {
                         }
                     ]
                     for (i = 0; i < methods.length; i++) {
-                        if (methods[i].value == tourney_rulesets_data.new[interaction.member.user.id].podmethod) {
+                        if (methods[i].value == tourney_rulesets_data.new[interaction.member.user.id].podchoice) {
                             methods[i].default = true
                         }
                     }
