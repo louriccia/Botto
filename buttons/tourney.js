@@ -967,8 +967,8 @@ module.exports = {
                     //pod selection
                     field = {}
                     field.name = "<:Pod1:525755322355417127> Pod Selection"
-                    field.value = "`" + methods[ruleset.podchoice] + "`\n"
-                    if (ruleset.podchoice == "pod_pool") {
+                    field.value = "`" + methods[ruleset.podmethod] + "`\n"
+                    if (ruleset.podmethod == "pod_pool") {
                         field.value += "`" + ruleset.poollimit + " Uses Per Pod`"
                     }
                     field.inline = true
@@ -983,7 +983,7 @@ module.exports = {
                             cons.push("`" + conditions[ruleset.races[i].conditions[j]] + "`")
                         }
                         field.value += "Conditions: " + cons.join(" ") + "\n"
-                        if(["player_pick", "limited_choice"].includes(tourney_rulesets_data.new[interaction.member.user.id].podchoice)){
+                        if(["player_pick", "limited_choice"].includes(tourney_rulesets_data.new[interaction.member.user.id].podmethod)){
                             field.value += "Pods: " + podSelection(ruleset.races[i].pods)
                         }
                         field.inline = true
@@ -1270,7 +1270,7 @@ module.exports = {
                     if (ruleset_type == "qual") {
                         ruleset = {
                             type: "qual",
-                            podchoice: "player_pick",
+                            podmethod: "player_pick",
                             races: []
                         }
                         args[2] = "qual"
@@ -1319,7 +1319,7 @@ module.exports = {
                             type: "1vall",
                             name: interaction.member.user.username + "'s Unnamed 1v1 Ruleset",
                             author: interaction.member.user.id,
-                            podchoice: "player_pick",
+                            podmethod: "player_pick",
                             poollimit: 1,
                             racenum: 7,
                             races: []
@@ -2661,7 +2661,7 @@ module.exports = {
                         )
                     }
                     for (i = 0; i < race_options.length; i++) {
-                        if (tourney_rulesets_data.new[interaction.member.user.id].racenum == String(race_options[i].value)) {
+                        if (tourney_rulesets_data.new[interaction.member.user.id].racenum == race_options[i].value) {
                             race_options[i].default = true
                         }
                     }
@@ -2688,7 +2688,7 @@ module.exports = {
                         }
                     ]
                     for (i = 0; i < methods.length; i++) {
-                        if (methods[i].value == tourney_rulesets_data.new[interaction.member.user.id].podchoice) {
+                        if (methods[i].value == tourney_rulesets_data.new[interaction.member.user.id].podmethod) {
                             methods[i].default = true
                         }
                     }
