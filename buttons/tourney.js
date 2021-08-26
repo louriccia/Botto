@@ -747,7 +747,7 @@ module.exports = {
                             result = pods.join("")
                         }
                     }
-                    return result
+                    return result + " "
                 }
                 if (ruleset.type == "1v1") {
 
