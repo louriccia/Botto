@@ -1006,7 +1006,7 @@ module.exports = {
                         }
                         field.value += cons.join(" ") + "\n"
                         if (["player_pick", "limited_choice"].includes(tourney_rulesets_data.new[interaction.member.user.id].podmethod)) {
-                            //field.value += podSelection(ruleset.races[i].pods)
+                            field.value += podSelection(ruleset.races[i].pods)
                         }
                         field.inline = true
                         fields.push(field)
@@ -2706,7 +2706,7 @@ module.exports = {
                     //penalty time
                 } else if (args[2] == "1vall") {
                     var race_options = []
-                    for (i = 3; i < 14; i++) {
+                    for (i = 3; i < 15; i++) {
                         race_options.push(
                             {
                                 label: i + " Races",
