@@ -631,7 +631,7 @@ module.exports = {
 
             var emojis = {
                 "1v1": "🆚",
-                "1vall": "👥",
+                "1vall": "🏆",
                 "qual": "⏱️",
             }
 
@@ -643,7 +643,7 @@ module.exports = {
                     sk: "Skips",
                     pb: "Pod Ban",
                     pc: "Pod Choice",
-                    um: "Unmirrored",
+                    //um: "Unmirrored",
                     mi: "Mirrored",
                     l1: "1 Lap",
                     l2: "2 Laps",
@@ -800,7 +800,7 @@ module.exports = {
                     }
 
                     rulesetEmbed
-                        .setDescription("Ruleset Type: 1v1")
+                        .setDescription("Ruleset Type: 🆚 1v1")
                     var fields = []
                     //wins
                     var field = {}
@@ -965,7 +965,7 @@ module.exports = {
                         nu: "NU",
                         ft: "FT",
                         sk: "Skips",
-                        um: "Unmirrored",
+                        //um: "Unmirrored",
                         mi: "Mirrored",
                         l1: "1 Lap",
                         l2: "2 Laps",
@@ -974,7 +974,7 @@ module.exports = {
                         l5: "5 Laps"
                     }
                     rulesetEmbed
-                        .setDescription("Ruleset Type: 1vAll")
+                        .setDescription("Ruleset Type: 🏆 1vAll")
                     var fields = []
                     var ruleset = tourney_rulesets_data.new[interaction.member.user.id]
                     //races
@@ -996,9 +996,10 @@ module.exports = {
                     fields.push(field)
                     //races
                     for (i = 0; i < ruleset.racenum; i++) {
+                        console.log("printing race " + i)
                         field = {}
                         field.name = ":triangular_flag_on_post: Race " + (i + 1)
-                        field.value = tracks[Number(ruleset.races[i].track)].name + "\n"
+                        field.value = planets[tracks[Number(ruleset.races[i].track)].planet].emoji + " **" + tracks[Number(ruleset.races[i].track)].name + "**\n"
                         var cons = []
                         for (j = 0; j < ruleset.races[i].conditions.length; j++) {
                             cons.push("`" + conditions[ruleset.races[i].conditions[j]] + "`")
@@ -1620,10 +1621,10 @@ module.exports = {
                             label: "No Upgrades",
                             value: "nu"
                         },
-                        {
+                        /*{
                             label: "Unmirrored",
                             value: "um"
-                        },
+                        },*/
                         {
                             label: "Mirrored",
                             value: "mi"
@@ -2340,10 +2341,10 @@ module.exports = {
                             label: "Pod Choice",
                             value: "pc"
                         },
-                        {
+                        /*{
                             label: "Unmirrored",
                             value: "um"
-                        },
+                        },*/
                         {
                             label: "Mirrored",
                             value: "mi"
@@ -2823,10 +2824,10 @@ module.exports = {
                             label: "No Upgrades",
                             value: "nu"
                         },
-                        {
+                        /*{
                             label: "Unmirrored",
                             value: "um"
-                        },
+                        },*/
                         {
                             label: "Mirrored",
                             value: "mi"
