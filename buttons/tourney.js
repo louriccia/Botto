@@ -1073,7 +1073,7 @@ module.exports = {
                 if (![undefined, null].includes(tourney_rulesets_data.saved)) {
                     var saved = Object.keys(tourney_rulesets_data.saved)
                     var rulesets = []
-                    saved.sort(function (a, b) {
+                    saved = saved.sort(function (a, b) {
                         return tourney_rulesets_data.saved[b].name - tourney_rulesets_data.saved[a].name;
                     })
                     for (i = 0; i < saved.length; i++) {
@@ -1151,8 +1151,15 @@ module.exports = {
                             tourney_rulesets.child("new").child(interaction.member.user.id).remove()
                         } else if (tourney_rulesets_data.new.hasOwnProperty(interaction.member.user.id)) {
                             rulesetEmbed
-                                .setTitle(":exclamation: Unsaved Ruleset")
-                                .setDescription("You have an unsaved ruleset. Would you like to continue editing that one or start a new one?")
+                                .setTitle(":exclamation: Unsaved Ruleset: " + tourney_rulesets_data.new[interaction.member.user.id].name)
+                                .setDescription("You have an unsaved " + tourney_rulesets_data.new[interaction.member.user.id].type + " ruleset. Would you like to continue editing that one or start a new one?")
+
+                            var next = "general"
+                            if(tourney_rulesets_data.new[interaction.member.user.id].type == "1vall"){
+                                next = "1vall"
+                            } else if(tourney_rulesets_data.new[interaction.member.user.id].type == "qual"){
+                                next = "qual"
+                            }
 
                             components.push(
                                 {
@@ -1162,7 +1169,7 @@ module.exports = {
                                             type: 2,
                                             label: "Continue",
                                             style: 3,
-                                            custom_id: "tourney_rulesets_new_general",
+                                            custom_id: "tourney_rulesets_new_" + next,
                                         },
                                         {
                                             type: 2,
