@@ -1012,8 +1012,8 @@ module.exports = {
                             field.value += podSelection(Object.values(ruleset.races[i].pods)) + "\n"
                         }
                         if (ruleset.type == "qual") {
-                            field.value += "`" + tools.timefix(ruleset.races[i].time) + " Time Limit`\n"
-                            field.value += "`" + tools.timefix(ruleset.races[i].penalty) + " Penalty Time`"
+                            field.value += "`" + tools.timefix(ruleset.races[i].time).replace(".000", "") + " Time Limit`\n"
+                            field.value += "`" + tools.timefix(ruleset.races[i].penalty).replace(".000", "") + " Penalty Time`"
                         }
                         field.inline = true
                         fields.push(field)
@@ -1406,7 +1406,6 @@ module.exports = {
                     }
 
                 }
-                type = 7
                 if (interaction.data.hasOwnProperty("values")) {
                     if (args[2] == "navigate") {
                         args[2] = interaction.data.values[0]
@@ -1591,7 +1590,7 @@ module.exports = {
 
                 if (args[2] == "general") {
                     var win_options = []
-                    for (i = 2; i < 8; i++) {
+                    for (i = 2; i < 10; i++) {
                         win_options.push(
                             {
                                 label: i + " Wins Max",
@@ -1600,7 +1599,7 @@ module.exports = {
                             }
                         )
                     }
-                    for (i = 2; i < 8; i++) {
+                    for (i = 2; i < 10; i++) {
                         win_options.push(
                             {
                                 label: i + " Wins Minimum",
@@ -1608,7 +1607,7 @@ module.exports = {
                                 description: "in addition to other conditions, at least " + i + " is required to win"
                             })
                     }
-                    for (i = 2; i < 8; i++) {
+                    for (i = 2; i < 6; i++) {
                         win_options.push(
                             {
                                 label: i + " Wins in a Row",
@@ -1616,7 +1615,7 @@ module.exports = {
                                 description: "winner must get " + i + " sequential wins"
                             })
                     }
-                    for (i = 2; i < 8; i++) {
+                    for (i = 2; i < 6; i++) {
                         win_options.push(
                             {
                                 label: "Win by " + i,
@@ -2638,7 +2637,7 @@ module.exports = {
                     if (args[3] == "rename") {
                         type = 7
                         rename = false
-                        var helpmessage = client.api.webhooks(client.user.id, interaction.token).post({
+                        client.api.webhooks(client.user.id, interaction.token).post({
                             data: {
                                 content: "Send the new name for your ruleset in this channel",
                                 flags: 64
@@ -2657,8 +2656,9 @@ module.exports = {
                         //const filter = m => m.author.id == interaction.member.user.id
                         const collector = new Discord.MessageCollector(client.channels.cache.get(interaction.channel_id), m => m.author.id == interaction.member.user.id, { max: 1, time: 300000 }); //messages
                         collector.on('collect', message => {
-                            tourney_rulesets.child("new").child(interaction.member.user.id).child("name").set(message.content)
-                            rulesetEmbed.setTitle(message.content)
+                            var newname = message.content.substring(0, 50)
+                            tourney_rulesets.child("new").child(interaction.member.user.id).child("name").set(newname)
+                            rulesetEmbed.setTitle(newname)
                             components[1].components[0].disabled = false
                             message.delete().then(sendResponse())
                         })
