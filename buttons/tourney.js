@@ -1042,7 +1042,7 @@ module.exports = {
                     tourney_rulesets.child("new").child(interaction.member.user.id).set(ruleset)
                     args[1] = "new"
                     args[2] = "general"
-                    if(ruleset.type !== "1v1"){
+                    if (ruleset.type !== "1v1") {
                         args[2] = ruleset.type
                     }
                 }
@@ -1054,7 +1054,7 @@ module.exports = {
                 tourney_rulesets.child("new").child(interaction.member.user.id).set(ruleset)
                 args[1] = "new"
                 args[2] = "general"
-                if(ruleset.type !== "1v1"){
+                if (ruleset.type !== "1v1") {
                     args[2] = ruleset.type
                 }
                 type = 4
@@ -1407,31 +1407,32 @@ module.exports = {
 
                 }
                 type = 7
-                if (args[2] == "navigate") {
-                    args[2] = interaction.data.values[0]
-                } else if (![undefined, "initial", "rename", "save", "races"].includes(args[3])) {
-                    var data = interaction.data.values
-                    if (args[2].includes("race") && args[2] !== "racenum") {
+                if (interaction.data.hasOwnProperty("values")) {
+                    if (args[2] == "navigate") {
+                        args[2] = interaction.data.values[0]
+                    } else if (![undefined, "initial", "rename", "save", "races"].includes(args[3])) {
+                        var data = interaction.data.values
+                        if (args[2].includes("race") && args[2] !== "racenum") {
 
-                        var race = Number(args[2].replace("race", "")) - 1
-                        var races = tourney_rulesets_data.new[interaction.member.user.id].races
-                        if (args[3] == "track") {
-                            data = interaction.data.values[0]
-                            races[race].track = data
-                        } else if (args[3] == "conditions") {
-                            races[race].conditions = data
-                        } else if (args[3] == "pods") {
-                            races[race].pods = data
+                            var race = Number(args[2].replace("race", "")) - 1
+                            var races = tourney_rulesets_data.new[interaction.member.user.id].races
+                            if (args[3] == "track") {
+                                data = interaction.data.values[0]
+                                races[race].track = data
+                            } else if (args[3] == "conditions") {
+                                races[race].conditions = data
+                            } else if (args[3] == "pods") {
+                                races[race].pods = data
+                            }
+                            tourney_rulesets.child("new").child(interaction.member.user.id).update({ races: races })
+                        } else {
+                            if (!["default", "firsttrack", "podpods", "tracktracks", "conoptions", "ttrackmlimit", "tpodmlimit", "tconmlimit", "wins"].includes(args[3])) {
+                                data = interaction.data.values[0]
+                            }
+                            tourney_rulesets.child("new").child(interaction.member.user.id).child(args[3]).set(data)
                         }
-                        tourney_rulesets.child("new").child(interaction.member.user.id).update({ races: races })
-                    } else {
-                        if (!["default", "firsttrack", "podpods", "tracktracks", "conoptions", "ttrackmlimit", "tpodmlimit", "tconmlimit", "wins"].includes(args[3])) {
-                            data = interaction.data.values[0]
-                        }
-                        tourney_rulesets.child("new").child(interaction.member.user.id).child(args[3]).set(data)
                     }
                 }
-
                 var ruleset = tourney_rulesets_data.new[interaction.member.user.id]
 
                 if (ruleset.type == "1v1") {
@@ -1586,7 +1587,7 @@ module.exports = {
                     .setTitle(tourney_rulesets_data.new[interaction.member.user.id].name)
                     .setFooter(interaction.member.user.username, client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
 
-                
+
 
                 if (args[2] == "general") {
                     var win_options = []
