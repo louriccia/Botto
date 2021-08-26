@@ -728,17 +728,17 @@ module.exports = {
                     }
                 ]
                 function podSelection(collection) {
-                    var result = "what the fuck"
+                    var result = ""
                     if (collection.length == 23) {
                         result = "`Any Pod`"
                     } else {
                         var pods = []
                         var missing_pods = []
-                        for (i = 0; i < 23; i++) {
-                            if (collection.includes(String(i))) {
-                                pods.push(racers[i].flag)
+                        for (var p = 0; p < 23; p++) {
+                            if (collection.includes(String(p))) {
+                                pods.push(racers[p].flag)
                             } else {
-                                missing_pods.push("No " + racers[i].flag)
+                                missing_pods.push("No " + racers[p].flag)
                             }
                         }
                         if (missing_pods.length < pods.length) {
@@ -1177,6 +1177,7 @@ module.exports = {
                     if (![null, undefined].includes(tourney_rulesets_data.new)) {
                         if (args[2] == "new") {
                             tourney_rulesets.child("new").child(interaction.member.user.id).remove()
+                            type = 7
                         } else if (tourney_rulesets_data.new.hasOwnProperty(interaction.member.user.id)) {
                             rulesetEmbed
                                 .setTitle(":exclamation: Unsaved Ruleset: " + tourney_rulesets_data.new[interaction.member.user.id].name)
