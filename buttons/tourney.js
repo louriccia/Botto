@@ -1042,6 +1042,9 @@ module.exports = {
                     tourney_rulesets.child("new").child(interaction.member.user.id).set(ruleset)
                     args[1] = "new"
                     args[2] = "general"
+                    if(ruleset.type !== "1v1"){
+                        args[2] = ruleset.type
+                    }
                 }
                 type = 4
                 flags = 64
@@ -1051,6 +1054,9 @@ module.exports = {
                 tourney_rulesets.child("new").child(interaction.member.user.id).set(ruleset)
                 args[1] = "new"
                 args[2] = "general"
+                if(ruleset.type !== "1v1"){
+                    args[2] = ruleset.type
+                }
                 type = 4
                 flags = 64
             } else if (args[1] == "delete") {
