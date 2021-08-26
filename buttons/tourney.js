@@ -632,7 +632,7 @@ module.exports = {
             var emojis = {
                 "1v1": "🆚",
                 "1vAll": "🏆",
-                "qual": "⏱️",
+                "Qualifier": "⏱️",
             }
 
             function showRuleset(ruleset) {
@@ -959,7 +959,7 @@ module.exports = {
                     fields.push(field)
                     //construct fields
                     return fields
-                } else if (ruleset.type == "1vAll" || ruleset.type == "qual") {
+                } else if (ruleset.type == "1vAll" || ruleset.type == "Qualifier") {
                     conditions = {
                         mu: "MU",
                         nu: "NU",
@@ -975,7 +975,7 @@ module.exports = {
                     }
                     rulesetEmbed
                         .setDescription("Ruleset Type: 🏆 1vAll")
-                    if (ruleset.type == "qual") {
+                    if (ruleset.type == "Qualifier") {
                         rulesetEmbed
                             .setDescription("Ruleset Type: ⏱️ Qualifier")
                     }
@@ -1011,7 +1011,7 @@ module.exports = {
                         if (["player_pick", "limited_choice"].includes(ruleset.podmethod)) {
                             field.value += podSelection(Object.values(ruleset.races[i].pods)) + "\n"
                         }
-                        if (ruleset.type == "qual") {
+                        if (ruleset.type == "Qualifier") {
                             field.value += "`" + tools.timefix(ruleset.races[i].time).replace(".000", "") + " Time Limit`\n"
                             field.value += "`" + tools.timefix(ruleset.races[i].penalty).replace(".000", "") + " Penalty Time`"
                         }
@@ -1051,6 +1051,7 @@ module.exports = {
             } else if (args[1] == "clone") {
                 var key = args.slice(2).join("_")
                 var ruleset = tourney_rulesets_data.saved[key]
+                ruleset.author = interaction.member.user.id
                 tourney_rulesets.child("new").child(interaction.member.user.id).set(ruleset)
                 args[1] = "new"
                 args[2] = "general"
@@ -1196,8 +1197,8 @@ module.exports = {
                             var next = "general"
                             if (tourney_rulesets_data.new[interaction.member.user.id].type == "1vAll") {
                                 next = "1vAll"
-                            } else if (tourney_rulesets_data.new[interaction.member.user.id].type == "qual") {
-                                next = "qual"
+                            } else if (tourney_rulesets_data.new[interaction.member.user.id].type == "Qualifier") {
+                                next = "Qualifier"
                             }
 
                             components.push(
@@ -1244,7 +1245,7 @@ module.exports = {
                 var options = [
                     {
                         label: "Qualifier",
-                        value: "qual",
+                        value: "Qualifier",
                         description: "Players have a set time limit to get their best time with multiple attempts"
                     },
                     {
@@ -1318,9 +1319,9 @@ module.exports = {
                         .setDescription("create a ruleset")
 
                     var ruleset = {}
-                    if (ruleset_type == "qual") {
+                    if (ruleset_type == "Qualifier") {
                         ruleset = {
-                            type: "qual",
+                            type: "Qualifier",
                             name: interaction.member.user.username + "'s Unnamed Qualifier Ruleset",
                             author: interaction.member.user.id,
                             podmethod: "player_pick",
@@ -1339,7 +1340,7 @@ module.exports = {
                                 }
                             )
                         }
-                        args[2] = "qual"
+                        args[2] = "Qualifier"
                     } else if (ruleset_type == "1v1") {
                         ruleset = {
                             type: "1v1",
@@ -1533,7 +1534,7 @@ module.exports = {
                             }
                         ]
                     })
-                } else if (ruleset.type == "1vAll" || ruleset.type == "qual") {
+                } else if (ruleset.type == "1vAll" || ruleset.type == "Qualifier") {
                     var options = [
                         {
                             label: "General Settings",
@@ -2709,7 +2710,7 @@ module.exports = {
 
 
 
-                } else if (args[2] == "1vAll" || args[2] == "qual") {
+                } else if (args[2] == "1vAll" || args[2] == "Qualifier") {
                     var race_options = []
                     for (i = 3; i < 15; i++) {
                         race_options.push(
@@ -2996,7 +2997,7 @@ module.exports = {
                             }
                         )
                     }
-                    if (tourney_rulesets_data.new[interaction.member.user.id].type == "qual") {
+                    if (tourney_rulesets_data.new[interaction.member.user.id].type == "Qualifier") {
                         components.push(
                             {
                                 type: 1,
