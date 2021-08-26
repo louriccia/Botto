@@ -629,6 +629,12 @@ module.exports = {
             const rulesetEmbed = new Discord.MessageEmbed()
                 .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/crossed-swords_2694-fe0f.png")
 
+            var emojis = {
+                "1v1": "🆚",
+                "1vall": "👥",
+                "qual": "⏱️",
+            }
+
             function showRuleset(ruleset) {
                 var conditions = {
                     mu: "Max Upgrades",
@@ -954,6 +960,19 @@ module.exports = {
                     //construct fields
                     return fields
                 } else if (ruleset.type == "1vall") {
+                    conditions = {
+                        mu: "MU",
+                        nu: "NU",
+                        ft: "FT",
+                        sk: "Skips",
+                        um: "Unmirrored",
+                        mi: "Mirrored",
+                        l1: "1 Lap",
+                        l2: "2 Laps",
+                        l3: "3 Laps",
+                        l4: "4 Laps",
+                        l5: "5 Laps"
+                    }
                     rulesetEmbed
                         .setDescription("Ruleset Type: 1vAll")
                     var fields = []
@@ -979,14 +998,14 @@ module.exports = {
                     for (i = 0; i < ruleset.racenum; i++) {
                         field = {}
                         field.name = ":triangular_flag_on_post: Race " + (i + 1)
-                        field.value = "Track: `" + tracks[Number(ruleset.races[i].track)].name + "`\n"
+                        field.value = tracks[Number(ruleset.races[i].track)].name + "\n"
                         var cons = []
                         for (j = 0; j < ruleset.races[i].conditions.length; j++) {
                             cons.push("`" + conditions[ruleset.races[i].conditions[j]] + "`")
                         }
-                        field.value += "Conditions: " + cons.join(" ") + "\n"
+                        field.value += cons.join(" ") + "\n"
                         if (["player_pick", "limited_choice"].includes(tourney_rulesets_data.new[interaction.member.user.id].podmethod)) {
-                            field.value += "Pods: " + podSelection(ruleset.races[i].pods)
+                            field.value += podSelection(ruleset.races[i].pods)
                         }
                         field.inline = true
                         fields.push(field)
@@ -1082,6 +1101,9 @@ module.exports = {
                         var s = saved[i]
                         var r = {
                             label: tourney_rulesets_data.saved[s].name,
+                            emoji: {
+                                name: emojis[tourney_rulesets_data.saved[s].type]
+                            },
                             value: s,
                             description: tourney_rulesets_data.saved[s].type + " Ruleset by " + client.guilds.resolve(interaction.guild_id).members.resolve(tourney_rulesets_data.saved[s].author).user.username,
                         }
@@ -1096,7 +1118,7 @@ module.exports = {
                     if (interaction.data.hasOwnProperty("values")) {
                         var ruleset = tourney_rulesets_data.saved[interaction.data.values[0]]
                         rulesetEmbed.setTitle(":scroll: Rulesets: " + ruleset.name)
-                            .setDescription("Type: " + ruleset.type)
+                            .setDescription("Type: " + emojis[ruleset.type] + " " + ruleset.type)
                             .addFields(showRuleset(ruleset))
                             .setFooter(client.guilds.resolve(interaction.guild_id).members.resolve(ruleset.author).user.username, client.guilds.resolve(interaction.guild_id).members.resolve(ruleset.author).user.avatarURL())
                         buttons.push(
@@ -1359,7 +1381,7 @@ module.exports = {
                     args[2] = interaction.data.values[0]
                 } else if (![undefined, "initial", "rename", "save", "races"].includes(args[3])) {
                     var data = interaction.data.values
-                    if (args[2].includes("race")) {
+                    if (args[2].includes("race") && args[2] !== "racenum") {
 
                         var race = Number(args[2].replace("race", "")) - 1
                         var races = tourney_rulesets_data.new[interaction.member.user.id].races
