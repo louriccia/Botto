@@ -2458,7 +2458,7 @@ module.exports = {
                                         options: conoptions,
                                         placeholder: "Condition Options",
                                         min_values: 1,
-                                        max_values: 13
+                                        max_values: conoptions.length
                                     }
                                 ]
                             })
