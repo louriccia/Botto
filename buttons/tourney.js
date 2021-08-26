@@ -997,6 +997,7 @@ module.exports = {
                     //races
                     console.log("racenum: " +ruleset.racenum)
                     for (i = 0; i < Number(ruleset.racenum); i++) {
+                        console.log("what the fuck " + i)
                         field = {}
                         field.name = ":triangular_flag_on_post: Race " + (i + 1)
                         field.value = planets[tracks[Number(ruleset.races[i].track)].planet].emoji + " **" + tracks[Number(ruleset.races[i].track)].name + "**\n"
