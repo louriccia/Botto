@@ -973,6 +973,8 @@ module.exports = {
                     }
                     field.inline = true
                     fields.push(field)
+                    field = {name: '\u200B', value: '\u200B', inline: true}
+                    fields.push(field)
                     //races
                     for(i = 0; i < ruleset.racenum; i++){
                         field = {}
@@ -1071,6 +1073,9 @@ module.exports = {
                 if (![undefined, null].includes(tourney_rulesets_data.saved)) {
                     var saved = Object.keys(tourney_rulesets_data.saved)
                     var rulesets = []
+                    saved.sort(function (a, b) {
+                        return tourney_rulesets_data.saved[b].name - tourney_rulesets_data.saved[a].name;
+                    })
                     for (i = 0; i < saved.length; i++) {
                         var s = saved[i]
                         var r = {
@@ -1476,13 +1481,14 @@ module.exports = {
                             description: "set number of races and pod selection options",
                         }
                     ]
+                    var races = Object.values(tourney_rulesets_data.new[interaction.member.user.id].races)
                     for (i = 0; i < Number(tourney_rulesets_data.new[interaction.member.user.id].racenum); i++) {
                         options.push(
                             {
                                 label: "Race " + (i+1),
                                 value: "race" + (i + 1),
                                 emoji: { name: "🏁" },
-                                description: "set race " + (i+1) + " options",
+                                description: tracks[races[i].track],
                             }
                         )
                     }
@@ -2872,10 +2878,10 @@ module.exports = {
                                     {
                                         type: 3,
                                         custom_id: "tourney_rulesets_new_" + args[2] + "_pods",
-                                        options: methods,
+                                        options: pod_options,
                                         placeholder: "Pod Selection Method",
                                         min_values: 1,
-                                        max_values: 1
+                                        max_values: 23
                                     }
                                 ]
                             }
