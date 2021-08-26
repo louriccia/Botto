@@ -631,7 +631,7 @@ module.exports = {
 
             var emojis = {
                 "1v1": "🆚",
-                "1vall": "🏆",
+                "1vAll": "🏆",
                 "qual": "⏱️",
             }
 
@@ -818,7 +818,7 @@ module.exports = {
                             winstring.push("`Win by " + winstuff[i].replace("_by", "") + "`")
                         }
                     }
-                    field.value = winstring.join(" ")
+                    field.value = winstring.join("\n")
                     field.inline = true
                     fields.push(field)
                     //default
@@ -843,7 +843,7 @@ module.exports = {
                     field = {}
                     field.name = ":checkered_flag: First Track"
                     field.value = "`" + methods[ruleset.firstmethod] + "`\n"
-                    field.value += "Options: " + trackSelection(Object.values(ruleset.firsttrack))
+                    field.value += trackSelection(Object.values(ruleset.firsttrack))
                     field.inline = true
                     fields.push(field)
                     //permabans
@@ -959,7 +959,7 @@ module.exports = {
                     fields.push(field)
                     //construct fields
                     return fields
-                } else if (ruleset.type == "1vall") {
+                } else if (ruleset.type == "1vAll" || ruleset.type == "qual") {
                     conditions = {
                         mu: "MU",
                         nu: "NU",
@@ -975,6 +975,10 @@ module.exports = {
                     }
                     rulesetEmbed
                         .setDescription("Ruleset Type: 🏆 1vAll")
+                    if (ruleset.type == "qual") {
+                        rulesetEmbed
+                            .setDescription("Ruleset Type: ⏱️ Qualifier")
+                    }
                     var fields = []
                     //races
                     var field = {}
@@ -994,9 +998,8 @@ module.exports = {
                     field = { name: '\u200B', value: '\u200B', inline: true }
                     fields.push(field)
                     //races
-                    console.log("racenum: " +ruleset.racenum)
+                    console.log("racenum: " + ruleset.racenum)
                     for (i = 0; i < Number(ruleset.racenum); i++) {
-                        console.log("what the fuck " + i)
                         field = {}
                         field.name = ":triangular_flag_on_post: Race " + (i + 1)
                         field.value = planets[tracks[Number(ruleset.races[i].track)].planet].emoji + " **" + tracks[Number(ruleset.races[i].track)].name + "**\n"
@@ -1008,11 +1011,13 @@ module.exports = {
                         if (["player_pick", "limited_choice"].includes(ruleset.podmethod)) {
                             field.value += podSelection(Object.values(ruleset.races[i].pods)) + "\n"
                         }
+                        if (ruleset.type == "qual") {
+                            field.value += "`" + tools.timefix(ruleset.time) + " Time Limit`\n"
+                            field.value += "`" + tools.timefix(ruleset.penalty) + " Penalty Time`"
+                        }
                         field.inline = true
                         fields.push(field)
-                        console.log("i is still " + i)
                     }
-                    console.log(fields)
                     //construct fields
                     return fields
                 }
@@ -1183,8 +1188,8 @@ module.exports = {
                                 .setDescription("You have an unsaved " + tourney_rulesets_data.new[interaction.member.user.id].type + " ruleset. Would you like to continue editing that one or start a new one?")
 
                             var next = "general"
-                            if (tourney_rulesets_data.new[interaction.member.user.id].type == "1vall") {
-                                next = "1vall"
+                            if (tourney_rulesets_data.new[interaction.member.user.id].type == "1vAll") {
+                                next = "1vAll"
                             } else if (tourney_rulesets_data.new[interaction.member.user.id].type == "qual") {
                                 next = "qual"
                             }
@@ -1243,7 +1248,7 @@ module.exports = {
                     },
                     {
                         label: "1vAll",
-                        value: "1vall",
+                        value: "1vAll",
                         description: "Players race against all other competitors in a set number of races"
                     }/*,
                     {
@@ -1369,9 +1374,9 @@ module.exports = {
                             poollimit: 1
                         }
                         args[2] = "general"
-                    } if (ruleset_type == "1vall") {
+                    } if (ruleset_type == "1vAll") {
                         ruleset = {
-                            type: "1vall",
+                            type: "1vAll",
                             name: interaction.member.user.username + "'s Unnamed 1vAll Ruleset",
                             author: interaction.member.user.id,
                             podmethod: "player_pick",
@@ -1388,7 +1393,7 @@ module.exports = {
                                 }
                             )
                         }
-                        args[2] = "1vall"
+                        args[2] = "1vAll"
                     } //if (ruleset_type == "team") {}
                     if (ruleset !== {}) {
                         tourney_rulesets.child("new").child(interaction.member.user.id).set(ruleset)
@@ -1412,7 +1417,7 @@ module.exports = {
                         } else if (args[3] == "pods") {
                             races[race].pods = data
                         }
-                        tourney_rulesets.child("new").child(interaction.member.user.id).update({races: races})
+                        tourney_rulesets.child("new").child(interaction.member.user.id).update({ races: races })
                     } else {
                         if (!["default", "firsttrack", "podpods", "tracktracks", "conoptions", "ttrackmlimit", "tpodmlimit", "tconmlimit", "wins"].includes(args[3])) {
                             data = interaction.data.values[0]
@@ -1522,11 +1527,11 @@ module.exports = {
                             }
                         ]
                     })
-                } else if (ruleset.type == "1vall") {
+                } else if (ruleset.type == "1vAll" || ruleset.type == "qual") {
                     var options = [
                         {
                             label: "General Settings",
-                            value: "1vall",
+                            value: ruleset.type,
                             emoji: { name: "🔷" },
                             description: "set number of races and pod selection options",
                         }
@@ -1575,11 +1580,7 @@ module.exports = {
                     .setTitle(tourney_rulesets_data.new[interaction.member.user.id].name)
                     .setFooter(interaction.member.user.username, client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
 
-                if (![null, undefined].includes(tourney_rulesets_data)) {
-                    if (![null, undefined].includes(tourney_rulesets_data.new)) {
-                        rulesetEmbed.addFields(showRuleset(tourney_rulesets_data.new[interaction.member.user.id]))
-                    }
-                }
+                
 
                 if (args[2] == "general") {
                     var win_options = []
@@ -2700,13 +2701,8 @@ module.exports = {
                     }
 
 
-                } else if (args[2] == "qual") {
-                    //pod select
-                    //add race
 
-                    //time limit
-                    //penalty time
-                } else if (args[2] == "1vall") {
+                } else if (args[2] == "1vAll" || args[2] == "qual") {
                     var race_options = []
                     for (i = 3; i < 15; i++) {
                         race_options.push(
@@ -2754,7 +2750,7 @@ module.exports = {
                             components: [
                                 {
                                     type: 3,
-                                    custom_id: "tourney_rulesets_new_1vall_racenum",
+                                    custom_id: "tourney_rulesets_new_" + ruleset.type + "_racenum",
                                     options: race_options,
                                     placeholder: "Number of Races",
                                     min_values: 1,
@@ -2767,7 +2763,7 @@ module.exports = {
                             components: [
                                 {
                                     type: 3,
-                                    custom_id: "tourney_rulesets_new_1vall_podmethod",
+                                    custom_id: "tourney_rulesets_new_" + ruleset.type + "_podmethod",
                                     options: methods,
                                     placeholder: "Pod Selection Method",
                                     min_values: 1,
@@ -2808,6 +2804,62 @@ module.exports = {
                 } else if (args[2].includes("race")) {
                     var race_num = Number(args[2].replace("race", "")) - 1
                     var races = Object.values(tourney_rulesets_data.new[interaction.member.user.id].races)
+
+                    if (args[3] == "time") {
+                        type = 7
+                        client.api.webhooks(client.user.id, interaction.token).post({
+                            data: {
+                                content: "Send the time limit in this channel. Ex: `15:00.000`",
+                                flags: 64
+                            }
+                        })
+
+                        async function sendResponse() {
+                            response = await client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({
+                                data: {
+                                    embeds: [rulesetEmbed],
+                                    components: components
+                                }
+                            })
+                            return response
+                        }
+                        const collector = new Discord.MessageCollector(client.channels.cache.get(interaction.channel_id), m => m.author.id == interaction.member.user.id, { max: 1, time: 300000 }); //messages
+                        collector.on('collect', message => {
+                            var race = Number(args[2].replace("race", "")) - 1
+                            var races = tourney_rulesets_data.new[interaction.member.user.id].races
+                            races[race].time = tools.timetoSeconds(message.content)
+                            tourney_rulesets.child("new").child(interaction.member.user.id).update({ races: races })
+                            //components[1].components[0].disabled = false
+                            message.delete().then(sendResponse())
+                        })
+                    } else if (args[3] == "time") {
+                        type = 7
+                        client.api.webhooks(client.user.id, interaction.token).post({
+                            data: {
+                                content: "Send the penalty time in this channel. Ex: `15:00.000`",
+                                flags: 64
+                            }
+                        })
+
+                        async function sendResponse() {
+                            response = await client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({
+                                data: {
+                                    embeds: [rulesetEmbed],
+                                    components: components
+                                }
+                            })
+                            return response
+                        }
+                        const collector = new Discord.MessageCollector(client.channels.cache.get(interaction.channel_id), m => m.author.id == interaction.member.user.id, { max: 1, time: 300000 }); //messages
+                        collector.on('collect', message => {
+                            var race = Number(args[2].replace("race", "")) - 1
+                            var races = tourney_rulesets_data.new[interaction.member.user.id].races
+                            races[race].penalty = tools.timetoSeconds(message.content)
+                            tourney_rulesets.child("new").child(interaction.member.user.id).update({ races: races })
+                            //components[1].components[0].disabled = false
+                            message.delete().then(sendResponse())
+                        })
+                    }
 
                     var track_options = []
                     for (var i = 0; i < 25; i++) {
@@ -2937,9 +2989,35 @@ module.exports = {
                             }
                         )
                     }
-
+                    if (tourney_rulesets_data.new[interaction.member.user.id].type == "qual") {
+                        components.push(
+                            {
+                                type: 1,
+                                components: [
+                                    {
+                                        type: 2,
+                                        label: "Set Time Limit",
+                                        style: 1,
+                                        custom_id: "tourney_rulesets_new_" + args[2] + "_time"
+                                    },
+                                    {
+                                        type: 2,
+                                        label: "Set Penalty Time",
+                                        style: 1,
+                                        custom_id: "tourney_rulesets_new_" + args[2] + "_penalty"
+                                    }
+                                ]
+                            }
+                        )
+                    }
                     //time limit
                     //penalty time
+                }
+
+                if (![null, undefined].includes(tourney_rulesets_data)) {
+                    if (![null, undefined].includes(tourney_rulesets_data.new)) {
+                        rulesetEmbed.addFields(showRuleset(tourney_rulesets_data.new[interaction.member.user.id]))
+                    }
                 }
             }
 
