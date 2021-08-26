@@ -2832,7 +2832,7 @@ module.exports = {
                             //components[1].components[0].disabled = false
                             message.delete().then(sendResponse())
                         })
-                    } else if (args[3] == "time") {
+                    } else if (args[3] == "penalty") {
                         type = 7
                         client.api.webhooks(client.user.id, interaction.token).post({
                             data: {
