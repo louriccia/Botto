@@ -995,6 +995,7 @@ module.exports = {
                     field = { name: '\u200B', value: '\u200B', inline: true }
                     fields.push(field)
                     //races
+                    console.log("racenum: " +ruleset.racenum)
                     for (i = 0; i < Number(ruleset.racenum); i++) {
                         field = {}
                         field.name = ":triangular_flag_on_post: Race " + (i + 1)
