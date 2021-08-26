@@ -995,7 +995,7 @@ module.exports = {
                     field = { name: '\u200B', value: '\u200B', inline: true }
                     fields.push(field)
                     //races
-                    for (i = 0; i < ruleset.racenum; i++) {
+                    for (i = 0; i < Number(ruleset.racenum); i++) {
                         console.log("printing race " + i)
                         field = {}
                         field.name = ":triangular_flag_on_post: Race " + (i + 1)
@@ -1365,7 +1365,7 @@ module.exports = {
                             ruleset.races.push(
                                 {
                                     track: String(i),
-                                    conditions: ["mu", "ft", "um", "l3"],
+                                    conditions: ["mu", "ft", "l3"],
                                     pods: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22"]
                                 }
                             )
@@ -2736,7 +2736,7 @@ module.exports = {
                             components: [
                                 {
                                     type: 3,
-                                    custom_id: "tourney_rulesets_new_1vall_races",
+                                    custom_id: "tourney_rulesets_new_1vall_racenum",
                                     options: race_options,
                                     placeholder: "Number of Races",
                                     min_values: 1,
