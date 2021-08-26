@@ -976,7 +976,6 @@ module.exports = {
                     rulesetEmbed
                         .setDescription("Ruleset Type: 🏆 1vAll")
                     var fields = []
-                    var ruleset = tourney_rulesets_data.new[interaction.member.user.id]
                     //races
                     var field = {}
                     field.name = ":checkered_flag: Races"
@@ -2654,7 +2653,6 @@ module.exports = {
                             rulesetEmbed.setTitle(message.content)
                             components[1].components[0].disabled = false
                             message.delete().then(sendResponse())
-                            helpmessage.delete()
                         })
                         //client.api.interactions(interaction.id, interaction.token).callback.post({ data: { type: 6, data: {} } })
                         //return
