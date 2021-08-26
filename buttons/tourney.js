@@ -1495,7 +1495,7 @@ module.exports = {
                                 label: "Race " + (i+1),
                                 value: "race" + (i + 1),
                                 emoji: { name: "🏁" },
-                                description: tracks[races[i].track],
+                                description: tracks[races[i].track].name,
                             }
                         )
                     }
