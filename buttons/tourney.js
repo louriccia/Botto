@@ -996,7 +996,6 @@ module.exports = {
                     fields.push(field)
                     //races
                     for (i = 0; i < Number(ruleset.racenum); i++) {
-                        console.log("printing race " + i)
                         field = {}
                         field.name = ":triangular_flag_on_post: Race " + (i + 1)
                         field.value = planets[tracks[Number(ruleset.races[i].track)].planet].emoji + " **" + tracks[Number(ruleset.races[i].track)].name + "**\n"
@@ -1011,6 +1010,7 @@ module.exports = {
                         field.inline = true
                         fields.push(field)
                     }
+                    console.log(fields)
                     //construct fields
                     return fields
                 }
@@ -1307,8 +1307,23 @@ module.exports = {
                     if (ruleset_type == "qual") {
                         ruleset = {
                             type: "qual",
+                            name: interaction.member.user.username + "'s Unnamed Qualifier Ruleset",
+                            author: interaction.member.user.id,
                             podmethod: "player_pick",
+                            poollimit: 1,
+                            racenum: 7,
                             races: []
+                        }
+                        for (i = 0; i < 14; i++) {
+                            ruleset.races.push(
+                                {
+                                    track: String(i),
+                                    conditions: ["mu", "ft", "l3"],
+                                    time: 600,
+                                    penalty: 300,
+                                    pods: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22"]
+                                }
+                            )
                         }
                         args[2] = "qual"
                     } else if (ruleset_type == "1v1") {
@@ -1354,7 +1369,7 @@ module.exports = {
                     } if (ruleset_type == "1vall") {
                         ruleset = {
                             type: "1vall",
-                            name: interaction.member.user.username + "'s Unnamed 1v1 Ruleset",
+                            name: interaction.member.user.username + "'s Unnamed 1vAll Ruleset",
                             author: interaction.member.user.id,
                             podmethod: "player_pick",
                             poollimit: 1,
