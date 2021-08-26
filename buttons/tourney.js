@@ -2631,7 +2631,7 @@ module.exports = {
                     if (args[3] == "rename") {
                         type = 7
                         rename = false
-                        client.api.webhooks(client.user.id, interaction.token).post({
+                        var helpmessage = client.api.webhooks(client.user.id, interaction.token).post({
                             data: {
                                 content: "Send the new name for your ruleset in this channel",
                                 flags: 64
@@ -2654,6 +2654,7 @@ module.exports = {
                             rulesetEmbed.setTitle(message.content)
                             components[1].components[0].disabled = false
                             message.delete().then(sendResponse())
+                            helpmessage.delete()
                         })
                         //client.api.interactions(interaction.id, interaction.token).callback.post({ data: { type: 6, data: {} } })
                         //return
