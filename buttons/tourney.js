@@ -1012,8 +1012,8 @@ module.exports = {
                             field.value += podSelection(Object.values(ruleset.races[i].pods)) + "\n"
                         }
                         if (ruleset.type == "qual") {
-                            field.value += "`" + tools.timefix(ruleset.time) + " Time Limit`\n"
-                            field.value += "`" + tools.timefix(ruleset.penalty) + " Penalty Time`"
+                            field.value += "`" + tools.timefix(ruleset.races[i].time) + " Time Limit`\n"
+                            field.value += "`" + tools.timefix(ruleset.races[i].penalty) + " Penalty Time`"
                         }
                         field.inline = true
                         fields.push(field)
