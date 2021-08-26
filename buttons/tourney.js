@@ -728,7 +728,7 @@ module.exports = {
                     }
                 ]
                 function podSelection(collection) {
-                    var result = null
+                    var result = "what the fuck"
                     if (collection.length == 23) {
                         result = "`Any Pod`"
                     } else {
@@ -923,7 +923,7 @@ module.exports = {
                         cond.forEach(con => {
                             cons.push("`" + conditions[con] + "`")
                         })
-                        field.value += "Options: " + cons.join(" ")
+                        field.value += cons.join(" ")
                         field.inline = true
                         fields.push(field)
                     }
@@ -950,9 +950,9 @@ module.exports = {
                             }
                         }
                         if (missing_pods.length < pods.length) {
-                            field.value += "Options: " + missing_pods.join(", ")
+                            field.value += missing_pods.join(", ")
                         } else {
-                            field.value += "Options: " + pods.join("")
+                            field.value += pods.join("")
                         }
                     }
                     field.inline = true
@@ -1006,11 +1006,12 @@ module.exports = {
                             cons.push("`" + conditions[ruleset.races[i].conditions[j]] + "`")
                         }
                         field.value += cons.join(" ") + "\n"
-                        if (["player_pick", "limited_choice"].includes(tourney_rulesets_data.new[interaction.member.user.id].podmethod)) {
+                        if (["player_pick", "limited_choice"].includes(ruleset.podmethod)) {
                             field.value += podSelection(Object.values(ruleset.races[i].pods)) + "\n"
                         }
                         field.inline = true
                         fields.push(field)
+                        console.log("i is still " + i)
                     }
                     console.log(fields)
                     //construct fields
@@ -1334,7 +1335,7 @@ module.exports = {
                             name: interaction.member.user.username + "'s Unnamed 1v1 Ruleset",
                             author: interaction.member.user.id,
                             wins: ["5_max"],
-                            default: ["mu", "ft", "um", "l3"],
+                            default: ["mu", "ft", "l3"],
                             gents: "disallowed",
                             firstmethod: "poe",
                             firsttrack: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24"],
@@ -1394,7 +1395,7 @@ module.exports = {
                     }
 
                 }
-
+                type = 7
                 if (args[2] == "navigate") {
                     args[2] = interaction.data.values[0]
                 } else if (![undefined, "initial", "rename", "save", "races"].includes(args[3])) {
@@ -2913,7 +2914,7 @@ module.exports = {
                                     custom_id: "tourney_rulesets_new_" + args[2] + "_conditions",
                                     options: conoptions,
                                     placeholder: "Track Conditions",
-                                    min_values: 4,
+                                    min_values: 3,
                                     max_values: 4
                                 }
                             ]
