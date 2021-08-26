@@ -744,10 +744,10 @@ module.exports = {
                         if (missing_pods.length < pods.length) {
                             result = missing_pods.join(", ")
                         } else {
-                            result = pods.join("")
+                            result = pods.join(" ")
                         }
                     }
-                    return result + " test "
+                    return result
                 }
                 if (ruleset.type == "1v1") {
 
@@ -1006,7 +1006,7 @@ module.exports = {
                         }
                         field.value += cons.join(" ") + "\n"
                         if (["player_pick", "limited_choice"].includes(tourney_rulesets_data.new[interaction.member.user.id].podmethod)) {
-                            field.value += podSelection(ruleset.races[i].pods)
+                            field.value += podSelection(Object.values(ruleset.races[i].pods)) + "\n"
                         }
                         field.inline = true
                         fields.push(field)
