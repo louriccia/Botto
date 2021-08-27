@@ -1052,6 +1052,7 @@ module.exports = {
                 var key = args.slice(2).join("_")
                 var ruleset = tourney_rulesets_data.saved[key]
                 ruleset.author = interaction.member.user.id
+                ruleset.name += " (2)"
                 tourney_rulesets.child("new").child(interaction.member.user.id).set(ruleset)
                 args[1] = "new"
                 args[2] = "general"
@@ -1104,6 +1105,13 @@ module.exports = {
                         custom_id: "tourney_rulesets_type",
                     }
                 ]
+                var offset = 0
+                if (args[2] !== undefined) {
+                    offset = Number(args[2])
+                }
+                if (interaction.data.hasOwnProperty("values") && interaction.data.values[0].includes("offset")) {
+                    offset = Number(interaction.data.values[0].replace("offset", ""))
+                }
                 if (![undefined, null].includes(tourney_rulesets_data.saved)) {
                     var saved = Object.keys(tourney_rulesets_data.saved)
                     var rulesets = []
@@ -1112,7 +1120,15 @@ module.exports = {
                         if (tourney_rulesets_data.saved[a].name > tourney_rulesets_data.saved[b].name) { return 1; }
                         return 0;
                     })
-                    for (i = 0; i < saved.length; i++) {
+                    for (i = 0 + offset * 23; i < (offset + 1) * 25; i++) {
+                        if (i == 0 + offset * 23 && offset > 0) {
+                            rulesets.push(
+                                {
+                                    label: "Previous...",
+                                    value: "offset" + (offset - 1),
+                                }
+                            )
+                        }
                         var s = saved[i]
                         var r = {
                             label: tourney_rulesets_data.saved[s].name,
@@ -1122,15 +1138,25 @@ module.exports = {
                             value: s,
                             description: tourney_rulesets_data.saved[s].type + " Ruleset by " + client.guilds.resolve(interaction.guild_id).members.resolve(tourney_rulesets_data.saved[s].author).user.username,
                         }
-                        if (interaction.data.hasOwnProperty("values")) {
+                        if (interaction.data.hasOwnProperty("values")  && !interaction.data.values[0].includes("offset")) {
                             if (r.value == interaction.data.values[0]) {
                                 r.default = true
                             }
                         }
-
                         rulesets.push(r)
+                        if (i == saved.length - 1) {
+                            i = (offset + 1) * 25
+                        }
+                        if(i == (offset +1)*25 - 1){
+                            rulesets.push(
+                                {
+                                    label: "See more...",
+                                    value: "offset" + (offset + 1),
+                                }
+                            )
+                        }
                     }
-                    if (interaction.data.hasOwnProperty("values")) {
+                    if (interaction.data.hasOwnProperty("values") && !interaction.data.values[0].includes("offset")) {
                         var ruleset = tourney_rulesets_data.saved[interaction.data.values[0]]
                         rulesetEmbed.setTitle(":scroll: Rulesets: " + ruleset.name)
                             .setDescription("Type: " + emojis[ruleset.type] + " " + ruleset.type)
@@ -1167,7 +1193,7 @@ module.exports = {
                         components: [
                             {
                                 type: 3,
-                                custom_id: "tourney_rulesets_browse",
+                                custom_id: "tourney_rulesets_browse_" + offset,
                                 options: rulesets,
                                 placeholder: "Select Ruleset",
                                 min_values: 1,
