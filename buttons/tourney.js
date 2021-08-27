@@ -1120,7 +1120,7 @@ module.exports = {
                         if (tourney_rulesets_data.saved[a].name > tourney_rulesets_data.saved[b].name) { return 1; }
                         return 0;
                     })
-                    for (i = 0 + offset * 23; i < (offset + 1) * 25; i++) {
+                    for (i = 0 + offset * 23; i < (offset + 1) * 23; i++) {
                         if (i == 0 + offset * 23 && offset > 0) {
                             rulesets.push(
                                 {
@@ -1145,9 +1145,9 @@ module.exports = {
                         }
                         rulesets.push(r)
                         if (i == saved.length - 1) {
-                            i = (offset + 1) * 25
+                            i = (offset + 1) * 23
                         }
-                        if(i == (offset +1)*25 - 1){
+                        if(i == (offset +1)*23 - 1){
                             rulesets.push(
                                 {
                                     label: "See more...",
