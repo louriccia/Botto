@@ -1079,6 +1079,7 @@ module.exports = {
                     var key = args.slice(2).join("_")
                     tourney_rulesets.child("saved").child(key).remove()
                     args[1] = "browse"
+                    args[2] = 0
                 }
             }
             if (args[1] == "refresh") {
