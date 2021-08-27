@@ -1107,7 +1107,7 @@ module.exports = {
                     }
                 ]
                 var offset = 0
-                if (args[2] !== undefined) {
+                if (args[2] !== undefined && args[2] !== "initial") {
                     offset = Number(args[2])
                 }
                 if (interaction.data.hasOwnProperty("values") && interaction.data.values[0].includes("offset")) {
