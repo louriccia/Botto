@@ -772,7 +772,7 @@ module.exports = {
                                 }
                                 first_nicks.push("`" + tracks[i].nickname[0] + "`")
                             } else {
-                                missing.push("`No " + tracks[i].nickname[0] + "`")
+                                missing.push("~~`" + tracks[i].nickname[0] + "`~~")
                             }
 
                         }
@@ -1273,16 +1273,19 @@ module.exports = {
                     {
                         label: "Qualifier",
                         value: "Qualifier",
+                        emoji: {name: emojis["Qualifier"]},
                         description: "Players have a set time limit to get their best time with multiple attempts"
                     },
                     {
                         label: "1v1",
                         value: "1v1",
+                        emoji: {name: emojis["1v1"]},
                         description: "Players face off until one satisfies the win conditions"
                     },
                     {
                         label: "1vAll",
                         value: "1vAll",
+                        emoji: {name: emojis["1vAll"]},
                         description: "Players race against all other competitors in a set number of races"
                     }/*,
                     {
@@ -2210,7 +2213,7 @@ module.exports = {
                         {
                             label: "Salty Runback",
                             value: "salty_runback",
-                            description: "players can repeat a track only if they haven’t won"
+                            description: "players can repeat a track only if they haven’t won on it"
                         },
                         {
                             label: "Saltier Runback",
@@ -2220,7 +2223,7 @@ module.exports = {
                         {
                             label: "Saltiest Runback",
                             value: "saltiest_runback",
-                            description: "players can runback a Saltier runback"
+                            description: "players can runback a Saltier Runback"
                         },
                         {
                             label: "Allowed",
@@ -2237,17 +2240,17 @@ module.exports = {
                         {
                             label: "Default Repeat",
                             value: "default_repeat",
-                            description: "repeat tracks must use the default track conditions"
+                            description: "repeat tracks must use the default conditions"
                         },
                         {
                             label: "Hard Repeat",
                             value: "hard_repeat",
-                            description: "repeat tracks must use the same track conditions as originally used"
+                            description: "repeat tracks must use the same conditions as originally used"
                         },
                         {
                             label: "Soft Repeat",
                             value: "soft_repeat",
-                            description: "repeat tracks may have different track conditions than originally used"
+                            description: "repeat tracks may have different conditions than originally used"
                         }
                     ]
                     for (i = 0; i < styles.length; i++) {
@@ -2695,7 +2698,7 @@ module.exports = {
                     } else if (args[3] == "save") {
                         type = 7
                         rulesetEmbed
-                            .setTitle("Ruleset Saved")
+                            .setTitle(":white_check_mark: Ruleset Saved")
                             .setDescription("Successfully saved **" + tourney_rulesets_data.new[interaction.member.user.id].name + "** to rulesets.")
                         rulesetEmbed.fields = []
                         rulesetEmbed.setFooter("")
