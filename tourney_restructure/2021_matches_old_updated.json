@@ -15203,18 +15203,7 @@
                         "time": 178.505,
                         "deaths": 0,
                         "pod": 22,
-                        "notes": "stream was frozen most of the race",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": "stream was frozen most of the race"
                     },
                     {
                         "player": 13,
@@ -29444,78 +29433,19 @@
                         "player": 10,
                         "time": 160.979,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 25,
                         "time": 164.76,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "tempbans": [],
-                "conditions": [],
-                "track_selection": {
-                    "track": 2
-                },
-                "runs": [
+                        "notes": ""
+                    },
                     {
                         "player": 17,
                         "time": 165.566,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    },
-                    {
-                        "player": 10,
-                        "time": 243.414,
-                        "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -29523,43 +29453,27 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 7,
-                    "player": 10
+                    "track": 7
                 },
                 "runs": [
+                    
+                    {
+                        "player": 10,
+                        "time": 243.414,
+                        "pod": 19,
+                        "notes": ""
+                    },
                     {
                         "player": 25,
                         "time": 248.27,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 17,
                         "time": 252.382,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -29567,43 +29481,26 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 20,
-                    "player": 17
+                    "track": 20
                 },
                 "runs": [
                     {
                         "player": 10,
                         "time": 295.994,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 25,
                         "time": 312.706,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
+                    },
+                    {
+                        "player": 17,
+                        "time": 325.338,
+                        "pod": 8,
+                        "notes": ""
                     }
                 ]
             },
@@ -29612,86 +29509,36 @@
                 "conditions": [],
                 "track_selection": {
                     "track": 20,
-                    "player": 25
+                    "player": 17
                 },
                 "runs": [
-                    {
-                        "player": 17,
-                        "time": 325.338,
-                        "pod": 8,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    },
-                    {
-                        "player": 10,
-                        "time": 138.528,
-                        "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    }
+                    
                 ]
             },
             {
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 22,
-                    "player": 17
+                    "track": 22
                 },
                 "runs": [
+                    {
+                        "player": 10,
+                        "time": 138.528,
+                        "pod": 19,
+                        "notes": ""
+                    },
                     {
                         "player": 25,
                         "time": 146.874,
                         "pod": 8,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 17,
                         "time": 155.737,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             }
@@ -29720,78 +29567,25 @@
                         "player": 0,
                         "time": 160.134,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 14,
                         "time": 162.937,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "tempbans": [],
-                "conditions": [],
-                "track_selection": {
-                    "track": 2
-                },
-                "runs": [
+                        "notes": ""
+                    },
                     {
                         "player": 11,
                         "time": 168.444,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 4,
                         "time": 190.276,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -29799,87 +29593,32 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 7,
-                    "player": 4
+                    "track": 7
                 },
                 "runs": [
                     {
                         "player": 0,
                         "time": 240.489,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 14,
                         "time": 252.103,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "tempbans": [],
-                "conditions": [],
-                "track_selection": {
-                    "track": 7,
-                    "player": 14
-                },
-                "runs": [
+                        "notes": ""
+                    },
                     {
                         "player": 11,
                         "time": 258.41,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 4,
                         "time": 290.261,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -29887,87 +29626,32 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 20,
-                    "player": 4
+                    "track": 20
                 },
                 "runs": [
                     {
                         "player": 0,
                         "time": 299.012,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 14,
                         "time": 314.784,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "tempbans": [],
-                "conditions": [],
-                "track_selection": {
-                    "track": 20,
-                    "player": 14
-                },
-                "runs": [
+                        "notes": ""
+                    },
                     {
                         "player": 11,
                         "time": 343.564,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 4,
                         "time": 362.826,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -29975,87 +29659,32 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 22,
-                    "player": 4
+                    "track": 22
                 },
                 "runs": [
                     {
                         "player": 0,
                         "time": 137.882,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 14,
                         "time": 147.279,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "tempbans": [],
-                "conditions": [],
-                "track_selection": {
-                    "track": 22,
-                    "player": 14
-                },
-                "runs": [
+                        "notes": ""
+                    },
                     {
                         "player": 11,
                         "time": 163.675,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 4,
                         "time": 183.983,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             }
@@ -30084,78 +29713,19 @@
                         "player": 15,
                         "time": 160.705,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 20,
                         "time": 163.417,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "tempbans": [],
-                "conditions": [],
-                "track_selection": {
-                    "track": 2
-                },
-                "runs": [
+                        "notes": ""
+                    },
                     {
                         "player": 24,
                         "time": 270,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    },
-                    {
-                        "player": 15,
-                        "time": 241.916,
-                        "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -30163,43 +29733,26 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 7,
-                    "player": 24
+                    "track": 7
                 },
                 "runs": [
+                    {
+                        "player": 15,
+                        "time": 241.916,
+                        "pod": 19,
+                        "notes": ""
+                    },
                     {
                         "player": 20,
                         "time": 246.562,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 24,
                         "time": 324.7,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -30207,87 +29760,26 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 20,
-                    "player": 24
+                    "track": 20
                 },
                 "runs": [
                     {
                         "player": 15,
                         "time": 299.579,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 20,
                         "time": 324.755,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "tempbans": [],
-                "conditions": [],
-                "track_selection": {
-                    "track": 20,
-                    "player": 20
-                },
-                "runs": [
+                        "notes": ""
+                    },
                     {
                         "player": 24,
                         "time": 418.626,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    },
-                    {
-                        "player": 15,
-                        "time": 138.942,
-                        "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -30295,43 +29787,27 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 22,
-                    "player": 24
+                    "track": 22
                 },
                 "runs": [
+                    
+                    {
+                        "player": 15,
+                        "time": 138.942,
+                        "pod": 19,
+                        "notes": ""
+                    },
                     {
                         "player": 20,
                         "time": 151.539,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 24,
                         "time": 190.187,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             }
@@ -30360,35 +29836,13 @@
                         "player": 12,
                         "time": 162.814,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 1,
                         "time": 210.446,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -30396,43 +29850,20 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 7,
-                    "player": 1
+                    "track": 7
                 },
                 "runs": [
                     {
                         "player": 12,
                         "time": 246.599,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 1,
                         "time": 312.276,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -30440,43 +29871,20 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 20,
-                    "player": 1
+                    "track": 20
                 },
                 "runs": [
                     {
                         "player": 12,
                         "time": 314.227,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 1,
                         "time": 407.678,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -30484,43 +29892,20 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 22,
-                    "player": 1
+                    "track": 22
                 },
                 "runs": [
                     {
                         "player": 12,
                         "time": 143.039,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 1,
                         "time": 213.848,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             }
@@ -30549,35 +29934,13 @@
                         "player": 18,
                         "time": 163.49,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 13,
                         "time": 265.894,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -30585,43 +29948,20 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 7,
-                    "player": 13
+                    "track": 7
                 },
                 "runs": [
                     {
                         "player": 18,
                         "time": 251.834,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 13,
                         "time": 330,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -30629,43 +29969,20 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 20,
-                    "player": 13
+                    "track": 20
                 },
                 "runs": [
                     {
                         "player": 18,
                         "time": 342.832,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 13,
                         "time": 499.911,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -30673,43 +29990,20 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 22,
-                    "player": 13
+                    "track": 22
                 },
                 "runs": [
                     {
                         "player": 18,
                         "time": 148.223,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 13,
                         "time": 240,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             }
@@ -56525,16 +55819,7 @@
                                 "deaths": 0
                             }
                         ]
-                    }
-                ]
-            },
-            {
-                "tempbans": [],
-                "conditions": [],
-                "track_selection": {
-                    "track": 0
-                },
-                "runs": [
+                    },
                     {
                         "player": 19,
                         "time": 99.565,
@@ -56555,7 +55840,16 @@
                                 "deaths": 0
                             }
                         ]
-                    },
+                    }
+                ]
+            },
+            {
+                "tempbans": [],
+                "conditions": [],
+                "track_selection": {
+                    "track": 1
+                },
+                "runs": [
                     {
                         "player": 17,
                         "time": 41.431,
@@ -56576,17 +55870,7 @@
                                 "deaths": 0
                             }
                         ]
-                    }
-                ]
-            },
-            {
-                "tempbans": [],
-                "conditions": [],
-                "track_selection": {
-                    "track": 1,
-                    "player": 19
-                },
-                "runs": [
+                    },
                     {
                         "player": 14,
                         "time": 42.49,
@@ -56635,8 +55919,7 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 2,
-                    "player": 19
+                    "track": 2
                 },
                 "runs": [
                     {
@@ -56680,17 +55963,7 @@
                                 "deaths": 0
                             }
                         ]
-                    }
-                ]
-            },
-            {
-                "tempbans": [],
-                "conditions": [],
-                "track_selection": {
-                    "track": 2,
-                    "player": 17
-                },
-                "runs": [
+                    },
                     {
                         "player": 19,
                         "time": 205.544,
@@ -56711,7 +55984,17 @@
                                 "deaths": 3
                             }
                         ]
-                    },
+                    }
+                ]
+            },
+            {
+                "tempbans": [],
+                "conditions": [],
+                "track_selection": {
+                    "track": 3
+                },
+                "runs": [
+                    
                     {
                         "player": 14,
                         "time": 159.35,
@@ -56732,17 +56015,7 @@
                                 "deaths": 0
                             }
                         ]
-                    }
-                ]
-            },
-            {
-                "tempbans": [],
-                "conditions": [],
-                "track_selection": {
-                    "track": 3,
-                    "player": 19
-                },
-                "runs": [
+                    },
                     {
                         "player": 17,
                         "time": 163.136,
@@ -56791,8 +56064,7 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 4,
-                    "player": 19
+                    "track": 4
                 },
                 "runs": [
                     {
@@ -56836,17 +56108,7 @@
                                 "deaths": 0
                             }
                         ]
-                    }
-                ]
-            },
-            {
-                "tempbans": [],
-                "conditions": [],
-                "track_selection": {
-                    "track": 4,
-                    "player": 17
-                },
-                "runs": [
+                    },
                     {
                         "player": 19,
                         "time": 117.833,
@@ -56867,7 +56129,16 @@
                                 "deaths": 0
                             }
                         ]
-                    },
+                    }
+                ]
+            },
+            {
+                "tempbans": [],
+                "conditions": [],
+                "track_selection": {
+                    "track": 5
+                },
+                "runs": [
                     {
                         "player": 17,
                         "time": 188.709,
@@ -56888,17 +56159,7 @@
                                 "deaths": 0
                             }
                         ]
-                    }
-                ]
-            },
-            {
-                "tempbans": [],
-                "conditions": [],
-                "track_selection": {
-                    "track": 5,
-                    "player": 17
-                },
-                "runs": [
+                    },
                     {
                         "player": 14,
                         "time": 192.709,
@@ -56947,8 +56208,7 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 6,
-                    "player": 19
+                    "track": 6
                 },
                 "runs": [
                     {
@@ -56989,6 +56249,27 @@
                             },
                             {
                                 "time": 77.26,
+                                "deaths": 0
+                            }
+                        ]
+                    },
+                    {
+                        "player": 19,
+                        "time": 231.079,
+                        "deaths": 0,
+                        "pod": 19,
+                        "notes": "",
+                        "laps": [
+                            {
+                                "time": 78.870,
+                                "deaths": 0
+                            },
+                            {
+                                "time": 76.40,
+                                "deaths": 0
+                            },
+                            {
+                                "time": 75.800,
                                 "deaths": 0
                             }
                         ]
@@ -57064,8 +56345,7 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 1,
-                    "player": 5
+                    "track": 1
                 },
                 "runs": [
                     {
@@ -57116,8 +56396,7 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 2,
-                    "player": 0
+                    "track": 2
                 },
                 "runs": [
                     {
@@ -57168,8 +56447,7 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 3,
-                    "player": 5
+                    "track": 3
                 },
                 "runs": [
                     {
@@ -57220,8 +56498,7 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 4,
-                    "player": 0
+                    "track": 4
                 },
                 "runs": [
                     {
@@ -57272,8 +56549,7 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 5,
-                    "player": 5
+                    "track": 5
                 },
                 "runs": [
                     {
@@ -57324,8 +56600,7 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 6,
-                    "player": 5
+                    "track": 6
                 },
                 "runs": [
                     {
@@ -57397,78 +56672,25 @@
                         "player": 5,
                         "time": 39.905,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 17,
                         "time": 40.136,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "tempbans": [],
-                "conditions": [],
-                "track_selection": {
-                    "track": 1
-                },
-                "runs": [
+                        "notes": ""
+                    },
                     {
                         "player": 25,
                         "time": 40.765,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 19,
                         "time": 41.83,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -57476,87 +56698,32 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 9,
-                    "player": 19
+                    "track": 9
                 },
                 "runs": [
                     {
                         "player": 5,
                         "time": 92.382,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 17,
                         "time": 97.236,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "tempbans": [],
-                "conditions": [],
-                "track_selection": {
-                    "track": 9,
-                    "player": 17
-                },
-                "runs": [
+                        "notes": ""
+                    },
                     {
                         "player": 25,
                         "time": 95.459,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 19,
                         "time": 100.353,
                         "pod": 8,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -57564,87 +56731,32 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 16,
-                    "player": 19
+                    "track": 16
                 },
                 "runs": [
                     {
                         "player": 5,
                         "time": 248.022,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 17,
                         "time": 260.131,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "tempbans": [],
-                "conditions": [],
-                "track_selection": {
-                    "track": 16,
-                    "player": 17
-                },
-                "runs": [
+                        "notes": ""
+                    },
                     {
                         "player": 25,
                         "time": 264.783,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 19,
                         "time": 308.743,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -57652,87 +56764,32 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 23,
-                    "player": 19
+                    "track": 23
                 },
                 "runs": [
                     {
                         "player": 5,
                         "time": 299.614,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 17,
                         "time": 304.925,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "tempbans": [],
-                "conditions": [],
-                "track_selection": {
-                    "track": 23,
-                    "player": 17
-                },
-                "runs": [
+                        "notes": ""
+                    },
                     {
                         "player": 25,
                         "time": 310.298,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 19,
                         "time": 320.24,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             }
@@ -57805,8 +56862,7 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 1,
-                    "player": 25
+                    "track": 1
                 },
                 "runs": [
                     {
@@ -57857,8 +56913,7 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 2,
-                    "player": 20
+                    "track": 2
                 },
                 "runs": [
                     {
@@ -57909,8 +56964,7 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 3,
-                    "player": 25
+                    "track": 3
                 },
                 "runs": [
                     {
@@ -57961,8 +57015,7 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 4,
-                    "player": 25
+                    "track": 4
                 },
                 "runs": [
                     {
@@ -58013,8 +57066,7 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 5,
-                    "player": 25
+                    "track": 5
                 },
                 "runs": [
                     {
@@ -58065,8 +57117,7 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 6,
-                    "player": 25
+                    "track": 6
                 },
                 "runs": [
                     {
@@ -58182,8 +57233,7 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 1,
-                    "player": 24
+                    "track": 1
                 },
                 "runs": [
                     {
@@ -58234,8 +57284,7 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 2,
-                    "player": 24
+                    "track": 2
                 },
                 "runs": [
                     {
@@ -58286,8 +57335,7 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 3,
-                    "player": 24
+                    "track": 3
                 },
                 "runs": [
                     {
@@ -58338,8 +57386,7 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 4,
-                    "player": 24
+                    "track": 4
                 },
                 "runs": [
                     {
@@ -58390,8 +57437,7 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 5,
-                    "player": 24
+                    "track": 5
                 },
                 "runs": [
                     {
@@ -58442,8 +57488,7 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 6,
-                    "player": 24
+                    "track": 6
                 },
                 "runs": [
                     {
@@ -58515,35 +57560,13 @@
                         "player": 11,
                         "time": 45.406,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 28,
                         "time": 47.165,
                         "pod": 14,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -58551,43 +57574,20 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 9,
-                    "player": 28
+                    "track": 9
                 },
                 "runs": [
                     {
                         "player": 11,
                         "time": 103.364,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 28,
                         "time": 111.405,
                         "pod": 14,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -58595,43 +57595,20 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 16,
-                    "player": 28
+                    "track": 16
                 },
                 "runs": [
                     {
                         "player": 11,
                         "time": 299.443,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 28,
                         "time": 344.735,
                         "pod": 14,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -58639,42 +57616,19 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 23,
-                    "player": 28
+                    "track": 23
                 },
                 "runs": [
                     {
                         "player": 11,
                         "time": 332.881,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 28,
                         "time": 450,
-                        "notes": "penalty time",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": "penalty time"
                     }
                 ]
             }
@@ -58702,35 +57656,7 @@
                         "player": 4,
                         "time": 43.778,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    },
-                    {
-                        "player": 4,
-                        "time": 101.294,
-                        "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -58738,43 +57664,44 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 16,
-                    "player": 4
+                    "track": 9
+                },
+                "runs": [
+                    {
+                        "player": 4,
+                        "time": 101.294,
+                        "pod": 22,
+                        "notes": ""
+                    }
+                ]
+            },
+            {
+                "tempbans": [],
+                "conditions": [],
+                "track_selection": {
+                    "track": 16
                 },
                 "runs": [
                     {
                         "player": 4,
                         "time": 296.033,
                         "pod": 14,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    },
+                        "notes": ""
+                    }
+                ]
+            },
+            {
+                "tempbans": [],
+                "conditions": [],
+                "track_selection": {
+                    "track": 23
+                },
+                "runs": [
                     {
                         "player": 4,
                         "time": 318.83,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             }
@@ -58803,78 +57730,25 @@
                         "player": 10,
                         "time": 40.125,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 14,
                         "time": 40.425,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "tempbans": [],
-                "conditions": [],
-                "track_selection": {
-                    "track": 1
-                },
-                "runs": [
+                        "notes": ""
+                    },
                     {
                         "player": 1,
                         "time": 50.319,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 13,
                         "time": 63.509,
                         "pod": 20,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -58882,87 +57756,32 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 9,
-                    "player": 13
+                    "track": 9
                 },
                 "runs": [
                     {
                         "player": 10,
                         "time": 92.908,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 14,
                         "time": 94.418,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "tempbans": [],
-                "conditions": [],
-                "track_selection": {
-                    "track": 9,
-                    "player": 14
-                },
-                "runs": [
+                        "notes": ""
+                    },
                     {
                         "player": 1,
                         "time": 123.943,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 13,
                         "time": 146.952,
                         "pod": 20,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -58970,87 +57789,32 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 16,
-                    "player": 13
+                    "track": 16
                 },
                 "runs": [
                     {
                         "player": 10,
                         "time": 249.285,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 14,
                         "time": 257.521,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "tempbans": [],
-                "conditions": [],
-                "track_selection": {
-                    "track": 16,
-                    "player": 14
-                },
-                "runs": [
+                        "notes": ""
+                    },
                     {
                         "player": 1,
                         "time": 378.521,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 13,
                         "time": 414.065,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -59058,86 +57822,31 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 23,
-                    "player": 13
+                    "track": 23
                 },
                 "runs": [
                     {
                         "player": 10,
                         "time": 299.269,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 14,
                         "time": 301.208,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "tempbans": [],
-                "conditions": [],
-                "track_selection": {
-                    "track": 23,
-                    "player": 14
-                },
-                "runs": [
+                        "notes": ""
+                    },
                     {
                         "player": 1,
                         "time": 386.841,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 13,
                         "time": 450,
-                        "notes": "penalty time",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": "penalty time"
                     }
                 ]
             }
@@ -59166,35 +57875,13 @@
                         "player": 29,
                         "time": 39.951,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 20,
                         "time": 40.243,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -59202,43 +57889,20 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 9,
-                    "player": 20
+                    "track": 9
                 },
                 "runs": [
                     {
                         "player": 29,
                         "time": 93.785,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 20,
                         "time": 95.426,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -59246,43 +57910,20 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 16,
-                    "player": 20
+                    "track": 16
                 },
                 "runs": [
                     {
                         "player": 29,
                         "time": 251.031,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 20,
                         "time": 262.633,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -59290,43 +57931,20 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 23,
-                    "player": 20
+                    "track": 23
                 },
                 "runs": [
                     {
                         "player": 29,
                         "time": 303.277,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 20,
                         "time": 303.782,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             }
@@ -59355,35 +57973,13 @@
                         "player": 0,
                         "time": 39.67,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 24,
                         "time": 44.975,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -59391,43 +57987,20 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 9,
-                    "player": 24
+                    "track": 9
                 },
                 "runs": [
                     {
                         "player": 0,
                         "time": 91.822,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 24,
                         "time": 116.633,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -59435,43 +58008,20 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 16,
-                    "player": 24
+                    "track": 16
                 },
                 "runs": [
                     {
                         "player": 0,
                         "time": 247.539,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 24,
                         "time": 322.334,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -59479,43 +58029,20 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 23,
-                    "player": 24
+                    "track": 23
                 },
                 "runs": [
                     {
                         "player": 0,
                         "time": 298.319,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 24,
                         "time": 369.15,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             }
@@ -59544,78 +58071,19 @@
                         "player": 12,
                         "time": 41.192,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 27,
                         "time": 43.062,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "tempbans": [],
-                "conditions": [],
-                "track_selection": {
-                    "track": 1
-                },
-                "runs": [
+                        "notes": ""
+                    },
                     {
                         "player": 16,
                         "time": 45.906,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    },
-                    {
-                        "player": 12,
-                        "time": 98.072,
-                        "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -59623,43 +58091,26 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 9,
-                    "player": 12
+                    "track": 9
                 },
                 "runs": [
+                    {
+                        "player": 12,
+                        "time": 98.072,
+                        "pod": 19,
+                        "notes": ""
+                    },
                     {
                         "player": 27,
                         "time": 105.071,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 16,
                         "time": 117.173,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -59667,87 +58118,26 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 16,
-                    "player": 16
+                    "track": 16
                 },
                 "runs": [
                     {
                         "player": 12,
                         "time": 265.958,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 27,
                         "time": 281.076,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "tempbans": [],
-                "conditions": [],
-                "track_selection": {
-                    "track": 16,
-                    "player": 27
-                },
-                "runs": [
+                        "notes": ""
+                    },
                     {
                         "player": 16,
                         "time": 331.626,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    },
-                    {
-                        "player": 12,
-                        "time": 305.144,
-                        "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -59755,43 +58145,26 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 23,
-                    "player": 16
+                    "track": 23
                 },
                 "runs": [
+                    {
+                        "player": 12,
+                        "time": 305.144,
+                        "pod": 19,
+                        "notes": ""
+                    },
                     {
                         "player": 27,
                         "time": 328.057,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 16,
                         "time": 344.433,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             }
@@ -59803,7 +58176,7 @@
         "bracket": "Qualifying",
         "ruleset": "-Mi3Hs3s9cY_TBDV7-ok",
         "commentators": [
-            17
+            17, 8
         ],
         "vod": "https://www.youtube.com/playlist?list=PLfljlY_yJ8eOf3zcAVGGCWfo2kLjsx-i3",
         "datetime": 1620594000000,
@@ -59819,35 +58192,19 @@
                         "player": 21,
                         "time": 43.275,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
-                        "player": 21,
-                        "time": 100.734,
+                        "player": 18,
+                        "time": 43.277,
+                        "pod": 19,
+                        "notes": ""
+                    },
+                    {
+                        "player": 6,
+                        "time": 44.064,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -59855,99 +58212,53 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 16,
-                    "player": 21
+                    "track": 9
+                },
+                "runs": [
+                    {
+                        "player": 21,
+                        "time": 100.734,
+                        "pod": 22,
+                        "notes": ""
+                    },
+                    {
+                        "player": 18,
+                        "time": 98.782,
+                        "pod": 22,
+                        "notes": ""
+                    },
+                    {
+                        "player": 6,
+                        "time": 102.545,
+                        "pod": 22,
+                        "notes": ""
+                    }
+                ]
+            },
+            {
+                "tempbans": [],
+                "conditions": [],
+                "track_selection": {
+                    "track": 16
                 },
                 "runs": [
                     {
                         "player": 21,
                         "time": 337.762,
                         "pod": 11,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    },
-                    {
-                        "player": 21,
-                        "time": 357.968,
-                        "pod": 11,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    }
-                ]
-            }
-        ],
-        "permabans": []
-    },
-    {
-        "tourney": 3,
-        "bracket": "Qualifying",
-        "ruleset": "-Mi3Hs3s9cY_TBDV7-ok",
-        "commentators": [
-            17
-        ],
-        "vod": "https://www.youtube.com/playlist?list=PLfljlY_yJ8eOf3zcAVGGCWfo2kLjsx-i3",
-        "datetime": 1620594000000,
-        "races": [
-            {
-                "tempbans": [],
-                "conditions": [],
-                "track_selection": {
-                    "track": 1
-                },
-                "runs": [
-                    {
-                        "player": 18,
-                        "time": 43.277,
-                        "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 18,
-                        "time": 98.782,
+                        "time": 264.902,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
+                    },
+                    {
+                        "player": 6,
+                        "time": 297.523,
+                        "pod": 22,
+                        "notes": ""
                     }
                 ]
             },
@@ -59955,143 +58266,26 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 16,
-                    "player": 18
+                    "track": 23
                 },
                 "runs": [
                     {
-                        "player": 18,
-                        "time": 264.902,
-                        "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "player": 21,
+                        "time": 357.968,
+                        "pod": 11,
+                        "notes": ""
                     },
                     {
                         "player": 18,
                         "time": 303.98,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    }
-                ]
-            }
-        ],
-        "permabans": []
-    },
-    {
-        "tourney": 3,
-        "bracket": "Qualifying",
-        "ruleset": "-Mi3Hs3s9cY_TBDV7-ok",
-        "commentators": [
-            8
-        ],
-        "vod": "https://www.youtube.com/playlist?list=PLfljlY_yJ8eOf3zcAVGGCWfo2kLjsx-i3",
-        "datetime": 1620594000000,
-        "races": [
-            {
-                "tempbans": [],
-                "conditions": [],
-                "track_selection": {
-                    "track": 1
-                },
-                "runs": [
-                    {
-                        "player": 6,
-                        "time": 44.064,
-                        "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    },
-                    {
-                        "player": 6,
-                        "time": 102.545,
-                        "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "tempbans": [],
-                "conditions": [],
-                "track_selection": {
-                    "track": 16,
-                    "player": 6
-                },
-                "runs": [
-                    {
-                        "player": 6,
-                        "time": 297.523,
-                        "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 6,
                         "time": 324.515,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             }
@@ -60164,8 +58358,7 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 1,
-                    "player": 4
+                    "track": 1
                 },
                 "runs": [
                     {
@@ -60216,8 +58409,7 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 2,
-                    "player": 4
+                    "track": 2
                 },
                 "runs": [
                     {
@@ -60268,8 +58460,7 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 3,
-                    "player": 4
+                    "track": 3
                 },
                 "runs": [
                     {
@@ -60320,8 +58511,7 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 4,
-                    "player": 4
+                    "track": 4
                 },
                 "runs": [
                     {
@@ -60372,8 +58562,7 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 5,
-                    "player": 4
+                    "track": 5
                 },
                 "runs": [
                     {
@@ -60424,8 +58613,7 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 6,
-                    "player": 4
+                    "track": 6
                 },
                 "runs": [
                     {
@@ -60541,8 +58729,7 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 1,
-                    "player": 21
+                    "track": 1
                 },
                 "runs": [
                     {
@@ -60593,8 +58780,7 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 2,
-                    "player": 21
+                    "track": 2
                 },
                 "runs": [
                     {
@@ -60645,8 +58831,7 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 3,
-                    "player": 21
+                    "track": 3
                 },
                 "runs": [
                     {
@@ -60697,8 +58882,7 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 4,
-                    "player": 21
+                    "track": 4
                 },
                 "runs": [
                     {
@@ -60749,8 +58933,7 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 5,
-                    "player": 21
+                    "track": 5
                 },
                 "runs": [
                     {
@@ -60801,8 +58984,7 @@
                 "tempbans": [],
                 "conditions": [],
                 "track_selection": {
-                    "track": 6,
-                    "player": 21
+                    "track": 6
                 },
                 "runs": [
                     {

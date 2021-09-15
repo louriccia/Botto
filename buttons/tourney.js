@@ -284,7 +284,10 @@ module.exports = {
                                 if(run.player == winner.player){
                                     field += ":crown:"
                                 }
-                                field += "\n" + racers[run.pod].flag + " "
+                                field += "\n"
+                                if(run.hasOwnProperty("pod")){
+                                    field += racers[run.pod].flag + " "
+                                } 
                                 if(run.time == "DNF"){
                                     field += "`DNF`"
                                 } else {
@@ -306,7 +309,7 @@ module.exports = {
                                     if(permaban.type == "pod"){
                                         permabans += ":no_entry_sign: " + racers[permaban.selection].flag + " (*" + tourney_participants_data[permaban.player].name + "*)\n"
                                     } else if(permaban.type == "track"){
-                                        permabans += ":no_entry_sign: " + tracks[permaban.selection].nickname[0] + " (*" + tourney_participants_data[permaban.player].name + "*)\n"
+                                        permabans += ":no_entry_sign: " + tracks[permaban.selection].nickname[0].toUpperCase() + " (*" + tourney_participants_data[permaban.player].name + "*)\n"
                                     }
                                 })
                                 tourneyMatches
