@@ -146,7 +146,7 @@ module.exports = {
                     var type = 7
                     var mtch = Object.keys(tourney_matches_data)
                     mtch = mtch.sort(function (a, b) {
-                        return tourney_matches_data[a].datetime - tourney_matches_data[b].datetime;
+                        return tourney_matches_data[b].datetime - tourney_matches_data[a].datetime;
                     })
                     var matches = []
                     for (i = 0 + offset * 23; i < (offset + 1) * 23; i++) {
@@ -223,7 +223,7 @@ module.exports = {
                         description += ":microphone2: " + comms.join(", ")
 
                         tourneyMatches
-                            .setTitle(title.join(" ") + " - " + players.join(", "))
+                            .setTitle(title.join(" ") + " - " + players.join(" vs "))
                             .setDescription(description)
                             .setColor("#3BA55D")
                             .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/crossed-swords_2694-fe0f.png")
@@ -270,7 +270,7 @@ module.exports = {
                                 if(run.time == "DNF"){
                                     field += "\n`DNF`"
                                 } else {
-                                    field += "\n:stopwatch:`" + tools.timefix(run.time) + "`"
+                                    field += "\n`" + tools.timefix(run.time) + "`"
                                 }
                                 if(run.deaths == 1){
                                     field += " :skull:" 
