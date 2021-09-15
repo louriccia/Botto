@@ -240,19 +240,20 @@ module.exports = {
                                     
                                 })
                             }
-                            if (tourney_matches_data[match].races[r].track_selection.hasOwnProperty("player")){
-                                field += tourney_participants_data[tourney_matches_data[match].races[r].track_selection.player].name + " "
-                            } 
+                            
                             var track = tourney_matches_data[match].races[r].track_selection.track
-                            field += planets[tracks[track].planet].emoji + " " + tracks[track].nickname[0] + "\n"
+                            field += planets[tracks[track].planet].emoji + " " + tracks[track].nickname[0] + " "
+                            if (tourney_matches_data[match].races[r].track_selection.hasOwnProperty("player")){
+                                field += "(" + tourney_participants_data[tourney_matches_data[match].races[r].track_selection.player].name + ")\n"
+                            } 
                             if(tourney_matches_data[match].races[r].hasOwnProperty("conditions")){
                                 tourney_matches_data[match].races[r].conditions.forEach(condition => {
                                     if(condition.type == "skips"){
-                                        field += tourney_participants_data[condition.player].name + " :asterisk: Skips\n"
+                                        field += ":asterisk: Skips (" + tourney_participants_data[condition.player].name + ")\n"
                                     } else if (condition.type == "no_upgrades"){
-                                        field += tourney_participants_data[condition.player].name + " :asterisk: No Upgrades\n"
+                                        field += ":asterisk: No Upgrades (" + tourney_participants_data[condition.player].name + ")\n"
                                     } else if (condition.type == "pod_ban"){
-                                        field += tourney_participants_data[condition.player].name + " :x: " + racers[condition.selection].flag + "\n"
+                                        field += ":x: " + racers[condition.selection].flag + " (" + tourney_participants_data[condition.player].name + ")\n"
                                     }
                                 })
                             }
@@ -290,7 +291,7 @@ module.exports = {
                                     if(permaban.type == "pod"){
                                         permabans += ":no_entry_sign: " + racers[permaban.selection].flag + " (" + tourney_participants_data[permaban.player].name + "\n"
                                     } else if(permaban.type == "track"){
-                                        permabans += "no_entry_sign: " + tracks[permaban.selection].nickname[0] + " (" + tourney_participants_data[permaban.player].name + "\n"
+                                        permabans += ":no_entry_sign: " + tracks[permaban.selection].nickname[0] + " (" + tourney_participants_data[permaban.player].name + "\n"
                                     }
                                 })
                                 tourneyMatches
