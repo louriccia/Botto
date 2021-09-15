@@ -138,8 +138,10 @@ module.exports = {
                 if (args[2].startsWith("offset")) {
 
                     var offset = Number(args[2].replace("offset", ""))
-                    if (interaction.data.values[0].includes("offset")) {
-                        offset = Number(interaction.data.values[0].replace("offset", ""))
+                    if(interaction.data.hasOwnProperty("values")){
+                        if (interaction.data.values[0].includes("offset")) {
+                            offset = Number(interaction.data.values[0].replace("offset", ""))
+                        }
                     }
                     var type = 7
                     var mtch = Object.keys(tourney_matches_data)
