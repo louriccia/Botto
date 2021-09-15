@@ -257,7 +257,7 @@ module.exports = {
                             }
                             var winner = {}
                             for(p =0 ; p < tourney_matches_data[match].races[r].runs.length; p++){
-                                if(winner == {} || tourney_matches_data[match].races[r].runs[p].time < winner.time){
+                                if(winner.time == undefined || tourney_matches_data[match].races[r].runs[p].time < winner.time){
                                     winner.time = tourney_matches_data[match].races[r].runs[p].time
                                     winner.player = tourney_matches_data[match].races[r].runs[p].player
                                 }
@@ -275,7 +275,7 @@ module.exports = {
                                 if(run.deaths == 1){
                                     field += " :skull:" 
                                 } else if (run.deaths > 1){
-                                    field += "×" + run.deaths
+                                    field += ":skull:×" + run.deaths
                                 }
                                 field += "\n"
                             })
