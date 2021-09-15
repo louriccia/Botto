@@ -139,10 +139,10 @@ module.exports = {
 
                     var offset = Number(args[2].replace("offset", ""))
                     var type = 7
-                    tourney_matches_data.sort(function (a, b) {
-                        return Date.parse(b.datetime) - Date.parse(a.datetime);
-                    })
                     var mtch = Object.keys(tourney_matches_data)
+                    mtch.sort(function(a, b) {
+                        return Date.parse(tourney_matches_data[b].datetime) - Date.parse(tourney_matches_data[a].datetime);
+                    })
                     var matches = []
                     for (i = 0 + offset * 23; i < (offset + 1) * 23; i++) {
                         if (i == 0 + offset * 23 && offset > 0) {
@@ -216,7 +216,7 @@ module.exports = {
 
                         description += "[:trophy: " + tourney_tournaments_data[tourney_matches_data[match].tourney].name + "](" + tourney_matches_data[match].vod + ")\n"
                         description += ":calendar_spiral: <t:" + Math.round(tourney_matches_data[match].datetime/1000) + ":F>\n"
-                        description += ":scroll: " + tourney_rulesets_data[tourney_matches_data[match].ruleset].name
+                        description += ":scroll: " + tourney_rulesets_data.saved[tourney_matches_data[match].ruleset].name
                         description += ":microphone2: " + comms.join(", ")
 
                         tourneyMatches
