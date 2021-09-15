@@ -138,15 +138,15 @@ module.exports = {
                 if (args[2].startsWith("offset")) {
 
                     var offset = Number(args[2].replace("offset", ""))
-                    if(interaction.data.hasOwnProperty("values")){
+                    if (interaction.data.hasOwnProperty("values")) {
                         if (interaction.data.values[0].includes("offset")) {
                             offset = Number(interaction.data.values[0].replace("offset", ""))
                         }
                     }
                     var type = 7
                     var mtch = Object.keys(tourney_matches_data)
-                    mtch = mtch.sort(function(a, b) {
-                        return Date.parse(tourney_matches_data[a].datetime) - Date.parse(tourney_matches_data[b].datetime);
+                    mtch = mtch.sort(function (a, b) {
+                        return Date.parse(tourney_matches_data[b].datetime) - Date.parse(tourney_matches_data[a].datetime);
                     })
                     var matches = []
                     for (i = 0 + offset * 23; i < (offset + 1) * 23; i++) {
@@ -218,56 +218,63 @@ module.exports = {
                         })
 
                         description += "[:trophy: " + tourney_tournaments_data[tourney_matches_data[match].tourney].name + "](" + tourney_matches_data[match].vod + ")\n"
-                        description += ":calendar_spiral: <t:" + Math.round(tourney_matches_data[match].datetime/1000) + ":F>\n"
+                        description += ":calendar_spiral: <t:" + Math.round(tourney_matches_data[match].datetime / 1000) + ":F>\n"
                         description += ":scroll: " + tourney_rulesets_data.saved[tourney_matches_data[match].ruleset].name + "\n"
                         description += ":microphone2: " + comms.join(", ")
 
                         tourneyMatches
-                        .setTitle(title.join(" ") + " - " + players.join(", "))
-                        .setDescription(description)
-                        .setColor("#3BA55D")
-                        .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/crossed-swords_2694-fe0f.png")
-                    }
-                    
-                    /*
-                    var date = new Date(matches[i].datetime).toLocaleString("en-US", { timeZone: "America/New_York" }) + " ET"
-                    if (matches[i].url !== "") {
-                        date = "[" + date + "](" + matches[i].url + ")"
-                    }
-                    var players = Object.values(matches[i].players)
-                    var commentators = Object.values(matches[i].commentators)
-                    var score = []
-                    var comms = []
-                    var player_text = []
-                    for (k = 0; k < players.length; k++) {
-                        player_text.push(tourney_participants_data[String(players[k].player)].name)
-                        if (![undefined, ""].includes(players[k].score)) {
-                            score.push(players[k].score)
-                        }
-                    }
-                    if (commentators.length > 0) {
-                        for (k = 0; k < commentators.length; k++) {
-                            if (commentators[k] !== "") {
-                                comms.push(tourney_participants_data[String(commentators[k])].name)
+                            .setTitle(title.join(" ") + " - " + players.join(", "))
+                            .setDescription(description)
+                            .setColor("#3BA55D")
+                            .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/crossed-swords_2694-fe0f.png")
+                        for (r = 0; r < tourney_matches_data[match].races.length; r++) {
+                            var field = ""
+                            if(tourney_matches_data[match].races[r].hasOwnProperty("tempbans")){
+                                tourney_matches_data[match].races[r].tempbans.forEach(ban => {
+                                    if(ban.type == "pod"){
+                                        field += tourney_participants_data[ban.player].name + " :x: " + racers[ban.selection].flag + "\n"
+                                    } else if (ban.type == "track"){
+                                        field += tourney_participants_data[ban.player].name + " :x: " + tracks[ban.selection].nickname[0] + "\n"
+                                    }
+                                    
+                                })
+                            }
+                            if (tourney_matches_data[match].races[r].track_selection.hasOwnProperty("player")){
+                                field += tourney_participants_data[tourney_matches_data[match].races[r].track_selection.player].name + " "
+                            } 
+                            var track = tourney_matches_data[match].races[r].track_selection.track
+                            field += planets[tracks[track].planet].emoji + " " + tracks[track].nickname[0] + "\n"
+                            if(tourney_matches_data[match].races[r].hasOwnProperty("conditions")){
+                                tourney_matches_data[match].races[r].conditions.forEach(condition => {
+                                    if(condition.type == "skips"){
+                                        field += tourney_participants_data[condition.player].name + " :asterisk: Skips\n"
+                                    } else if (condition.type == "no_upgrades"){
+                                        field += tourney_participants_data[condition.player].name + " :asterisk: No Upgrades\n"
+                                    } else if (condition.type == "pod_ban"){
+                                        field += tourney_participants_data[condition.player].name + " :asterisk: Pod Ban " + racers[conditions.selection].flag + "\n"
+                                    }
+                                })
+                            }
+                            tourney_matches_data[match].races[r].runs.forEach(run => {
+                                field += racers[run.pod].flag + " " + tourney_participants_data[run.player] + "\n:stopwatch:" + tools.timefix(run.time) + " :skull" + run.deaths
+                            })
+                            tourneyMatches
+                                .addField("Race " + r, field, true)
+
+                            if(r == 0 && tourney_matches_data[match].hasOwnProperty("permabans")){
+                                var permabans = ""
+                                tourney_matches_data[match].permabans.forEach(permaban => {
+                                    if(permaban.type == "pod"){
+                                        permabans += tourney_participants_data[permaban.player] + " :no_entry_sign: " + racers[permaban.selection].flag + "\n"
+                                    } else if(permaban.type == "track"){
+                                        permabans += tourney_participants_data[permaban.player] + " :no_entry_sign: " + tracks[permaban.selection].nickname[0] + "\n"
+                                    }
+                                })
+                                tourneyMatches
+                                .addField("Permabans", permabans, true)
                             }
                         }
                     }
-
-                    if (score.length > 0) {
-                        score = "score: ||`" + score.join(" to ") + "`||"
-                    }
-                    var bracketround = ""
-                    if (matches[i].bracket !== "") {
-                        bracketround += " - " + matches[i].bracket
-                        if (![undefined, ""].includes(matches[i].round)) {
-                            bracketround += ": " + matches[i].round
-                        }
-                    }
-                    tourneyMatches
-                        .addField(tourney_tournaments_data[matches[i].tourney].nickname + bracketround, date + "\nid: `" + matches[i].id + "`", true)
-                        .addField(player_text.join(" vs. "), score + "\n" + ":microphone2: " + comms.join(", "), true)
-                        .addField('\u200B', '\u200B', true)
-                    */
                     if (args.includes("initial")) {
                         type = 4
                     }
