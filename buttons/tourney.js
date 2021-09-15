@@ -181,7 +181,7 @@ module.exports = {
                             }
                         }
                         matches.push(r)
-                        if (i == saved.length - 1) {
+                        if (i == matches.length - 1) {
                             i = (offset + 1) * 23
                         }
                         if (i == (offset + 1) * 23 - 1) {
