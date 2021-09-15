@@ -218,7 +218,7 @@ module.exports = {
                         })
 
                         description += "[:trophy: " + tourney_tournaments_data[tourney_matches_data[match].tourney].name + "](" + tourney_tournaments_data[tourney_matches_data[match].tourney].challonge[0] + ")\n"
-                        description += "[:calendar_spiral: <t:" + Math.round(tourney_matches_data[match].datetime / 1000) + ":F>](" + tourney_matches_data[match].vod + "\n"
+                        description += ":calendar_spiral: <t:" + Math.round(tourney_matches_data[match].datetime / 1000) + ":F>\n"
                         description += ":scroll: " + tourney_rulesets_data.saved[tourney_matches_data[match].ruleset].name + "\n"
                         description += ":microphone2: " + comms.join(", ")
 
@@ -226,15 +226,16 @@ module.exports = {
                             .setTitle(title.join(" ") + " - " + players.join(" vs "))
                             .setDescription(description)
                             .setColor("#3BA55D")
+                            .setURL(tourney_matches_data[match].vod)
                             .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/crossed-swords_2694-fe0f.png")
                         for (r = 0; r < tourney_matches_data[match].races.length; r++) {
                             var field = ""
                             if(tourney_matches_data[match].races[r].hasOwnProperty("tempbans")){
                                 tourney_matches_data[match].races[r].tempbans.forEach(ban => {
                                     if(ban.type == "pod"){
-                                        field += tourney_participants_data[ban.player].name + " :x: " + racers[ban.selection].flag + "\n"
+                                        field += ":x: " + racers[ban.selection].flag + " (" + tourney_participants_data[ban.player].name +")\n"
                                     } else if (ban.type == "track"){
-                                        field += tourney_participants_data[ban.player].name + " :x: " + tracks[ban.selection].nickname[0] + "\n"
+                                        field +=  ":x: " + tracks[ban.selection].nickname[0] + " (" + tourney_participants_data[ban.player].name + ")\n"
                                     }
                                     
                                 })
@@ -287,9 +288,9 @@ module.exports = {
                                 var permabans = ""
                                 tourney_matches_data[match].permabans.forEach(permaban => {
                                     if(permaban.type == "pod"){
-                                        permabans += tourney_participants_data[permaban.player].name + " :no_entry_sign: " + racers[permaban.selection].flag + "\n"
+                                        permabans += ":no_entry_sign: " + racers[permaban.selection].flag + " (" + tourney_participants_data[permaban.player].name + "\n"
                                     } else if(permaban.type == "track"){
-                                        permabans += tourney_participants_data[permaban.player].name + " :no_entry_sign: " + tracks[permaban.selection].nickname[0] + "\n"
+                                        permabans += "no_entry_sign: " + tracks[permaban.selection].nickname[0] + " (" + tourney_participants_data[permaban.player].name + "\n"
                                     }
                                 })
                                 tourneyMatches
