@@ -251,15 +251,36 @@ module.exports = {
                                     } else if (condition.type == "no_upgrades"){
                                         field += tourney_participants_data[condition.player].name + " :asterisk: No Upgrades\n"
                                     } else if (condition.type == "pod_ban"){
-                                        field += tourney_participants_data[condition.player].name + " :asterisk: Pod Ban " + racers[condition.selection].flag + "\n"
+                                        field += tourney_participants_data[condition.player].name + " :x: " + racers[condition.selection].flag + "\n"
                                     }
                                 })
                             }
+                            var winner = {}
+                            for(p =0 ; p < tourney_matches_data[match].races[r].runs.length; p++){
+                                if(winner == {} || tourney_matches_data[match].races[r].runs[p].time < winner.time){
+                                    winner.time = tourney_matches_data[match].races[r].runs[p].time
+                                    winner.player = tourney_matches_data[match].races[r].runs[p].player
+                                }
+                            }
                             tourney_matches_data[match].races[r].runs.forEach(run => {
-                                field += racers[run.pod].flag + " " + tourney_participants_data[run.player].name + "\n:stopwatch:" + tools.timefix(run.time) + " :skull:" + run.deaths + "\n"
+                                field += racers[run.pod].flag + " **" + tourney_participants_data[run.player].name + "** "
+                                if(run.player == winner.player){
+                                    field += ":crown:"
+                                }
+                                if(run.time == "DNF"){
+                                    field += "\n`DNF`"
+                                } else {
+                                    field += "\n:stopwatch:`" + tools.timefix(run.time) + "`"
+                                }
+                                if(run.deaths == 1){
+                                    field += " :skull:" 
+                                } else if (run.deaths > 1){
+                                    field += "×" + run.deaths
+                                }
+                                field += "\n"
                             })
                             tourneyMatches
-                                .addField("Race " + r, field, true)
+                                .addField("Race " + (r+1), field, true)
 
                             if(r == 0 && tourney_matches_data[match].hasOwnProperty("permabans")){
                                 var permabans = ""
