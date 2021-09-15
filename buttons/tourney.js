@@ -217,7 +217,7 @@ module.exports = {
                             comms.push(tourney_participants_data[com].name)
                         })
 
-                        description += "[:trophy: " + tourney_tournaments_data[tourney_matches_data[match].tourney].name + "](" + tourney_tournaments_data[match.tourney].challonge[0] + ")\n"
+                        description += "[:trophy: " + tourney_tournaments_data[tourney_matches_data[match].tourney].name + "](" + tourney_tournaments_data[tourney_matches_data[match].tourney].challonge[0] + ")\n"
                         description += "[:calendar_spiral: <t:" + Math.round(tourney_matches_data[match].datetime / 1000) + ":F>](" + tourney_matches_data[match].vod + "\n"
                         description += ":scroll: " + tourney_rulesets_data.saved[tourney_matches_data[match].ruleset].name + "\n"
                         description += ":microphone2: " + comms.join(", ")
