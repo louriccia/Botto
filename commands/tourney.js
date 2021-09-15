@@ -538,7 +538,7 @@ module.exports = {
             client.buttons.get("tourney").execute(client, interaction, ["rulesets", "browse", "initial"]);
         } else if (args[0].name == "matches") {
             if (args[0].options[0].name == "browse") {
-                client.buttons.get("tourney").execute(client, interaction, ["matches", "browse", "page0", "initial"]);
+                client.buttons.get("tourney").execute(client, interaction, ["matches", "browse", "offset0", "initial"]);
             } else if (args[0].options[0].name == "submit") {
                 const tourneySubmission = new Discord.MessageEmbed()
                 var data = {}

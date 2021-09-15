@@ -1,0 +1,29 @@
+[ {
+  "challonge" : [ "https://challonge.com/swr20", "https://challonge.com/swr20DE" ],
+  "matcherino" : "https://matcherino.com/t/swr20",
+  "name" : "20th Anniversary Tournament 2019",
+  "nickname" : "20th Anniv.",
+  "stages" : [ "Swiss", "Double Elimination" ],
+  "stats" : "https://docs.google.com/spreadsheets/d/1xcQ8AAHgpG7spDqzKv_gaz3fZHSOT7css79usiYAtG4/edit?usp=sharing",
+  "standings" : [10, 15, 0, 7, 12, 18, 6, 22, 14, 17, 20, 25, 2, 16, 9, 13]
+}, {
+  "challonge" : [ "https://challonge.com/9ri6rq6j", "https://challonge.com/s7uuq9j0", "https://challonge.com/vn0wjwv8" ],
+  "matcherino" : "https://matcherino.com/t/swe1r",
+  "name" : "Galactic Tournament 2020",
+  "nickname" : "2020",
+  "stages" : [ "Qualifying", "Round Robin", "Double Elimination" ],
+  "stats" : "https://docs.google.com/spreadsheets/d/1BgiSSTO7wVLCt8xXge9XFIsezGd-lHes37tCqacZsm4/edit?usp=sharing",
+  "standings" : [0, 15, 10, 14, 17, 25, 12, 20, 1, 4, 11, 18]
+}, {
+  "name" : "David Stubbs Tribute Tournament 2021",
+  "nickname" : "Davey Tribute",
+  "standings": [15, 0, 10, 14, 25, 20, 19, 4, 21, 24]
+}, {
+  "challonge" : [ "https://challonge.com/GPC21" ],
+  "matcherino" : "https://matcherino.com/t/swe1r2021",
+  "name" : "Galactic Tournament 2021",
+  "nickname" : "2021",
+  "stages" : [ "Qualifying", "Group", "Double Elimination" ],
+  "stats" : "https://docs.google.com/spreadsheets/d/1vJUf2F3NFvoP3beNaWtCHb6VnwbmRlnyM9y40R-x-eg/edit?usp=sharing",
+  "standings" : [0, 5, 10, 29, 14, 17, 12, 18, 20, 6, 25, 19, 4, 27, 11, 24, 1, 13, 16, 2]
+} ]

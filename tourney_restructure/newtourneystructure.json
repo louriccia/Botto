@@ -1,0 +1,70 @@
+[
+    {
+        "tourney": 0,
+        "bracket": "Losers",
+        "round": "Semis",
+        "ruleset": "blah",
+        "commentators": [26, 20],
+        "vod": [],
+        "datetime": "unix",
+        "players": [
+            {
+                "player": 0,
+                "permabans": []
+            },
+            {
+                "player": 0,
+                "permabans": []
+            }
+        ],
+        "races": [
+            {
+                "tempbans": [
+                    {
+                        "type": "pod",
+                        "selection": 19,
+                        "player": 1
+                    },
+                    {
+                        "type": "track",
+                        "selection": "ben",
+                        "player": 2
+                    }
+                ],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 1
+                    },
+                    {
+                        "type": "pod_ban",
+                        "selection": 19,
+                        "player": 1
+                    }
+                ],
+                "track_selection": {
+                    "track": 14,
+                    "gentlemans": false,
+                    "player": 1
+                },
+                "runs": [
+                    {
+                        "player": 1,
+                        "time": 113.213,
+                        "deaths": 1,
+                        "pod": 13,
+                        "laps": [
+                            {
+                                "time": 36.213,
+                                "deaths": 0
+                            }
+                        ],
+                        "result": "winner",
+                        "notes": ""
+                    }
+                ]
+                
+            }
+        ]
+    }
+]

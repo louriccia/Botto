@@ -1,0 +1,2443 @@
+{
+  "0" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 26, 20 ],
+    "datetime" : "5/20/2019 14:00:00",
+    "players" : [ {
+      "permabans" : [ 0, 1 ],
+      "player" : 0,
+      "score" : 5
+    }, {
+      "permabans" : [ 20, 22 ],
+      "player" : 2,
+      "score" : 0
+    } ],
+    "round" : 1,
+    "tourney" : 0,
+    "url" : "https://youtu.be/dyg4YrTUyJk"
+  },
+  "1" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 17, 20 ],
+    "datetime" : "5/20/2019 20:00:00",
+    "players" : [ {
+      "permabans" : [ 16, 19 ],
+      "player" : 7,
+      "score" : 5
+    }, {
+      "permabans" : [ 22, 21 ],
+      "player" : 9,
+      "score" : 0
+    } ],
+    "round" : 1,
+    "tourney" : 0,
+    "url" : "https://youtu.be/h0AX3AAE2so"
+  },
+  "2" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 0, 20 ],
+    "datetime" : "5/21/2019 10:00:00",
+    "players" : [ {
+      "permabans" : [ 9, 11 ],
+      "player" : 10,
+      "score" : 5
+    }, {
+      "permabans" : [ 14, 16 ],
+      "player" : 25,
+      "score" : 1
+    } ],
+    "round" : 1,
+    "tourney" : 0,
+    "url" : "https://youtu.be/jIO2f7Qt3H4"
+  },
+  "3" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 17, 22 ],
+    "datetime" : "5/21/2019 20:00:00",
+    "players" : [ {
+      "permabans" : [ 16, 20 ],
+      "player" : 6,
+      "score" : 5
+    }, {
+      "permabans" : [ 22, 19 ],
+      "player" : 14,
+      "score" : 3
+    } ],
+    "round" : 1,
+    "tourney" : 0,
+    "url" : "https://youtu.be/H5Q2NLk9FVg"
+  },
+  "4" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 13, 20 ],
+    "datetime" : "5/22/2019 12:00:00",
+    "players" : [ {
+      "permabans" : [ 19, 16 ],
+      "player" : 22,
+      "score" : 5
+    }, {
+      "permabans" : [ 22, 23 ],
+      "player" : 3,
+      "score" : 0
+    } ],
+    "round" : 1,
+    "tourney" : 0,
+    "url" : "https://youtu.be/E0TnNk9H5sg"
+  },
+  "5" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 0, 22 ],
+    "datetime" : "5/23/2019 9:00:00",
+    "players" : [ {
+      "permabans" : [ 1, 22 ],
+      "player" : 20,
+      "score" : 0
+    }, {
+      "permabans" : [ 14, 23 ],
+      "player" : 15,
+      "score" : 5
+    } ],
+    "round" : 1,
+    "tourney" : 0,
+    "url" : "https://youtu.be/ErxGYFHo5B8"
+  },
+  "6" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 20 ],
+    "datetime" : "5/23/2019 22:00:00",
+    "players" : [ {
+      "player" : 13,
+      "score" : 0
+    }, {
+      "permabans" : [ 13, 7 ],
+      "player" : 23,
+      "score" : 5
+    } ],
+    "round" : 1,
+    "tourney" : 0,
+    "url" : "https://youtu.be/ps5uEaOKx7o"
+  },
+  "7" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 26, 15 ],
+    "datetime" : "5/24/2019 17:00:00",
+    "players" : [ {
+      "permabans" : [ 6, 20 ],
+      "player" : 12,
+      "score" : 3
+    }, {
+      "permabans" : [ 16, 22 ],
+      "player" : 17,
+      "score" : 5
+    } ],
+    "round" : 1,
+    "tourney" : 0,
+    "url" : "https://youtu.be/d6P8f30vFGQ"
+  },
+  "8" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 0, 20 ],
+    "datetime" : "5/25/2019 10:00:00",
+    "players" : [ {
+      "permabans" : [ 24, 22 ],
+      "player" : 16,
+      "score" : 0
+    }, {
+      "permabans" : [ 14, 23 ],
+      "player" : 18,
+      "score" : 5
+    } ],
+    "round" : 1,
+    "tourney" : 0,
+    "url" : "https://youtu.be/iZFeVVDkjtk"
+  },
+  "9" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 16, 20 ],
+    "datetime" : "5/26/2019 10:00:00",
+    "players" : [ {
+      "permabans" : [ 0, 1 ],
+      "player" : 0,
+      "score" : 5
+    }, {
+      "permabans" : [ 16, 19 ],
+      "player" : 17,
+      "score" : 0
+    } ],
+    "round" : 2,
+    "tourney" : 0,
+    "url" : "https://youtu.be/EY1NE4u6rAM"
+  },
+  "10" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 16, 20 ],
+    "datetime" : "5/27/2019 14:00:00",
+    "players" : [ {
+      "permabans" : [ 0, 1 ],
+      "player" : 12,
+      "score" : 5
+    }, {
+      "permabans" : [ 22, 14 ],
+      "player" : 2,
+      "score" : 3
+    } ],
+    "round" : 2,
+    "tourney" : 0,
+    "url" : "https://youtu.be/oytg9PaVaMM"
+  },
+  "11" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 12, 17 ],
+    "datetime" : "5/27/2019 21:00:00",
+    "players" : [ {
+      "permabans" : [ 22, 6 ],
+      "player" : 10,
+      "score" : 5
+    }, {
+      "permabans" : [ 5, 2 ],
+      "player" : 6,
+      "score" : 3
+    } ],
+    "round" : 2,
+    "tourney" : 0,
+    "url" : "https://youtu.be/uQhGX_CRQ_U"
+  },
+  "12" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 0, 26 ],
+    "datetime" : "5/28/2019 10:00:00",
+    "players" : [ {
+      "permabans" : [ 17, 19 ],
+      "player" : 25,
+      "score" : 4
+    }, {
+      "permabans" : [ 22, 16 ],
+      "player" : 14,
+      "score" : 5
+    } ],
+    "round" : 2,
+    "tourney" : 0,
+    "url" : "https://youtu.be/s7t7d4C6ZPQ"
+  },
+  "13" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 20, 22 ],
+    "datetime" : "5/28/2019 19:00:00",
+    "players" : [ {
+      "permabans" : [ 24, 22 ],
+      "player" : 16,
+      "score" : 2
+    }, {
+      "permabans" : [ 13, 7 ],
+      "player" : 23,
+      "score" : 5
+    } ],
+    "round" : 2,
+    "tourney" : 0,
+    "url" : "https://youtu.be/gwuQuQRhS5w"
+  },
+  "14" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 10, 20 ],
+    "datetime" : "5/29/2019 10:00:00",
+    "players" : [ {
+      "permabans" : [ 23, 14 ],
+      "player" : 15,
+      "score" : 5
+    }, {
+      "permabans" : [ 19, 1 ],
+      "player" : 22,
+      "score" : 0
+    } ],
+    "round" : 2,
+    "tourney" : 0,
+    "url" : "https://youtu.be/wg_OkWNgE4g"
+  },
+  "15" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 0, 26 ],
+    "datetime" : "5/29/2019 15:00:00",
+    "players" : [ {
+      "permabans" : [ 13, 7 ],
+      "player" : 7,
+      "score" : 5
+    }, {
+      "permabans" : [ 16, 14 ],
+      "player" : 18,
+      "score" : 3
+    } ],
+    "round" : 2,
+    "tourney" : 0,
+    "url" : "https://youtu.be/pxDXn7hw9Ac"
+  },
+  "16" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 12, 17 ],
+    "datetime" : "5/29/2019 20:00:00",
+    "players" : [ {
+      "permabans" : [ 16, 17 ],
+      "player" : 9,
+      "score" : 5
+    }, {
+      "permabans" : [ 22, 18 ],
+      "player" : 13,
+      "score" : 0
+    } ],
+    "round" : 2,
+    "tourney" : 0,
+    "url" : "https://youtu.be/H2X2CCxsVKY"
+  },
+  "17" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 16, 20 ],
+    "datetime" : "5/30/2019 0:00:00",
+    "players" : [ {
+      "permabans" : [ 7, 16 ],
+      "player" : 23,
+      "score" : 0
+    }, {
+      "permabans" : [ 13, 5 ],
+      "player" : 6,
+      "score" : 5
+    } ],
+    "round" : 3,
+    "tourney" : 0,
+    "url" : "https://youtu.be/onV-DiVsMnM"
+  },
+  "18" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 0, 16 ],
+    "datetime" : "5/30/2019 12:00:00",
+    "players" : [ {
+      "permabans" : [ 16, 1 ],
+      "player" : 22,
+      "score" : 3
+    }, {
+      "permabans" : [ 22, 19 ],
+      "player" : 20,
+      "score" : 5
+    } ],
+    "round" : 3,
+    "tourney" : 0,
+    "url" : "https://youtu.be/DYygCEEuK0g"
+  },
+  "19" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 15, 22 ],
+    "datetime" : "5/31/2019 15:00:00",
+    "players" : [ {
+      "permabans" : [ 23, 14 ],
+      "player" : 2,
+      "score" : 5
+    }, {
+      "permabans" : [ 16, 17 ],
+      "player" : 25,
+      "score" : 2
+    } ],
+    "round" : 3,
+    "tourney" : 0,
+    "url" : "https://youtu.be/1Z_ppVbhuCM"
+  },
+  "20" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 26, 20 ],
+    "datetime" : "5/31/2019 15:30:00",
+    "players" : [ {
+      "permabans" : [ 24, 20 ],
+      "player" : 14,
+      "score" : 5
+    }, {
+      "permabans" : [ 22, 19 ],
+      "player" : 16,
+      "score" : 0
+    } ],
+    "round" : 3,
+    "tourney" : 0,
+    "url" : "https://youtu.be/SrFveJIvOFI"
+  },
+  "21" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 17 ],
+    "datetime" : "5/31/2019 20:00:00",
+    "players" : [ {
+      "permabans" : [ 20, 23 ],
+      "player" : 12,
+      "score" : 5
+    }, {
+      "permabans" : [ 16, 22 ],
+      "player" : 9,
+      "score" : 0
+    } ],
+    "round" : 3,
+    "tourney" : 0,
+    "url" : "https://youtu.be/Ra9jdE_yKHQ"
+  },
+  "22" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 12, 22 ],
+    "datetime" : "6/1/2019 12:00:00",
+    "players" : [ {
+      "permabans" : [ 14, 12 ],
+      "player" : 18,
+      "score" : 5
+    }, {
+      "permabans" : [ 15, 20 ],
+      "player" : 17,
+      "score" : 1
+    } ],
+    "round" : 3,
+    "tourney" : 0,
+    "url" : "https://youtu.be/ap2i7BRE5r8"
+  },
+  "23" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 17, 22 ],
+    "datetime" : "6/1/2019 14:00:00",
+    "players" : [ {
+      "permabans" : [ 8, 21 ],
+      "player" : 0,
+      "score" : 5
+    }, {
+      "permabans" : [ 0, 6 ],
+      "player" : 10,
+      "score" : 3
+    } ],
+    "round" : 3,
+    "tourney" : 0,
+    "url" : "https://youtu.be/DQmU5Z88Lk4"
+  },
+  "24" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 17, 20 ],
+    "datetime" : "6/2/2019 16:00:00",
+    "players" : [ {
+      "permabans" : [ 22, 19 ],
+      "player" : 7,
+      "score" : 0
+    }, {
+      "permabans" : [ 14, 8 ],
+      "player" : 15,
+      "score" : 5
+    } ],
+    "round" : 3,
+    "tourney" : 0,
+    "url" : "https://youtu.be/tm7eQpZz9o8"
+  },
+  "25" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 20 ],
+    "datetime" : "6/4/2019 15:30:00",
+    "players" : [ {
+      "permabans" : [ 1, 0 ],
+      "player" : 22,
+      "score" : 5
+    }, {
+      "permabans" : [ 19, 16 ],
+      "player" : 2,
+      "score" : 4
+    } ],
+    "round" : 4,
+    "tourney" : 0,
+    "url" : "https://youtu.be/yRLVGPQ6FGE"
+  },
+  "26" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 26, 17 ],
+    "datetime" : "6/4/2019 19:00:00",
+    "players" : [ {
+      "permabans" : [ 22, 1 ],
+      "player" : 12,
+      "score" : 1
+    }, {
+      "permabans" : [ 23, 19 ],
+      "player" : 14,
+      "score" : 5
+    } ],
+    "round" : 4,
+    "tourney" : 0,
+    "url" : "https://youtu.be/5nnwG6JL5J4"
+  },
+  "27" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 10, 20 ],
+    "datetime" : "6/6/2019 12:00:00",
+    "players" : [ {
+      "permabans" : [ 0, 18 ],
+      "player" : 0,
+      "score" : 5
+    }, {
+      "permabans" : [ 24, 7 ],
+      "player" : 15,
+      "score" : 1
+    } ],
+    "round" : 4,
+    "tourney" : 0,
+    "url" : "https://youtu.be/1Gug7YMUGZg"
+  },
+  "28" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 10 ],
+    "datetime" : "6/6/2019 20:00:00",
+    "players" : [ {
+      "permabans" : [ 15, 20 ],
+      "player" : 17,
+      "score" : 5
+    }, {
+      "permabans" : [ 22, 24 ],
+      "player" : 9,
+      "score" : 0
+    } ],
+    "round" : 4,
+    "tourney" : 0,
+    "url" : "https://youtu.be/emh9ck1cb7w"
+  },
+  "29" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 7, 22 ],
+    "datetime" : "6/6/2019 23:00:00",
+    "players" : [ {
+      "permabans" : [ 0, 2 ],
+      "player" : 10,
+      "score" : 5
+    }, {
+      "permabans" : [ 22, 1 ],
+      "player" : 20,
+      "score" : 0
+    } ],
+    "round" : 4,
+    "tourney" : 0,
+    "url" : "https://youtu.be/G0gj49b41P4"
+  },
+  "147" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 17, 20 ],
+    "datetime" : "6/7/2019 23:00:00",
+    "players" : [ {
+      "player" : 13,
+      "score" : 0
+    }, {
+      "player" : 16,
+      "score" : 5
+    } ],
+    "round" : 4,
+    "tourney" : 0,
+    "url" : "https://youtu.be/8HQFoGEcL5Y"
+  },
+  "30" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 0 ],
+    "datetime" : "6/8/2019 11:00:00",
+    "players" : [ {
+      "permabans" : [ 15, 18 ],
+      "player" : 17,
+      "score" : 5
+    }, {
+      "permabans" : [ 19, 16 ],
+      "player" : 22,
+      "score" : 0
+    } ],
+    "round" : 5,
+    "tourney" : 0,
+    "url" : "https://youtu.be/b6AIuVD54oI"
+  },
+  "31" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 17, 22 ],
+    "datetime" : "6/8/2019 12:00:00",
+    "players" : [ {
+      "permabans" : [ 0, 2 ],
+      "player" : 10,
+      "score" : 5
+    }, {
+      "permabans" : [ 22, 16 ],
+      "player" : 7,
+      "score" : 3
+    } ],
+    "round" : 5,
+    "tourney" : 0,
+    "url" : "https://youtu.be/k1ebL-IjJIc"
+  },
+  "32" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 17 ],
+    "datetime" : "6/9/2019 12:00:00",
+    "players" : [ {
+      "permabans" : [ 5, 16 ],
+      "player" : 6,
+      "score" : 1
+    }, {
+      "permabans" : [ 1, 22 ],
+      "player" : 0,
+      "score" : 5
+    } ],
+    "round" : 5,
+    "tourney" : 0,
+    "url" : "https://youtu.be/bJc-op-mLjE"
+  },
+  "33" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 0, 17 ],
+    "datetime" : "6/9/2019 14:00:00",
+    "players" : [ {
+      "permabans" : [ 23, 24 ],
+      "player" : 12,
+      "score" : 4
+    }, {
+      "permabans" : [ 14, 12 ],
+      "player" : 18,
+      "score" : 5
+    } ],
+    "round" : 5,
+    "tourney" : 0,
+    "url" : "https://youtu.be/hyaIBjgt2uU"
+  },
+  "34" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 20, 22 ],
+    "datetime" : "6/10/2019 14:00:00",
+    "players" : [ {
+      "permabans" : [ 22, 19 ],
+      "player" : 14,
+      "score" : 0
+    }, {
+      "permabans" : [ 14, 18 ],
+      "player" : 15,
+      "score" : 5
+    } ],
+    "round" : 5,
+    "tourney" : 0,
+    "url" : "https://youtu.be/N33QWNdFt5w"
+  },
+  "35" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 7, 20 ],
+    "datetime" : "6/10/2019 15:30:00",
+    "players" : [ {
+      "permabans" : [ 18 ],
+      "player" : 13,
+      "score" : 0
+    }, {
+      "permabans" : [ 16, 19 ],
+      "player" : 2,
+      "score" : 5
+    } ],
+    "round" : 5,
+    "tourney" : 0,
+    "url" : "https://youtu.be/rfGLuxI_Uuk"
+  },
+  "36" : {
+    "bracket" : "Swiss",
+    "commentators" : [ 7, 22 ],
+    "datetime" : "6/11/2019 16:45:00",
+    "players" : [ {
+      "permabans" : [ 17, 5 ],
+      "player" : 25,
+      "score" : 5
+    }, {
+      "permabans" : [ 19, 22 ],
+      "player" : 16,
+      "score" : 1
+    } ],
+    "round" : 5,
+    "tourney" : 0,
+    "url" : "https://youtu.be/Pu00xmwJODA"
+  },
+  "37" : {
+    "bracket" : "DE-W",
+    "commentators" : [ 7, 20 ],
+    "datetime" : "6/13/2019 12:00:00",
+    "players" : [ {
+      "permabans" : [ 19, 22 ],
+      "player" : 14,
+      "score" : 5
+    }, {
+      "permabans" : [ 17, 5 ],
+      "player" : 25,
+      "score" : 2
+    } ],
+    "round" : 1,
+    "tourney" : 0,
+    "url" : "https://youtu.be/Ue-mZfvM-4U"
+  },
+  "38" : {
+    "bracket" : "DE-W",
+    "commentators" : [ 7, 17 ],
+    "datetime" : "6/14/2019 20:00:00",
+    "players" : [ {
+      "permabans" : [ 24, 5 ],
+      "player" : 6,
+      "score" : 5
+    }, {
+      "permabans" : [ 16, 19 ],
+      "player" : 22,
+      "score" : 2
+    } ],
+    "round" : 1,
+    "tourney" : 0,
+    "url" : "https://youtu.be/LBL8jLehEgE"
+  },
+  "39" : {
+    "bracket" : "DE-W",
+    "commentators" : [ 0, 22 ],
+    "datetime" : "6/15/2019 15:00:00",
+    "players" : [ {
+      "permabans" : [ 5, 22 ],
+      "player" : 7,
+      "score" : 5
+    }, {
+      "permabans" : [ 16, 20 ],
+      "player" : 2,
+      "score" : 1
+    } ],
+    "round" : 1,
+    "tourney" : 0,
+    "url" : "https://youtu.be/87Ts7N095wg"
+  },
+  "40" : {
+    "bracket" : "DE-W",
+    "commentators" : [ 12, 16 ],
+    "datetime" : "6/15/2019 18:30:00",
+    "players" : [ {
+      "permabans" : [ 16, 22 ],
+      "player" : 20,
+      "score" : 3
+    }, {
+      "permabans" : [ 15, 4 ],
+      "player" : 17,
+      "score" : 5
+    } ],
+    "round" : 1,
+    "tourney" : 0,
+    "url" : "https://youtu.be/RiZZFQZBMzU"
+  },
+  "41" : {
+    "bracket" : "DE-W",
+    "commentators" : [ 7, 20 ],
+    "datetime" : "6/16/2019 16:00:00",
+    "players" : [ {
+      "permabans" : [ 23, 15 ],
+      "player" : 12,
+      "score" : 5
+    }, {
+      "permabans" : [ 14, 19 ],
+      "player" : 18,
+      "score" : 1
+    } ],
+    "round" : 1,
+    "tourney" : 0,
+    "url" : "https://youtu.be/hyaIBjgt2uU"
+  },
+  "42" : {
+    "bracket" : "DE-W",
+    "commentators" : [ 7, 10 ],
+    "datetime" : "6/17/2019 15:30:00",
+    "players" : [ {
+      "permabans" : [ 7, 14 ],
+      "player" : 15,
+      "score" : 5
+    }, {
+      "permabans" : [ 22, 19 ],
+      "player" : 16,
+      "score" : 0
+    } ],
+    "round" : 1,
+    "tourney" : 0,
+    "url" : "https://youtu.be/mSzwDLBi1rA"
+  },
+  "43" : {
+    "bracket" : "DE-W",
+    "commentators" : [ 17, 20 ],
+    "datetime" : "6/17/2019 18:00:00",
+    "players" : [ {
+      "permabans" : [ 23, 19 ],
+      "player" : 10,
+      "score" : 5
+    }, {
+      "permabans" : [ 16, 22 ],
+      "player" : 9,
+      "score" : 1
+    } ],
+    "round" : 1,
+    "tourney" : 0,
+    "url" : "https://youtu.be/yN8cXCQWZ2E"
+  },
+  "44" : {
+    "bracket" : "DE-W",
+    "commentators" : [ 7, 22 ],
+    "datetime" : "6/18/2019 15:00:00",
+    "players" : [ {
+      "permabans" : [ 0, 22 ],
+      "player" : 0,
+      "score" : 4
+    }, {
+      "permabans" : [ 18, 13 ],
+      "player" : 13,
+      "score" : 0
+    } ],
+    "round" : 1,
+    "tourney" : 0,
+    "url" : "https://youtu.be/uL-JlseIo2Y"
+  },
+  "45" : {
+    "bracket" : "DE-L",
+    "commentators" : [ 26, 20 ],
+    "datetime" : "6/19/2019 15:00:00",
+    "players" : [ {
+      "permabans" : [ 22, 19 ],
+      "player" : 16,
+      "score" : 3
+    }, {
+      "permabans" : [ 17, 5 ],
+      "player" : 25,
+      "score" : 5
+    } ],
+    "round" : 1,
+    "tourney" : 0,
+    "url" : "https://youtu.be/3ilEDdBk1ic"
+  },
+  "46" : {
+    "bracket" : "DE-W",
+    "commentators" : [ 0, 20 ],
+    "datetime" : "6/20/2019 15:00:00",
+    "players" : [ {
+      "permabans" : [ 19, 22 ],
+      "player" : 14,
+      "score" : 0
+    }, {
+      "permabans" : [ 18, 14 ],
+      "player" : 15,
+      "score" : 5
+    } ],
+    "round" : 2,
+    "tourney" : 0,
+    "url" : "https://youtu.be/GjrEpaYAxFc"
+  },
+  "47" : {
+    "bracket" : "DE-L",
+    "commentators" : [ 10, 16 ],
+    "datetime" : "6/20/2019 16:00:00",
+    "players" : [ {
+      "permabans" : [ 0, 2 ],
+      "player" : 22,
+      "score" : 5
+    }, {
+      "permabans" : [ 16, 20 ],
+      "player" : 2,
+      "score" : 4
+    } ],
+    "round" : 1,
+    "tourney" : 0,
+    "url" : "https://youtu.be/yRLVGPQ6FGE"
+  },
+  "48" : {
+    "bracket" : "DE-W",
+    "commentators" : [ 17 ],
+    "datetime" : "6/20/2019 18:00:00",
+    "players" : [ {
+      "permabans" : [ 23, 14 ],
+      "player" : 10,
+      "score" : 5
+    }, {
+      "permabans" : [ 0, 4 ],
+      "player" : 12,
+      "score" : 1
+    } ],
+    "round" : 2,
+    "tourney" : 0,
+    "url" : "https://youtu.be/1gdi7B_cnFY"
+  },
+  "49" : {
+    "bracket" : "DE-W",
+    "commentators" : [ 7, 20 ],
+    "datetime" : "6/21/2019 17:30:00",
+    "players" : [ {
+      "permabans" : [ 1, 22 ],
+      "player" : 0,
+      "score" : 5
+    }, {
+      "permabans" : [ 15, 12 ],
+      "player" : 17,
+      "score" : 0
+    } ],
+    "round" : 2,
+    "tourney" : 0,
+    "url" : "https://youtu.be/UdD8XsHloZA"
+  },
+  "50" : {
+    "bracket" : "DE-W",
+    "commentators" : [ 26 ],
+    "datetime" : "6/22/2019 18:00:00",
+    "players" : [ {
+      "permabans" : [ 12, 2 ],
+      "player" : 6,
+      "score" : 4
+    }, {
+      "permabans" : [ 22, 16 ],
+      "player" : 7,
+      "score" : 5
+    } ],
+    "round" : 2,
+    "tourney" : 0,
+    "url" : "https://youtu.be/Z9XVdbu32zc"
+  },
+  "51" : {
+    "bracket" : "DE-L",
+    "commentators" : [ 16, 20 ],
+    "datetime" : "6/23/2019 19:00:00",
+    "players" : [ {
+      "permabans" : [ 14, 5 ],
+      "player" : 18,
+      "score" : 5
+    }, {
+      "permabans" : [ 22, 24 ],
+      "player" : 9,
+      "score" : 0
+    } ],
+    "round" : 1,
+    "tourney" : 0,
+    "url" : "https://youtu.be/zwFiJPoc8Oc"
+  },
+  "52" : {
+    "bracket" : "DE-L",
+    "commentators" : [ 7, 10 ],
+    "datetime" : "6/26/2019 18:00:00",
+    "players" : [ {
+      "permabans" : [ 24, 23 ],
+      "player" : 22,
+      "score" : 5
+    }, {
+      "permabans" : [ 18, 19 ],
+      "player" : 14,
+      "score" : 4
+    } ],
+    "round" : 1,
+    "tourney" : 0,
+    "url" : "https://youtu.be/ow2BK7WIUYY"
+  },
+  "53" : {
+    "bracket" : "DE-W",
+    "commentators" : [ 0, 7 ],
+    "datetime" : "6/29/2019 13:00:00",
+    "players" : [ {
+      "permabans" : [ 8, 18 ],
+      "player" : 15,
+      "score" : 5
+    }, {
+      "permabans" : [ 9, 1 ],
+      "player" : 10,
+      "score" : 0
+    } ],
+    "round" : 3,
+    "tourney" : 0,
+    "url" : "https://youtu.be/te4f2OPShjE"
+  },
+  "54" : {
+    "bracket" : "DE-L",
+    "commentators" : [ 26, 7 ],
+    "datetime" : "6/30/2019 12:00:00",
+    "players" : [ {
+      "permabans" : [ 20, 16 ],
+      "player" : 6,
+      "score" : 5
+    }, {
+      "permabans" : [ 1, 5 ],
+      "player" : 25,
+      "score" : 3
+    } ],
+    "round" : 2,
+    "tourney" : 0,
+    "url" : "https://youtu.be/7YOMXcMNCjE"
+  },
+  "55" : {
+    "bracket" : "DE-L",
+    "commentators" : [ 26, 25 ],
+    "datetime" : "7/1/2019 16:00:00",
+    "players" : [ {
+      "permabans" : [ 15, 14 ],
+      "player" : 17,
+      "score" : 1
+    }, {
+      "permabans" : [ 4, 20 ],
+      "player" : 18,
+      "score" : 5
+    } ],
+    "round" : 2,
+    "tourney" : 0,
+    "url" : "https://youtu.be/LaAvVphMGR8"
+  },
+  "56" : {
+    "bracket" : "DE-W",
+    "commentators" : [ 26, 25 ],
+    "datetime" : "7/4/2019 15:00:00",
+    "players" : [ {
+      "permabans" : [ 17, 1 ],
+      "player" : 0,
+      "score" : 5
+    }, {
+      "permabans" : [ 5, 14 ],
+      "player" : 7,
+      "score" : 2
+    } ],
+    "round" : 3,
+    "tourney" : 0,
+    "url" : "https://youtu.be/Dl8PDrHvze0"
+  },
+  "57" : {
+    "bracket" : "DE-L",
+    "commentators" : [ 7, 25 ],
+    "datetime" : "7/4/2019 16:00:00",
+    "players" : [ {
+      "permabans" : [ 16, 22 ],
+      "player" : 20,
+      "score" : 5
+    }, {
+      "permabans" : [ 18, 19 ],
+      "player" : 13,
+      "score" : 0
+    } ],
+    "round" : 1,
+    "tourney" : 0,
+    "url" : "https://youtu.be/znbTCJzMLgo"
+  },
+  "58" : {
+    "bracket" : "DE-L",
+    "commentators" : [ 16, 17 ],
+    "datetime" : "7/11/2019 20:00:00",
+    "players" : [ {
+      "permabans" : [ 0, 1 ],
+      "player" : 12,
+      "score" : 5
+    }, {
+      "permabans" : [ 19, 16 ],
+      "player" : 20,
+      "score" : 3
+    } ],
+    "round" : 2,
+    "tourney" : 0,
+    "url" : "https://youtu.be/T_JPNiiQLV0"
+  },
+  "59" : {
+    "bracket" : "DE-L",
+    "commentators" : [ 20 ],
+    "datetime" : "7/14/2019 11:00:00",
+    "players" : [ {
+      "permabans" : [ 16, 9 ],
+      "player" : 6,
+      "score" : 4
+    }, {
+      "permabans" : [ 5, 14 ],
+      "player" : 18,
+      "score" : 5
+    } ],
+    "round" : 3,
+    "tourney" : 0,
+    "url" : "https://youtu.be/4JWIBXWcMjw"
+  },
+  "60" : {
+    "bracket" : "DE-L",
+    "commentators" : [ 10, 20 ],
+    "datetime" : "7/16/2019 18:00:00",
+    "players" : [ {
+      "permabans" : [ 12, 17 ],
+      "player" : 22,
+      "score" : 4
+    }, {
+      "permabans" : [ 5, 21 ],
+      "player" : 12,
+      "score" : 5
+    } ],
+    "round" : 3,
+    "tourney" : 0,
+    "url" : "https://youtu.be/C2npAJfs17k"
+  },
+  "61" : {
+    "bracket" : "DE-L",
+    "commentators" : [ 12, 20 ],
+    "datetime" : "7/20/2019 11:00:00",
+    "players" : [ {
+      "permabans" : [ 7, 21 ],
+      "player" : 10,
+      "score" : 5
+    }, {
+      "permabans" : [ 14, 13 ],
+      "player" : 18,
+      "score" : 2
+    } ],
+    "round" : 4,
+    "tourney" : 0,
+    "url" : "https://youtu.be/yA1Yi1gOtJQ"
+  },
+  "62" : {
+    "bracket" : "DE-L",
+    "commentators" : [ 16, 20 ],
+    "datetime" : "7/26/2019 19:00:00",
+    "players" : [ {
+      "permabans" : [ 21, 8 ],
+      "player" : 12,
+      "score" : 3
+    }, {
+      "permabans" : [ 14, 5 ],
+      "player" : 7,
+      "score" : 5
+    } ],
+    "round" : 4,
+    "tourney" : 0,
+    "url" : "https://youtu.be/DZZGGizm5_Q"
+  },
+  "63" : {
+    "bracket" : "DE-L",
+    "commentators" : [ 26, 15 ],
+    "datetime" : "8/3/2019 18:00:00",
+    "players" : [ {
+      "permabans" : [ 21, 1 ],
+      "player" : 10,
+      "score" : 5
+    }, {
+      "permabans" : [ 14, 5 ],
+      "player" : 7,
+      "score" : 2
+    } ],
+    "round" : 5,
+    "tourney" : 0,
+    "url" : "https://youtu.be/7hLBk3t_qB4"
+  },
+  "64" : {
+    "bracket" : "DE-W",
+    "commentators" : [ 7, 22 ],
+    "datetime" : "8/5/2019 15:00:00",
+    "players" : [ {
+      "permabans" : [ 0, 22 ],
+      "player" : 0,
+      "score" : 6
+    }, {
+      "permabans" : [ 18, 7 ],
+      "player" : 15,
+      "score" : 7
+    } ],
+    "round" : "WF",
+    "tourney" : 0,
+    "url" : "https://youtu.be/qwrFItWHGGU"
+  },
+  "65" : {
+    "bracket" : "DE-W",
+    "commentators" : [ 26, 17 ],
+    "datetime" : "8/24/2019 16:30:00",
+    "players" : [ {
+      "permabans" : [ 6, 0 ],
+      "player" : 10,
+      "score" : 7
+    }, {
+      "permabans" : [ 23, 11 ],
+      "player" : 15,
+      "score" : 6
+    } ],
+    "round" : "GF",
+    "tourney" : 0,
+    "url" : "https://youtu.be/tqeZB02pZ4I"
+  },
+  "132" : {
+    "bracket" : "Qual",
+    "commentators" : [ 8, 20 ],
+    "datetime" : "6/6/2020 16:00:00",
+    "players" : [ {
+      "player" : 17
+    }, {
+      "player" : 10
+    }, {
+      "player" : 25
+    } ],
+    "round" : "",
+    "tourney" : 1,
+    "url" : "https://www.youtube.com/watch?v=uu4GOkYDeFo"
+  },
+  "133" : {
+    "bracket" : "Qual",
+    "commentators" : [ 10, 12 ],
+    "datetime" : "6/11/2020 14:00:00",
+    "players" : [ {
+      "player" : 0
+    }, {
+      "player" : 4
+    }, {
+      "player" : 11
+    }, {
+      "player" : 14
+    } ],
+    "round" : "",
+    "tourney" : 1,
+    "url" : "https://www.youtube.com/watch?v=0RclX0e1hjU"
+  },
+  "134" : {
+    "bracket" : "Qual",
+    "commentators" : [ 26, 8 ],
+    "datetime" : "6/19/2020 10:45:00",
+    "players" : [ {
+      "player" : 20
+    }, {
+      "player" : 15
+    }, {
+      "player" : 24
+    } ],
+    "round" : "",
+    "tourney" : 1,
+    "url" : "https://www.youtube.com/watch?v=8b_3jwJEq-E"
+  },
+  "135" : {
+    "bracket" : "Qual",
+    "commentators" : [ 8, 15 ],
+    "datetime" : "6/22/2020 16:00:00",
+    "players" : [ {
+      "player" : 1
+    }, {
+      "player" : 12
+    } ],
+    "round" : "",
+    "tourney" : 1,
+    "url" : "https://www.youtube.com/watch?v=1JGwAhZ_O_A"
+  },
+  "136" : {
+    "bracket" : "Qual",
+    "commentators" : [ 0, 17 ],
+    "datetime" : "6/28/2020 15:00:00",
+    "players" : [ {
+      "player" : 18
+    }, {
+      "player" : 13
+    } ],
+    "round" : "",
+    "tourney" : 1,
+    "url" : "https://www.youtube.com/watch?v=Y4AgEA-7wuE"
+  },
+  "66" : {
+    "bracket" : "RR-1",
+    "commentators" : [ 8, 10 ],
+    "datetime" : "7/4/2020 13:00:00",
+    "players" : [ {
+      "permabans" : [ 0, 8 ],
+      "player" : 0,
+      "score" : 5
+    }, {
+      "permabans" : [ 22, 17 ],
+      "player" : 17,
+      "score" : 0
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : "https://www.youtube.com/watch?v=eeZwW-UcSrk"
+  },
+  "67" : {
+    "bracket" : "RR-2",
+    "commentators" : [ 8, 12 ],
+    "datetime" : "7/6/2020 20:00:00",
+    "players" : [ {
+      "permabans" : [ 17, 6 ],
+      "player" : 10,
+      "score" : 5
+    }, {
+      "permabans" : [ 22, 5 ],
+      "player" : 4,
+      "score" : 0
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : "https://www.youtube.com/watch?v=5D2QXheLEak"
+  },
+  "68" : {
+    "bracket" : "RR-2",
+    "commentators" : [ 8, 12 ],
+    "datetime" : "7/7/2020 21:00:00",
+    "players" : [ {
+      "permabans" : [ 0, 6 ],
+      "player" : 10,
+      "score" : 5
+    }, {
+      "permabans" : [ 19, 14 ],
+      "player" : 14,
+      "score" : 2
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : "https://www.youtube.com/watch?v=A3LDdO61Mx8"
+  },
+  "69" : {
+    "bracket" : "RR-2",
+    "commentators" : [ 0, 20 ],
+    "datetime" : "7/8/2020 12:15:00",
+    "players" : [ {
+      "permabans" : [ 14, 5 ],
+      "player" : 15,
+      "score" : 5
+    }, {
+      "permabans" : [ 23, 11 ],
+      "player" : 4,
+      "score" : 0
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : "https://www.youtube.com/watch?v=dKmKwDans0E"
+  },
+  "70" : {
+    "bracket" : "RR-1",
+    "commentators" : [ 26, 8 ],
+    "datetime" : "7/9/2020 16:00:00",
+    "players" : [ {
+      "permabans" : [ 11, 5 ],
+      "player" : 25,
+      "score" : 5
+    }, {
+      "permabans" : [ 22, 19 ],
+      "player" : 1,
+      "score" : 0
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : "https://www.youtube.com/watch?v=umEWkg8xcq4"
+  },
+  "71" : {
+    "bracket" : "RR-1",
+    "commentators" : [ 11, 15 ],
+    "datetime" : "7/10/2020 12:00:00",
+    "players" : [ {
+      "permabans" : [ 22, 11 ],
+      "player" : 1,
+      "score" : 0
+    }, {
+      "permabans" : [ 8, 17 ],
+      "player" : 0,
+      "score" : 5
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : "https://www.youtube.com/watch?v=1jAdj0GzdOc"
+  },
+  "72" : {
+    "bracket" : "RR-1",
+    "commentators" : [ 17 ],
+    "datetime" : "7/11/2020 9:00:00",
+    "players" : [ {
+      "permabans" : [ 20, 19 ],
+      "player" : 24,
+      "score" : 0
+    }, {
+      "permabans" : [ 17, 22 ],
+      "player" : 0,
+      "score" : 5
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : "https://www.youtube.com/watch?v=S_w9UGGT3P0"
+  },
+  "73" : {
+    "bracket" : "RR-1",
+    "commentators" : [ 8, 15 ],
+    "datetime" : "7/11/2020 15:00:00",
+    "players" : [ {
+      "permabans" : [ 0, 1 ],
+      "player" : 12,
+      "score" : 5
+    }, {
+      "permabans" : [ 20, 12 ],
+      "player" : 17,
+      "score" : 3
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : "https://www.youtube.com/watch?v=I1n9FVWjRjw"
+  },
+  "74" : {
+    "bracket" : "RR-1",
+    "commentators" : [ 26, 25 ],
+    "datetime" : "7/12/2020 12:00:00",
+    "players" : [ {
+      "permabans" : [ 20, 17 ],
+      "player" : 17,
+      "score" : 5
+    }, {
+      "permabans" : [ 22, 21 ],
+      "player" : 1,
+      "score" : 0
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : "https://www.youtube.com/watch?v=tBnQerXIRR4"
+  },
+  "75" : {
+    "bracket" : "RR-2",
+    "commentators" : [ 8, 25 ],
+    "datetime" : "7/13/2020 14:00:00",
+    "players" : [ {
+      "permabans" : [ 14, 11 ],
+      "player" : 15,
+      "score" : 5
+    }, {
+      "permabans" : [ 23, 19 ],
+      "player" : 11,
+      "score" : 0
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : "https://www.youtube.com/watch?v=s6pxCxmK8IQ"
+  },
+  "76" : {
+    "bracket" : "RR-2",
+    "commentators" : [ 8 ],
+    "datetime" : "7/14/2020 14:00:00",
+    "players" : [ {
+      "permabans" : [ 23, 19 ],
+      "player" : 11,
+      "score" : 5
+    }, {
+      "permabans" : [ 16, 5 ],
+      "player" : 4,
+      "score" : 1
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : "https://www.youtube.com/watch?v=7Cmgd28AA4I"
+  },
+  "77" : {
+    "bracket" : "RR-1",
+    "commentators" : [ 26, 11 ],
+    "datetime" : "7/15/2020 16:30:00",
+    "players" : [ {
+      "permabans" : [ 0, 1 ],
+      "player" : 12,
+      "score" : 5
+    }, {
+      "permabans" : [ 22, 21 ],
+      "player" : 1,
+      "score" : 0
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : "https://www.youtube.com/watch?v=-N4NJgqk8VU"
+  },
+  "78" : {
+    "bracket" : "RR-2",
+    "commentators" : [ 0, 8 ],
+    "datetime" : "7/16/2020 12:00:00",
+    "players" : [ {
+      "permabans" : [ 16, 19 ],
+      "player" : 20,
+      "score" : 1
+    }, {
+      "permabans" : [ 14, 11 ],
+      "player" : 15,
+      "score" : 5
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : "https://youtu.be/1w3EfNpdTQk"
+  },
+  "79" : {
+    "bracket" : "RR-1",
+    "commentators" : [ 25 ],
+    "datetime" : "7/16/2020 14:00:00",
+    "players" : [ {
+      "permabans" : [ 16, 22 ],
+      "player" : 1,
+      "score" : 0
+    }, {
+      "permabans" : [ 14, 20 ],
+      "player" : 18,
+      "score" : 5
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : "https://youtu.be/PRFQFM8tvSw"
+  },
+  "80" : {
+    "bracket" : "RR-2",
+    "commentators" : [ 12, 17 ],
+    "datetime" : "7/16/2020 20:00:00",
+    "players" : [ {
+      "permabans" : [ 16, 20 ],
+      "player" : 20,
+      "score" : 2
+    }, {
+      "permabans" : [ 22, 13 ],
+      "player" : 10,
+      "score" : 5
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : "https://www.youtube.com/watch?v=ZqXTYhqc2qU"
+  },
+  "81" : {
+    "bracket" : "RR-1",
+    "commentators" : [ 0, 26 ],
+    "datetime" : "7/19/2020 12:00:00",
+    "players" : [ {
+      "permabans" : [ 20, 17 ],
+      "player" : 17,
+      "score" : 5
+    }, {
+      "permabans" : [ 14, 5 ],
+      "player" : 18,
+      "score" : 4
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : "https://youtu.be/q29Pi5w8Fq4"
+  },
+  "82" : {
+    "bracket" : "RR-1",
+    "commentators" : [ 8 ],
+    "datetime" : "7/19/2020 16:00:00",
+    "players" : [ {
+      "permabans" : [ 5, 4 ],
+      "player" : 25,
+      "score" : 5
+    }, {
+      "permabans" : [ 22, 17 ],
+      "player" : 24,
+      "score" : 0
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : "https://youtu.be/6EeKAAmVBQc"
+  },
+  "83" : {
+    "bracket" : "RR-2",
+    "commentators" : [ 8, 15 ],
+    "datetime" : "7/21/2020 14:00:00",
+    "players" : [ {
+      "permabans" : [ 5, 13 ],
+      "player" : 14,
+      "score" : 5
+    }, {
+      "permabans" : [ 16, 19 ],
+      "player" : 20,
+      "score" : 3
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : "https://youtu.be/ocEj1Dwa2Yo"
+  },
+  "84" : {
+    "bracket" : "RR-2",
+    "commentators" : [ 15 ],
+    "datetime" : "7/22/2020 13:00:00",
+    "players" : [ {
+      "permabans" : [ 23, 21 ],
+      "player" : 11,
+      "score" : 1
+    }, {
+      "permabans" : [ 16, 19 ],
+      "player" : 20,
+      "score" : 5
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : "https://youtu.be/YJsZ35LQbNk"
+  },
+  "85" : {
+    "bracket" : "RR-1",
+    "commentators" : [ 26, 10 ],
+    "datetime" : "7/24/2020 9:30:00",
+    "players" : [ {
+      "permabans" : [ 5, 4 ],
+      "player" : 25,
+      "score" : 0
+    }, {
+      "permabans" : [ 17, 20 ],
+      "player" : 0,
+      "score" : 5
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : ""
+  },
+  "86" : {
+    "bracket" : "RR-2",
+    "commentators" : [ 0, 20 ],
+    "datetime" : "7/24/2020 14:00:00",
+    "players" : [ {
+      "permabans" : [ 0, 13 ],
+      "player" : 10,
+      "score" : 3
+    }, {
+      "permabans" : [ 11, 14 ],
+      "player" : 15,
+      "score" : 5
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : ""
+  },
+  "87" : {
+    "bracket" : "RR-1",
+    "commentators" : [ 8 ],
+    "datetime" : "7/24/2020 17:00:00",
+    "players" : [ {
+      "permabans" : [ 22, 21 ],
+      "player" : 1,
+      "score" : 5
+    }, {
+      "permabans" : [ 19, 23 ],
+      "player" : 24,
+      "score" : 4
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : ""
+  },
+  "88" : {
+    "bracket" : "RR-2",
+    "commentators" : [ 8, 17 ],
+    "datetime" : "7/24/2020 20:30:00",
+    "players" : [ {
+      "permabans" : [ 22, 18 ],
+      "player" : 13,
+      "score" : 0
+    }, {
+      "permabans" : [ 19, 23 ],
+      "player" : 10,
+      "score" : 5
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : ""
+  },
+  "89" : {
+    "bracket" : "RR-1",
+    "commentators" : [ 10 ],
+    "datetime" : "7/25/2020 10:00:00",
+    "players" : [ {
+      "permabans" : [ 20, 17 ],
+      "player" : 17,
+      "score" : 5
+    }, {
+      "permabans" : [ 19, 23 ],
+      "player" : 24,
+      "score" : 0
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : "https://youtu.be/c0FgVqKu1rc"
+  },
+  "90" : {
+    "bracket" : "RR-2",
+    "commentators" : [ 10, 17 ],
+    "datetime" : "7/25/2020 14:00:00",
+    "players" : [ {
+      "permabans" : [ 23, 21 ],
+      "player" : 11,
+      "score" : 0
+    }, {
+      "permabans" : [ 22, 13 ],
+      "player" : 14,
+      "score" : 5
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : "https://youtu.be/s0-3f_1sLHU"
+  },
+  "91" : {
+    "bracket" : "RR-2",
+    "commentators" : [ 8, 17 ],
+    "datetime" : "7/25/2020 16:00:00",
+    "players" : [ {
+      "permabans" : [ 23, 21 ],
+      "player" : 11,
+      "score" : 0
+    }, {
+      "permabans" : [ 6, 3 ],
+      "player" : 10,
+      "score" : 5
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : "https://youtu.be/2OEqcvtGBC4"
+  },
+  "92" : {
+    "bracket" : "RR-1",
+    "commentators" : [ 0, 15 ],
+    "datetime" : "7/26/2020 12:00:00",
+    "players" : [ {
+      "permabans" : [ 5, 11 ],
+      "player" : 25,
+      "score" : 3
+    }, {
+      "permabans" : [ 20, 17 ],
+      "player" : 17,
+      "score" : 5
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : "https://youtu.be/-md9DZj72To"
+  },
+  "93" : {
+    "bracket" : "RR-2",
+    "commentators" : [ 8 ],
+    "datetime" : "7/26/2020 16:00:00",
+    "players" : [ {
+      "permabans" : [ 17, 22 ],
+      "player" : 14,
+      "score" : 5
+    }, {
+      "permabans" : [ 19, 16 ],
+      "player" : 4,
+      "score" : 0
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : "https://youtu.be/17bouevyBtE"
+  },
+  "94" : {
+    "bracket" : "RR-2",
+    "commentators" : [ 8 ],
+    "datetime" : "7/29/2020 15:00:00",
+    "players" : [ {
+      "permabans" : [ 16, 19 ],
+      "player" : 20,
+      "score" : 5
+    }, {
+      "permabans" : [ 0, 5 ],
+      "player" : 4,
+      "score" : 0
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : "https://youtu.be/W-PsZ-CRG2A"
+  },
+  "95" : {
+    "bracket" : "RR-2",
+    "commentators" : [ 8, 10 ],
+    "datetime" : "7/31/2020 17:00:00",
+    "players" : [ {
+      "permabans" : [ 20, 19 ],
+      "player" : 11,
+      "score" : 5
+    }, {
+      "permabans" : [ 22, 18 ],
+      "player" : 13,
+      "score" : 0
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : "https://youtu.be/pCbT3-uaCM4"
+  },
+  "96" : {
+    "bracket" : "RR-1",
+    "commentators" : [ 10, 17 ],
+    "datetime" : "8/1/2020 10:00:00",
+    "players" : [ {
+      "permabans" : [ 5, 20 ],
+      "player" : 18,
+      "score" : 0
+    }, {
+      "permabans" : [ 17, 13 ],
+      "player" : 0,
+      "score" : 5
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : "https://youtu.be/I2k2yiSrQc4"
+  },
+  "97" : {
+    "bracket" : "RR-2",
+    "commentators" : [ 8, 10 ],
+    "datetime" : "8/1/2020 15:00:00",
+    "players" : [ {
+      "permabans" : [ 16, 14 ],
+      "player" : 14,
+      "score" : 5
+    }, {
+      "permabans" : [ 22, 18 ],
+      "player" : 13,
+      "score" : 0
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : "https://youtu.be/DtqttdcjMY8"
+  },
+  "98" : {
+    "bracket" : "RR-2",
+    "commentators" : [ 8 ],
+    "datetime" : "8/2/2020 12:30:00",
+    "players" : [ {
+      "player" : 15,
+      "score" : 5
+    }, {
+      "permabans" : [ 22, 18 ],
+      "player" : 13,
+      "score" : 0
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : ""
+  },
+  "99" : {
+    "bracket" : "RR-2",
+    "commentators" : [ 8, 25 ],
+    "datetime" : "8/2/2020 15:00:00",
+    "players" : [ {
+      "permabans" : [ 14, 11 ],
+      "player" : 15,
+      "score" : 5
+    }, {
+      "permabans" : [ 17, 6 ],
+      "player" : 14,
+      "score" : 2
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : ""
+  },
+  "100" : {
+    "bracket" : "RR-1",
+    "commentators" : [ 17, 25 ],
+    "datetime" : "8/2/2020 16:00:00",
+    "players" : [ {
+      "permabans" : [ 23, 17 ],
+      "player" : 12,
+      "score" : 2
+    }, {
+      "permabans" : [ 14, 20 ],
+      "player" : 18,
+      "score" : 5
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : ""
+  },
+  "101" : {
+    "bracket" : "RR-1",
+    "commentators" : [ 20 ],
+    "datetime" : "8/3/2020 15:00:00",
+    "players" : [ {
+      "permabans" : [ 16, 19 ],
+      "player" : 12,
+      "score" : 4
+    }, {
+      "permabans" : [ 24, 22 ],
+      "player" : 25,
+      "score" : 5
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : "https://youtu.be/ZX1ceWs7slk"
+  },
+  "102" : {
+    "bracket" : "RR-2",
+    "commentators" : [ 8, 17 ],
+    "datetime" : "8/4/2020 19:00:00",
+    "players" : [ {
+      "permabans" : [ 14, 16 ],
+      "player" : 4,
+      "score" : 5
+    }, {
+      "permabans" : [ 22, 18 ],
+      "player" : 13,
+      "score" : 0
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : "https://youtu.be/d3CJgMg1QPo"
+  },
+  "103" : {
+    "bracket" : "RR-1",
+    "commentators" : [ 8 ],
+    "datetime" : "8/5/2020 14:00:00",
+    "players" : [ {
+      "permabans" : [ 24, 11 ],
+      "player" : 25,
+      "score" : 5
+    }, {
+      "permabans" : [ 16, 14 ],
+      "player" : 18,
+      "score" : 3
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : "https://youtu.be/nMXchUQZRj0"
+  },
+  "104" : {
+    "bracket" : "RR-1",
+    "commentators" : [ 25 ],
+    "datetime" : "8/5/2020 17:00:00",
+    "players" : [ {
+      "permabans" : [ 19, 20 ],
+      "player" : 12,
+      "score" : 5
+    }, {
+      "permabans" : [ 23, 17 ],
+      "player" : 24,
+      "score" : 0
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : "https://youtu.be/CZ1RVnnUZ_Y"
+  },
+  "105" : {
+    "bracket" : "RR-1",
+    "commentators" : [ 8 ],
+    "datetime" : "8/6/2020 13:00:00",
+    "players" : [ {
+      "permabans" : [ 20, 21 ],
+      "player" : 12,
+      "score" : 2
+    }, {
+      "permabans" : [ 22, 13 ],
+      "player" : 0,
+      "score" : 5
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : "https://youtu.be/jRBT0LcP2Yk"
+  },
+  "106" : {
+    "bracket" : "RR-1",
+    "commentators" : [ 8 ],
+    "datetime" : "8/6/2020 16:00:00",
+    "players" : [ {
+      "permabans" : [ 5, 14 ],
+      "player" : 18,
+      "score" : 5
+    }, {
+      "permabans" : [ 20, 19 ],
+      "player" : 24,
+      "score" : 0
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : "https://youtu.be/VrdHCAaYPyc"
+  },
+  "107" : {
+    "bracket" : "RR-2",
+    "commentators" : [ 8 ],
+    "datetime" : "8/6/2020 20:00:00",
+    "players" : [ {
+      "permabans" : [ 19, 16 ],
+      "player" : 20,
+      "score" : 5
+    }, {
+      "permabans" : [ 22, 18 ],
+      "player" : 13,
+      "score" : 0
+    } ],
+    "round" : "RR",
+    "tourney" : 1,
+    "url" : "https://youtu.be/Ykr3VxIGCu4"
+  },
+  "108" : {
+    "bracket" : "DE-W",
+    "commentators" : [ 8, 12 ],
+    "datetime" : "8/18/2020 17:00:00",
+    "players" : [ {
+      "permabans" : [ 20, 17 ],
+      "player" : 17,
+      "score" : 2
+    }, {
+      "permabans" : [ 6, 5 ],
+      "player" : 14,
+      "score" : 5
+    } ],
+    "round" : "WQ",
+    "tourney" : 1,
+    "url" : "https://youtu.be/AQw3COuYXVo"
+  },
+  "109" : {
+    "bracket" : "DE-W",
+    "commentators" : [ 8, 10 ],
+    "datetime" : "8/21/2020 15:00:00",
+    "players" : [ {
+      "permabans" : [ 1, 6 ],
+      "player" : 12,
+      "score" : 2
+    }, {
+      "permabans" : [ 14, 11 ],
+      "player" : 15,
+      "score" : 5
+    } ],
+    "round" : "WQ",
+    "tourney" : 1,
+    "url" : "https://youtu.be/lXQTZ5nx_uY"
+  },
+  "110" : {
+    "bracket" : "DE-W",
+    "commentators" : [ 0, 8 ],
+    "datetime" : "8/22/2020 14:00:00",
+    "players" : [ {
+      "permabans" : [ 13, 17 ],
+      "player" : 10,
+      "score" : 5
+    }, {
+      "permabans" : [ 0, 24 ],
+      "player" : 25,
+      "score" : 1
+    } ],
+    "round" : "WQ",
+    "tourney" : 1,
+    "url" : "https://youtu.be/2e5cpNIXqKo"
+  },
+  "111" : {
+    "bracket" : "DE-L",
+    "commentators" : [ 26, 12 ],
+    "datetime" : "8/24/2020 16:00:00",
+    "players" : [ {
+      "permabans" : [ 0, 1 ],
+      "player" : 4,
+      "score" : 0
+    }, {
+      "permabans" : [ 21, 3 ],
+      "player" : 25,
+      "score" : 5
+    } ],
+    "round" : "L1",
+    "tourney" : 1,
+    "url" : "https://youtu.be/9vDHI2Gj4nw"
+  },
+  "112" : {
+    "bracket" : "DE-W",
+    "commentators" : [ 4, 15 ],
+    "datetime" : "8/25/2020 13:00:00",
+    "players" : [ {
+      "permabans" : [ 16, 24 ],
+      "player" : 20,
+      "score" : 1
+    }, {
+      "permabans" : [ 0, 4 ],
+      "player" : 0,
+      "score" : 5
+    } ],
+    "round" : "WQ",
+    "tourney" : 1,
+    "url" : ""
+  },
+  "113" : {
+    "bracket" : "DE-L",
+    "commentators" : [ 8 ],
+    "datetime" : "8/26/2020 15:00:00",
+    "players" : [ {
+      "permabans" : [ 23, 19 ],
+      "player" : 11,
+      "score" : 0
+    }, {
+      "permabans" : [ 17, 1 ],
+      "player" : 12,
+      "score" : 5
+    } ],
+    "round" : "L1",
+    "tourney" : 1,
+    "url" : ""
+  },
+  "114" : {
+    "bracket" : "DE-L",
+    "commentators" : [ "Darkrai", 15 ],
+    "datetime" : "8/29/2020 12:00:00",
+    "players" : [ {
+      "permabans" : [ 20, 17 ],
+      "player" : 17,
+      "score" : 5
+    }, {
+      "permabans" : [ 21, 22 ],
+      "player" : 1,
+      "score" : 0
+    } ],
+    "round" : "L1",
+    "tourney" : 1,
+    "url" : ""
+  },
+  "115" : {
+    "bracket" : "DE-L",
+    "commentators" : [ 8, 12 ],
+    "datetime" : "9/1/2020 13:00:00",
+    "players" : [ {
+      "permabans" : [ 16, 19 ],
+      "player" : 20,
+      "score" : 5
+    }, {
+      "permabans" : [ 20, 1 ],
+      "player" : 18,
+      "score" : 4
+    } ],
+    "round" : "L1",
+    "tourney" : 1,
+    "url" : "https://youtu.be/XvV7kfXTaZ0"
+  },
+  "116" : {
+    "bracket" : "DE-L",
+    "commentators" : [ 0, 15 ],
+    "datetime" : "9/2/2020 14:00:00",
+    "players" : [ {
+      "permabans" : [ 5, 23 ],
+      "player" : 25,
+      "score" : 5
+    }, {
+      "permabans" : [ 14, 9 ],
+      "player" : 12,
+      "score" : 4
+    } ],
+    "round" : "L2",
+    "tourney" : 1,
+    "url" : "https://youtu.be/JhqeF5V-8os"
+  },
+  "117" : {
+    "bracket" : "DE-L",
+    "commentators" : [ 8, 10 ],
+    "datetime" : "9/5/2020 12:00:00",
+    "players" : [ {
+      "permabans" : [ 16, 19 ],
+      "player" : 20,
+      "score" : 2
+    }, {
+      "permabans" : [ 0, 1 ],
+      "player" : 17,
+      "score" : 5
+    } ],
+    "round" : "L2",
+    "tourney" : 1,
+    "url" : ""
+  },
+  "118" : {
+    "bracket" : "DE-W",
+    "commentators" : [ 8, 15 ],
+    "datetime" : "9/6/2020 14:30:00",
+    "players" : [ {
+      "permabans" : [ 17, 14 ],
+      "player" : 14,
+      "score" : 3
+    }, {
+      "permabans" : [ 2, 0 ],
+      "player" : 0,
+      "score" : 7
+    } ],
+    "round" : "WS",
+    "tourney" : 1,
+    "url" : "https://youtu.be/bFHVWiG7b2I"
+  },
+  "119" : {
+    "bracket" : "DE-W",
+    "commentators" : [ "Darkrai", 12 ],
+    "datetime" : "9/8/2020 14:00:00",
+    "players" : [ {
+      "permabans" : [ 6, 17 ],
+      "player" : 10,
+      "score" : 7
+    }, {
+      "permabans" : [ 11, 14 ],
+      "player" : 15,
+      "score" : 4
+    } ],
+    "round" : "WS",
+    "tourney" : 1,
+    "url" : "https://youtu.be/PWr5m9uRK10"
+  },
+  "120" : {
+    "bracket" : "DE-L",
+    "commentators" : [ 8, 10 ],
+    "datetime" : "9/12/2020 14:00:00",
+    "players" : [ {
+      "permabans" : [ 16, 17 ],
+      "player" : 14,
+      "score" : 5
+    }, {
+      "permabans" : [ 11, 22 ],
+      "player" : 25,
+      "score" : 2
+    } ],
+    "round" : "LQ",
+    "tourney" : 1,
+    "url" : "https://youtu.be/cXWACdR46QY"
+  },
+  "121" : {
+    "bracket" : "DE-L",
+    "commentators" : [ 8 ],
+    "datetime" : "9/13/2020 17:00:00",
+    "players" : [ {
+      "permabans" : [ 14, 0 ],
+      "player" : 15,
+      "score" : 5
+    }, {
+      "permabans" : [ 20, 17 ],
+      "player" : 17,
+      "score" : 3
+    } ],
+    "round" : "LQ",
+    "tourney" : 1,
+    "url" : ""
+  },
+  "122" : {
+    "bracket" : "DE-L",
+    "commentators" : [ 8, 17 ],
+    "datetime" : "9/19/2020 15:00:00",
+    "players" : [ {
+      "permabans" : [ 17, 6 ],
+      "player" : 14,
+      "score" : 1
+    }, {
+      "permabans" : [ 0, 24 ],
+      "player" : 15,
+      "score" : 7
+    } ],
+    "round" : "LS",
+    "tourney" : 1,
+    "url" : "https://youtu.be/dKTqz6FWMHQ"
+  },
+  "123" : {
+    "bracket" : "DE-W",
+    "commentators" : [ 15, 20 ],
+    "datetime" : "9/22/2020 12:30:00",
+    "players" : [ {
+      "permabans" : [ 17, 6 ],
+      "player" : 10,
+      "score" : 0
+    }, {
+      "permabans" : [ 20, 19 ],
+      "player" : 0,
+      "score" : 7
+    } ],
+    "round" : "WF",
+    "tourney" : 1,
+    "url" : "https://youtu.be/EV1mjm0UShg"
+  },
+  "124" : {
+    "bracket" : "DE-L",
+    "commentators" : [ 0, 12 ],
+    "datetime" : "10/6/2020 14:00:00",
+    "players" : [ {
+      "permabans" : [ 17, 6 ],
+      "player" : 10,
+      "score" : 4
+    }, {
+      "permabans" : [ 14, 11 ],
+      "player" : 15,
+      "score" : 7
+    } ],
+    "round" : "LF",
+    "tourney" : 1,
+    "url" : "https://youtu.be/P7YsZumQUic"
+  },
+  "125" : {
+    "bracket" : "DE-W",
+    "commentators" : [ 8, 20 ],
+    "datetime" : "11/1/2020 13:00:00",
+    "players" : [ {
+      "permabans" : [ 14, 21 ],
+      "player" : 15,
+      "score" : 5
+    }, {
+      "permabans" : [ 12, 19 ],
+      "player" : 0,
+      "score" : 7
+    } ],
+    "round" : "GF",
+    "tourney" : 1,
+    "url" : "https://youtu.be/qOBObjiBVCg"
+  },
+  "126" : {
+    "bracket" : "",
+    "commentators" : [ 8, 15 ],
+    "datetime" : "4/10/2021 15:00:00",
+    "players" : [ {
+      "player" : 17
+    }, {
+      "player" : 14
+    }, {
+      "player" : 19
+    } ],
+    "round" : "",
+    "tourney" : 2,
+    "url" : "https://youtu.be/tG0wa-42E3I"
+  },
+  "127" : {
+    "bracket" : "",
+    "commentators" : [ 8, 15 ],
+    "datetime" : "4/11/2021 12:00:00",
+    "players" : [ {
+      "player" : 5
+    }, {
+      "player" : 0
+    } ],
+    "round" : "",
+    "tourney" : 2,
+    "url" : "https://youtu.be/B4LVf0yaV88"
+  },
+  "128" : {
+    "bracket" : "",
+    "commentators" : [ 8, 15 ],
+    "datetime" : "4/18/2021 14:00:00",
+    "players" : [ {
+      "player" : 25
+    }, {
+      "player" : 20
+    } ],
+    "round" : "",
+    "tourney" : 2,
+    "url" : "https://youtu.be/0uFgfiOKAWw"
+  },
+  "129" : {
+    "bracket" : "",
+    "commentators" : [ 8, 15 ],
+    "datetime" : "4/21/2021 17:00:00",
+    "players" : [ {
+      "player" : 10
+    }, {
+      "player" : 24
+    } ],
+    "round" : "",
+    "tourney" : 2,
+    "url" : "https://youtu.be/8r-ITJC-3OI"
+  },
+  "130" : {
+    "bracket" : "",
+    "commentators" : [ 10, 24 ],
+    "datetime" : "5/14/2021 14:00:00",
+    "players" : [ {
+      "player" : 15
+    }, {
+      "player" : 4
+    } ],
+    "round" : "",
+    "tourney" : 2,
+    "url" : "https://youtu.be/JotPFx5Zp6w"
+  },
+  "131" : {
+    "bracket" : "",
+    "commentators" : [ 5, 10 ],
+    "datetime" : "5/19/2021 13:00:00",
+    "players" : [ {
+      "player" : 12
+    }, {
+      "player" : 21
+    } ],
+    "round" : "",
+    "tourney" : 2,
+    "url" : "https://youtu.be/FGxLyi1WnLg"
+  },
+  
+  "137" : {
+    "bracket" : "Qual",
+    "commentators" : [ 8, 15 ],
+    "datetime" : "4/17/2021 13:00:00",
+    "players" : [ {
+      "player" : 17
+    }, {
+      "player" : 5
+    }, {
+      "player" : 19
+    }, {
+      "player" : 25
+    } ],
+    "round" : "",
+    "tourney" : 3,
+    "url" : "https://www.youtube.com/playlist?list=PLfljlY_yJ8eOf3zcAVGGCWfo2kLjsx-i3"
+  },
+  "138" : {
+    "bracket" : "Qual",
+    "commentators" : [ 5, 8 ],
+    "datetime" : "4/24/2021 16:00:00",
+    "players" : [ {
+      "player" : 11
+    }, {
+      "player" : 28
+    } ],
+    "round" : "",
+    "tourney" : 3,
+    "url" : "https://www.youtube.com/playlist?list=PLfljlY_yJ8eOf3zcAVGGCWfo2kLjsx-i3"
+  },
+  "139" : {
+    "bracket" : "Qual",
+    "commentators" : [ 17 ],
+    "datetime" : "4/26/2021 17:00:00",
+    "players" : [ {
+      "player" : 4
+    } ],
+    "round" : "",
+    "tourney" : 3,
+    "url" : "https://www.youtube.com/playlist?list=PLfljlY_yJ8eOf3zcAVGGCWfo2kLjsx-i3"
+  },
+  "140" : {
+    "bracket" : "Qual",
+    "commentators" : [ 8, 20 ],
+    "datetime" : "4/30/2021 18:00:00",
+    "players" : [ {
+      "player" : 10
+    }, {
+      "player" : 14
+    }, {
+      "player" : 1
+    }, {
+      "player" : 13
+    } ],
+    "round" : "",
+    "tourney" : 3,
+    "url" : "https://www.youtube.com/playlist?list=PLfljlY_yJ8eOf3zcAVGGCWfo2kLjsx-i3"
+  },
+  "141" : {
+    "bracket" : "Qual",
+    "commentators" : [ 5, 10 ],
+    "datetime" : "5/1/2021 16:00:00",
+    "players" : [ {
+      "player" : 29
+    }, {
+      "player" : 20
+    } ],
+    "round" : "",
+    "tourney" : 3,
+    "url" : "https://www.youtube.com/playlist?list=PLfljlY_yJ8eOf3zcAVGGCWfo2kLjsx-i3"
+  },
+  "142" : {
+    "bracket" : "Qual",
+    "commentators" : [ 8, 15 ],
+    "datetime" : "5/7/2021 14:00:00",
+    "players" : [ {
+      "player" : 0
+    }, {
+      "player" : 24
+    } ],
+    "round" : "",
+    "tourney" : 3,
+    "url" : "https://www.youtube.com/playlist?list=PLfljlY_yJ8eOf3zcAVGGCWfo2kLjsx-i3"
+  },
+  "143" : {
+    "bracket" : "Qual",
+    "commentators" : [ 8, 10 ],
+    "datetime" : "5/8/2021 17:00:00",
+    "players" : [ {
+      "player" : 12
+    }, {
+      "player" : 27
+    }, {
+      "player" : 16
+    } ],
+    "round" : "",
+    "tourney" : 3,
+    "url" : "https://www.youtube.com/playlist?list=PLfljlY_yJ8eOf3zcAVGGCWfo2kLjsx-i3"
+  },
+  "144" : {
+    "bracket" : "Qual",
+    "commentators" : [ 17 ],
+    "datetime" : "5/9/2021 17:00:00",
+    "players" : [ {
+      "player" : 21
+    } ],
+    "round" : "",
+    "tourney" : 3,
+    "url" : "https://www.youtube.com/playlist?list=PLfljlY_yJ8eOf3zcAVGGCWfo2kLjsx-i3"
+  },
+  "145" : {
+    "bracket" : "Qual",
+    "commentators" : [ 17 ],
+    "datetime" : "5/9/2021 17:00:00",
+    "players" : [ {
+      "player" : 18
+    } ],
+    "round" : "",
+    "tourney" : 3,
+    "url" : "https://www.youtube.com/playlist?list=PLfljlY_yJ8eOf3zcAVGGCWfo2kLjsx-i3"
+  },
+  "146" : {
+    "bracket" : "Qual",
+    "commentators" : [ 8 ],
+    "datetime" : "5/9/2021 17:00:00",
+    "players" : [ {
+      "player" : 6
+    } ],
+    "round" : "",
+    "tourney" : 3,
+    "url" : "https://www.youtube.com/playlist?list=PLfljlY_yJ8eOf3zcAVGGCWfo2kLjsx-i3"
+  }
+}

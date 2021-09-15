@@ -87,7 +87,7 @@ module.exports = {
                 }
                 tourneyRanks
                     .setFooter("Page " + (offset + 1) + " / " + pages)
-                    .setColor("#E75A70")
+                    .setColor("#3BA55D")
                     .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/crossed-swords_2694-fe0f.png")
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
@@ -130,31 +130,75 @@ module.exports = {
             }
         } else if (args[0] == "matches") {
             if (args[1] == "browse") {
-                if (args[2].startsWith("page")) {
+                const tourneyMatches = new Discord.MessageEmbed()
+                    .setTitle("Tournament Matches")
+                    .setColor("#3BA55D")
+                    .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/crossed-swords_2694-fe0f.png")
+                if (args[2].startsWith("offset")) {
 
-                    var offset = Number(args[2].replace("page", ""))
+                    var offset = Number(args[2].replace("offset", ""))
                     var type = 7
-                    var pages = 0
                     var mtch = Object.keys(tourney_matches_data)
-                    var matches = []
-                    for (var i = 0; i < mtch.length; i++) {
-                        var m = mtch[i]
-                        tourney_matches_data[m].id = m
-                        matches.push(tourney_matches_data[m])
-                    }
+                    /*
                     matches.sort(function (a, b) {
                         return Date.parse(b.datetime) - Date.parse(a.datetime);
-                    })
-                    if (matches.length % 5 == 0) {
-                        pages = Math.floor(matches.length / 5)
-                    } else {
-                        pages = Math.floor(matches.length / 5) + 1
+                    })*/
+                    var matches = []
+                    for (i = 0 + offset * 23; i < (offset + 1) * 23; i++) {
+                        if (i == 0 + offset * 23 && offset > 0) {
+                            matches.push(
+                                {
+                                    label: "Newer matches...",
+                                    value: "offset" + (offset - 1),
+                                }
+                            )
+                        }
+                        var s = mtch[i]
+                        var title = []
+                        if (![undefined, null, ""].includes(tourney_matches_data[s].bracket)) {
+                            title.push(tourney_matches_data[s].bracket)
+                        }
+                        if (![undefined, null, ""].includes(tourney_matches_data[s].round)) {
+                            title.push(tourney_matches_data[s].round)
+                        }
+                        var players = []
+                        for (p = 0; p < tourney_matches_data[s].races[0].runs.length; p++) {
+                            if (!players.includes(tourney_matches_data[s].races[0].runs[p].player)) {
+                                players.push(tourney_participants_data[tourney_matches_data[s].races[0].runs[p].player].name)
+                            }
+                        }
+                        title.push(players.join(" vs "))
+                        var date = new Date(tourney_matches_data[s].datetime)
+                        date = date.toLocaleString.split(" ")
+                        var r = {
+                            label: title.join(" "),
+                            value: s,
+                            description: tourney_tournaments_data[tourney_matches_data[s].tourney].nickname + " | " + date[0]
+                        }
+                        if (interaction.data.hasOwnProperty("values") && !interaction.data.values[0].includes("offset")) {
+                            if (r.value == interaction.data.values[0]) {
+                                r.default = true
+                            }
+                        }
+                        matches.push(r)
+                        if (i == saved.length - 1) {
+                            i = (offset + 1) * 23
+                        }
+                        if (i == (offset + 1) * 23 - 1) {
+                            matches.push(
+                                {
+                                    label: "Older matches...",
+                                    value: "offset" + (offset + 1),
+                                }
+                            )
+                        }
                     }
-                    const tourneyMatches = new Discord.MessageEmbed()
+                    tourneyMatches
                         .setTitle("Recent Matches")
                         .setFooter("Page " + (offset + 1) + " / " + pages)
-                        .setColor("#E75A70")
+                        .setColor("#3BA55D")
                         .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/crossed-swords_2694-fe0f.png")
+                    /*
                     for (var i = 5 * offset; i < 5 * (1 + offset); i++) {
                         if (i == matches.length) {
                             i = 5 * (1 + offset)
@@ -197,16 +241,9 @@ module.exports = {
                                 .addField(player_text.join(" vs. "), score + "\n" + ":microphone2: " + comms.join(", "), true)
                                 .addField('\u200B', '\u200B', true)
                         }
-                    }
+                    }*/
                     if (args.includes("initial")) {
                         type = 4
-                    }
-                    var previous = false, next = false
-                    if (offset <= 0) {
-                        previous = true
-                    }
-                    if (offset + 1 == pages) {
-                        next = true
                     }
                     client.api.interactions(interaction.id, interaction.token).callback.post({
                         data: {
@@ -219,26 +256,12 @@ module.exports = {
                                         type: 1,
                                         components: [
                                             {
-                                                type: 2,
-                                                label: "",
-                                                emoji: {
-                                                    id: "852392123151679548",
-                                                    name: "left"
-                                                },
-                                                style: 2,
-                                                custom_id: "tourney_matches_browse_page" + (offset - 1),
-                                                disabled: previous
-                                            },
-                                            {
-                                                type: 2,
-                                                label: "",
-                                                emoji: {
-                                                    id: "852392123109998602",
-                                                    name: "right"
-                                                },
-                                                style: 2,
-                                                custom_id: "tourney_matches_browse_page" + (offset + 1),
-                                                disabled: next
+                                                type: 3,
+                                                custom_id: "tourney_matches_offset" + offset,
+                                                options: matches,
+                                                placeholder: "Select Match",
+                                                min_values: 1,
+                                                max_values: 1
                                             }
                                         ]
                                     }
@@ -632,7 +655,8 @@ module.exports = {
             var emojis = {
                 "1v1": "🆚",
                 "1vAll": "🏆",
-                "Qualifier": "⏱️",
+                "Qualifier": "⏳",
+                "Real-Time Attack": "⏱️"
             }
 
             function showRuleset(ruleset) {
@@ -1030,8 +1054,8 @@ module.exports = {
                     client.api.interactions(interaction.id, interaction.token).callback.post({
                         data: {
                             type: 4,
-                            flags: 64,
                             data: {
+                                flags: 64,
                                 content: "Only the ruleset author can edit or delete their ruleset."
                             }
                         }
@@ -1068,8 +1092,8 @@ module.exports = {
                     client.api.interactions(interaction.id, interaction.token).callback.post({
                         data: {
                             type: 4,
-                            flags: 64,
                             data: {
+                                flags: 64,
                                 content: "Only the ruleset author can edit or delete their ruleset."
                             }
                         }
@@ -1139,7 +1163,7 @@ module.exports = {
                             value: s,
                             description: tourney_rulesets_data.saved[s].type + " Ruleset by " + client.guilds.resolve(interaction.guild_id).members.resolve(tourney_rulesets_data.saved[s].author).user.username,
                         }
-                        if (interaction.data.hasOwnProperty("values")  && !interaction.data.values[0].includes("offset")) {
+                        if (interaction.data.hasOwnProperty("values") && !interaction.data.values[0].includes("offset")) {
                             if (r.value == interaction.data.values[0]) {
                                 r.default = true
                             }
@@ -1148,7 +1172,7 @@ module.exports = {
                         if (i == saved.length - 1) {
                             i = (offset + 1) * 23
                         }
-                        if(i == (offset +1)*23 - 1){
+                        if (i == (offset + 1) * 23 - 1) {
                             rulesets.push(
                                 {
                                     label: "See more...",
@@ -1271,28 +1295,29 @@ module.exports = {
 
                 var options = [
                     {
-                        label: "Qualifier",
-                        value: "Qualifier",
-                        emoji: {name: emojis["Qualifier"]},
-                        description: "Players have a set time limit to get their best time with multiple attempts"
-                    },
-                    {
                         label: "1v1",
                         value: "1v1",
-                        emoji: {name: emojis["1v1"]},
+                        emoji: { name: emojis["1v1"] },
                         description: "Players face off until one satisfies the win conditions"
                     },
                     {
                         label: "1vAll",
                         value: "1vAll",
-                        emoji: {name: emojis["1vAll"]},
-                        description: "Players race against all other competitors in a set number of races"
-                    }/*,
+                        emoji: { name: emojis["1vAll"] },
+                        description: "Players race against all other competitors in a set of races"
+                    },
                     {
-                        label: "Team",
-                        value: "team",
-                        description: "Teams compete for a better score/time than opposing teams"
-                    }*/
+                        label: "Qualifier",
+                        value: "Qualifier",
+                        emoji: { name: emojis["Qualifier"] },
+                        description: "Players race to get their best time within the time limit"
+                    },
+                    {
+                        label: "Real-Time Attack",
+                        value: "Real-Time Attack",
+                        emoji: { name: emojis["Real-Time Attack"] },
+                        description: "Players race a full circuit of tracks against the clock"
+                    }
                 ]
                 var create = false
                 if (interaction.data.hasOwnProperty("values")) {
@@ -1411,7 +1436,7 @@ module.exports = {
                             poollimit: 1
                         }
                         args[2] = "general"
-                    } if (ruleset_type == "1vAll") {
+                    } else if (ruleset_type == "1vAll") {
                         ruleset = {
                             type: "1vAll",
                             name: interaction.member.user.username + "'s Unnamed 1vAll Ruleset",
@@ -1431,7 +1456,18 @@ module.exports = {
                             )
                         }
                         args[2] = "1vAll"
-                    } //if (ruleset_type == "team") {}
+                    } else if (ruleset_type == "Real-Time Attack") {
+                        ruleset = {
+                            type: "Real-Time Attack",
+                            name: interaction.member.user.username + "'s Unnamed Real-Time Attack Ruleset",
+                            author: interaction.member.user.id,
+                            podmethod: "player_pick",
+                            circuits: ["0"],
+                            poollimit: 1,
+                            racenum: 7,
+                        }
+                        args[2] = "Qualifier"
+                    }
                     if (ruleset !== {}) {
                         tourney_rulesets.child("new").child(interaction.member.user.id).set(ruleset)
                     }
@@ -1610,6 +1646,10 @@ module.exports = {
                             }
                         ]
                     })
+                } else if (ruleset.type == "Real-Time Attack") {
+
+                } else if (ruleset.type == "Bingo") {
+
                 }
 
 
@@ -2313,7 +2353,7 @@ module.exports = {
                         },
                         {
                             label: "1 Per Loss",
-                            value: "lossess",
+                            value: "losses",
                             description: "Players earn forces for each race loss"
                         }
                     )
@@ -2397,10 +2437,6 @@ module.exports = {
                             label: "Pod Choice",
                             value: "pc"
                         },
-                        /*{
-                            label: "Unmirrored",
-                            value: "um"
-                        },*/
                         {
                             label: "Mirrored",
                             value: "mi"
@@ -3050,6 +3086,147 @@ module.exports = {
                     }
                     //time limit
                     //penalty time
+                } else if (args[2] == "rta") {
+                    var circuit_options = [
+                        {
+                            label: "Amateur Circuit",
+                            value: "amc",
+                            description: "players play through the entirety of the Amateur Circuit"
+                        },
+                        {
+                            label: "Semi-Pro Circuit",
+                            value: "spc",
+                            description: "players play through the entirety of the Semi-Pro Circuit"
+                        },
+                        {
+                            label: "Galactic Circuit",
+                            value: "gal",
+                            description: "players play through the entirety of the Galactic Circuit"
+                        },
+                        {
+                            label: "Invitational Circuit",
+                            value: "inv",
+                            description: "players play through the entirety of the Invitational Circuit"
+                        },
+                        {
+                            label: "Random Track Circuit (4 Tracks)",
+                            value: "r4",
+                            description: "players play through a circuit of 4 random tracks"
+                        },
+                        {
+                            label: "Random Track Circuit (5 Tracks)",
+                            value: "r5",
+                            description: "players play through a circuit of 5 random tracks"
+                        },
+                        {
+                            label: "Random Track Circuit (6 Tracks)",
+                            value: "r6",
+                            description: "players play through a circuit of 6 random tracks"
+                        },
+                        {
+                            label: "Random Track Circuit (7 Tracks)",
+                            value: "r7",
+                            description: "players play through a circuit of 7 random tracks"
+                        }
+                    ]
+                    for (i = 0; i < circuit_options.length; i++) {
+                        if (circuit_options[i].value == tourney_rulesets_data.new[interaction.member.user.id].circuit) {
+                            circuit_options[i].default = true
+                        }
+                    }
+
+                    var con_options = [
+                        {
+                            label: "New Game +",
+                            value: "ng"
+                        },
+                        {
+                            label: "Full Track",
+                            value: "ft"
+                        },
+                        {
+                            label: "Skips",
+                            value: "sk"
+                        },
+                        {
+                            label: "Max Upgrades",
+                            value: "mu"
+                        },
+                        {
+                            label: "No Upgrades",
+                            value: "nu"
+                        },
+                        {
+                            label: "Mirrored",
+                            value: "mi"
+                        },
+                        {
+                            label: "No Junkyard",
+                            value: "nj"
+                        },
+                        {
+                            label: "Cheats Allowed",
+                            value: "ca"
+                        }
+                    ]
+
+
+                    var gent_options = [
+                        {
+                            label: "Gentleman's Agreement: Allowed",
+                            value: "allowed"
+                        },
+                        {
+                            label: "Gentleman's Agreement: Disallowed",
+                            value: "disallowed"
+                        }
+                    ]
+                    for (i = 0; i < gent_options.length; i++) {
+                        if (gent_options[i].value == tourney_rulesets_data.new[interaction.member.user.id].gents) {
+                            gent_options[i].default = true
+                        }
+                    }
+                    components.push(
+                        {
+                            type: 1,
+                            components: [
+                                {
+                                    type: 3,
+                                    custom_id: "tourney_rulesets_new_general_wins",
+                                    options: win_options,
+                                    placeholder: "Set Win Conditions",
+                                    min_values: 1,
+                                    max_values: 3
+                                }
+                            ]
+                        },
+                        {
+                            type: 1,
+                            components: [
+                                {
+                                    type: 3,
+                                    custom_id: "tourney_rulesets_new_general_default",
+                                    options: con_options,
+                                    placeholder: "Set Default Conditions",
+                                    min_values: 4,
+                                    max_values: 4
+                                }
+                            ]
+                        },
+                        {
+                            type: 1,
+                            components: [
+                                {
+                                    type: 3,
+                                    custom_id: "tourney_rulesets_new_general_gents",
+                                    options: gent_options,
+                                    placeholder: "Gentleman's Agreement",
+                                    min_values: 1,
+                                    max_values: 1
+                                }
+                            ]
+                        }
+                    )
                 }
 
                 if (![null, undefined].includes(tourney_rulesets_data)) {
