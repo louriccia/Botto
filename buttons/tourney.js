@@ -175,7 +175,7 @@ module.exports = {
                         var date = new Date(tourney_matches_data[s].datetime)
                         date = date.toLocaleString().split(", ")
                         if(title.length == 0){
-                            title = player.join(" vs ")
+                            title = players.join(" vs ")
                         } else {
                             title = title.join(" ") + " - " + players.join(" vs ")
                         }
@@ -219,7 +219,7 @@ module.exports = {
                             }
                         }
                         if(title.length == 0){
-                            title = player.join(" vs ")
+                            title = players.join(" vs ")
                         } else {
                             title = title.join(" ") + " - " + players.join(" vs ")
                         }
