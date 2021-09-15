@@ -233,27 +233,28 @@ module.exports = {
                             if(tourney_matches_data[match].races[r].hasOwnProperty("tempbans")){
                                 tourney_matches_data[match].races[r].tempbans.forEach(ban => {
                                     if(ban.type == "pod"){
-                                        field += ":x: " + racers[ban.selection].flag + " (" + tourney_participants_data[ban.player].name +")\n"
+                                        field += ":x: " + racers[ban.selection].flag + " (*" + tourney_participants_data[ban.player].name +"*)\n"
                                     } else if (ban.type == "track"){
-                                        field +=  ":x: " + tracks[ban.selection].nickname[0] + " (" + tourney_participants_data[ban.player].name + ")\n"
+                                        field +=  ":x: " + tracks[ban.selection].nickname[0] + " (*" + tourney_participants_data[ban.player].name + "*)\n"
                                     }
                                     
                                 })
                             }
                             
                             var track = tourney_matches_data[match].races[r].track_selection.track
-                            field += planets[tracks[track].planet].emoji + " " + tracks[track].nickname[0] + " "
+                            field += planets[tracks[track].planet].emoji + " " + tracks[track].nickname[0].toUpperCase() + " "
                             if (tourney_matches_data[match].races[r].track_selection.hasOwnProperty("player")){
-                                field += "(" + tourney_participants_data[tourney_matches_data[match].races[r].track_selection.player].name + ")\n"
+                                field += "(*" + tourney_participants_data[tourney_matches_data[match].races[r].track_selection.player].name + "*)"
                             } 
+                            field += "\n"
                             if(tourney_matches_data[match].races[r].hasOwnProperty("conditions")){
                                 tourney_matches_data[match].races[r].conditions.forEach(condition => {
                                     if(condition.type == "skips"){
-                                        field += ":asterisk: Skips (" + tourney_participants_data[condition.player].name + ")\n"
+                                        field += ":asterisk: Skips (*" + tourney_participants_data[condition.player].name + "*)\n"
                                     } else if (condition.type == "no_upgrades"){
-                                        field += ":asterisk: No Upgrades (" + tourney_participants_data[condition.player].name + ")\n"
+                                        field += ":asterisk: No Upgrades (*" + tourney_participants_data[condition.player].name + "*)\n"
                                     } else if (condition.type == "pod_ban"){
-                                        field += ":x: " + racers[condition.selection].flag + " (" + tourney_participants_data[condition.player].name + ")\n"
+                                        field += ":x: " + racers[condition.selection].flag + " (*" + tourney_participants_data[condition.player].name + "*)\n"
                                     }
                                 })
                             }
@@ -289,9 +290,9 @@ module.exports = {
                                 var permabans = ""
                                 tourney_matches_data[match].permabans.forEach(permaban => {
                                     if(permaban.type == "pod"){
-                                        permabans += ":no_entry_sign: " + racers[permaban.selection].flag + " (" + tourney_participants_data[permaban.player].name + "\n"
+                                        permabans += ":no_entry_sign: " + racers[permaban.selection].flag + " (*" + tourney_participants_data[permaban.player].name + "*)\n"
                                     } else if(permaban.type == "track"){
-                                        permabans += ":no_entry_sign: " + tracks[permaban.selection].nickname[0] + " (" + tourney_participants_data[permaban.player].name + "\n"
+                                        permabans += ":no_entry_sign: " + tracks[permaban.selection].nickname[0] + " (*" + tourney_participants_data[permaban.player].name + "*)\n"
                                     }
                                 })
                                 tourneyMatches
