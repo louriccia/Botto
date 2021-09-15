@@ -277,7 +277,7 @@ module.exports = {
                             }
                             var winner = {}
                             for(p =0 ; p < tourney_matches_data[match].races[r].runs.length; p++){
-                                if(winner.time == undefined || Number(tourney_matches_data[match].races[r].runs[p].time) < Number(winner.time) && tourney_matches_data[match].races[r].runs[p].time !== "DNF"){
+                                if((winner.time == undefined || Number(tourney_matches_data[match].races[r].runs[p].time) < Number(winner.time)) && tourney_matches_data[match].races[r].runs[p].time !== "DNF"){
                                     winner.time = Number(tourney_matches_data[match].races[r].runs[p].time)
                                     winner.player = tourney_matches_data[match].races[r].runs[p].player
                                 }
