@@ -133,16 +133,16 @@ module.exports = {
                 const tourneyMatches = new Discord.MessageEmbed()
                     .setTitle("Tournament Matches")
                     .setColor("#3BA55D")
+                    .setDescription("Use the select below to browse recent tournament matches.")
                     .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/crossed-swords_2694-fe0f.png")
                 if (args[2].startsWith("offset")) {
 
                     var offset = Number(args[2].replace("offset", ""))
                     var type = 7
-                    var mtch = Object.keys(tourney_matches_data)
-                    /*
-                    matches.sort(function (a, b) {
+                    tourney_matches_data.sort(function (a, b) {
                         return Date.parse(b.datetime) - Date.parse(a.datetime);
-                    })*/
+                    })
+                    var mtch = Object.keys(tourney_matches_data)
                     var matches = []
                     for (i = 0 + offset * 23; i < (offset + 1) * 23; i++) {
                         if (i == 0 + offset * 23 && offset > 0) {
@@ -193,55 +193,79 @@ module.exports = {
                             )
                         }
                     }
-                    tourneyMatches
-                        .setTitle("Recent Matches")
-                        .setFooter("Page " + (offset + 1) + " / " + pages)
+                    if (interaction.data.hasOwnProperty("values") && !interaction.data.values[0].includes("offset")) {
+                        var match = interaction.data.values[0]
+                        var title = [], comms = []
+                        var description = ""
+                        if (![undefined, null, ""].includes(tourney_matches_data[match].bracket)) {
+                            title.push(tourney_matches_data[match].bracket)
+                        }
+                        if (![undefined, null, ""].includes(tourney_matches_data[match].round)) {
+                            title.push(tourney_matches_data[match].round)
+                        }
+                        var players = []
+                        for (p = 0; p < tourney_matches_data[match].races[0].runs.length; p++) {
+                            if (!players.includes(tourney_matches_data[match].races[0].runs[p].player)) {
+                                players.push(tourney_participants_data[tourney_matches_data[match].races[0].runs[p].player].name)
+                            }
+                        }
+                        tourney_matches_data[match].commentators.forEach(com => {
+                            comms.push(tourney_participants_data[com].name)
+                        })
+                        title.push(players.join(" vs "))
+
+                        description += "[:trophy: " + tourney_tournaments_data[tourney_matches_data[match].tourney].name + "](" + tourney_matches_data[match].vod + ")\n"
+                        description += ":calendar_spiral: <t:" + Math.round(tourney_matches_data[match].datetime/1000) + ":F>\n"
+                        description += ":scroll: " + tourney_rulesets_data[tourney_matches_data[match].ruleset].name
+                        description += ":microphone2: " + comms.join(", ")
+
+                        tourneyMatches
+                        .setTitle(title.join(" - "))
+                        .setDescription(description)
                         .setColor("#3BA55D")
                         .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/crossed-swords_2694-fe0f.png")
+                        
+                    }
+                    
                     /*
-                    for (var i = 5 * offset; i < 5 * (1 + offset); i++) {
-                        if (i == matches.length) {
-                            i = 5 * (1 + offset)
-                        } else {
-                            var date = new Date(matches[i].datetime).toLocaleString("en-US", { timeZone: "America/New_York" }) + " ET"
-                            if (matches[i].url !== "") {
-                                date = "[" + date + "](" + matches[i].url + ")"
-                            }
-                            var players = Object.values(matches[i].players)
-                            var commentators = Object.values(matches[i].commentators)
-                            var score = []
-                            var comms = []
-                            var player_text = []
-                            for (k = 0; k < players.length; k++) {
-                                player_text.push(tourney_participants_data[String(players[k].player)].name)
-                                if (![undefined, ""].includes(players[k].score)) {
-                                    score.push(players[k].score)
-                                }
-                            }
-                            if (commentators.length > 0) {
-                                for (k = 0; k < commentators.length; k++) {
-                                    if (commentators[k] !== "") {
-                                        comms.push(tourney_participants_data[String(commentators[k])].name)
-                                    }
-                                }
-                            }
-
-                            if (score.length > 0) {
-                                score = "score: ||`" + score.join(" to ") + "`||"
-                            }
-                            var bracketround = ""
-                            if (matches[i].bracket !== "") {
-                                bracketround += " - " + matches[i].bracket
-                                if (![undefined, ""].includes(matches[i].round)) {
-                                    bracketround += ": " + matches[i].round
-                                }
-                            }
-                            tourneyMatches
-                                .addField(tourney_tournaments_data[matches[i].tourney].nickname + bracketround, date + "\nid: `" + matches[i].id + "`", true)
-                                .addField(player_text.join(" vs. "), score + "\n" + ":microphone2: " + comms.join(", "), true)
-                                .addField('\u200B', '\u200B', true)
+                    var date = new Date(matches[i].datetime).toLocaleString("en-US", { timeZone: "America/New_York" }) + " ET"
+                    if (matches[i].url !== "") {
+                        date = "[" + date + "](" + matches[i].url + ")"
+                    }
+                    var players = Object.values(matches[i].players)
+                    var commentators = Object.values(matches[i].commentators)
+                    var score = []
+                    var comms = []
+                    var player_text = []
+                    for (k = 0; k < players.length; k++) {
+                        player_text.push(tourney_participants_data[String(players[k].player)].name)
+                        if (![undefined, ""].includes(players[k].score)) {
+                            score.push(players[k].score)
                         }
-                    }*/
+                    }
+                    if (commentators.length > 0) {
+                        for (k = 0; k < commentators.length; k++) {
+                            if (commentators[k] !== "") {
+                                comms.push(tourney_participants_data[String(commentators[k])].name)
+                            }
+                        }
+                    }
+
+                    if (score.length > 0) {
+                        score = "score: ||`" + score.join(" to ") + "`||"
+                    }
+                    var bracketround = ""
+                    if (matches[i].bracket !== "") {
+                        bracketround += " - " + matches[i].bracket
+                        if (![undefined, ""].includes(matches[i].round)) {
+                            bracketround += ": " + matches[i].round
+                        }
+                    }
+                    tourneyMatches
+                        .addField(tourney_tournaments_data[matches[i].tourney].nickname + bracketround, date + "\nid: `" + matches[i].id + "`", true)
+                        .addField(player_text.join(" vs. "), score + "\n" + ":microphone2: " + comms.join(", "), true)
+                        .addField('\u200B', '\u200B', true)
+                    */
                     if (args.includes("initial")) {
                         type = 4
                     }
@@ -257,7 +281,7 @@ module.exports = {
                                         components: [
                                             {
                                                 type: 3,
-                                                custom_id: "tourney_matches_offset" + offset,
+                                                custom_id: "tourney_matches_browse_offset" + offset,
                                                 options: matches,
                                                 placeholder: "Select Match",
                                                 min_values: 1,
