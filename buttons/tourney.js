@@ -138,6 +138,9 @@ module.exports = {
                 if (args[2].startsWith("offset")) {
 
                     var offset = Number(args[2].replace("offset", ""))
+                    if (interaction.data.values[0].includes("offset")) {
+                        offset = Number(interaction.data.values[0].replace("offset", ""))
+                    }
                     var type = 7
                     var mtch = Object.keys(tourney_matches_data)
                     mtch.sort(function(a, b) {
@@ -216,7 +219,7 @@ module.exports = {
 
                         description += "[:trophy: " + tourney_tournaments_data[tourney_matches_data[match].tourney].name + "](" + tourney_matches_data[match].vod + ")\n"
                         description += ":calendar_spiral: <t:" + Math.round(tourney_matches_data[match].datetime/1000) + ":F>\n"
-                        description += ":scroll: " + tourney_rulesets_data.saved[tourney_matches_data[match].ruleset].name
+                        description += ":scroll: " + tourney_rulesets_data.saved[tourney_matches_data[match].ruleset].name + "\n"
                         description += ":microphone2: " + comms.join(", ")
 
                         tourneyMatches
