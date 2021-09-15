@@ -146,7 +146,7 @@ module.exports = {
                     var type = 7
                     var mtch = Object.keys(tourney_matches_data)
                     mtch = mtch.sort(function (a, b) {
-                        return Date.parse(tourney_matches_data[b].datetime) - Date.parse(tourney_matches_data[a].datetime);
+                        return tourney_matches_data[a].datetime - tourney_matches_data[b].datetime;
                     })
                     var matches = []
                     for (i = 0 + offset * 23; i < (offset + 1) * 23; i++) {
@@ -251,12 +251,12 @@ module.exports = {
                                     } else if (condition.type == "no_upgrades"){
                                         field += tourney_participants_data[condition.player].name + " :asterisk: No Upgrades\n"
                                     } else if (condition.type == "pod_ban"){
-                                        field += tourney_participants_data[condition.player].name + " :asterisk: Pod Ban " + racers[conditions.selection].flag + "\n"
+                                        field += tourney_participants_data[condition.player].name + " :asterisk: Pod Ban " + racers[condition.selection].flag + "\n"
                                     }
                                 })
                             }
                             tourney_matches_data[match].races[r].runs.forEach(run => {
-                                field += racers[run.pod].flag + " " + tourney_participants_data[run.player] + "\n:stopwatch:" + tools.timefix(run.time) + " :skull" + run.deaths
+                                field += racers[run.pod].flag + " " + tourney_participants_data[run.player].name + "\n:stopwatch:" + tools.timefix(run.time) + " :skull:" + run.deaths + "\n"
                             })
                             tourneyMatches
                                 .addField("Race " + r, field, true)
@@ -265,9 +265,9 @@ module.exports = {
                                 var permabans = ""
                                 tourney_matches_data[match].permabans.forEach(permaban => {
                                     if(permaban.type == "pod"){
-                                        permabans += tourney_participants_data[permaban.player] + " :no_entry_sign: " + racers[permaban.selection].flag + "\n"
+                                        permabans += tourney_participants_data[permaban.player].name + " :no_entry_sign: " + racers[permaban.selection].flag + "\n"
                                     } else if(permaban.type == "track"){
-                                        permabans += tourney_participants_data[permaban.player] + " :no_entry_sign: " + tracks[permaban.selection].nickname[0] + "\n"
+                                        permabans += tourney_participants_data[permaban.player].name + " :no_entry_sign: " + tracks[permaban.selection].nickname[0] + "\n"
                                     }
                                 })
                                 tourneyMatches
