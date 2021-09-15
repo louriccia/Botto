@@ -169,9 +169,9 @@ module.exports = {
                         }
                         title.push(players.join(" vs "))
                         var date = new Date(tourney_matches_data[s].datetime)
-                        date = date.toLocaleString().split(" ")
+                        date = date.toLocaleString().split(", ")
                         var r = {
-                            label: title.join(" "),
+                            label: title.join(" - "),
                             value: s,
                             description: tourney_tournaments_data[tourney_matches_data[s].tourney].nickname + " | " + date[0]
                         }
@@ -181,7 +181,7 @@ module.exports = {
                             }
                         }
                         matches.push(r)
-                        if (i == matches.length - 1) {
+                        if (i == mtch.length - 1) {
                             i = (offset + 1) * 23
                         }
                         if (i == (offset + 1) * 23 - 1) {
