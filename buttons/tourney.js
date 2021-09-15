@@ -175,7 +175,7 @@ module.exports = {
                         var date = new Date(tourney_matches_data[s].datetime)
                         date = date.toLocaleString().split(", ")
                         var r = {
-                            label: title.join(" ") + " - " + players.join(", "),
+                            label: title.join(" ") + " - " + players.join(" vs "),
                             value: s,
                             description: tourney_tournaments_data[tourney_matches_data[s].tourney].nickname + " | " + date[0]
                         }
@@ -217,8 +217,8 @@ module.exports = {
                             comms.push(tourney_participants_data[com].name)
                         })
 
-                        description += "[:trophy: " + tourney_tournaments_data[tourney_matches_data[match].tourney].name + "](" + tourney_matches_data[match].vod + ")\n"
-                        description += ":calendar_spiral: <t:" + Math.round(tourney_matches_data[match].datetime / 1000) + ":F>\n"
+                        description += "[:trophy: " + tourney_tournaments_data[tourney_matches_data[match].tourney].name + "](" + tourney_tournaments_data[match.tourney].challonge[0] + ")\n"
+                        description += "[:calendar_spiral: <t:" + Math.round(tourney_matches_data[match].datetime / 1000) + ":F>](" + tourney_matches_data[match].vod + "\n"
                         description += ":scroll: " + tourney_rulesets_data.saved[tourney_matches_data[match].ruleset].name + "\n"
                         description += ":microphone2: " + comms.join(", ")
 
@@ -257,20 +257,21 @@ module.exports = {
                             }
                             var winner = {}
                             for(p =0 ; p < tourney_matches_data[match].races[r].runs.length; p++){
-                                if(winner.time == undefined || tourney_matches_data[match].races[r].runs[p].time < winner.time){
-                                    winner.time = tourney_matches_data[match].races[r].runs[p].time
+                                if(winner.time == undefined || Number(tourney_matches_data[match].races[r].runs[p].time) < Number(winner.time)){
+                                    winner.time = Number(tourney_matches_data[match].races[r].runs[p].time)
                                     winner.player = tourney_matches_data[match].races[r].runs[p].player
                                 }
                             }
                             tourney_matches_data[match].races[r].runs.forEach(run => {
-                                field += racers[run.pod].flag + " **" + tourney_participants_data[run.player].name + "** "
+                                field += "**" + tourney_participants_data[run.player].name + "** "
                                 if(run.player == winner.player){
                                     field += ":crown:"
                                 }
+                                field += "\n" + racers[run.pod].flag + " "
                                 if(run.time == "DNF"){
-                                    field += "\n`DNF`"
+                                    field += "`DNF`"
                                 } else {
-                                    field += "\n`" + tools.timefix(run.time) + "`"
+                                    field += "`" + tools.timefix(run.time) + "`"
                                 }
                                 if(run.deaths == 1){
                                     field += " :skull:" 
