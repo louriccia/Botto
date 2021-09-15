@@ -145,8 +145,8 @@ module.exports = {
                     }
                     var type = 7
                     var mtch = Object.keys(tourney_matches_data)
-                    mtch.sort(function(a, b) {
-                        return Date.parse(tourney_matches_data[b].datetime) - Date.parse(tourney_matches_data[a].datetime);
+                    mtch = mtch.sort(function(a, b) {
+                        return Date.parse(tourney_matches_data[a].datetime) - Date.parse(tourney_matches_data[b].datetime);
                     })
                     var matches = []
                     for (i = 0 + offset * 23; i < (offset + 1) * 23; i++) {
@@ -172,11 +172,10 @@ module.exports = {
                                 players.push(tourney_participants_data[tourney_matches_data[s].races[0].runs[p].player].name)
                             }
                         }
-                        title.push(players.join(" vs "))
                         var date = new Date(tourney_matches_data[s].datetime)
                         date = date.toLocaleString().split(", ")
                         var r = {
-                            label: title.join(" - "),
+                            label: title.join(" ") + " - " + players.join(", "),
                             value: s,
                             description: tourney_tournaments_data[tourney_matches_data[s].tourney].nickname + " | " + date[0]
                         }
@@ -217,7 +216,6 @@ module.exports = {
                         tourney_matches_data[match].commentators.forEach(com => {
                             comms.push(tourney_participants_data[com].name)
                         })
-                        title.push(players.join(" vs "))
 
                         description += "[:trophy: " + tourney_tournaments_data[tourney_matches_data[match].tourney].name + "](" + tourney_matches_data[match].vod + ")\n"
                         description += ":calendar_spiral: <t:" + Math.round(tourney_matches_data[match].datetime/1000) + ":F>\n"
@@ -225,11 +223,10 @@ module.exports = {
                         description += ":microphone2: " + comms.join(", ")
 
                         tourneyMatches
-                        .setTitle(title.join(" - "))
+                        .setTitle(title.join(" ") + " - " + players.join(", "))
                         .setDescription(description)
                         .setColor("#3BA55D")
                         .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/crossed-swords_2694-fe0f.png")
-                        
                     }
                     
                     /*
