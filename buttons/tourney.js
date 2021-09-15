@@ -174,8 +174,13 @@ module.exports = {
                         }
                         var date = new Date(tourney_matches_data[s].datetime)
                         date = date.toLocaleString().split(", ")
+                        if(title.length == 0){
+                            title = player.join(" vs ")
+                        } else {
+                            title = title.join(" ") + " - " + players.join(" vs ")
+                        }
                         var r = {
-                            label: title.join(" ") + " - " + players.join(" vs "),
+                            label: title,
                             value: s,
                             description: tourney_tournaments_data[tourney_matches_data[s].tourney].nickname + " | " + date[0]
                         }
@@ -213,17 +218,26 @@ module.exports = {
                                 players.push(tourney_participants_data[tourney_matches_data[match].races[0].runs[p].player].name)
                             }
                         }
+                        if(title.length == 0){
+                            title = player.join(" vs ")
+                        } else {
+                            title = title.join(" ") + " - " + players.join(" vs ")
+                        }
                         tourney_matches_data[match].commentators.forEach(com => {
                             comms.push(tourney_participants_data[com].name)
                         })
-
-                        description += "[:trophy: " + tourney_tournaments_data[tourney_matches_data[match].tourney].name + "](" + tourney_tournaments_data[tourney_matches_data[match].tourney].challonge[0] + ")\n"
+                        if(tourney_tournaments_data[tourney_matches_data[match].tourney].hasOwnProperty("challonge")){
+                            description += "[:trophy: " + tourney_tournaments_data[tourney_matches_data[match].tourney].name + "](" + tourney_tournaments_data[tourney_matches_data[match].tourney].challonge[0] + ")\n"
+                        } else {
+                            description += ":trophy: " + tourney_tournaments_data[tourney_matches_data[match].tourney].name + "\n"
+                        }
+                        
                         description += ":calendar_spiral: <t:" + Math.round(tourney_matches_data[match].datetime / 1000) + ":F>\n"
                         description += ":scroll: " + tourney_rulesets_data.saved[tourney_matches_data[match].ruleset].name + "\n"
                         description += ":microphone2: " + comms.join(", ")
 
                         tourneyMatches
-                            .setTitle(title.join(" ") + " - " + players.join(" vs "))
+                            .setTitle(title)
                             .setDescription(description)
                             .setColor("#3BA55D")
                             .setURL(tourney_matches_data[match].vod)
@@ -235,7 +249,7 @@ module.exports = {
                                     if(ban.type == "pod"){
                                         field += ":x: " + racers[ban.selection].flag + " (*" + tourney_participants_data[ban.player].name +"*)\n"
                                     } else if (ban.type == "track"){
-                                        field +=  ":x: " + tracks[ban.selection].nickname[0] + " (*" + tourney_participants_data[ban.player].name + "*)\n"
+                                        field +=  ":x: " + tracks[ban.selection].nickname[0].toUpperCase() + " (*" + tourney_participants_data[ban.player].name + "*)\n"
                                     }
                                     
                                 })
