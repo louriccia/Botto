@@ -3901,18 +3901,7 @@
                         "time": 132,
                         "deaths": 1,
                         "pod": 19,
-                        "notes": "stream was frozen for most of this race; time was reported via text",
-                        "laps": [
-                            {
-                                "deaths": null
-                            },
-                            {
-                                "deaths": 1
-                            },
-                            {
-                                "deaths": null
-                            }
-                        ]
+                        "notes": "stream was frozen for most of this race; time was reported via text"
                     },
                     {
                         "player": 12,
@@ -5419,18 +5408,7 @@
                         "time": 188,
                         "deaths": 0,
                         "pod": 22,
-                        "notes": "stream was frozen",
-                        "laps": [
-                            {
-                                "deaths": null
-                            },
-                            {
-                                "deaths": null
-                            },
-                            {
-                                "deaths": null
-                            }
-                        ]
+                        "notes": "stream was frozen"
                     },
                     {
                         "player": 16,
@@ -15203,7 +15181,18 @@
                         "time": 178.505,
                         "deaths": 0,
                         "pod": 22,
-                        "notes": "stream was frozen most of the race"
+                        "notes": "stream was frozen most of the race",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 13,
@@ -29433,19 +29422,52 @@
                         "player": 10,
                         "time": 160.979,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 25,
                         "time": 164.76,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 17,
                         "time": 165.566,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -29456,24 +29478,56 @@
                     "track": 7
                 },
                 "runs": [
-                    
                     {
                         "player": 10,
                         "time": 243.414,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 25,
                         "time": 248.27,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 17,
                         "time": 252.382,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -29488,31 +29542,53 @@
                         "player": 10,
                         "time": 295.994,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 25,
                         "time": 312.706,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 17,
                         "time": 325.338,
                         "pod": 8,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
-                ]
-            },
-            {
-                "tempbans": [],
-                "conditions": [],
-                "track_selection": {
-                    "track": 20,
-                    "player": 17
-                },
-                "runs": [
-                    
                 ]
             },
             {
@@ -29526,19 +29602,52 @@
                         "player": 10,
                         "time": 138.528,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 25,
                         "time": 146.874,
                         "pod": 8,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 17,
                         "time": 155.737,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             }
@@ -29567,25 +29676,69 @@
                         "player": 0,
                         "time": 160.134,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 14,
                         "time": 162.937,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 11,
                         "time": 168.444,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 4,
                         "time": 190.276,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -29600,25 +29753,69 @@
                         "player": 0,
                         "time": 240.489,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 14,
                         "time": 252.103,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 11,
                         "time": 258.41,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 4,
                         "time": 290.261,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -29633,25 +29830,69 @@
                         "player": 0,
                         "time": 299.012,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 14,
                         "time": 314.784,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 11,
                         "time": 343.564,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 4,
                         "time": 362.826,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -29666,25 +29907,69 @@
                         "player": 0,
                         "time": 137.882,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 14,
                         "time": 147.279,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 11,
                         "time": 163.675,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 4,
                         "time": 183.983,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             }
@@ -29713,19 +29998,52 @@
                         "player": 15,
                         "time": 160.705,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 20,
                         "time": 163.417,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 24,
                         "time": 270,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -29740,19 +30058,52 @@
                         "player": 15,
                         "time": 241.916,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 20,
                         "time": 246.562,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 24,
                         "time": 324.7,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -29767,19 +30118,52 @@
                         "player": 15,
                         "time": 299.579,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 20,
                         "time": 324.755,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 24,
                         "time": 418.626,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -29790,24 +30174,56 @@
                     "track": 22
                 },
                 "runs": [
-                    
                     {
                         "player": 15,
                         "time": 138.942,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 20,
                         "time": 151.539,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 24,
                         "time": 190.187,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             }
@@ -29836,13 +30252,35 @@
                         "player": 12,
                         "time": 162.814,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 1,
                         "time": 210.446,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -29857,13 +30295,35 @@
                         "player": 12,
                         "time": 246.599,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 1,
                         "time": 312.276,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -29878,13 +30338,35 @@
                         "player": 12,
                         "time": 314.227,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 1,
                         "time": 407.678,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -29899,13 +30381,35 @@
                         "player": 12,
                         "time": 143.039,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 1,
                         "time": 213.848,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             }
@@ -29934,13 +30438,35 @@
                         "player": 18,
                         "time": 163.49,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 13,
                         "time": 265.894,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -29955,13 +30481,35 @@
                         "player": 18,
                         "time": 251.834,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 13,
                         "time": 330,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -29976,13 +30524,35 @@
                         "player": 18,
                         "time": 342.832,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 13,
                         "time": 499.911,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -29997,13 +30567,35 @@
                         "player": 18,
                         "time": 148.223,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 13,
                         "time": 240,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             }
@@ -30211,7 +30803,12 @@
                         "player": 0
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "no_upgrades",
+                        "player": 17
+                    }
+                ],
                 "track_selection": {
                     "track": 6,
                     "player": 17
@@ -30549,7 +31146,12 @@
                         "player": 10
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "no_upgrades",
+                        "player": 4
+                    }
+                ],
                 "track_selection": {
                     "track": 3,
                     "player": 4
@@ -30950,7 +31552,12 @@
                         "player": 14
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 10
+                    }
+                ],
                 "track_selection": {
                     "track": 20,
                     "player": 10
@@ -31013,7 +31620,12 @@
                         "player": 10
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 14
+                    }
+                ],
                 "track_selection": {
                     "track": 21,
                     "player": 14
@@ -31076,7 +31688,12 @@
                         "player": 14
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "no_upgrades",
+                        "player": 10
+                    }
+                ],
                 "track_selection": {
                     "track": 17,
                     "player": 10
@@ -31288,7 +31905,12 @@
                         "player": 15
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "no_upgrades",
+                        "player": 4
+                    }
+                ],
                 "track_selection": {
                     "track": 22,
                     "player": 4
@@ -31414,7 +32036,12 @@
                         "player": 15
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 4
+                    }
+                ],
                 "track_selection": {
                     "track": 22,
                     "player": 4
@@ -31687,7 +32314,12 @@
                         "player": 25
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "no_upgrades",
+                        "player": 1
+                    }
+                ],
                 "track_selection": {
                     "track": 13,
                     "player": 1
@@ -31962,7 +32594,12 @@
                         "player": 0
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "no_upgrades",
+                        "player": 1
+                    }
+                ],
                 "track_selection": {
                     "track": 12,
                     "player": 1
@@ -32574,7 +33211,12 @@
                         "player": 12
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "no_upgrades",
+                        "player": 17
+                    }
+                ],
                 "track_selection": {
                     "track": 4,
                     "player": 17
@@ -32763,7 +33405,12 @@
                         "player": 12
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "no_upgrades",
+                        "player": 17
+                    }
+                ],
                 "track_selection": {
                     "track": 6,
                     "player": 17
@@ -32952,7 +33599,12 @@
                         "player": 17
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 12
+                    }
+                ],
                 "track_selection": {
                     "track": 15,
                     "player": 12
@@ -33565,7 +34217,12 @@
                         "player": 15
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "no_upgrades",
+                        "player": 11
+                    }
+                ],
                 "track_selection": {
                     "track": 17,
                     "player": 11
@@ -33902,7 +34559,12 @@
                         "player": 11
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "no_upgrades",
+                        "player": 4
+                    }
+                ],
                 "track_selection": {
                     "track": 8,
                     "player": 4
@@ -34303,7 +34965,12 @@
                         "player": 12
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "no_upgrades",
+                        "player": 1
+                    }
+                ],
                 "track_selection": {
                     "track": 5,
                     "player": 1
@@ -34515,7 +35182,12 @@
                         "player": 15
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 20
+                    }
+                ],
                 "track_selection": {
                     "track": 22,
                     "player": 20
@@ -34567,11 +35239,6 @@
             },
             {
                 "tempbans": [
-                    {
-                        "type": "pod",
-                        "selection": null,
-                        "player": 15
-                    },
                     {
                         "type": "track",
                         "selection": 20,
@@ -34767,7 +35434,12 @@
                         "player": 15
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 20
+                    }
+                ],
                 "track_selection": {
                     "track": 13,
                     "player": 20
@@ -35379,7 +36051,12 @@
                         "player": 10
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 20
+                    }
+                ],
                 "track_selection": {
                     "track": 24,
                     "player": 20
@@ -35442,7 +36119,12 @@
                         "player": 20
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "no_upgrades",
+                        "player": 10
+                    }
+                ],
                 "track_selection": {
                     "track": 19,
                     "player": 10
@@ -35843,7 +36525,12 @@
                         "player": 18
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "no_upgrades",
+                        "player": 17
+                    }
+                ],
                 "track_selection": {
                     "track": 4,
                     "player": 17
@@ -35906,7 +36593,12 @@
                         "player": 17
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 18
+                    }
+                ],
                 "track_selection": {
                     "track": 15,
                     "player": 18
@@ -36032,7 +36724,12 @@
                         "player": 18
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 17
+                    }
+                ],
                 "track_selection": {
                     "track": 24,
                     "player": 17
@@ -36707,7 +37404,12 @@
                         "player": 14
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 20
+                    }
+                ],
                 "track_selection": {
                     "track": 24,
                     "player": 20
@@ -37022,7 +37724,12 @@
                         "player": 20
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 14
+                    }
+                ],
                 "track_selection": {
                     "track": 0,
                     "player": 14
@@ -38161,7 +38868,12 @@
                         "player": 15
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "no_upgrades",
+                        "player": 10
+                    }
+                ],
                 "track_selection": {
                     "track": 2,
                     "player": 10
@@ -38498,7 +39210,12 @@
                         "player": 24
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "no_upgrades",
+                        "player": 1
+                    }
+                ],
                 "track_selection": {
                     "track": 6,
                     "player": 1
@@ -39214,7 +39931,12 @@
                         "player": 10
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "no_upgrades",
+                        "player": 13
+                    }
+                ],
                 "track_selection": {
                     "track": 14,
                     "player": 13
@@ -40038,7 +40760,12 @@
                         "player": 10
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 11
+                    }
+                ],
                 "track_selection": {
                     "track": 15,
                     "player": 11
@@ -40371,7 +41098,12 @@
                         "player": 25
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 17
+                    }
+                ],
                 "track_selection": {
                     "track": 24,
                     "player": 17
@@ -40494,7 +41226,12 @@
                         "player": 25
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "no_upgrades",
+                        "player": 17
+                    }
+                ],
                 "track_selection": {
                     "track": 6,
                     "player": 17
@@ -40894,7 +41631,12 @@
                         "player": 14
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "no_upgrades",
+                        "player": 4
+                    }
+                ],
                 "track_selection": {
                     "track": 10,
                     "player": 4
@@ -41078,7 +41820,12 @@
                         "player": 14
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "no_upgrades",
+                        "player": 4
+                    }
+                ],
                 "track_selection": {
                     "track": 12,
                     "player": 4
@@ -41352,7 +42099,12 @@
                         "player": 20
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "no_upgrades",
+                        "player": 4
+                    }
+                ],
                 "track_selection": {
                     "track": 24,
                     "player": 4
@@ -41550,18 +42302,18 @@
                     {
                         "type": "pod",
                         "selection": 22,
-                        "player": 0
+                        "player": 13
                     },
                     {
                         "type": "track",
                         "selection": 7,
-                        "player": 0
+                        "player": 11
                     }
                 ],
                 "conditions": [],
                 "track_selection": {
                     "track": 5,
-                    "player": null
+                    "player": 13
                 },
                 "runs": [
                     {
@@ -41747,7 +42499,12 @@
                         "player": 11
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "no_upgrades",
+                        "player": 13
+                    }
+                ],
                 "track_selection": {
                     "track": 16,
                     "player": 13
@@ -41959,7 +42716,12 @@
                         "player": 0
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 18
+                    }
+                ],
                 "track_selection": {
                     "track": 15,
                     "player": 18
@@ -42728,7 +43490,12 @@
             },
             {
                 "tempbans": [],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "no_upgrades",
+                        "player": 13
+                    }
+                ],
                 "track_selection": {
                     "track": 11,
                     "player": 13
@@ -43056,7 +43823,12 @@
                         "player": 15
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 14
+                    }
+                ],
                 "track_selection": {
                     "track": 0,
                     "player": 14
@@ -43583,7 +44355,12 @@
                         "player": 12
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 18
+                    }
+                ],
                 "track_selection": {
                     "track": 15,
                     "player": 18
@@ -43646,7 +44423,12 @@
                         "player": 18
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 12
+                    }
+                ],
                 "track_selection": {
                     "track": 13,
                     "player": 12
@@ -43857,7 +44639,12 @@
                         "player": 12
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 25
+                    }
+                ],
                 "track_selection": {
                     "track": 13,
                     "player": 25
@@ -43983,7 +44770,12 @@
                         "player": 25
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 12
+                    }
+                ],
                 "track_selection": {
                     "track": 11,
                     "player": 12
@@ -44046,7 +44838,12 @@
                         "player": 12
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 25
+                    }
+                ],
                 "track_selection": {
                     "track": 15,
                     "player": 25
@@ -44172,7 +44969,12 @@
                         "player": 25
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 12
+                    }
+                ],
                 "track_selection": {
                     "track": 9,
                     "player": 12
@@ -44510,7 +45312,12 @@
                         "player": 4
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "no_upgrades",
+                        "player": 13
+                    }
+                ],
                 "track_selection": {
                     "track": 19,
                     "player": 13
@@ -44721,7 +45528,12 @@
                         "player": 25
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 18
+                    }
+                ],
                 "track_selection": {
                     "track": 15,
                     "player": 18
@@ -44910,7 +45722,12 @@
                         "player": 25
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 18
+                    }
+                ],
                 "track_selection": {
                     "track": 23,
                     "player": 18
@@ -45581,7 +46398,12 @@
                         "player": 12
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 0
+                    }
+                ],
                 "track_selection": {
                     "track": 24,
                     "player": 0
@@ -45767,7 +46589,12 @@
                         "player": 0
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 12
+                    }
+                ],
                 "track_selection": {
                     "track": 9,
                     "player": 12
@@ -45830,7 +46657,12 @@
                         "player": 0
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 12
+                    }
+                ],
                 "track_selection": {
                     "track": 11,
                     "player": 12
@@ -45893,7 +46725,12 @@
                         "player": 12
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 0
+                    }
+                ],
                 "track_selection": {
                     "track": 14,
                     "player": 0
@@ -46780,7 +47617,12 @@
                         "player": 14
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 17
+                    }
+                ],
                 "track_selection": {
                     "track": 15,
                     "player": 17
@@ -46969,7 +47811,12 @@
                         "player": 14
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "no_upgrades",
+                        "player": 17
+                    }
+                ],
                 "track_selection": {
                     "track": 4,
                     "player": 17
@@ -47245,7 +48092,12 @@
                         "player": 15
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 12
+                    }
+                ],
                 "track_selection": {
                     "track": 0,
                     "player": 12
@@ -47434,7 +48286,12 @@
                         "player": 15
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 12
+                    }
+                ],
                 "track_selection": {
                     "track": 13,
                     "player": 12
@@ -48174,7 +49031,12 @@
                         "player": 25
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 4
+                    }
+                ],
                 "track_selection": {
                     "track": 15,
                     "player": 4
@@ -48788,7 +49650,12 @@
                         "player": 12
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 11
+                    }
+                ],
                 "track_selection": {
                     "track": 15,
                     "player": 11
@@ -49591,7 +50458,12 @@
                         "player": 20
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 18
+                    }
+                ],
                 "track_selection": {
                     "track": 23,
                     "player": 18
@@ -50434,7 +51306,12 @@
                         "player": 25
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 12
+                    }
+                ],
                 "track_selection": {
                     "track": 13,
                     "player": 12
@@ -51267,7 +52144,12 @@
                         "player": 0
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 14
+                    }
+                ],
                 "track_selection": {
                     "track": 23,
                     "player": 14
@@ -51388,7 +52270,12 @@
                         "player": 0
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 14
+                    }
+                ],
                 "track_selection": {
                     "track": 24,
                     "player": 14
@@ -51514,7 +52401,12 @@
                         "player": 0
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 14
+                    }
+                ],
                 "track_selection": {
                     "track": 22,
                     "player": 14
@@ -51712,11 +52604,6 @@
             {
                 "tempbans": [
                     {
-                        "type": "pod",
-                        "selection": null,
-                        "player": 15
-                    },
-                    {
                         "type": "track",
                         "selection": 13,
                         "player": 10
@@ -51785,7 +52672,12 @@
                         "player": 15
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 10
+                    }
+                ],
                 "track_selection": {
                     "track": 0,
                     "player": 10
@@ -51906,7 +52798,12 @@
                         "player": 15
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 10
+                    }
+                ],
                 "track_selection": {
                     "track": 2,
                     "player": 10
@@ -51969,7 +52866,12 @@
                         "player": 15
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 10
+                    }
+                ],
                 "track_selection": {
                     "track": 13,
                     "player": 10
@@ -52210,11 +53112,6 @@
             },
             {
                 "tempbans": [
-                    {
-                        "type": "pod",
-                        "selection": null,
-                        "player": 15
-                    },
                     {
                         "type": "track",
                         "selection": 8,
@@ -52686,7 +53583,12 @@
                         "player": 25
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "no_upgrades",
+                        "player": 14
+                    }
+                ],
                 "track_selection": {
                     "track": 6,
                     "player": 14
@@ -53019,7 +53921,12 @@
                         "player": 15
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "no_upgrades",
+                        "player": 17
+                    }
+                ],
                 "track_selection": {
                     "track": 6,
                     "player": 17
@@ -53140,7 +54047,12 @@
                         "player": 15
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 17
+                    }
+                ],
                 "track_selection": {
                     "track": 15,
                     "player": 17
@@ -53411,7 +54323,12 @@
                         "player": 15
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "no_upgrades",
+                        "player": 14
+                    }
+                ],
                 "track_selection": {
                     "track": 5,
                     "player": 14
@@ -53537,7 +54454,12 @@
                         "player": 15
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 14
+                    }
+                ],
                 "track_selection": {
                     "track": 23,
                     "player": 14
@@ -53789,7 +54711,12 @@
                         "player": 15
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 14
+                    }
+                ],
                 "track_selection": {
                     "track": 22,
                     "player": 14
@@ -53939,7 +54866,12 @@
                         "player": 0
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "no_upgrades",
+                        "player": 10
+                    }
+                ],
                 "track_selection": {
                     "track": 21,
                     "player": 10
@@ -54191,7 +55123,12 @@
                         "player": 0
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "no_upgrades",
+                        "player": 10
+                    }
+                ],
                 "track_selection": {
                     "track": 16,
                     "player": 10
@@ -54404,7 +55341,12 @@
                         "player": 15
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "no_upgrades",
+                        "player": 10
+                    }
+                ],
                 "track_selection": {
                     "track": 21,
                     "player": 10
@@ -54462,7 +55404,12 @@
                         "player": 10
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "no_upgrades",
+                        "player": 15
+                    }
+                ],
                 "track_selection": {
                     "track": 19,
                     "player": 15
@@ -54583,7 +55530,12 @@
                         "player": 10
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "no_upgrades",
+                        "player": 15
+                    }
+                ],
                 "track_selection": {
                     "track": 16,
                     "player": 15
@@ -54830,7 +55782,12 @@
                         "player": 15
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 10
+                    }
+                ],
                 "track_selection": {
                     "track": 0,
                     "player": 10
@@ -54951,7 +55908,12 @@
                         "player": 10
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "no_upgrades",
+                        "player": 15
+                    }
+                ],
                 "track_selection": {
                     "track": 8,
                     "player": 15
@@ -55096,7 +56058,12 @@
                         "player": 15
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 0
+                    }
+                ],
                 "track_selection": {
                     "track": 22,
                     "player": 0
@@ -55154,7 +56121,12 @@
                         "player": 0
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "no_upgrades",
+                        "player": 15
+                    }
+                ],
                 "track_selection": {
                     "track": 13,
                     "player": 15
@@ -55275,7 +56247,12 @@
                         "player": 15
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "skips",
+                        "player": 0
+                    }
+                ],
                 "track_selection": {
                     "track": 11,
                     "player": 0
@@ -55333,7 +56310,12 @@
                         "player": 0
                     }
                 ],
-                "conditions": [],
+                "conditions": [
+                    {
+                        "type": "no_upgrades",
+                        "player": 15
+                    }
+                ],
                 "track_selection": {
                     "track": 16,
                     "player": 15
@@ -55994,7 +56976,6 @@
                     "track": 3
                 },
                 "runs": [
-                    
                     {
                         "player": 14,
                         "time": 159.35,
@@ -56261,15 +57242,15 @@
                         "notes": "",
                         "laps": [
                             {
-                                "time": 78.870,
+                                "time": 78.87,
                                 "deaths": 0
                             },
                             {
-                                "time": 76.40,
+                                "time": 76.4,
                                 "deaths": 0
                             },
                             {
-                                "time": 75.800,
+                                "time": 75.8,
                                 "deaths": 0
                             }
                         ]
@@ -56672,25 +57653,69 @@
                         "player": 5,
                         "time": 39.905,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 17,
                         "time": 40.136,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 25,
                         "time": 40.765,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 19,
                         "time": 41.83,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -56705,25 +57730,69 @@
                         "player": 5,
                         "time": 92.382,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 17,
                         "time": 97.236,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 25,
                         "time": 95.459,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 19,
                         "time": 100.353,
                         "pod": 8,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -56738,25 +57807,69 @@
                         "player": 5,
                         "time": 248.022,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 17,
                         "time": 260.131,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 25,
                         "time": 264.783,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 19,
                         "time": 308.743,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -56771,25 +57884,69 @@
                         "player": 5,
                         "time": 299.614,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 17,
                         "time": 304.925,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 25,
                         "time": 310.298,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 19,
                         "time": 320.24,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             }
@@ -57560,13 +58717,35 @@
                         "player": 11,
                         "time": 45.406,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 28,
                         "time": 47.165,
                         "pod": 14,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -57581,13 +58760,35 @@
                         "player": 11,
                         "time": 103.364,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 28,
                         "time": 111.405,
                         "pod": 14,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -57602,13 +58803,35 @@
                         "player": 11,
                         "time": 299.443,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 28,
                         "time": 344.735,
                         "pod": 14,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -57623,12 +58846,34 @@
                         "player": 11,
                         "time": 332.881,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 28,
                         "time": 450,
-                        "notes": "penalty time"
+                        "notes": "penalty time",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             }
@@ -57656,7 +58901,18 @@
                         "player": 4,
                         "time": 43.778,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -57671,7 +58927,18 @@
                         "player": 4,
                         "time": 101.294,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -57686,7 +58953,18 @@
                         "player": 4,
                         "time": 296.033,
                         "pod": 14,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -57701,7 +58979,18 @@
                         "player": 4,
                         "time": 318.83,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             }
@@ -57730,25 +59019,69 @@
                         "player": 10,
                         "time": 40.125,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 14,
                         "time": 40.425,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 1,
                         "time": 50.319,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 13,
                         "time": 63.509,
                         "pod": 20,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -57763,25 +59096,69 @@
                         "player": 10,
                         "time": 92.908,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 14,
                         "time": 94.418,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 1,
                         "time": 123.943,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 13,
                         "time": 146.952,
                         "pod": 20,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -57796,25 +59173,69 @@
                         "player": 10,
                         "time": 249.285,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 14,
                         "time": 257.521,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 1,
                         "time": 378.521,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 13,
                         "time": 414.065,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -57829,24 +59250,68 @@
                         "player": 10,
                         "time": 299.269,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 14,
                         "time": 301.208,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 1,
                         "time": 386.841,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 13,
                         "time": 450,
-                        "notes": "penalty time"
+                        "notes": "penalty time",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             }
@@ -57875,13 +59340,35 @@
                         "player": 29,
                         "time": 39.951,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 20,
                         "time": 40.243,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -57896,13 +59383,35 @@
                         "player": 29,
                         "time": 93.785,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 20,
                         "time": 95.426,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -57917,13 +59426,35 @@
                         "player": 29,
                         "time": 251.031,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 20,
                         "time": 262.633,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -57938,13 +59469,35 @@
                         "player": 29,
                         "time": 303.277,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 20,
                         "time": 303.782,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             }
@@ -57973,13 +59526,35 @@
                         "player": 0,
                         "time": 39.67,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 24,
                         "time": 44.975,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -57994,13 +59569,35 @@
                         "player": 0,
                         "time": 91.822,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 24,
                         "time": 116.633,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -58015,13 +59612,35 @@
                         "player": 0,
                         "time": 247.539,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 24,
                         "time": 322.334,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -58036,13 +59655,35 @@
                         "player": 0,
                         "time": 298.319,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 24,
                         "time": 369.15,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             }
@@ -58071,19 +59712,52 @@
                         "player": 12,
                         "time": 41.192,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 27,
                         "time": 43.062,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 16,
                         "time": 45.906,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -58098,19 +59772,52 @@
                         "player": 12,
                         "time": 98.072,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 27,
                         "time": 105.071,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 16,
                         "time": 117.173,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -58125,19 +59832,52 @@
                         "player": 12,
                         "time": 265.958,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 27,
                         "time": 281.076,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 16,
                         "time": 331.626,
                         "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -58152,19 +59892,52 @@
                         "player": 12,
                         "time": 305.144,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 27,
                         "time": 328.057,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     },
                     {
                         "player": 16,
                         "time": 344.433,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             }
@@ -58176,7 +59949,7 @@
         "bracket": "Qualifying",
         "ruleset": "-Mi3Hs3s9cY_TBDV7-ok",
         "commentators": [
-            17, 8
+            17
         ],
         "vod": "https://www.youtube.com/playlist?list=PLfljlY_yJ8eOf3zcAVGGCWfo2kLjsx-i3",
         "datetime": 1620594000000,
@@ -58192,19 +59965,18 @@
                         "player": 21,
                         "time": 43.275,
                         "pod": 19,
-                        "notes": ""
-                    },
-                    {
-                        "player": 18,
-                        "time": 43.277,
-                        "pod": 19,
-                        "notes": ""
-                    },
-                    {
-                        "player": 6,
-                        "time": 44.064,
-                        "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -58219,19 +59991,18 @@
                         "player": 21,
                         "time": 100.734,
                         "pod": 22,
-                        "notes": ""
-                    },
-                    {
-                        "player": 18,
-                        "time": 98.782,
-                        "pod": 22,
-                        "notes": ""
-                    },
-                    {
-                        "player": 6,
-                        "time": 102.545,
-                        "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -58246,19 +60017,18 @@
                         "player": 21,
                         "time": 337.762,
                         "pod": 11,
-                        "notes": ""
-                    },
-                    {
-                        "player": 18,
-                        "time": 264.902,
-                        "pod": 22,
-                        "notes": ""
-                    },
-                    {
-                        "player": 6,
-                        "time": 297.523,
-                        "pod": 22,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -58273,19 +60043,252 @@
                         "player": 21,
                         "time": 357.968,
                         "pod": 11,
-                        "notes": ""
-                    },
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "permabans": []
+    },
+    {
+        "tourney": 3,
+        "bracket": "Qualifying",
+        "ruleset": "-Mi3Hs3s9cY_TBDV7-ok",
+        "commentators": [
+            17
+        ],
+        "vod": "https://www.youtube.com/playlist?list=PLfljlY_yJ8eOf3zcAVGGCWfo2kLjsx-i3",
+        "datetime": 1620594000000,
+        "races": [
+            {
+                "tempbans": [],
+                "conditions": [],
+                "track_selection": {
+                    "track": 1
+                },
+                "runs": [
+                    {
+                        "player": 18,
+                        "time": 43.277,
+                        "pod": 19,
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "tempbans": [],
+                "conditions": [],
+                "track_selection": {
+                    "track": 9
+                },
+                "runs": [
+                    {
+                        "player": 18,
+                        "time": 98.782,
+                        "pod": 22,
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "tempbans": [],
+                "conditions": [],
+                "track_selection": {
+                    "track": 16
+                },
+                "runs": [
+                    {
+                        "player": 18,
+                        "time": 264.902,
+                        "pod": 22,
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "tempbans": [],
+                "conditions": [],
+                "track_selection": {
+                    "track": 23
+                },
+                "runs": [
                     {
                         "player": 18,
                         "time": 303.98,
                         "pod": 19,
-                        "notes": ""
-                    },
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "permabans": []
+    },
+    {
+        "tourney": 3,
+        "bracket": "Qualifying",
+        "ruleset": "-Mi3Hs3s9cY_TBDV7-ok",
+        "commentators": [
+            8
+        ],
+        "vod": "https://www.youtube.com/playlist?list=PLfljlY_yJ8eOf3zcAVGGCWfo2kLjsx-i3",
+        "datetime": 1620594000000,
+        "races": [
+            {
+                "tempbans": [],
+                "conditions": [],
+                "track_selection": {
+                    "track": 1
+                },
+                "runs": [
+                    {
+                        "player": 6,
+                        "time": 44.064,
+                        "pod": 22,
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "tempbans": [],
+                "conditions": [],
+                "track_selection": {
+                    "track": 9
+                },
+                "runs": [
+                    {
+                        "player": 6,
+                        "time": 102.545,
+                        "pod": 22,
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "tempbans": [],
+                "conditions": [],
+                "track_selection": {
+                    "track": 16
+                },
+                "runs": [
+                    {
+                        "player": 6,
+                        "time": 297.523,
+                        "pod": 22,
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "tempbans": [],
+                "conditions": [],
+                "track_selection": {
+                    "track": 23
+                },
+                "runs": [
                     {
                         "player": 6,
                         "time": 324.515,
                         "pod": 19,
-                        "notes": ""
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             }
@@ -72370,11 +74373,6 @@
                     {
                         "type": "pod_ban",
                         "selection": 19,
-                        "player": 20
-                    },
-                    {
-                        "type": "pod_ban",
-                        "selection": 16,
                         "player": 20
                     }
                 ],

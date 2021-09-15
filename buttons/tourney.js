@@ -202,6 +202,9 @@ module.exports = {
                             )
                         }
                     }
+                    if (args.includes("initial")) {
+                        type = 4
+                    }
                     if (interaction.data.hasOwnProperty("values") && !interaction.data.values[0].includes("offset")) {
                         var match = interaction.data.values[0]
                         var title = [], comms = []
@@ -266,7 +269,7 @@ module.exports = {
                                     if(condition.type == "skips"){
                                         field += ":asterisk: Skips (*" + tourney_participants_data[condition.player].name + "*)\n"
                                     } else if (condition.type == "no_upgrades"){
-                                        field += ":asterisk: No Upgrades (*" + tourney_participants_data[condition.player].name + "*)\n"
+                                        field += ":asterisk: NU (*" + tourney_participants_data[condition.player].name + "*)\n"
                                     } else if (condition.type == "pod_ban"){
                                         field += ":x: " + racers[condition.selection].flag + " (*" + tourney_participants_data[condition.player].name + "*)\n"
                                     }
@@ -274,7 +277,7 @@ module.exports = {
                             }
                             var winner = {}
                             for(p =0 ; p < tourney_matches_data[match].races[r].runs.length; p++){
-                                if(winner.time == undefined || Number(tourney_matches_data[match].races[r].runs[p].time) < Number(winner.time)){
+                                if(winner.time == undefined || Number(tourney_matches_data[match].races[r].runs[p].time) < Number(winner.time) && tourney_matches_data[match].races[r].runs[p].time !== "DNF"){
                                     winner.time = Number(tourney_matches_data[match].races[r].runs[p].time)
                                     winner.player = tourney_matches_data[match].races[r].runs[p].player
                                 }
@@ -316,34 +319,55 @@ module.exports = {
                                 .addField("Permabans", permabans, true)
                             }
                         }
-                    }
-                    if (args.includes("initial")) {
-                        type = 4
-                    }
-                    client.api.interactions(interaction.id, interaction.token).callback.post({
-                        data: {
-                            type: type,
+                        client.api.interactions(interaction.id, interaction.token).callback.post({
                             data: {
-                                //content: "",
-                                embeds: [tourneyMatches],
-                                components: [
-                                    {
-                                        type: 1,
-                                        components: [
-                                            {
-                                                type: 3,
-                                                custom_id: "tourney_matches_browse_offset" + offset,
-                                                options: matches,
-                                                placeholder: "Select Match",
-                                                min_values: 1,
-                                                max_values: 1
-                                            }
-                                        ]
-                                    }
-                                ]
+                                type: type,
+                                data: {
+                                    embeds: [tourneyMatches],
+                                    components: [
+                                        {
+                                            type: 1,
+                                            components: [
+                                                {
+                                                    type: 3,
+                                                    custom_id: "tourney_matches_browse_offset" + offset,
+                                                    options: matches,
+                                                    placeholder: "Select Match",
+                                                    min_values: 1,
+                                                    max_values: 1
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
                             }
-                        }
-                    })
+                        })
+                    } else {
+                        client.api.interactions(interaction.id, interaction.token).callback.post({
+                            data: {
+                                type: type,
+                                data: {
+                                    components: [
+                                        {
+                                            type: 1,
+                                            components: [
+                                                {
+                                                    type: 3,
+                                                    custom_id: "tourney_matches_browse_offset" + offset,
+                                                    options: matches,
+                                                    placeholder: "Select Match",
+                                                    min_values: 1,
+                                                    max_values: 1
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        })
+                    }
+                   
+                    
                 }
             }
         } else if (args[0] == "schedule") {
@@ -518,7 +542,7 @@ module.exports = {
             if (forces.length == 0) { forces.push("", "NU", "Skips"), conditions.push("muft", "nu", "skips") }
             //get runs and apply filters
             var runs = []
-
+            
             var rns = Object.keys(tourney_races_data)
             for (var i = 0; i < rns.length; i++) {
                 var r = tourney_races_data[rns[i]]

@@ -1,9 +1,9 @@
 const fs = require('fs');
-const lookup = require("./data.js");
+const lookup = require("../data.js");
 let runs = JSON.parse(fs.readFileSync("botto-efbfd-races-export.json", "utf8"));
 let matches = JSON.parse(fs.readFileSync("botto-efbfd-matches-export.json", "utf8"));
 let matches_more = JSON.parse(fs.readFileSync("2021_matches_updated.json", "utf8"));
-var tools = require('./tools.js');
+var tools = require('../tools.js');
 
 var match = "", race = "", pod_ban = "", track_ban = "", force_1 = "", force_2 = "", force_3 = "", track = ""
 function findPod(pod) {
@@ -206,129 +206,15 @@ for (j = 0; j < mtch.length; j++) {
     match.vod = matches[m].url
     match.datetime = Date.parse(matches[m].datetime + " EDT")
     match.players = matches[m].players
-    match.temp = []
+    match.temp = {}
     match.races = []
     matches_new[m] = match
 }
-var match_runs = [], previous_winner = null, previous_loser = null
 for (r = 0; r < runs.length; r++) {
-    matches_new[runs[r].datetime].temp.push(runs[r])
-    /*
-        var match_race = {}
-        var run = {}
-        match_race.tempbans = []
-        match_race.conditions = []
-        match_race.track_selection = {}
-        match_race.runs = []
-        
-    
-        run.player = runs[r].player
-        if (![undefined, null, ""].includes(runs[r].totaltime)) {
-            run.time = "DNF"
-        } else {
-            run.time = runs[r].totaltime
-        }
-        run.deaths = runs[r].totaldeaths
-        run.pod = runs[r].pod
-        run.notes = runs[r].notes
-        match_runs.push(run)
-        console.log(match_runs)
-        match_race = {}
-        match_race.tempbans = []
-        match_race.conditions = []
-        match_race.track_selection = {}
-        match_race.runs = []
-    
-        
-        if (Number(race) > 1) {
-            if (![undefined, null, ""].includes(pod_ban)) {
-                match_race.tempbans.push(
-                    {
-                        type: "pod",
-                        selection: Number(pod_ban),
-                        player: Number(previous_loser)
-                    }
-                )
-            }
-            if (![undefined, null, ""].includes(track_ban)) {
-                match_race.tempbans.push(
-                    {
-                        type: "track",
-                        selection: Number(track_ban),
-                        player: Number(previous_winner)
-                    }
-                )
-            }
-            match_race.track_selection.track = track
-            match_race.track_selection.player = previous_loser
-            var forces = [force_1, force_2, force_3]
-            for (f = 0; f < forces.length; f++) {
-                if (![undefined, null, ""].includes(forces[f])) {
-                    if (forces[f] == "skips") {
-                        match_race.conditions.push(
-                            {
-                                type: "skips",
-                                player: Number(previous_loser)
-                            }
-                        )
-                    } else if (forces[f] == "no_upgrades") {
-                        match_race.conditions.push(
-                            {
-                                type: "no_upgrades",
-                                player: Number(previous_loser)
-                            }
-                        )
-                    } else {
-                        match_race.conditions.push(
-                            {
-                                type: "pod_ban",
-                                selection: forces[f],
-                                player: Number(previous_loser)
-                            }
-                        )
-                    }
-                }
-            }
-        } else {
-            match_race.track_selection.track = track
-        }
-    
-        match_race.runs = match_runs
-        matches_new[match].temp.push(match_race)
-    
-        
-        if (match_runs[0].time == "DNF") {
-            previous_loser = match_runs[0].player
-            previous_winner = match_runs[1].player
-        } else if (match_runs[1].time == "DNF") {
-            previous_loser = match_runs[1].player
-            previous_winner = match_runs[0].player
-        } else if (Number(match_runs[0].time) < Number(match_runs[1].time)) {
-            previous_loser = match_runs[1].player
-            previous_winner = match_runs[0].player
-        } else if (Number(match_runs[1].time) < Number(match_runs[0].time)) {
-            previous_loser = match_runs[0].player
-            previous_winner = match_runs[1].player
-        }
-    
-        match_runs = []
-    
-        match = runs[r].match
-        race = runs[r].race
-        pod_ban = runs[r].pod_ban
-        track_ban = runs[r].track_ban
-        force_1 = runs[r].force_1
-        force_2 = runs[r].force_2
-        force_3 = runs[r].force_3
-        track = runs[r].track
-        var run = {}
-        run.player = runs[r].player
-        run.time = runs[r].time
-        run.deaths = runs[r].deaths
-        run.pod = runs[r].pod
-        run.notes = runs[r].notes
-        match_runs.push(run)
-    */
+    if (matches_new[runs[r].datetime].temp[String(runs[r].race)] == undefined) {
+        matches_new[runs[r].datetime].temp[String(runs[r].race)] = []
+    }
+    matches_new[runs[r].datetime].temp[String(runs[r].race)].push(runs[r])
 }
 
 matches_new = Object.values(matches_new)
@@ -351,146 +237,117 @@ for (m = 0; m < matches_new.length; m++) {
         })
         delete matches_new[m].players
     }
-    var match_race = {}, match_runs = [], previous_winner = null, previous_loser = null, match_race = {}
-    for (r = 0; r < matches_new[m].temp.length; r++) {
-        if (r % 2 == 0) {
-            match_runs = []
-            race = matches_new[m].temp[r].race
-            pod_ban = matches_new[m].temp[r].podtempban
-            track_ban = matches_new[m].temp[r].tracktempban
-            force = matches_new[m].temp[r].force
-            track = matches_new[m].temp[r].track
-            var run = {}
-            run.player = matches_new[m].temp[r].player
-            if ([undefined, null, ""].includes(matches_new[m].temp[r].totaltime)) {
-                run.time = "DNF"
-            } else {
-                run.time = matches_new[m].temp[r].totaltime
-            }
-            run.deaths = matches_new[m].temp[r].totaldeaths
-            run.pod = matches_new[m].temp[r].pod
-            run.notes = matches_new[m].temp[r].notes
-            if(matches_new[m].temp[r].hasOwnProperty("lap1deaths")){
-                run.laps = [
-                    {
-                        time: matches_new[m].temp[r].lap1time,
-                        deaths: Number(matches_new[m].temp[r].lap1deaths)
-                    },
-                    {
-                        time: matches_new[m].temp[r].lap2time,
-                        deaths: Number(matches_new[m].temp[r].lap2deaths)
-                    },
-                    {
-                        time: matches_new[m].temp[r].lap3time,
-                        deaths: Number(matches_new[m].temp[r].lap3deatsh)
-                    }
-                ]
-            }
-            match_runs.push(run)
-        } else {
-            var run = {}
-            run.player = matches_new[m].temp[r].player
-            if ([undefined, null, ""].includes(matches_new[m].temp[r].totaltime)) {
-                run.time = "DNF"
-            } else {
-                run.time = matches_new[m].temp[r].totaltime
-            }
-            run.deaths = matches_new[m].temp[r].totaldeaths
-            run.pod = matches_new[m].temp[r].pod
-            run.notes = matches_new[m].temp[r].notes
-            if(matches_new[m].temp[r].hasOwnProperty("lap1deaths")){
-                run.laps = [
-                    {
-                        time: matches_new[m].temp[r].lap1time,
-                        deaths: Number(matches_new[m].temp[r].lap1deaths)
-                    },
-                    {
-                        time: matches_new[m].temp[r].lap2time,
-                        deaths: Number(matches_new[m].temp[r].lap2deaths)
-                    },
-                    {
-                        time: matches_new[m].temp[r].lap3time,
-                        deaths: Number(matches_new[m].temp[r].lap3deatsh)
-                    }
-                ]
-            }
-            match_runs.push(run)
-            
-            match_race = {}
-            match_race.tempbans = []
-            match_race.conditions = []
-            match_race.track_selection = {}
-            match_race.runs = []
+    var match_race = {}, match_runs = [], previous_winner = null, previous_loser = null, match_race = {}, race_num = null
+    var temp = Object.values(matches_new[m].temp)
 
-            if (Number(race) > 1) {
-                if (![undefined, null, ""].includes(pod_ban)) {
-                    match_race.tempbans.push(
+    for (q = 0; q < temp.length; q++) {
+        //initialize match_race
+        match_race = {}
+        match_race.tempbans = []
+        match_race.conditions = []
+        match_race.track_selection = {}
+        match_race.runs = []
+
+        for (r = 0; r < temp[q].length; r++) {
+            console.log(r)
+            var run = {}
+            run.player = temp[q][r].player
+            if ([undefined, null, ""].includes(temp[q][r].totaltime)) {
+                run.time = "DNF"
+            } else {
+                run.time = temp[q][r].totaltime
+            }
+            run.deaths = temp[q][r].totaldeaths
+            run.pod = temp[q][r].pod
+            run.notes = temp[q][r].notes
+            if (temp[q][r].hasOwnProperty("lap1deaths")) {
+                run.laps = [
+                    {
+                        time: temp[q][r].lap1time,
+                        deaths: Number(temp[q][r].lap1deaths)
+                    },
+                    {
+                        time: temp[q][r].lap2time,
+                        deaths: Number(temp[q][r].lap2deaths)
+                    },
+                    {
+                        time: temp[q][r].lap3time,
+                        deaths: Number(temp[q][r].lap3deatsh)
+                    }
+                ]
+            }
+            race = temp[q][r].race
+            pod_ban = temp[q][r].podtempban
+            track_ban = temp[q][r].tracktempban
+            force = temp[q][r].force
+            track = temp[q][r].track
+            match_race.runs.push(run)
+        }
+        if (Number(race) > 1 && matches_new[m].tourney !== 2 && matches_new[m].bracket !== "Qualifying") {
+            if (![undefined, null, ""].includes(pod_ban)) {
+                match_race.tempbans.push(
+                    {
+                        type: "pod",
+                        selection: Number(pod_ban),
+                        player: Number(previous_loser)
+                    }
+                )
+            }
+            if (![undefined, null, ""].includes(track_ban)) {
+                match_race.tempbans.push(
+                    {
+                        type: "track",
+                        selection: Number(track_ban),
+                        player: Number(previous_winner)
+                    }
+                )
+            }
+            match_race.track_selection.track = track
+            match_race.track_selection.player = previous_loser
+            if (![undefined, null, ""].includes(force)) {
+                if (force == "Skips") {
+                    match_race.conditions.push(
                         {
-                            type: "pod",
-                            selection: Number(pod_ban),
+                            type: "skips",
+                            player: Number(previous_loser)
+                        }
+                    )
+                } else if (force == "NU") {
+                    match_race.conditions.push(
+                        {
+                            type: "no_upgrades",
                             player: Number(previous_loser)
                         }
                     )
                 }
-                if (![undefined, null, ""].includes(track_ban)) {
-                    match_race.tempbans.push(
-                        {
-                            type: "track",
-                            selection: Number(track_ban),
-                            player: Number(previous_winner)
-                        }
-                    )
-                }
-                match_race.track_selection.track = track
-                match_race.track_selection.player = previous_loser
-                var forces = [force_1, force_2, force_3]
-                for (f = 0; f < forces.length; f++) {
-                    if (![undefined, null, ""].includes(forces[f])) {
-                        if (forces[f] == "Skips") {
-                            match_race.conditions.push(
-                                {
-                                    type: "skips",
-                                    player: Number(previous_loser)
-                                }
-                            )
-                        } else if (forces[f] == "NU") {
-                            match_race.conditions.push(
-                                {
-                                    type: "no_upgrades",
-                                    player: Number(previous_loser)
-                                }
-                            )
-                        } 
-                    }
-                }
-            } else {
-                match_race.track_selection.track = track
             }
-
-            match_race.runs = match_runs
-            matches_new[m].races.push(match_race)
-
-            if (match_runs[0].time == undefined) {
-                previous_loser = match_runs[0].player
-                previous_winner = match_runs[1].player
-            } else if (match_runs[1].time == undefined) {
-                previous_loser = match_runs[1].player
-                previous_winner = match_runs[0].player
-            } else if (Number(match_runs[0].time) < Number(match_runs[1].time)) {
-                previous_loser = match_runs[1].player
-                previous_winner = match_runs[0].player
-            } else if (Number(match_runs[1].time) < Number(match_runs[0].time)) {
-                previous_loser = match_runs[0].player
-                previous_winner = match_runs[1].player
-            }
-
+            
+        } else {
+            match_race.track_selection.track = track
         }
-
+        matches_new[m].races.push(match_race)
+        if(match_race.runs.length > 1){
+            if (match_race.runs[0].time == undefined) {
+                previous_loser = match_race.runs[0].player
+                previous_winner = match_race.runs[1].player
+            } else if (match_race.runs[1].time == undefined) {
+                previous_loser = match_race.runs[1].player
+                previous_winner = match_race.runs[0].player
+            } else if (Number(match_race.runs[0].time) < Number(match_race.runs[1].time)) {
+                previous_loser = match_race.runs[1].player
+                previous_winner = match_race.runs[0].player
+            } else if (Number(match_race.runs[1].time) < Number(match_race.runs[0].time)) {
+                previous_loser = match_race.runs[0].player
+                previous_winner = match_race.runs[1].player
+            }
+        }
+        
     }
     delete matches_new[m].temp
+
 }
 
-for(m = 0; m < matches_more.length; m++){
+for (m = 0; m < matches_more.length; m++) {
     matches_more[m].permabans = []
     if (matches_more[m].hasOwnProperty("players")) {
         matches_more[m].players.forEach(player => {
