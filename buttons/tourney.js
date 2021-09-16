@@ -542,7 +542,8 @@ module.exports = {
             }
             //account for missing values
             if (deaths.length == 0) { deaths.push(true, false), conditions.push("deaths", "deathless") }
-            if (forces.length == 0) { forces.push("", "NU", "Skips"), conditions.push("muft", "nu", "skips") }
+            if (nu.length == 0) { nu.push(true, false), conditions.push("mu", "nu") }
+            if (skips.length == 0) { skips.push(true, false), conditions.push("ft", "skips") }
             //get runs and apply filters
             var runs = []
             var matches = Object.values(tourney_matches_data)
@@ -681,7 +682,7 @@ module.exports = {
 
             //construct components
             var components = []
-            var cond = { muft: "Upgrades/Full Track", nu: "No Upgrades", skips: "Skips", deaths: "Deaths", deathless: "Deathless", qual: "Include Qualifying Runs", user: "My Runs Only" }
+            var cond = { mu: "Max Upgrades", nu: "No Upgrades", ft: "Full Track", skips: "Skips", deaths: "Deaths", deathless: "Deathless", qual: "Include Qualifying Runs", user: "My Runs Only" }
             var track_selections = []
             var racer_selections = []
             var cond_selections = []
@@ -699,7 +700,7 @@ module.exports = {
                     racer_option.default = true
                 }
                 var track_option = {
-                    label: tracks[i].name.replace("The Boonta Training Course", "Boonta Training Course"),
+                    label: tracks[i].name,
                     value: i,
                     description: (circuits[tracks[i].circuit].name + " Circuit | Race " + tracks[i].cirnum + " | " + planets[tracks[i].planet].name).substring(0, 50),
                     emoji: {
