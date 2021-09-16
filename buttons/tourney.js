@@ -574,6 +574,8 @@ module.exports = {
                             })
                             run.skips = false
                             run.nu = false
+                            console.log(race)
+                            console.log(run)
                             race.conditions.forEach(condition => {
                                 if (condition.type == "skips") {
                                     run.skips = true
