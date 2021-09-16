@@ -568,10 +568,10 @@ module.exports = {
                                     }
                                 })
                             }
-                            race.opponents = []
+                            run.opponents = []
                             opponents.forEach(opponent => {
                                 if (opponent !== race.player) {
-                                    race.opponents.push(opponent)
+                                    run.opponents.push(opponent)
                                 }
                             })
                             run.skips = false
