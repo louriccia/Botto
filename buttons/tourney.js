@@ -561,11 +561,13 @@ module.exports = {
                             run.bracket = match.bracket
                             run.round = match.round
                             run.podbans = []
-                            race.tempbans.forEach(ban => {
-                                if (ban.type == "pod") {
-                                    run.podbans.push(ban.selection)
-                                }
-                            })
+                            if(race.tempbans !== undefined){
+                                race.tempbans.forEach(ban => {
+                                    if (ban.type == "pod") {
+                                        run.podbans.push(ban.selection)
+                                    }
+                                })
+                            }
                             race.opponents = []
                             opponents.forEach(opponent => {
                                 if (opponent !== race.player) {
@@ -574,17 +576,17 @@ module.exports = {
                             })
                             run.skips = false
                             run.nu = false
-                            console.log(race)
-                            console.log(run)
-                            race.conditions.forEach(condition => {
-                                if (condition.type == "skips") {
-                                    run.skips = true
-                                } else if (condition.type == "no_upgrades") {
-                                    run.nu = true
-                                } else if (condition.type == "pod_ban") {
-                                    run.podbans.push(condition.selection)
-                                }
-                            })
+                            if(race.conditions !== undefined){
+                                race.conditions.forEach(condition => {
+                                    if (condition.type == "skips") {
+                                        run.skips = true
+                                    } else if (condition.type == "no_upgrades") {
+                                        run.nu = true
+                                    } else if (condition.type == "pod_ban") {
+                                        run.podbans.push(condition.selection)
+                                    }
+                                })
+                            }
                             runs.push(run)
                         })
                     }
