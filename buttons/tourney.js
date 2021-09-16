@@ -665,7 +665,7 @@ module.exports = {
                             deaths = " | :skull:"
                         }
                         if (![undefined, "", null].includes(runs[i].bracket)) {
-                            bracket = " | " + runs[i].bracket
+                            bracket = " " + runs[i].bracket
                             if (![undefined, "", null].includes(runs[i].round)) {
                                 bracket += " " + runs[i].round
                             }
@@ -719,9 +719,7 @@ module.exports = {
                 if (track == i) {
                     track_option.default = true
                 }
-                if (i < 23) {
-                    racer_selections.push(racer_option)
-                }
+                racer_selections.push(racer_option)
                 track_selections.push(track_option)
                 var condkeys = Object.keys(cond)
                 if (i < condkeys.length) {
