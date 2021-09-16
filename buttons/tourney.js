@@ -656,7 +656,7 @@ module.exports = {
                         })
                         var opponents = []
                         runs[i].opponents.forEach(opponent => {
-                            opponents.push(tourney_participants_data[opponents].name)
+                            opponents.push(tourney_participants_data[opponent].name)
                         })
                         opponent = " vs " + opponents.join(", ")
                         if (runs[i].deaths > 1) {
