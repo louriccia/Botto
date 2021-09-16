@@ -660,7 +660,7 @@ module.exports = {
                         })
                         opponent = " vs " + opponents.join(", ")
                         if (runs[i].deaths > 1) {
-                            deaths = " | :skull:×" + runs[i].totaldeaths
+                            deaths = " | :skull:×" + runs[i].deaths
                         } else if (runs[i].deaths == 1) {
                             deaths = " | :skull:"
                         }

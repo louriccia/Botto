@@ -19406,7 +19406,7 @@
     {
         "tourney": 0,
         "bracket": "Winners",
-        "round": "Round 2",
+        "round": "Quarters",
         "ruleset": "-MhovNjMjQiPxUPRp9nT",
         "commentators": [
             0,
@@ -20336,7 +20336,7 @@
     {
         "tourney": 0,
         "bracket": "Winners",
-        "round": "Round 2",
+        "round": "Quarters",
         "ruleset": "-MhovNjMjQiPxUPRp9nT",
         "commentators": [
             17
@@ -20737,7 +20737,7 @@
     {
         "tourney": 0,
         "bracket": "Winners",
-        "round": "Round 2",
+        "round": "Quarters",
         "ruleset": "-MhovNjMjQiPxUPRp9nT",
         "commentators": [
             7,
@@ -21065,7 +21065,7 @@
     {
         "tourney": 0,
         "bracket": "Winners",
-        "round": "Round 2",
+        "round": "Quarters",
         "ruleset": "-MhovNjMjQiPxUPRp9nT",
         "commentators": [
             26
@@ -21983,7 +21983,7 @@
     {
         "tourney": 0,
         "bracket": "Losers",
-        "round": "Round 1",
+        "round": "Round 2",
         "ruleset": "-MhovNjMjQiPxUPRp9nT",
         "commentators": [
             7,
@@ -22574,7 +22574,7 @@
     {
         "tourney": 0,
         "bracket": "Winners",
-        "round": "Round 3",
+        "round": "Semis",
         "ruleset": "-MhovNjMjQiPxUPRp9nT",
         "commentators": [
             0,
@@ -23828,7 +23828,7 @@
     {
         "tourney": 0,
         "bracket": "Winners",
-        "round": "Round 3",
+        "round": "Semis",
         "ruleset": "-MhovNjMjQiPxUPRp9nT",
         "commentators": [
             26,
@@ -26284,7 +26284,7 @@
     {
         "tourney": 0,
         "bracket": "Losers",
-        "round": "Round 4",
+        "round": "Quarters",
         "ruleset": "-MhovNjMjQiPxUPRp9nT",
         "commentators": [
             12,
@@ -26744,7 +26744,7 @@
     {
         "tourney": 0,
         "bracket": "Losers",
-        "round": "Round 4",
+        "round": "Quarters",
         "ruleset": "-MhovNjMjQiPxUPRp9nT",
         "commentators": [
             16,
@@ -27272,7 +27272,7 @@
     {
         "tourney": 0,
         "bracket": "Losers",
-        "round": "Round 5",
+        "round": "Semis",
         "ruleset": "-MhovNjMjQiPxUPRp9nT",
         "commentators": [
             26,
@@ -49924,7 +49924,7 @@
         "round": "Round 1",
         "ruleset": "-Mi3UJq_1tQW6vgYPgBK",
         "commentators": [
-            "Darkrai",
+            30,
             15
         ],
         "vod": "",
@@ -52544,7 +52544,7 @@
         "round": "Semis",
         "ruleset": "-Mi3UuQfRUajQUPZ_p-M",
         "commentators": [
-            "Darkrai",
+            30,
             12
         ],
         "vod": "https://youtu.be/PWr5m9uRK10",
@@ -60942,7 +60942,6 @@
     {
         "tourney": 3,
         "bracket": "Group C",
-        "round": "1",
         "ruleset": "-Mi3VZL8YSYCV2J_e-RI",
         "commentators": [
             8,
@@ -61152,7 +61151,6 @@
     {
         "tourney": 3,
         "bracket": "Group D",
-        "round": "1",
         "ruleset": "-Mi3VZL8YSYCV2J_e-RI",
         "commentators": [
             8,
@@ -61351,7 +61349,6 @@
     {
         "tourney": 3,
         "bracket": "Group B",
-        "round": "1",
         "ruleset": "-Mi3VZL8YSYCV2J_e-RI",
         "commentators": [
             8,
@@ -61566,7 +61563,6 @@
     {
         "tourney": 3,
         "bracket": "Group B",
-        "round": "2",
         "ruleset": "-Mi3VZL8YSYCV2J_e-RI",
         "commentators": [
             0,
@@ -61815,7 +61811,6 @@
     {
         "tourney": 3,
         "bracket": "Group B",
-        "round": "3",
         "ruleset": "-Mi3VZL8YSYCV2J_e-RI",
         "commentators": [
             8,
@@ -62054,7 +62049,6 @@
     {
         "tourney": 3,
         "bracket": "Group A",
-        "round": "1",
         "ruleset": "-Mi3VZL8YSYCV2J_e-RI",
         "commentators": [
             15,
@@ -62305,7 +62299,6 @@
     {
         "tourney": 3,
         "bracket": "Group D",
-        "round": "2",
         "ruleset": "-Mi3VZL8YSYCV2J_e-RI",
         "commentators": [
             8,
@@ -62504,7 +62497,6 @@
     {
         "tourney": 3,
         "bracket": "Group C",
-        "round": "2",
         "ruleset": "-Mi3VZL8YSYCV2J_e-RI",
         "commentators": [
             5,
@@ -62720,7 +62712,6 @@
     {
         "tourney": 3,
         "bracket": "Group A",
-        "round": "2",
         "ruleset": "-Mi3VZL8YSYCV2J_e-RI",
         "commentators": [
             8,
@@ -62914,7 +62905,6 @@
     {
         "tourney": 3,
         "bracket": "Group D",
-        "round": "3",
         "ruleset": "-Mi3VZL8YSYCV2J_e-RI",
         "commentators": [
             8,
@@ -63113,7 +63103,6 @@
     {
         "tourney": 3,
         "bracket": "Group A",
-        "round": "3",
         "ruleset": "-Mi3VZL8YSYCV2J_e-RI",
         "commentators": [
             8,
@@ -63318,7 +63307,6 @@
     {
         "tourney": 3,
         "bracket": "Group C",
-        "round": "3",
         "ruleset": "-Mi3VZL8YSYCV2J_e-RI",
         "commentators": [
             0,
@@ -63533,7 +63521,6 @@
     {
         "tourney": 3,
         "bracket": "Group C",
-        "round": "4",
         "ruleset": "-Mi3VZL8YSYCV2J_e-RI",
         "commentators": [
             10,
@@ -63749,7 +63736,6 @@
     {
         "tourney": 3,
         "bracket": "Group C",
-        "round": "5",
         "ruleset": "-Mi3VZL8YSYCV2J_e-RI",
         "commentators": [
             8,
@@ -64000,7 +63986,6 @@
     {
         "tourney": 3,
         "bracket": "Group B",
-        "round": "4",
         "ruleset": "-Mi3VZL8YSYCV2J_e-RI",
         "commentators": [
             8,
@@ -64355,7 +64340,6 @@
     {
         "tourney": 3,
         "bracket": "Group A",
-        "round": "4",
         "ruleset": "-Mi3VZL8YSYCV2J_e-RI",
         "commentators": [
             15,
@@ -64572,7 +64556,6 @@
     {
         "tourney": 3,
         "bracket": "Group D",
-        "round": "4",
         "ruleset": "-Mi3VZL8YSYCV2J_e-RI",
         "commentators": [
             0,
@@ -64776,7 +64759,6 @@
     {
         "tourney": 3,
         "bracket": "Group B",
-        "round": "5",
         "ruleset": "-Mi3VZL8YSYCV2J_e-RI",
         "commentators": [
             8,
@@ -64991,7 +64973,6 @@
     {
         "tourney": 3,
         "bracket": "Group A",
-        "round": "5",
         "ruleset": "-Mi3VZL8YSYCV2J_e-RI",
         "commentators": [
             8,
@@ -65200,7 +65181,6 @@
     {
         "tourney": 3,
         "bracket": "Group A",
-        "round": "6",
         "ruleset": "-Mi3VZL8YSYCV2J_e-RI",
         "commentators": [
             15,
@@ -65399,7 +65379,6 @@
     {
         "tourney": 3,
         "bracket": "Group A",
-        "round": "7",
         "ruleset": "-Mi3VZL8YSYCV2J_e-RI",
         "commentators": [
             10,
@@ -65674,7 +65653,6 @@
     {
         "tourney": 3,
         "bracket": "Group C",
-        "round": "6",
         "ruleset": "-Mi3VZL8YSYCV2J_e-RI",
         "commentators": [
             0,
@@ -66045,7 +66023,6 @@
     {
         "tourney": 3,
         "bracket": "Group C",
-        "round": "7",
         "ruleset": "-Mi3VZL8YSYCV2J_e-RI",
         "commentators": [
             5,
@@ -66261,7 +66238,6 @@
     {
         "tourney": 3,
         "bracket": "Group B",
-        "round": "6",
         "ruleset": "-Mi3VZL8YSYCV2J_e-RI",
         "commentators": [
             8,
@@ -66540,7 +66516,6 @@
     {
         "tourney": 3,
         "bracket": "Group D",
-        "round": "5",
         "ruleset": "-Mi3VZL8YSYCV2J_e-RI",
         "commentators": [
             8,
@@ -66819,7 +66794,6 @@
     {
         "tourney": 3,
         "bracket": "Group A",
-        "round": "8",
         "ruleset": "-Mi3VZL8YSYCV2J_e-RI",
         "commentators": [
             8
@@ -67033,7 +67007,6 @@
     {
         "tourney": 3,
         "bracket": "Group C",
-        "round": "8",
         "ruleset": "-Mi3VZL8YSYCV2J_e-RI",
         "commentators": [
             12,
@@ -67282,7 +67255,6 @@
     {
         "tourney": 3,
         "bracket": "Group C",
-        "round": "9",
         "ruleset": "-Mi3VZL8YSYCV2J_e-RI",
         "commentators": [
             10,
@@ -67562,7 +67534,6 @@
     {
         "tourney": 3,
         "bracket": "Group A",
-        "round": "9",
         "ruleset": "-Mi3VZL8YSYCV2J_e-RI",
         "commentators": [
             8,
@@ -67886,7 +67857,6 @@
     {
         "tourney": 3,
         "bracket": "Group C",
-        "round": "1",
         "ruleset": "-Mi3VZL8YSYCV2J_e-RI",
         "commentators": [
             12,
@@ -68096,7 +68066,6 @@
     {
         "tourney": 3,
         "bracket": "Group D",
-        "round": "6",
         "ruleset": "-Mi3VZL8YSYCV2J_e-RI",
         "commentators": [
             17
@@ -68294,7 +68263,6 @@
     {
         "tourney": 3,
         "bracket": "Group A",
-        "round": "1",
         "ruleset": "-Mi3VZL8YSYCV2J_e-RI",
         "commentators": [
             19,
@@ -68583,7 +68551,6 @@
     {
         "tourney": 3,
         "bracket": "Group D",
-        "round": "7",
         "ruleset": "-Mi3VZL8YSYCV2J_e-RI",
         "commentators": [
             0,
