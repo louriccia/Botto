@@ -570,7 +570,7 @@ module.exports = {
                             }
                             run.opponents = []
                             opponents.forEach(opponent => {
-                                if (opponent !== race.player) {
+                                if (opponent !== run.player) {
                                     run.opponents.push(opponent)
                                 }
                             })
@@ -643,33 +643,37 @@ module.exports = {
                             upgrade = "NU"
                         }
                         if (runs[i].skips == true) {
-                            cond.push("FT")
-                        } else {
                             cond.push("Skips")
+                        } else {
+                            cond.push("FT")
                         }
                         link = runs[i].vod
                         if(runs[i].podbans.length > 0){
-                            characterban += "| :x: "
+                            characterban += " | :x: "
                         }
                         runs[i].podbans.forEach(ban => {
                             characterban += racers[ban].flag + " "
                         })
-                        opponent = " vs " + runs[i].opponents.join(", ")
+                        var opponents = []
+                        runs[i].opponents.forEach(opponent => {
+                            opponents.push(tourney_participants_data[opponents].name)
+                        })
+                        opponent = " vs " + opponents.join(", ")
                         if (runs[i].deaths > 1) {
-                            deaths = ":skull:×" + runs[i].totaldeaths
+                            deaths = " | :skull:×" + runs[i].totaldeaths
                         } else if (runs[i].deaths == 1) {
-                            deaths = ":skull:"
+                            deaths = " | :skull:"
                         }
                         if (![undefined, "", null].includes(runs[i].bracket)) {
                             bracket = " | " + runs[i].bracket
                             if (![undefined, "", null].includes(runs[i].round)) {
-                                bracket += ": " + runs[i].round
+                                bracket += " " + runs[i].round
                             }
                         }
                         character = racers[runs[i].pod].flag
                         tourneyReport
                             .addField(pos[0] + " " + tourney_participants_data[runs[i].player].name, tourney_tournaments_data[runs[i].tourney].nickname + bracket + "\n[Race " + runs[i].num + opponent + "](" + link + ")", true)
-                            .addField(tools.timefix(Number(runs[i].time).toFixed(3)), " " + character + " | " + upgrade + " | " + deaths + "\n" + cond.join(" | ") + characterban, true)
+                            .addField(tools.timefix(Number(runs[i].time).toFixed(3)), " " + character + " | " + upgrade + deaths + "\n" + cond.join(" | ") + characterban, true)
                             .addField('\u200B', '\u200B', true)
                         if (showall == false) { already.push(runs[i].player + runs[i].nu + runs[i].skips) }
                         pos.splice(0, 1)
