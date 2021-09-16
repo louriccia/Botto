@@ -59949,7 +59949,7 @@
         "bracket": "Qualifying",
         "ruleset": "-Mi3Hs3s9cY_TBDV7-ok",
         "commentators": [
-            17
+            17, 8
         ],
         "vod": "https://www.youtube.com/playlist?list=PLfljlY_yJ8eOf3zcAVGGCWfo2kLjsx-i3",
         "datetime": 1620594000000,
@@ -59977,6 +59977,40 @@
                                 "deaths": 0
                             }
                         ]
+                    },
+                    {
+                        "player": 18,
+                        "time": 43.277,
+                        "pod": 19,
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
+                    },
+                    {
+                        "player": 6,
+                        "time": 44.064,
+                        "pod": 22,
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
                     }
                 ]
             },
@@ -59990,6 +60024,40 @@
                     {
                         "player": 21,
                         "time": 100.734,
+                        "pod": 22,
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
+                    },
+                    {
+                        "player": 18,
+                        "time": 98.782,
+                        "pod": 22,
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
+                    },
+                    {
+                        "player": 6,
+                        "time": 102.545,
                         "pod": 22,
                         "notes": "",
                         "laps": [
@@ -60029,107 +60097,7 @@
                                 "deaths": 0
                             }
                         ]
-                    }
-                ]
-            },
-            {
-                "tempbans": [],
-                "conditions": [],
-                "track_selection": {
-                    "track": 23
-                },
-                "runs": [
-                    {
-                        "player": 21,
-                        "time": 357.968,
-                        "pod": 11,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    }
-                ]
-            }
-        ],
-        "permabans": []
-    },
-    {
-        "tourney": 3,
-        "bracket": "Qualifying",
-        "ruleset": "-Mi3Hs3s9cY_TBDV7-ok",
-        "commentators": [
-            17
-        ],
-        "vod": "https://www.youtube.com/playlist?list=PLfljlY_yJ8eOf3zcAVGGCWfo2kLjsx-i3",
-        "datetime": 1620594000000,
-        "races": [
-            {
-                "tempbans": [],
-                "conditions": [],
-                "track_selection": {
-                    "track": 1
-                },
-                "runs": [
-                    {
-                        "player": 18,
-                        "time": 43.277,
-                        "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "tempbans": [],
-                "conditions": [],
-                "track_selection": {
-                    "track": 9
-                },
-                "runs": [
-                    {
-                        "player": 18,
-                        "time": 98.782,
-                        "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "tempbans": [],
-                "conditions": [],
-                "track_selection": {
-                    "track": 16
-                },
-                "runs": [
+                    },
                     {
                         "player": 18,
                         "time": 264.902,
@@ -60146,107 +60114,7 @@
                                 "deaths": 0
                             }
                         ]
-                    }
-                ]
-            },
-            {
-                "tempbans": [],
-                "conditions": [],
-                "track_selection": {
-                    "track": 23
-                },
-                "runs": [
-                    {
-                        "player": 18,
-                        "time": 303.98,
-                        "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    }
-                ]
-            }
-        ],
-        "permabans": []
-    },
-    {
-        "tourney": 3,
-        "bracket": "Qualifying",
-        "ruleset": "-Mi3Hs3s9cY_TBDV7-ok",
-        "commentators": [
-            8
-        ],
-        "vod": "https://www.youtube.com/playlist?list=PLfljlY_yJ8eOf3zcAVGGCWfo2kLjsx-i3",
-        "datetime": 1620594000000,
-        "races": [
-            {
-                "tempbans": [],
-                "conditions": [],
-                "track_selection": {
-                    "track": 1
-                },
-                "runs": [
-                    {
-                        "player": 6,
-                        "time": 44.064,
-                        "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "tempbans": [],
-                "conditions": [],
-                "track_selection": {
-                    "track": 9
-                },
-                "runs": [
-                    {
-                        "player": 6,
-                        "time": 102.545,
-                        "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "tempbans": [],
-                "conditions": [],
-                "track_selection": {
-                    "track": 16
-                },
-                "runs": [
+                    },
                     {
                         "player": 6,
                         "time": 297.523,
@@ -60273,6 +60141,40 @@
                     "track": 23
                 },
                 "runs": [
+                    {
+                        "player": 21,
+                        "time": 357.968,
+                        "pod": 11,
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
+                    },
+                    {
+                        "player": 18,
+                        "time": 303.98,
+                        "pod": 19,
+                        "notes": "",
+                        "laps": [
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            },
+                            {
+                                "deaths": 0
+                            }
+                        ]
+                    },
                     {
                         "player": 6,
                         "time": 324.515,
