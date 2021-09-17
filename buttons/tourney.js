@@ -1,3 +1,5 @@
+const { count } = require('console');
+
 module.exports = {
     name: 'tourney',
     execute(client, interaction, args) {
@@ -546,6 +548,8 @@ module.exports = {
             //get runs and apply filters
             var runs = []
             var matches = Object.values(tourney_matches_data)
+            var counts = {mu: 0, nu: 0, ft: 0, skips: 0, deaths: 0, deathless: 0, qual: 0, user: 0}
+            var pods = {}
             matches.forEach(match => {
                 match.races.forEach((race, num) => {
                     if (race.track_selection.track == track) {
@@ -554,41 +558,64 @@ module.exports = {
                             opponents.push(run.player)
                         })
                         race.runs.forEach(run => {
-                            if (run.time !== "DNF") {
-                                run.num = num + 1
-                                run.vod = match.vod
-                                run.tourney = match.tourney
-                                run.bracket = match.bracket
-                                run.round = match.round
-                                run.podbans = []
-                                if (race.tempbans !== undefined) {
-                                    race.tempbans.forEach(ban => {
-                                        if (ban.type == "pod") {
-                                            run.podbans.push(ban.selection)
-                                        }
-                                    })
-                                }
-                                run.opponents = []
-                                opponents.forEach(opponent => {
-                                    if (opponent !== run.player) {
-                                        run.opponents.push(opponent)
+                            run.num = num + 1
+                            run.vod = match.vod
+                            run.tourney = match.tourney
+                            run.bracket = match.bracket
+                            run.round = match.round
+                            run.podbans = []
+                            if (race.tempbans !== undefined) {
+                                race.tempbans.forEach(ban => {
+                                    if (ban.type == "pod") {
+                                        run.podbans.push(ban.selection)
                                     }
                                 })
-                                run.skips = false
-                                run.nu = false
-                                if (race.conditions !== undefined) {
-                                    race.conditions.forEach(condition => {
-                                        if (condition.type == "skips") {
-                                            run.skips = true
-                                        } else if (condition.type == "no_upgrades") {
-                                            run.nu = true
-                                        } else if (condition.type == "pod_ban") {
-                                            run.podbans.push(condition.selection)
-                                        }
-                                    })
-                                }
-                                runs.push(run)
                             }
+                            run.opponents = []
+                            opponents.forEach(opponent => {
+                                if (opponent !== run.player) {
+                                    run.opponents.push(opponent)
+                                }
+                            })
+                            run.skips = false
+                            run.nu = false
+                            if (race.conditions !== undefined) {
+                                race.conditions.forEach(condition => {
+                                    if (condition.type == "skips") {
+                                        run.skips = true
+                                        counts.skips ++
+                                    } else if (condition.type == "no_upgrades") {
+                                        run.nu = true
+                                        counts.nu ++
+                                    } else if (condition.type == "pod_ban") {
+                                        run.podbans.push(condition.selection)
+                                    }
+                                })
+                            }
+                            if(run.skips == false){
+                                counts.ft ++
+                            }
+                            if(run.nu == false){
+                                counts.mu ++
+                            }
+                            if(run.deaths == 0){
+                                counts.deathless ++
+                            }
+                            if(run.deaths > 0){
+                                counts.deaths ++
+                            }
+                            if(match.bracket == "Qualifying"){
+                                counts.qual ++
+                            }
+                            if(tourney_participants_data[run.player].id == interaction.member.user.id){
+                                counts.mine ++
+                            }
+                            if(pods[run.pod] == undefined){
+                                pods[run.pod] = 1
+                            } else {
+                                pods[run.pod] ++
+                            }
+                            runs.push(run)
                         })
                     }
                 })
@@ -611,7 +638,15 @@ module.exports = {
                 runs = runs.filter(e => e.bracket !== "Qualifying")
             }
             runs.sort(function (a, b) {
-                return Number(a.time) - Number(b.time);
+                if(a.time == "DNF" && b.time == "DNF"){
+                    return 0
+                } else if(a.time == "DNF"){
+                    return 1
+                } else if (b.time == "DNF"){
+                    return -1
+                } else {
+                    return Number(a.time) - Number(b.time);
+                }
             })
 
             //create embed
@@ -698,7 +733,7 @@ module.exports = {
             var cond_selections = []
             for (var i = 0; i < 25; i++) {
                 var racer_option = {
-                    label: racers[i].name,
+                    label: racers[i].name + " [" + pods[i] + "]",
                     value: i,
                     description: racers[i].pod.substring(0, 50),
                     emoji: {
@@ -726,7 +761,7 @@ module.exports = {
                 var condkeys = Object.keys(cond)
                 if (i < condkeys.length) {
                     var cond_option = {
-                        label: cond[condkeys[i]],
+                        label: cond[condkeys[i]] + " [" + counts[condkeys[i]] + "]",
                         value: condkeys[i],
                     }
                     if (conditions.includes(condkeys[i])) {
