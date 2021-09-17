@@ -494,7 +494,7 @@ module.exports = {
                     var option = interaction.message.components[2].components[0].options[i]
                     if (option.hasOwnProperty("default")) {
                         if (option.default) {
-                            pods.push(String(options.value))
+                            pods.push(String(option.value))
                         }
                     }
                 }
