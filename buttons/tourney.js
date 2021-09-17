@@ -733,13 +733,16 @@ module.exports = {
             var cond_selections = []
             for (var i = 0; i < 25; i++) {
                 var racer_option = {
-                    label: racers[i].name + " [" + pod_counts[i] + "]",
+                    label: racers[i].name,
                     value: i,
                     description: racers[i].pod.substring(0, 50),
                     emoji: {
                         name: racers[i].flag.split(":")[1],
                         id: racers[i].flag.split(":")[2].replace(">", "")
                     }
+                }
+                if(pod_counts[i] !== undefined){
+                    racer_option.label += " (" + pod_counts[i] + ")"
                 }
                 if (pods.includes(String(i))) {
                     racer_option.default = true
@@ -761,7 +764,7 @@ module.exports = {
                 var condkeys = Object.keys(cond)
                 if (i < condkeys.length) {
                     var cond_option = {
-                        label: cond[condkeys[i]] + " [" + counts[condkeys[i]] + "]",
+                        label: cond[condkeys[i]] + " (" + counts[condkeys[i]] + ")",
                         value: condkeys[i],
                     }
                     if (conditions.includes(condkeys[i])) {
@@ -770,6 +773,26 @@ module.exports = {
                     cond_selections.push(cond_option)
                 }
             }
+            racer_selections.sort(function (a, b) {
+                if(a.label.includes("(") && b.label.includes("(")){
+                    a = a.label.substring(
+                        a.label.indexOf("(") + 1, 
+                        a.label.lastIndexOf(")")
+                    )
+                    b = b.label.substring(
+                        b.label.indexOf("(") + 1, 
+                        b.label.lastIndexOf(")")
+                    )
+                    console.log(a,b)
+                    return b - a
+                } else if(a.label.includes("(")){
+                    return -1
+                } else if(b.label.includes("(")){
+                    return 1
+                } else{
+                    return 0
+                }
+            })
             var components = []
             components.push(
                 {
