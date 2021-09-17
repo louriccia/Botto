@@ -608,7 +608,7 @@ module.exports = {
                                 counts.qual ++
                             }
                             if(tourney_participants_data[run.player].id == interaction.member.user.id){
-                                counts.mine ++
+                                counts.user ++
                             }
                             if(pod_counts[run.pod] == undefined){
                                 pod_counts[run.pod] = 1
@@ -708,9 +708,13 @@ module.exports = {
                             }
                         }
                         character = racers[runs[i].pod].flag
+                        var time = "DNF"
+                        if(runs[i].time !== "DNF"){
+                            time = tools.timefix(Number(runs[i].time).toFixed(3))
+                        }
                         tourneyReport
                             .addField(pos[0] + " " + tourney_participants_data[runs[i].player].name, tourney_tournaments_data[runs[i].tourney].nickname + bracket + "\n[Race " + runs[i].num + opponent + "](" + link + ")", true)
-                            .addField(tools.timefix(Number(runs[i].time).toFixed(3)), " " + character + " | " + upgrade + deaths + "\n" + cond.join(" | ") + characterban, true)
+                            .addField(time, " " + character + " | " + upgrade + deaths + "\n" + cond.join(" | ") + characterban, true)
                             .addField('\u200B', '\u200B', true)
                         if (showall == false) { already.push(runs[i].player + runs[i].nu + runs[i].skips) }
                         pos.splice(0, 1)
@@ -784,7 +788,7 @@ module.exports = {
                         b.label.lastIndexOf(")")
                     )
                     console.log(a,b)
-                    return b - a
+                    return Number(b) - Number(a)
                 } else if(a.label.includes("(")){
                     return -1
                 } else if(b.label.includes("(")){
