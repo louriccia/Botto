@@ -549,7 +549,7 @@ module.exports = {
             var runs = []
             var matches = Object.values(tourney_matches_data)
             var counts = {mu: 0, nu: 0, ft: 0, skips: 0, deaths: 0, deathless: 0, qual: 0, user: 0}
-            var pods = {}
+            var pod_counts = {}
             matches.forEach(match => {
                 match.races.forEach((race, num) => {
                     if (race.track_selection.track == track) {
@@ -610,10 +610,10 @@ module.exports = {
                             if(tourney_participants_data[run.player].id == interaction.member.user.id){
                                 counts.mine ++
                             }
-                            if(pods[run.pod] == undefined){
-                                pods[run.pod] = 1
+                            if(pod_counts[run.pod] == undefined){
+                                pod_counts[run.pod] = 1
                             } else {
-                                pods[run.pod] ++
+                                pod_counts[run.pod] ++
                             }
                             runs.push(run)
                         })
@@ -733,7 +733,7 @@ module.exports = {
             var cond_selections = []
             for (var i = 0; i < 25; i++) {
                 var racer_option = {
-                    label: racers[i].name + " [" + pods[i] + "]",
+                    label: racers[i].name + " [" + pod_counts[i] + "]",
                     value: i,
                     description: racers[i].pod.substring(0, 50),
                     emoji: {
