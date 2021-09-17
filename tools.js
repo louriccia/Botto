@@ -211,12 +211,26 @@ module.exports = {
         });
         var matches = Object.values(tourney_matches_data)
         matches.sort(function (a, b) {
-            return Date.parse(a.datetime) - Date.parse(b.datetime);
+            return a.datetime - b.datetime;
         })
         var ranks = {}
-        for (i = 0; i < matches.length; i++) {
-            if (![undefined, "", "Qual"].includes(matches[i].bracket)) {
-                var players = Object.values(matches[i].players)
+        matches.forEach(match => {
+            if (![undefined, "", "Qualifying"].includes(match.bracket)) {
+                var players = {}
+                match.races.forEach(race => {
+                    var winner = {player: null, time: null}
+                    race.runs.forEach(run => {
+                        if(players[run.player] == undefined){
+                            players[run.player] = {player: run.player, score: 0}
+                        }
+                        if(run.time !== "DNF" && (winner.time == null || run.time < winner.time)){
+                            winner.time = run.time
+                            winner.player = run.player
+                        }
+                    })
+                    players[winner.player].score ++
+                })
+                players = Object.values(players)
                 if (players.length == 2) {
                     for (var j = 0; j < players.length; j++) {
                         //initialize player
@@ -261,13 +275,14 @@ module.exports = {
                     }
                 }
             }
-        }
+        })
+        /*
         var rnks = Object.keys(ranks)
         for (i = 0; i < rnks.length; i++) {
             if (ranks[rnks[i]].matches < 4) {
                 delete ranks[rnks[i]]
             }
-        }
+        }*/
         return ranks
     },
     getGoalTime: function (track, racer, acceleration, top_speed, cooling, laps, length_mod, uh_mod, us_mod, deaths) {
