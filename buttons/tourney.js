@@ -713,7 +713,7 @@ module.exports = {
                 var track_option = {
                     label: tracks[i].name,
                     value: i,
-                    description: (circuits[tracks[i].circuit].name + " Circuit | Race " + tracks[i].cirnum + " | " + planets[tracks[i].planet].name).substring(0, 50),
+                    description: (circuits[tracks[i].circuit].name + " 😃 Circuit | 🚫 Race " + tracks[i].cirnum + " | " + planets[tracks[i].planet].name).substring(0, 50),
                     emoji: {
                         name: planets[tracks[i].planet].emoji.split(":")[1],
                         id: planets[tracks[i].planet].emoji.split(":")[2].replace(">", "")
