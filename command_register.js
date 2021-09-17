@@ -1903,7 +1903,7 @@ client.api.applications("545798436105224203").commands.post({
     data: {
         name: "tourney",
         description: "get tourney stuff",
-        type: 2,
+        type: 1,
         options: [
             {
                 name: 'leaderboards',
