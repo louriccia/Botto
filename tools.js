@@ -170,6 +170,7 @@ module.exports = {
             .setImage(tracks[numb].img)
             //.setImage('attachment://' + (numb+1) + '.png')
             .setTitle(tracks[numb].name)
+            .setThumbnail(tracks[numb].preview)
             .setDescription("(" + tracks[numb].nickname.join(", ") + ")")
             .addField(circuits[tracks[numb].circuit].name + " Circuit", "Race " + tracks[numb].cirnum, true)
             .addField("Planet", planets[tracks[numb].planet].emoji + " " + planets[tracks[numb].planet].name, true)

@@ -135,7 +135,7 @@ module.exports = {
                                                 id: null,
                                                 name: "🎲"
                                             },
-                                            style: 1,
+                                            style: 4,
                                             custom_id: "random_racer"
                                         }
                                     ]
@@ -231,15 +231,34 @@ module.exports = {
                 })
             }
             var numb = pool[Math.floor(Math.random()*pool.length)]
-            
+            var trackEmbed = tools.getTrackEmbed(numb, client, interaction.channel_id, interaction)
             client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {
-                    type: 5,
+                    type: 4,
                     data: {
+                        //content: "",
+                        embeds: [trackEmbed],
+                        components: [
+                            {
+                                type: 1,
+                                components: [
+                                    {
+                                        type: 2,
+                                        label: "Randomize",
+                                        emoji: {
+                                            id: null,
+                                            name: "🎲"
+                                        },
+                                        style: 4,
+                                        custom_id: "random_track"
+                                    }
+                                ]
+                            }
+                        ]
                     }
                 }
             })
-            tools.getTrackEmbed(numb, client, interaction.channel_id, interaction)
+            
         } else if(args[0].name=="challenge") {
             client.buttons.get("challenge").execute(client, interaction, ["random", "menu", "new"])
         } else if(args[0].name=="teams") {

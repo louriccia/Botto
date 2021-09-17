@@ -482,5 +482,46 @@ client.on('message', message => {
     }
 })
 
+client.api.applications("545798436105224203").commands.post({
+    data: {
+        name: "tourney",
+        description: "get tourney stuff",
+        type: 2,
+        options: [
+            {
+                name: 'leaderboards',
+                description: 'get top-5 leaderboards for tournament runs',
+                type: 1,
+                options: []
+            },
+            {
+                name: "stats",
+                description: "get tournament stats for each player, pod, and track",
+                type: 1,
+                options: [
+                ]
+            },
+            {
+                name: "schedule",
+                description: "get a look at upcoming matches on speedgaming.org",
+                type: 1,
+                options: [
+                ]
+            },
+            {
+                name: "matches",
+                description: "get a look at past matches",
+                type: 1,
+                options: []
+            },
+            {
+                name: 'rulesets',
+                description: 'get and create tournament rulesets',
+                type: 1,
+                options: []
+            }
+        ]
 
+    }
+})
 client.login(process.env.token);
