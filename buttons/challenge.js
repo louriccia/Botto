@@ -2212,7 +2212,7 @@ module.exports = {
                         {
                             type: 2,
                             style: odds_style,
-                            custom_id: "challenge_random_settings_odds_uid" + member,
+                            custom_id: "challenge_random_settings_odds_toggle_uid" + member,
                             label: "Odds",
                             disabled: odds_disabled
                         },
@@ -2220,7 +2220,7 @@ module.exports = {
                             type: 2,
                             style: winnings_style,
                             label: "Winnings",
-                            custom_id: "challenge_random_settings_winnings_uid" + member,
+                            custom_id: "challenge_random_settings_winnings_toggle_uid" + member,
                             disabled: winnings_disabled
                         },
                         {
