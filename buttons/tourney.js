@@ -478,7 +478,7 @@ module.exports = {
                     var option = interaction.message.components[0].components[0].options[i]
                     if (option.hasOwnProperty("default")) {
                         if (option.default) {
-                            track = i
+                            track = option.value
                         }
                     }
                 }
@@ -494,7 +494,7 @@ module.exports = {
                     var option = interaction.message.components[2].components[0].options[i]
                     if (option.hasOwnProperty("default")) {
                         if (option.default) {
-                            pods.push(String(i))
+                            pods.push(String(options.value))
                         }
                     }
                 }
@@ -787,7 +787,6 @@ module.exports = {
                         b.label.indexOf("(") + 1, 
                         b.label.lastIndexOf(")")
                     )
-                    console.log(a,b)
                     return Number(b) - Number(a)
                 } else if(a.label.includes("(")){
                     return -1
