@@ -773,7 +773,7 @@ module.exports = {
                 }
                 if(counts.tracks[i] !== undefined){
                     //track_option.label += " (" + counts.tracks[i] + ")"
-                    track_option.description = counts.tracks[i] + " Runs"
+                    track_option.description = counts.tracks[i].total + " Runs"
                 }
                 if(counts.tracks[i].nu > 0 || counts.tracks[i].skips > 0){
                     var stuff = []
@@ -806,9 +806,9 @@ module.exports = {
                 if(a.description !== "" && b.description !== ""){
                     return Number(b.description.replace(" Runs", "")) - Number(a.description.replace(" Runs", ""))
                 } else if(a.description == ""){
-                    return -1
-                } else if(b.description == ""){
                     return 1
+                } else if(b.description == ""){
+                    return -1
                 } else{
                     return 0
                 }
