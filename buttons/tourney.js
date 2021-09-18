@@ -136,9 +136,9 @@ module.exports = {
                 .setColor("#3BA55D")
                 .setDescription("Use the select below to browse recent tournament matches.")
                 .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/crossed-swords_2694-fe0f.png")
-            if (args[2].startsWith("offset")) {
+            if (args[1].startsWith("offset")) {
 
-                var offset = Number(args[2].replace("offset", ""))
+                var offset = Number(args[1].replace("offset", ""))
                 if (interaction.data.hasOwnProperty("values")) {
                     if (interaction.data.values[0].includes("offset")) {
                         offset = Number(interaction.data.values[0].replace("offset", ""))
@@ -670,7 +670,7 @@ module.exports = {
                 .setTitle(planets[tracks[track].planet].emoji + " " + tracks[track].name)
                 .setColor(planets[tracks[track].planet].color)
                 .setDescription(circuits[tracks[track].circuit].name + " Circuit | Race " + tracks[track].cirnum + " | " + planets[tracks[track].planet].name)
-                .setFooter(runs.length + "/" + counts.tracks[track] + " Runs")
+                .setFooter(runs.length + "/" + counts.tracks[track].total + " Runs")
                 .setThumbnail(tracks[track].preview)
             if (user !== null) {
                 const Guild = client.guilds.cache.get(interaction.guild_id);
