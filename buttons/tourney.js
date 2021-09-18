@@ -553,10 +553,10 @@ module.exports = {
             matches.forEach(match => {
                 match.races.forEach((race, num) => {
                     if (counts.tracks[race.track_selection.track] == undefined){
-                        counts.tracks[race.track_selection.track] = 0
+                        counts.tracks[race.track_selection.track] = {total: 0, skips: 0, nu: 0}
                     } 
                     race.runs.forEach(run => {
-                        counts.tracks[race.track_selection.track] ++
+                        counts.tracks[race.track_selection.track].total ++
                     })
                     if (race.track_selection.track == track) {
                         var opponents = []
@@ -590,9 +590,11 @@ module.exports = {
                                     if (condition.type == "skips") {
                                         run.skips = true
                                         counts.skips ++
+                                        counts.tracks[track].skips ++
                                     } else if (condition.type == "no_upgrades") {
                                         run.nu = true
                                         counts.nu ++
+                                        counts.tracks[track].nu ++
                                     } else if (condition.type == "pod_ban") {
                                         run.podbans.push(condition.selection)
                                     }
@@ -754,6 +756,8 @@ module.exports = {
                 if(pod_counts[i] !== undefined){
                     //racer_option.label += " (" + pod_counts[i] + ")"
                     racer_option.description = pod_counts[i] + " Runs"
+                } else {
+                    racer_option.description = ""
                 }
                 if (pods.includes(String(i))) {
                     racer_option.default = true
@@ -770,6 +774,16 @@ module.exports = {
                 if(counts.tracks[i] !== undefined){
                     //track_option.label += " (" + counts.tracks[i] + ")"
                     track_option.description = counts.tracks[i] + " Runs"
+                }
+                if(counts.tracks[i].nu > 0 || counts.tracks[i].skips > 0){
+                    var stuff = []
+                    if(counts.tracks[i].nu >0){
+                        stuff.push(counts.tracks[i].nu + " NU")
+                    }
+                    if(counts.tracks[i].skips >0){
+                        stuff.push(counts.tracks[i].skips + " Skips")
+                    }
+                    track_option.description += " (" + stuff.join(", ") + ")"
                 }
                 if (track == i) {
                     track_option.default = true
@@ -789,19 +803,11 @@ module.exports = {
                 }
             }
             racer_selections.sort(function (a, b) {
-                if(a.label.includes("(") && b.label.includes("(")){
-                    a = a.label.substring(
-                        a.label.indexOf("(") + 1, 
-                        a.label.lastIndexOf(")")
-                    )
-                    b = b.label.substring(
-                        b.label.indexOf("(") + 1, 
-                        b.label.lastIndexOf(")")
-                    )
-                    return Number(b) - Number(a)
-                } else if(a.label.includes("(")){
+                if(a.description !== "" && b.description !== ""){
+                    return Number(b.description.replace(" Runs", "")) - Number(a.description.replace(" Runs", ""))
+                } else if(a.description == ""){
                     return -1
-                } else if(b.label.includes("(")){
+                } else if(b.description == ""){
                     return 1
                 } else{
                     return 0
