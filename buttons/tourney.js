@@ -557,6 +557,15 @@ module.exports = {
                     } 
                     race.runs.forEach(run => {
                         counts.tracks[race.track_selection.track].total ++
+                        if (race.conditions !== undefined) {
+                            race.conditions.forEach(condition => {
+                                if (condition.type == "skips") {
+                                    counts.tracks[race.track_selection.track].skips ++
+                                } else if (condition.type == "no_upgrades") {
+                                    counts.tracks[race.track_selection.track].nu ++
+                                }
+                            })
+                        }
                     })
                     if (race.track_selection.track == track) {
                         var opponents = []
@@ -590,11 +599,9 @@ module.exports = {
                                     if (condition.type == "skips") {
                                         run.skips = true
                                         counts.skips ++
-                                        counts.tracks[track].skips ++
                                     } else if (condition.type == "no_upgrades") {
                                         run.nu = true
                                         counts.nu ++
-                                        counts.tracks[track].nu ++
                                     } else if (condition.type == "pod_ban") {
                                         run.podbans.push(condition.selection)
                                     }

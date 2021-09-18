@@ -150,8 +150,8 @@ module.exports = {
             .addField("Species: " + racers[numb].species, "Homeworld: " + racers[numb].homeworld, true)
             .addField("Favorite", planets[tracks[racers[numb].favorite].planet].emoji + " " + tracks[racers[numb].favorite].name, true)
             .addField("Voice Actor", racers[numb].voice, true)
-            .addField("Tier", Tier[racers[numb].nu_tier] + " | " + Tier[racers[numb].mu_tier], true)
-            .addField("Average Speed", Math.round(avgspeednu) + " | " + Math.round(avgspeedmu), true)
+            .addField("Tier", "NU: " + Tier[racers[numb].nu_tier] + "\nMU: " + Tier[racers[numb].mu_tier], true)
+            .addField("Average Speed", "NU: " + Math.round(avgspeednu) + "\nMU: " + Math.round(avgspeedmu), true)
             .addField("Max Turn", racers[numb].max_turn_rate + "°/s", true)
             .setImage(racers[numb].stats)
         return racerEmbed
