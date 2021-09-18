@@ -803,8 +803,11 @@ module.exports = {
                 var condkeys = Object.keys(cond)
                 if (i < condkeys.length) {
                     var cond_option = {
-                        label: cond[condkeys[i]] + " (" + counts[condkeys[i]] + ")",
+                        label: cond[condkeys[i]],
                         value: condkeys[i],
+                    }
+                    if(condkeys[i] !== "pb"){
+                        cond_option.label +=  " (" + counts[condkeys[i]] + ")"
                     }
                     if (conditions.includes(condkeys[i])) {
                         cond_option.default = true
