@@ -661,7 +661,7 @@ module.exports = {
                 .setTitle(planets[tracks[track].planet].emoji + " " + tracks[track].name)
                 .setColor(planets[tracks[track].planet].color)
                 .setDescription(circuits[tracks[track].circuit].name + " Circuit | Race " + tracks[track].cirnum + " | " + planets[tracks[track].planet].name)
-                .setFooter(runs.length + " Total Runs")
+                .setFooter(runs.length + "/" + counts.tracks[track] + " Runs")
                 .setThumbnail(tracks[track].preview)
             if (user !== null) {
                 const Guild = client.guilds.cache.get(interaction.guild_id);
@@ -752,7 +752,8 @@ module.exports = {
                     }
                 }
                 if(pod_counts[i] !== undefined){
-                    racer_option.label += " (" + pod_counts[i] + ")"
+                    //racer_option.label += " (" + pod_counts[i] + ")"
+                    racer_option.description = pod_counts[i] + " Runs"
                 }
                 if (pods.includes(String(i))) {
                     racer_option.default = true
@@ -767,7 +768,8 @@ module.exports = {
                     }
                 }
                 if(counts.tracks[i] !== undefined){
-                    track_option.label += " (" + counts.tracks[i] + ")"
+                    //track_option.label += " (" + counts.tracks[i] + ")"
+                    track_option.description = counts.tracks[i] + " Runs"
                 }
                 if (track == i) {
                     track_option.default = true
