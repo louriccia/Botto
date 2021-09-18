@@ -169,7 +169,7 @@ module.exports = {
             .setURL("https://docs.google.com/spreadsheets/d/1CPF8lfU_iDpLNIJsOWeU8Xg23BzQrxzi3-DEELAgxUA/edit#gid=1682683709")
             .setImage(tracks[numb].img)
             //.setImage('attachment://' + (numb+1) + '.png')
-            .setTitle(tracks[numb].name)
+            .setTitle(planets[tracks[numb].planet].emoji + " " + tracks[numb].name)
             .setThumbnail(tracks[numb].preview)
             .setDescription("(" + tracks[numb].nickname.join(", ") + ")")
             .addField(circuits[tracks[numb].circuit].name + " Circuit", "Race " + tracks[numb].cirnum, true)

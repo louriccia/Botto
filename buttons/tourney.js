@@ -513,7 +513,7 @@ module.exports = {
                 }
             }
             if (conditions.length == 0) {
-                conditions = ["mu", "nu", "ft", "skips", "deaths", "deathless"]
+                conditions = ["mu", "nu", "ft", "skips", "deaths", "deathless", "pb"]
             }
             //prepare filters
             var nu = [], skips = [], user = null, qual = false, deaths = []
@@ -531,6 +531,9 @@ module.exports = {
             }
             if (conditions.includes("qual")) {
                 qual = true
+            }
+            if(!conditions.includes("pb")) {
+                showall = true
             }
             if (conditions.includes("deaths")) {
                 deaths.push(true)
@@ -746,7 +749,7 @@ module.exports = {
 
             //construct components
             var components = []
-            var cond = { mu: "Max Upgrades", nu: "No Upgrades", ft: "Full Track", skips: "Skips", deaths: "Deaths", deathless: "Deathless", qual: "Include Qualifying Runs", user: "My Runs Only" }
+            var cond = { mu: "Max Upgrades", nu: "No Upgrades", ft: "Full Track", skips: "Skips", deaths: "Deaths", deathless: "Deathless", qual: "Include Qualifying Runs", pb: "Personal Bests Only", user: "My Runs Only" }
             var track_selections = []
             var racer_selections = []
             var cond_selections = []
