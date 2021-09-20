@@ -666,7 +666,6 @@ module.exports = {
                     return Number(a.time) - Number(b.time);
                 }
             })
-
             //create embed
             tourneyReport
                 .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/crossed-swords_2694-fe0f.png")
@@ -680,6 +679,9 @@ module.exports = {
                 const Member = Guild.members.cache.get(user)
                 tourneyReport.setAuthor(Member.user.username + "'s Tournament Best", client.guilds.resolve(interaction.guild_id).members.resolve(user).user.avatarURL())
                 showall = true
+            } 
+            if(!showall){
+                tourneyReport.setFooter(runs.length + "/" + counts.tracks[track].total + " Runs (PBs Only")
             }
             var pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>", "4th", "5th"]
             var already = []
