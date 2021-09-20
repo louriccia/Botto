@@ -537,7 +537,7 @@ module.exports = {
         } else if (args[0].name == "rulesets") {
             client.buttons.get("tourney").execute(client, interaction, ["rulesets", "browse", "initial"]);
         } else if (args[0].name == "matches") {
-            client.buttons.get("tourney").execute(client, interaction, ["matches", "browse", "offset0", "initial"]);
+            client.buttons.get("tourney").execute(client, interaction, ["matches", "offset0", "initial"]);
         }
     }
 }
