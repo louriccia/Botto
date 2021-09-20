@@ -205,6 +205,30 @@ module.exports = {
                 }
                 if (args.includes("initial")) {
                     type = 4
+                    client.api.interactions(interaction.id, interaction.token).callback.post({
+                        data: {
+                            type: type,
+                            data: {
+                                embeds: [tourneyMatches],
+                                components: [
+                                    {
+                                        type: 1,
+                                        components: [
+                                            {
+                                                type: 3,
+                                                custom_id: "tourney_matches_offset" + offset,
+                                                options: matches,
+                                                placeholder: "Select Match",
+                                                min_values: 1,
+                                                max_values: 1
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    })
+                    return
                 }
                 if (interaction.data.hasOwnProperty("values") && !interaction.data.values[0].includes("offset")) {
                     var match = interaction.data.values[0]
