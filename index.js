@@ -148,8 +148,12 @@ client.once('ready', () => {
     client.user.setActivity("/help");
     //client.users.cache.get("256236315144749059").send("Ready!")
     var channel = client.channels.cache.get("444208252541075476")
-    if (channel.lastMessage.author.bot) {
-        channel.lastMessage.delete().catch(err => console.log(err)).catch(console.error);
+    var message = channel.lastMessage
+    console.log(message)
+    if (message !== null) {
+        if (message.author.bot){
+            message.delete().catch(err => console.log(err)).catch(console.error);
+        }
     }
     channel.send("Deployed <t:" + Math.round(Date.now() / 1000) + ":R>");
     try {
