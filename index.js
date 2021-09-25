@@ -147,6 +147,14 @@ client.once('ready', () => {
     //set bot activity
     client.user.setActivity("/help");
     //client.users.cache.get("256236315144749059").send("Ready!")
+    client.channels.cache.get("444208252541075476").messages.fetch({ limit: 1 }).then(messages => {
+        let lastMessage = messages.first();
+        
+        if (!lastMessage.author.bot) {
+          lastMessage.delete()
+        }
+      })
+      .catch(console.error);
     client.channels.cache.get("444208252541075476").send("Ready!");
     try {
         //client.commands.get("scrape").execute();
@@ -335,7 +343,7 @@ client.on('guildMemberAdd', (guildMember) => { //join log
 })
 
 client.on("messageDelete", (messageDelete) => {
-    if (messageDelete.author.bot == false && messageDelete.channel.type == "text" && !messageDelete.content.startsWith("!")) {
+    if (messageDelete.author.bot == false && messageDelete.channel.type == "text" && !messageDelete.content.startsWith("!") && messageDelete.guildid == "441839750555369474") {
         var channelname = ""
         for (var i = 0; i < discordchannels.length; i++) {
             if (discordchannels[i].id == messageDelete.channel.id) {
@@ -356,32 +364,24 @@ client.on("messageDelete", (messageDelete) => {
 });
 
 client.on('messageUpdate', (oldMessage, newMessage) => {
-    emb = newMessage.embeds
-    for (i = 0; i < emb.length; i++) {
-        if (emb[i].url == "" && newMessage.author.bot == false) {
-            client.users.cache.get("256236315144749059").send(`potential spambot: ${messageDelete.author.username} detected in ${messageDelete.channel.id}`)
-        }
-    }
-    if (emb.length == 0) {
-        if (oldMessage.author.bot == false && oldMessage.channel.type == "text" && oldMessage !== newMessage) {
-            var channelname = ""
-            for (var i = 0; i < discordchannels.length; i++) {
-                if (discordchannels[i].id == newMessage.channel.id) {
-                    channelname = discordchannels[i].name
-                }
+    if (oldMessage.author.bot == false && oldMessage.channel.type == "text" && oldMessage !== newMessage  && oldMessage.guildid == "441839750555369474") {
+        var channelname = ""
+        for (var i = 0; i < discordchannels.length; i++) {
+            if (discordchannels[i].id == newMessage.channel.id) {
+                channelname = discordchannels[i].name
             }
-            var data = {
-                user: oldMessage.author.id,
-                name: oldMessage.author.username,
-                date: oldMessage.createdTimestamp,
-                action: "edited message",
-                message: oldMessage.content,
-                edit: newMessage.content,
-                channel: oldMessage.channel.id,
-                channel_name: channelname
-            }
-            logref.push(data);
         }
+        var data = {
+            user: oldMessage.author.id,
+            name: oldMessage.author.username,
+            date: oldMessage.createdTimestamp,
+            action: "edited message",
+            message: oldMessage.content,
+            edit: newMessage.content,
+            channel: oldMessage.channel.id,
+            channel_name: channelname
+        }
+        logref.push(data);
     }
 });
 

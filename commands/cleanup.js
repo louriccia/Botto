@@ -13,7 +13,7 @@ module.exports = {
             //console.log(messages.first().type)
             //console.log(messages.first().flags)
             //console.log(messages.first().system)
-            const botMessages = messages.filter(msg => msg.author.bot || msg.content.startsWith("!") || msg.content == "?help");
+            const botMessages = messages.filter((msg => msg.author.bot || msg.content.startsWith("!") || msg.content == "?help") && msg.createdAt > Date.now() - 1000*60*60*24*14);
             client.channels.cache.get(interaction.channel_id).bulkDelete(botMessages);
             messagesDeleted = botMessages.array().length; // number of messages deleted
             client.api.interactions(interaction.id, interaction.token).callback.post({

@@ -640,7 +640,8 @@ module.exports = {
                                     }
                                     if (run.skips == true){
                                         counts.skips++
-                                    } else if (run.nu == true){
+                                    }
+                                    if (run.nu == true){
                                         counts.nu++
                                     }
                                 })
