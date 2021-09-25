@@ -580,18 +580,26 @@ module.exports = {
             matches.forEach(match => {
                 match.races.forEach((race, num) => {
                     if (counts.tracks[race.track_selection.track] == undefined) {
-                        counts.tracks[race.track_selection.track] = { total: 0, skips: 0, nu: 0 }
+                        counts.tracks[race.track_selection.track] = { total: 0, skips: 0, nu: 0, nuskips: 0 }
                     }
                     race.runs.forEach(run => {
                         counts.tracks[race.track_selection.track].total++
                         if (race.conditions !== undefined) {
+                            var conditions = []
                             race.conditions.forEach(condition => {
                                 if (condition.type == "skips") {
-                                    counts.tracks[race.track_selection.track].skips++
+                                    conditions.push("skips")
                                 } else if (condition.type == "no_upgrades") {
-                                    counts.tracks[race.track_selection.track].nu++
+                                    conditions.push("nu")
                                 }
                             })
+                            if(conditions.includes("skips") && conditions.includes("nu")){
+                                counts.tracks[race.track_selection.track].nuskips++
+                            } else if(conditions.includes("skips")){
+                                    counts.tracks[race.track_selection.track].skips++
+                            } else if(conditions.includes("nu")){
+                                counts.tracks[race.track_selection.track].nu++
+                            }
                         }
                     })
                     if (race.track_selection.track == track) {
@@ -630,9 +638,7 @@ module.exports = {
                                     } else if (condition.type == "pod_ban") {
                                         run.podbans.push(condition.selection)
                                     }
-                                    if(run.skips == true && run.nu == true){
-                                        counts.nuskips ++
-                                    } else if (run.skips == true){
+                                    if (run.skips == true){
                                         counts.skips++
                                     } else if (run.nu == true){
                                         counts.nu++
