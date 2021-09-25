@@ -147,15 +147,15 @@ client.once('ready', () => {
     //set bot activity
     client.user.setActivity("/help");
     //client.users.cache.get("256236315144749059").send("Ready!")
-    var channel = client.channels.cache.get("444208252541075476")
-    var message = channel.lastMessage
-    console.log(message)
-    if (message !== null) {
-        if (message.author.bot){
-            message.delete().catch(err => console.log(err)).catch(console.error);
+    client.channels.cache.get("444208252541075476").messages.fetch({ limit: 1 }).then(messages => {
+        let lastMessage = messages.first();
+        
+        if (lastMessage.author.bot) {
+          lastMessage.delete().catch(err => console.log(err));
         }
-    }
-    channel.send("Deployed <t:" + Math.round(Date.now() / 1000) + ":R>");
+      })
+      .catch(console.error);
+    client.channels.cache.get("444208252541075476").send("Deployed <t:" + Math.round(Date.now()/1000) + ":R>");
     try {
         //client.commands.get("scrape").execute();
     } catch {
@@ -364,7 +364,7 @@ client.on("messageDelete", (messageDelete) => {
 });
 
 client.on('messageUpdate', (oldMessage, newMessage) => {
-    if (oldMessage.author.bot == false && oldMessage.channel.type == "text" && oldMessage !== newMessage && oldMessage.guildid == "441839750555369474") {
+    if (oldMessage.author.bot == false && oldMessage.channel.type == "text" && oldMessage !== newMessage  && oldMessage.guildid == "441839750555369474") {
         var channelname = ""
         for (var i = 0; i < discordchannels.length; i++) {
             if (discordchannels[i].id == newMessage.channel.id) {
