@@ -1062,14 +1062,15 @@
             },
             {
                 "type": "track",
-                "selection": 11,
-                "player": 10
-            },
-            {
-                "type": "track",
                 "selection": 14,
                 "player": 25
             },
+            {
+                "type": "track",
+                "selection": 11,
+                "player": 10
+            },
+            
             {
                 "type": "track",
                 "selection": 16,
@@ -1590,14 +1591,15 @@
             },
             {
                 "type": "track",
-                "selection": 20,
-                "player": 6
-            },
-            {
-                "type": "track",
                 "selection": 22,
                 "player": 14
             },
+            {
+                "type": "track",
+                "selection": 20,
+                "player": 6
+            },
+            
             {
                 "type": "track",
                 "selection": 19,
@@ -1924,13 +1926,13 @@
             },
             {
                 "type": "track",
-                "selection": 16,
-                "player": 22
+                "selection": 22,
+                "player": 3
             },
             {
                 "type": "track",
-                "selection": 22,
-                "player": 3
+                "selection": 16,
+                "player": 22
             },
             {
                 "type": "track",
@@ -2258,16 +2260,6 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 1,
-                "player": 20
-            },
-            {
-                "type": "track",
-                "selection": 22,
-                "player": 20
-            },
-            {
-                "type": "track",
                 "selection": 14,
                 "player": 15
             },
@@ -2275,6 +2267,16 @@
                 "type": "track",
                 "selection": 23,
                 "player": 15
+            },
+            {
+                "type": "track",
+                "selection": 1,
+                "player": 20
+            },
+            {
+                "type": "track",
+                "selection": 22,
+                "player": 20
             }
         ]
     },
@@ -3074,13 +3076,13 @@
             },
             {
                 "type": "track",
-                "selection": 20,
-                "player": 12
+                "selection": 16,
+                "player": 17
             },
             {
                 "type": "track",
-                "selection": 16,
-                "player": 17
+                "selection": 20,
+                "player": 12
             },
             {
                 "type": "track",
@@ -3731,6 +3733,11 @@
         "permabans": [
             {
                 "type": "track",
+                "selection": 16,
+                "player": 17
+            },
+            {
+                "type": "track",
                 "selection": 0,
                 "player": 0
             },
@@ -3738,11 +3745,6 @@
                 "type": "track",
                 "selection": 1,
                 "player": 0
-            },
-            {
-                "type": "track",
-                "selection": 16,
-                "player": 17
             },
             {
                 "type": "track",
@@ -4245,16 +4247,6 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 0,
-                "player": 12
-            },
-            {
-                "type": "track",
-                "selection": 1,
-                "player": 12
-            },
-            {
-                "type": "track",
                 "selection": 22,
                 "player": 2
             },
@@ -4262,6 +4254,16 @@
                 "type": "track",
                 "selection": 14,
                 "player": 2
+            },
+            {
+                "type": "track",
+                "selection": 0,
+                "player": 12
+            },
+            {
+                "type": "track",
+                "selection": 1,
+                "player": 12
             }
         ]
     },
@@ -5369,13 +5371,13 @@
             },
             {
                 "type": "track",
-                "selection": 19,
-                "player": 25
+                "selection": 22,
+                "player": 14
             },
             {
                 "type": "track",
-                "selection": 22,
-                "player": 14
+                "selection": 19,
+                "player": 25
             },
             {
                 "type": "track",
@@ -6128,14 +6130,15 @@
             },
             {
                 "type": "track",
-                "selection": 14,
-                "player": 15
-            },
-            {
-                "type": "track",
                 "selection": 19,
                 "player": 22
             },
+            {
+                "type": "track",
+                "selection": 14,
+                "player": 15
+            },
+            
             {
                 "type": "track",
                 "selection": 1,
@@ -6656,14 +6659,15 @@
             },
             {
                 "type": "track",
-                "selection": 7,
-                "player": 7
-            },
-            {
-                "type": "track",
                 "selection": 16,
                 "player": 18
             },
+            {
+                "type": "track",
+                "selection": 7,
+                "player": 7
+            },
+            
             {
                 "type": "track",
                 "selection": 14,
@@ -6975,23 +6979,24 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 16,
-                "player": 9
-            },
-            {
-                "type": "track",
-                "selection": 17,
-                "player": 9
-            },
-            {
-                "type": "track",
                 "selection": 22,
                 "player": 13
             },
             {
                 "type": "track",
+                "selection": 16,
+                "player": 9
+            },
+            
+            {
+                "type": "track",
                 "selection": 18,
                 "player": 13
+            },
+            {
+                "type": "track",
+                "selection": 17,
+                "player": 9
             }
         ]
     },
@@ -7314,23 +7319,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 7,
+                "selection": 5,
+                "player": 6
+            },
+            {
+                "type": "track",
+                "selection": 13,
                 "player": 23
             },
             {
                 "type": "track",
                 "selection": 16,
+                "player": 6
+            },
+            {
+                "type": "track",
+                "selection": 7,
                 "player": 23
-            },
-            {
-                "type": "track",
-                "selection": 13,
-                "player": 6
-            },
-            {
-                "type": "track",
-                "selection": 5,
-                "player": 6
             }
         ]
     },
@@ -7836,13 +7841,8 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 16,
-                "player": 22
-            },
-            {
-                "type": "track",
-                "selection": 1,
-                "player": 22
+                "selection": 19,
+                "player": 20
             },
             {
                 "type": "track",
@@ -7851,8 +7851,13 @@
             },
             {
                 "type": "track",
-                "selection": 19,
-                "player": 20
+                "selection": 16,
+                "player": 22
+            },
+            {
+                "type": "track",
+                "selection": 1,
+                "player": 22
             }
         ]
     },
@@ -8296,23 +8301,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 23,
-                "player": 2
-            },
-            {
-                "type": "track",
-                "selection": 14,
-                "player": 2
-            },
-            {
-                "type": "track",
                 "selection": 16,
                 "player": 25
             },
             {
                 "type": "track",
+                "selection": 23,
+                "player": 2
+            },
+            {
+                "type": "track",
                 "selection": 17,
                 "player": 25
+            },
+            {
+                "type": "track",
+                "selection": 14,
+                "player": 2
             }
         ]
     },
@@ -8624,23 +8629,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 24,
-                "player": 14
-            },
-            {
-                "type": "track",
-                "selection": 20,
-                "player": 14
-            },
-            {
-                "type": "track",
                 "selection": 22,
                 "player": 16
             },
             {
                 "type": "track",
+                "selection": 24,
+                "player": 14
+            },
+            {
+                "type": "track",
                 "selection": 19,
                 "player": 16
+            },
+            {
+                "type": "track",
+                "selection": 20,
+                "player": 14
             }
         ]
     },
@@ -8962,23 +8967,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 20,
-                "player": 12
-            },
-            {
-                "type": "track",
-                "selection": 23,
-                "player": 12
-            },
-            {
-                "type": "track",
                 "selection": 16,
                 "player": 9
             },
             {
                 "type": "track",
+                "selection": 20,
+                "player": 12
+            },
+            {
+                "type": "track",
                 "selection": 22,
                 "player": 9
+            },
+            {
+                "type": "track",
+                "selection": 23,
+                "player": 12
             }
         ]
     },
@@ -9364,23 +9369,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 14,
-                "player": 18
-            },
-            {
-                "type": "track",
-                "selection": 12,
-                "player": 18
-            },
-            {
-                "type": "track",
                 "selection": 15,
                 "player": 17
             },
             {
                 "type": "track",
+                "selection": 14,
+                "player": 18
+            },
+            {
+                "type": "track",
                 "selection": 20,
                 "player": 17
+            },
+            {
+                "type": "track",
+                "selection": 12,
+                "player": 18
             }
         ]
     },
@@ -9892,8 +9897,8 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 8,
-                "player": 0
+                "selection": 0,
+                "player": 10
             },
             {
                 "type": "track",
@@ -9902,13 +9907,13 @@
             },
             {
                 "type": "track",
-                "selection": 0,
+                "selection": 6,
                 "player": 10
             },
             {
                 "type": "track",
-                "selection": 6,
-                "player": 10
+                "selection": 8,
+                "player": 0
             }
         ]
     },
@@ -10236,13 +10241,13 @@
             },
             {
                 "type": "track",
-                "selection": 19,
-                "player": 7
+                "selection": 14,
+                "player": 15
             },
             {
                 "type": "track",
-                "selection": 14,
-                "player": 15
+                "selection": 19,
+                "player": 7
             },
             {
                 "type": "track",
@@ -10259,7 +10264,7 @@
         "commentators": [
             20
         ],
-        "vod": "https://youtu.be/yRLVGPQ6FGE",
+        "vod": "https://youtu.be/cxzAm6guSD4",
         "datetime": 1559676600000,
         "races": [
             {
@@ -10826,13 +10831,13 @@
             },
             {
                 "type": "track",
-                "selection": 0,
-                "player": 22
+                "selection": 19,
+                "player": 2
             },
             {
                 "type": "track",
-                "selection": 19,
-                "player": 2
+                "selection": 0,
+                "player": 22
             },
             {
                 "type": "track",
@@ -11228,13 +11233,13 @@
             },
             {
                 "type": "track",
-                "selection": 1,
-                "player": 12
+                "selection": 23,
+                "player": 14
             },
             {
                 "type": "track",
-                "selection": 23,
-                "player": 14
+                "selection": 1,
+                "player": 12
             },
             {
                 "type": "track",
@@ -11631,12 +11636,12 @@
             {
                 "type": "track",
                 "selection": 18,
-                "player": 0
+                "player": 15
             },
             {
                 "type": "track",
                 "selection": 24,
-                "player": 15
+                "player": 0
             },
             {
                 "type": "track",
@@ -11963,23 +11968,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 15,
-                "player": 17
-            },
-            {
-                "type": "track",
-                "selection": 20,
-                "player": 17
-            },
-            {
-                "type": "track",
                 "selection": 22,
                 "player": 9
             },
             {
                 "type": "track",
+                "selection": 15,
+                "player": 17
+            },
+            {
+                "type": "track",
                 "selection": 24,
                 "player": 9
+            },
+            {
+                "type": "track",
+                "selection": 20,
+                "player": 17
             }
         ]
     },
@@ -12291,23 +12296,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 0,
-                "player": 10
-            },
-            {
-                "type": "track",
-                "selection": 2,
-                "player": 10
-            },
-            {
-                "type": "track",
                 "selection": 22,
                 "player": 20
             },
             {
                 "type": "track",
+                "selection": 0,
+                "player": 10
+            },
+            {
+                "type": "track",
                 "selection": 1,
                 "player": 20
+            },
+            {
+                "type": "track",
+                "selection": 2,
+                "player": 10
             }
         ]
     },
@@ -13046,23 +13051,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 15,
-                "player": 17
-            },
-            {
-                "type": "track",
-                "selection": 18,
-                "player": 17
-            },
-            {
-                "type": "track",
                 "selection": 19,
                 "player": 22
             },
             {
                 "type": "track",
+                "selection": 15,
+                "player": 17
+            },
+            {
+                "type": "track",
                 "selection": 16,
                 "player": 22
+            },
+            {
+                "type": "track",
+                "selection": 18,
+                "player": 17
             }
         ]
     },
@@ -13574,23 +13579,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 0,
-                "player": 10
-            },
-            {
-                "type": "track",
-                "selection": 2,
-                "player": 10
-            },
-            {
-                "type": "track",
                 "selection": 22,
                 "player": 7
             },
             {
                 "type": "track",
+                "selection": 0,
+                "player": 10
+            },
+            {
+                "type": "track",
                 "selection": 16,
                 "player": 7
+            },
+            {
+                "type": "track",
+                "selection": 2,
+                "player": 10
             }
         ]
     },
@@ -13980,13 +13985,13 @@
             },
             {
                 "type": "track",
-                "selection": 16,
-                "player": 6
+                "selection": 1,
+                "player": 0
             },
             {
                 "type": "track",
-                "selection": 1,
-                "player": 0
+                "selection": 16,
+                "player": 6
             },
             {
                 "type": "track",
@@ -14004,7 +14009,7 @@
             0,
             17
         ],
-        "vod": "https://youtu.be/hyaIBjgt2uU",
+        "vod": "https://youtu.be/K5-XeRaJ3lQ",
         "datetime": 1560103200000,
         "races": [
             {
@@ -14561,23 +14566,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 23,
-                "player": 12
-            },
-            {
-                "type": "track",
-                "selection": 24,
-                "player": 12
-            },
-            {
-                "type": "track",
                 "selection": 14,
                 "player": 18
             },
             {
                 "type": "track",
+                "selection": 23,
+                "player": 12
+            },
+            {
+                "type": "track",
                 "selection": 12,
                 "player": 18
+            },
+            {
+                "type": "track",
+                "selection": 24,
+                "player": 12
             }
         ]
     },
@@ -14905,13 +14910,13 @@
             },
             {
                 "type": "track",
-                "selection": 19,
-                "player": 14
+                "selection": 14,
+                "player": 15
             },
             {
                 "type": "track",
-                "selection": 14,
-                "player": 15
+                "selection": 19,
+                "player": 14
             },
             {
                 "type": "track",
@@ -15221,18 +15226,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 18,
-                "player": 13
-            },
-            {
-                "type": "track",
                 "selection": 16,
                 "player": 2
             },
             {
                 "type": "track",
+                "selection": 18,
+                "player": 13
+            },
+            {
+                "type": "track",
                 "selection": 19,
                 "player": 2
+            },
+            {
+                "type": "track",
+                "selection": 22,
+                "player": 13
             }
         ]
     },
@@ -15623,13 +15633,13 @@
             },
             {
                 "type": "track",
-                "selection": 5,
-                "player": 25
+                "selection": 19,
+                "player": 16
             },
             {
                 "type": "track",
-                "selection": 19,
-                "player": 16
+                "selection": 5,
+                "player": 25
             },
             {
                 "type": "track",
@@ -16083,23 +16093,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 19,
-                "player": 14
-            },
-            {
-                "type": "track",
-                "selection": 22,
-                "player": 14
-            },
-            {
-                "type": "track",
                 "selection": 17,
                 "player": 25
             },
             {
                 "type": "track",
+                "selection": 19,
+                "player": 14
+            },
+            {
+                "type": "track",
                 "selection": 5,
                 "player": 25
+            },
+            {
+                "type": "track",
+                "selection": 22,
+                "player": 14
             }
         ]
     },
@@ -16548,16 +16558,6 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 24,
-                "player": 6
-            },
-            {
-                "type": "track",
-                "selection": 5,
-                "player": 6
-            },
-            {
-                "type": "track",
                 "selection": 16,
                 "player": 22
             },
@@ -16565,6 +16565,16 @@
                 "type": "track",
                 "selection": 19,
                 "player": 22
+            },
+            {
+                "type": "track",
+                "selection": 24,
+                "player": 6
+            },
+            {
+                "type": "track",
+                "selection": 5,
+                "player": 6
             }
         ]
     },
@@ -16950,23 +16960,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 5,
-                "player": 7
-            },
-            {
-                "type": "track",
-                "selection": 22,
-                "player": 7
-            },
-            {
-                "type": "track",
                 "selection": 16,
                 "player": 2
             },
             {
                 "type": "track",
+                "selection": 5,
+                "player": 7
+            },
+            {
+                "type": "track",
                 "selection": 20,
                 "player": 2
+            },
+            {
+                "type": "track",
+                "selection": 22,
+                "player": 7
             }
         ]
     },
@@ -17478,23 +17488,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 16,
-                "player": 20
-            },
-            {
-                "type": "track",
-                "selection": 22,
-                "player": 20
-            },
-            {
-                "type": "track",
                 "selection": 15,
                 "player": 17
             },
             {
                 "type": "track",
+                "selection": 16,
+                "player": 20
+            },
+            {
+                "type": "track",
                 "selection": 4,
                 "player": 17
+            },
+            {
+                "type": "track",
+                "selection": 22,
+                "player": 20
             }
         ]
     },
@@ -17880,23 +17890,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 23,
-                "player": 12
-            },
-            {
-                "type": "track",
-                "selection": 15,
-                "player": 12
-            },
-            {
-                "type": "track",
                 "selection": 14,
                 "player": 18
             },
             {
                 "type": "track",
+                "selection": 23,
+                "player": 12
+            },
+            {
+                "type": "track",
                 "selection": 19,
                 "player": 18
+            },
+            {
+                "type": "track",
+                "selection": 15,
+                "player": 12
             }
         ]
     },
@@ -18193,24 +18203,26 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 7,
-                "player": 15
-            },
-            {
-                "type": "track",
-                "selection": 14,
-                "player": 15
-            },
-            {
-                "type": "track",
                 "selection": 22,
                 "player": 16
             },
             {
                 "type": "track",
+                "selection": 7,
+                "player": 15
+            },
+            {
+                "type": "track",
                 "selection": 19,
                 "player": 16
+            },
+            {
+                "type": "track",
+                "selection": 14,
+                "player": 15
             }
+            
+            
         ]
     },
     {
@@ -18584,23 +18596,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 23,
-                "player": 10
-            },
-            {
-                "type": "track",
-                "selection": 19,
-                "player": 10
-            },
-            {
-                "type": "track",
                 "selection": 16,
                 "player": 9
             },
             {
                 "type": "track",
+                "selection": 23,
+                "player": 10
+            },
+            {
+                "type": "track",
                 "selection": 22,
                 "player": 9
+            },
+            {
+                "type": "track",
+                "selection": 19,
+                "player": 10
             }
         ]
     },
@@ -18865,13 +18877,13 @@
             },
             {
                 "type": "track",
-                "selection": 22,
-                "player": 0
+                "selection": 18,
+                "player": 13
             },
             {
                 "type": "track",
-                "selection": 18,
-                "player": 13
+                "selection": 22,
+                "player": 0
             },
             {
                 "type": "track",
@@ -18889,7 +18901,7 @@
             26,
             20
         ],
-        "vod": "https://youtu.be/3ilEDdBk1ic",
+        "vod": "https://youtu.be/Pu00xmwJODA",
         "datetime": 1560970800000,
         "races": [
             {
@@ -19383,23 +19395,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 22,
-                "player": 16
-            },
-            {
-                "type": "track",
-                "selection": 19,
-                "player": 16
-            },
-            {
-                "type": "track",
                 "selection": 17,
                 "player": 25
             },
             {
                 "type": "track",
+                "selection": 22,
+                "player": 16
+            },
+            {
+                "type": "track",
                 "selection": 5,
                 "player": 25
+            },
+            {
+                "type": "track",
+                "selection": 19,
+                "player": 16
             }
         ]
     },
@@ -19727,17 +19739,18 @@
             },
             {
                 "type": "track",
+                "selection": 14,
+                "player": 15
+            },
+            
+            {
+                "type": "track",
                 "selection": 22,
                 "player": 14
             },
             {
                 "type": "track",
                 "selection": 18,
-                "player": 15
-            },
-            {
-                "type": "track",
-                "selection": 14,
                 "player": 15
             }
         ]
@@ -20318,13 +20331,13 @@
             },
             {
                 "type": "track",
-                "selection": 2,
-                "player": 22
+                "selection": 16,
+                "player": 2
             },
             {
                 "type": "track",
-                "selection": 16,
-                "player": 2
+                "selection": 2,
+                "player": 22
             },
             {
                 "type": "track",
@@ -20714,23 +20727,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 23,
-                "player": 10
-            },
-            {
-                "type": "track",
-                "selection": 14,
-                "player": 10
-            },
-            {
-                "type": "track",
                 "selection": 0,
                 "player": 12
             },
             {
                 "type": "track",
+                "selection": 23,
+                "player": 10
+            },
+            {
+                "type": "track",
                 "selection": 4,
                 "player": 12
+            },
+            {
+                "type": "track",
+                "selection": 14,
+                "player": 10
             }
         ]
     },
@@ -21632,23 +21645,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 12,
-                "player": 6
-            },
-            {
-                "type": "track",
-                "selection": 2,
-                "player": 6
-            },
-            {
-                "type": "track",
                 "selection": 22,
                 "player": 7
             },
             {
                 "type": "track",
+                "selection": 12,
+                "player": 6
+            },
+            {
+                "type": "track",
                 "selection": 16,
                 "player": 7
+            },
+            {
+                "type": "track",
+                "selection": 2,
+                "player": 6
             }
         ]
     },
@@ -21960,23 +21973,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 14,
-                "player": 18
-            },
-            {
-                "type": "track",
-                "selection": 5,
-                "player": 18
-            },
-            {
-                "type": "track",
                 "selection": 22,
                 "player": 9
             },
             {
                 "type": "track",
+                "selection": 14,
+                "player": 18
+            },
+            {
+                "type": "track",
                 "selection": 24,
                 "player": 9
+            },
+            {
+                "type": "track",
+                "selection": 5,
+                "player": 18
             }
         ]
     },
@@ -22556,13 +22569,13 @@
             },
             {
                 "type": "track",
-                "selection": 23,
-                "player": 22
+                "selection": 18,
+                "player": 14
             },
             {
                 "type": "track",
-                "selection": 18,
-                "player": 14
+                "selection": 23,
+                "player": 22
             },
             {
                 "type": "track",
@@ -22890,23 +22903,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 8,
-                "player": 15
-            },
-            {
-                "type": "track",
-                "selection": 18,
-                "player": 15
-            },
-            {
-                "type": "track",
                 "selection": 9,
                 "player": 10
             },
             {
                 "type": "track",
+                "selection": 8,
+                "player": 15
+            },
+            {
+                "type": "track",
                 "selection": 1,
                 "player": 10
+            },
+            {
+                "type": "track",
+                "selection": 18,
+                "player": 15
             }
         ]
     },
@@ -23413,23 +23426,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 20,
-                "player": 6
-            },
-            {
-                "type": "track",
-                "selection": 16,
-                "player": 6
-            },
-            {
-                "type": "track",
                 "selection": 1,
                 "player": 25
             },
             {
                 "type": "track",
+                "selection": 20,
+                "player": 6
+            },
+            {
+                "type": "track",
                 "selection": 5,
                 "player": 25
+            },
+            {
+                "type": "track",
+                "selection": 16,
+                "player": 6
             }
         ]
     },
@@ -23811,12 +23824,12 @@
             {
                 "type": "track",
                 "selection": 14,
-                "player": 17
+                "player": 18
             },
             {
                 "type": "track",
                 "selection": 4,
-                "player": 18
+                "player": 17
             },
             {
                 "type": "track",
@@ -24259,13 +24272,13 @@
             },
             {
                 "type": "track",
-                "selection": 1,
-                "player": 0
+                "selection": 5,
+                "player": 7
             },
             {
                 "type": "track",
-                "selection": 5,
-                "player": 7
+                "selection": 1,
+                "player": 0
             },
             {
                 "type": "track",
@@ -24588,13 +24601,13 @@
             },
             {
                 "type": "track",
-                "selection": 22,
-                "player": 20
+                "selection": 18,
+                "player": 13
             },
             {
                 "type": "track",
-                "selection": 18,
-                "player": 13
+                "selection": 22,
+                "player": 20
             },
             {
                 "type": "track",
@@ -25105,23 +25118,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 0,
-                "player": 12
-            },
-            {
-                "type": "track",
-                "selection": 1,
-                "player": 12
-            },
-            {
-                "type": "track",
                 "selection": 19,
                 "player": 20
             },
             {
                 "type": "track",
+                "selection": 0,
+                "player": 12
+            },
+            {
+                "type": "track",
                 "selection": 16,
                 "player": 20
+            },
+            {
+                "type": "track",
+                "selection": 1,
+                "player": 12
             }
         ]
     },
@@ -25670,23 +25683,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 16,
-                "player": 6
-            },
-            {
-                "type": "track",
-                "selection": 9,
-                "player": 6
-            },
-            {
-                "type": "track",
                 "selection": 5,
                 "player": 18
             },
             {
                 "type": "track",
+                "selection": 16,
+                "player": 6
+            },
+            {
+                "type": "track",
                 "selection": 14,
                 "player": 18
+            },
+            {
+                "type": "track",
+                "selection": 9,
+                "player": 6
             }
         ]
     },
@@ -26261,23 +26274,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 12,
-                "player": 22
-            },
-            {
-                "type": "track",
-                "selection": 17,
-                "player": 22
-            },
-            {
-                "type": "track",
                 "selection": 5,
                 "player": 12
             },
             {
                 "type": "track",
+                "selection": 12,
+                "player": 22
+            },
+            {
+                "type": "track",
                 "selection": 21,
                 "player": 12
+            },
+            {
+                "type": "track",
+                "selection": 17,
+                "player": 22
             }
         ]
     },
@@ -26726,13 +26739,13 @@
             },
             {
                 "type": "track",
-                "selection": 21,
-                "player": 10
+                "selection": 14,
+                "player": 18
             },
             {
                 "type": "track",
-                "selection": 14,
-                "player": 18
+                "selection": 21,
+                "player": 10
             },
             {
                 "type": "track",
@@ -27249,23 +27262,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 21,
-                "player": 12
-            },
-            {
-                "type": "track",
-                "selection": 8,
-                "player": 12
-            },
-            {
-                "type": "track",
                 "selection": 14,
                 "player": 7
             },
             {
                 "type": "track",
+                "selection": 21,
+                "player": 12
+            },
+            {
+                "type": "track",
                 "selection": 5,
                 "player": 7
+            },
+            {
+                "type": "track",
+                "selection": 8,
+                "player": 12
             }
         ]
     },
@@ -27714,8 +27727,8 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 21,
-                "player": 10
+                "selection": 5,
+                "player": 7
             },
             {
                 "type": "track",
@@ -27729,8 +27742,8 @@
             },
             {
                 "type": "track",
-                "selection": 5,
-                "player": 7
+                "selection": 21,
+                "player": 10
             }
         ]
     },
@@ -28562,13 +28575,13 @@
             },
             {
                 "type": "track",
-                "selection": 22,
-                "player": 0
+                "selection": 18,
+                "player": 15
             },
             {
                 "type": "track",
-                "selection": 18,
-                "player": 15
+                "selection": 22,
+                "player": 0
             },
             {
                 "type": "track",
@@ -29385,17 +29398,17 @@
             },
             {
                 "type": "track",
+                "selection": 11,
+                "player": 15
+            },
+            {
+                "type": "track",
                 "selection": 0,
                 "player": 10
             },
             {
                 "type": "track",
                 "selection": 23,
-                "player": 15
-            },
-            {
-                "type": "track",
-                "selection": 11,
                 "player": 15
             }
         ]
@@ -30930,13 +30943,13 @@
             },
             {
                 "type": "track",
-                "selection": 8,
-                "player": 0
+                "selection": 22,
+                "player": 17
             },
             {
                 "type": "track",
-                "selection": 22,
-                "player": 17
+                "selection": 8,
+                "player": 0
             },
             {
                 "type": "track",
@@ -31268,23 +31281,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 17,
-                "player": 10
-            },
-            {
-                "type": "track",
-                "selection": 6,
-                "player": 10
-            },
-            {
-                "type": "track",
                 "selection": 22,
                 "player": 4
             },
             {
                 "type": "track",
+                "selection": 17,
+                "player": 10
+            },
+            {
+                "type": "track",
                 "selection": 5,
                 "player": 4
+            },
+            {
+                "type": "track",
+                "selection": 6,
+                "player": 10
             }
         ]
     },
@@ -31747,23 +31760,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 0,
-                "player": 10
-            },
-            {
-                "type": "track",
-                "selection": 6,
-                "player": 10
-            },
-            {
-                "type": "track",
                 "selection": 19,
                 "player": 14
             },
             {
                 "type": "track",
+                "selection": 0,
+                "player": 10
+            },
+            {
+                "type": "track",
                 "selection": 14,
                 "player": 14
+            },
+            {
+                "type": "track",
+                "selection": 6,
+                "player": 10
             }
         ]
     },
@@ -32093,12 +32106,12 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 14,
-                "player": 15
+                "selection": 5,
+                "player": 4
             },
             {
                 "type": "track",
-                "selection": 5,
+                "selection": 14,
                 "player": 15
             },
             {
@@ -32109,7 +32122,7 @@
             {
                 "type": "track",
                 "selection": 11,
-                "player": 4
+                "player": 15
             }
         ]
     },
@@ -32436,16 +32449,6 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 11,
-                "player": 25
-            },
-            {
-                "type": "track",
-                "selection": 5,
-                "player": 25
-            },
-            {
-                "type": "track",
                 "selection": 22,
                 "player": 1
             },
@@ -32453,6 +32456,16 @@
                 "type": "track",
                 "selection": 19,
                 "player": 1
+            },
+            {
+                "type": "track",
+                "selection": 11,
+                "player": 25
+            },
+            {
+                "type": "track",
+                "selection": 5,
+                "player": 25
             }
         ]
     },
@@ -32779,23 +32792,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 22,
-                "player": 1
-            },
-            {
-                "type": "track",
-                "selection": 11,
-                "player": 1
-            },
-            {
-                "type": "track",
                 "selection": 8,
                 "player": 0
             },
             {
                 "type": "track",
+                "selection": 22,
+                "player": 1
+            },
+            {
+                "type": "track",
                 "selection": 17,
                 "player": 0
+            },
+            {
+                "type": "track",
+                "selection": 11,
+                "player": 1
             }
         ]
     },
@@ -33116,23 +33129,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 20,
-                "player": 24
-            },
-            {
-                "type": "track",
-                "selection": 19,
-                "player": 24
-            },
-            {
-                "type": "track",
                 "selection": 17,
                 "player": 0
             },
             {
                 "type": "track",
+                "selection": 20,
+                "player": 24
+            },
+            {
+                "type": "track",
                 "selection": 22,
                 "player": 0
+            },
+            {
+                "type": "track",
+                "selection": 19,
+                "player": 24
             }
         ]
     },
@@ -33658,23 +33671,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 0,
-                "player": 12
-            },
-            {
-                "type": "track",
-                "selection": 1,
-                "player": 12
-            },
-            {
-                "type": "track",
                 "selection": 20,
                 "player": 17
             },
             {
                 "type": "track",
+                "selection": 0,
+                "player": 12
+            },
+            {
+                "type": "track",
                 "selection": 12,
                 "player": 17
+            },
+            {
+                "type": "track",
+                "selection": 1,
+                "player": 12
             }
         ]
     },
@@ -33996,16 +34009,6 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 20,
-                "player": 17
-            },
-            {
-                "type": "track",
-                "selection": 17,
-                "player": 17
-            },
-            {
-                "type": "track",
                 "selection": 22,
                 "player": 1
             },
@@ -34013,6 +34016,16 @@
                 "type": "track",
                 "selection": 21,
                 "player": 1
+            },
+            {
+                "type": "track",
+                "selection": 20,
+                "player": 17
+            },
+            {
+                "type": "track",
+                "selection": 17,
+                "player": 17
             }
         ]
     },
@@ -34339,23 +34352,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 14,
-                "player": 15
-            },
-            {
-                "type": "track",
-                "selection": 11,
-                "player": 15
-            },
-            {
-                "type": "track",
                 "selection": 23,
                 "player": 11
             },
             {
                 "type": "track",
+                "selection": 14,
+                "player": 15
+            },
+            {
+                "type": "track",
                 "selection": 19,
                 "player": 11
+            },
+            {
+                "type": "track",
+                "selection": 11,
+                "player": 15
             }
         ]
     },
@@ -35087,23 +35100,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 0,
-                "player": 12
-            },
-            {
-                "type": "track",
-                "selection": 1,
-                "player": 12
-            },
-            {
-                "type": "track",
                 "selection": 22,
                 "player": 1
             },
             {
                 "type": "track",
+                "selection": 0,
+                "player": 12
+            },
+            {
+                "type": "track",
                 "selection": 21,
                 "player": 1
+            },
+            {
+                "type": "track",
+                "selection": 1,
+                "player": 12
             }
         ]
     },
@@ -35493,23 +35506,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 16,
-                "player": 20
-            },
-            {
-                "type": "track",
-                "selection": 19,
-                "player": 20
-            },
-            {
-                "type": "track",
                 "selection": 14,
                 "player": 15
             },
             {
                 "type": "track",
+                "selection": 16,
+                "player": 20
+            },
+            {
+                "type": "track",
                 "selection": 11,
                 "player": 15
+            },
+            {
+                "type": "track",
+                "selection": 19,
+                "player": 20
             }
         ]
     },
@@ -35830,23 +35843,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 16,
-                "player": 1
-            },
-            {
-                "type": "track",
-                "selection": 22,
-                "player": 1
-            },
-            {
-                "type": "track",
                 "selection": 14,
                 "player": 18
             },
             {
                 "type": "track",
+                "selection": 16,
+                "player": 1
+            },
+            {
+                "type": "track",
                 "selection": 20,
                 "player": 18
+            },
+            {
+                "type": "track",
+                "selection": 22,
+                "player": 1
             }
         ]
     },
@@ -36304,23 +36317,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 16,
-                "player": 20
-            },
-            {
-                "type": "track",
-                "selection": 20,
-                "player": 20
-            },
-            {
-                "type": "track",
                 "selection": 22,
                 "player": 10
             },
             {
                 "type": "track",
+                "selection": 16,
+                "player": 20
+            },
+            {
+                "type": "track",
                 "selection": 13,
                 "player": 10
+            },
+            {
+                "type": "track",
+                "selection": 20,
+                "player": 20
             }
         ]
     },
@@ -36914,13 +36927,13 @@
             },
             {
                 "type": "track",
-                "selection": 17,
-                "player": 17
+                "selection": 14,
+                "player": 18
             },
             {
                 "type": "track",
-                "selection": 14,
-                "player": 18
+                "selection": 17,
+                "player": 17
             },
             {
                 "type": "track",
@@ -37246,23 +37259,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 5,
-                "player": 25
-            },
-            {
-                "type": "track",
-                "selection": 4,
-                "player": 25
-            },
-            {
-                "type": "track",
                 "selection": 22,
                 "player": 24
             },
             {
                 "type": "track",
+                "selection": 5,
+                "player": 25
+            },
+            {
+                "type": "track",
                 "selection": 17,
                 "player": 24
+            },
+            {
+                "type": "track",
+                "selection": 4,
+                "player": 25
             }
         ]
     },
@@ -37783,23 +37796,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 5,
-                "player": 14
-            },
-            {
-                "type": "track",
-                "selection": 13,
-                "player": 14
-            },
-            {
-                "type": "track",
                 "selection": 16,
                 "player": 20
             },
             {
                 "type": "track",
+                "selection": 5,
+                "player": 14
+            },
+            {
+                "type": "track",
                 "selection": 19,
                 "player": 20
+            },
+            {
+                "type": "track",
+                "selection": 13,
+                "player": 14
             }
         ]
     },
@@ -38188,13 +38201,13 @@
             },
             {
                 "type": "track",
-                "selection": 21,
-                "player": 11
+                "selection": 16,
+                "player": 20
             },
             {
                 "type": "track",
-                "selection": 16,
-                "player": 20
+                "selection": 21,
+                "player": 11
             },
             {
                 "type": "track",
@@ -38524,15 +38537,16 @@
                 "selection": 5,
                 "player": 25
             },
-            {
-                "type": "track",
-                "selection": 4,
-                "player": 25
-            },
+            
             {
                 "type": "track",
                 "selection": 17,
                 "player": 0
+            },
+            {
+                "type": "track",
+                "selection": 4,
+                "player": 25
             },
             {
                 "type": "track",
@@ -39056,15 +39070,16 @@
                 "selection": 0,
                 "player": 10
             },
-            {
-                "type": "track",
-                "selection": 13,
-                "player": 10
-            },
+            
             {
                 "type": "track",
                 "selection": 11,
                 "player": 15
+            },
+            {
+                "type": "track",
+                "selection": 13,
+                "player": 10
             },
             {
                 "type": "track",
@@ -39652,13 +39667,13 @@
             },
             {
                 "type": "track",
-                "selection": 21,
-                "player": 1
+                "selection": 19,
+                "player": 24
             },
             {
                 "type": "track",
-                "selection": 19,
-                "player": 24
+                "selection": 21,
+                "player": 1
             },
             {
                 "type": "track",
@@ -39995,13 +40010,13 @@
             },
             {
                 "type": "track",
-                "selection": 18,
-                "player": 13
+                "selection": 19,
+                "player": 10
             },
             {
                 "type": "track",
-                "selection": 19,
-                "player": 10
+                "selection": 18,
+                "player": 13
             },
             {
                 "type": "track",
@@ -40327,23 +40342,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 20,
-                "player": 17
-            },
-            {
-                "type": "track",
-                "selection": 17,
-                "player": 17
-            },
-            {
-                "type": "track",
                 "selection": 19,
                 "player": 24
             },
             {
                 "type": "track",
+                "selection": 20,
+                "player": 17
+            },
+            {
+                "type": "track",
                 "selection": 23,
                 "player": 24
+            },
+            {
+                "type": "track",
+                "selection": 17,
+                "player": 17
             }
         ]
     },
@@ -40670,13 +40685,13 @@
             },
             {
                 "type": "track",
-                "selection": 21,
-                "player": 11
+                "selection": 22,
+                "player": 14
             },
             {
                 "type": "track",
-                "selection": 22,
-                "player": 14
+                "selection": 21,
+                "player": 11
             },
             {
                 "type": "track",
@@ -41008,13 +41023,13 @@
             },
             {
                 "type": "track",
-                "selection": 21,
-                "player": 11
+                "selection": 6,
+                "player": 10
             },
             {
                 "type": "track",
-                "selection": 6,
-                "player": 10
+                "selection": 21,
+                "player": 11
             },
             {
                 "type": "track",
@@ -41537,23 +41552,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 5,
-                "player": 25
-            },
-            {
-                "type": "track",
-                "selection": 11,
-                "player": 25
-            },
-            {
-                "type": "track",
                 "selection": 20,
                 "player": 17
             },
             {
                 "type": "track",
+                "selection": 5,
+                "player": 25
+            },
+            {
+                "type": "track",
                 "selection": 17,
                 "player": 17
+            },
+            {
+                "type": "track",
+                "selection": 11,
+                "player": 25
             }
         ]
     },
@@ -41879,23 +41894,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 17,
-                "player": 14
-            },
-            {
-                "type": "track",
-                "selection": 22,
-                "player": 14
-            },
-            {
-                "type": "track",
                 "selection": 19,
                 "player": 4
             },
             {
                 "type": "track",
+                "selection": 17,
+                "player": 14
+            },
+            {
+                "type": "track",
                 "selection": 16,
                 "player": 4
+            },
+            {
+                "type": "track",
+                "selection": 22,
+                "player": 14
             }
         ]
     },
@@ -42216,23 +42231,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 16,
-                "player": 20
-            },
-            {
-                "type": "track",
-                "selection": 19,
-                "player": 20
-            },
-            {
-                "type": "track",
                 "selection": 0,
                 "player": 4
             },
             {
                 "type": "track",
+                "selection": 16,
+                "player": 20
+            },
+            {
+                "type": "track",
                 "selection": 5,
                 "player": 4
+            },
+            {
+                "type": "track",
+                "selection": 19,
+                "player": 20
             }
         ]
     },
@@ -42558,23 +42573,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 20,
-                "player": 11
-            },
-            {
-                "type": "track",
-                "selection": 19,
-                "player": 11
-            },
-            {
-                "type": "track",
                 "selection": 22,
                 "player": 13
             },
             {
                 "type": "track",
+                "selection": 20,
+                "player": 11
+            },
+            {
+                "type": "track",
                 "selection": 18,
                 "player": 13
+            },
+            {
+                "type": "track",
+                "selection": 19,
+                "player": 11
             }
         ]
     },
@@ -42901,23 +42916,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 5,
-                "player": 18
-            },
-            {
-                "type": "track",
-                "selection": 20,
-                "player": 18
-            },
-            {
-                "type": "track",
                 "selection": 17,
                 "player": 0
             },
             {
                 "type": "track",
+                "selection": 5,
+                "player": 18
+            },
+            {
+                "type": "track",
                 "selection": 13,
                 "player": 0
+            },
+            {
+                "type": "track",
+                "selection": 20,
+                "player": 18
             }
         ]
     },
@@ -43239,23 +43254,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 16,
-                "player": 14
-            },
-            {
-                "type": "track",
-                "selection": 14,
-                "player": 14
-            },
-            {
-                "type": "track",
                 "selection": 22,
                 "player": 13
             },
             {
                 "type": "track",
+                "selection": 16,
+                "player": 14
+            },
+            {
+                "type": "track",
                 "selection": 18,
                 "player": 13
+            },
+            {
+                "type": "track",
+                "selection": 14,
+                "player": 14
             }
         ]
     },
@@ -44008,23 +44023,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 14,
-                "player": 15
-            },
-            {
-                "type": "track",
-                "selection": 11,
-                "player": 15
-            },
-            {
-                "type": "track",
                 "selection": 17,
                 "player": 14
             },
             {
                 "type": "track",
+                "selection": 14,
+                "player": 15
+            },
+            {
+                "type": "track",
                 "selection": 6,
                 "player": 14
+            },
+            {
+                "type": "track",
+                "selection": 11,
+                "player": 15
             }
         ]
     },
@@ -44487,14 +44502,15 @@
             },
             {
                 "type": "track",
-                "selection": 17,
-                "player": 12
-            },
-            {
-                "type": "track",
                 "selection": 14,
                 "player": 18
             },
+            {
+                "type": "track",
+                "selection": 17,
+                "player": 12
+            },
+            
             {
                 "type": "track",
                 "selection": 20,
@@ -45096,13 +45112,13 @@
             },
             {
                 "type": "track",
-                "selection": 19,
-                "player": 12
+                "selection": 24,
+                "player": 25
             },
             {
                 "type": "track",
-                "selection": 24,
-                "player": 25
+                "selection": 19,
+                "player": 12
             },
             {
                 "type": "track",
@@ -45434,23 +45450,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 14,
-                "player": 4
-            },
-            {
-                "type": "track",
-                "selection": 16,
-                "player": 4
-            },
-            {
-                "type": "track",
                 "selection": 22,
                 "player": 13
             },
             {
                 "type": "track",
+                "selection": 14,
+                "player": 4
+            },
+            {
+                "type": "track",
                 "selection": 18,
                 "player": 13
+            },
+            {
+                "type": "track",
+                "selection": 16,
+                "player": 4
             }
         ]
     },
@@ -45967,23 +45983,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 24,
-                "player": 25
-            },
-            {
-                "type": "track",
-                "selection": 11,
-                "player": 25
-            },
-            {
-                "type": "track",
                 "selection": 16,
                 "player": 18
             },
             {
                 "type": "track",
+                "selection": 24,
+                "player": 25
+            },
+            {
+                "type": "track",
                 "selection": 14,
                 "player": 18
+            },
+            {
+                "type": "track",
+                "selection": 11,
+                "player": 25
             }
         ]
     },
@@ -46304,23 +46320,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 19,
-                "player": 12
-            },
-            {
-                "type": "track",
-                "selection": 20,
-                "player": 12
-            },
-            {
-                "type": "track",
                 "selection": 23,
                 "player": 24
             },
             {
                 "type": "track",
+                "selection": 19,
+                "player": 12
+            },
+            {
+                "type": "track",
                 "selection": 17,
                 "player": 24
+            },
+            {
+                "type": "track",
+                "selection": 20,
+                "player": 12
             }
         ]
     },
@@ -46784,23 +46800,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 20,
-                "player": 12
-            },
-            {
-                "type": "track",
-                "selection": 21,
-                "player": 12
-            },
-            {
-                "type": "track",
                 "selection": 22,
                 "player": 0
             },
             {
                 "type": "track",
+                "selection": 20,
+                "player": 12
+            },
+            {
+                "type": "track",
                 "selection": 13,
                 "player": 0
+            },
+            {
+                "type": "track",
+                "selection": 21,
+                "player": 12
             }
         ]
     },
@@ -47126,13 +47142,13 @@
             },
             {
                 "type": "track",
-                "selection": 14,
-                "player": 18
+                "selection": 20,
+                "player": 24
             },
             {
                 "type": "track",
-                "selection": 20,
-                "player": 24
+                "selection": 14,
+                "player": 18
             },
             {
                 "type": "track",
@@ -47458,23 +47474,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 19,
-                "player": 20
-            },
-            {
-                "type": "track",
-                "selection": 16,
-                "player": 20
-            },
-            {
-                "type": "track",
                 "selection": 22,
                 "player": 13
             },
             {
                 "type": "track",
+                "selection": 19,
+                "player": 20
+            },
+            {
+                "type": "track",
                 "selection": 18,
                 "player": 13
+            },
+            {
+                "type": "track",
+                "selection": 16,
+                "player": 20
             }
         ]
     },
@@ -47938,14 +47954,15 @@
             },
             {
                 "type": "track",
-                "selection": 17,
-                "player": 17
-            },
-            {
-                "type": "track",
                 "selection": 6,
                 "player": 14
             },
+            {
+                "type": "track",
+                "selection": 17,
+                "player": 17
+            },
+            
             {
                 "type": "track",
                 "selection": 5,
@@ -48413,13 +48430,13 @@
             },
             {
                 "type": "track",
-                "selection": 6,
-                "player": 12
+                "selection": 14,
+                "player": 15
             },
             {
                 "type": "track",
-                "selection": 14,
-                "player": 15
+                "selection": 6,
+                "player": 12
             },
             {
                 "type": "track",
@@ -48809,23 +48826,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 13,
-                "player": 10
-            },
-            {
-                "type": "track",
-                "selection": 17,
-                "player": 10
-            },
-            {
-                "type": "track",
                 "selection": 0,
                 "player": 25
             },
             {
                 "type": "track",
+                "selection": 13,
+                "player": 10
+            },
+            {
+                "type": "track",
                 "selection": 24,
                 "player": 25
+            },
+            {
+                "type": "track",
+                "selection": 17,
+                "player": 10
             }
         ]
     },
@@ -49158,13 +49175,13 @@
             },
             {
                 "type": "track",
-                "selection": 1,
-                "player": 4
+                "selection": 21,
+                "player": 25
             },
             {
                 "type": "track",
-                "selection": 21,
-                "player": 25
+                "selection": 1,
+                "player": 4
             },
             {
                 "type": "track",
@@ -49560,14 +49577,15 @@
             },
             {
                 "type": "track",
-                "selection": 24,
-                "player": 20
-            },
-            {
-                "type": "track",
                 "selection": 0,
                 "player": 0
             },
+            {
+                "type": "track",
+                "selection": 24,
+                "player": 20
+            },
+            
             {
                 "type": "track",
                 "selection": 4,
@@ -49903,14 +49921,15 @@
             },
             {
                 "type": "track",
-                "selection": 19,
-                "player": 11
-            },
-            {
-                "type": "track",
                 "selection": 17,
                 "player": 12
             },
+            {
+                "type": "track",
+                "selection": 19,
+                "player": 11
+            },
+            
             {
                 "type": "track",
                 "selection": 1,
@@ -50237,23 +50256,24 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 20,
-                "player": 17
-            },
-            {
-                "type": "track",
-                "selection": 17,
-                "player": 17
-            },
-            {
-                "type": "track",
                 "selection": 21,
                 "player": 1
             },
             {
                 "type": "track",
+                "selection": 20,
+                "player": 17
+            },
+            
+            {
+                "type": "track",
                 "selection": 22,
                 "player": 1
+            },
+            {
+                "type": "track",
+                "selection": 17,
+                "player": 17
             }
         ]
     },
@@ -50837,13 +50857,13 @@
             },
             {
                 "type": "track",
-                "selection": 19,
-                "player": 20
+                "selection": 20,
+                "player": 18
             },
             {
                 "type": "track",
-                "selection": 20,
-                "player": 18
+                "selection": 19,
+                "player": 20
             },
             {
                 "type": "track",
@@ -51426,23 +51446,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 5,
-                "player": 25
-            },
-            {
-                "type": "track",
-                "selection": 23,
-                "player": 25
-            },
-            {
-                "type": "track",
                 "selection": 14,
                 "player": 12
             },
             {
                 "type": "track",
+                "selection": 5,
+                "player": 25
+            },
+            {
+                "type": "track",
                 "selection": 9,
                 "player": 12
+            },
+            {
+                "type": "track",
+                "selection": 23,
+                "player": 25
             }
         ]
     },
@@ -51885,14 +51905,15 @@
             },
             {
                 "type": "track",
-                "selection": 19,
-                "player": 20
-            },
-            {
-                "type": "track",
                 "selection": 0,
                 "player": 17
             },
+            {
+                "type": "track",
+                "selection": 19,
+                "player": 20
+            },
+            
             {
                 "type": "track",
                 "selection": 1,
@@ -52518,23 +52539,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 17,
-                "player": 14
-            },
-            {
-                "type": "track",
-                "selection": 14,
-                "player": 14
-            },
-            {
-                "type": "track",
                 "selection": 2,
                 "player": 0
             },
             {
                 "type": "track",
+                "selection": 17,
+                "player": 14
+            },
+            {
+                "type": "track",
                 "selection": 0,
                 "player": 0
+            },
+            {
+                "type": "track",
+                "selection": 14,
+                "player": 14
             }
         ]
     },
@@ -53240,13 +53261,13 @@
             },
             {
                 "type": "track",
-                "selection": 17,
-                "player": 10
+                "selection": 11,
+                "player": 15
             },
             {
                 "type": "track",
-                "selection": 11,
-                "player": 15
+                "selection": 17,
+                "player": 10
             },
             {
                 "type": "track",
@@ -53705,23 +53726,24 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 16,
-                "player": 14
-            },
-            {
-                "type": "track",
-                "selection": 17,
-                "player": 14
-            },
-            {
-                "type": "track",
                 "selection": 11,
                 "player": 25
             },
             {
                 "type": "track",
+                "selection": 16,
+                "player": 14
+            },
+            
+            {
+                "type": "track",
                 "selection": 22,
                 "player": 25
+            },
+            {
+                "type": "track",
+                "selection": 17,
+                "player": 14
             }
         ]
     },
@@ -54232,14 +54254,15 @@
             },
             {
                 "type": "track",
-                "selection": 0,
-                "player": 15
-            },
-            {
-                "type": "track",
                 "selection": 20,
                 "player": 17
             },
+            {
+                "type": "track",
+                "selection": 0,
+                "player": 15
+            },
+            
             {
                 "type": "track",
                 "selection": 17,
@@ -54775,14 +54798,15 @@
             },
             {
                 "type": "track",
-                "selection": 6,
-                "player": 14
-            },
-            {
-                "type": "track",
                 "selection": 0,
                 "player": 15
             },
+            {
+                "type": "track",
+                "selection": 6,
+                "player": 14
+            },
+            
             {
                 "type": "track",
                 "selection": 24,
@@ -55250,13 +55274,13 @@
             },
             {
                 "type": "track",
-                "selection": 6,
-                "player": 10
+                "selection": 20,
+                "player": 0
             },
             {
                 "type": "track",
-                "selection": 20,
-                "player": 0
+                "selection": 6,
+                "player": 10
             },
             {
                 "type": "track",
@@ -55972,13 +55996,13 @@
             },
             {
                 "type": "track",
-                "selection": 6,
-                "player": 10
+                "selection": 14,
+                "player": 15
             },
             {
                 "type": "track",
-                "selection": 14,
-                "player": 15
+                "selection": 6,
+                "player": 10
             },
             {
                 "type": "track",
@@ -56722,23 +56746,23 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 14,
-                "player": 15
-            },
-            {
-                "type": "track",
-                "selection": 21,
-                "player": 15
-            },
-            {
-                "type": "track",
                 "selection": 12,
                 "player": 0
             },
             {
                 "type": "track",
+                "selection": 14,
+                "player": 15
+            },
+            {
+                "type": "track",
                 "selection": 19,
                 "player": 0
+            },
+            {
+                "type": "track",
+                "selection": 21,
+                "player": 15
             }
         ]
     },
@@ -61133,14 +61157,15 @@
             },
             {
                 "type": "track",
-                "selection": 1,
-                "player": 10
-            },
-            {
-                "type": "track",
                 "selection": 21,
                 "player": 1
             },
+            {
+                "type": "track",
+                "selection": 1,
+                "player": 10
+            },
+            
             {
                 "type": "track",
                 "selection": 19,
@@ -61331,14 +61356,15 @@
             },
             {
                 "type": "track",
-                "selection": 17,
-                "player": 14
-            },
-            {
-                "type": "track",
                 "selection": 24,
                 "player": 16
             },
+            {
+                "type": "track",
+                "selection": 17,
+                "player": 14
+            },
+            
             {
                 "type": "track",
                 "selection": 20,
@@ -61545,14 +61571,15 @@
             },
             {
                 "type": "track",
-                "selection": 22,
-                "player": 17
-            },
-            {
-                "type": "track",
                 "selection": 16,
                 "player": 19
             },
+            {
+                "type": "track",
+                "selection": 22,
+                "player": 17
+            },
+            
             {
                 "type": "track",
                 "selection": 19,
@@ -61786,16 +61813,7 @@
             }
         ],
         "permabans": [
-            {
-                "type": "track",
-                "selection": 16,
-                "player": 19
-            },
-            {
-                "type": "track",
-                "selection": 20,
-                "player": 19
-            },
+            
             {
                 "type": "track",
                 "selection": 1,
@@ -61803,8 +61821,18 @@
             },
             {
                 "type": "track",
+                "selection": 16,
+                "player": 19
+            },
+            {
+                "type": "track",
                 "selection": 2,
                 "player": 5
+            },
+            {
+                "type": "track",
+                "selection": 20,
+                "player": 19
             }
         ]
     },
@@ -62031,14 +62059,15 @@
             },
             {
                 "type": "track",
-                "selection": 22,
-                "player": 17
-            },
-            {
-                "type": "track",
                 "selection": 5,
                 "player": 27
             },
+            {
+                "type": "track",
+                "selection": 22,
+                "player": 17
+            },
+            
             {
                 "type": "track",
                 "selection": 13,
@@ -62276,23 +62305,25 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 20,
-                "player": 6
-            },
-            {
-                "type": "track",
-                "selection": 16,
-                "player": 6
-            },
-            {
-                "type": "track",
                 "selection": 14,
                 "player": 0
             },
             {
                 "type": "track",
+                "selection": 20,
+                "player": 6
+            },
+            
+            
+            {
+                "type": "track",
                 "selection": 8,
                 "player": 0
+            },
+            {
+                "type": "track",
+                "selection": 16,
+                "player": 6
             }
         ]
     },
@@ -62479,14 +62510,15 @@
             },
             {
                 "type": "track",
-                "selection": 11,
-                "player": 29
-            },
-            {
-                "type": "track",
                 "selection": 19,
                 "player": 24
             },
+            {
+                "type": "track",
+                "selection": 11,
+                "player": 29
+            },
+            
             {
                 "type": "track",
                 "selection": 5,
@@ -62689,24 +62721,26 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 19,
-                "player": 1
-            },
-            {
-                "type": "track",
-                "selection": 15,
-                "player": 1
-            },
-            {
-                "type": "track",
                 "selection": 1,
                 "player": 20
             },
             {
                 "type": "track",
+                "selection": 19,
+                "player": 1
+            },
+            {
+                "type": "track",
                 "selection": 23,
                 "player": 20
+            },
+            {
+                "type": "track",
+                "selection": 15,
+                "player": 1
             }
+            
+            
         ]
     },
     {
@@ -62882,23 +62916,25 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 5,
-                "player": 4
-            },
-            {
-                "type": "track",
-                "selection": 9,
-                "player": 4
-            },
-            {
-                "type": "track",
                 "selection": 2,
                 "player": 0
             },
             {
                 "type": "track",
+                "selection": 5,
+                "player": 4
+            },
+            
+            
+            {
+                "type": "track",
                 "selection": 8,
                 "player": 0
+            },
+            {
+                "type": "track",
+                "selection": 9,
+                "player": 4
             }
         ]
     },
@@ -63085,14 +63121,15 @@
             },
             {
                 "type": "track",
-                "selection": 7,
-                "player": 14
-            },
-            {
-                "type": "track",
                 "selection": 23,
                 "player": 24
             },
+            {
+                "type": "track",
+                "selection": 7,
+                "player": 14
+            },
+            
             {
                 "type": "track",
                 "selection": 19,
@@ -63289,14 +63326,15 @@
             },
             {
                 "type": "track",
-                "selection": 19,
-                "player": 6
-            },
-            {
-                "type": "track",
                 "selection": 22,
                 "player": 13
             },
+            {
+                "type": "track",
+                "selection": 19,
+                "player": 6
+            },
+            
             {
                 "type": "track",
                 "selection": 18,
@@ -63503,14 +63541,15 @@
             },
             {
                 "type": "track",
-                "selection": 1,
-                "player": 10
-            },
-            {
-                "type": "track",
                 "selection": 16,
                 "player": 25
             },
+            {
+                "type": "track",
+                "selection": 1,
+                "player": 10
+            },
+            
             {
                 "type": "track",
                 "selection": 11,
@@ -63713,23 +63752,24 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 19,
-                "player": 1
-            },
-            {
-                "type": "track",
-                "selection": 21,
-                "player": 1
-            },
-            {
-                "type": "track",
                 "selection": 11,
                 "player": 25
             },
             {
                 "type": "track",
+                "selection": 19,
+                "player": 1
+            },
+            
+            {
+                "type": "track",
                 "selection": 0,
                 "player": 25
+            },
+            {
+                "type": "track",
+                "selection": 21,
+                "player": 1
             }
         ]
     },
@@ -63968,14 +64008,15 @@
             },
             {
                 "type": "track",
-                "selection": 1,
-                "player": 11
-            },
-            {
-                "type": "track",
                 "selection": 19,
                 "player": 1
             },
+            {
+                "type": "track",
+                "selection": 1,
+                "player": 11
+            },
+            
             {
                 "type": "track",
                 "selection": 2,
@@ -64317,23 +64358,24 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 24,
-                "player": 19
-            },
-            {
-                "type": "track",
-                "selection": 16,
-                "player": 19
-            },
-            {
-                "type": "track",
                 "selection": 19,
                 "player": 27
             },
             {
                 "type": "track",
+                "selection": 24,
+                "player": 19
+            },
+            
+            {
+                "type": "track",
                 "selection": 13,
                 "player": 27
+            },
+            {
+                "type": "track",
+                "selection": 16,
+                "player": 19
             }
         ]
     },
@@ -64533,23 +64575,24 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 22,
-                "player": 13
-            },
-            {
-                "type": "track",
-                "selection": 18,
-                "player": 13
-            },
-            {
-                "type": "track",
                 "selection": 19,
                 "player": 0
             },
             {
                 "type": "track",
+                "selection": 22,
+                "player": 13
+            },
+            
+            {
+                "type": "track",
                 "selection": 14,
                 "player": 0
+            },
+            {
+                "type": "track",
+                "selection": 18,
+                "player": 13
             }
         ]
     },
@@ -64741,14 +64784,15 @@
             },
             {
                 "type": "track",
-                "selection": 13,
-                "player": 14
-            },
-            {
-                "type": "track",
                 "selection": 20,
                 "player": 18
             },
+            {
+                "type": "track",
+                "selection": 13,
+                "player": 14
+            },
+            
             {
                 "type": "track",
                 "selection": 1,
@@ -64955,14 +64999,15 @@
             },
             {
                 "type": "track",
-                "selection": 10,
-                "player": 5
-            },
-            {
-                "type": "track",
                 "selection": 13,
                 "player": 27
             },
+            {
+                "type": "track",
+                "selection": 10,
+                "player": 5
+            },
+            
             {
                 "type": "track",
                 "selection": 8,
@@ -65163,14 +65208,15 @@
             },
             {
                 "type": "track",
-                "selection": 20,
-                "player": 12
-            },
-            {
-                "type": "track",
                 "selection": 11,
                 "player": 4
             },
+            {
+                "type": "track",
+                "selection": 20,
+                "player": 12
+            },
+            
             {
                 "type": "track",
                 "selection": 0,
@@ -65361,14 +65407,15 @@
             },
             {
                 "type": "track",
-                "selection": 19,
-                "player": 4
-            },
-            {
-                "type": "track",
                 "selection": 22,
                 "player": 13
             },
+            {
+                "type": "track",
+                "selection": 19,
+                "player": 4
+            },
+            
             {
                 "type": "track",
                 "selection": 18,
@@ -65635,14 +65682,15 @@
             },
             {
                 "type": "track",
-                "selection": 20,
-                "player": 6
-            },
-            {
-                "type": "track",
                 "selection": 1,
                 "player": 4
             },
+            {
+                "type": "track",
+                "selection": 20,
+                "player": 6
+            },
+            
             {
                 "type": "track",
                 "selection": 11,
@@ -66005,14 +66053,15 @@
             },
             {
                 "type": "track",
-                "selection": 19,
-                "player": 20
-            },
-            {
-                "type": "track",
                 "selection": 21,
                 "player": 25
             },
+            {
+                "type": "track",
+                "selection": 19,
+                "player": 20
+            },
+            
             {
                 "type": "track",
                 "selection": 11,
@@ -66215,23 +66264,24 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 19,
-                "player": 11
-            },
-            {
-                "type": "track",
-                "selection": 1,
-                "player": 11
-            },
-            {
-                "type": "track",
                 "selection": 11,
                 "player": 25
             },
             {
                 "type": "track",
+                "selection": 19,
+                "player": 11
+            },
+            
+            {
+                "type": "track",
                 "selection": 5,
                 "player": 25
+            },
+            {
+                "type": "track",
+                "selection": 1,
+                "player": 11
             }
         ]
     },
@@ -66498,14 +66548,15 @@
             },
             {
                 "type": "track",
-                "selection": 2,
-                "player": 5
-            },
-            {
-                "type": "track",
                 "selection": 0,
                 "player": 17
             },
+            {
+                "type": "track",
+                "selection": 2,
+                "player": 5
+            },
+            
             {
                 "type": "track",
                 "selection": 20,
@@ -66776,14 +66827,15 @@
             },
             {
                 "type": "track",
-                "selection": 22,
-                "player": 14
-            },
-            {
-                "type": "track",
                 "selection": 11,
                 "player": 29
             },
+            {
+                "type": "track",
+                "selection": 22,
+                "player": 14
+            },
+            
             {
                 "type": "track",
                 "selection": 20,
@@ -66989,14 +67041,15 @@
             },
             {
                 "type": "track",
-                "selection": 14,
-                "player": 12
-            },
-            {
-                "type": "track",
                 "selection": 18,
                 "player": 13
             },
+            {
+                "type": "track",
+                "selection": 14,
+                "player": 12
+            },
+            
             {
                 "type": "track",
                 "selection": 10,
@@ -67237,14 +67290,15 @@
             },
             {
                 "type": "track",
-                "selection": 22,
-                "player": 10
-            },
-            {
-                "type": "track",
                 "selection": 19,
                 "player": 20
             },
+            {
+                "type": "track",
+                "selection": 22,
+                "player": 10
+            },
+            
             {
                 "type": "track",
                 "selection": 20,
@@ -67511,23 +67565,24 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 23,
-                "player": 11
-            },
-            {
-                "type": "track",
-                "selection": 9,
-                "player": 11
-            },
-            {
-                "type": "track",
                 "selection": 19,
                 "player": 20
             },
             {
                 "type": "track",
+                "selection": 23,
+                "player": 11
+            },
+            
+            {
+                "type": "track",
                 "selection": 11,
                 "player": 20
+            },
+            {
+                "type": "track",
+                "selection": 9,
+                "player": 11
             }
         ]
     },
@@ -67834,23 +67889,24 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 22,
-                "player": 6
-            },
-            {
-                "type": "track",
-                "selection": 16,
-                "player": 6
-            },
-            {
-                "type": "track",
                 "selection": 17,
                 "player": 12
             },
             {
                 "type": "track",
+                "selection": 22,
+                "player": 6
+            },
+            
+            {
+                "type": "track",
                 "selection": 13,
                 "player": 12
+            },
+            {
+                "type": "track",
+                "selection": 16,
+                "player": 6
             }
         ]
     },
@@ -68043,23 +68099,24 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 19,
-                "player": 11
-            },
-            {
-                "type": "track",
-                "selection": 14,
-                "player": 11
-            },
-            {
-                "type": "track",
                 "selection": 24,
                 "player": 10
             },
             {
                 "type": "track",
+                "selection": 19,
+                "player": 11
+            },
+            
+            {
+                "type": "track",
                 "selection": 1,
                 "player": 10
+            },
+            {
+                "type": "track",
+                "selection": 14,
+                "player": 11
             }
         ]
     },
@@ -68240,23 +68297,24 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 19,
-                "player": 24
-            },
-            {
-                "type": "track",
-                "selection": 5,
-                "player": 24
-            },
-            {
-                "type": "track",
                 "selection": 20,
                 "player": 18
             },
             {
                 "type": "track",
+                "selection": 19,
+                "player": 24
+            },
+            
+            {
+                "type": "track",
                 "selection": 1,
                 "player": 18
+            },
+            {
+                "type": "track",
+                "selection": 5,
+                "player": 24
             }
         ]
     },
@@ -68528,23 +68586,24 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 9,
-                "player": 12
-            },
-            {
-                "type": "track",
-                "selection": 14,
-                "player": 12
-            },
-            {
-                "type": "track",
                 "selection": 5,
                 "player": 0
             },
             {
                 "type": "track",
+                "selection": 9,
+                "player": 12
+            },
+            
+            {
+                "type": "track",
                 "selection": 11,
                 "player": 0
+            },
+            {
+                "type": "track",
+                "selection": 14,
+                "player": 12
             }
         ]
     },
@@ -68812,14 +68871,15 @@
             },
             {
                 "type": "track",
-                "selection": 1,
-                "player": 29
-            },
-            {
-                "type": "track",
                 "selection": 20,
                 "player": 18
             },
+            {
+                "type": "track",
+                "selection": 1,
+                "player": 29
+            },
+            
             {
                 "type": "track",
                 "selection": 24,
@@ -69027,14 +69087,15 @@
             },
             {
                 "type": "track",
-                "selection": 11,
-                "player": 5
-            },
-            {
-                "type": "track",
                 "selection": 16,
                 "player": 4
             },
+            {
+                "type": "track",
+                "selection": 11,
+                "player": 5
+            },
+            
             {
                 "type": "track",
                 "selection": 17,
@@ -69277,14 +69338,15 @@
             },
             {
                 "type": "track",
-                "selection": 17,
-                "player": 17
-            },
-            {
-                "type": "track",
                 "selection": 16,
                 "player": 6
             },
+            {
+                "type": "track",
+                "selection": 17,
+                "player": 17
+            },
+            
             {
                 "type": "track",
                 "selection": 19,
@@ -69475,14 +69537,15 @@
             },
             {
                 "type": "track",
-                "selection": 24,
-                "player": 10
-            },
-            {
-                "type": "track",
                 "selection": 5,
                 "player": 24
             },
+            {
+                "type": "track",
+                "selection": 24,
+                "player": 10
+            },
+            
             {
                 "type": "track",
                 "selection": 19,
@@ -69691,14 +69754,15 @@
             },
             {
                 "type": "track",
-                "selection": 13,
-                "player": 14
-            },
-            {
-                "type": "track",
                 "selection": 19,
                 "player": 11
             },
+            {
+                "type": "track",
+                "selection": 13,
+                "player": 14
+            },
+            
             {
                 "type": "track",
                 "selection": 22,
@@ -69977,23 +70041,24 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 16,
-                "player": 19
-            },
-            {
-                "type": "track",
-                "selection": 11,
-                "player": 19
-            },
-            {
-                "type": "track",
                 "selection": 14,
                 "player": 12
             },
             {
                 "type": "track",
+                "selection": 16,
+                "player": 19
+            },
+            
+            {
+                "type": "track",
                 "selection": 23,
                 "player": 12
+            },
+            {
+                "type": "track",
+                "selection": 11,
+                "player": 19
             }
         ]
     },
@@ -70231,23 +70296,24 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 14,
-                "player": 27
-            },
-            {
-                "type": "track",
-                "selection": 17,
-                "player": 27
-            },
-            {
-                "type": "track",
                 "selection": 1,
                 "player": 0
             },
             {
                 "type": "track",
+                "selection": 14,
+                "player": 27
+            },
+            
+            {
+                "type": "track",
                 "selection": 15,
                 "player": 0
+            },
+            {
+                "type": "track",
+                "selection": 17,
+                "player": 27
             }
         ]
     },
@@ -70511,12 +70577,12 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 5,
-                "player": 25
+                "selection": 1,
+                "player": 29
             },
             {
                 "type": "track",
-                "selection": 0,
+                "selection": 5,
                 "player": 25
             },
             {
@@ -70526,9 +70592,11 @@
             },
             {
                 "type": "track",
-                "selection": 1,
-                "player": 29
+                "selection": 0,
+                "player": 25
             }
+            
+            
         ]
     },
     {
@@ -70710,23 +70778,24 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 1,
-                "player": 11
-            },
-            {
-                "type": "track",
-                "selection": 19,
-                "player": 11
-            },
-            {
-                "type": "track",
                 "selection": 15,
                 "player": 6
             },
             {
                 "type": "track",
+                "selection": 1,
+                "player": 11
+            },
+            
+            {
+                "type": "track",
                 "selection": 22,
                 "player": 6
+            },
+            {
+                "type": "track",
+                "selection": 19,
+                "player": 11
             }
         ]
     },
@@ -71044,23 +71113,24 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 19,
-                "player": 20
-            },
-            {
-                "type": "track",
-                "selection": 11,
-                "player": 20
-            },
-            {
-                "type": "track",
                 "selection": 20,
                 "player": 18
             },
             {
                 "type": "track",
+                "selection": 19,
+                "player": 20
+            },
+            
+            {
+                "type": "track",
                 "selection": 24,
                 "player": 18
+            },
+            {
+                "type": "track",
+                "selection": 11,
+                "player": 20
             }
         ]
     },
@@ -71247,14 +71317,15 @@
             },
             {
                 "type": "track",
-                "selection": 22,
-                "player": 19
-            },
-            {
-                "type": "track",
                 "selection": 19,
                 "player": 24
             },
+            {
+                "type": "track",
+                "selection": 22,
+                "player": 19
+            },
+            
             {
                 "type": "track",
                 "selection": 20,
@@ -71570,23 +71641,24 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 0,
-                "player": 27
-            },
-            {
-                "type": "track",
-                "selection": 10,
-                "player": 27
-            },
-            {
-                "type": "track",
                 "selection": 19,
                 "player": 20
             },
             {
                 "type": "track",
+                "selection": 0,
+                "player": 27
+            },
+            
+            {
+                "type": "track",
                 "selection": 21,
                 "player": 20
+            },
+            {
+                "type": "track",
+                "selection": 10,
+                "player": 27
             }
         ]
     },
@@ -71824,14 +71896,15 @@
             },
             {
                 "type": "track",
-                "selection": 22,
-                "player": 10
-            },
-            {
-                "type": "track",
                 "selection": 21,
                 "player": 12
             },
+            {
+                "type": "track",
+                "selection": 22,
+                "player": 10
+            },
+            
             {
                 "type": "track",
                 "selection": 20,
@@ -72133,23 +72206,24 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 11,
-                "player": 4
-            },
-            {
-                "type": "track",
-                "selection": 1,
-                "player": 4
-            },
-            {
-                "type": "track",
                 "selection": 9,
                 "player": 25
             },
             {
                 "type": "track",
+                "selection": 11,
+                "player": 4
+            },
+            
+            {
+                "type": "track",
                 "selection": 5,
                 "player": 25
+            },
+            {
+                "type": "track",
+                "selection": 1,
+                "player": 4
             }
         ]
     },
@@ -72377,14 +72451,15 @@
             },
             {
                 "type": "track",
-                "selection": 19,
-                "player": 5
-            },
-            {
-                "type": "track",
                 "selection": 20,
                 "player": 29
             },
+            {
+                "type": "track",
+                "selection": 19,
+                "player": 5
+            },
+            
             {
                 "type": "track",
                 "selection": 4,
@@ -72621,23 +72696,24 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 20,
-                "player": 18
-            },
-            {
-                "type": "track",
-                "selection": 16,
-                "player": 18
-            },
-            {
-                "type": "track",
                 "selection": 13,
                 "player": 0
             },
             {
                 "type": "track",
+                "selection": 20,
+                "player": 18
+            },
+            
+            {
+                "type": "track",
                 "selection": 22,
                 "player": 0
+            },
+            {
+                "type": "track",
+                "selection": 16,
+                "player": 18
             }
         ]
     },
@@ -72910,23 +72986,24 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 16,
-                "player": 14
-            },
-            {
-                "type": "track",
-                "selection": 17,
-                "player": 14
-            },
-            {
-                "type": "track",
                 "selection": 20,
                 "player": 17
             },
             {
                 "type": "track",
+                "selection": 16,
+                "player": 14
+            },
+            
+            {
+                "type": "track",
                 "selection": 12,
                 "player": 17
+            },
+            {
+                "type": "track",
+                "selection": 17,
+                "player": 14
             }
         ]
     },
@@ -73281,23 +73358,24 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 16,
-                "player": 6
-            },
-            {
-                "type": "track",
-                "selection": 23,
-                "player": 6
-            },
-            {
-                "type": "track",
                 "selection": 14,
                 "player": 12
             },
             {
                 "type": "track",
+                "selection": 16,
+                "player": 6
+            },
+            
+            {
+                "type": "track",
                 "selection": 21,
                 "player": 12
+            },
+            {
+                "type": "track",
+                "selection": 23,
+                "player": 6
             }
         ]
     },
@@ -73570,23 +73648,24 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 20,
-                "player": 19
-            },
-            {
-                "type": "track",
-                "selection": 12,
-                "player": 19
-            },
-            {
-                "type": "track",
                 "selection": 22,
                 "player": 14
             },
             {
                 "type": "track",
+                "selection": 20,
+                "player": 19
+            },
+            
+            {
+                "type": "track",
                 "selection": 17,
                 "player": 14
+            },
+            {
+                "type": "track",
+                "selection": 12,
+                "player": 19
             }
         ]
     },
@@ -73995,14 +74074,15 @@
             },
             {
                 "type": "track",
-                "selection": 24,
-                "player": 18
-            },
-            {
-                "type": "track",
                 "selection": 22,
                 "player": 25
             },
+            {
+                "type": "track",
+                "selection": 24,
+                "player": 18
+            },
+            
             {
                 "type": "track",
                 "selection": 0,
@@ -74490,23 +74570,24 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 16,
-                "player": 20
-            },
-            {
-                "type": "track",
-                "selection": 19,
-                "player": 20
-            },
-            {
-                "type": "track",
                 "selection": 0,
                 "player": 29
             },
             {
                 "type": "track",
+                "selection": 16,
+                "player": 20
+            },
+            
+            {
+                "type": "track",
                 "selection": 4,
                 "player": 29
+            },
+            {
+                "type": "track",
+                "selection": 19,
+                "player": 20
             }
         ]
     },
@@ -74974,23 +75055,24 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 0,
-                "player": 10
-            },
-            {
-                "type": "track",
-                "selection": 18,
-                "player": 10
-            },
-            {
-                "type": "track",
                 "selection": 23,
                 "player": 5
             },
             {
                 "type": "track",
+                "selection": 0,
+                "player": 10
+            },
+            
+            {
+                "type": "track",
                 "selection": 12,
                 "player": 5
+            },
+            {
+                "type": "track",
+                "selection": 18,
+                "player": 10
             }
         ]
     },
@@ -75267,14 +75349,15 @@
             },
             {
                 "type": "track",
-                "selection": 19,
-                "player": 0
-            },
-            {
-                "type": "track",
                 "selection": 9,
                 "player": 17
             },
+            {
+                "type": "track",
+                "selection": 19,
+                "player": 0
+            },
+            
             {
                 "type": "track",
                 "selection": 12,
@@ -75696,23 +75779,24 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 17,
-                "player": 14
-            },
-            {
-                "type": "track",
-                "selection": 22,
-                "player": 14
-            },
-            {
-                "type": "track",
                 "selection": 20,
                 "player": 18
             },
             {
                 "type": "track",
+                "selection": 17,
+                "player": 14
+            },
+            
+            {
+                "type": "track",
                 "selection": 16,
                 "player": 18
+            },
+            {
+                "type": "track",
+                "selection": 22,
+                "player": 14
             }
         ]
     },
@@ -76190,23 +76274,24 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 16,
-                "player": 12
-            },
-            {
-                "type": "track",
-                "selection": 19,
-                "player": 12
-            },
-            {
-                "type": "track",
                 "selection": 4,
                 "player": 29
             },
             {
                 "type": "track",
+                "selection": 16,
+                "player": 12
+            },
+            
+            {
+                "type": "track",
                 "selection": 0,
                 "player": 29
+            },
+            {
+                "type": "track",
+                "selection": 19,
+                "player": 12
             }
         ]
     },
@@ -76684,23 +76769,24 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 22,
-                "player": 17
-            },
-            {
-                "type": "track",
-                "selection": 16,
-                "player": 17
-            },
-            {
-                "type": "track",
                 "selection": 4,
                 "player": 29
             },
             {
                 "type": "track",
+                "selection": 22,
+                "player": 17
+            },
+            
+            {
+                "type": "track",
                 "selection": 0,
                 "player": 29
+            },
+            {
+                "type": "track",
+                "selection": 16,
+                "player": 17
             }
         ]
     },
@@ -77054,14 +77140,15 @@
             },
             {
                 "type": "track",
-                "selection": 23,
-                "player": 5
-            },
-            {
-                "type": "track",
                 "selection": 17,
                 "player": 14
             },
+            {
+                "type": "track",
+                "selection": 23,
+                "player": 5
+            },
+            
             {
                 "type": "track",
                 "selection": 16,
@@ -77433,14 +77520,15 @@
             },
             {
                 "type": "track",
-                "selection": 1,
-                "player": 5
-            },
-            {
-                "type": "track",
                 "selection": 0,
                 "player": 29
             },
+            {
+                "type": "track",
+                "selection": 1,
+                "player": 5
+            },
+            
             {
                 "type": "track",
                 "selection": 4,
@@ -77753,23 +77841,24 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 0,
-                "player": 10
-            },
-            {
-                "type": "track",
-                "selection": 6,
-                "player": 10
-            },
-            {
-                "type": "track",
                 "selection": 16,
                 "player": 0
             },
             {
                 "type": "track",
+                "selection": 0,
+                "player": 10
+            },
+            
+            {
+                "type": "track",
                 "selection": 13,
                 "player": 0
+            },
+            {
+                "type": "track",
+                "selection": 6,
+                "player": 10
             }
         ]
     },
@@ -78186,23 +78275,24 @@
         "permabans": [
             {
                 "type": "track",
-                "selection": 10,
-                "player": 5
-            },
-            {
-                "type": "track",
-                "selection": 17,
-                "player": 5
-            },
-            {
-                "type": "track",
                 "selection": 7,
                 "player": 0
             },
             {
                 "type": "track",
+                "selection": 10,
+                "player": 5
+            },
+            
+            {
+                "type": "track",
                 "selection": 5,
                 "player": 0
+            },
+            {
+                "type": "track",
+                "selection": 17,
+                "player": 5
             }
         ]
     }
