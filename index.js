@@ -343,7 +343,7 @@ client.on('guildMemberAdd', (guildMember) => { //join log
 })
 
 client.on("messageDelete", (messageDelete) => {
-    if (messageDelete.author.bot == false && messageDelete.channel.type == "text" && !messageDelete.content.startsWith("!") && messageDelete.guildid == "441839750555369474") {
+    if (messageDelete.author.bot == false && messageDelete.channel.type == "text" && messageDelete.guildid == "441839750555369474") {
         var channelname = ""
         for (var i = 0; i < discordchannels.length; i++) {
             if (discordchannels[i].id == messageDelete.channel.id) {
@@ -360,6 +360,13 @@ client.on("messageDelete", (messageDelete) => {
             channel_name: channelname
         }
         logref.push(data);
+        const deletedMessage = new Discord.MessageEmbed()
+        deletedMessage
+            .setTitle("Deleted Message")
+            .addField("Author", "<@" + data.user + ">")
+            .addField("Channel", "<#" + data.channel + ">")
+            .addField("Content", data.message)
+        client.channels.cache.get("444208252541075476").send(deletedMessage);
     }
 });
 
