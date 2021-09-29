@@ -343,7 +343,9 @@ client.on('guildMemberAdd', (guildMember) => { //join log
 })
 
 client.on("messageDelete", (messageDelete) => {
-    if (messageDelete.channel.type == "text" && messageDelete.guildid == "441839750555369474") { //messageDelete.author.bot == false && 
+    console.log("message deleted")
+    if (messageDelete.channel.type == "text" && messageDelete.guildId == "441839750555369474") { //messageDelete.author.bot == false && 
+        
         var channelname = ""
         for (var i = 0; i < discordchannels.length; i++) {
             if (discordchannels[i].id == messageDelete.channel.id) {
