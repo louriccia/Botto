@@ -13,8 +13,7 @@ module.exports = {
             client.buttons.get("lookup").execute(client, interaction, ["track", input, "initial"]);
         } else if(args[0].name=="times") {
             if(args[0].options[0].name == "par_times"){
-                var input = args[0].options[0].options[0].value.toLowerCase()
-                var numb = getTrack(input)
+                var numb = input
                 if(numb == null){ 
                     client.api.interactions(interaction.id, interaction.token).callback.post({
                         data: {

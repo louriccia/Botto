@@ -342,6 +342,16 @@ client.on('guildMemberAdd', (guildMember) => { //join log
     }
 })
 
+client.on('guildMemberRemove', (guildMember) => { //join log
+    if (guildMember.guild.id == "441839750555369474") {
+        const memberLeft = new Discord.MessageEmbed()
+        memberLeft
+            .setTitle("Member Left")
+            .setDescription(guildMember.user.username + " has left the server")
+        client.channels.cache.get("892664227553243157").send(memberLeft);
+    }
+})
+
 client.on("messageDelete", (messageDelete) => {
     console.log("message deleted")
     if (messageDelete.channel.type == "text" && messageDelete.guild.id == "441839750555369474") { //messageDelete.author.bot == false && 
@@ -368,7 +378,7 @@ client.on("messageDelete", (messageDelete) => {
             .addField("Author", "<@" + data.user + ">")
             .addField("Channel", "<#" + data.channel + ">")
             .addField("Content", data.message)
-        client.channels.cache.get("444208252541075476").send(deletedMessage);
+        client.channels.cache.get("892664227553243157").send(deletedMessage);
     }
 });
 
