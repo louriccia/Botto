@@ -344,7 +344,7 @@ client.on('guildMemberAdd', (guildMember) => { //join log
 
 client.on("messageDelete", (messageDelete) => {
     console.log("message deleted")
-    if (messageDelete.channel.type == "text" && messageDelete.guildId == "441839750555369474") { //messageDelete.author.bot == false && 
+    if (messageDelete.channel.type == "text" && messageDelete.guild.id == "441839750555369474") { //messageDelete.author.bot == false && 
         
         var channelname = ""
         for (var i = 0; i < discordchannels.length; i++) {
@@ -373,7 +373,7 @@ client.on("messageDelete", (messageDelete) => {
 });
 
 client.on('messageUpdate', (oldMessage, newMessage) => {
-    if (oldMessage.author.bot == false && oldMessage.channel.type == "text" && oldMessage !== newMessage  && oldMessage.guildid == "441839750555369474") {
+    if (oldMessage.author.bot == false && oldMessage.channel.type == "text" && oldMessage !== newMessage  && oldMessage.guild.id == "441839750555369474") {
         var channelname = ""
         for (var i = 0; i < discordchannels.length; i++) {
             if (discordchannels[i].id == newMessage.channel.id) {
