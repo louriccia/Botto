@@ -3779,6 +3779,47 @@ module.exports = {
             var track_selections = []
             var racer_selections = []
             var cond_selections = []
+            var player_selections = []
+            player_selections.push(
+                {
+                    label: "Global Stats",
+                    value: "global",
+                    description: "cumulative stats for all players"
+                }
+            )
+            var ranks = tools.getRanks()
+            var players = Object.keys(tourney_participants_data)
+            players.sort(function (a, b) {
+                if (ranks[a] == undefined && ranks[b] == undefined) {
+                    return tourney_participants_data[b].name - tourney_participants_data[a].name
+                } else if (ranks[a] == undefined) {
+                    return 1
+                } else if (ranks[b] == undefined) {
+                    return -1
+                } else {
+                    return ranks[b].rank - ranks[a].rank
+                }
+            })
+            players.forEach(player => {
+                if(ranks[player] !== undefined){
+                    player_selections.push(
+                        {
+                            label: tourney_participants_data[player].name,
+                            value: player,
+                            description: "⭐ " + ranks[player].rank + " ⚔️ " + stats.players[player].matches.total + " 🏁 " + stats.players[player].races.total + " 👑 " + stats.players[player].races.won/stats.players[player].races.total + " 💀 🎙️ " + stats.commentators[player]
+                        }
+                    )
+                } else {
+                    player_selections.push(
+                        {
+                            label: tourney_participants_data[player].name,
+                            value: player,
+                            description: "⭐ unranked ⚔️ " + stats.players[player].matches.total + " 🏁 " + stats.players[player].races.total + " 👑 " + stats.players[player].races.won/stats.players[player].races.total + " 💀 🎙️ " + stats.commentators[player]
+                        }
+                    )
+                }
+                
+            })
             for (var i = 0; i < 25; i++) {
                 var racer_option = {
                     label: racers[i].name,
@@ -3876,7 +3917,7 @@ module.exports = {
                             options: track_selections,
                             placeholder: "View Track Stats",
                             min_values: 0,
-                            max_values: 0
+                            max_values: 1
                         },
                     ]
                 },
@@ -3889,7 +3930,7 @@ module.exports = {
                             options: racer_selections,
                             placeholder: "View Pod Stats",
                             min_values: 0,
-                            max_values: 0
+                            max_values: 1
                         }
                     ]
                 }
