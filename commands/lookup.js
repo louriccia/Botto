@@ -13,37 +13,25 @@ module.exports = {
             client.buttons.get("lookup").execute(client, interaction, ["track", input, "initial"]);
         } else if(args[0].name=="times") {
             if(args[0].options[0].name == "par_times"){
-                var numb = input
-                if(numb == null){ 
-                    client.api.interactions(interaction.id, interaction.token).callback.post({
-                        data: {
-                            type: 4,
-                            data: {
-                                content: "`Error: Track not found `\n" + errorMessage[Math.floor(Math.random()*errorMessage.length)],
-                                //embeds: [racerEmbed]
-                            }
-                        }
-                    })
-                } else {
-                    const tracktimesEmbed2 = new Discord.MessageEmbed()
-                        .setColor(planets[tracks[numb].planet].color)
-                        .setTitle(tracks[numb].name + " | Par Times")
-                        .setURL("https://docs.google.com/spreadsheets/d/1TwDtG6eOyiQZEZ3iTbZaEmthe5zdf9YEGJ-1tfFfQKg/edit?usp=sharing")
-                        .addField("FT 3-Lap", ":gem: " + tracks[numb].partimes[0] + "\n:first_place: " + tracks[numb].partimes[1] + "\n:second_place: " + tracks[numb].partimes[2] + "\n:third_place: " + tracks[numb].partimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[numb].partimes[4], true)
-                        .addField("FT 1-Lap", ":gem: " + tracks[numb].parlaptimes[0] + "\n:first_place: " + tracks[numb].parlaptimes[1] + "\n:second_place: " + tracks[numb].parlaptimes[2] + "\n:third_place: " + tracks[numb].parlaptimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[numb].parlaptimes[4], true)
-                    if (tracks[numb].hasOwnProperty("parskiptimes")) {
-                        tracktimesEmbed2.addField("Skips 3-Lap", ":gem: " + tracks[numb].parskiptimes[0] + "\n:first_place: " + tracks[numb].parskiptimes[1] + "\n:second_place: " + tracks[numb].parskiptimes[2] + "\n:third_place: " + tracks[numb].parskiptimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[numb].parskiptimes[4], true)
-                    }
-                    client.api.interactions(interaction.id, interaction.token).callback.post({
-                        data: {
-                            type: 4,
-                            data: {
-                                //content: "",
-                                embeds: [tracktimesEmbed2]
-                            }
-                        }
-                    })
+                var numb = Number(args[0].options[0].options[0].value)
+                const tracktimesEmbed2 = new Discord.MessageEmbed()
+                    .setColor(planets[tracks[numb].planet].color)
+                    .setTitle(tracks[numb].name + " | Par Times")
+                    .setURL("https://docs.google.com/spreadsheets/d/1TwDtG6eOyiQZEZ3iTbZaEmthe5zdf9YEGJ-1tfFfQKg/edit?usp=sharing")
+                    .addField("FT 3-Lap", ":gem: " + tracks[numb].partimes[0] + "\n:first_place: " + tracks[numb].partimes[1] + "\n:second_place: " + tracks[numb].partimes[2] + "\n:third_place: " + tracks[numb].partimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[numb].partimes[4], true)
+                    .addField("FT 1-Lap", ":gem: " + tracks[numb].parlaptimes[0] + "\n:first_place: " + tracks[numb].parlaptimes[1] + "\n:second_place: " + tracks[numb].parlaptimes[2] + "\n:third_place: " + tracks[numb].parlaptimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[numb].parlaptimes[4], true)
+                if (tracks[numb].hasOwnProperty("parskiptimes")) {
+                    tracktimesEmbed2.addField("Skips 3-Lap", ":gem: " + tracks[numb].parskiptimes[0] + "\n:first_place: " + tracks[numb].parskiptimes[1] + "\n:second_place: " + tracks[numb].parskiptimes[2] + "\n:third_place: " + tracks[numb].parskiptimes[3] + "\n<:bumpythumb:703107780860575875> " + tracks[numb].parskiptimes[4], true)
                 }
+                client.api.interactions(interaction.id, interaction.token).callback.post({
+                    data: {
+                        type: 4,
+                        data: {
+                            //content: "",
+                            embeds: [tracktimesEmbed2]
+                        }
+                    }
+                })
                 
             } else if(args[0].options[0].name == "goal_times"){
                 for (let i = 0; i<args[0].options[0].options.length; i++) {

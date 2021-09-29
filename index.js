@@ -354,7 +354,7 @@ client.on('guildMemberRemove', (guildMember) => { //join log
 
 client.on("messageDelete", (messageDelete) => {
     console.log("message deleted")
-    if (messageDelete.channel.type == "text" && messageDelete.guild.id == "441839750555369474") { //messageDelete.author.bot == false && 
+    if (messageDelete.author.bot == false && messageDelete.channel.type == "text" && messageDelete.guild.id == "441839750555369474") {
         
         var channelname = ""
         for (var i = 0; i < discordchannels.length; i++) {
