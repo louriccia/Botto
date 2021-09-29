@@ -3600,7 +3600,8 @@ module.exports = {
                     players: {},
                     commentators: {}
                 }
-                tourney_participants_data.forEach(participant => {
+                var tpd = Object.keys(tourney_participants_data)
+                tpd.forEach(participant => {
                     stats.players[participant] = { race_time: 0, deaths: [], matches: { total: 0, won: 0, lost: 0, qual: 0, winners: 0, losers: 0 }, races: { total: 0, won: 0, lost: 0, runbacks: 0, dnf: 0, }, tracks: {}, pods: {}, opponents: {}, forces: { no_upgrades: 0, skips: 0, pod_ban: 0 }, matches: {}, co_comm: {} }
                 })
                 for (i = 0; i < 25; i++) {
