@@ -3538,6 +3538,7 @@ module.exports = {
                     }
                 }
             }
+            const tourneyReport = new Discord.MessageEmbed()
             tourneyReport
                 .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/crossed-swords_2694-fe0f.png")
                 .setColor("#3BA55D")
