@@ -3643,48 +3643,52 @@ module.exports = {
                         var temptrack = []
                         var temppod = []
                         var conditions = []
-                        race.tempbans.forEach(ban => {
-                            if (ban.type == "pod") {
-                                stats.pods[ban.selection].bans.push(1)
-                                stats.players[ban.player].pods[ban.selection].bans.push(1)
-                                temppod.push(Number(ban.selection))
-                                for (var i = 0; i < 25; i++) {
-                                    if (!temppod.includes(ban.selection)) {
-                                        stats.pods[i].bans.push(0)
-                                        stats.players[ban.player].pods[i].bans.push(0)
+                        if(race.tempbans !== undefined){
+                            race.tempbans.forEach(ban => {
+                                if (ban.type == "pod") {
+                                    stats.pods[ban.selection].bans.push(1)
+                                    stats.players[ban.player].pods[ban.selection].bans.push(1)
+                                    temppod.push(Number(ban.selection))
+                                    for (var i = 0; i < 25; i++) {
+                                        if (!temppod.includes(ban.selection)) {
+                                            stats.pods[i].bans.push(0)
+                                            stats.players[ban.player].pods[i].bans.push(0)
+                                        }
+                                    }
+                                } else if (ban.type == "track") {
+                                    stats.tracks[ban.selection].bans.push(1)
+                                    stats.players[ban.player].tracks[ban.selection].bans.push(1)
+                                    temptrack.push(Number(ban.selection))
+                                    var opponent = null
+                                    race.runs.forEach(run => {
+                                        if(run.player !== ban.player){
+                                            opponent = run.player
+                                        }
+                                    })
+                                    for (var i = 0; i < 25; i++) {
+                                        if (!temptrack.includes(i) && !already_banned.includes(i) && (!already_played.includes(i) || (already_played.includes(i) && runback[opponent] == undefined))) {
+                                            stats.tracks[i].bans.push(0)
+                                            stats.players[ban.player].tracks[i].bans.push(0)
+                                        }
                                     }
                                 }
-                            } else if (ban.type == "track") {
-                                stats.tracks[ban.selection].bans.push(1)
-                                stats.players[ban.player].tracks[ban.selection].bans.push(1)
-                                temptrack.push(Number(ban.selection))
-                                var opponent = null
-                                race.runs.forEach(run => {
-                                    if(run.player !== ban.player){
-                                        opponent = run.player
-                                    }
-                                })
-                                for (var i = 0; i < 25; i++) {
-                                    if (!temptrack.includes(i) && !already_banned.includes(i) && (!already_played.includes(i) || (already_played.includes(i) && runback[opponent] == undefined))) {
-                                        stats.tracks[i].bans.push(0)
-                                        stats.players[ban.player].tracks[i].bans.push(0)
-                                    }
+                            })
+                        }
+                        if(race.conditions !== undefined){
+                            race.conditions.forEach(condition => {
+                                stats.forces[condition.type] ++ 
+                                stats.players[condition.player].forces[condition.type] ++
+                                if(condition.type == "skips"){
+                                    stats.tracks[race.track_selection.track].skips ++
+                                    conditions.push("skips")
+                                } else if(condition.type == "no_upgrades"){
+                                    stats.tracks[race.track_selection.track].nu ++
+                                    conditions.push("nu")
+                                } else if(condition.type == "pod_ban"){
+                                    temppod.push(condition.selection)
                                 }
-                            }
-                        })
-                        race.conditions.forEach(condition => {
-                            stats.forces[condition.type] ++ 
-                            stats.players[condition.player].forces[condition.type] ++
-                            if(condition.type == "skips"){
-                                stats.tracks[race.track_selection.track].skips ++
-                                conditions.push("skips")
-                            } else if(condition.type == "no_upgrades"){
-                                stats.tracks[race.track_selection.track].nu ++
-                                conditions.push("nu")
-                            } else if(condition.type == "pod_ban"){
-                                temppod.push(condition.selection)
-                            }
-                        })
+                            })
+                        }
                         already_played.push(Number(race.track_selection.track))
                         if (num == 0) {
                             race.runs.forEach(run => {
