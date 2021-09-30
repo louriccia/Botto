@@ -3602,17 +3602,28 @@ module.exports = {
                 }
                 var tpd = Object.keys(tourney_participants_data)
                 tpd.forEach(participant => {
-                    stats.players[participant] = { race_time: 0, deaths: [], matches: { total: 0, won: 0, lost: 0, qual: 0, winners: 0, losers: 0 }, races: { total: 0, won: 0, lost: 0, runbacks: 0, dnf: 0, }, tracks: {}, pods: {}, opponents: {}, forces: { no_upgrades: 0, skips: 0, pod_ban: 0 }, matches: {}, co_comm: {} }
+                    stats.players[participant] = { 
+                        race_time: 0, 
+                        deaths: [], 
+                        matches: { total: 0, won: 0, lost: 0, qual: 0, winners: 0, losers: 0 }, 
+                        races: { total: 0, won: 0, lost: 0, runbacks: 0, dnf: 0, }, 
+                        tracks: {}, 
+                        pods: {}, 
+                        opponents: {}, 
+                        forces: { no_upgrades: 0, skips: 0, pod_ban: 0 }, 
+                        matches: {}, 
+                        co_comm: {} }
                 })
                 for (i = 0; i < 25; i++) {
                     stats.tracks[i] = { plays: 0, picks: [], bans: [], wins: [], deaths: [], runbacks: 0, nu: 0, skips: 0 }
                     stats.pods[i] = { plays: 0, picks: [], bans: [], wins: [], deaths: [], nu: 0, skips: 0 }
-                    tourney_participants_data.forEach(participant => {
+                    tpd.forEach(participant => {
                         stats.players[participant].tracks[i] = { plays: 0, picks: [], bans: [], wins: [], deaths: [], runbacks: 0, nu: 0, skips: 0 }
                         stats.players[participant].pods[i] = { plays: 0, picks: [], bans: [], wins: [], deaths: [], nu: 0, skips: 0 }
                     })
                 }
-                tourney_matches_data.forEach(match => {
+                var tmd = Object.values(tourney_matches_data)
+                tmd.forEach(match => {
                     var already_played = []
                     var runback = {}
                     match.commentators.forEach(commentator => {
