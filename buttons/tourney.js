@@ -3525,9 +3525,9 @@ module.exports = {
                 }
             })
         } else if (args[0] == "stats") {
-            var player = "global", type = 7
+            var player = "global", type = 6
             if (args.includes("initial")) {
-                type = 4
+                type = 5
             } else {
                 for (var i = 0; i < interaction.message.components[0].components[0].options.length; i++) { //player
                     var option = interaction.message.components[0].components[0].options[i]
@@ -3551,7 +3551,7 @@ module.exports = {
             async function sendCallback() {
                 const wait = client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
-                        type: 5,
+                        type: type,
                         data: {
                             content: "Coming right up..."
                             //embeds: [racerEmbed]
@@ -3797,7 +3797,6 @@ module.exports = {
                             "nu: `" + stats.forces.nu + "`", true)
                 }
                 var components = []
-                var cond = { mu: "Max Upgrades", nu: "No Upgrades", ft: "Full Track", skips: "Skips", deaths: "Deaths", deathless: "Deathless", qual: "Include Qualifying Runs", pb: "Personal Bests Only", user: "My Runs Only" }
                 var track_selections = []
                 var racer_selections = []
                 var player_selections = []
@@ -3818,7 +3817,7 @@ module.exports = {
                 var offset = 0
 
                 for(i = 0 + offset * 23; i < (offset + 1) * 23; i++){
-                    var player = i
+                    var player = players[i]
                     if (i == 0 + offset * 23 && offset > 0) {
                         player_selections.push(
                             {
@@ -3832,7 +3831,7 @@ module.exports = {
                             {
                                 label: "Global Stats",
                                 value: "global",
-                                description: "cumulative stats for all players"
+                                description: "get stats for all players"
                             }
                         )
                     }
@@ -3841,7 +3840,7 @@ module.exports = {
                             {
                                 label: tourney_participants_data[player].name,
                                 value: player,
-                                description: "⭐ " + ranks[player].rank.toFixed(1) + " ⚔️ " + stats.players[player].matches.total + " 🏁 " + stats.players[player].races.total + " 👑 " + stats.players[player].races.won / stats.players[player].races.total + " 💀 🎙️ " + stats.commentators[player]
+                                description: "⭐ " + ranks[player].rank.toFixed(1) + " ⚔️ " + stats.players[player].matches.total + " 🏁 " + stats.players[player].races.total + " 👑 " + stats.players[player].races.won / stats.players[player].races.total + " 💀 🎙️ " + stats.commentators[player].count
                             }
                         )
                     } else {
