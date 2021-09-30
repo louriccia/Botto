@@ -3800,7 +3800,7 @@ module.exports = {
                 var track_selections = []
                 var racer_selections = []
                 var player_selections = []
-                
+
                 var ranks = tools.getRanks()
                 var players = Object.keys(tourney_participants_data)
                 players = players.sort(function (a, b) {
@@ -3816,7 +3816,7 @@ module.exports = {
                 })
                 var offset = 0
 
-                for(i = 0 + offset * 23; i < (offset + 1) * 23; i++){
+                for (i = 0 + offset * 23; i < (offset + 1) * 23; i++) {
                     var player = players[i]
                     if (i == 0 + offset * 23 && offset > 0) {
                         player_selections.push(
@@ -3826,7 +3826,7 @@ module.exports = {
                             }
                         )
                     }
-                    if(i == 0){
+                    if (i == 0) {
                         player_selections.push(
                             {
                                 label: "Global Stats",
@@ -3835,23 +3835,26 @@ module.exports = {
                             }
                         )
                     }
+                    var description = ""
                     if (ranks[player] !== undefined) {
-                        player_selections.push(
-                            {
-                                label: tourney_participants_data[player].name,
-                                value: player,
-                                description: "⭐ " + ranks[player].rank.toFixed(1) + " ⚔️ " + stats.players[player].matches.total + " 🏁 " + stats.players[player].races.total + " 👑 " + stats.players[player].races.won / stats.players[player].races.total + " 💀 🎙️ " + stats.commentators[player].count
-                            }
-                        )
-                    } else {
-                        player_selections.push(
-                            {
-                                label: tourney_participants_data[player].name,
-                                value: player,
-                                description: "⭐ unranked ⚔️ " + stats.players[player].matches.total + " 🏁 " + stats.players[player].races.total + " 👑 " + stats.players[player].races.won / stats.players[player].races.total + " 💀 🎙️ " + stats.commentators[player].count
-                            }
-                        )
+                        description += "⭐ " + ranks[player].rank.toFixed(1) + " "
+                    } else if(stats.players[player].matches.total > 0) {
+                        description += "⭐ unranked "
                     }
+                    if(stats.players[player].matches.total > 0){
+                        description += "⚔️ " + stats.players[player].matches.total + " 🏁 " + stats.players[player].races.total + " 👑 " + stats.players[player].races.won / stats.players[player].races.total + " 💀 "
+                    }
+                    if(stats.commentators[player] !== undefined){
+                        description += "🎙️ " + stats.commentators[player].count
+                    }
+                    player_selections.push(
+                        {
+                            label: tourney_participants_data[player].name,
+                            value: player,
+                            description: description
+                        }
+                    )
+                    
                     if (i == players.length - 1) {
                         i = (offset + 1) * 23
                     }
@@ -3864,7 +3867,7 @@ module.exports = {
                         )
                     }
                 }
-                
+
                 for (var i = 0; i < 25; i++) {
                     var racer_option = {
                         label: racers[i].name,
