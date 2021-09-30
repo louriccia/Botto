@@ -3822,6 +3822,12 @@ module.exports = {
                         return 1
                     } else if (ranks[b] == undefined) {
                         return -1
+                    } else if (ranks[a].matches <4){
+                        return 1
+                    } else if (ranks[b].matches <4){
+                        return -1
+                    } else if (ranks[a].matches <4 && ranks[b].matches <4){
+                        return tourney_participants_data[b].name - tourney_participants_data[a].name
                     } else {
                         return Number(ranks[b].rank) - Number(ranks[a].rank)
                     }
@@ -3854,9 +3860,9 @@ module.exports = {
                         option_default = false
                     }
                     var description = ""
-                    if (ranks[p] !== undefined) {
+                    if (ranks[p] !== undefined && ranks[p].matches >= 4) {
                         description += "⭐ " + ranks[p].rank.toFixed(1) + " "
-                    } else if (stats.players[p].matches.total > 0) {
+                    } else if (stats.players[p].matches.total > 0 ) {
                         description += "⭐ unranked "
                     }
                     if (stats.players[p].matches.total > 0) {
