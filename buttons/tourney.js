@@ -3853,12 +3853,6 @@ module.exports = {
                             id: racers[i].flag.split(":")[2].replace(">", "")
                         }
                     }
-                    if (pod_counts[i] !== undefined) {
-                        //racer_option.label += " (" + pod_counts[i] + ")"
-                        racer_option.description = pod_counts[i] + " Runs"
-                    } else {
-                        racer_option.description = ""
-                    }
                     if (pods.includes(String(i))) {
                         racer_option.default = true
                     }
