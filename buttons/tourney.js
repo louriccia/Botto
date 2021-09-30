@@ -3818,6 +3818,10 @@ module.exports = {
                 players = players.sort(function (a, b) {
                     if (ranks[a] !== undefined && ranks[a].matches >=4 && ranks[b] !== undefined && ranks[b].matches >=4) {
                         return Number(ranks[b].rank) - Number(ranks[a].rank)
+                    } else if (ranks[a] == undefined || ranks[a].matches < 4){
+                        return 1
+                    }  else if (ranks[b] == undefined || ranks[b].matches < 4){
+                        return -1
                     } else {
                         return tourney_participants_data[b].name - tourney_participants_data[a].name
                     }
@@ -3857,7 +3861,7 @@ module.exports = {
                     }
                     if (stats.players[p].matches.total > 0) {
                         var deaths = stats.players[p].deaths.reduce((a,b) => {a+b})
-                        var deaths = (deaths/stats.players[p].races.total).toFixed(2)
+                        deaths = (deaths/stats.players[p].races.total).toFixed(2)
                         description += "⚔️ " + stats.players[p].matches.total + " 🏁 " + stats.players[p].races.total + " 👑 " + stats.players[p].races.won / stats.players[p].races.total + " 💀 " + deaths
                     }
                     if (stats.commentators[p] !== undefined) {
