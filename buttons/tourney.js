@@ -3816,20 +3816,10 @@ module.exports = {
                 var ranks = tools.getRanks()
                 var players = Object.keys(tourney_participants_data)
                 players = players.sort(function (a, b) {
-                    if (ranks[a] == undefined && ranks[b] == undefined) {
-                        return tourney_participants_data[b].name - tourney_participants_data[a].name
-                    } else if (ranks[a] == undefined) {
-                        return 1
-                    } else if (ranks[b] == undefined) {
-                        return -1
-                    } else if (ranks[a].matches <4){
-                        return 1
-                    } else if (ranks[b].matches <4){
-                        return -1
-                    } else if (ranks[a].matches <4 && ranks[b].matches <4){
-                        return tourney_participants_data[b].name - tourney_participants_data[a].name
-                    } else {
+                    if (ranks[a] !== undefined && ranks[a].matches <4 && ranks[b] !== undefined && ranks[b].matches <4) {
                         return Number(ranks[b].rank) - Number(ranks[a].rank)
+                    } else {
+                        return tourney_participants_data[b].name - tourney_participants_data[a].name
                     }
                 })
 
