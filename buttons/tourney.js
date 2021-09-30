@@ -3538,6 +3538,16 @@ module.exports = {
                     }
                 }
             }
+            var offset = 0
+            if (args[1] == "player") {
+                if (interaction.data.hasOwnProperty("values")) {
+                    if (interaction.data.values[0].includes("offset")) {
+                        offset = Number(interaction.data.values[0].replace("offset", ""))
+                    } else {
+                        player = interaction.data.values[0]
+                    }
+                }
+            }
             const tourneyReport = new Discord.MessageEmbed()
             tourneyReport
                 .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/crossed-swords_2694-fe0f.png")
@@ -3649,7 +3659,7 @@ module.exports = {
                     } else if (match.bracket == "Winners") {
                         stats.matches.losers++
                     }
-
+                    stats.matches.total++
                     var already_banned = []
                     match.races.forEach((race, num) => {
                         var temptrack = []
@@ -3783,6 +3793,8 @@ module.exports = {
                     })
                 })
 
+
+
                 if (stats.matches.total > 0) {
                     tourneyReport
                         .setDescription("Total race time: `" + tools.timefix(stats.race_time) + "`\nAverage deaths/race: `" + (stats.deaths / stats.races.total).toFixed(1) + "`")
@@ -3814,10 +3826,11 @@ module.exports = {
                         return Number(ranks[b].rank) - Number(ranks[a].rank)
                     }
                 })
-                var offset = 0
+
 
                 for (i = 0 + offset * 23; i < (offset + 1) * 23; i++) {
-                    var player = players[i]
+                    var p = players[i]
+                    var option_default = false
                     if (i == 0 + offset * 23 && offset > 0) {
                         player_selections.push(
                             {
@@ -3827,34 +3840,43 @@ module.exports = {
                         )
                     }
                     if (i == 0) {
+                        if(player == "global"){
+                            option_default = true
+                        }
                         player_selections.push(
                             {
                                 label: "Global Stats",
                                 value: "global",
-                                description: "get stats for all players"
+                                description: "get stats for all players",
+                                default: option_default
                             }
                         )
+                        option_default = false
                     }
                     var description = ""
-                    if (ranks[player] !== undefined) {
-                        description += "⭐ " + ranks[player].rank.toFixed(1) + " "
-                    } else if(stats.players[player].matches.total > 0) {
+                    if (ranks[p] !== undefined) {
+                        description += "⭐ " + ranks[p].rank.toFixed(1) + " "
+                    } else if (stats.players[p].matches.total > 0) {
                         description += "⭐ unranked "
                     }
-                    if(stats.players[player].matches.total > 0){
-                        description += "⚔️ " + stats.players[player].matches.total + " 🏁 " + stats.players[player].races.total + " 👑 " + stats.players[player].races.won / stats.players[player].races.total + " 💀 "
+                    if (stats.players[p].matches.total > 0) {
+                        description += "⚔️ " + stats.players[p].matches.total + " 🏁 " + stats.players[p].races.total + " 👑 " + stats.players[p].races.won / stats.players[p].races.total + " 💀 "
                     }
-                    if(stats.commentators[player] !== undefined){
-                        description += "🎙️ " + stats.commentators[player].count
+                    if (stats.commentators[p] !== undefined) {
+                        description += "🎙️ " + stats.commentators[p].count
+                    }
+                    if(p == player){
+                        option_default = true
                     }
                     player_selections.push(
                         {
-                            label: tourney_participants_data[player].name,
-                            value: player,
-                            description: description
+                            label: tourney_participants_data[p].name,
+                            value: p,
+                            description: description,
+                            default: option_default
                         }
                     )
-                    
+
                     if (i == players.length - 1) {
                         i = (offset + 1) * 23
                     }
