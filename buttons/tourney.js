@@ -3611,7 +3611,6 @@ module.exports = {
                         pods: {},
                         opponents: {},
                         forces: { no_upgrades: 0, skips: 0, pod_ban: 0 },
-                        matches: {},
                         co_comm: {}
                     }
                 })
@@ -3805,7 +3804,7 @@ module.exports = {
                 
                 var ranks = tools.getRanks()
                 var players = Object.keys(tourney_participants_data)
-                players.sort(function (a, b) {
+                players = players.sort(function (a, b) {
                     if (ranks[a] == undefined && ranks[b] == undefined) {
                         return tourney_participants_data[b].name - tourney_participants_data[a].name
                     } else if (ranks[a] == undefined) {
@@ -3813,7 +3812,7 @@ module.exports = {
                     } else if (ranks[b] == undefined) {
                         return -1
                     } else {
-                        return ranks[b].rank - ranks[a].rank
+                        return Number(ranks[b].rank) - Number(ranks[a].rank)
                     }
                 })
                 var offset = 0
@@ -3842,7 +3841,7 @@ module.exports = {
                             {
                                 label: tourney_participants_data[player].name,
                                 value: player,
-                                description: "⭐ " + ranks[player].rank + " ⚔️ " + stats.players[player].matches.total + " 🏁 " + stats.players[player].races.total + " 👑 " + stats.players[player].races.won / stats.players[player].races.total + " 💀 🎙️ " + stats.commentators[player]
+                                description: "⭐ " + ranks[player].rank.toFixed(1) + " ⚔️ " + stats.players[player].matches.total + " 🏁 " + stats.players[player].races.total + " 👑 " + stats.players[player].races.won / stats.players[player].races.total + " 💀 🎙️ " + stats.commentators[player]
                             }
                         )
                     } else {
@@ -3850,7 +3849,7 @@ module.exports = {
                             {
                                 label: tourney_participants_data[player].name,
                                 value: player,
-                                description: "⭐ unranked ⚔️ " + stats.players[player].matches.total + " 🏁 " + stats.players[player].races.total + " 👑 " + stats.players[player].races.won / stats.players[player].races.total + " 💀 🎙️ " + stats.commentators[player]
+                                description: "⭐ unranked ⚔️ " + stats.players[player].matches.total + " 🏁 " + stats.players[player].races.total + " 👑 " + stats.players[player].races.won / stats.players[player].races.total + " 💀 🎙️ " + stats.commentators[player].count
                             }
                         )
                     }
