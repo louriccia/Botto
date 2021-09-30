@@ -3853,9 +3853,6 @@ module.exports = {
                             id: racers[i].flag.split(":")[2].replace(">", "")
                         }
                     }
-                    if (pods.includes(String(i))) {
-                        racer_option.default = true
-                    }
                     var track_option = {
                         label: tracks[i].name,
                         value: i,
@@ -3865,51 +3862,9 @@ module.exports = {
                             id: planets[tracks[i].planet].emoji.split(":")[2].replace(">", "")
                         }
                     }
-                    if (counts.tracks[i] !== undefined) {
-                        //track_option.label += " (" + counts.tracks[i] + ")"
-                        track_option.description = counts.tracks[i].total + " Runs"
-                    }
-                    if (counts.tracks[i].nu > 0 || counts.tracks[i].skips > 0) {
-                        var stuff = []
-                        if (counts.tracks[i].nu > 0) {
-                            stuff.push(counts.tracks[i].nu + " NU")
-                        }
-                        if (counts.tracks[i].skips > 0) {
-                            stuff.push(counts.tracks[i].skips + " Skips")
-                        }
-                        track_option.description += " (" + stuff.join(", ") + ")"
-                    }
-                    if (track == i) {
-                        track_option.default = true
-                    }
                     racer_selections.push(racer_option)
                     track_selections.push(track_option)
-                    var condkeys = Object.keys(cond)
-                    if (i < condkeys.length) {
-                        var cond_option = {
-                            label: cond[condkeys[i]],
-                            value: condkeys[i],
-                        }
-                        if (condkeys[i] !== "pb") {
-                            cond_option.label += " (" + counts[condkeys[i]] + ")"
-                        }
-                        if (conditions.includes(condkeys[i])) {
-                            cond_option.default = true
-                        }
-                        cond_selections.push(cond_option)
-                    }
                 }
-                racer_selections.sort(function (a, b) {
-                    if (a.description !== "" && b.description !== "") {
-                        return Number(b.description.replace(" Runs", "")) - Number(a.description.replace(" Runs", ""))
-                    } else if (a.description == "") {
-                        return 1
-                    } else if (b.description == "") {
-                        return -1
-                    } else {
-                        return 0
-                    }
-                })
                 var components = []
                 components.push(
                     {
