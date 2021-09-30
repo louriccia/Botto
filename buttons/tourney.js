@@ -3801,15 +3801,8 @@ module.exports = {
                 var cond = { mu: "Max Upgrades", nu: "No Upgrades", ft: "Full Track", skips: "Skips", deaths: "Deaths", deathless: "Deathless", qual: "Include Qualifying Runs", pb: "Personal Bests Only", user: "My Runs Only" }
                 var track_selections = []
                 var racer_selections = []
-                var cond_selections = []
                 var player_selections = []
-                player_selections.push(
-                    {
-                        label: "Global Stats",
-                        value: "global",
-                        description: "cumulative stats for all players"
-                    }
-                )
+                
                 var ranks = tools.getRanks()
                 var players = Object.keys(tourney_participants_data)
                 players.sort(function (a, b) {
@@ -3823,7 +3816,27 @@ module.exports = {
                         return ranks[b].rank - ranks[a].rank
                     }
                 })
-                players.forEach(player => {
+                var offset = 0
+
+                for(i = 0 + offset * 23; i < (offset + 1) * 23; i++){
+                    var player = i
+                    if (i == 0 + offset * 23 && offset > 0) {
+                        player_selections.push(
+                            {
+                                label: "Previous players...",
+                                value: "offset" + (offset - 1),
+                            }
+                        )
+                    }
+                    if(i == 0){
+                        player_selections.push(
+                            {
+                                label: "Global Stats",
+                                value: "global",
+                                description: "cumulative stats for all players"
+                            }
+                        )
+                    }
                     if (ranks[player] !== undefined) {
                         player_selections.push(
                             {
@@ -3841,8 +3854,19 @@ module.exports = {
                             }
                         )
                     }
-
-                })
+                    if (i == players.length - 1) {
+                        i = (offset + 1) * 23
+                    }
+                    if (i == (offset + 1) * 23 - 1) {
+                        matches.push(
+                            {
+                                label: "More players...",
+                                value: "offset" + (offset + 1),
+                            }
+                        )
+                    }
+                }
+                
                 for (var i = 0; i < 25; i++) {
                     var racer_option = {
                         label: racers[i].name,
