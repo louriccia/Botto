@@ -3733,7 +3733,7 @@ module.exports = {
                             stats.players[race.track_selection.player].tracks[race.track_selection.track].picks.push(1)
                             already_played.push(Number(race.track_selection.track))
                             for (var i = 0; i < 25; i++) {
-                                if (!temptrack.includes(i) && !already_banned.includes(i) && (!already_played.includes(i) || (already_played.includes(i) && (runback[track_selection.player] !== undefined)))) {
+                                if (!temptrack.includes(i) && !already_banned.includes(i) && (!already_played.includes(i) || (already_played.includes(i) && (runback[race.track_selection.player] !== undefined)))) {
                                     stats.tracks[i].picks.push(0)
                                     stats.players[race.track_selection.player].tracks[i].picks.push(0)
                                 }
