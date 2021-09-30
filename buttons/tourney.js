@@ -3707,19 +3707,22 @@ module.exports = {
                                 stats.players[run.player].matches.total ++
                                 stats.players[run.player].matches[match.bracket] ++
                             })
-                            match.permabans.forEach(ban => {
-                                if (ban.type == "track") {
-                                    stats.tracks[ban.selection].bans.push(1)
-                                    stats.players[ban.player].tracks[ban.selection].bans.push(1)
-                                    already_banned.push(Number(ban.selection))
-                                    for (var i = 0; i < 25; i++) {
-                                        if (!already_banned.includes(i) && !already_played.includes(i)) {
-                                            stats.tracks[i].bans.push(0)
-                                            stats.players[ban.player].tracks[i].bans.push(0)
+                            if(match.permabans !== undefined){
+                                match.permabans.forEach(ban => {
+                                    if (ban.type == "track") {
+                                        stats.tracks[ban.selection].bans.push(1)
+                                        stats.players[ban.player].tracks[ban.selection].bans.push(1)
+                                        already_banned.push(Number(ban.selection))
+                                        for (var i = 0; i < 25; i++) {
+                                            if (!already_banned.includes(i) && !already_played.includes(i)) {
+                                                stats.tracks[i].bans.push(0)
+                                                stats.players[ban.player].tracks[i].bans.push(0)
+                                            }
                                         }
                                     }
-                                }
-                            })
+                                })
+                            }
+                            
                         }
                         if (race.track_selection.player !== undefined) {
                             if(already_played.includes(race.track_selection.track)){
