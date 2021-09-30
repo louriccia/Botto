@@ -3858,7 +3858,7 @@ module.exports = {
                         i = (offset + 1) * 23
                     }
                     if (i == (offset + 1) * 23 - 1) {
-                        matches.push(
+                        player_selections.push(
                             {
                                 label: "More players...",
                                 value: "offset" + (offset + 1),
