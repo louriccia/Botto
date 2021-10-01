@@ -3923,14 +3923,14 @@ module.exports = {
                     var emojis = [{name: "P1", id: "671601240228233216"}, {name:"P2", id: "671601321257992204", name:"P3", id:"671601364794605570"}]
                     var emoji = {}
                     if(i < 3){
-                        prefix = pos[i]
+                        prefix = pos[i] + " - "
                         emoji = emojis[i]
                     } else if(ranks[p] !== undefined && ranks[p].matches >= 4){
-                        prefix = tools.ordinalSuffix(i)
+                        prefix = tools.ordinalSuffix(i) + " - "
                     }
                     player_selections.push(
                         {
-                            label: suffix + " - " + tourney_participants_data[p].name,
+                            label: prefix + tourney_participants_data[p].name,
                             value: p,
                             description: description,
                             default: option_default,
