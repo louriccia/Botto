@@ -3728,6 +3728,7 @@ module.exports = {
                                 } else if (match.bracket == "Losers") {
                                     stats.players[run.player].matches.losers++
                                 }
+                                score[run.player] = 0
                             })
                             if (match.permabans !== undefined) {
                                 match.permabans.forEach(ban => {
@@ -3827,19 +3828,15 @@ module.exports = {
                                     stats.players[loser.player].pods[loser.pod].wins.push(0)
                                 }
                             })
-                            if(score[winner.player] == undefined){
-                                score[winner.player] = 1
-                            } else {
-                                score[winner.player] ++
-                            }
+                            score[winner.player] ++
                         }
                     })
                     if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type)) {
                         var match_winner = {player: null, score: null}
                         var scores = Object.keys(score)
                         for(i = 0; i < scores.length; i++){
-                            if(match_winner.score == null || score[scores[i]].score > match_winner.score){
-                                match_winner = {player: scores[i], score: score[scores[i]].score}
+                            if(match_winner.score == null || score[scores[i]] > match_winner.score){
+                                match_winner = {player: scores[i], score: score[scores[i]]}
                             }
                         }
                         stats.players[match_winner.player].matches.won++
