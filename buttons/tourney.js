@@ -3920,9 +3920,9 @@ module.exports = {
                     }
                     var prefix = ""
                     var pos = ["1st", "2nd", "3rd"]
-                    var emojis = [{name: "P1", id: "671601240228233216"}, {name:"P2", id: "671601321257992204", name:"P3", id:"671601364794605570"}]
+                    var emojis = [{name: "P1", id: "671601240228233216"}, {name:"P2", id: "671601321257992204"}, {name:"P3", id:"671601364794605570"}, {name: "4️⃣"}, {name: "5️⃣"}, {name: "6️⃣"}, {name: "7️⃣"}, {name: "8️⃣"}, {name: "9️⃣"}, {name: "🔟"}]
                     var emoji = {}
-                    if(i < 3){
+                    if(i < 10){
                         prefix = pos[i] + " - "
                         emoji = emojis[i]
                     } else if(ranks[p] !== undefined && ranks[p].matches >= 4){
