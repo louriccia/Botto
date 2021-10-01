@@ -3822,14 +3822,14 @@ module.exports = {
                         tourneyReport
                             .setDescription("⏱️ Total race time: `" + tools.timefix(stats.players[player].race_time) + "`\n💀 Average deaths/race: `" + (stats.players[player].deaths.reduce((a, b) => { return a + b }) / stats.players[player].races.total).toFixed(1) + "`\n🎙️ Matches commentated: `" + stats.commentators[player].count + "`")
                             .addField(":crossed_swords: Matches", "total: `" + stats.matches.total + "`\n" +
-                                "won: `" + stats.players[player].matches.won.reduce((a, b) => { return a + b }) + "`\n" +
-                                "lost: `" + stats.players[player].matches.lost.reduce((a, b) => { return a + b }) + "`\n" +
+                                //"won: `" + stats.players[player].matches.won.reduce((a, b) => { return a + b }) + "`\n" +
+                                //"lost: `" + stats.players[player].matches.lost.reduce((a, b) => { return a + b }) + "`\n" +
                                 "qualifying: `" + stats.players[player].matches.qual + "`\n" +
                                 "winners: `" + stats.players[player].matches.winners + "`\n" +
                                 "losers: `" + stats.players[player].matches.losers + "`", true)
                             .addField(":checkered_flag: Races", "total: `" + stats.players[player].races.total + "`\n" +
-                                "won: `" + stats.players[player].races.won.reduce((a, b) => { return a + b }) + "`\n" +
-                                "lost: `" + stats.players[player].races.lost.reduce((a, b) => { return a + b }) + "`\n" +
+                                //"won: `" + stats.players[player].races.won.reduce((a, b) => { return a + b }) + "`\n" +
+                                //"lost: `" + stats.players[player].races.lost.reduce((a, b) => { return a + b }) + "`\n" +
                                 "runbacks: `" + stats.players[player].races.runbacks + "`\n" +
                                 "dnf: `" + stats.players[player].races.dnf + "`", true)
                             .addField(":asterisk: Forces", "total: `" + stats.players[player].forces.total + "`\n" +
