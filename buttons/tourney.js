@@ -3719,7 +3719,13 @@ module.exports = {
                             already_played.push(Number(race.track_selection.track))
                             race.runs.forEach(run => {
                                 stats.players[run.player].matches.total++
-                                stats.players[run.player].matches[match.bracket]++
+                                if (match.bracket == "Qualifying") {
+                                    stats.players[run.player].matches.qual++
+                                } else if (match.bracket == "Losers") {
+                                    stats.players[run.player].matches.winners++
+                                } else if (match.bracket == "Winners") {
+                                    stats.players[run.player].matches.losers++
+                                }
                             })
                             if (match.permabans !== undefined) {
                                 match.permabans.forEach(ban => {
@@ -3807,7 +3813,7 @@ module.exports = {
                 if (stats.matches.total > 0) {
                     if (player == "global") {
                         tourneyReport
-                            .setDescription("⏱️ Total race time: `" + tools.timefix(stats.race_time) + "`\n💀 Average deaths/race: `" + (stats.deaths.reduce((a, b) => { return a + b }) / stats.races.total).toFixed(1) + "`")
+                            .setDescription("⏱️ Total race time: `" + tools.timefix(stats.race_time) + "`\n💀 Average deaths/race: `" + (stats.deaths.reduce((a, b) => { return a + b }) / stats.races.total).toFixed(2) + "`")
                             .addField(":crossed_swords: Matches", "total: `" + stats.matches.total + "`\n" +
                                 "qualifying: `" + stats.matches.qual + "`\n" +
                                 "winners: `" + stats.matches.winners + "`\n" +
@@ -3815,18 +3821,18 @@ module.exports = {
                             .addField(":checkered_flag: Races", "total: `" + stats.races.total + "`\n" +
                                 "runbacks: `" + stats.races.runbacks + "`\n" +
                                 "dnf: `" + stats.races.dnf + "`", true)
-                            .addField(":asterisk: Forces", "total: `" + (stats.forces.skips + stats.forces.no_upgrades + stats.forces.pod_ban) + "`\n" +
+                            .addField(":asterisk: Forces", "total: `" + (Number(stats.forces.skips) + Number(stats.forces.no_upgrades) + Number(stats.forces.pod_ban)) + "`\n" +
                                 "skips: `" + stats.forces.skips + "`\n" +
                                 "nu: `" + stats.forces.no_upgrades + "`\n" +
                                 "pod ban: `" + stats.forces.pod_ban + "`\n", true)
                     } else {
-                        var description = "⏱️ Total race time: `" + tools.timefix(stats.players[player].race_time) + "`\n💀 Average deaths/race: `" + (stats.players[player].deaths.reduce((a, b) => { return a + b }) / stats.players[player].races.total).toFixed(2)
+                        var description = "⏱️ Total race time: `" + tools.timefix(stats.players[player].race_time) + "`\n💀 Average deaths/race: `" + (stats.players[player].deaths.reduce((a, b) => { return a + b }) / stats.players[player].races.total).toFixed(2) + "`"
                         if (stats.commentators[player] !== undefined) {
-                            description += "`\n🎙️ Matches commentated: `" + stats.commentators[player].count + "`"
+                            description += "\n🎙️ Matches commentated: `" + stats.commentators[player].count + "`"
                         }
                         tourneyReport
                             .setDescription(description)
-                            .addField(":crossed_swords: Matches", "total: `" + stats.matches.total + "`\n" +
+                            .addField(":crossed_swords: Matches", "total: `" + stats.players[player].matches.total + "`\n" +
                                 //"won: `" + stats.players[player].matches.won.reduce((a, b) => { return a + b }) + "`\n" +
                                 //"lost: `" + stats.players[player].matches.lost.reduce((a, b) => { return a + b }) + "`\n" +
                                 "qualifying: `" + stats.players[player].matches.qual + "`\n" +
@@ -3837,7 +3843,7 @@ module.exports = {
                                 //"lost: `" + stats.players[player].races.lost.reduce((a, b) => { return a + b }) + "`\n" +
                                 "runbacks: `" + stats.players[player].races.runbacks + "`\n" +
                                 "dnf: `" + stats.players[player].races.dnf + "`", true)
-                            .addField(":asterisk: Forces", "total: `" + stats.players[player].forces.skips  + stats.players[player].forces.no_upgrades  + stats.players[player].forces.pod_ban + "`\n" +
+                            .addField(":asterisk: Forces", "total: `" + Number(stats.players[player].forces.skips)  + Number(stats.players[player].forces.no_upgrades)  + Number(stats.players[player].forces.pod_ban) + "`\n" +
                                 "skips: `" + stats.players[player].forces.skips + "`\n" +
                                 "nu: `" + stats.players[player].forces.no_upgrades + "`\n" +
                                 "pod ban: `" + stats.players[player].forces.pod_ban + "`", true)
