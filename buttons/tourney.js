@@ -3804,7 +3804,7 @@ module.exports = {
 
 
                 if (stats.matches.total > 0) {
-                    if (player == "general") {
+                    if (player == "global") {
                         tourneyReport
                             .setDescription("⏱️ Total race time: `" + tools.timefix(stats.race_time) + "`\n💀 Average deaths/race: `" + (stats.deaths.reduce((a, b) => { return a + b }) / stats.races.total).toFixed(1) + "`")
                             .addField(":crossed_swords: Matches", "total: `" + stats.matches.total + "`\n" +
