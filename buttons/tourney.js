@@ -3861,11 +3861,13 @@ module.exports = {
                 players = players.sort(function (a, b) {
                     if (ranks[a] !== undefined && ranks[a].matches >= 4 && ranks[b] !== undefined && ranks[b].matches >= 4) {
                         return Number(ranks[b].rank) - Number(ranks[a].rank)
-                    } else if ((ranks[a] == undefined || ranks[a].matches < 4) && (ranks[b] == undefined || ranks[b].matches < 4)) {
-                        return tourney_participants_data[b].name - tourney_participants_data[a].name
-                    } else if (ranks[a] == undefined || ranks[a].matches < 4) {
+                    } else if (ranks[a].matches < 4) {
                         return 1
-                    } else if (ranks[b] == undefined || ranks[b].matches < 4) {
+                    } else if (ranks[b].matches < 4) {
+                        return -1
+                    } else if (ranks[a] == undefined) {
+                        return 1
+                    } else if (ranks[b] == undefined) {
                         return -1
                     } else {
                         return tourney_participants_data[b].name - tourney_participants_data[a].name
@@ -3923,7 +3925,12 @@ module.exports = {
                     var emojis = [{name: "P1", id: "671601240228233216"}, {name:"P2", id: "671601321257992204"}, {name:"P3", id:"671601364794605570"}, {name: "4️⃣"}, {name: "5️⃣"}, {name: "6️⃣"}, {name: "7️⃣"}, {name: "8️⃣"}, {name: "9️⃣"}, {name: "🔟"}]
                     var emoji = {}
                     if(i < 10){
-                        prefix = pos[i] + " - "
+                        if(i < 3){
+                            prefix = pos[i] + " - "
+                        } else {
+                            prefix = tools.ordinalSuffix(i) + " - "
+                        }
+                        
                         emoji = emojis[i]
                     } else if(ranks[p] !== undefined && ranks[p].matches >= 4){
                         prefix = tools.ordinalSuffix(i) + " - "
