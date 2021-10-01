@@ -3882,8 +3882,8 @@ module.exports = {
                                 "winners: `" + stats.players[player].matches.winners + "`\n" +
                                 "losers: `" + stats.players[player].matches.losers + "`", true)
                             .addField(":checkered_flag: Races", "total: `" + stats.players[player].races.total + "`\n" +
-                                "won: `" + stats.players[player].races.won.reduce((a, b) => { return a + b }) + "`\n" +
-                                "lost: `" + stats.players[player].races.lost.reduce((a, b) => { return a + b }) + "`\n" +
+                                "won: `" + stats.players[player].races.won + "`\n" +
+                                "lost: `" + stats.players[player].races.lost + "`\n" +
                                 "runbacks: `" + stats.players[player].races.runbacks + "`\n" +
                                 "dnf: `" + stats.players[player].races.dnf + "`", true)
                             .addField(":asterisk: Forces", "total: `" + (Number(stats.players[player].forces.skips) + Number(stats.players[player].forces.no_upgrades) + Number(stats.players[player].forces.pod_ban)) + "`\n" +
@@ -3954,7 +3954,7 @@ module.exports = {
                     if (stats.players[p].matches.total > 0) {
                         var deaths = stats.players[p].deaths.reduce((a, b) => { return a + b })
                         deaths = (deaths / stats.players[p].races.total).toFixed(2)
-                        description += "⚔️ " + stats.players[p].matches.total + " 🏁 " + stats.players[p].races.total + " 👑 " + Math.round((stats.players[p].races.won / (stats.players[p].races.won + stats.players[p].races.lost))*100) + " 💀 " + deaths + " "
+                        description += "⚔️ " + stats.players[p].matches.total + " 🏁 " + stats.players[p].races.total + " 👑 " + Math.round((stats.players[p].races.won / (stats.players[p].races.won + stats.players[p].races.lost))*100) + "% 💀 " + deaths + " "
                     }
                     if (stats.commentators[p] !== undefined) {
                         description += "🎙️ " + stats.commentators[p].count
