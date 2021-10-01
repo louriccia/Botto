@@ -3662,6 +3662,7 @@ module.exports = {
                     }
                     stats.matches.total++
                     var already_banned = []
+                    var score = {}
                     match.races.forEach((race, num) => {
                         var temptrack = []
                         var temppod = []
@@ -3715,7 +3716,7 @@ module.exports = {
                                 }
                             })
                         }
-                        
+
                         if (num == 0) {
                             already_played.push(Number(race.track_selection.track))
                             race.runs.forEach(run => {
@@ -3763,10 +3764,14 @@ module.exports = {
                                 }
                             }
                         }
+                        var winner = { player: null, time: null, pod: null }
                         race.runs.forEach(run => {
                             if (run.time !== "DNF") {
                                 stats.race_time += Number(run.time)
                                 stats.players[run.player].race_time += Number(run.time)
+                                if (winner.time == null || run.time < winner.time) {
+                                    winner = { player: run.player, time: run.time, pod: run.pod }
+                                }
                             } else {
                                 stats.races.dnf++
                                 stats.players[run.player].races.dnf++
@@ -3806,7 +3811,44 @@ module.exports = {
                                 }
                             }
                         })
+                        if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type) && winner.player !== null) {
+                            stats.players[winner.player].races.won++
+                            stats.players[winner.player].tracks[race.track_selection.track].wins.push(1)
+                            stats.players[winner.player].pods[winner.pod].wins.push(1)
+                            if (winner.player == race.track_selection.player) {
+                                stats.tracks[race.track_selection.track].wins.push(1)
+                            } else {
+                                stats.tracks[race.track_selection.track].wins.push(0)
+                            }
+                            race.runs.forEach(loser => {
+                                if (loser.player !== winner.player) {
+                                    stats.players[loser.player].races.lost++
+                                    stats.players[loser.player].tracks[race.track_selection.track].wins.push(0)
+                                    stats.players[loser.player].pods[loser.pod].wins.push(0)
+                                }
+                            })
+                            if(score[winner.player] == undefined){
+                                score[winner.player] = 1
+                            } else {
+                                score[winner.player] ++
+                            }
+                        }
                     })
+                    if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type)) {
+                        var match_winner = {player: null, score: null}
+                        var scores = Object.keys(score)
+                        for(i = 0; i < scores.length; i++){
+                            if(match_winner.score == null || score[scores[i]].score > match_winner.score){
+                                match_winner = {player: scores[i], score: score[scores[i]].score}
+                            }
+                        }
+                        stats.players[match_winner.player].matches.won++
+                        for(i = 0; i < scores.length; i++){
+                            if(scores[i] !== match_winner.player){
+                                stats.players[scores[i]].matches.lost++
+                            }
+                        }
+                    }
                 })
 
 
@@ -3834,17 +3876,17 @@ module.exports = {
                         tourneyReport
                             .setDescription(description)
                             .addField(":crossed_swords: Matches", "total: `" + stats.players[player].matches.total + "`\n" +
-                                //"won: `" + stats.players[player].matches.won.reduce((a, b) => { return a + b }) + "`\n" +
-                                //"lost: `" + stats.players[player].matches.lost.reduce((a, b) => { return a + b }) + "`\n" +
+                                "won: `" + stats.players[player].matches.won + "`\n" +
+                                "lost: `" + stats.players[player].matches.lost + "`\n" +
                                 "qualifying: `" + stats.players[player].matches.qual + "`\n" +
                                 "winners: `" + stats.players[player].matches.winners + "`\n" +
                                 "losers: `" + stats.players[player].matches.losers + "`", true)
                             .addField(":checkered_flag: Races", "total: `" + stats.players[player].races.total + "`\n" +
-                                //"won: `" + stats.players[player].races.won.reduce((a, b) => { return a + b }) + "`\n" +
-                                //"lost: `" + stats.players[player].races.lost.reduce((a, b) => { return a + b }) + "`\n" +
+                                "won: `" + stats.players[player].races.won.reduce((a, b) => { return a + b }) + "`\n" +
+                                "lost: `" + stats.players[player].races.lost.reduce((a, b) => { return a + b }) + "`\n" +
                                 "runbacks: `" + stats.players[player].races.runbacks + "`\n" +
                                 "dnf: `" + stats.players[player].races.dnf + "`", true)
-                            .addField(":asterisk: Forces", "total: `" + (Number(stats.players[player].forces.skips)  + Number(stats.players[player].forces.no_upgrades)  + Number(stats.players[player].forces.pod_ban)) + "`\n" +
+                            .addField(":asterisk: Forces", "total: `" + (Number(stats.players[player].forces.skips) + Number(stats.players[player].forces.no_upgrades) + Number(stats.players[player].forces.pod_ban)) + "`\n" +
                                 "skips: `" + stats.players[player].forces.skips + "`\n" +
                                 "nu: `" + stats.players[player].forces.no_upgrades + "`\n" +
                                 "pod ban: `" + stats.players[player].forces.pod_ban + "`", true)
@@ -3861,13 +3903,11 @@ module.exports = {
                 players = players.sort(function (a, b) {
                     if (ranks[a] !== undefined && ranks[a].matches >= 4 && ranks[b] !== undefined && ranks[b].matches >= 4) {
                         return Number(ranks[b].rank) - Number(ranks[a].rank)
-                    } else if (ranks[a] == undefined) {
+                    } else if (ranks[a] == undefined && ranks[b] == undefined) {
+                        return tourney_participants_data[b].name - tourney_participants_data[a].name
+                    } else if (ranks[a] == undefined && ranks[b].matches < 4) {
                         return 1
-                    } else if (ranks[b] == undefined) {
-                        return -1
-                    } else if (ranks[a].matches < 4) {
-                        return 1
-                    } else if (ranks[b].matches < 4) {
+                    } else if (ranks[b] == undefined && ranks[a].matches < 4) {
                         return -1
                     } else {
                         return tourney_participants_data[b].name - tourney_participants_data[a].name
@@ -3912,7 +3952,7 @@ module.exports = {
                     if (stats.players[p].matches.total > 0) {
                         var deaths = stats.players[p].deaths.reduce((a, b) => { return a + b })
                         deaths = (deaths / stats.players[p].races.total).toFixed(2)
-                        description += "⚔️ " + stats.players[p].matches.total + " 🏁 " + stats.players[p].races.total + " 👑 " + stats.players[p].races.won / stats.players[p].races.total + " 💀 " + deaths + " "
+                        description += "⚔️ " + stats.players[p].matches.total + " 🏁 " + stats.players[p].races.total + " 👑 " + (stats.players[p].races.won / (stats.players[p].races.won + stats.players[p].races.lost)) + " 💀 " + deaths + " "
                     }
                     if (stats.commentators[p] !== undefined) {
                         description += "🎙️ " + stats.commentators[p].count
@@ -3922,17 +3962,17 @@ module.exports = {
                     }
                     var prefix = ""
                     var pos = ["1st", "2nd", "3rd"]
-                    var emojis = [{name: "P1", id: "671601240228233216"}, {name:"P2", id: "671601321257992204"}, {name:"P3", id:"671601364794605570"}, {name: "4️⃣"}, {name: "5️⃣"}, {name: "6️⃣"}, {name: "7️⃣"}, {name: "8️⃣"}, {name: "9️⃣"}, {name: "🔟"}]
+                    var emojis = [{ name: "P1", id: "671601240228233216" }, { name: "P2", id: "671601321257992204" }, { name: "P3", id: "671601364794605570" }, { name: "4️⃣" }, { name: "5️⃣" }, { name: "6️⃣" }, { name: "7️⃣" }, { name: "8️⃣" }, { name: "9️⃣" }, { name: "🔟" }]
                     var emoji = {}
-                    if(i < 10){
-                        if(i < 3){
+                    if (i < 10) {
+                        if (i < 3) {
                             prefix = pos[i] + " - "
                         } else {
                             prefix = tools.ordinalSuffix(i) + " - "
                         }
-                        
+
                         emoji = emojis[i]
-                    } else if(ranks[p] !== undefined && ranks[p].matches >= 4){
+                    } else if (ranks[p] !== undefined && ranks[p].matches >= 4) {
                         prefix = tools.ordinalSuffix(i) + " - "
                     }
                     player_selections.push(
