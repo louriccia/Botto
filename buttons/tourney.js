@@ -1,4 +1,5 @@
 const { count } = require('console');
+const { ordinalSuffix } = require('./../tools.js');
 
 module.exports = {
     name: 'tourney',
@@ -3721,9 +3722,9 @@ module.exports = {
                                 stats.players[run.player].matches.total++
                                 if (match.bracket == "Qualifying") {
                                     stats.players[run.player].matches.qual++
-                                } else if (match.bracket == "Losers") {
-                                    stats.players[run.player].matches.winners++
                                 } else if (match.bracket == "Winners") {
+                                    stats.players[run.player].matches.winners++
+                                } else if (match.bracket == "Losers") {
                                     stats.players[run.player].matches.losers++
                                 }
                             })
@@ -3843,7 +3844,7 @@ module.exports = {
                                 //"lost: `" + stats.players[player].races.lost.reduce((a, b) => { return a + b }) + "`\n" +
                                 "runbacks: `" + stats.players[player].races.runbacks + "`\n" +
                                 "dnf: `" + stats.players[player].races.dnf + "`", true)
-                            .addField(":asterisk: Forces", "total: `" + Number(stats.players[player].forces.skips)  + Number(stats.players[player].forces.no_upgrades)  + Number(stats.players[player].forces.pod_ban) + "`\n" +
+                            .addField(":asterisk: Forces", "total: `" + (Number(stats.players[player].forces.skips)  + Number(stats.players[player].forces.no_upgrades)  + Number(stats.players[player].forces.pod_ban)) + "`\n" +
                                 "skips: `" + stats.players[player].forces.skips + "`\n" +
                                 "nu: `" + stats.players[player].forces.no_upgrades + "`\n" +
                                 "pod ban: `" + stats.players[player].forces.pod_ban + "`", true)
@@ -3892,7 +3893,10 @@ module.exports = {
                                 label: "Global Stats",
                                 value: "global",
                                 description: "get stats for all players",
-                                default: option_default
+                                default: option_default,
+                                emoji: {
+                                    name: "🌐"
+                                }
                             }
                         )
                         option_default = false
@@ -3914,12 +3918,23 @@ module.exports = {
                     if (p == player) {
                         option_default = true
                     }
+                    var prefix = ""
+                    var pos = ["1st", "2nd", "3rd"]
+                    var emojis = [{name: "P1", id: "671601240228233216"}, {name:"P2", id: "671601321257992204", name:"P3", id:"671601364794605570"}]
+                    var emoji = {}
+                    if(i < 3){
+                        prefix = pos[i]
+                        emoji = emojis[i]
+                    } else if(ranks[p] !== undefined && ranks[p].matches >= 4){
+                        prefix = tools.ordinalSuffix(i)
+                    }
                     player_selections.push(
                         {
-                            label: tourney_participants_data[p].name,
+                            label: suffix + " - " + tourney_participants_data[p].name,
                             value: p,
                             description: description,
-                            default: option_default
+                            default: option_default,
+                            emoji: emoji
                         }
                     )
 
