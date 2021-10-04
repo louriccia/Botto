@@ -4006,7 +4006,7 @@ module.exports = {
                 for (var i = 0; i < 25; i++) {
                     //stats.players[participant].tracks[i] = { plays: 0, picks: [], bans: [], wins: [], deaths: [], runbacks: 0, nu: 0, skips: 0 }
                     //stats.players[participant].pods[i] = { plays: 0, picks: [], bans: [], wins: [], deaths: [], nu: 0, skips: 0 }
-                    
+
 
                     var racer_option = {
                         label: racers[i].name,
@@ -4017,12 +4017,34 @@ module.exports = {
                             id: racers[i].flag.split(":")[2].replace(">", "")
                         }
                     }
-                    var description = "▶️ " + stats.players[player].tracks[i].plays + 
-                    " (" + Math.round((stats.players[player].tracks[i].plays/stats.players[player].races.total)*100) + "%)" +
-                    " 👆 " + Math.round((stats.players[player].tracks[i].picks.reduce((a,b) => {return a+b}) / stats.players[player].tracks[i].picks.length)*100) + "%" + 
-                    " 👑 " + Math.round((stats.players[player].tracks[i].wins.reduce((a,b) => {return a+b}) / stats.players[player].tracks[i].wins.length)*100) + "%" + 
-                    " 💀 " + (stats.players[player].tracks[i].deaths.reduce((a,b) => {return a+b}) / stats.players[player].tracks[i].deaths.length).toFixed(2) + 
-                    " ❌ " + Math.round((stats.players[player].tracks[i].bans.reduce((a,b) => {return a+b}) / stats.players[player].tracks[i].bans.length)*100) + "%"
+                    var description = ""
+                    if (player == "global") {
+                    
+                    } else {
+                        description += "▶️ " + stats.players[player].tracks[i].plays +
+                            " (" + Math.round((stats.players[player].tracks[i].plays / stats.players[player].races.total) * 100) + "%)"
+                        if(stats.players[player].tracks[i].picks.length > 0){
+                            description += " 👆 " + Math.round((stats.players[player].tracks[i].picks.reduce((a, b) => { return a + b }) / stats.players[player].tracks[i].picks.length) * 100) + "%"
+                        } else {
+                            description += " 👆 --%"
+                        }
+                        if(stats.players[player].tracks[i].wins.length > 0){
+                            description += " 👑 " + Math.round((stats.players[player].tracks[i].wins.reduce((a, b) => { return a + b }) / stats.players[player].tracks[i].wins.length) * 100) + "%"
+                        } else {
+                            description += " 👑 --%"
+                        }
+                        if(stats.players[player].tracks[i].deaths.length > 0){
+                            description += " 💀 " + (stats.players[player].tracks[i].deaths.reduce((a, b) => { return a + b }) / stats.players[player].tracks[i].deaths.length).toFixed(2)
+                        } else {
+                            description += " 💀 --"
+                        }
+                        if(stats.players[player].tracks[i].bans.length > 0){  
+                            description += " ❌ " + Math.round((stats.players[player].tracks[i].bans.reduce((a, b) => { return a + b }) / stats.players[player].tracks[i].bans.length) * 100) + "%"
+                        } else {
+                            description += " ❌ --%"
+                        }
+                            
+                    }
                     var track_option = {
                         label: tracks[i].name,
                         value: i,
