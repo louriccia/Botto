@@ -3920,7 +3920,7 @@ module.exports = {
                 var racer_selections = []
                 var player_selections = []
 
-
+                console.log(ranks)
                 var players = Object.keys(tourney_participants_data)
                 players = players.sort(function (a, b) {
                     if (ranks[a] !== undefined && ranks[a].matches >= 4 && ranks[b] !== undefined && ranks[b].matches >= 4) {
