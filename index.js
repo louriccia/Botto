@@ -149,13 +149,13 @@ client.once('ready', () => {
     //client.users.cache.get("256236315144749059").send("Ready!")
     client.channels.cache.get("444208252541075476").messages.fetch({ limit: 1 }).then(messages => {
         let lastMessage = messages.first();
-        
+
         if (lastMessage.author.bot) {
-          lastMessage.delete().catch(err => console.log(err));
+            lastMessage.delete().catch(err => console.log(err));
         }
-      })
-      .catch(console.error);
-    client.channels.cache.get("444208252541075476").send("Deployed <t:" + Math.round(Date.now()/1000) + ":R>");
+    })
+        .catch(console.error);
+    client.channels.cache.get("444208252541075476").send("Deployed <t:" + Math.round(Date.now() / 1000) + ":R>");
     try {
         //client.commands.get("scrape").execute();
     } catch {
@@ -341,7 +341,7 @@ client.on('guildMemberAdd', (guildMember) => { //join log
         member.roles.add(role).catch(console.error);
     }
 })
-
+/*
 client.on('guildMemberRemove', (guildMember) => { //join log
     if (guildMember.guild.id == "441839750555369474") {
         const memberLeft = new Discord.MessageEmbed()
@@ -351,11 +351,13 @@ client.on('guildMemberRemove', (guildMember) => { //join log
         client.channels.cache.get("892664227553243157").send(memberLeft);
     }
 })
-
+*/
 client.on("messageDelete", (messageDelete) => {
     console.log("message deleted")
+    if (!messageDelete.guild) return;
+
     if (messageDelete.author.bot == false && messageDelete.channel.type == "text" && messageDelete.guild.id == "441839750555369474") {
-        
+
         var channelname = ""
         for (var i = 0; i < discordchannels.length; i++) {
             if (discordchannels[i].id == messageDelete.channel.id) {
@@ -372,18 +374,34 @@ client.on("messageDelete", (messageDelete) => {
             channel_name: channelname
         }
         logref.push(data);
-        const deletedMessage = new Discord.MessageEmbed()
-        deletedMessage
-            .setTitle("Deleted Message")
-            .addField("Author", "<@" + data.user + ">")
-            .addField("Channel", "<#" + data.channel + ">")
-            .addField("Content", data.message)
-        client.channels.cache.get("892664227553243157").send(deletedMessage);
+
+        //taken from https://discordjs.guide/popular-topics/audit-logs.html#who-deleted-a-message
+        var deleter = "unknown"
+        const fetchedLogs = await messageDelete.guild.fetchAuditLogs({
+            limit: 1,
+            type: 'MESSAGE_DELETE',
+        });
+        const deletionLog = fetchedLogs.entries.first();
+        if (deletionLog) {
+            const { executor, target } = deletionLog;
+            if (target.id === messageDelete.author.id) {
+                deleter = executor.tag
+            } 
+            const deletedMessage = new Discord.MessageEmbed()
+            deletedMessage
+                .setTitle("Deleted Message")
+                .addField("Author", "<@" + data.user + ">")
+                .addField("Deleted By", deleter)
+                .addField("Channel", "<#" + data.channel + ">")
+                .addField("Content", data.message)
+            client.channels.cache.get("892664227553243157").send(deletedMessage);
+        }
+
     }
 });
 
 client.on('messageUpdate', (oldMessage, newMessage) => {
-    if (oldMessage.author.bot == false && oldMessage.channel.type == "text" && oldMessage !== newMessage  && oldMessage.guild.id == "441839750555369474") {
+    if (oldMessage.author.bot == false && oldMessage.channel.type == "text" && oldMessage !== newMessage && oldMessage.guild.id == "441839750555369474") {
         var channelname = ""
         for (var i = 0; i < discordchannels.length; i++) {
             if (discordchannels[i].id == newMessage.channel.id) {
