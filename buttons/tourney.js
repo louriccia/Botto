@@ -3782,10 +3782,12 @@ module.exports = {
                             if (conditions.includes("skips")) {
                                 stats.players[run.player].tracks[race.track_selection.track].skips++
                                 stats.players[run.player].pods[run.pod].skips++
+                                stats.pods[run.pod].skips++
                             }
                             if (conditions.includes("nu")) {
                                 stats.players[run.player].tracks[race.track_selection.track].nu++
                                 stats.players[run.player].pods[run.pod].nu++
+                                stats.pods[run.pod].nu++
                             }
                             if (run.deaths == undefined) {
                                 run.deaths = 0
@@ -3923,10 +3925,14 @@ module.exports = {
                 players = players.sort(function (a, b) {
                     if (ranks[a] !== undefined && ranks[a].matches >= 4 && ranks[b] !== undefined && ranks[b].matches >= 4) {
                         return Number(ranks[b].rank) - Number(ranks[a].rank)
+                    } else if (ranks[a] == undefined && ranks[b] == undefined) {
+                        return 0
                     } else if (ranks[a] == undefined) {
                         return 1
                     } else if (ranks[b] == undefined) {
                         return -1
+                    } else if (ranks[a].matches < 4 && ranks[b].matches < 4) {
+                        return 0
                     } else if (ranks[a].matches < 4) {
                         return 1
                     } else if (ranks[b].matches < 4) {
