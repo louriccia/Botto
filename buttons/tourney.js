@@ -3674,7 +3674,7 @@ module.exports = {
                                     stats.players[ban.player].pods[ban.selection].bans.push(1)
                                     temppod.push(Number(ban.selection))
                                     for (var i = 0; i < 25; i++) {
-                                        if (!temppod.includes(ban.selection)) {
+                                        if (!temppod.includes(i)) {
                                             stats.pods[i].bans.push(0)
                                             stats.players[ban.player].pods[i].bans.push(0)
                                         }
@@ -4105,7 +4105,7 @@ module.exports = {
                 }
                 if(player == "global"){
                     racer_selections = racer_selections.sort(function (a, b) {
-                        return stats.pods[b.value].plays - stats.tracks[a.value].plays
+                        return stats.pods[b.value].plays - stats.pods[a.value].plays
                     })
                     track_selections = track_selections.sort(function (a, b) {
                         return stats.tracks[b.value].plays - stats.tracks[a.value].plays
