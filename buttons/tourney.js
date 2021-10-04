@@ -3818,6 +3818,7 @@ module.exports = {
                             stats.players[winner.player].races.won++
                             stats.players[winner.player].tracks[race.track_selection.track].wins.push(1)
                             stats.players[winner.player].pods[winner.pod].wins.push(1)
+                            stats.pods[winner.pod].wins.push(1)
                             if (winner.player == race.track_selection.player) {
                                 stats.tracks[race.track_selection.track].wins.push(1)
                             } else {
@@ -3828,6 +3829,7 @@ module.exports = {
                                     stats.players[loser.player].races.lost++
                                     stats.players[loser.player].tracks[race.track_selection.track].wins.push(0)
                                     stats.players[loser.player].pods[loser.pod].wins.push(0)
+                                    stats.pods[loser.pod].wins.push(0)
                                 }
                             })
                             score[winner.player]++
