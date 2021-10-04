@@ -3929,8 +3929,14 @@ module.exports = {
                         return -1
                     } else if (ranks[b] !== undefined && ranks[b].matches >= 4) {
                         return 1
+                    } else if (ranks[a] !== undefined && ranks[b] !== undefined) {
+                        return tourney_participants_data[b].name.toUpperCase() - tourney_participants_data[a].name.toUpperCase()
+                    } else if (ranks[a] !== undefined) {
+                        return -1
+                    } else if (ranks[b] !== undefined) {
+                        return 1
                     } else {
-                        return tourney_participants_data[b].name - tourney_participants_data[a].name
+                        return tourney_participants_data[b].name.toUpperCase() - tourney_participants_data[a].name.toUpperCase()
                     }
                 })
 
