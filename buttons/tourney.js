@@ -3925,20 +3925,19 @@ module.exports = {
                 players = players.sort(function (a, b) {
                     if (ranks[a] !== undefined && ranks[a].matches >= 4 && ranks[b] !== undefined && ranks[b].matches >= 4) {
                         return Number(ranks[b].rank) - Number(ranks[a].rank)
+                    } else if(ranks[a] !== undefined && ranks[a].matches >= 4 ){
+                        return -1
+                    } else if(ranks[b] !== undefined && ranks[b].matches >= 4 ){
+                        return 1
                     } else if (ranks[a] !== undefined && ranks[b] !== undefined) {
                         return Number(ranks[b].matches) - Number(ranks[a].matches)
+                    } else if(ranks[a] !== undefined){
+                        return -1
+                    } else if(ranks[b] !== undefined){
+                        return 1
                     } else if (ranks[a] == undefined && ranks[b] == undefined) {
                         return stats.commentators[b].count - stats.commentators[a].count
                     } else {
-                        if(ranks[a] !== undefined && ranks[a].matches >= 4 ){
-                            return -1
-                        } else if(ranks[b] !== undefined && ranks[b].matches >= 4 ){
-                            return 1
-                        } else if(ranks[a] !== undefined){
-                            return -1
-                        } else if(ranks[b] !== undefined){
-                            return 1
-                        } 
                         return 0
                     }
                 })
@@ -4026,7 +4025,50 @@ module.exports = {
                         )
                     }
                 }
-
+                var sort_selections = [
+                    {
+                        label: "Plays",
+                        value: "plays",
+                        description: "sort by total number of plays descending",
+                        emoji: {name: "▶️"}
+                    },
+                    {
+                        label: "Pick Rate",
+                        value: "picks",
+                        description: "sort by pick rate descending",
+                        emoji: {name: "👆"}
+                    },
+                    {
+                        label: "Ban Rate",
+                        value: "bans",
+                        description: "sort by ban rate descending",
+                        emoji: {name: "❌"}
+                    },
+                    {
+                        label: "Win Rate",
+                        value: "wins",
+                        description: "sort by win rate descending",
+                        emoji: {name: "👑"}
+                    },
+                    {
+                        label: "Avg. Deaths",
+                        value: "deaths",
+                        description: "sort by average deaths per race descending",
+                        emoji: {name: "💀"}
+                    },
+                    {
+                        label: "No Upgrades",
+                        value: "nu",
+                        description: "sort by plays featuring the No Upgrades condition",
+                        emoji: {name: "🐢"}
+                    },
+                    {
+                        label: "Skips",
+                        value: "skips",
+                        description: "sort by plays featuring the Skips condition",
+                        emoji: {name: "⏩"}
+                    }
+                ]
                 for (var i = 0; i < 25; i++) {
                     //stats.players[participant].tracks[i] = { plays: 0, picks: [], bans: [], wins: [], deaths: [], runbacks: 0, nu: 0, skips: 0 }
                     //stats.players[participant].pods[i] = { plays: 0, picks: [], bans: [], wins: [], deaths: [], nu: 0, skips: 0 }
@@ -4232,6 +4274,19 @@ module.exports = {
                                 options: racer_selections,
                                 placeholder: "View Pod Stats",
                                 min_values: 0,
+                                max_values: 1
+                            }
+                        ]
+                    },
+                    {
+                        type: 1,
+                        components: [
+                            {
+                                type: 3,
+                                custom_id: "tourney_stats_sort",
+                                options: sort_selections,
+                                placeholder: "Sort Options",
+                                min_values: 1,
                                 max_values: 1
                             }
                         ]
