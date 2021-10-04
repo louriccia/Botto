@@ -3926,9 +3926,9 @@ module.exports = {
                     if (ranks[a] !== undefined && ranks[a].matches >= 4 && ranks[b] !== undefined && ranks[b].matches >= 4) {
                         return Number(ranks[b].rank) - Number(ranks[a].rank)
                     } else if (ranks[a] !== undefined && ranks[a].matches >= 4) {
-                        return 1
-                    } else if (ranks[b] !== undefined && ranks[b].matches >= 4) {
                         return -1
+                    } else if (ranks[b] !== undefined && ranks[b].matches >= 4) {
+                        return 1
                     } else {
                         return tourney_participants_data[b].name - tourney_participants_data[a].name
                     }
