@@ -3936,7 +3936,8 @@ module.exports = {
                     } else if(ranks[b] !== undefined){
                         return 1
                     } else if (ranks[a] == undefined && ranks[b] == undefined) {
-                        return stats.commentators[b].count - stats.commentators[a].count
+                        console.log(tourney_participants_data[a].name + " and " + tourney_participants_data[b].name)
+                        return Number(stats.commentators[b].count) - Number(stats.commentators[a].count)
                     } else {
                         return 0
                     }
