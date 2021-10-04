@@ -3869,16 +3869,16 @@ module.exports = {
                                 "pod ban: `" + stats.forces.pod_ban + "`\n", true)
                     } else {
                         var description = ""
-                        if(ranks[player] !== undefined){
-                            if(ranks[player].matches >= 4){
+                        if (ranks[player] !== undefined) {
+                            if (ranks[player].matches >= 4) {
                                 description += "🎖️ Elo Rating: `" + (ranks[player].rank).toFixed(1) + " ("
-                                if(ranks[player].change >= 0){
-                                    description += "🔺 " + (ranks[player].change).toFixed(1) + ")`\n"
+                                if (ranks[player].change >= 0) {
+                                    description += "🔺" + (ranks[player].change).toFixed(1) + ")`\n"
                                 } else {
-                                    description += "🔻 " + Math.abs((ranks[player].change)).toFixed(1) + ")`\n"
+                                    description += "🔻" + Math.abs((ranks[player].change)).toFixed(1) + ")`\n"
                                 }
-                                
-                            } else if(ranks[player].matches > 0) {
+
+                            } else if (ranks[player].matches > 0) {
                                 description += "🎖️ unranked "
                             }
                         }
@@ -3916,7 +3916,7 @@ module.exports = {
                 var racer_selections = []
                 var player_selections = []
 
-                
+
                 var players = Object.keys(tourney_participants_data)
                 players = players.sort(function (a, b) {
                     if (ranks[a] !== undefined && ranks[a].matches >= 4 && ranks[b] !== undefined && ranks[b].matches >= 4) {
@@ -4024,36 +4024,63 @@ module.exports = {
 
                     var description = ""
                     if (player == "global") {
-                    
+                        description += "▶️ " + stats.pods[i].plays +
+                            " (" + Math.round((stats.pods[i].plays / stats.races.total) * 100) + "%)"
+                        if (stats.pods[i].picks.length > 0) {
+                            description += " 👆 " + Math.round((stats.pods[i].picks.reduce((a, b) => { return a + b }) / stats.pods[i].picks.length) * 100) + "%"
+                        } else {
+                            description += " 👆 --%"
+                        }
+                        if (stats.pods[i].bans.length > 0) {
+                            description += " ❌ " + Math.round((stats.pods[i].bans.reduce((a, b) => { return a + b }) / stats.pods[i].bans.length) * 100) + "%"
+                        } else {
+                            description += " ❌ --%"
+                        }
+                        if (stats.pods[i].wins.length > 0) {
+                            description += " 👑 " + Math.round((stats.pods[i].wins.reduce((a, b) => { return a + b }) / stats.pods[i].wins.length) * 100) + "%"
+                        } else {
+                            description += " 👑 --%"
+                        }
+                        if (stats.pods[i].deaths.length > 0) {
+                            description += " 💀 " + (stats.pods[i].deaths.reduce((a, b) => { return a + b }) / stats.pods[i].deaths.length).toFixed(2)
+                        } else {
+                            description += " 💀 --"
+                        }
+                        if (stats.pods[i].nu > 0) {
+                            description += " 🐢  " + stats.pods[i].nu
+                        }
+                        if (stats.pods[i].skips > 0) {
+                            description += " ⏩  " + stats.pods[i].skips
+                        }
                     } else {
                         description += "▶️ " + stats.players[player].pods[i].plays +
                             " (" + Math.round((stats.players[player].pods[i].plays / stats.players[player].races.total) * 100) + "%)"
-                        if(stats.players[player].pods[i].picks.length > 0){
+                        if (stats.players[player].pods[i].picks.length > 0) {
                             description += " 👆 " + Math.round((stats.players[player].pods[i].picks.reduce((a, b) => { return a + b }) / stats.players[player].pods[i].picks.length) * 100) + "%"
                         } else {
                             description += " 👆 --%"
                         }
-                        if(stats.players[player].pods[i].bans.length > 0){  
+                        if (stats.players[player].pods[i].bans.length > 0) {
                             description += " ❌ " + Math.round((stats.players[player].pods[i].bans.reduce((a, b) => { return a + b }) / stats.players[player].pods[i].bans.length) * 100) + "%"
                         } else {
                             description += " ❌ --%"
                         }
-                        if(stats.players[player].pods[i].wins.length > 0){
+                        if (stats.players[player].pods[i].wins.length > 0) {
                             description += " 👑 " + Math.round((stats.players[player].pods[i].wins.reduce((a, b) => { return a + b }) / stats.players[player].pods[i].wins.length) * 100) + "%"
                         } else {
                             description += " 👑 --%"
                         }
-                        if(stats.players[player].pods[i].deaths.length > 0){
+                        if (stats.players[player].pods[i].deaths.length > 0) {
                             description += " 💀 " + (stats.players[player].pods[i].deaths.reduce((a, b) => { return a + b }) / stats.players[player].pods[i].deaths.length).toFixed(2)
                         } else {
                             description += " 💀 --"
                         }
-                        if(stats.players[player].pods[i].nu > 0){
+                        if (stats.players[player].pods[i].nu > 0) {
                             description += " 🐢  " + stats.players[player].pods[i].nu
-                        }   
-                        if(stats.players[player].pods[i].skips > 0){
+                        }
+                        if (stats.players[player].pods[i].skips > 0) {
                             description += " ⏩  " + stats.players[player].pods[i].skips
-                        }   
+                        }
                     }
                     var racer_option = {
                         label: racers[i].name,
@@ -4066,39 +4093,71 @@ module.exports = {
                     }
                     var description = ""
                     if (player == "global") {
-                    
+                        description += "▶️ " + stats.tracks[i].plays +
+                            " (" + Math.round((stats.tracks[i].plays / stats.races.total) * 100) + "%)"
+                        if (stats.tracks[i].picks.length > 0) {
+                            description += " 👆 " + Math.round((stats.tracks[i].picks.reduce((a, b) => { return a + b }) / stats.tracks[i].picks.length) * 100) + "%"
+                        } else {
+                            description += " 👆 --%"
+                        }
+                        if (stats.tracks[i].bans.length > 0) {
+                            description += " ❌ " + Math.round((stats.tracks[i].bans.reduce((a, b) => { return a + b }) / stats.tracks[i].bans.length) * 100) + "%"
+                        } else {
+                            description += " ❌ --%"
+                        }
+                        if (stats.tracks[i].wins.length > 0) {
+                            description += " 👑 " + Math.round((stats.tracks[i].wins.reduce((a, b) => { return a + b }) / stats.tracks[i].wins.length) * 100) + "%"
+                        } else {
+                            description += " 👑 --%"
+                        }
+                        if (stats.tracks[i].deaths.length > 0) {
+                            description += " 💀 " + (stats.tracks[i].deaths.reduce((a, b) => { return a + b }) / stats.tracks[i].deaths.length).toFixed(2)
+                        } else {
+                            description += " 💀 --"
+                        }
+
+                        if (stats.tracks[i].nu > 0) {
+                            description += " 🐢  " + stats.tracks[i].nu
+                        }
+                        if (stats.tracks[i].skips > 0) {
+                            description += " ⏩  " + stats.tracks[i].skips
+                        }
+                        if (stats.tracks[i].runbacks > 0) {
+                            description += " 🔁  " + stats.tracks[i].runbacks
+                        }
                     } else {
                         description += "▶️ " + stats.players[player].tracks[i].plays +
                             " (" + Math.round((stats.players[player].tracks[i].plays / stats.players[player].races.total) * 100) + "%)"
-                        if(stats.players[player].tracks[i].picks.length > 0){
+                        if (stats.players[player].tracks[i].picks.length > 0) {
                             description += " 👆 " + Math.round((stats.players[player].tracks[i].picks.reduce((a, b) => { return a + b }) / stats.players[player].tracks[i].picks.length) * 100) + "%"
                         } else {
                             description += " 👆 --%"
                         }
-                        if(stats.players[player].tracks[i].bans.length > 0){  
+                        if (stats.players[player].tracks[i].bans.length > 0) {
                             description += " ❌ " + Math.round((stats.players[player].tracks[i].bans.reduce((a, b) => { return a + b }) / stats.players[player].tracks[i].bans.length) * 100) + "%"
                         } else {
                             description += " ❌ --%"
                         }
-                        if(stats.players[player].tracks[i].wins.length > 0){
+                        if (stats.players[player].tracks[i].wins.length > 0) {
                             description += " 👑 " + Math.round((stats.players[player].tracks[i].wins.reduce((a, b) => { return a + b }) / stats.players[player].tracks[i].wins.length) * 100) + "%"
                         } else {
                             description += " 👑 --%"
                         }
-                        if(stats.players[player].tracks[i].deaths.length > 0){
+                        if (stats.players[player].tracks[i].deaths.length > 0) {
                             description += " 💀 " + (stats.players[player].tracks[i].deaths.reduce((a, b) => { return a + b }) / stats.players[player].tracks[i].deaths.length).toFixed(2)
                         } else {
                             description += " 💀 --"
                         }
-                        if(stats.players[player].tracks[i].runbacks > 0){
-                            description += " 🔁  " + stats.players[player].tracks[i].runbacks
-                        } 
-                        if(stats.players[player].tracks[i].nu > 0){
+
+                        if (stats.players[player].tracks[i].nu > 0) {
                             description += " 🐢  " + stats.players[player].tracks[i].nu
-                        }   
-                        if(stats.players[player].tracks[i].skips > 0){
+                        }
+                        if (stats.players[player].tracks[i].skips > 0) {
                             description += " ⏩  " + stats.players[player].tracks[i].skips
-                        }   
+                        }
+                        if (stats.players[player].tracks[i].runbacks > 0) {
+                            description += " 🔁  " + stats.players[player].tracks[i].runbacks
+                        }
                     }
                     var track_option = {
                         label: tracks[i].name,
@@ -4112,7 +4171,7 @@ module.exports = {
                     racer_selections.push(racer_option)
                     track_selections.push(track_option)
                 }
-                if(player == "global"){
+                if (player == "global") {
                     racer_selections = racer_selections.sort(function (a, b) {
                         return stats.pods[b.value].plays - stats.pods[a.value].plays
                     })
