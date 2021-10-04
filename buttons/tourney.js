@@ -3925,18 +3925,21 @@ module.exports = {
                 players = players.sort(function (a, b) {
                     if (ranks[a] !== undefined && ranks[a].matches >= 4 && ranks[b] !== undefined && ranks[b].matches >= 4) {
                         return Number(ranks[b].rank) - Number(ranks[a].rank)
-                    } else if (ranks[a] !== undefined && ranks[a].matches >= 4) {
-                        return -1
-                    } else if (ranks[b] !== undefined && ranks[b].matches >= 4) {
-                        return 1
                     } else if (ranks[a] !== undefined && ranks[b] !== undefined) {
-                        return tourney_participants_data[b].name.toUpperCase() - tourney_participants_data[a].name.toUpperCase()
-                    } else if (ranks[a] !== undefined) {
-                        return -1
-                    } else if (ranks[b] !== undefined) {
-                        return 1
+                        return Number(ranks[b].matches) - Number(ranks[a].matches)
+                    } else if (ranks[a] == undefined && ranks[b] == undefined) {
+                        return stats.commentators[b].count - stats.commentators[a].count
                     } else {
-                        return tourney_participants_data[b].name.toUpperCase() - tourney_participants_data[a].name.toUpperCase()
+                        if(ranks[a] !== undefined && ranks[a].matches >= 4 ){
+                            return -1
+                        } else if(ranks[b] !== undefined && ranks[b].matches >= 4 ){
+                            return 1
+                        } else if(ranks[a] !== undefined){
+                            return -1
+                        } else if(ranks[b] !== undefined){
+                            return 1
+                        } 
+                        return 0
                     }
                 })
 
