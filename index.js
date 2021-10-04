@@ -352,7 +352,7 @@ client.on('guildMemberRemove', (guildMember) => { //join log
     }
 })
 */
-client.on("messageDelete", (messageDelete) => {
+client.on("messageDelete", async messageDelete => {
     console.log("message deleted")
     if (!messageDelete.guild) return;
 
