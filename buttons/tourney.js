@@ -4057,9 +4057,15 @@ module.exports = {
                     racer_selections.push(racer_option)
                     track_selections.push(track_option)
                 }
-                track_selections = track_selections.sort(function (a, b) {
-                    return stats.players[player].tracks[b.value].plays - stats.players[player].tracks[a.value].plays
-                })
+                if(player == "global"){
+                    track_selections = track_selections.sort(function (a, b) {
+                        return stats.tracks[b.value].plays - stats.tracks[a.value].plays
+                    })
+                } else {
+                    track_selections = track_selections.sort(function (a, b) {
+                        return stats.players[player].tracks[b.value].plays - stats.players[player].tracks[a.value].plays
+                    })
+                }
                 var components = []
                 components.push(
                     {
