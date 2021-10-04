@@ -3781,9 +3781,11 @@ module.exports = {
                             stats.races.total++
                             if (conditions.includes("skips")) {
                                 stats.players[run.player].tracks[race.track_selection.track].skips++
+                                stats.players[run.player].pods[run.pod].skips++
                             }
                             if (conditions.includes("nu")) {
                                 stats.players[run.player].tracks[race.track_selection.track].nu++
+                                stats.players[run.player].pods[run.pod].nu++
                             }
                             if (run.deaths == undefined) {
                                 run.deaths = 0
@@ -3869,9 +3871,16 @@ module.exports = {
                         var description = ""
                         if(ranks[player] !== undefined){
                             if(ranks[player].matches >= 4){
-                                description += "🎖️ " + ranks[player].rank + " (" + (ranks[player].change).toFixed(1) + ")\n"
+                                description += "🎖️ Elo Rating: `" + (ranks[player].rank).toFixed(1) + " ("
+                                if(ranks[player].change >= 0){
+                                    description += "🔺 " + (ranks[player].change).toFixed(1) + ")`\n"
+                                } else {
+                                    description += "🔻 " + Math.abs((ranks[player].change)).toFixed(1) + ")`\n"
+                                }
+                                
+                            } else if(ranks[player].matches > 0) {
+                                description += "🎖️ unranked "
                             }
-                            description += "🎖️ unranked "
                         }
                         if (stats.players[player].matches.total > 0) {
                             description += "⏱️ Total race time: `" + tools.timefix(stats.players[player].race_time) + "`\n💀 Average deaths/race: `" + (stats.players[player].deaths.reduce((a, b) => { return a + b }) / stats.players[player].races.total).toFixed(2) + "`"
