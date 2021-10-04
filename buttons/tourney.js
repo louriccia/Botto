@@ -3929,13 +3929,9 @@ module.exports = {
                         return -1
                     } else if(ranks[b] !== undefined && ranks[b].matches >= 4 ){
                         return 1
-                    } else if (ranks[a] !== undefined && ranks[b] !== undefined) {
-                        return Number(ranks[b].matches) - Number(ranks[a].matches)
-                    } else if(ranks[a] !== undefined){
-                        return -1
-                    } else if(ranks[b] !== undefined){
-                        return 1
-                    } else if (ranks[a] == undefined && ranks[b] == undefined) {
+                    } else if ((ranks[a] == !undefined || stats.players[a].matches > 0) && (ranks[b] !== undefined || stats.players[b].matches.total > 0)) {
+                        return Number(stats.players[b].matches.total) - Number(stats.players[a].matches.total)
+                    } else if ((ranks[a] == undefined && stats.commentators[a] !== undefined) && (ranks[b] == undefined && stats.commentators[b] !== undefined)) {
                         console.log(tourney_participants_data[a].name + " and " + tourney_participants_data[b].name)
                         return Number(stats.commentators[b].count) - Number(stats.commentators[a].count)
                     } else {
