@@ -567,7 +567,12 @@ module.exports = {
                 deaths.push(false)
             }
             if (conditions.includes("user")) {
-                user = interaction.member.user.id
+                if(interaction.member){
+                    user = interaction.member.user.id
+                } else {
+                    user = interaction.user.id
+                }
+                
             }
             //account for missing values
             if (deaths.length == 0) { deaths.push(true, false), conditions.push("deaths", "deathless") }
@@ -663,7 +668,7 @@ module.exports = {
                                 counts.qual++
                             }
                             console.log(interaction)
-                            if (tourney_participants_data[run.player].id == interaction.member.user.id) {
+                            if (tourney_participants_data[run.player].id == user) {
                                 counts.user++
                             }
                             if (pod_counts[run.pod] == undefined) {
