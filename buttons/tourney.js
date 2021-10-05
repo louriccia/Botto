@@ -91,7 +91,7 @@ module.exports = {
                 tourneyRanks
                     .setFooter("Page " + (offset + 1) + " / " + pages)
                     .setColor("#3BA55D")
-                    .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/crossed-swords_2694-fe0f.png")
+                    .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
                         type: type,
@@ -136,7 +136,7 @@ module.exports = {
                 .setTitle("Tournament Matches")
                 .setColor("#3BA55D")
                 .setDescription("Use the select below to browse recent tournament matches.")
-                .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/crossed-swords_2694-fe0f.png")
+                .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
             if (args[1].startsWith("offset")) {
 
                 var offset = Number(args[1].replace("offset", ""))
@@ -270,7 +270,7 @@ module.exports = {
                         .setDescription(description)
                         .setColor("#3BA55D")
                         .setURL(tourney_matches_data[match].vod)
-                        .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/crossed-swords_2694-fe0f.png")
+                        .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
                     for (r = 0; r < tourney_matches_data[match].races.length; r++) {
                         var field = ""
                         if (tourney_matches_data[match].races[r].hasOwnProperty("tempbans")) {
@@ -421,7 +421,7 @@ module.exports = {
                     })
                     const tourneyReport = new Discord.MessageEmbed()
                     tourneyReport
-                        .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/crossed-swords_2694-fe0f.png")
+                        .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
                         .setTitle("Match Schedule")
                         .setURL("http://speedgaming.org/swe1racer/")
                         .setDescription("Upcoming matches on speedgaming.org/swe1racer\n(Current as of <t:" + Math.round(Date.now() / 1000) + ":R>)")
@@ -662,6 +662,7 @@ module.exports = {
                             if (match.bracket == "Qualifying") {
                                 counts.qual++
                             }
+                            console.log(interaction)
                             if (tourney_participants_data[run.player].id == interaction.member.user.id) {
                                 counts.user++
                             }
@@ -705,7 +706,7 @@ module.exports = {
             })
             //create embed
             tourneyReport
-                .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/crossed-swords_2694-fe0f.png")
+                .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
                 .setTitle(planets[tracks[track].planet].emoji + " " + tracks[track].name)
                 .setColor(planets[tracks[track].planet].color)
                 .setDescription(circuits[tracks[track].circuit].name + " Circuit | Race " + tracks[track].cirnum + " | " + planets[tracks[track].planet].name)
@@ -929,7 +930,7 @@ module.exports = {
             var flags = 0
             var components = []
             const rulesetEmbed = new Discord.MessageEmbed()
-                .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/crossed-swords_2694-fe0f.png")
+                .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
 
             var emojis = {
                 "1v1": "🆚",
@@ -3564,7 +3565,7 @@ module.exports = {
             }
             const tourneyReport = new Discord.MessageEmbed()
             tourneyReport
-                .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/crossed-swords_2694-fe0f.png")
+                .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
                 .setColor("#3BA55D")
             if (player == "global") {
                 tourneyReport.setTitle("Global Stats")
@@ -4432,6 +4433,19 @@ module.exports = {
                         components: [
                             {
                                 type: 3,
+                                custom_id: "tourney_stats_sort",
+                                options: sort_selections,
+                                placeholder: "Sort Options",
+                                min_values: 1,
+                                max_values: 1
+                            }
+                        ]
+                    },
+                    {
+                        type: 1,
+                        components: [
+                            {
+                                type: 3,
                                 custom_id: "tourney_stats_tracks",
                                 options: track_selections,
                                 placeholder: "View Track Stats",
@@ -4449,19 +4463,6 @@ module.exports = {
                                 options: racer_selections,
                                 placeholder: "View Pod Stats",
                                 min_values: 0,
-                                max_values: 1
-                            }
-                        ]
-                    },
-                    {
-                        type: 1,
-                        components: [
-                            {
-                                type: 3,
-                                custom_id: "tourney_stats_sort",
-                                options: sort_selections,
-                                placeholder: "Sort Options",
-                                min_values: 1,
                                 max_values: 1
                             }
                         ]
