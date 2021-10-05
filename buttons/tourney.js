@@ -3527,6 +3527,7 @@ module.exports = {
             })
         } else if (args[0] == "stats") {
             var player = "global", type = 6
+            var sort = "plays"
             if (args.includes("initial")) {
                 type = 5
             } else {
@@ -3535,6 +3536,14 @@ module.exports = {
                     if (option.hasOwnProperty("default")) {
                         if (option.default) {
                             player = option.value
+                        }
+                    }
+                }
+                for (var i = 0; i < interaction.message.components[3].components[0].options.length; i++) { //player
+                    var option = interaction.message.components[3].components[0].options[i]
+                    if (option.hasOwnProperty("default")) {
+                        if (option.default) {
+                            sort = option.value
                         }
                     }
                 }
@@ -4027,21 +4036,23 @@ module.exports = {
                                 //var k2 = getK(ranks[p].matches)
                                 var potential_win = k1 * (1 - p1)
                                 var potential_loss = k1 * (0 - p1)
-                                description += "🎖️ " + Math.round(p1*100) + "% +" + potential_win.toFixed(1) + "/-" + potential_loss.toFixed(1) + " "
+                                description += "🎖️ " + Math.round(p1 * 100) + "% +" + potential_win.toFixed(1) + "/" + potential_loss.toFixed(1) + " "
                             }
                         }
                         if (stats.commentators[player] !== undefined) {
-                            description += "🎙️ "
-                            if (stats.commentators[player].cocomm[p]) {
-                                description += stats.commentators[player].cocomm[p]
-                            } else {
-                                description += "0"
-                            }
-                            description += "/"
-                            if (stats.commentators[player].comfor[p]) {
-                                description += stats.commentators[player].comfor[p]
-                            } else {
-                                description += "0"
+                            if (stats.commentators[player].cocomm[p] || stats.commentators[player].comfor[p]) {
+                                description += "🎙️ "
+                                if (stats.commentators[player].cocomm[p]) {
+                                    description += stats.commentators[player].cocomm[p]
+                                } else {
+                                    description += "0"
+                                }
+                                description += "/"
+                                if (stats.commentators[player].comfor[p]) {
+                                    description += stats.commentators[player].comfor[p]
+                                } else {
+                                    description += "0"
+                                }
                             }
                         }
                     }
@@ -4128,10 +4139,12 @@ module.exports = {
                         emoji: { name: "⏩" }
                     }
                 ]
+                sort_selections.forEach(option => {
+                    if(option.value == sort){
+                        option.default = true
+                    }
+                })
                 for (var i = 0; i < 25; i++) {
-                    //stats.players[participant].tracks[i] = { plays: 0, picks: [], bans: [], wins: [], deaths: [], runbacks: 0, nu: 0, skips: 0 }
-                    //stats.players[participant].pods[i] = { plays: 0, picks: [], bans: [], wins: [], deaths: [], nu: 0, skips: 0 }
-
                     var description = ""
                     if (player == "global") {
                         description += "▶️ " + stats.pods[i].plays +
@@ -4281,20 +4294,111 @@ module.exports = {
                     racer_selections.push(racer_option)
                     track_selections.push(track_option)
                 }
+                
                 if (player == "global") {
-                    racer_selections = racer_selections.sort(function (a, b) {
-                        return stats.pods[b.value].plays - stats.pods[a.value].plays
-                    })
-                    track_selections = track_selections.sort(function (a, b) {
-                        return stats.tracks[b.value].plays - stats.tracks[a.value].plays
-                    })
+                    if(sort == "plays"){
+                        racer_selections = racer_selections.sort(function (a, b) {
+                            return stats.pods[b.value].plays - stats.pods[a.value].plays
+                        })
+                        track_selections = track_selections.sort(function (a, b) {
+                            return stats.tracks[b.value].plays - stats.tracks[a.value].plays
+                        })
+                    } else if (sort == "picks"){
+                        racer_selections = racer_selections.sort(function (a, b) {
+                            return stats.pods[b.value].picks.reduce((c, d) => { return c + d }) / stats.pods[b.value].picks.length - stats.pods[a.value].picks.reduce((c, d) => { return c +d }) / stats.pods[a.value].picks.length
+                        })
+                        track_selections = track_selections.sort(function (a, b) {
+                            return stats.tracks[b.value].picks.reduce((c, d) => { return c + d }) / stats.tracks[b.value].picks.length - stats.tracks[a.value].picks.reduce((c, d) => { return c +d }) / stats.tracks[a.value].picks.length
+                        })
+                    } else if (sort == "bans"){
+                        racer_selections = racer_selections.sort(function (a, b) {
+                            return stats.pods[b.value].bans.reduce((c, d) => { return c + d }) / stats.pods[b.value].bans.length - stats.pods[a.value].bans.reduce((c, d) => { return c +d }) / stats.pods[a.value].bans.length
+                        })
+                        track_selections = track_selections.sort(function (a, b) {
+                            return stats.tracks[b.value].bans.reduce((c, d) => { return c + d }) / stats.tracks[b.value].bans.length - stats.tracks[a.value].bans.reduce((c, d) => { return c +d }) / stats.tracks[a.value].bans.length
+                        })
+                    } else if (sort == "wins"){
+                        racer_selections = racer_selections.sort(function (a, b) {
+                            return stats.pods[b.value].wins.reduce((c, d) => { return c + d }) / stats.pods[b.value].wins.length - stats.pods[a.value].wins.reduce((c, d) => { return c +d }) / stats.pods[a.value].wins.length
+                        })
+                        track_selections = track_selections.sort(function (a, b) {
+                            return stats.tracks[b.value].wins.reduce((c, d) => { return c + d }) / stats.tracks[b.value].wins.length - stats.tracks[a.value].wins.reduce((c, d) => { return c +d }) / stats.tracks[a.value].wins.length
+                        })
+                    } else if (sort == "deaths"){
+                        racer_selections = racer_selections.sort(function (a, b) {
+                            return stats.pods[b.value].deaths.reduce((c, d) => { return c + d }) / stats.pods[b.value].deaths.length - stats.pods[a.value].deaths.reduce((c, d) => { return c +d }) / stats.pods[a.value].deaths.length
+                        })
+                        track_selections = track_selections.sort(function (a, b) {
+                            return stats.tracks[b.value].deaths.reduce((c, d) => { return c + d }) / stats.tracks[b.value].deaths.length - stats.tracks[a.value].deaths.reduce((c, d) => { return c +d }) / stats.tracks[a.value].deaths.length
+                        })
+                    } else if (sort == "nu"){
+                        racer_selections = racer_selections.sort(function (a, b) {
+                            return stats.pods[b.value].nu - stats.pods[a.value].nu
+                        })
+                        track_selections = track_selections.sort(function (a, b) {
+                            return stats.tracks[b.value].nu - stats.tracks[a.value].nu
+                        })
+                    } else if (sort == "skips"){
+                        racer_selections = racer_selections.sort(function (a, b) {
+                            return stats.pods[b.value].skips - stats.pods[a.value].skips
+                        })
+                        track_selections = track_selections.sort(function (a, b) {
+                            return stats.tracks[b.value].skips - stats.tracks[a.value].skips
+                        })
+                    }
+                    
                 } else {
-                    racer_selections = racer_selections.sort(function (a, b) {
-                        return stats.players[player].pods[b.value].plays - stats.players[player].pods[a.value].plays
-                    })
-                    track_selections = track_selections.sort(function (a, b) {
-                        return stats.players[player].tracks[b.value].plays - stats.players[player].tracks[a.value].plays
-                    })
+                    
+                    if(sort == "plays"){
+                        racer_selections = racer_selections.sort(function (a, b) {
+                            return stats.players[player].pods[b.value].plays - stats.players[player].pods[a.value].plays
+                        })
+                        track_selections = track_selections.sort(function (a, b) {
+                            return stats.players[player].tracks[b.value].plays - stats.players[player].tracks[a.value].plays
+                        })
+                    } else if (sort == "picks"){
+                        racer_selections = racer_selections.sort(function (a, b) {
+                            return stats.players[player].pods[b.value].picks.reduce((c, d) => { return c + d }) / stats.players[player].pods[b.value].picks.length - stats.players[player].pods[a.value].picks.reduce((c, d) => { return c +d }) / stats.players[player].pods[a.value].picks.length
+                        })
+                        track_selections = track_selections.sort(function (a, b) {
+                            return stats.players[player].tracks[b.value].picks.reduce((c, d) => { return c + d }) / stats.players[player].tracks[b.value].picks.length - stats.players[player].tracks[a.value].picks.reduce((c, d) => { return c +d }) / stats.players[player].tracks[a.value].picks.length
+                        })
+                    } else if (sort == "bans"){
+                        racer_selections = racer_selections.sort(function (a, b) {
+                            return stats.players[player].pods[b.value].bans.reduce((c, d) => { return c + d }) / stats.players[player].pods[b.value].bans.length - stats.players[player].pods[a.value].bans.reduce((c, d) => { return c +d }) / stats.players[player].pods[a.value].bans.length
+                        })
+                        track_selections = track_selections.sort(function (a, b) {
+                            return stats.players[player].tracks[b.value].bans.reduce((c, d) => { return c + d }) / stats.players[player].tracks[b.value].bans.length - stats.players[player].tracks[a.value].bans.reduce((c, d) => { return c +d }) / stats.players[player].tracks[a.value].bans.length
+                        })
+                    } else if (sort == "wins"){
+                        racer_selections = racer_selections.sort(function (a, b) {
+                            return stats.players[player].pods[b.value].wins.reduce((c, d) => { return c + d }) / stats.players[player].pods[b.value].wins.length - stats.players[player].pods[a.value].wins.reduce((c, d) => { return c +d }) / stats.players[player].pods[a.value].wins.length
+                        })
+                        track_selections = track_selections.sort(function (a, b) {
+                            return stats.players[player].tracks[b.value].wins.reduce((c, d) => { return c + d }) / stats.players[player].tracks[b.value].wins.length - stats.players[player].tracks[a.value].wins.reduce((c, d) => { return c +d }) / stats.players[player].tracks[a.value].wins.length
+                        })
+                    } else if (sort == "deaths"){
+                        racer_selections = racer_selections.sort(function (a, b) {
+                            return stats.players[player].pods[b.value].deaths.reduce((c, d) => { return c + d }) / stats.players[player].pods[b.value].deaths.length - stats.players[player].pods[a.value].deaths.reduce((c, d) => { return c +d }) / stats.players[player].pods[a.value].deaths.length
+                        })
+                        track_selections = track_selections.sort(function (a, b) {
+                            return stats.players[player].tracks[b.value].deaths.reduce((c, d) => { return c + d }) / stats.players[player].tracks[b.value].deaths.length - stats.players[player].tracks[a.value].deaths.reduce((c, d) => { return c +d }) / stats.players[player].tracks[a.value].deaths.length
+                        })
+                    } else if (sort == "nu"){
+                        racer_selections = racer_selections.sort(function (a, b) {
+                            return stats.players[player].pods[b.value].nu - stats.players[player].pods[a.value].nu
+                        })
+                        track_selections = track_selections.sort(function (a, b) {
+                            return stats.players[player].tracks[b.value].nu - stats.players[player].tracks[a.value].nu
+                        })
+                    } else if (sort == "skips"){
+                        racer_selections = racer_selections.sort(function (a, b) {
+                            return stats.players[player].pods[b.value].skips - stats.players[player].pods[a.value].skips
+                        })
+                        track_selections = track_selections.sort(function (a, b) {
+                            return stats.players[player].tracks[b.value].skips - stats.players[player].tracks[a.value].skips
+                        })
+                    }
                 }
                 var components = []
                 components.push(
