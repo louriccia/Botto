@@ -3936,9 +3936,9 @@ module.exports = {
                 players = players.sort(function (a, b) {
                     if (ranks[a] !== undefined && ranks[a].matches >= 4 && ranks[b] !== undefined && ranks[b].matches >= 4) {
                         return Number(ranks[b].rank) - Number(ranks[a].rank)
-                    } else if(ranks[a] !== undefined && ranks[a].matches >= 4 ){
+                    } else if (ranks[a] !== undefined && ranks[a].matches >= 4) {
                         return -1
-                    } else if(ranks[b] !== undefined && ranks[b].matches >= 4 ){
+                    } else if (ranks[b] !== undefined && ranks[b].matches >= 4) {
                         return 1
                     } else if ((ranks[a] !== undefined || stats.players[a].matches.total > 0) && (ranks[b] !== undefined || stats.players[b].matches.total > 0)) {
                         return Number(stats.players[b].matches.total) - Number(stats.players[a].matches.total)
@@ -3983,7 +3983,7 @@ module.exports = {
                         option_default = false
                     }
                     var description = ""
-                    if(player == "global"){
+                    if (player == "global") {
                         if (ranks[p] !== undefined && ranks[p].matches >= 4) {
                             description += "🎖️ " + ranks[p].rank.toFixed(1) + " "
                         } else if (stats.players[p].matches.total > 0) {
@@ -3993,24 +3993,54 @@ module.exports = {
                             var deaths = stats.players[p].deaths.reduce((a, b) => { return a + b })
                             deaths = (deaths / stats.players[p].races.total).toFixed(2)
                             description += "⚔️ " + stats.players[p].matches.total + " 🏁 " + stats.players[p].races.total
-                            if(!isNaN((stats.players[p].races.won + stats.players[p].races.lost))){
-                                description += " 👑 " + Math.round((stats.players[p].races.won / (stats.players[p].races.won + stats.players[p].races.lost)) * 100)    
+                            if (!isNaN((stats.players[p].races.won + stats.players[p].races.lost))) {
+                                description += " 👑 " + Math.round((stats.players[p].races.won / (stats.players[p].races.won + stats.players[p].races.lost)) * 100)
                             } else {
                                 description += " 👑 --"
                             }
-                            description +=  "% 💀 " + deaths + " "
+                            description += "% 💀 " + deaths + " "
                         }
                         if (stats.commentators[p] !== undefined) {
                             description += "🎙️ " + stats.commentators[p].count
                         }
                     } else {
+                        if (ranks[player]) {
+                            if (ranks[p]) {
+                                var r1 = ranks[player].rank
+                                var r2 = ranks[p].rank
+                                var p1 = 1 / (1 + 10 ** ((r2 - r1) / 400))
+                                //var p2 = 1 - p1
+                                function getK(matches) {
+                                    var k = 25
+                                    if (matches < 26) {
+                                        k = 32
+                                    }
+                                    if (matches < 11) {
+                                        k = 40
+                                    }
+                                    if (matches < 6) {
+                                        k = 50
+                                    }
+                                    return k
+                                }
+                                var k1 = getK(ranks[player].matches)
+                                //var k2 = getK(ranks[p].matches)
+                                var potential = k1 * (1 - p1)
+                                description += "🎖️ " + Math.round(p1*100) + "% ±" + potential.toFixed(1) + " "
+                            }
+                        }
                         if (stats.commentators[player] !== undefined) {
                             description += "🎙️ "
-                            if(stats.commentators[player].cocomm[p]){
-                                description += "with: " + stats.commentators[player].cocomm[p]
+                            if (stats.commentators[player].cocomm[p]) {
+                                description += stats.commentators[player].cocomm[p]
+                            } else {
+                                description += "0"
                             }
-                            if(stats.commentators[player].comfor[p]){
-                                description += "for:  " + stats.commentators[player].comfor[p]
+                            description += "/"
+                            if (stats.commentators[player].comfor[p]) {
+                                description += stats.commentators[player].comfor[p]
+                            } else {
+                                description += "0"
                             }
                         }
                     }
@@ -4058,43 +4088,43 @@ module.exports = {
                         label: "Plays",
                         value: "plays",
                         description: "sort by total number of plays descending",
-                        emoji: {name: "▶️"}
+                        emoji: { name: "▶️" }
                     },
                     {
                         label: "Pick Rate",
                         value: "picks",
                         description: "sort by pick rate descending",
-                        emoji: {name: "👆"}
+                        emoji: { name: "👆" }
                     },
                     {
                         label: "Ban Rate",
                         value: "bans",
                         description: "sort by ban rate descending",
-                        emoji: {name: "❌"}
+                        emoji: { name: "❌" }
                     },
                     {
                         label: "Win Rate",
                         value: "wins",
                         description: "sort by win rate descending",
-                        emoji: {name: "👑"}
+                        emoji: { name: "👑" }
                     },
                     {
                         label: "Avg. Deaths",
                         value: "deaths",
                         description: "sort by average deaths per race descending",
-                        emoji: {name: "💀"}
+                        emoji: { name: "💀" }
                     },
                     {
                         label: "No Upgrades",
                         value: "nu",
                         description: "sort by plays featuring the No Upgrades condition",
-                        emoji: {name: "🐢"}
+                        emoji: { name: "🐢" }
                     },
                     {
                         label: "Skips",
                         value: "skips",
                         description: "sort by plays featuring the Skips condition",
-                        emoji: {name: "⏩"}
+                        emoji: { name: "⏩" }
                     }
                 ]
                 for (var i = 0; i < 25; i++) {
