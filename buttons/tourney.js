@@ -3983,7 +3983,7 @@ module.exports = {
                         option_default = false
                     }
                     var description = ""
-                    if (player == "global") {
+                    if (player == "global" || p == player) {
                         if (ranks[p] !== undefined && ranks[p].matches >= 4) {
                             description += "🎖️ " + ranks[p].rank.toFixed(1) + " "
                         } else if (stats.players[p].matches.total > 0) {
@@ -4005,7 +4005,7 @@ module.exports = {
                         }
                     } else {
                         if (ranks[player]) {
-                            if (ranks[p]) {
+                            if (ranks[p] && ranks[p].matches >= 4) {
                                 var r1 = ranks[player].rank
                                 var r2 = ranks[p].rank
                                 var p1 = 1 / (1 + 10 ** ((r2 - r1) / 400))
@@ -4025,8 +4025,9 @@ module.exports = {
                                 }
                                 var k1 = getK(ranks[player].matches)
                                 //var k2 = getK(ranks[p].matches)
-                                var potential = k1 * (1 - p1)
-                                description += "🎖️ " + Math.round(p1*100) + "% ±" + potential.toFixed(1) + " "
+                                var potential_win = k1 * (1 - p1)
+                                var potential_loss = k1 * (0 - p1)
+                                description += "🎖️ " + Math.round(p1*100) + "% +" + potential_win.toFixed(1) + "/-" + potential_loss.toFixed(1) + " "
                             }
                         }
                         if (stats.commentators[player] !== undefined) {
