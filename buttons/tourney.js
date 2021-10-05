@@ -667,7 +667,6 @@ module.exports = {
                             if (match.bracket == "Qualifying") {
                                 counts.qual++
                             }
-                            console.log(interaction)
                             if (tourney_participants_data[run.player].id == user) {
                                 counts.user++
                             }
