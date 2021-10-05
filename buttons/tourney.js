@@ -3639,7 +3639,7 @@ module.exports = {
                     var runback = {}
                     match.commentators.forEach(commentator => {
                         if (stats.commentators[commentator] == undefined) {
-                            stats.commentators[commentator] = { count: 1, cocomm: {} }
+                            stats.commentators[commentator] = { count: 1, cocomm: {}, comfor: {} }
                         } else {
                             stats.commentators[commentator].count++
                         }
@@ -3650,6 +3650,17 @@ module.exports = {
                                 } else {
                                     stats.commentators[commentator].cocomm[cocomm]++
                                 }
+                            }
+                        })
+                        match.races.forEach((race, num) => {
+                            if (num == 0) {
+                                race.runs.forEach(run => {
+                                    if (stats.commentators[commentator].comfor[run.player] == undefined) {
+                                        stats.commentators[commentator].comfor[run.player] = 1
+                                    } else {
+                                        stats.commentators[commentator].comfor[run.player]++
+                                    }
+                                })
                             }
                         })
                     })
@@ -3982,7 +3993,7 @@ module.exports = {
                             var deaths = stats.players[p].deaths.reduce((a, b) => { return a + b })
                             deaths = (deaths / stats.players[p].races.total).toFixed(2)
                             description += "⚔️ " + stats.players[p].matches.total + " 🏁 " + stats.players[p].races.total
-                            if(isNaN((stats.players[p].races.won + stats.players[p].races.lost))){
+                            if(!isNaN((stats.players[p].races.won + stats.players[p].races.lost))){
                                 description += " 👑 " + Math.round((stats.players[p].races.won / (stats.players[p].races.won + stats.players[p].races.lost)) * 100)    
                             } else {
                                 description += " 👑 --"
@@ -3994,8 +4005,12 @@ module.exports = {
                         }
                     } else {
                         if (stats.commentators[player] !== undefined) {
+                            description += "🎙️ "
                             if(stats.commentators[player].cocomm[p]){
-                                description += "🎙️ " + stats.commentators[player].cocomm[p]
+                                description += "with: " + stats.commentators[player].cocomm[p]
+                            }
+                            if(stats.commentators[player].comfor[p]){
+                                description += "for:  " + stats.commentators[player].comfor[p]
                             }
                         }
                     }
