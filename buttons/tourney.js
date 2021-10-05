@@ -4101,43 +4101,43 @@ module.exports = {
                 }
                 var sort_selections = [
                     {
-                        label: "Plays",
+                        label: "Sort by Plays",
                         value: "plays",
                         description: "sort by total number of plays descending",
                         emoji: { name: "▶️" }
                     },
                     {
-                        label: "Pick Rate",
+                        label: "Sort by Pick Rate",
                         value: "picks",
                         description: "sort by pick rate descending",
                         emoji: { name: "👆" }
                     },
                     {
-                        label: "Ban Rate",
+                        label: "Sort by Ban Rate",
                         value: "bans",
                         description: "sort by ban rate descending",
                         emoji: { name: "❌" }
                     },
                     {
-                        label: "Win Rate",
+                        label: "Sort by Win Rate",
                         value: "wins",
                         description: "sort by win rate descending",
                         emoji: { name: "👑" }
                     },
                     {
-                        label: "Avg. Deaths",
+                        label: "Sort by Avg. Deaths",
                         value: "deaths",
                         description: "sort by average deaths per race descending",
                         emoji: { name: "💀" }
                     },
                     {
-                        label: "No Upgrades",
+                        label: "Sort by No Upgrades",
                         value: "nu",
                         description: "sort by plays featuring the No Upgrades condition",
                         emoji: { name: "🐢" }
                     },
                     {
-                        label: "Skips",
+                        label: "Sort by Skips",
                         value: "skips",
                         description: "sort by plays featuring the Skips condition",
                         emoji: { name: "⏩" }
@@ -4298,7 +4298,15 @@ module.exports = {
                     racer_selections.push(racer_option)
                     track_selections.push(track_option)
                 }
-                
+                function getSort(array_a, array_b){
+                    if(array_a.length == 0){
+                        return 1
+                    } else if(array_b.length == 0){
+                        return -1
+                    } else {
+                        return array_b.reduce((a, b) => { return a + b }) / array_b.length - array_a.reduce((a, b) => { return a + b }) / array_a.length
+                    }
+                }
                 if (player == "global") {
                     if(sort == "plays"){
                         racer_selections = racer_selections.sort(function (a, b) {
@@ -4309,31 +4317,31 @@ module.exports = {
                         })
                     } else if (sort == "picks"){
                         racer_selections = racer_selections.sort(function (a, b) {
-                            return stats.pods[b.value].picks.reduce((c, d) => { return c + d }) / stats.pods[b.value].picks.length - stats.pods[a.value].picks.reduce((c, d) => { return c +d }) / stats.pods[a.value].picks.length
+                            return getSort(stats.pods[a.value].picks, stats.pods[b.value].picks)
                         })
                         track_selections = track_selections.sort(function (a, b) {
-                            return stats.tracks[b.value].picks.reduce((c, d) => { return c + d }) / stats.tracks[b.value].picks.length - stats.tracks[a.value].picks.reduce((c, d) => { return c +d }) / stats.tracks[a.value].picks.length
+                            return getSort(stats.tracks[a.value].picks, stats.tracks[b.value].picks)
                         })
                     } else if (sort == "bans"){
                         racer_selections = racer_selections.sort(function (a, b) {
-                            return stats.pods[b.value].bans.reduce((c, d) => { return c + d }) / stats.pods[b.value].bans.length - stats.pods[a.value].bans.reduce((c, d) => { return c +d }) / stats.pods[a.value].bans.length
+                            return getSort(stats.pods[a.value].bans, stats.pods[b.value].bans)
                         })
                         track_selections = track_selections.sort(function (a, b) {
-                            return stats.tracks[b.value].bans.reduce((c, d) => { return c + d }) / stats.tracks[b.value].bans.length - stats.tracks[a.value].bans.reduce((c, d) => { return c +d }) / stats.tracks[a.value].bans.length
+                            return getSort(stats.tracks[a.value].bans, stats.tracks[b.value].bans)
                         })
                     } else if (sort == "wins"){
                         racer_selections = racer_selections.sort(function (a, b) {
-                            return stats.pods[b.value].wins.reduce((c, d) => { return c + d }) / stats.pods[b.value].wins.length - stats.pods[a.value].wins.reduce((c, d) => { return c +d }) / stats.pods[a.value].wins.length
+                            return getSort(stats.pods[a.value].wins, stats.pods[b.value].wins)
                         })
                         track_selections = track_selections.sort(function (a, b) {
-                            return stats.tracks[b.value].wins.reduce((c, d) => { return c + d }) / stats.tracks[b.value].wins.length - stats.tracks[a.value].wins.reduce((c, d) => { return c +d }) / stats.tracks[a.value].wins.length
+                            return getSort(stats.tracks[a.value].wins, stats.tracks[b.value].wins)
                         })
                     } else if (sort == "deaths"){
                         racer_selections = racer_selections.sort(function (a, b) {
-                            return stats.pods[b.value].deaths.reduce((c, d) => { return c + d }) / stats.pods[b.value].deaths.length - stats.pods[a.value].deaths.reduce((c, d) => { return c +d }) / stats.pods[a.value].deaths.length
+                            return getSort(stats.pods[a.value].deaths, stats.pods[b.value].deaths)
                         })
                         track_selections = track_selections.sort(function (a, b) {
-                            return stats.tracks[b.value].deaths.reduce((c, d) => { return c + d }) / stats.tracks[b.value].deaths.length - stats.tracks[a.value].deaths.reduce((c, d) => { return c +d }) / stats.tracks[a.value].deaths.length
+                            return getSort(stats.tracks[a.value].deaths, stats.tracks[b.value].deaths)
                         })
                     } else if (sort == "nu"){
                         racer_selections = racer_selections.sort(function (a, b) {
@@ -4362,31 +4370,31 @@ module.exports = {
                         })
                     } else if (sort == "picks"){
                         racer_selections = racer_selections.sort(function (a, b) {
-                            return stats.players[player].pods[b.value].picks.reduce((c, d) => { return c + d }) / stats.players[player].pods[b.value].picks.length - stats.players[player].pods[a.value].picks.reduce((c, d) => { return c +d }) / stats.players[player].pods[a.value].picks.length
+                            return getSort(stats.players[player].pods[a.value].picks, stats.players[player].pods[b.value].picks)
                         })
                         track_selections = track_selections.sort(function (a, b) {
-                            return stats.players[player].tracks[b.value].picks.reduce((c, d) => { return c + d }) / stats.players[player].tracks[b.value].picks.length - stats.players[player].tracks[a.value].picks.reduce((c, d) => { return c +d }) / stats.players[player].tracks[a.value].picks.length
+                            return getSort(stats.players[player].tracks[a.value].picks, stats.players[player].tracks[b.value].picks)
                         })
                     } else if (sort == "bans"){
                         racer_selections = racer_selections.sort(function (a, b) {
-                            return stats.players[player].pods[b.value].bans.reduce((c, d) => { return c + d }) / stats.players[player].pods[b.value].bans.length - stats.players[player].pods[a.value].bans.reduce((c, d) => { return c +d }) / stats.players[player].pods[a.value].bans.length
+                            return getSort(stats.players[player].pods[a.value].bans, stats.players[player].pods[b.value].bans)
                         })
                         track_selections = track_selections.sort(function (a, b) {
-                            return stats.players[player].tracks[b.value].bans.reduce((c, d) => { return c + d }) / stats.players[player].tracks[b.value].bans.length - stats.players[player].tracks[a.value].bans.reduce((c, d) => { return c +d }) / stats.players[player].tracks[a.value].bans.length
+                            return getSort(stats.players[player].tracks[a.value].bans, stats.players[player].tracks[b.value].bans)
                         })
                     } else if (sort == "wins"){
                         racer_selections = racer_selections.sort(function (a, b) {
-                            return stats.players[player].pods[b.value].wins.reduce((c, d) => { return c + d }) / stats.players[player].pods[b.value].wins.length - stats.players[player].pods[a.value].wins.reduce((c, d) => { return c +d }) / stats.players[player].pods[a.value].wins.length
+                            return getSort(stats.players[player].pods[a.value].wins, stats.players[player].pods[b.value].wins)
                         })
                         track_selections = track_selections.sort(function (a, b) {
-                            return stats.players[player].tracks[b.value].wins.reduce((c, d) => { return c + d }) / stats.players[player].tracks[b.value].wins.length - stats.players[player].tracks[a.value].wins.reduce((c, d) => { return c +d }) / stats.players[player].tracks[a.value].wins.length
+                            return getSort(stats.players[player].tracks[a.value].wins, stats.players[player].tracks[b.value].wins)
                         })
                     } else if (sort == "deaths"){
                         racer_selections = racer_selections.sort(function (a, b) {
-                            return stats.players[player].pods[b.value].deaths.reduce((c, d) => { return c + d }) / stats.players[player].pods[b.value].deaths.length - stats.players[player].pods[a.value].deaths.reduce((c, d) => { return c +d }) / stats.players[player].pods[a.value].deaths.length
+                            return getSort(stats.players[player].pods[a.value].deaths, stats.players[player].pods[b.value].deaths)
                         })
                         track_selections = track_selections.sort(function (a, b) {
-                            return stats.players[player].tracks[b.value].deaths.reduce((c, d) => { return c + d }) / stats.players[player].tracks[b.value].deaths.length - stats.players[player].tracks[a.value].deaths.reduce((c, d) => { return c +d }) / stats.players[player].tracks[a.value].deaths.length
+                            return getSort(stats.players[player].tracks[a.value].deaths, stats.players[player].tracks[b.value].deaths)
                         })
                     } else if (sort == "nu"){
                         racer_selections = racer_selections.sort(function (a, b) {
