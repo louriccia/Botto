@@ -3539,7 +3539,7 @@ module.exports = {
                         }
                     }
                 }
-                for (var i = 0; i < interaction.message.components[3].components[0].options.length; i++) { //player
+                for (var i = 0; i < interaction.message.components[3].components[0].options.length; i++) { //sort
                     var option = interaction.message.components[3].components[0].options[i]
                     if (option.hasOwnProperty("default")) {
                         if (option.default) {
@@ -3556,6 +3556,10 @@ module.exports = {
                     } else {
                         player = interaction.data.values[0]
                     }
+                }
+            } else if (args[1] == "sort") {
+                if (interaction.data.hasOwnProperty("values")) {
+                    sort = interaction.data.values[0]
                 }
             }
             const tourneyReport = new Discord.MessageEmbed()
