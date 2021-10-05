@@ -3883,7 +3883,7 @@ module.exports = {
                                 }
 
                             } else if (ranks[player].matches > 0) {
-                                description += "🎖️ unranked\n"
+                                description += "🎖️ Elo Rating: Unranked\n"
                             }
                         }
                         if (stats.players[player].matches.total > 0) {
@@ -3920,7 +3920,7 @@ module.exports = {
                 var racer_selections = []
                 var player_selections = []
 
-                console.log(ranks)
+                //sort player select
                 var players = Object.keys(tourney_participants_data)
                 players = players.sort(function (a, b) {
                     if (ranks[a] !== undefined && ranks[a].matches >= 4 && ranks[b] !== undefined && ranks[b].matches >= 4) {
@@ -3936,7 +3936,6 @@ module.exports = {
                     } else if ((ranks[b] !== undefined || stats.players[b].matches.total > 0)) {
                         return 1
                     } else if ((ranks[a] == undefined && stats.commentators[a] !== undefined) && (ranks[b] == undefined && stats.commentators[b] !== undefined)) {
-                        console.log(tourney_participants_data[a].name + " and " + tourney_participants_data[b].name)
                         return Number(stats.commentators[b].count) - Number(stats.commentators[a].count)
                     } else {
                         return 0
@@ -3973,18 +3972,32 @@ module.exports = {
                         option_default = false
                     }
                     var description = ""
-                    if (ranks[p] !== undefined && ranks[p].matches >= 4) {
-                        description += "🎖️ " + ranks[p].rank.toFixed(1) + " "
-                    } else if (stats.players[p].matches.total > 0) {
-                        description += "🎖️ unranked "
-                    }
-                    if (stats.players[p].matches.total > 0) {
-                        var deaths = stats.players[p].deaths.reduce((a, b) => { return a + b })
-                        deaths = (deaths / stats.players[p].races.total).toFixed(2)
-                        description += "⚔️ " + stats.players[p].matches.total + " 🏁 " + stats.players[p].races.total + " 👑 " + Math.round((stats.players[p].races.won / (stats.players[p].races.won + stats.players[p].races.lost)) * 100) + "% 💀 " + deaths + " "
-                    }
-                    if (stats.commentators[p] !== undefined) {
-                        description += "🎙️ " + stats.commentators[p].count
+                    if(player == "global"){
+                        if (ranks[p] !== undefined && ranks[p].matches >= 4) {
+                            description += "🎖️ " + ranks[p].rank.toFixed(1) + " "
+                        } else if (stats.players[p].matches.total > 0) {
+                            description += "🎖️ Unranked "
+                        }
+                        if (stats.players[p].matches.total > 0) {
+                            var deaths = stats.players[p].deaths.reduce((a, b) => { return a + b })
+                            deaths = (deaths / stats.players[p].races.total).toFixed(2)
+                            description += "⚔️ " + stats.players[p].matches.total + " 🏁 " + stats.players[p].races.total
+                            if(isNaN((stats.players[p].races.won + stats.players[p].races.lost))){
+                                description += " 👑 " + Math.round((stats.players[p].races.won / (stats.players[p].races.won + stats.players[p].races.lost)) * 100)    
+                            } else {
+                                description += " 👑 --"
+                            }
+                            description +=  "% 💀 " + deaths + " "
+                        }
+                        if (stats.commentators[p] !== undefined) {
+                            description += "🎙️ " + stats.commentators[p].count
+                        }
+                    } else {
+                        if (stats.commentators[player] !== undefined) {
+                            if(stats.commentators[player].cocomm[p]){
+                                description += "🎙️ " + stats.commentators[player].cocomm[p]
+                            }
+                        }
                     }
                     if (p == player) {
                         option_default = true
@@ -3999,7 +4012,6 @@ module.exports = {
                         } else {
                             prefix = tools.ordinalSuffix(i) + " - "
                         }
-
                         emoji = emojis[i]
                     } else if (ranks[p] !== undefined && ranks[p].matches >= 4) {
                         prefix = tools.ordinalSuffix(i) + " - "
