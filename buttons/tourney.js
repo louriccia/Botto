@@ -3682,14 +3682,13 @@ module.exports = {
                                     } else {
                                         stats.commentators[commentator].comfor[run.player]++
                                     }
-                                    if(!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type)){
+                                    if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type)) {
                                         race.runs.forEach(opponent => {
-                                            if(opponent.player !== run.player){
-                                                if(stats.players[run.player].opponents[opponent.player] == undefined){
-                                                    stats.players[run.player].opponents[opponent.player] = {matches: 1 , races: 0, wins: [], times: []}
-                                                } else {
-                                                    stats.players[run.player].opponents[opponent.player].matches ++
+                                            if (opponent.player !== run.player) {
+                                                if (stats.players[run.player].opponents[opponent.player] == undefined) {
+                                                    stats.players[run.player].opponents[opponent.player] = { matches: 0, races: 0, wins: [], times: [] }
                                                 }
+                                                stats.players[run.player].opponents[opponent.player].matches++
                                             }
                                         })
                                     }
@@ -3859,19 +3858,19 @@ module.exports = {
                                 }
                             }
 
-                            if(!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type)){
+                            if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type)) {
                                 race.runs.forEach(opponent => {
-                                    if(opponent.player !== run.player){
-                                        stats.players[run.player].opponents[opponent.player].races ++
-                                        if(opponent.time !== "DNF" && run.time !== "DNF"){
+                                    if (opponent.player !== run.player) {
+                                        stats.players[run.player].opponents[opponent.player].races++
+                                        if (opponent.time !== "DNF" && run.time !== "DNF") {
                                             stats.players[run.player].opponents[opponent.player].times.push(opponent.time - run.time)
-                                            if(opponent.time < run.time){
+                                            if (opponent.time < run.time) {
                                                 stats.players[run.player].opponents[opponent.player].wins.push(0)
                                             } else {
                                                 stats.players[run.player].opponents[opponent.player].wins.push(1)
                                             }
                                         }
-                                        
+
                                     }
                                 })
                             }
@@ -4079,19 +4078,19 @@ module.exports = {
                                 description += "⭐ " + Math.round(p1 * 100) + "% +" + potential_win.toFixed(1) + "/" + potential_loss.toFixed(1) + " "
                             }
                         }
-                        if (stats.players[player].opponents[p]){
-                            if(stats.players[player].opponents[p].matches > 0){
-                                description += "⚔️ " + stats.players[player].opponents[p].matches + " 🏁 "  + stats.players[player].opponents[p].races + " 👑 " + Math.round(stats.players[player].opponents[p].wins.reduce((a, b) => { return a + b })*100 / stats.players[player].opponents[p].wins.length)  + "% ⏱️ "
+                        if (stats.players[player].opponents[p]) {
+                            if (stats.players[player].opponents[p].matches > 0) {
+                                description += "⚔️ " + stats.players[player].opponents[p].matches + " 🏁 " + stats.players[player].opponents[p].races + " 👑 " + Math.round(stats.players[player].opponents[p].wins.reduce((a, b) => { return a + b }) * 100 / stats.players[player].opponents[p].wins.length) + "% ⏱️ "
                                 var diff = stats.players[player].opponents[p].times.reduce((a, b) => { return a + b }) / stats.players[player].opponents[p].times.length
-                                if(diff >= 0){
-                                    diff = tools.timefix(diff)
+                                if (diff >= 0) {
+                                    //diff = tools.timefix(diff)
                                     description += "+" + Number(diff).toFixed(1) + " "
                                 } else {
-                                    diff = tools.timefix(diff)
-                                    description +=  Number(diff).toFixed(1) + " "
+                                    //diff = tools.timefix(diff)
+                                    description += Number(diff).toFixed(1) + " "
                                 }
                             }
-                            
+
                         }
                         if (stats.commentators[player] !== undefined) {
                             if (stats.commentators[player].cocomm[p] || stats.commentators[player].comfor[p]) {
@@ -4438,15 +4437,15 @@ module.exports = {
                         racer_selections = racer_selections.sort(function (a, b) {
                             var a_stuff = racers[Number(a.value)].name.replace("'", "").replace("The ", "").toLowerCase()
                             var b_stuff = racers[Number(b.value)].name.replace("'", "").replace("The ", "").toLowerCase()
-                            if(a_stuff < b_stuff) { return -1; }
-                            if(a_stuff > b_stuff) { return 1; }
+                            if (a_stuff < b_stuff) { return -1; }
+                            if (a_stuff > b_stuff) { return 1; }
                             return 0;
                         })
                         track_selections = track_selections.sort(function (a, b) {
                             var a_stuff = tracks[Number(a.value)].name.replace("'", "").replace("The ", "").toLowerCase()
                             var b_stuff = tracks[Number(b.value)].name.replace("'", "").replace("The ", "").toLowerCase()
-                            if(a_stuff < b_stuff) { return -1; }
-                            if(a_stuff > b_stuff) { return 1; }
+                            if (a_stuff < b_stuff) { return -1; }
+                            if (a_stuff > b_stuff) { return 1; }
                             return 0;
                         })
                     }
@@ -4511,15 +4510,15 @@ module.exports = {
                         racer_selections = racer_selections.sort(function (a, b) {
                             var a_stuff = racers[Number(a.value)].name.replace("'", "").replace("The ", "").toLowerCase()
                             var b_stuff = racers[Number(b.value)].name.replace("'", "").replace("The ", "").toLowerCase()
-                            if(a_stuff < b_stuff) { return -1; }
-                            if(a_stuff > b_stuff) { return 1; }
+                            if (a_stuff < b_stuff) { return -1; }
+                            if (a_stuff > b_stuff) { return 1; }
                             return 0;
                         })
                         track_selections = track_selections.sort(function (a, b) {
                             var a_stuff = tracks[Number(a.value)].name.replace("'", "").replace("The ", "").toLowerCase()
                             var b_stuff = tracks[Number(b.value)].name.replace("'", "").replace("The ", "").toLowerCase()
-                            if(a_stuff < b_stuff) { return -1; }
-                            if(a_stuff > b_stuff) { return 1; }
+                            if (a_stuff < b_stuff) { return -1; }
+                            if (a_stuff > b_stuff) { return 1; }
                             return 0;
                         })
                     }
