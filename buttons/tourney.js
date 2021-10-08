@@ -3548,11 +3548,11 @@ module.exports = {
                         }
                     }
                 }
-                if(interaction.message.embeds[0].title !== "Global Stats"){
+                if (interaction.message.embeds[0].title !== "Global Stats") {
                     var tpd = Object.keys(tourney_participants_data)
                     var name = interaction.message.embeds[0].title.replace("'s Stats", "")
-                    for(i = 0 ; i < tpd.length; i++){
-                        if(tourney_participants_data[tpd[i]].name == name){
+                    for (i = 0; i < tpd.length; i++) {
+                        if (tourney_participants_data[tpd[i]].name == name) {
                             player = tpd[i]
                         }
                     }
@@ -3691,20 +3691,25 @@ module.exports = {
                                     } else {
                                         stats.commentators[commentator].comfor[run.player]++
                                     }
-                                    if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type)) {
-                                        race.runs.forEach(opponent => {
-                                            if (opponent.player !== run.player) {
-                                                if (stats.players[run.player].opponents[opponent.player] == undefined) {
-                                                    stats.players[run.player].opponents[opponent.player] = { matches: 0, races: 0, wins: [], times: [] }
-                                                }
-                                                stats.players[run.player].opponents[opponent.player].matches++
-                                                console.log(match.bracket + " " + match.round + " " + tourney_participants_data[run.player].name + " vs " + tourney_participants_data[opponent.player].name)
-                                            }
-                                        })
-                                    }
+
                                 })
                             }
                         })
+                    })
+                    match.races.forEach((race, num) => {
+                        if (num == 0) {
+                            if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type)) {
+                                race.runs.forEach(opponent => {
+                                    if (opponent.player !== run.player) {
+                                        if (stats.players[run.player].opponents[opponent.player] == undefined) {
+                                            stats.players[run.player].opponents[opponent.player] = { matches: 0, races: 0, wins: [], times: [] }
+                                        }
+                                        stats.players[run.player].opponents[opponent.player].matches++
+                                        console.log(match.bracket + " " + match.round + " " + tourney_participants_data[run.player].name + " vs " + tourney_participants_data[opponent.player].name)
+                                    }
+                                })
+                            }
+                        }
                     })
                     if (match.bracket == "Qualifying") {
                         stats.matches.qual++
