@@ -4320,7 +4320,9 @@ module.exports = {
                     track_selections.push(track_option)
                 }
                 function getSort(array_a, array_b) {
-                    if (array_a.length == 0) {
+                    if (array_a.length == 0 && array_b.length == 0) {
+                        return 0
+                    } else if (array_a.length == 0) {
                         return 1
                     } else if (array_b.length == 0) {
                         return -1
@@ -4400,8 +4402,8 @@ module.exports = {
                             return 0;
                         })
                         track_selections = track_selections.sort(function (a, b) {
-                            var a_stuff = racers[Number(a.value)].name.replace("'", "").replace("The ", "").toLowerCase()
-                            var b_stuff = racers[Number(b.value)].name.replace("'", "").replace("The ", "").toLowerCase()
+                            var a_stuff = tracks[Number(a.value)].name.replace("'", "").replace("The ", "").toLowerCase()
+                            var b_stuff = tracks[Number(b.value)].name.replace("'", "").replace("The ", "").toLowerCase()
                             if(a_stuff < b_stuff) { return -1; }
                             if(a_stuff > b_stuff) { return 1; }
                             return 0;
@@ -4473,8 +4475,8 @@ module.exports = {
                             return 0;
                         })
                         track_selections = track_selections.sort(function (a, b) {
-                            var a_stuff = racers[Number(a.value)].name.replace("'", "").replace("The ", "").toLowerCase()
-                            var b_stuff = racers[Number(b.value)].name.replace("'", "").replace("The ", "").toLowerCase()
+                            var a_stuff = tracks[Number(a.value)].name.replace("'", "").replace("The ", "").toLowerCase()
+                            var b_stuff = tracks[Number(b.value)].name.replace("'", "").replace("The ", "").toLowerCase()
                             if(a_stuff < b_stuff) { return -1; }
                             if(a_stuff > b_stuff) { return 1; }
                             return 0;
