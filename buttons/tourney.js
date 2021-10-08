@@ -3977,11 +3977,15 @@ module.exports = {
                                 var standings = Object.values(tourney.standings)
                                 for(i = 0; i < standings.length || i < 5; i++){
                                     if(standings[i] == player){
-                                        accomplishments.push( ":trophy: Finished " + tools.ordinalSuffix(i+1) + " place in " + tourney.name)
+                                        if(i == 0){
+                                            accomplishments.push( ":trophy: Winner of " + tourney.name)
+                                        } else {
+                                            accomplishments.push( ":trophy: Finished " + tools.ordinalSuffix(i+1) + " in " + tourney.name)
+                                        }
                                     }
                                 }
                             }
-                            if(tourney.predictions){
+                            if(![null, undefined].includes(tourney.predictions)){
                                 if(Object.values(tourney.predicitions).includes(player)){
                                     accomplishments.push(":crystal_ball: Best prediction for " + tourney.name)
                                 }
