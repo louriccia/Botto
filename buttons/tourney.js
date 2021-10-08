@@ -3987,8 +3987,7 @@ module.exports = {
                             }
                             if(tourney.hasOwnProperty("predictions")){
                                 var predictions = Object.values(tourney.predictions)
-                                console.log(predictions)
-                                if(predictions.includes(String(player))){
+                                if(predictions.includes(Number(player))){
                                     accomplishments.push(":crystal_ball: Best prediction for " + tourney.name)
                                 }
                             }
