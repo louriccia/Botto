@@ -3864,7 +3864,7 @@ module.exports = {
                                     if(opponent.player !== run.player){
                                         stats.players[run.player].opponents[opponent.player].races ++
                                         if(opponent.time !== "DNF" && run.time !== "DNF"){
-                                            stats.players[run.player].opponents[opponent.player].times.push(run.time - opponent.time)
+                                            stats.players[run.player].opponents[opponent.player].times.push(opponent.time - run.time)
                                             if(opponent.time < run.time){
                                                 stats.players[run.player].opponents[opponent.player].wins.push(0)
                                             } else {
@@ -4086,7 +4086,7 @@ module.exports = {
                                 if(diff >= 0){
                                     description += "+" + tools.timefix(diff) + " "
                                 } else {
-                                    description += "-" + tools.timefix(diff) + " "
+                                    description +=  tools.timefix(diff) + " "
                                 }
                             }
                             
