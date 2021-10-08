@@ -4085,10 +4085,10 @@ module.exports = {
                                 var diff = stats.players[player].opponents[p].times.reduce((a, b) => { return a + b }) / stats.players[player].opponents[p].times.length
                                 if(diff >= 0){
                                     diff = tools.timefix(diff)
-                                    description += "+" + diff.toFixed(1) + " "
+                                    description += "+" + Number(diff).toFixed(1) + " "
                                 } else {
                                     diff = tools.timefix(diff)
-                                    description +=  diff.toFixed(1) + " "
+                                    description +=  Number(diff).toFixed(1) + " "
                                 }
                             }
                             
