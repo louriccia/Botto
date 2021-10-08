@@ -4393,12 +4393,18 @@ module.exports = {
                         })
                     } else if (sort == "alpha") {
                         racer_selections = racer_selections.sort(function (a, b) {
-                            console.log(racers[Number(a.value)].name.replace("'", "").replace("The ", "").toLowerCase() + " and " + racers[Number(b.value)].name.replace("'", "").replace("The ", "").toLowerCase())
-                            return racers[Number(a.value)].name.replace("'", "").replace("The ", "").toLowerCase() + " and " + racers[Number(b.value)].name.replace("'", "").replace("The ", "").toLowerCase()
+                            var a_stuff = racers[Number(a.value)].name.replace("'", "").replace("The ", "").toLowerCase()
+                            var b_stuff = racers[Number(b.value)].name.replace("'", "").replace("The ", "").toLowerCase()
+                            if(a_stuff < b_stuff) { return -1; }
+                            if(a_stuff > b_stuff) { return 1; }
+                            return 0;
                         })
                         track_selections = track_selections.sort(function (a, b) {
-                            console.log(tracks[Number(a.value)].name.replace("'", "").replace("The ", "").toLowerCase() + " and " + tracks[Number(b.value)].name.replace("'", "").replace("The ", "").toLowerCase())
-                            return tracks[Number(a.value)].name.replace("'", "").replace("The ", "").toLowerCase() + " and " + tracks[Number(b.value)].name.replace("'", "").replace("The ", "").toLowerCase()
+                            var a_stuff = racers[Number(a.value)].name.replace("'", "").replace("The ", "").toLowerCase()
+                            var b_stuff = racers[Number(b.value)].name.replace("'", "").replace("The ", "").toLowerCase()
+                            if(a_stuff < b_stuff) { return -1; }
+                            if(a_stuff > b_stuff) { return 1; }
+                            return 0;
                         })
                     }
                 } else {
@@ -4460,10 +4466,18 @@ module.exports = {
                         })
                     } else if (sort == "alpha") {
                         racer_selections = racer_selections.sort(function (a, b) {
-                            return racers[Number(a.value)].name.replace("'", "").replace("The ", "").toLowerCase() - racers[Number(b.value)].name.replace("'", "").replace("The ", "").toLowerCase()
+                            var a_stuff = racers[Number(a.value)].name.replace("'", "").replace("The ", "").toLowerCase()
+                            var b_stuff = racers[Number(b.value)].name.replace("'", "").replace("The ", "").toLowerCase()
+                            if(a_stuff < b_stuff) { return -1; }
+                            if(a_stuff > b_stuff) { return 1; }
+                            return 0;
                         })
                         track_selections = track_selections.sort(function (a, b) {
-                            return tracks[Number(a.value)].name.replace("'", "").replace("The ", "").toLowerCase() - tracks[Number(b.value)].name.replace("'", "").replace("The ", "").toLowerCase()
+                            var a_stuff = racers[Number(a.value)].name.replace("'", "").replace("The ", "").toLowerCase()
+                            var b_stuff = racers[Number(b.value)].name.replace("'", "").replace("The ", "").toLowerCase()
+                            if(a_stuff < b_stuff) { return -1; }
+                            if(a_stuff > b_stuff) { return 1; }
+                            return 0;
                         })
                     }
                 }
