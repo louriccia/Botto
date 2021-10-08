@@ -3698,17 +3698,19 @@ module.exports = {
                     })
                     match.races.forEach((race, num) => {
                         if (num == 0) {
-                            if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type)) {
-                                race.runs.forEach(opponent => {
-                                    if (opponent.player !== run.player) {
-                                        if (stats.players[run.player].opponents[opponent.player] == undefined) {
-                                            stats.players[run.player].opponents[opponent.player] = { matches: 0, races: 0, wins: [], times: [] }
+                            race.runs.forEach(run => {
+                                if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type)) {
+                                    race.runs.forEach(opponent => {
+                                        if (opponent.player !== run.player) {
+                                            if (stats.players[run.player].opponents[opponent.player] == undefined) {
+                                                stats.players[run.player].opponents[opponent.player] = { matches: 0, races: 0, wins: [], times: [] }
+                                            }
+                                            stats.players[run.player].opponents[opponent.player].matches++
+                                            console.log(match.bracket + " " + match.round + " " + tourney_participants_data[run.player].name + " vs " + tourney_participants_data[opponent.player].name)
                                         }
-                                        stats.players[run.player].opponents[opponent.player].matches++
-                                        console.log(match.bracket + " " + match.round + " " + tourney_participants_data[run.player].name + " vs " + tourney_participants_data[opponent.player].name)
-                                    }
-                                })
-                            }
+                                    })
+                                }
+                            })
                         }
                     })
                     if (match.bracket == "Qualifying") {
