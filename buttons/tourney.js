@@ -4386,17 +4386,17 @@ module.exports = {
                         })
                     } else if (sort == "game") {
                         racer_selections = racer_selections.sort(function (a, b) {
-                            return Number(b) - Number(a)
+                            return Number(b.value) - Number(a.value)
                         })
                         track_selections = track_selections.sort(function (a, b) {
-                            return Number(b) - Number(a)
+                            return Number(b.value) - Number(a.value)
                         })
                     } else if (sort == "alpha") {
                         racer_selections = racer_selections.sort(function (a, b) {
-                            return racers[Number(b)].name.replace("'", "").replace("The ", "").toLowerCase() - racers[Number(a)].name.replace("'", "").replace("The ", "").toLowerCase()
+                            return racers[Number(b.value)].name.replace("'", "").replace("The ", "").toLowerCase() - racers[Number(a.value)].name.replace("'", "").replace("The ", "").toLowerCase()
                         })
                         track_selections = track_selections.sort(function (a, b) {
-                            return tracks[Number(b)].name.replace("'", "").replace("The ", "").toLowerCase() - tracks[Number(a)].name.replace("'", "").replace("The ", "").toLowerCase()
+                            return tracks[Number(b.value)].name.replace("'", "").replace("The ", "").toLowerCase() - tracks[Number(a.value)].name.replace("'", "").replace("The ", "").toLowerCase()
                         })
                     }
                 } else {
@@ -4451,17 +4451,17 @@ module.exports = {
                         })
                     } else if (sort == "game") {
                         racer_selections = racer_selections.sort(function (a, b) {
-                            return Number(b) - Number(a)
+                            return Number(b.value) - Number(a.value)
                         })
                         track_selections = track_selections.sort(function (a, b) {
-                            return Number(b) - Number(a)
+                            return Number(b.value) - Number(a.value)
                         })
                     } else if (sort == "alpha") {
                         racer_selections = racer_selections.sort(function (a, b) {
-                            return racers[Number(b)].name.replace("'", "").replace("The ", "").toLowerCase() - racers[Number(a)].name.replace("'", "").replace("The ", "").toLowerCase()
+                            return racers[Number(b.value)].name.replace("'", "").replace("The ", "").toLowerCase() - racers[Number(a.value)].name.replace("'", "").replace("The ", "").toLowerCase()
                         })
                         track_selections = track_selections.sort(function (a, b) {
-                            return tracks[Number(b)].name.replace("'", "").replace("The ", "").toLowerCase() - tracks[Number(a)].name.replace("'", "").replace("The ", "").toLowerCase()
+                            return tracks[Number(b.value)].name.replace("'", "").replace("The ", "").toLowerCase() - tracks[Number(a.value)].name.replace("'", "").replace("The ", "").toLowerCase()
                         })
                     }
                 }
