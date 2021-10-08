@@ -3548,6 +3548,15 @@ module.exports = {
                         }
                     }
                 }
+                if(interaction.message.embeds[0].title !== "Global Stats"){
+                    var tpd = Object.keys(tourney_participants_data)
+                    var name = interaction.message.embeds[0].title.replace("'s Stats", "")
+                    for(i = 0 ; i < tpd.length; i++){
+                        if(tourney_participants_data[tpd[i]].name == name){
+                            player = tpd[i]
+                        }
+                    }
+                }
                 for (var i = 0; i < interaction.message.components[1].components[0].options.length; i++) { //sort
                     var option = interaction.message.components[1].components[0].options[i]
                     if (option.hasOwnProperty("default")) {
@@ -3689,6 +3698,7 @@ module.exports = {
                                                     stats.players[run.player].opponents[opponent.player] = { matches: 0, races: 0, wins: [], times: [] }
                                                 }
                                                 stats.players[run.player].opponents[opponent.player].matches++
+                                                console.log(match.bracket + " " + match.round + " " + tourney_participants_data[run.player].name + " vs " + tourney_participants_data[opponent.player].name)
                                             }
                                         })
                                     }
