@@ -3985,7 +3985,7 @@ module.exports = {
                                     }
                                 }
                             }
-                            if(![null, undefined].includes(tourney.predictions)){
+                            if(tourney.hasOwnProperty("predictions")){
                                 if(Object.values(tourney.predicitions).includes(player)){
                                     accomplishments.push(":crystal_ball: Best prediction for " + tourney.name)
                                 }
