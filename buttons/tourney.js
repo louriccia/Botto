@@ -667,7 +667,7 @@ module.exports = {
                             if (match.bracket == "Qualifying") {
                                 counts.qual++
                             }
-                            if (tourney_participants_data[run.player].id == user) {
+                            if (String(tourney_participants_data[run.player].id) == String(user)) {
                                 counts.user++
                             }
                             if (pod_counts[run.pod] == undefined) {
@@ -3644,7 +3644,7 @@ module.exports = {
                         pods: {},
                         opponents: {},
                         forces: { no_upgrades: 0, skips: 0, pod_ban: 0 },
-                        co_comm: {}
+                        co_comm: {},
                     }
                 })
                 for (i = 0; i < 25; i++) {
@@ -3681,6 +3681,17 @@ module.exports = {
                                         stats.commentators[commentator].comfor[run.player] = 1
                                     } else {
                                         stats.commentators[commentator].comfor[run.player]++
+                                    }
+                                    if(!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type)){
+                                        race.runs.forEach(opponent => {
+                                            if(opponent.player !== run.player){
+                                                if(stats.players[run.player].opponents[opponent.player] == undefined){
+                                                    stats.players[run.player].opponents[opponent.player] = {matches: 1 , races: 0, wins: [], time: []}
+                                                } else {
+                                                    stats.players[run.player].opponents[opponent.player].matches ++
+                                                }
+                                            }
+                                        })
                                     }
                                 })
                             }
@@ -3833,7 +3844,6 @@ module.exports = {
                             stats.tracks[race.track_selection.track].plays++
                             stats.players[run.player].tracks[race.track_selection.track].plays++
 
-
                             if (run.pod !== undefined) {
                                 stats.pods[run.pod].plays++
                                 stats.pods[run.pod].picks.push(1)
@@ -3847,6 +3857,23 @@ module.exports = {
                                         stats.players[run.player].pods[i].picks.push(0)
                                     }
                                 }
+                            }
+
+                            if(!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type)){
+                                race.runs.forEach(opponent => {
+                                    if(opponent.player !== run.player){
+                                        stats.players[run.player].opponents[opponent.player].races ++
+                                        if(opponent.time !== "DNF" && run.time !== "DNF"){
+                                            stats.players[run.player].opponents[opponent.player].times.push(run.time - opponent.time)
+                                            if(opponent.time < run.time){
+                                                stats.players[run.player].opponents[opponent.player].wins.push(0)
+                                            } else {
+                                                stats.players[run.player].opponents[opponent.player].wins.push(1)
+                                            }
+                                        }
+                                        
+                                    }
+                                })
                             }
                         })
                         if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type) && winner.player !== null) {
@@ -3908,7 +3935,7 @@ module.exports = {
                         var description = ""
                         if (ranks[player] !== undefined) {
                             if (ranks[player].matches >= 4) {
-                                description += "🎖️ Elo Rating: `" + (ranks[player].rank).toFixed(1) + " ("
+                                description += "⭐ Elo Rating: `" + (ranks[player].rank).toFixed(1) + " ("
                                 if (ranks[player].change >= 0) {
                                     description += "🔺" + (ranks[player].change).toFixed(1) + ")`\n"
                                 } else {
@@ -3916,7 +3943,7 @@ module.exports = {
                                 }
 
                             } else if (ranks[player].matches > 0) {
-                                description += "🎖️ Elo Rating: Unranked\n"
+                                description += "⭐ Elo Rating: Unranked\n"
                             }
                         }
                         if (stats.players[player].matches.total > 0) {
@@ -4007,9 +4034,9 @@ module.exports = {
                     var description = ""
                     if (player == "global" || p == player) {
                         if (ranks[p] !== undefined && ranks[p].matches >= 4) {
-                            description += "🎖️ " + ranks[p].rank.toFixed(1) + " "
+                            description += "⭐ " + ranks[p].rank.toFixed(1) + " "
                         } else if (stats.players[p].matches.total > 0) {
-                            description += "🎖️ Unranked "
+                            description += "⭐ Unranked "
                         }
                         if (stats.players[p].matches.total > 0) {
                             var deaths = stats.players[p].deaths.reduce((a, b) => { return a + b })
@@ -4049,8 +4076,14 @@ module.exports = {
                                 //var k2 = getK(ranks[p].matches)
                                 var potential_win = k1 * (1 - p1)
                                 var potential_loss = k1 * (0 - p1)
-                                description += "🎖️ " + Math.round(p1 * 100) + "% +" + potential_win.toFixed(1) + "/" + potential_loss.toFixed(1) + " "
+                                description += "⭐ " + Math.round(p1 * 100) + "% +" + potential_win.toFixed(1) + "/" + potential_loss.toFixed(1) + " "
                             }
+                        }
+                        if (stats.players[player].opponents[p]){
+                            if(stats.players[player].opponents[p].matches > 0){
+                                description += "⚔️ " + stats.players[player].opponents[p].matches + " 🏁 "  + stats.players[player].opponents[p].races + " 👑 " + Math.round(stats.players[player].opponents[p].wins.reduce((a, b) => { return a + b })*100 / stats.players[player].opponents[p].wins.length)  + "% ⏱️ " + tools.timefix(stats.players[player].opponents[p].times.reduce((a, b) => { return a + b }) / stats.players[player].opponents[p].times.length)
+                            }
+                            
                         }
                         if (stats.commentators[player] !== undefined) {
                             if (stats.commentators[player].cocomm[p] || stats.commentators[player].comfor[p]) {
@@ -4130,7 +4163,7 @@ module.exports = {
                     {
                         label: "Sort by Win Rate",
                         value: "wins",
-                        description: "sort by win rate descending",
+                        description: "sort by race win rate descending",
                         emoji: { name: "👑" }
                     },
                     {
