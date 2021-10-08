@@ -4084,9 +4084,11 @@ module.exports = {
                                 description += "⚔️ " + stats.players[player].opponents[p].matches + " 🏁 "  + stats.players[player].opponents[p].races + " 👑 " + Math.round(stats.players[player].opponents[p].wins.reduce((a, b) => { return a + b })*100 / stats.players[player].opponents[p].wins.length)  + "% ⏱️ "
                                 var diff = stats.players[player].opponents[p].times.reduce((a, b) => { return a + b }) / stats.players[player].opponents[p].times.length
                                 if(diff >= 0){
-                                    description += "+" + tools.timefix(diff).toFixed(1) + " "
+                                    diff = tools.timefix(diff)
+                                    description += "+" + diff.toFixed(1) + " "
                                 } else {
-                                    description +=  tools.timefix(diff).toFixed(1) + " "
+                                    diff = tools.timefix(diff)
+                                    description +=  diff.toFixed(1) + " "
                                 }
                             }
                             
