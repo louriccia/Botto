@@ -4081,7 +4081,13 @@ module.exports = {
                         }
                         if (stats.players[player].opponents[p]){
                             if(stats.players[player].opponents[p].matches > 0){
-                                description += "⚔️ " + stats.players[player].opponents[p].matches + " 🏁 "  + stats.players[player].opponents[p].races + " 👑 " + Math.round(stats.players[player].opponents[p].wins.reduce((a, b) => { return a + b })*100 / stats.players[player].opponents[p].wins.length)  + "% ⏱️ " + tools.timefix(stats.players[player].opponents[p].times.reduce((a, b) => { return a + b }) / stats.players[player].opponents[p].times.length) + " "
+                                description += "⚔️ " + stats.players[player].opponents[p].matches + " 🏁 "  + stats.players[player].opponents[p].races + " 👑 " + Math.round(stats.players[player].opponents[p].wins.reduce((a, b) => { return a + b })*100 / stats.players[player].opponents[p].wins.length)  + "% ⏱️ "
+                                var diff = stats.players[player].opponents[p].times.reduce((a, b) => { return a + b }) / stats.players[player].opponents[p].times.length
+                                if(diff >= 0){
+                                    description += +"+" + tools.timefix(diff) + " "
+                                } else {
+                                    description += +"-" + tools.timefix(diff) + " "
+                                }
                             }
                             
                         }
