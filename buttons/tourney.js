@@ -3763,11 +3763,9 @@ module.exports = {
                                 stats.forces.total++
                                 stats.players[condition.player].forces[condition.type]++
                                 if (condition.type == "skips") {
-                                    stats.tracks[race.track_selection.track].skips++
                                     stats.forces.skips++
                                     conditions.push("skips")
                                 } else if (condition.type == "no_upgrades") {
-                                    stats.tracks[race.track_selection.track].no_upgrades++
                                     stats.forces.no_upgrades++
                                     conditions.push("nu")
                                 } else if (condition.type == "pod_ban") {
@@ -3843,11 +3841,13 @@ module.exports = {
                                 stats.players[run.player].tracks[race.track_selection.track].skips++
                                 stats.players[run.player].pods[run.pod].skips++
                                 stats.pods[run.pod].skips++
+                                stats.tracks[race.track_selection.track].skips++
                             }
                             if (conditions.includes("nu")) {
                                 stats.players[run.player].tracks[race.track_selection.track].nu++
                                 stats.players[run.player].pods[run.pod].nu++
                                 stats.pods[run.pod].nu++
+                                stats.tracks[race.track_selection.track].nu++
                             }
                             if (run.deaths == undefined) {
                                 run.deaths = 0
