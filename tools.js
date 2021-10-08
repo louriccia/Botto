@@ -766,7 +766,7 @@ module.exports = {
 
             //booststart
             {
-                if (!state.isBoostStartEnded && state.isBoostStart && state.combinedSpeed > 290) {
+                if (!state.isBoostStartEnded && state.isBoostStart && state.combinedSpeed > 290) { //boost start ends at 290 ASU
                     state.isBoostStartEnded = true
                     state.isBoostStart = false
                 }
@@ -775,8 +775,8 @@ module.exports = {
             //check if should boost
             {
                 //boost charge
-                if (state.combinedSpeed >= podStats.statSpeed * 0.75) {
-                    state.boostCharge = Math.min(Math.max(state.boostCharge + frameTime, 0), 1)
+                if (state.combinedSpeed >= podStats.statSpeed * 0.75) { //cannot boost below 75% max base speed
+                    state.boostCharge = Math.min(Math.max(state.boostCharge + frameTime, 0), 1) //1 second to charge boost
                 }
                 //toggle boost
                 var prevIsBoosting = state.isBoosting
@@ -802,11 +802,11 @@ module.exports = {
 
             //base speed
             {
-                state.speedTimeMultiplier = (state.isBoosting || state.isBoostStart) ? 4.0 : 1.5
+                state.speedTimeMultiplier = (state.isBoosting || state.isBoostStart) ? 4.0 : 1.5 //1.5 normally, 4.0 during boost start or boost
                 state.speedValue += state.noseMultiplier * frameTime * state.speedTimeMultiplier
-                state.baseSpeed = calculateBaseSpeed(state.speedValue)
+                state.baseSpeed = calculateBaseSpeed(state.speedValue) //where base speed is calculated
             }
-            //I made it here so far
+            
             //handle the effects of boost
             {
                 if (state.isBoosting) {
@@ -824,7 +824,7 @@ module.exports = {
                 state.boostSpeed = calculateBoostSpeed(state.boostValue)
             }
 
-            state.combinedSpeed = state.baseSpeed + state.boostSpeed
+            state.combinedSpeed = state.baseSpeed + state.boostSpeed //actual pod speed
 
             //track stuff
             {
@@ -842,15 +842,13 @@ module.exports = {
                     overwriteState(state, stateTrackEndFrame)
                 }
             }
-
-
-
         }
-        function calculateBaseSpeed(speedValue) {
+        
+        function calculateBaseSpeed(speedValue) { //calculates base speed (before boost speed)
             return speedValue * podStats.statSpeed / (podStats.statAccel + speedValue)
         }
 
-        function calculateBoostSpeed(boostValue) {
+        function calculateBoostSpeed(boostValue) { //calculates bonus boost speed (before being combined with base speed)
             return boostValue * podStats.statThrust / (boostValue + 0.33)
         }
 
@@ -860,9 +858,9 @@ module.exports = {
 
         function calculateNoseMultiplier(nosePosition) {
             switch (nosePosition) {
-                case 'd':
+                case 'd': //nose down
                     return 1.32
-                case 'u':
+                case 'u': //nose up
                     return 0.68
                 default: //generally this is 'n'
                     return 1.0
