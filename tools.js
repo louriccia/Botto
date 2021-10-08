@@ -7,7 +7,6 @@ module.exports = {
             minimumIntegerDigits: 2,
             minimumFractionDigits: 3
         });
-        
         if (time >= 3600) {
             var hours = Math.floor(time / 3600)
             var minutes = Math.floor((time - hours * 3600) / 60)
@@ -15,13 +14,13 @@ module.exports = {
                 minutes = "0" + minutes
             }
             var seconds = (time - hours * 3600 - minutes * 60).toFixed(3)
-            return  hours.toString() + ":" + minutes.toString() + ":" + myformat.format(seconds)
+            return hours.toString() + ":" + minutes.toString() + ":" + myformat.format(seconds)
         } else if (time >= 60) {
             var minutes = Math.floor(time / 60)
             var seconds = (time - minutes * 60).toFixed(3)
             return minutes.toString() + ":" + myformat.format(seconds)
         } else {
-            return  Number(time).toFixed(3)
+            return Number(time).toFixed(3)
         }
     },
     timetoSeconds: function (time) {
