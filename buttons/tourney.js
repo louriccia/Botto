@@ -3686,7 +3686,7 @@ module.exports = {
                                         race.runs.forEach(opponent => {
                                             if(opponent.player !== run.player){
                                                 if(stats.players[run.player].opponents[opponent.player] == undefined){
-                                                    stats.players[run.player].opponents[opponent.player] = {matches: 1 , races: 0, wins: [], time: []}
+                                                    stats.players[run.player].opponents[opponent.player] = {matches: 1 , races: 0, wins: [], times: []}
                                                 } else {
                                                     stats.players[run.player].opponents[opponent.player].matches ++
                                                 }
@@ -4081,7 +4081,7 @@ module.exports = {
                         }
                         if (stats.players[player].opponents[p]){
                             if(stats.players[player].opponents[p].matches > 0){
-                                description += "⚔️ " + stats.players[player].opponents[p].matches + " 🏁 "  + stats.players[player].opponents[p].races + " 👑 " + Math.round(stats.players[player].opponents[p].wins.reduce((a, b) => { return a + b })*100 / stats.players[player].opponents[p].wins.length)  + "% ⏱️ " + tools.timefix(stats.players[player].opponents[p].times.reduce((a, b) => { return a + b }) / stats.players[player].opponents[p].times.length)
+                                description += "⚔️ " + stats.players[player].opponents[p].matches + " 🏁 "  + stats.players[player].opponents[p].races + " 👑 " + Math.round(stats.players[player].opponents[p].wins.reduce((a, b) => { return a + b })*100 / stats.players[player].opponents[p].wins.length)  + "% ⏱️ " + tools.timefix(stats.players[player].opponents[p].times.reduce((a, b) => { return a + b }) / stats.players[player].opponents[p].times.length) + " "
                             }
                             
                         }
