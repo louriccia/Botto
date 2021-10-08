@@ -3614,6 +3614,7 @@ module.exports = {
                 return response
             }
             sendCallback().then(() => {
+                var accomplishments = []
                 var stats = {
                     race_time: 0,
                     deaths: [],
@@ -3706,7 +3707,6 @@ module.exports = {
                                                 stats.players[run.player].opponents[opponent.player] = { matches: 0, races: 0, wins: [], times: [] }
                                             }
                                             stats.players[run.player].opponents[opponent.player].matches++
-                                            console.log(match.bracket + " " + match.round + " " + tourney_participants_data[run.player].name + " vs " + tourney_participants_data[opponent.player].name)
                                         }
                                     })
                                 }
@@ -3967,7 +3967,26 @@ module.exports = {
                         }
                         if (stats.commentators[player] !== undefined) {
                             description += "\n🎙️ Matches commentated: `" + stats.commentators[player].count + "`"
+                            if(stats.commentators[player].count > 30){
+                                accomplishments.push("🎙️ Over 30 matches commentated")
+                            }
                         }
+                        var ttd = Object.values(tourney_tournaments_data)
+                        ttd.forEach(tourney => {
+                            if(tourney.standings){
+                                var standings = Object.values(tourney.standings)
+                                for(i = 0; i < standings.length || i < 5; i++){
+                                    if(standings[i] == player){
+                                        accomplishments.push( ":trophy: Finished " + tools.ordinalSuffix(i+1) + " place in " + tourney.name)
+                                    }
+                                }
+                            }
+                            if(tourney.predictions){
+                                if(Object.values(tourney.predicitions).includes(player)){
+                                    accomplishments.push(":crystal_ball: Best prediction for " + tourney.name)
+                                }
+                            }
+                        })
                         tourneyReport
                             .setDescription(description)
                         if (stats.players[player].matches.total > 0) {
@@ -3987,6 +4006,7 @@ module.exports = {
                                     "skips: `" + stats.players[player].forces.skips + "`\n" +
                                     "nu: `" + stats.players[player].forces.no_upgrades + "`\n" +
                                     "pod ban: `" + stats.players[player].forces.pod_ban + "`", true)
+                                .addField(":medal: Accomplishments", accomplishments.join("\n"), false)
                         }
                     }
 
