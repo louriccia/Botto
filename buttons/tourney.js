@@ -3882,9 +3882,9 @@ module.exports = {
                                         if (opponent.time !== "DNF" && run.time !== "DNF") {
                                             stats.players[run.player].opponents[opponent.player].times.push(opponent.time - run.time)
                                             if (run.time - opponent.time < 0 || run.time == "DNF") {
-                                                stats.players[run.player].opponents[opponent.player].wins.push(0)
-                                            } else if(opponent.time - run.time < 0 || opponent.time == "DNF") {
                                                 stats.players[run.player].opponents[opponent.player].wins.push(1)
+                                            } else if(opponent.time - run.time < 0 || opponent.time == "DNF") {
+                                                stats.players[run.player].opponents[opponent.player].wins.push(0)
                                             }
                                         }
 
