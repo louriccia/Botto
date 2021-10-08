@@ -3975,18 +3975,20 @@ module.exports = {
                         ttd.forEach(tourney => {
                             if(tourney.standings){
                                 var standings = Object.values(tourney.standings)
-                                for(i = 0; i < standings.length || i < 5; i++){
+                                for(i = 0; i < standings.length && i < 5; i++){
                                     if(standings[i] == player){
                                         if(i == 0){
                                             accomplishments.push( ":trophy: Winner of " + tourney.name)
                                         } else {
-                                            accomplishments.push( ":trophy: Finished " + tools.ordinalSuffix(i+1) + " in " + tourney.name)
+                                            accomplishments.push( ":trophy: Finished " + tools.ordinalSuffix(i) + " in " + tourney.name)
                                         }
                                     }
                                 }
                             }
                             if(tourney.hasOwnProperty("predictions")){
-                                if(Object.values(tourney.predictions).includes(player)){
+                                var predictions = Object.values(tourney.predictions)
+                                console.log(predictions)
+                                if(predictions.includes(String(player))){
                                     accomplishments.push(":crystal_ball: Best prediction for " + tourney.name)
                                 }
                             }
