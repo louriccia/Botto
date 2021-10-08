@@ -29434,53 +29434,23 @@
                     {
                         "player": 10,
                         "time": 160.979,
+                        "deaths": 0,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 25,
                         "time": 164.76,
+                        "deaths": 0,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 17,
                         "time": 165.566,
+                        "deaths": 0,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -29494,53 +29464,23 @@
                     {
                         "player": 10,
                         "time": 243.414,
+                        "deaths": 0,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 25,
                         "time": 248.27,
+                        "deaths": 0,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 17,
                         "time": 252.382,
+                        "deaths": 1,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -29554,53 +29494,23 @@
                     {
                         "player": 10,
                         "time": 295.994,
+                        "deaths": 0,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 25,
                         "time": 312.706,
+                        "deaths": 0,
                         "pod": 22,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 17,
                         "time": 325.338,
+                        "deaths": 0,
                         "pod": 8,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             },
@@ -29614,53 +29524,23 @@
                     {
                         "player": 10,
                         "time": 138.528,
+                        "deaths": 0,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 25,
                         "time": 146.874,
+                        "deaths": 0,
                         "pod": 8,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     },
                     {
                         "player": 17,
                         "time": 155.737,
+                        "deaths": 1,
                         "pod": 19,
-                        "notes": "",
-                        "laps": [
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            },
-                            {
-                                "deaths": 0
-                            }
-                        ]
+                        "notes": ""
                     }
                 ]
             }
