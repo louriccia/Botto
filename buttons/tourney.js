@@ -3841,8 +3841,6 @@ module.exports = {
                         var winner = { player: null, time: null, pod: null }
                         var player_run = {}
                         race.runs.forEach(run => {
-                            
-                            
                             if (run.time !== "DNF") {
                                 stats.race_time += Number(run.time)
                                 stats.players[run.player].race_time += Number(run.time)
@@ -3922,7 +3920,7 @@ module.exports = {
                             if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type)) {
                                 race.runs.forEach(opponent => {
                                     if (opponent.player !== run.player) {
-                                        if(player_run !== {}){
+                                        if(player_run.hasOwnProperty("opponents")){
                                             player_run.opponents.push(opponent.player)
                                         }
                                         stats.players[run.player].opponents[opponent.player].races++
@@ -3934,7 +3932,6 @@ module.exports = {
                                                 stats.players[run.player].opponents[opponent.player].wins.push(0)
                                             }
                                         }
-
                                     }
                                 })
                             }
@@ -4188,7 +4185,6 @@ module.exports = {
                     }
                 })
 
-
                 for (i = 0 + offset * 23; i < (offset + 1) * 23; i++) {
                     var p = players[i]
                     var option_default = false
@@ -4277,7 +4273,6 @@ module.exports = {
                                     description += Number(diff).toFixed(1) + " "
                                 }
                             }
-
                         }
                         if (stats.commentators[player] !== undefined) {
                             if (stats.commentators[player].cocomm[p] || stats.commentators[player].comfor[p]) {
