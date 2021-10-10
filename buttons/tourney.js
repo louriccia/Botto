@@ -4061,7 +4061,7 @@ module.exports = {
                         function getTrackNicknames(array) {
                             var stringy = []
                             array.forEach(item => {
-                                stringy.push(planets[tracks[item].planet].emoji + " " + tracks[item].nickname[0])
+                                stringy.push(planets[tracks[item].planet].emoji + " " + tracks[item].nickname[0].toUpperCase())
                             })
                             return stringy.join(", ")
                         }
@@ -4078,7 +4078,7 @@ module.exports = {
                             accomplishments.push(":crown: **Never Lost** on " + planets[tracks[accomp.win.tracks[0]].planet].emoji + " " + tracks[accomp.win.tracks[0]].name)
                         }
                         if(accomp.win.pods.length > 1){
-                            accomplishments.push(":crown: **Never Lost** as " + getPodNicknames(accomp.win.pods.tracks))
+                            accomplishments.push(":crown: **Never Lost** as " + getPodNicknames(accomp.win.pods))
                         } else if (accomp.win.pods.length == 1){
                             accomplishments.push(":crown: **Never Lost** as " + racers[accomp.win.pods[0]].flag + " " + racers[accomp.win.pods[0]].name)
                         }
