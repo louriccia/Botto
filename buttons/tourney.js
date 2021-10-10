@@ -3614,7 +3614,7 @@ module.exports = {
                 return response
             }
             sendCallback().then(() => {
-                var accomp = {win: {count: 0, streaks: []}, deathless:{count: 0, streaks: []}}
+                var accomp = { win: { count: 0, streaks: [] }, deathless: { count: 0, streaks: [] } }
                 var accomplishments = []
                 var stats = {
                     race_time: 0,
@@ -3667,7 +3667,7 @@ module.exports = {
                     })
                 }
                 var tmd = Object.values(tourney_matches_data)
-                tmd = tmd.sort(function(a, b) {
+                tmd = tmd.sort(function (a, b) {
                     return a.datetime - b.datetime
                 })
                 tmd.forEach(match => {
@@ -3860,9 +3860,9 @@ module.exports = {
                             stats.tracks[race.track_selection.track].deaths.push(run.deaths)
                             stats.players[run.player].tracks[race.track_selection.track].deaths.push(run.deaths)
                             stats.players[run.player].deaths.push(run.deaths)
-                            if(run.player == player && match.bracket !== "Qualifying"){
-                                if(run.deaths == 0){
-                                    accomp.deathless.count ++
+                            if (run.player == player && match.bracket !== "Qualifying") {
+                                if (run.deaths == 0) {
+                                    accomp.deathless.count++
                                 } else {
                                     accomp.deathless.streaks.push(accomp.deathless.count)
                                     accomp.deathless.count = 0
@@ -3895,7 +3895,7 @@ module.exports = {
                                             stats.players[run.player].opponents[opponent.player].times.push(opponent.time - run.time)
                                             if (run.time - opponent.time < 0 || run.time == "DNF") {
                                                 stats.players[run.player].opponents[opponent.player].wins.push(1)
-                                            } else if(opponent.time - run.time < 0 || opponent.time == "DNF") {
+                                            } else if (opponent.time - run.time < 0 || opponent.time == "DNF") {
                                                 stats.players[run.player].opponents[opponent.player].wins.push(0)
                                             }
                                         }
@@ -3909,8 +3909,8 @@ module.exports = {
                             stats.players[winner.player].tracks[race.track_selection.track].wins.push(1)
                             stats.players[winner.player].pods[winner.pod].wins.push(1)
                             stats.pods[winner.pod].wins.push(1)
-                            if(winner.player == player){
-                                accomp.win.count ++
+                            if (winner.player == player) {
+                                accomp.win.count++
                             }
                             if (winner.player == race.track_selection.player) {
                                 stats.tracks[race.track_selection.track].wins.push(1)
@@ -3923,7 +3923,7 @@ module.exports = {
                                     stats.players[loser.player].tracks[race.track_selection.track].wins.push(0)
                                     stats.players[loser.player].pods[loser.pod].wins.push(0)
                                     stats.pods[loser.pod].wins.push(0)
-                                    if(loser.player == player){
+                                    if (loser.player == player) {
                                         accomp.win.streaks.push(accomp.win.count)
                                         accomp.win.count = 0
                                     }
@@ -3986,51 +3986,73 @@ module.exports = {
                         }
                         if (stats.commentators[player] !== undefined) {
                             description += "\n🎙️ Matches commentated: `" + stats.commentators[player].count + "`"
-                            if(stats.commentators[player].count > 30){
-                                accomplishments.push("🎙️ Over 30 matches commentated")
+                            if (stats.commentators[player].count > 30) {
+                                accomplishments.push("🎙️ Over 30 **Matches Commentated**")
                             }
                         }
                         var ttd = Object.values(tourney_tournaments_data)
                         ttd.forEach(tourney => {
-                            if(tourney.standings){
+                            if (tourney.standings) {
                                 var standings = Object.values(tourney.standings)
-                                for(i = 0; i < standings.length && i < 5; i++){
-                                    if(standings[i] == player){
-                                        if(i == 0){
-                                            accomplishments.push( ":trophy: Winner of " + tourney.name)
+                                for (i = 0; i < standings.length && i < 5; i++) {
+                                    if (standings[i] == player) {
+                                        if (i == 0) {
+                                            accomplishments.push(":trophy: **Winner** of " + tourney.name)
                                         } else {
-                                            accomplishments.push( ":trophy: Finished " + tools.ordinalSuffix(i) + " in " + tourney.name)
+                                            accomplishments.push(":trophy: **Finished " + tools.ordinalSuffix(i) + "** in " + tourney.name)
                                         }
                                     }
                                 }
                             }
-                            if(tourney.hasOwnProperty("predictions")){
+                            if (tourney.hasOwnProperty("predictions")) {
                                 var predictions = Object.values(tourney.predictions)
-                                if(predictions.includes(Number(player))){
-                                    accomplishments.push(":crystal_ball: Best prediction for " + tourney.name)
+                                if (predictions.includes(Number(player))) {
+                                    accomplishments.push(":crystal_ball: **Best prediction** for " + tourney.name)
                                 }
                             }
                         })
                         accomp.win.streaks.push(accomp.win.count)
                         accomp.deathless.streaks.push(accomp.deathless.count)
                         var win_streak = 0, deathless_streak = 0
-                        for(i = 0; i < accomp.win.streaks.length; i++){
+                        for (i = 0; i < accomp.win.streaks.length; i++) {
                             var streak = accomp.win.streaks[i]
-                            if(streak > win_streak){
+                            if (streak > win_streak) {
                                 win_streak = streak
                             }
                         }
-                        for(i = 0; i < accomp.deathless.streaks.length; i++){
+                        for (i = 0; i < accomp.deathless.streaks.length; i++) {
                             var streak = accomp.deathless.streaks[i]
-                            if(streak > deathless_streak){
+                            if (streak > deathless_streak) {
                                 deathless_streak = streak
                             }
                         }
-                        if(win_streak >= 5){
-                            accomplishments.push(":crown: " + win_streak + " race winning streak")
+                        if (win_streak >= 5) {
+                            accomplishments.push(":crown: " + win_streak + " Race **Win Streak**")
                         }
-                        if(deathless_streak >= 5){
-                            accomplishments.push(":skull: " + deathless_streak + " race deathless streak")
+                        if (deathless_streak >= 5) {
+                            accomplishments.push(":skull: " + deathless_streak + " Race **Deathless Streak**")
+                        }
+                        for (i = 0; i < 25; i++) {
+                            if (stats.pods[i].deaths.length > 0) {
+                                if (stats.pods[i].deaths.reduce((a, b) => { return a + b }) == 0 && stats.pods[i].deaths.length >= 5) {
+                                    accomplishments.push(":skull: **Never Died** as " + racers[i].flag + " " + racers[i].name)
+                                }
+                            }
+                            if (stats.pods[i].wins.length > 0) {
+                                if (!stats.pods[i].wins.includes(0) && stats.pods[i].wins.length >= 5) {
+                                    accomplishments.push(":crown: **Never Lost** as " + racers[i].flag + " " + racers[i].name)
+                                }
+                            }
+                            if (stats.tracks[i].deaths.length > 0) {
+                                if (stats.tracks[i].deaths.reduce((a, b) => { return a + b }) == 0 && stats.tracks[i].deaths.length >= 5) {
+                                    accomplishments.push(":skull: **Never Died** on " + planet[tracks[i].planet].emoji + " " + tracks[i].name)
+                                }
+                            }
+                            if (stats.tracks[i].wins.length > 0) {
+                                if (!stats.tracks[i].wins.includes(0) && stats.tracks[i].wins.length >= 5) {
+                                    accomplishments.push(":crown: **Never Lost** on " + planet[tracks[i].planet].emoji + " " + tracks[i].name)
+                                }
+                            }
                         }
                         tourneyReport
                             .setDescription(description)
@@ -4051,10 +4073,10 @@ module.exports = {
                                     "skips: `" + stats.players[player].forces.skips + "`\n" +
                                     "nu: `" + stats.players[player].forces.no_upgrades + "`\n" +
                                     "pod ban: `" + stats.players[player].forces.pod_ban + "`", true)
-                            if(accomplishments.length > 0){
+                            if (accomplishments.length > 0) {
                                 tourneyReport.addField(":medal: Accomplishments", accomplishments.join("\n"), false)
                             }
-                                
+
                         }
                     }
 
