@@ -4032,8 +4032,8 @@ module.exports = {
                         if (deathless_streak >= 5) {
                             accomplishments.push(":skull: " + deathless_streak + " Race **Deathless Streak**")
                         }
-                        accomp.wins.tracks = []
-                        accomp.wins.pods = []
+                        accomp.win.tracks = []
+                        accomp.win.pods = []
                         accomp.deathless.tracks = []
                         accomp.deathless.pods = []
                         for (i = 0; i < 25; i++) {
@@ -4042,9 +4042,9 @@ module.exports = {
                                     accomp.deathless.pods.push(i)
                                 }
                             }
-                            if (stats.players[player].pods[i].wins.length > 0) {
-                                if (!stats.players[player].pods[i].wins.includes(0) && stats.players[player].pods[i].wins.length >= 5) {
-                                    accomp.wins.pods.push(i)
+                            if (stats.players[player].pods[i].win.length > 0) {
+                                if (!stats.players[player].pods[i].win.includes(0) && stats.players[player].pods[i].win.length >= 5) {
+                                    accomp.win.pods.push(i)
                                 }
                             }
                             if (stats.players[player].tracks[i].deaths.length > 0) {
@@ -4052,9 +4052,9 @@ module.exports = {
                                     accomp.deathless.tracks.push(i)
                                 }
                             }
-                            if (stats.players[player].tracks[i].wins.length > 0) {
-                                if (!stats.players[player].tracks[i].wins.includes(0) && stats.players[player].tracks[i].wins.length >= 5) {
-                                    accomp.wins.tracks.push(i)
+                            if (stats.players[player].tracks[i].win.length > 0) {
+                                if (!stats.players[player].tracks[i].win.includes(0) && stats.players[player].tracks[i].win.length >= 5) {
+                                    accomp.win.tracks.push(i)
                                 }
                             }
                         }
@@ -4072,15 +4072,15 @@ module.exports = {
                             })
                             return stringy
                         }
-                        if(accomp.wins.tracks.length > 1){
-                            accomplishments.push(":crown: **Never Lost** on " + getTrackNicknames(accomp.wins.tracks))
-                        } else if (accomp.wins.tracks.length == 1){
-                            accomplishments.push(":crown: **Never Lost** on " + planets[tracks[accomp.wins.tracks[0]].planet].emoji + " " + tracks[accomp.wins.tracks[0]].name)
+                        if(accomp.win.tracks.length > 1){
+                            accomplishments.push(":crown: **Never Lost** on " + getTrackNicknames(accomp.win.tracks))
+                        } else if (accomp.win.tracks.length == 1){
+                            accomplishments.push(":crown: **Never Lost** on " + planets[tracks[accomp.win.tracks[0]].planet].emoji + " " + tracks[accomp.win.tracks[0]].name)
                         }
-                        if(accomp.wins.pods.length > 1){
-                            accomplishments.push(":crown: **Never Lost** as " + getPodNicknames(accomp.wins.pods.tracks))
-                        } else if (accomp.wins.pods.length == 1){
-                            accomplishments.push(":crown: **Never Lost** as " + racers[accomp.wins.pods[0]].flag + " " + racers[accomp.wins.pods[0]].name)
+                        if(accomp.win.pods.length > 1){
+                            accomplishments.push(":crown: **Never Lost** as " + getPodNicknames(accomp.win.pods.tracks))
+                        } else if (accomp.win.pods.length == 1){
+                            accomplishments.push(":crown: **Never Lost** as " + racers[accomp.win.pods[0]].flag + " " + racers[accomp.win.pods[0]].name)
                         }
                         if(accomp.deathless.tracks.length > 1){
                             accomplishments.push(":skull: **Never Died** on " + getTrackNicknames(accomp.deathless.tracks))
