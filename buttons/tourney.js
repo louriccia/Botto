@@ -4042,8 +4042,8 @@ module.exports = {
                                     accomp.deathless.pods.push(i)
                                 }
                             }
-                            if (stats.players[player].pods[i].win.length > 0) {
-                                if (!stats.players[player].pods[i].win.includes(0) && stats.players[player].pods[i].win.length >= 5) {
+                            if (stats.players[player].pods[i].wins.length > 0) {
+                                if (!stats.players[player].pods[i].wins.includes(0) && stats.players[player].pods[i].wins.length >= 5) {
                                     accomp.win.pods.push(i)
                                 }
                             }
@@ -4052,8 +4052,8 @@ module.exports = {
                                     accomp.deathless.tracks.push(i)
                                 }
                             }
-                            if (stats.players[player].tracks[i].win.length > 0) {
-                                if (!stats.players[player].tracks[i].win.includes(0) && stats.players[player].tracks[i].win.length >= 5) {
+                            if (stats.players[player].tracks[i].wins.length > 0) {
+                                if (!stats.players[player].tracks[i].wins.includes(0) && stats.players[player].tracks[i].wins.length >= 5) {
                                     accomp.win.tracks.push(i)
                                 }
                             }
