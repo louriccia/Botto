@@ -3903,15 +3903,15 @@ module.exports = {
                             }
                             if(run.player == player && race.track_selection.track == track){
                                 player_run = {
-                                    match = tourney_tournaments_data[match.tourney].nickname + " " + match.bracket + " " + match.round,
-                                    time = run.time,
-                                    race = num + 1,
-                                    conditions = conditions,
-                                    temppod = temppod,
-                                    deaths = run.deaths,
-                                    pick = false,
-                                    winner = false,
-                                    opponents = []
+                                    match: tourney_tournaments_data[match.tourney].nickname + " " + match.bracket + " " + match.round,
+                                    time: run.time,
+                                    race: num + 1,
+                                    conditions: conditions,
+                                    temppod: temppod,
+                                    deaths: run.deaths,
+                                    pick: false,
+                                    winner: false,
+                                    opponents: []
                                 }
                                 if(race.track_selection.hasOwnProperty("player")){
                                     if(race.track_selection.player == player){
