@@ -3532,7 +3532,7 @@ module.exports = {
                 }
             })
         } else if (args[0] == "stats") {
-            var player = "global", type = 6
+            var player = "global", type = 6, track = null, player_runs = []
             var sort = "plays"
             if (args.includes("initial")) {
                 type = 5
@@ -3562,6 +3562,14 @@ module.exports = {
                         }
                     }
                 }
+                for (var i = 0; i < interaction.message.components[2].components[0].options.length; i++) { //tracks
+                    var option = interaction.message.components[2].components[0].options[i]
+                    if (option.hasOwnProperty("default")) {
+                        if (option.default) {
+                            track = Number(option.value)
+                        }
+                    }
+                }
             }
             var offset = 0
             if (args[1] == "player") {
@@ -3575,6 +3583,10 @@ module.exports = {
             } else if (args[1] == "sort") {
                 if (interaction.data.hasOwnProperty("values")) {
                     sort = interaction.data.values[0]
+                }
+            } else if (args[1] == "tracks") {
+                if (interaction.data.hasOwnProperty("values")) {
+                    track = Number(interaction.data.values[0])
                 }
             }
             const tourneyReport = new Discord.MessageEmbed()
@@ -3663,6 +3675,8 @@ module.exports = {
                         stats.players[participant].pods[i] = { plays: 0, picks: [], bans: [], wins: [], deaths: [], nu: 0, skips: 0 }
                     })
                 }
+
+                //get stats
                 var tmd = Object.values(tourney_matches_data)
                 tmd = tmd.sort(function (a, b) {
                     return a.datetime - b.datetime
@@ -3825,7 +3839,10 @@ module.exports = {
                             }
                         }
                         var winner = { player: null, time: null, pod: null }
+                        var player_run = {}
                         race.runs.forEach(run => {
+                            
+                            
                             if (run.time !== "DNF") {
                                 stats.race_time += Number(run.time)
                                 stats.players[run.player].race_time += Number(run.time)
@@ -3853,6 +3870,7 @@ module.exports = {
                             if (run.deaths == undefined) {
                                 run.deaths = 0
                             }
+                            
                             stats.deaths.push(run.deaths)
                             stats.tracks[race.track_selection.track].deaths.push(run.deaths)
                             stats.players[run.player].tracks[race.track_selection.track].deaths.push(run.deaths)
@@ -3883,10 +3901,30 @@ module.exports = {
                                     }
                                 }
                             }
-
+                            if(run.player == player && race.track_selection.track == track){
+                                player_run = {
+                                    match = tourney_tournaments_data[match.tourney].nickname + " " + match.bracket + " " + match.round,
+                                    time = run.time,
+                                    race = num + 1,
+                                    conditions = conditions,
+                                    temppod = temppod,
+                                    deaths = run.deaths,
+                                    pick = false,
+                                    winner = false,
+                                    opponents = []
+                                }
+                                if(race.track_selection.hasOwnProperty("player")){
+                                    if(race.track_selection.player == player){
+                                        player_run.pick = true
+                                    }
+                                }
+                            }
                             if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type)) {
                                 race.runs.forEach(opponent => {
                                     if (opponent.player !== run.player) {
+                                        if(player_run !== {}){
+                                            player_run.opponents.push(opponent.player)
+                                        }
                                         stats.players[run.player].opponents[opponent.player].races++
                                         if (opponent.time !== "DNF" && run.time !== "DNF") {
                                             stats.players[run.player].opponents[opponent.player].times.push(opponent.time - run.time)
@@ -3901,6 +3939,12 @@ module.exports = {
                                 })
                             }
                         })
+                        if(player_run !== {} && winner.player !== null){
+                            if(player == winner.player){
+                                player_run.winner = true
+                            }
+                            player_runs.push(player_run)
+                        }
                         if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type) && winner.player !== null) {
                             stats.players[winner.player].races.won++
                             stats.players[winner.player].tracks[race.track_selection.track].wins.push(1)
@@ -3946,7 +3990,7 @@ module.exports = {
                     }
                 })
 
-
+                //assemble embed
                 var ranks = tools.getRanks()
                 if (stats.matches.total > 0) {
                     if (player == "global") {
@@ -4706,8 +4750,10 @@ module.exports = {
                                 max_values: 1
                             },
                         ]
-                    },
-                    {
+                    }
+                )
+                if(track == null){
+                    components.push({
                         type: 1,
                         components: [
                             {
@@ -4719,8 +4765,10 @@ module.exports = {
                                 max_values: 1
                             }
                         ]
-                    }
-                )
+                    })
+                } else {
+                    console.log(player_runs)
+                }
                 return [tourneyReport, components]
             }).then((embed) => sendResponse(embed))
         }
