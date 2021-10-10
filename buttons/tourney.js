@@ -3614,6 +3614,7 @@ module.exports = {
                 return response
             }
             sendCallback().then(() => {
+                var accomp = {win: {count: 0, streaks: []}, deathless:{count: 0, streaks: []}}
                 var accomplishments = []
                 var stats = {
                     race_time: 0,
@@ -3666,6 +3667,9 @@ module.exports = {
                     })
                 }
                 var tmd = Object.values(tourney_matches_data)
+                tmd = tmd.sort(function(a, b) {
+                    return a.datetime - b.datetime
+                })
                 tmd.forEach(match => {
                     var already_played = []
                     var runback = {}
@@ -3856,6 +3860,14 @@ module.exports = {
                             stats.tracks[race.track_selection.track].deaths.push(run.deaths)
                             stats.players[run.player].tracks[race.track_selection.track].deaths.push(run.deaths)
                             stats.players[run.player].deaths.push(run.deaths)
+                            if(run.player == player && match.bracket !== "Qualifying"){
+                                if(run.deaths == 0){
+                                    accomp.deathless.count ++
+                                } else {
+                                    accomp.deathless.streaks.push(accomp.deathless.count)
+                                    accomp.deathless.count = 0
+                                }
+                            }
 
                             stats.tracks[race.track_selection.track].plays++
                             stats.players[run.player].tracks[race.track_selection.track].plays++
@@ -3897,6 +3909,9 @@ module.exports = {
                             stats.players[winner.player].tracks[race.track_selection.track].wins.push(1)
                             stats.players[winner.player].pods[winner.pod].wins.push(1)
                             stats.pods[winner.pod].wins.push(1)
+                            if(winner.player == player){
+                                accomp.win.count ++
+                            }
                             if (winner.player == race.track_selection.player) {
                                 stats.tracks[race.track_selection.track].wins.push(1)
                             } else {
@@ -3908,6 +3923,10 @@ module.exports = {
                                     stats.players[loser.player].tracks[race.track_selection.track].wins.push(0)
                                     stats.players[loser.player].pods[loser.pod].wins.push(0)
                                     stats.pods[loser.pod].wins.push(0)
+                                    if(loser.player == player){
+                                        accomp.win.streaks.push(accomp.win.count)
+                                        accomp.win.count = 0
+                                    }
                                 }
                             })
                             score[winner.player]++
@@ -3992,6 +4011,27 @@ module.exports = {
                                 }
                             }
                         })
+                        accomp.win.streaks.push(accomp.win.count)
+                        accomp.deathless.streaks.push(accomp.deathless.count)
+                        var win_streak = 0, deathless_streak = 0
+                        for(i = 0; i < accomp.win.streaks.length; i++){
+                            var streak = accomp.win.streaks[i]
+                            if(streak > win_streak){
+                                win_streak = streak
+                            }
+                        }
+                        for(i = 0; i < accomp.deathless.streaks.length; i++){
+                            var streak = accomp.deathless.streaks[i]
+                            if(streak > deathless_streak){
+                                deathless_streak = streak
+                            }
+                        }
+                        if(win_streak >= 5){
+                            accomplishments.push(":crown: " + win_streak + " race winning streak")
+                        }
+                        if(deathless_streak >= 5){
+                            accomplishments.push(":skull: " + deathless_streak + " race deathless streak")
+                        }
                         tourneyReport
                             .setDescription(description)
                         if (stats.players[player].matches.total > 0) {
