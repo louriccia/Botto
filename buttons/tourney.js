@@ -566,14 +566,13 @@ module.exports = {
             if (conditions.includes("deathless")) {
                 deaths.push(false)
             }
-            if (conditions.includes("user")) {
+
                 if (interaction.member) {
                     user = interaction.member.user.id
                 } else {
                     user = interaction.user.id
                 }
 
-            }
             //account for missing values
             if (deaths.length == 0) { deaths.push(true, false), conditions.push("deaths", "deathless") }
             if (nu.length == 0) { nu.push(true, false), conditions.push("mu", "nu") }
@@ -3997,7 +3996,7 @@ module.exports = {
                                 for (i = 0; i < standings.length && i < 5; i++) {
                                     if (standings[i] == player) {
                                         if (i == 0) {
-                                            accomplishments.push(":trophy: **Winner** of " + tourney.name)
+                                            accomplishments.push(":trophy: **Winner <:P1:671601240228233216>** of " + tourney.name)
                                         } else {
                                             accomplishments.push(":trophy: **Finished " + tools.ordinalSuffix(i) + "** in " + tourney.name)
                                         }
