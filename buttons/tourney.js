@@ -566,13 +566,11 @@ module.exports = {
             if (conditions.includes("deathless")) {
                 deaths.push(false)
             }
-
-                if (interaction.member) {
-                    user = interaction.member.user.id
-                } else {
-                    user = interaction.user.id
-                }
-
+            if (interaction.member) {
+                user = interaction.member.user.id
+            } else {
+                user = interaction.user.id
+            }
             //account for missing values
             if (deaths.length == 0) { deaths.push(true, false), conditions.push("deaths", "deathless") }
             if (nu.length == 0) { nu.push(true, false), conditions.push("mu", "nu") }
@@ -690,7 +688,7 @@ module.exports = {
             if (pods.length > 0) {
                 runs = runs.filter(e => pods.includes(String(e.pod)))
             }
-            if (user !== null) {
+            if (user !== null && conditions.includes("user")) {
                 runs = runs.filter(e => tourney_participants_data[e.player].id == user)
             }
             if (qual === false) {
