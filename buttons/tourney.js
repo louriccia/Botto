@@ -4032,28 +4032,70 @@ module.exports = {
                         if (deathless_streak >= 5) {
                             accomplishments.push(":skull: " + deathless_streak + " Race **Deathless Streak**")
                         }
+                        accomp.wins.tracks = []
+                        accomp.wins.pods = []
+                        accomp.deathless.tracks = []
+                        accomp.deathless.pods = []
                         for (i = 0; i < 25; i++) {
                             if (stats.players[player].pods[i].deaths.length > 0) {
                                 if (stats.players[player].pods[i].deaths.reduce((a, b) => { return a + b }) == 0 && stats.players[player].pods[i].deaths.length >= 5) {
-                                    accomplishments.push(":skull: **Never Died** as " + racers[i].flag + " " + racers[i].name)
+                                    accomp.deathless.pods.push(i)
                                 }
                             }
                             if (stats.players[player].pods[i].wins.length > 0) {
                                 if (!stats.players[player].pods[i].wins.includes(0) && stats.players[player].pods[i].wins.length >= 5) {
-                                    accomplishments.push(":crown: **Never Lost** as " + racers[i].flag + " " + racers[i].name)
+                                    accomp.wins.pods.push(i)
                                 }
                             }
                             if (stats.players[player].tracks[i].deaths.length > 0) {
                                 if (stats.players[player].tracks[i].deaths.reduce((a, b) => { return a + b }) == 0 && stats.players[player].tracks[i].deaths.length >= 5) {
-                                    accomplishments.push(":skull: **Never Died** on " + planets[tracks[i].planet].emoji + " " + tracks[i].name)
+                                    accomp.deathless.tracks.push(i)
                                 }
                             }
                             if (stats.players[player].tracks[i].wins.length > 0) {
                                 if (!stats.players[player].tracks[i].wins.includes(0) && stats.players[player].tracks[i].wins.length >= 5) {
-                                    accomplishments.push(":crown: **Never Lost** on " + planets[tracks[i].planet].emoji + " " + tracks[i].name)
+                                    accomp.wins.tracks.push(i)
                                 }
                             }
                         }
+                        function getTrackNicknames(array) {
+                            var stringy = []
+                            array.forEach(item => {
+                                stringy.push(tracks[item].nickname[0])
+                            })
+                            return stringy
+                        }
+                        function getPodNicknames(array) {
+                            var stringy = []
+                            array.forEach(item => {
+                                stringy.push(racers[item].flag)
+                            })
+                            return stringy
+                        }
+                        if(accomp.wins.tracks.length > 1){
+                            accomplishments.push(":crown: **Never Lost** on " + getTrackNicknames(accomp.wins.tracks))
+                        } else if (accomp.wins.tracks.length == 1){
+                            accomplishments.push(":crown: **Never Lost** on " + planets[tracks[accomp.wins.tracks[0]].planet].emoji + " " + tracks[accomp.wins.tracks[0]].name)
+                        }
+                        if(accomp.wins.pods.length > 1){
+                            accomplishments.push(":crown: **Never Lost** as " + getPodNicknames(accomp.wins.pods.tracks))
+                        } else if (accomp.wins.pods.length == 1){
+                            accomplishments.push(":crown: **Never Lost** as " + racers[accomp.wins.pods[0]].flag + " " + racers[accomp.wins.pods[0]].name)
+                        }
+                        if(accomp.deathless.tracks.length > 1){
+                            accomplishments.push(":skull: **Never Died** on " + getTrackNicknames(accomp.deathless.tracks))
+                        } else if (accomp.deathless.tracks.length == 1){
+                            accomplishments.push(":skull: **Never Died** on " + planets[tracks[accomp.deathless.tracks[0]].planet].emoji + " " + tracks[accomp.deathless.tracks[0]].name)
+                        }
+                        if(accomp.deathless.pods.length > 1){
+                            accomplishments.push(":skull: **Never Died** as " + getPodNicknames(accomp.deathless.pods))
+                        } else if (accomp.deathless.pods.length == 1){
+                            accomplishments.push(":skull: **Never Died** as " + racers[accomp.deathless.pods[0]].flag + " " + racers[accomp.deathless.pods[0]].name)
+                        }
+                        accomplishments.push(":skull: **Never Died** as " + racers[i].flag + " " + racers[i].name)
+                        accomplishments.push(":crown: **Never Lost** as " + racers[i].flag + " " + racers[i].name)
+                        accomplishments.push(":skull: **Never Died** on " + planets[tracks[i].planet].emoji + " " + tracks[i].name)
+                        
                         tourneyReport
                             .setDescription(description)
                         if (stats.players[player].matches.total > 0) {
