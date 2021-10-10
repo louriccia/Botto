@@ -4061,7 +4061,7 @@ module.exports = {
                         function getTrackNicknames(array) {
                             var stringy = []
                             array.forEach(item => {
-                                stringy.push(tracks[item].nickname[0])
+                                stringy.push(planets[tracks[item].planet].emoji + " " + tracks[item].nickname[0])
                             })
                             return stringy
                         }
@@ -4092,9 +4092,6 @@ module.exports = {
                         } else if (accomp.deathless.pods.length == 1){
                             accomplishments.push(":skull: **Never Died** as " + racers[accomp.deathless.pods[0]].flag + " " + racers[accomp.deathless.pods[0]].name)
                         }
-                        accomplishments.push(":skull: **Never Died** as " + racers[i].flag + " " + racers[i].name)
-                        accomplishments.push(":crown: **Never Lost** as " + racers[i].flag + " " + racers[i].name)
-                        accomplishments.push(":skull: **Never Died** on " + planets[tracks[i].planet].emoji + " " + tracks[i].name)
                         
                         tourneyReport
                             .setDescription(description)
