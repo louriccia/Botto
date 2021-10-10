@@ -4045,12 +4045,12 @@ module.exports = {
                             }
                             if (stats.players[player].tracks[i].deaths.length > 0) {
                                 if (stats.players[player].tracks[i].deaths.reduce((a, b) => { return a + b }) == 0 && stats.players[player].tracks[i].deaths.length >= 5) {
-                                    accomplishments.push(":skull: **Never Died** on " + planet[tracks[i].planet].emoji + " " + tracks[i].name)
+                                    accomplishments.push(":skull: **Never Died** on " + planets[tracks[i].planet].emoji + " " + tracks[i].name)
                                 }
                             }
                             if (stats.players[player].tracks[i].wins.length > 0) {
                                 if (!stats.players[player].tracks[i].wins.includes(0) && stats.players[player].tracks[i].wins.length >= 5) {
-                                    accomplishments.push(":crown: **Never Lost** on " + planet[tracks[i].planet].emoji + " " + tracks[i].name)
+                                    accomplishments.push(":crown: **Never Lost** on " + planets[tracks[i].planet].emoji + " " + tracks[i].name)
                                 }
                             }
                         }
