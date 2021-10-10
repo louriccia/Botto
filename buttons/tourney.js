@@ -4063,14 +4063,14 @@ module.exports = {
                             array.forEach(item => {
                                 stringy.push(planets[tracks[item].planet].emoji + " " + tracks[item].nickname[0])
                             })
-                            return stringy
+                            return stringy.join(", ")
                         }
                         function getPodNicknames(array) {
                             var stringy = []
                             array.forEach(item => {
                                 stringy.push(racers[item].flag)
                             })
-                            return stringy
+                            return stringy.join(", ")
                         }
                         if(accomp.win.tracks.length > 1){
                             accomplishments.push(":crown: **Never Lost** on " + getTrackNicknames(accomp.win.tracks))
