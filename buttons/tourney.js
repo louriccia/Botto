@@ -1307,7 +1307,6 @@ module.exports = {
                     field = { name: '\u200B', value: '\u200B', inline: true }
                     fields.push(field)
                     //races
-                    console.log("racenum: " + ruleset.racenum)
                     for (i = 0; i < Number(ruleset.racenum); i++) {
                         field = {}
                         field.name = ":triangular_flag_on_post: Race " + (i + 1)
@@ -3587,9 +3586,9 @@ module.exports = {
             } else if (args[1] == "tracks") {
                 if (interaction.data.hasOwnProperty("values")) {
                     track = null
-                    if(interaction.data.values.length > 0){
+                    if (interaction.data.values.length > 0) {
                         track = Number(interaction.data.values[0])
-                    } 
+                    }
                 }
             }
             const tourneyReport = new Discord.MessageEmbed()
@@ -4161,10 +4160,9 @@ module.exports = {
                                     "skips: `" + stats.players[player].forces.skips + "`\n" +
                                     "nu: `" + stats.players[player].forces.no_upgrades + "`\n" +
                                     "pod ban: `" + stats.players[player].forces.pod_ban + "`", true)
-                            if (accomplishments.length > 0) {
-                                tourneyReport.addField(":medal: Accomplishments", accomplishments.join("\n"), false)
-                            }
-
+                        }
+                        if (accomplishments.length > 0) {
+                            tourneyReport.addField(":medal: Accomplishments", accomplishments.join("\n"), false)
                         }
                     }
 
@@ -4733,8 +4731,10 @@ module.exports = {
                                 max_values: 1
                             },
                         ]
-                    },
-                    {
+                    }
+                )
+                if (player == "global" || stats.players[player].matches.total > 0) {
+                    components.push({
                         type: 1,
                         components: [
                             {
@@ -4747,22 +4747,23 @@ module.exports = {
                             }
                         ]
                     },
-                    {
-                        type: 1,
-                        components: [
-                            {
-                                type: 3,
-                                custom_id: "tourney_stats_tracks",
-                                options: track_selections,
-                                placeholder: "View Track Stats",
-                                min_values: 0,
-                                max_values: 1
-                            },
-                        ]
-                    }
-                )
-                if (track == null) {
-                    console.log(racer_selections)
+                        {
+                            type: 1,
+                            components: [
+                                {
+                                    type: 3,
+                                    custom_id: "tourney_stats_tracks",
+                                    options: track_selections,
+                                    placeholder: "View Track Stats",
+                                    min_values: 0,
+                                    max_values: 1
+                                },
+                            ]
+                        }
+                    )
+                }
+
+                if ((track == null && stats.players[player].matches.total > 0) || player == "global") {
                     components.push({
                         type: 1,
                         components: [
@@ -4777,7 +4778,6 @@ module.exports = {
                         ]
                     })
                 } else {
-                    console.log(player_runs)
                     var run_list = []
                     player_runs = player_runs.sort(function (a, b) {
                         if (a.time == "DNF" && b.time == "DNF") {
@@ -4796,7 +4796,7 @@ module.exports = {
                             value: i,
                             description: "⚔️ " + player_runs[i].match + " 🏁 Race " + player_runs[i].race
                         }
-                        
+
                         if (player_runs[i].pick) {
                             run_option.label += "👆"
                         }
@@ -4804,7 +4804,7 @@ module.exports = {
                         player_runs[i].conditions.forEach(condition => {
                             run_option.label += condemojis[condition]
                         })
-                        
+
                         if (player_runs[i].winner) {
                             run_option.label += "👑"
                         }
