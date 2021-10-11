@@ -3936,7 +3936,7 @@ module.exports = {
                                 })
                             }
                         })
-                        if(player_run !== {} && winner.player !== null){
+                        if(player_run.hasOwnProperty("time") && winner.player !== null){
                             if(player == winner.player){
                                 player_run.winner = true
                             }
