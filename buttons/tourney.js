@@ -3586,7 +3586,9 @@ module.exports = {
                 }
             } else if (args[1] == "tracks") {
                 if (interaction.data.hasOwnProperty("values")) {
-                    track = Number(interaction.data.values[0])
+                    if(interaction.data.values.length > 0){
+                        track = Number(interaction.data.values[0])
+                    }
                 }
             }
             const tourneyReport = new Discord.MessageEmbed()
