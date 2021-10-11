@@ -3940,13 +3940,14 @@ module.exports = {
                                 })
                             }
                         })
-                        if (player_run.hasOwnProperty("time") && winner.player !== null) {
-                            if (player == winner.player) {
-                                player_run.winner = true
-                            }
-                            player_runs.push(player_run)
-                        }
+
                         if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type) && winner.player !== null) {
+                            if (player_run.hasOwnProperty("time")) {
+                                if (player == winner.player) {
+                                    player_run.winner = true
+                                }
+
+                            }
                             stats.players[winner.player].races.won++
                             stats.players[winner.player].tracks[race.track_selection.track].wins.push(1)
                             stats.players[winner.player].pods[winner.pod].wins.push(1)
@@ -3972,6 +3973,9 @@ module.exports = {
                                 }
                             })
                             score[winner.player]++
+                        }
+                        if (player_run.hasOwnProperty("time")) {
+                            player_runs.push(player_run)
                         }
                     })
                     if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type)) {
@@ -4755,6 +4759,7 @@ module.exports = {
                     }
                 )
                 if (track == null) {
+                    console.log(racer_selections)
                     components.push({
                         type: 1,
                         components: [
@@ -4788,32 +4793,35 @@ module.exports = {
                             value: i,
                             description: "⚔️ " + player_runs[i].match + " 🏁 Race " + player_runs[i].race
                         }
-                        if(player_runs[i].deaths == 1){
+                        if (player_runs[i].deaths == 1) {
                             run_option.label += "💀"
-                        } else if(player_runs[i].deaths > 1){
+                        } else if (player_runs[i].deaths > 1) {
                             run_option.label += "💀×" + player_runs[i].deaths + " "
                         }
-                        var condemojis = {skips: "⏩", nu: "🐢"}
+                        var condemojis = { skips: "⏩", nu: "🐢" }
                         player_runs[i].conditions.forEach(condition => {
                             run_option.label += condemojis[condition]
                         })
-                        if(player_runs[i].pick){
+                        if (player_runs[i].pick) {
                             run_option.label += "👆"
                         }
-                        if(player_runs[i].winner){
+                        if (player_runs[i].winner) {
                             run_option.label += "👑"
                         }
-                        if(player_runs[i].temppod.length > 0){
+                        if (player_runs[i].temppod.length > 0) {
                             run_option.label += " ❌"
                             player_runs[i].temppod.forEach(ban => {
                                 run_option.label += racers[ban].nickname[1]
                             })
                         }
-                        if(player_runs[i].opponents.length > 0){
+                        if (player_runs[i].opponents.length > 0) {
                             run_option.description += " vs "
                             var opponents = []
                             player_runs[i].opponents.forEach(opponent => {
-                                opponents.push(tourney_participants_data[opponent].name)
+                                if (Number(opponent) !== Number(player)) {
+                                    opponents.push(tourney_participants_data[opponent].name)
+                                }
+
                             })
                             run_option.description += opponents.join(", ")
                         }
@@ -4825,7 +4833,7 @@ module.exports = {
                         }
                         run_list.push(run_option)
                     }
-                    if(run_list.length > 0){
+                    if (run_list.length > 0) {
                         components.push({
                             type: 1,
                             components: [
