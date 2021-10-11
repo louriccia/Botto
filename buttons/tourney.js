@@ -4782,13 +4782,9 @@ module.exports = {
                             return Number(a.time) - Number(b.time);
                         }
                     })
-                    for (i = 0; i < player_runs.length || i < 25; i++) {
-                        /*
-                        match: tourney_tournaments_data[match.tourney].nickname + " " + match.bracket + " ",
-                                    temppod: temppod,
-                                    */
+                    for (i = 0; i < player_runs.length && i < 25; i++) {
                         var run_option = {
-                            label: player_runs[i].time + " ",
+                            label: tools.timefix(player_runs[i].time) + " ",
                             value: i,
                             description: "⚔️ " + player_runs[i].match + " 🏁 Race " + player_runs[i].race
                         }

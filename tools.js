@@ -5,6 +5,8 @@ module.exports = {
     timefix: function (time) {
         if(time == "DNF"){
             return "DNF"
+        } else {
+            time = Number(time)
         }
         var myformat = new Intl.NumberFormat('en-US', {
             minimumIntegerDigits: 2,
