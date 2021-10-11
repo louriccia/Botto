@@ -3,6 +3,9 @@ module.exports = {
         return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     },
     timefix: function (time) {
+        if(time == "DNF"){
+            return "DNF"
+        }
         var myformat = new Intl.NumberFormat('en-US', {
             minimumIntegerDigits: 2,
             minimumFractionDigits: 3

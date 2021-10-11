@@ -3868,7 +3868,7 @@ module.exports = {
                             if (run.deaths == undefined) {
                                 run.deaths = 0
                             }
-                            
+
                             stats.deaths.push(run.deaths)
                             stats.tracks[race.track_selection.track].deaths.push(run.deaths)
                             stats.players[run.player].tracks[race.track_selection.track].deaths.push(run.deaths)
@@ -3899,10 +3899,11 @@ module.exports = {
                                     }
                                 }
                             }
-                            if(run.player == player && race.track_selection.track == track){
+                            if (run.player == player && race.track_selection.track == track) {
                                 player_run = {
-                                    match: tourney_tournaments_data[match.tourney].nickname + " " + match.bracket + " " + match.round,
+                                    match: tourney_tournaments_data[match.tourney].nickname + " " + match.bracket + " ",
                                     time: run.time,
+                                    pod: run.pod,
                                     race: num + 1,
                                     conditions: conditions,
                                     temppod: temppod,
@@ -3911,8 +3912,11 @@ module.exports = {
                                     winner: false,
                                     opponents: []
                                 }
-                                if(race.track_selection.hasOwnProperty("player")){
-                                    if(race.track_selection.player == player){
+                                if (match.round !== undefined) {
+                                    player_run.match += match.round
+                                }
+                                if (race.track_selection.hasOwnProperty("player")) {
+                                    if (race.track_selection.player == player) {
                                         player_run.pick = true
                                     }
                                 }
@@ -3920,7 +3924,7 @@ module.exports = {
                             if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type)) {
                                 race.runs.forEach(opponent => {
                                     if (opponent.player !== run.player) {
-                                        if(player_run.hasOwnProperty("opponents")){
+                                        if (player_run.hasOwnProperty("opponents") && opponent.player !== player) {
                                             player_run.opponents.push(opponent.player)
                                         }
                                         stats.players[run.player].opponents[opponent.player].races++
@@ -3936,8 +3940,8 @@ module.exports = {
                                 })
                             }
                         })
-                        if(player_run.hasOwnProperty("time") && winner.player !== null){
-                            if(player == winner.player){
+                        if (player_run.hasOwnProperty("time") && winner.player !== null) {
+                            if (player == winner.player) {
                                 player_run.winner = true
                             }
                             player_runs.push(player_run)
@@ -4110,27 +4114,27 @@ module.exports = {
                             })
                             return stringy.join(", ")
                         }
-                        if(accomp.win.tracks.length > 1){
+                        if (accomp.win.tracks.length > 1) {
                             accomplishments.push(":crown: **Never Lost** on " + getTrackNicknames(accomp.win.tracks))
-                        } else if (accomp.win.tracks.length == 1){
+                        } else if (accomp.win.tracks.length == 1) {
                             accomplishments.push(":crown: **Never Lost** on " + planets[tracks[accomp.win.tracks[0]].planet].emoji + " " + tracks[accomp.win.tracks[0]].name)
                         }
-                        if(accomp.win.pods.length > 1){
+                        if (accomp.win.pods.length > 1) {
                             accomplishments.push(":crown: **Never Lost** as " + getPodNicknames(accomp.win.pods))
-                        } else if (accomp.win.pods.length == 1){
+                        } else if (accomp.win.pods.length == 1) {
                             accomplishments.push(":crown: **Never Lost** as " + racers[accomp.win.pods[0]].flag + " " + racers[accomp.win.pods[0]].name)
                         }
-                        if(accomp.deathless.tracks.length > 1){
+                        if (accomp.deathless.tracks.length > 1) {
                             accomplishments.push(":skull: **Never Died** on " + getTrackNicknames(accomp.deathless.tracks))
-                        } else if (accomp.deathless.tracks.length == 1){
+                        } else if (accomp.deathless.tracks.length == 1) {
                             accomplishments.push(":skull: **Never Died** on " + planets[tracks[accomp.deathless.tracks[0]].planet].emoji + " " + tracks[accomp.deathless.tracks[0]].name)
                         }
-                        if(accomp.deathless.pods.length > 1){
+                        if (accomp.deathless.pods.length > 1) {
                             accomplishments.push(":skull: **Never Died** as " + getPodNicknames(accomp.deathless.pods))
-                        } else if (accomp.deathless.pods.length == 1){
+                        } else if (accomp.deathless.pods.length == 1) {
                             accomplishments.push(":skull: **Never Died** as " + racers[accomp.deathless.pods[0]].flag + " " + racers[accomp.deathless.pods[0]].name)
                         }
-                        
+
                         tourneyReport
                             .setDescription(description)
                         if (stats.players[player].matches.total > 0) {
@@ -4538,6 +4542,9 @@ module.exports = {
                             id: planets[tracks[i].planet].emoji.split(":")[2].replace(">", "")
                         }
                     }
+                    if (Number(track) == i) {
+                        track_option.default = true
+                    }
                     racer_selections.push(racer_option)
                     track_selections.push(track_option)
                 }
@@ -4747,7 +4754,7 @@ module.exports = {
                         ]
                     }
                 )
-                if(track == null){
+                if (track == null) {
                     components.push({
                         type: 1,
                         components: [
@@ -4763,6 +4770,78 @@ module.exports = {
                     })
                 } else {
                     console.log(player_runs)
+                    var run_list = []
+                    player_runs = player_runs.sort(function (a, b) {
+                        if (a.time == "DNF" && b.time == "DNF") {
+                            return 0
+                        } else if (a.time == "DNF") {
+                            return 1
+                        } else if (b.time == "DNF") {
+                            return -1
+                        } else {
+                            return Number(a.time) - Number(b.time);
+                        }
+                    })
+                    for (i = 0; i < player_runs.length; i++) {
+                        /*
+                        match: tourney_tournaments_data[match.tourney].nickname + " " + match.bracket + " ",
+                                    temppod: temppod,
+                                    */
+                        var run_option = {
+                            label: player_runs[i].time + " ",
+                            value: i,
+                            description: "⚔️ " + player_runs[i].match + " 🏁 Race " + player_runs[i].race
+                        }
+                        if(player_runs[i].deaths == 1){
+                            run_option.label += "💀"
+                        } else if(player_runs[i].deaths > 1){
+                            run_option.label += "💀×" + player_runs[i].deaths + " "
+                        }
+                        var condemojis = {skips: "⏩", nu: "🐢"}
+                        player_runs[i].conditions.forEach(condition => {
+                            run_option.label += condemojis[condition]
+                        })
+                        if(player_runs[i].pick){
+                            run_option.label += "👆"
+                        }
+                        if(player_runs[i].winner){
+                            run_option.label += "👑"
+                        }
+                        if(player_runs[i].temppod.length > 0){
+                            run_option.label += " ❌"
+                            player_runs[i].temppod.forEach(ban => {
+                                run_option.label += racers[ban].nickname[1]
+                            })
+                        }
+                        if(player_runs[i].opponents.length > 0){
+                            run_option.description += " vs "
+                            var opponents = []
+                            player_runs[i].opponents.forEach(opponent => {
+                                opponents.push(tourney_participants_data[opponent].name)
+                            })
+                            run_option.description += opponents.join(", ")
+                        }
+                        if (player_runs.pod !== undefined) {
+                            run_option.emoji = {
+                                name: racers[player_runs[i].pod].flag.split(":")[1],
+                                id: racers[player_runs[i].pod].flag.split(":")[2].replace(">", "")
+                            }
+                        }
+                        run_list.push()
+                    }
+                    components.push({
+                        type: 1,
+                        components: [
+                            {
+                                type: 3,
+                                custom_id: "tourney_stats_runs",
+                                options: run_list,
+                                placeholder: "View Runs",
+                                min_values: 0,
+                                max_values: 1
+                            }
+                        ]
+                    })
                 }
                 return [tourneyReport, components]
             }).then((embed) => sendResponse(embed))
