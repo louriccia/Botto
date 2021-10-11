@@ -4817,7 +4817,7 @@ module.exports = {
                             })
                             run_option.description += opponents.join(", ")
                         }
-                        if (player_runs.pod !== undefined) {
+                        if (player_runs[i].pod !== undefined) {
                             run_option.emoji = {
                                 name: racers[player_runs[i].pod].flag.split(":")[1],
                                 id: racers[player_runs[i].pod].flag.split(":")[2].replace(">", "")
@@ -4825,19 +4825,21 @@ module.exports = {
                         }
                         run_list.push(run_option)
                     }
-                    components.push({
-                        type: 1,
-                        components: [
-                            {
-                                type: 3,
-                                custom_id: "tourney_stats_runs",
-                                options: run_list,
-                                placeholder: "View Runs",
-                                min_values: 0,
-                                max_values: 1
-                            }
-                        ]
-                    })
+                    if(run_list.length > 0){
+                        components.push({
+                            type: 1,
+                            components: [
+                                {
+                                    type: 3,
+                                    custom_id: "tourney_stats_runs",
+                                    options: run_list,
+                                    placeholder: "View Runs",
+                                    min_values: 0,
+                                    max_values: 1
+                                }
+                            ]
+                        })
+                    }
                 }
                 return [tourneyReport, components]
             }).then((embed) => sendResponse(embed))
