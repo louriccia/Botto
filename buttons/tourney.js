@@ -3586,9 +3586,10 @@ module.exports = {
                 }
             } else if (args[1] == "tracks") {
                 if (interaction.data.hasOwnProperty("values")) {
+                    track = null
                     if(interaction.data.values.length > 0){
                         track = Number(interaction.data.values[0])
-                    }
+                    } 
                 }
             }
             const tourneyReport = new Discord.MessageEmbed()
@@ -3846,7 +3847,7 @@ module.exports = {
                             if (run.time !== "DNF") {
                                 stats.race_time += Number(run.time)
                                 stats.players[run.player].race_time += Number(run.time)
-                                if (winner.time == null || run.time < winner.time) {
+                                if (winner.time == null || Number(run.time) - Number(winner.time) < 0) {
                                     winner = { player: run.player, time: run.time, pod: run.pod }
                                 }
                             } else {
@@ -4795,20 +4796,22 @@ module.exports = {
                             value: i,
                             description: "⚔️ " + player_runs[i].match + " 🏁 Race " + player_runs[i].race
                         }
-                        if (player_runs[i].deaths == 1) {
-                            run_option.label += "💀"
-                        } else if (player_runs[i].deaths > 1) {
-                            run_option.label += "💀×" + player_runs[i].deaths + " "
+                        
+                        if (player_runs[i].pick) {
+                            run_option.label += "👆"
                         }
                         var condemojis = { skips: "⏩", nu: "🐢" }
                         player_runs[i].conditions.forEach(condition => {
                             run_option.label += condemojis[condition]
                         })
-                        if (player_runs[i].pick) {
-                            run_option.label += "👆"
-                        }
+                        
                         if (player_runs[i].winner) {
                             run_option.label += "👑"
+                        }
+                        if (player_runs[i].deaths == 1) {
+                            run_option.label += "💀"
+                        } else if (player_runs[i].deaths > 1) {
+                            run_option.label += "💀×" + player_runs[i].deaths + " "
                         }
                         if (player_runs[i].temppod.length > 0) {
                             run_option.label += " ❌"
