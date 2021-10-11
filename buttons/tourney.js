@@ -4765,7 +4765,7 @@ module.exports = {
                     )
                 }
 
-                if ((track == null && stats.players[player].matches.total > 0) || player == "global") {
+                if (player == "global" || (track == null && stats.players[player].matches.total > 0)) {
                     components.push({
                         type: 1,
                         components: [
