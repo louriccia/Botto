@@ -3553,19 +3553,21 @@ module.exports = {
                         }
                     }
                 }
-                for (var i = 0; i < interaction.message.components[1].components[0].options.length; i++) { //sort
-                    var option = interaction.message.components[1].components[0].options[i]
-                    if (option.hasOwnProperty("default")) {
-                        if (option.default) {
-                            sort = option.value
+                if(interaction.message.components.length > 1){
+                    for (var i = 0; i < interaction.message.components[1].components[0].options.length; i++) { //sort
+                        var option = interaction.message.components[1].components[0].options[i]
+                        if (option.hasOwnProperty("default")) {
+                            if (option.default) {
+                                sort = option.value
+                            }
                         }
                     }
-                }
-                for (var i = 0; i < interaction.message.components[2].components[0].options.length; i++) { //tracks
-                    var option = interaction.message.components[2].components[0].options[i]
-                    if (option.hasOwnProperty("default")) {
-                        if (option.default) {
-                            track = Number(option.value)
+                    for (var i = 0; i < interaction.message.components[2].components[0].options.length; i++) { //tracks
+                        var option = interaction.message.components[2].components[0].options[i]
+                        if (option.hasOwnProperty("default")) {
+                            if (option.default) {
+                                track = Number(option.value)
+                            }
                         }
                     }
                 }
