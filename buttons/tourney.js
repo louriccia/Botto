@@ -713,7 +713,7 @@ module.exports = {
                 .setDescription(circuits[tracks[track].circuit].name + " Circuit | Race " + tracks[track].cirnum + " | " + planets[tracks[track].planet].name)
                 .setFooter(runs.length + "/" + counts.tracks[track].total + " Runs")
                 .setThumbnail(tracks[track].preview)
-            if (user !== null) {
+            if (user !== null && conditions.includes("user")) {
                 if (interaction.member) {
                     const Guild = client.guilds.cache.get(interaction.guild_id);
                     const Member = Guild.members.cache.get(user)
