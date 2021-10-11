@@ -4542,7 +4542,7 @@ module.exports = {
                             id: planets[tracks[i].planet].emoji.split(":")[2].replace(">", "")
                         }
                     }
-                    if (Number(track) == i) {
+                    if (Number(track) == i && track !== null) {
                         track_option.default = true
                     }
                     racer_selections.push(racer_option)
@@ -4782,7 +4782,7 @@ module.exports = {
                             return Number(a.time) - Number(b.time);
                         }
                     })
-                    for (i = 0; i < player_runs.length; i++) {
+                    for (i = 0; i < player_runs.length || i < 25; i++) {
                         /*
                         match: tourney_tournaments_data[match.tourney].nickname + " " + match.bracket + " ",
                                     temppod: temppod,
@@ -4827,7 +4827,7 @@ module.exports = {
                                 id: racers[player_runs[i].pod].flag.split(":")[2].replace(">", "")
                             }
                         }
-                        run_list.push()
+                        run_list.push(run_option)
                     }
                     components.push({
                         type: 1,
