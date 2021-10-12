@@ -246,7 +246,7 @@ module.exports = {
                     })
                     mat.forEach(m => {
                         var current_match = tourney_matches_data[match]
-                        if (m.datetime < current_match.datetime && match.bracket !== "Qualifying") {
+                        if (m.datetime < current_match.datetime && m.bracket !== "Qualifying") {
                             m.races.forEach(race => {
                                 var conditions = []
                                 if (race.hasOwnProperty("conditions")) {
