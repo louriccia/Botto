@@ -150,6 +150,7 @@ module.exports = {
                 mtch = mtch.sort(function (a, b) {
                     return tourney_matches_data[b].datetime - tourney_matches_data[a].datetime;
                 })
+                //get matches
                 var matches = []
                 for (i = 0 + offset * 23; i < (offset + 1) * 23; i++) {
                     if (i == 0 + offset * 23 && offset > 0) {
@@ -231,8 +232,99 @@ module.exports = {
                     })
                     return
                 }
+
                 if (interaction.data.hasOwnProperty("values") && !interaction.data.values[0].includes("offset")) {
                     var match = interaction.data.values[0]
+                    //get best times 
+                    var best_times = {}
+                    for (i = 0; i < 25; i++) {
+                        best_times[i] = { best: {}, pb: {} }
+                    }
+                    var mat = Object.values(tourney_matches_data)
+                    mat = mat.sort(function (a, b) {
+                        return a.datetime - b.datetime;
+                    })
+                    mat.forEach(m => {
+                        var current_match = tourney_matches_data[match]
+                        if (m.datetime < current_match.datetime) {
+                            m.races.forEach(race => {
+                                var conditions = []
+                                if (race.hasOwnProperty("conditions")) {
+                                    race.conditions.forEach(condition => {
+                                        conditions.push(condition.type)
+                                    })
+                                }
+                                race.runs.forEach(run => {
+                                    if (!best_times[race.track_selection.track].pb.hasOwnProperty(run.player)) {
+                                        best_times[race.track_selection.track].pb[run.player] = {}
+                                    }
+                                    if (conditions.includes("skips") && conditions.includes("no_upgrades")) {
+                                        if (best_times[race.track_selection.track].best.hasOwnProperty("nuskips")) {
+                                            if (Number(run.time) - Number(best_times[race.track_selection.track].best.nuskips) < 0) {
+                                                best_times[race.track_selection.track].best.nuskips = run.time
+                                            }
+                                        } else {
+                                            best_times[race.track_selection.track].best.nuskips = run.time
+                                        }
+                                        if (best_times[race.track_selection.track].pb[run.player].hasOwnProperty("nuskips")){
+                                            if (Number(run.time) - Number(best_times[race.track_selection.track].pb[run.player].nuskips) < 0) {
+                                                best_times[race.track_selection.track].pb[run.player].nuskips = run.time
+                                            }
+                                        } else {
+                                            best_times[race.track_selection.track].pb[run.player].nuskips = run.time
+                                        }
+                                    } else if (conditions.includes("skips")) {
+                                        if (best_times[race.track_selection.track].best.hasOwnProperty("skips")) {
+                                            if (Number(run.time) - Number(best_times[race.track_selection.track].best.skips) < 0) {
+                                                best_times[race.track_selection.track].best.skips = run.time
+                                            }
+                                        } else {
+                                            best_times[race.track_selection.track].best.skips = run.time
+                                        }
+                                        if (best_times[race.track_selection.track].pb[run.player].hasOwnProperty("skips")){
+                                            if (Number(run.time) - Number(best_times[race.track_selection.track].pb[run.player].skips) < 0) {
+                                                best_times[race.track_selection.track].pb[run.player].skips = run.time
+                                            }
+                                        } else {
+                                            best_times[race.track_selection.track].pb[run.player].skips = run.time
+                                        }
+                                    } else if (conditions.includes("no_upgrades")) {
+                                        if (best_times[race.track_selection.track].best.hasOwnProperty("nu")) {
+                                            if (Number(run.time) - Number(best_times[race.track_selection.track].best.nu) < 0) {
+                                                best_times[race.track_selection.track].best.nu = run.time
+                                            }
+                                        } else {
+                                            best_times[race.track_selection.track].best.nu = run.time
+                                        }
+                                        if (best_times[race.track_selection.track].pb[run.player].hasOwnProperty("nu")){
+                                            if (Number(run.time) - Number(best_times[race.track_selection.track].pb[run.player].nu) < 0) {
+                                                best_times[race.track_selection.track].pb[run.player].nu = run.time
+                                            }
+                                        } else {
+                                            best_times[race.track_selection.track].pb[run.player].nu = run.time
+                                        }
+                                    }  else if (conditions.length == 0) {
+                                        if (best_times[race.track_selection.track].best.hasOwnProperty("ft")) {
+                                            if (Number(run.time) - Number(best_times[race.track_selection.track].best.ft) < 0) {
+                                                best_times[race.track_selection.track].best.ft = run.time
+                                            }
+                                        } else {
+                                            best_times[race.track_selection.track].best.ft = run.time
+                                        }
+                                        if (best_times[race.track_selection.track].pb[run.player].hasOwnProperty("ft")){
+                                            if (Number(run.time) - Number(best_times[race.track_selection.track].pb[run.player].ft) < 0) {
+                                                best_times[race.track_selection.track].pb[run.player].ft = run.time
+                                            }
+                                        } else {
+                                            best_times[race.track_selection.track].pb[run.player].ft = run.time
+                                        }
+                                    }
+                                    
+                                })
+                            })
+                        }
+                    })
+                    console.log(best_times)
                     var title = [], comms = []
                     var description = ""
                     if (![undefined, null, ""].includes(tourney_matches_data[match].bracket)) {
@@ -280,7 +372,6 @@ module.exports = {
                                 } else if (ban.type == "track") {
                                     field += ":x: " + tracks[ban.selection].nickname[0].toUpperCase() + " (*" + tourney_participants_data[ban.player].name + "*)\n"
                                 }
-
                             })
                         }
 
@@ -3553,7 +3644,7 @@ module.exports = {
                         }
                     }
                 }
-                if(interaction.message.components.length > 1){
+                if (interaction.message.components.length > 1) {
                     for (var i = 0; i < interaction.message.components[1].components[0].options.length; i++) { //sort
                         var option = interaction.message.components[1].components[0].options[i]
                         if (option.hasOwnProperty("default")) {
