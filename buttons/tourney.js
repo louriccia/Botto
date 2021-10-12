@@ -429,7 +429,7 @@ module.exports = {
                                     } else if(best_times[track].pb.hasOwnProperty(run.player)){
                                         if(best_times[track].pb[run.player].hasOwnProperty("nuskips")){
                                             if(Number(run.time) - Number(best_times[track].pb[run.player].nuskips) < 0){
-                                                field += "*PB*"
+                                                field += ":medal:"
                                             }
                                         }
                                     }
@@ -441,7 +441,7 @@ module.exports = {
                                     } else if(best_times[track].pb.hasOwnProperty(run.player)){
                                         if(best_times[track].pb[run.player].hasOwnProperty("skips")){
                                             if(Number(run.time) - Number(best_times[track].pb[run.player].skips) < 0){
-                                                field += "*PB*"
+                                                field += ":medal:"
                                             }
                                         }
                                     }
@@ -453,7 +453,7 @@ module.exports = {
                                     } else if(best_times[track].pb.hasOwnProperty(run.player)){
                                         if(best_times[track].pb[run.player].hasOwnProperty("nu")){
                                             if(Number(run.time) - Number(best_times[track].pb[run.player].nu) < 0){
-                                                field += "*PB*"
+                                                field += ":medal:"
                                             }
                                         }
                                     }
@@ -465,7 +465,7 @@ module.exports = {
                                     } else if(best_times[track].pb.hasOwnProperty(run.player)){
                                         if(best_times[track].pb[run.player].hasOwnProperty("ft")){
                                             if(Number(run.time) - Number(best_times[track].pb[run.player].ft) < 0){
-                                                field += "*PB*"
+                                                field += ":medal:"
                                             }
                                         }
                                     }
