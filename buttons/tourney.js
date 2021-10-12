@@ -246,7 +246,7 @@ module.exports = {
                     })
                     mat.forEach(m => {
                         var current_match = tourney_matches_data[match]
-                        if (m.datetime < current_match.datetime) {
+                        if (m.datetime < current_match.datetime && match.bracket !== "Qualifying") {
                             m.races.forEach(race => {
                                 var conditions = []
                                 if (race.hasOwnProperty("conditions")) {
@@ -324,7 +324,6 @@ module.exports = {
                             })
                         }
                     })
-                    console.log(best_times)
                     var title = [], comms = []
                     var description = ""
                     if (![undefined, null, ""].includes(tourney_matches_data[match].bracket)) {
@@ -339,6 +338,7 @@ module.exports = {
                             players.push(tourney_participants_data[tourney_matches_data[match].races[0].runs[p].player].name)
                         }
                     }
+
                     if (title.length == 0) {
                         title = players.join(" vs ")
                     } else {
