@@ -422,7 +422,7 @@ module.exports = {
                                 field += ":skull:×" + run.deaths
                             }
                             field += " "
-                            if(current_match.bracket !== "Qualifying"){
+                            if(tourney_matches_data[match].bracket !== "Qualifying"){
                                 if(conditions.includes("nu") && conditions.includes("skips")){
                                     if (best_times[track].best.hasOwnProperty("nuskips")) {
                                         if(Number(run.time) - Number(best_times[track].best.nuskips) < 0 && run.player == winner.player){
