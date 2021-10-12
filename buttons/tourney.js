@@ -474,7 +474,7 @@ module.exports = {
                                 }
                             }
                             if(![undefined,null, ""].includes(run.notes)){
-                                field += "\n" + run.notes
+                                field += "\n*" + run.notes + "*"
                             }
                             
                             field += "\n"
@@ -486,9 +486,9 @@ module.exports = {
                             var permabans = ""
                             tourney_matches_data[match].permabans.forEach(permaban => {
                                 if (permaban.type == "pod") {
-                                    permabans += ":no_entry_sign: " + racers[permaban.selection].flag + " (*" + tourney_participants_data[permaban.player].name + "*)\n"
+                                    permabans += ":no_entry_sign: " + racers[permaban.selection].flag + " (*" + tourney_participants_data[permaban.player].name.substring(0, 4) + "*)\n"
                                 } else if (permaban.type == "track") {
-                                    permabans += ":no_entry_sign: " + tracks[permaban.selection].nickname[0].toUpperCase() + " (*" + tourney_participants_data[permaban.player].name + "*)\n"
+                                    permabans += ":no_entry_sign: " + tracks[permaban.selection].nickname[0].toUpperCase() + " (*" + tourney_participants_data[permaban.player].name.substring(0, 4) + "*)\n"
                                 }
                             })
                             tourneyMatches
