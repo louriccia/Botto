@@ -368,9 +368,9 @@ module.exports = {
                         if (tourney_matches_data[match].races[r].hasOwnProperty("tempbans")) {
                             tourney_matches_data[match].races[r].tempbans.forEach(ban => {
                                 if (ban.type == "pod") {
-                                    field += ":x: " + racers[ban.selection].flag + " (*" + tourney_participants_data[ban.player].name + "*)\n"
+                                    field += ":x: " + racers[ban.selection].flag + " (*" + tourney_participants_data[ban.player].name.substring(0, 4) + "*)\n"
                                 } else if (ban.type == "track") {
-                                    field += ":x: " + tracks[ban.selection].nickname[0].toUpperCase() + " (*" + tourney_participants_data[ban.player].name + "*)\n"
+                                    field += ":x: " + tracks[ban.selection].nickname[0].toUpperCase() + " (*" + tourney_participants_data[ban.player].name.substring(0, 4) + "*)\n"
                                 }
                             })
                         }
@@ -378,20 +378,20 @@ module.exports = {
                         var track = tourney_matches_data[match].races[r].track_selection.track
                         field += planets[tracks[track].planet].emoji + " " + tracks[track].nickname[0].toUpperCase() + " "
                         if (tourney_matches_data[match].races[r].track_selection.hasOwnProperty("player")) {
-                            field += "(*" + tourney_participants_data[tourney_matches_data[match].races[r].track_selection.player].name + "*)"
+                            field += "(*" + tourney_participants_data[tourney_matches_data[match].races[r].track_selection.player].name.substring(0, 4) + "*)"
                         }
                         field += "\n"
                         var conditions = []
                         if (tourney_matches_data[match].races[r].hasOwnProperty("conditions")) {
                             tourney_matches_data[match].races[r].conditions.forEach(condition => {
                                 if (condition.type == "skips") {
-                                    field += ":asterisk: Skips (*" + tourney_participants_data[condition.player].name + "*)\n"
+                                    field += ":asterisk: Skips (*" + tourney_participants_data[condition.player].name.substring(0, 4) + "*)\n"
                                     conditions.push("skips")
                                 } else if (condition.type == "no_upgrades") {
-                                    field += ":asterisk: NU (*" + tourney_participants_data[condition.player].name + "*)\n"
+                                    field += ":asterisk: NU (*" + tourney_participants_data[condition.player].name.substring(0, 4) + "*)\n"
                                     conditions.push("nu")
                                 } else if (condition.type == "pod_ban") {
-                                    field += ":x: " + racers[condition.selection].flag + " (*" + tourney_participants_data[condition.player].name + "*)\n"
+                                    field += ":x: " + racers[condition.selection].flag + " (*" + tourney_participants_data[condition.player].name.substring(0, 4) + "*)\n"
                                 }
                             })
                         }
@@ -472,6 +472,9 @@ module.exports = {
                                         }
                                     }
                                 }
+                            }
+                            if(![undefined,null, ""].includes(run.notes)){
+                                field += "\n" + run.notes
                             }
                             
                             field += "\n"
