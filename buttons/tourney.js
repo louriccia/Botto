@@ -422,55 +422,58 @@ module.exports = {
                                 field += ":skull:×" + run.deaths
                             }
                             field += " "
-                            if(conditions.includes("nu") && conditions.includes("skips")){
-                                if (best_times[track].best.hasOwnProperty("nuskips")) {
-                                    if(Number(run.time) - Number(best_times[track].best.nuskips) < 0 && run.player == winner.player){
-                                        field += "<a:newrecord:672640831882133524>"
-                                    } else if(best_times[track].pb.hasOwnProperty(run.player)){
-                                        if(best_times[track].pb[run.player].hasOwnProperty("nuskips")){
-                                            if(Number(run.time) - Number(best_times[track].pb[run.player].nuskips) < 0){
-                                                field += ":medal:"
+                            if(current_match.bracket !== "Qualifying"){
+                                if(conditions.includes("nu") && conditions.includes("skips")){
+                                    if (best_times[track].best.hasOwnProperty("nuskips")) {
+                                        if(Number(run.time) - Number(best_times[track].best.nuskips) < 0 && run.player == winner.player){
+                                            field += "<a:newrecord:672640831882133524>"
+                                        } else if(best_times[track].pb.hasOwnProperty(run.player)){
+                                            if(best_times[track].pb[run.player].hasOwnProperty("nuskips")){
+                                                if(Number(run.time) - Number(best_times[track].pb[run.player].nuskips) < 0){
+                                                    field += ":medal:"
+                                                }
+                                            }
+                                        }
+                                    } 
+                                } else if(conditions.includes("skips")){
+                                    if (best_times[track].best.hasOwnProperty("skips")) {
+                                        if(Number(run.time) - Number(best_times[track].best.skips) < 0 && run.player == winner.player){
+                                            field += "<a:newrecord:672640831882133524>"
+                                        } else if(best_times[track].pb.hasOwnProperty(run.player)){
+                                            if(best_times[track].pb[run.player].hasOwnProperty("skips")){
+                                                if(Number(run.time) - Number(best_times[track].pb[run.player].skips) < 0){
+                                                    field += ":medal:"
+                                                }
                                             }
                                         }
                                     }
-                                } 
-                            } else if(conditions.includes("skips")){
-                                if (best_times[track].best.hasOwnProperty("skips")) {
-                                    if(Number(run.time) - Number(best_times[track].best.skips) < 0 && run.player == winner.player){
-                                        field += "<a:newrecord:672640831882133524>"
-                                    } else if(best_times[track].pb.hasOwnProperty(run.player)){
-                                        if(best_times[track].pb[run.player].hasOwnProperty("skips")){
-                                            if(Number(run.time) - Number(best_times[track].pb[run.player].skips) < 0){
-                                                field += ":medal:"
+                                } else if(conditions.includes("nu")){
+                                    if (best_times[track].best.hasOwnProperty("nu")) {
+                                        if(Number(run.time) - Number(best_times[track].best.nu) < 0 && run.player == winner.player){
+                                            field += "<a:newrecord:672640831882133524>"
+                                        } else if(best_times[track].pb.hasOwnProperty(run.player)){
+                                            if(best_times[track].pb[run.player].hasOwnProperty("nu")){
+                                                if(Number(run.time) - Number(best_times[track].pb[run.player].nu) < 0){
+                                                    field += ":medal:"
+                                                }
                                             }
                                         }
                                     }
-                                }
-                            } else if(conditions.includes("nu")){
-                                if (best_times[track].best.hasOwnProperty("nu")) {
-                                    if(Number(run.time) - Number(best_times[track].best.nu) < 0 && run.player == winner.player){
-                                        field += "<a:newrecord:672640831882133524>"
-                                    } else if(best_times[track].pb.hasOwnProperty(run.player)){
-                                        if(best_times[track].pb[run.player].hasOwnProperty("nu")){
-                                            if(Number(run.time) - Number(best_times[track].pb[run.player].nu) < 0){
-                                                field += ":medal:"
-                                            }
-                                        }
-                                    }
-                                }
-                            } else if(conditions.length == 0){
-                                if (best_times[track].best.hasOwnProperty("ft")) {
-                                    if(Number(run.time) - Number(best_times[track].best.ft) < 0 && run.player == winner.player){
-                                        field += "<a:newrecord:672640831882133524>"
-                                    } else if(best_times[track].pb.hasOwnProperty(run.player)){
-                                        if(best_times[track].pb[run.player].hasOwnProperty("ft")){
-                                            if(Number(run.time) - Number(best_times[track].pb[run.player].ft) < 0){
-                                                field += ":medal:"
+                                } else if(conditions.length == 0){
+                                    if (best_times[track].best.hasOwnProperty("ft")) {
+                                        if(Number(run.time) - Number(best_times[track].best.ft) < 0 && run.player == winner.player){
+                                            field += "<a:newrecord:672640831882133524>"
+                                        } else if(best_times[track].pb.hasOwnProperty(run.player)){
+                                            if(best_times[track].pb[run.player].hasOwnProperty("ft")){
+                                                if(Number(run.time) - Number(best_times[track].pb[run.player].ft) < 0){
+                                                    field += ":medal:"
+                                                }
                                             }
                                         }
                                     }
                                 }
                             }
+                            
                             field += "\n"
                         })
                         tourneyMatches
