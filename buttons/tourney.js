@@ -4195,7 +4195,6 @@ module.exports = {
                         }
                     }
                 })
-                console.log(best_times)
                 //assemble embed
                 var ranks = tools.getRanks()
                 if (stats.matches.total > 0) {
@@ -4273,12 +4272,45 @@ module.exports = {
                                 deathless_streak = streak
                             }
                         }
+                        //tourney record
+                        var player_records = {}
+                        var records = Object.keys(best_times)
+                        records.forEach(t => {
+                            var conditions = Object.keys(best_times[t])
+                            conditions.forEach(condition => {
+                                if(Number(best_times[t][condition].player) == Number(player)){
+                                    if(player_records[condition] == undefined){
+                                        player_records[condition] = []
+                                    }
+                                    player_records[condition].push(t)
+                                }
+                            })
+                        })
+                        var player_conditions = Object.keys(player_records)
+                        var record_conditions = {
+                            skips: "Skips", nuskips: "No Upgrades+Skips", nu: "No Upgrades", ft: "Full Track"
+                        }
+                        player_conditions.forEach(condition => {
+                            if(player_records[condition].length > 5){
+                                accomplishments.push(":stopwatch: " + record_conditions[condition] + "** Record-Holder** on " + player_records[condition].length + " Tracks")
+                            } else {
+                                var player_tracks = []
+                                player_records[condition].forEach(t => {
+                                    player_tracks.push(planets[tracks[Number(t)].planet].emoji + " " + tracks[Number(t)].nickname[0].toUpperCase())
+                                })  
+                                accomplishments.push(":stopwatch: " + record_conditions[condition] + "** Record-Holder** on " + player_tracks.join(", "))
+                            }
+                        })
+
+                        //win/deathless streak
                         if (win_streak >= 5) {
                             accomplishments.push(":crown: " + win_streak + " Race **Win Streak**")
                         }
                         if (deathless_streak >= 5) {
                             accomplishments.push(":skull: " + deathless_streak + " Race **Deathless Streak**")
                         }
+
+                        //track/pod deathless, lossless
                         accomp.win.tracks = []
                         accomp.win.pods = []
                         accomp.deathless.tracks = []
@@ -4340,36 +4372,7 @@ module.exports = {
                             accomplishments.push(":skull: **Never Died** as " + racers[accomp.deathless.pods[0]].flag + " " + racers[accomp.deathless.pods[0]].name)
                         }
 
-                        //tourney record
-                        var player_records = {}
-                        var records = Object.keys(best_times)
-                        records.forEach(t => {
-                            var conditions = Object.keys(best_times[t])
-                            conditions.forEach(condition => {
-                                if(Number(best_times[t][condition].player) == Number(player)){
-                                    if(player_records[condition] == undefined){
-                                        player_records[condition] = []
-                                    }
-                                    player_records[condition].push(t)
-                                }
-                            })
-                        })
-                        var player_conditions = Object.keys(player_records)
-                        var record_conditions = {
-                            skips: "Skips", nuskips: "No Upgrades+Skips", nu: "No Upgrades", ft: "Full Track"
-                        }
-                        console.log(player_records)
-                        player_conditions.forEach(condition => {
-                            if(player_records[condition].length > 5){
-                                accomplishments.push(":stopwatch: " + record_conditions[condition] + "** Record-Holder** on " + player_records[condition].length + " Tracks")
-                            } else {
-                                var player_tracks = []
-                                player_records[condition].forEach(t => {
-                                    player_tracks.push(planets[tracks[Number(t)].planet].emoji + " " + tracks[Number(t)].nickname[0].toUpperCase())
-                                })  
-                                accomplishments.push(":stopwatch: " + record_conditions[condition] + "** Record-Holder** on " + player_tracks.join(", "))
-                            }
-                        })
+                        
                         
 
                         tourneyReport
@@ -4393,7 +4396,14 @@ module.exports = {
                                     "pod ban: `" + stats.players[player].forces.pod_ban + "`", true)
                         }
                         if (accomplishments.length > 0) {
-                            accomplishments = accomplishments.join("\n")
+                            var accompstring = ""
+                            accomplishments.forEach((accomp, num) => {
+                                if (accompstring.length + accomp.length > 1024){
+                                    accompstring += "+ " + (accomplishments.length - (num + 1)) + " More **🏅 Accomplishment(s)**"
+                                } else {
+                                    accompstring += accomp + "\n"
+                                }
+                            })
                             if(accomplishments.length >= 1024){
                                 accomplishments = accomplishments.substring(0,1020) + "..."
                             }
