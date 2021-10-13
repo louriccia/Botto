@@ -4343,14 +4343,14 @@ module.exports = {
                         //tourney record
                         var player_records = {}
                         var records = Object.keys(best_times)
-                        records.forEach(track => {
-                            var conditions = Object.keys(player_records[track])
+                        records.forEach(t => {
+                            var conditions = Object.keys(best_times[t])
                             conditions.forEach(condition => {
-                                if(Number(best_times[track][condition].player) == Number(player)){
+                                if(Number(best_times[t][condition].player) == Number(player)){
                                     if(player_records[condition] == undefined){
                                         player_records[condition] = []
                                     }
-                                    player_records[condition].push(track)
+                                    player_records[condition].push(t)
                                 }
                             })
                         })
