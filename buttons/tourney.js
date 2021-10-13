@@ -4397,7 +4397,7 @@ module.exports = {
                             if(accomplishments.length >= 1024){
                                 accomplishments = accomplishments.substring(0,1020) + "..."
                             }
-                            tourneyReport.addField(":medal: Accomplishments", accomplishments.join("\n"), false)
+                            tourneyReport.addField(":medal: Accomplishments", accomplishments, false)
                         }
                     }
 
