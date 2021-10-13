@@ -4361,7 +4361,7 @@ module.exports = {
                         console.log(player_records)
                         player_conditions.forEach(condition => {
                             if(player_records[condition].length > 5){
-                                accomplishments.push(":stopwatch: " + record_conditions[condition] + "** Record-Holder** on " + player_records[condition].length)
+                                accomplishments.push(":stopwatch: " + record_conditions[condition] + "** Record-Holder** on " + player_records[condition].length + " Tracks")
                             } else {
                                 var player_tracks = []
                                 player_records[condition].forEach(t => {
