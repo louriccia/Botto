@@ -4393,6 +4393,10 @@ module.exports = {
                                     "pod ban: `" + stats.players[player].forces.pod_ban + "`", true)
                         }
                         if (accomplishments.length > 0) {
+                            accomplishments = accomplishments.join("\n")
+                            if(accomplishments.length >= 1024){
+                                accomplishments = accomplishments.substring(0,1020) + "..."
+                            }
                             tourneyReport.addField(":medal: Accomplishments", accomplishments.join("\n"), false)
                         }
                     }
