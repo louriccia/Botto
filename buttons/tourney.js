@@ -4397,13 +4397,15 @@ module.exports = {
                         }
                         if (accomplishments.length > 0) {
                             var accompstring = ""
-                            accomplishments.forEach((accomp, num) => {
+                            for(i = 0; i < accomplishments.length; i++){
+                                var accomp = accomplishments[i]
                                 if (accompstring.length + accomp.length > 1024){
                                     accompstring += "+ " + (accomplishments.length - (num + 1)) + " More **🏅 Accomplishment(s)**"
+                                    i = accomplishments.length
                                 } else {
                                     accompstring += accomp + "\n"
                                 }
-                            })
+                            }
                             if(accompstring.length >= 1024){
                                 accompstring = accompstring.substring(0,1020) + "..."
                             }
