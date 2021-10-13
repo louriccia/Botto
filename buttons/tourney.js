@@ -4061,9 +4061,6 @@ module.exports = {
                             if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type)) {
                                 race.runs.forEach(opponent => {
                                     if (opponent.player !== run.player) {
-                                        if (player_run.hasOwnProperty("opponents") && opponent.player !== player_run.player) {
-                                            player_run.opponents.push(opponent.player)
-                                        }
                                         stats.players[run.player].opponents[opponent.player].races++
                                         if (opponent.time !== "DNF" && run.time !== "DNF") {
                                             stats.players[run.player].opponents[opponent.player].times.push(opponent.time - run.time)
@@ -4136,18 +4133,24 @@ module.exports = {
                                         player_run.pick = true
                                     }
                                 }
+                                if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type)) {
+                                    race.runs.forEach(opponent => {
+                                        if (opponent.player !== run.player) {
+                                            if (player_run.hasOwnProperty("opponents") && opponent.player !== player_run.player) {
+                                                player_run.opponents.push(opponent.player)
+                                            }
+                                        }
+                                    })
+                                }
+                            }
+                            if (player_run.player == winner.player) {
+                                player_run.winner = true
                             }
                             if (player_run.hasOwnProperty("time")) {
                                 player_runs.push(player_run)
                             }
                         })
                         if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type) && winner.player !== null) {
-                            if (player_run.hasOwnProperty("time")) {
-                                if (player_run.player == winner.player) {
-                                    player_run.winner = true
-                                }
-
-                            }
                             stats.players[winner.player].races.won++
                             stats.players[winner.player].tracks[race.track_selection.track].wins.push(1)
                             stats.players[winner.player].pods[winner.pod].wins.push(1)
