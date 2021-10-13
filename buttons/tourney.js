@@ -4400,7 +4400,7 @@ module.exports = {
                             for(i = 0; i < accomplishments.length; i++){
                                 var accomp = accomplishments[i]
                                 if (accompstring.length + accomp.length > 1024){
-                                    accompstring += "+ " + (accomplishments.length - (num + 1)) + " More **🏅 Accomplishment(s)**"
+                                    accompstring += "+ " + (accomplishments.length - (i + 1)) + " More **🏅 Accomplishment(s)**"
                                     i = accomplishments.length
                                 } else {
                                     accompstring += accomp + "\n"
