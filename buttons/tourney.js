@@ -4346,7 +4346,7 @@ module.exports = {
                         records.forEach(track => {
                             var conditions = Object.keys(records[track])
                             conditions.forEach(condition => {
-                                if(Number(records[track][condition].player) == Number(player)){
+                                if(Number(best_times[track][condition].player) == Number(player)){
                                     if(player_records[condition] == undefined){
                                         player_records[condition] = []
                                     }
