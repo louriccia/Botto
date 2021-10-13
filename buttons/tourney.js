@@ -4244,9 +4244,9 @@ module.exports = {
                                 for (i = 0; i < standings.length && i < 5; i++) {
                                     if (standings[i] == player) {
                                         if (i == 0) {
-                                            accomplishments.push(":trophy: **Winner <:P1:671601240228233216>** of " + tourney.name)
+                                            accomplishments.push(":trophy: **Winner <:P1:671601240228233216>** of " + tourney.nickname + " Tourney")
                                         } else {
-                                            accomplishments.push(":trophy: **Finished " + tools.ordinalSuffix(i) + "** in " + tourney.name)
+                                            accomplishments.push(":trophy: **Finished " + tools.ordinalSuffix(i) + "** in " + tourney.nickname + " Tourney")
                                         }
                                     }
                                 }
