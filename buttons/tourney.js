@@ -4334,6 +4334,36 @@ module.exports = {
                             accomplishments.push(":skull: **Never Died** as " + racers[accomp.deathless.pods[0]].flag + " " + racers[accomp.deathless.pods[0]].name)
                         }
 
+                        //tourney record
+                        var player_records = {}
+                        var records = Object.keys(best_times)
+                        records.forEach(track => {
+                            var conditions = Object.keys(records[track])
+                            conditions.forEach(condition => {
+                                if(records[track][condition].player == player){
+                                    if(player_records[condition] == undefined){
+                                        player_records[condition] = []
+                                    }
+                                    player_records[condition].push(track)
+                                }
+                            })
+                        })
+                        var player_conditions = Object.keys(player_records)
+                        var record_conditions = {
+                            skips: "Skips", nuskips: "No Upgrades+Skips", nu: "No Upgrades", ft: "Full Track"
+                        }
+                        player_conditions.forEach(condition => {
+                            if(player_records[condition].length > 5){
+                                accomplishments.push(":stopwatch: " + record_conditions[condition] + "**Tourney Record-Holder** on " + player_records[condition].length)
+                            } else {
+                                var tracks = []
+                                player_records[condition].forEach(track => {
+                                    tracks.push(planets[tracks[track].planet].emoji + " " + tracks[track].nickname[0].toUpperCase())
+                                })  
+                                accomplishments.push(":stopwatch: " + record_conditions[condition] + "**Tourney Record-Holder** on " + tracks.join(", "))
+                            }
+                        })
+
                         tourneyReport
                             .setDescription(description)
                         if (stats.players[player].matches.total > 0) {
@@ -4987,9 +5017,11 @@ module.exports = {
                         var run_option = {
                             label: tools.timefix(player_runs[i].time) + " ",
                             value: i,
-                            description: player_runs[i].player + " | " + player_runs[i].match + " Race " + player_runs[i].race
+                            description: player_runs[i].match + " Race " + player_runs[i].race
                         }
-
+                        if(player == "global"){
+                            run_option.description = tourney_participants_data[player_runs[i].player].name + " | " + player_runs[i].match + " Race " + player_runs[i].race
+                        }
                         if (player_runs[i].pick) {
                             run_option.label += "👆"
                         }
