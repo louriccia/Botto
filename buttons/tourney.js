@@ -4358,6 +4358,7 @@ module.exports = {
                         var record_conditions = {
                             skips: "Skips", nuskips: "No Upgrades+Skips", nu: "No Upgrades", ft: "Full Track"
                         }
+                        console.log(player_records)
                         player_conditions.forEach(condition => {
                             if(player_records[condition].length > 5){
                                 accomplishments.push(":stopwatch: " + record_conditions[condition] + "** Record-Holder** on " + player_records[condition].length)
@@ -4369,7 +4370,7 @@ module.exports = {
                                 accomplishments.push(":stopwatch: " + record_conditions[condition] + "** Record-Holder** on " + tracks.join(", "))
                             }
                         })
-                        console.log(player_records)
+                        
 
                         tourneyReport
                             .setDescription(description)
