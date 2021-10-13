@@ -3998,7 +3998,7 @@ module.exports = {
                             }
                         }
                         var winner = { player: null, time: null, pod: null }
-                        var player_run = {}
+                        
                         race.runs.forEach(run => {
                             if (run.time !== "DNF") {
                                 stats.race_time += Number(run.time)
@@ -4058,29 +4058,6 @@ module.exports = {
                                     }
                                 }
                             }
-                            if ((run.player == player || player == "global") && race.track_selection.track == track) {
-                                player_run = {
-                                    match: tourney_tournaments_data[match.tourney].nickname + " " + match.bracket + " ",
-                                    time: run.time,
-                                    pod: run.pod,
-                                    race: num + 1,
-                                    conditions: conditions,
-                                    temppod: temppod,
-                                    deaths: run.deaths,
-                                    pick: false,
-                                    winner: false,
-                                    opponents: [],
-                                    player: run.player
-                                }
-                                if (match.round !== undefined) {
-                                    player_run.match += match.round
-                                }
-                                if (race.track_selection.hasOwnProperty("player")) {
-                                    if (race.track_selection.player == player_run.player) {
-                                        player_run.pick = true
-                                    }
-                                }
-                            }
                             if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type)) {
                                 race.runs.forEach(opponent => {
                                     if (opponent.player !== run.player) {
@@ -4135,7 +4112,35 @@ module.exports = {
                                 }
                             }
                         })
-
+                        race.runs.forEach(run => {
+                            var player_run = {}
+                            if ((run.player == player || player == "global") && race.track_selection.track == track) {
+                                player_run = {
+                                    match: tourney_tournaments_data[match.tourney].nickname + " " + match.bracket + " ",
+                                    time: run.time,
+                                    pod: run.pod,
+                                    race: num + 1,
+                                    conditions: conditions,
+                                    temppod: temppod,
+                                    deaths: run.deaths,
+                                    pick: false,
+                                    winner: false,
+                                    opponents: [],
+                                    player: run.player
+                                }
+                                if (match.round !== undefined) {
+                                    player_run.match += match.round
+                                }
+                                if (race.track_selection.hasOwnProperty("player")) {
+                                    if (race.track_selection.player == player_run.player) {
+                                        player_run.pick = true
+                                    }
+                                }
+                            }
+                            if (player_run.hasOwnProperty("time")) {
+                                player_runs.push(player_run)
+                            }
+                        })
                         if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type) && winner.player !== null) {
                             if (player_run.hasOwnProperty("time")) {
                                 if (player_run.player == winner.player) {
@@ -4169,9 +4174,7 @@ module.exports = {
                             })
                             score[winner.player]++
                         }
-                        if (player_run.hasOwnProperty("time")) {
-                            player_runs.push(player_run)
-                        }
+                        
                     })
                     if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type)) {
                         var match_winner = { player: null, score: null }
@@ -4363,6 +4366,7 @@ module.exports = {
                                 accomplishments.push(":stopwatch: " + record_conditions[condition] + "** Record-Holder** on " + tracks.join(", "))
                             }
                         })
+                        console.log(player_records)
 
                         tourneyReport
                             .setDescription(description)
