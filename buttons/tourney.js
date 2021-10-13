@@ -4404,10 +4404,10 @@ module.exports = {
                                     accompstring += accomp + "\n"
                                 }
                             })
-                            if(accomplishments.length >= 1024){
-                                accomplishments = accomplishments.substring(0,1020) + "..."
+                            if(accompstring.length >= 1024){
+                                accompstring = accompstring.substring(0,1020) + "..."
                             }
-                            tourneyReport.addField(":medal: Accomplishments", accomplishments, false)
+                            tourneyReport.addField(":medal: Accomplishments", accompstring, false)
                         }
                     }
 
