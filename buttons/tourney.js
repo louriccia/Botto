@@ -4344,7 +4344,7 @@ module.exports = {
                         var player_records = {}
                         var records = Object.keys(best_times)
                         records.forEach(track => {
-                            var conditions = Object.keys(records[track])
+                            var conditions = Object.keys(player_records[track])
                             conditions.forEach(condition => {
                                 if(Number(best_times[track][condition].player) == Number(player)){
                                     if(player_records[condition] == undefined){
@@ -4993,7 +4993,7 @@ module.exports = {
                     )
                 }
 
-                if (track == null && stats.players[player].matches.total > 0) {
+                if (track == null && (stats.matches.total > 0 || stats.players[player].matches.total) > 0) {
                     components.push({
                         type: 1,
                         components: [
