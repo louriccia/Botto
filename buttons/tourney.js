@@ -4363,11 +4363,11 @@ module.exports = {
                             if(player_records[condition].length > 5){
                                 accomplishments.push(":stopwatch: " + record_conditions[condition] + "** Record-Holder** on " + player_records[condition].length)
                             } else {
-                                var tracks = []
+                                var player_tracks = []
                                 player_records[condition].forEach(t => {
-                                    tracks.push(planets[tracks[Number(t)].planet].emoji + " " + tracks[Number(t)].nickname[0].toUpperCase())
+                                    player_tracks.push(planets[tracks[Number(t)].planet].emoji + " " + tracks[Number(t)].nickname[0].toUpperCase())
                                 })  
-                                accomplishments.push(":stopwatch: " + record_conditions[condition] + "** Record-Holder** on " + tracks.join(", "))
+                                accomplishments.push(":stopwatch: " + record_conditions[condition] + "** Record-Holder** on " + player_tracks.join(", "))
                             }
                         })
                         
