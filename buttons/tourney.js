@@ -4363,8 +4363,8 @@ module.exports = {
                                 accomplishments.push(":stopwatch: " + record_conditions[condition] + "** Record-Holder** on " + player_records[condition].length)
                             } else {
                                 var tracks = []
-                                player_records[condition].forEach(track => {
-                                    tracks.push(planets[tracks[track].planet].emoji + " " + tracks[track].nickname[0].toUpperCase())
+                                player_records[condition].forEach(t => {
+                                    tracks.push(planets[tracks[Number(t)].planet].emoji + " " + tracks[Number(t)].nickname[0].toUpperCase())
                                 })  
                                 accomplishments.push(":stopwatch: " + record_conditions[condition] + "** Record-Holder** on " + tracks.join(", "))
                             }
