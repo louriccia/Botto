@@ -4340,7 +4340,7 @@ module.exports = {
                         records.forEach(track => {
                             var conditions = Object.keys(records[track])
                             conditions.forEach(condition => {
-                                if(records[track][condition].player == player){
+                                if(Number(records[track][condition].player) == Number(player)){
                                     if(player_records[condition] == undefined){
                                         player_records[condition] = []
                                     }
@@ -4354,13 +4354,13 @@ module.exports = {
                         }
                         player_conditions.forEach(condition => {
                             if(player_records[condition].length > 5){
-                                accomplishments.push(":stopwatch: " + record_conditions[condition] + "**Tourney Record-Holder** on " + player_records[condition].length)
+                                accomplishments.push(":stopwatch: " + record_conditions[condition] + "** Record-Holder** on " + player_records[condition].length)
                             } else {
                                 var tracks = []
                                 player_records[condition].forEach(track => {
                                     tracks.push(planets[tracks[track].planet].emoji + " " + tracks[track].nickname[0].toUpperCase())
                                 })  
-                                accomplishments.push(":stopwatch: " + record_conditions[condition] + "**Tourney Record-Holder** on " + tracks.join(", "))
+                                accomplishments.push(":stopwatch: " + record_conditions[condition] + "** Record-Holder** on " + tracks.join(", "))
                             }
                         })
 
