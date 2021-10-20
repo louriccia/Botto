@@ -242,7 +242,8 @@ module.exports = {
 
             //get matches
             var mtch = Object.keys(tourney_matches_data)
-            mtch = mtch.filter(m => { Number(tourney_matches_data[m].tourney) == Number(tourney) })
+            mtch = mtch.filter(m => Number(tourney_matches_data[m].tourney) == Number(tourney))
+            console.log(mtch)
             var match_options = []
             mtch.forEach(key => {
                 var m = tourney_matches_data[key]
