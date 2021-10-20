@@ -141,7 +141,7 @@ module.exports = {
             var sort = "date_ascend", tourney = "0", match = null, type = 7, offset = 0
             var ruleset_emojis = {
                 "1v1": "🆚",
-                "1vAll": "🏆",
+                "1vAll": "👑",
                 "Qualifier": "⏳",
                 "Real-Time Attack": "⏱️"
             }
@@ -692,8 +692,9 @@ module.exports = {
                                 }
                             }
                         }
-                        if (![undefined, null, ""].includes(run.notes)) {
-                            field += "\n*" + run.notes + "*"
+                        var notes = run.notes.toLowerCase().replace("salty runback", "").replace("gentleman's agreement", "").replace("gentlemen's agreement", "")
+                        if (![undefined, null, ""].includes(notes)) {
+                            field += "\n*" + notes + "*"
                         }
 
                         field += "\n"
@@ -1310,7 +1311,7 @@ module.exports = {
 
             var emojis = {
                 "1v1": "🆚",
-                "1vAll": "🏆",
+                "1vAll": "👑",
                 "Qualifier": "⏳",
                 "Real-Time Attack": "⏱️"
             }
