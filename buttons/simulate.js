@@ -17,6 +17,7 @@ module.exports = {
             track = Number(args[0])
             upgrades = Number(args[1])
             fps = Number(args[2])
+            laps = Number(args[3])
             type = 4
         } else {
             for (var i = 0; i < interaction.message.components[0].components[0].options.length; i++) { //track
@@ -137,6 +138,33 @@ module.exports = {
                 fps_selection
             )
         }
+        var lap_selections = [
+            {
+                label: "1 Lap",
+                value: 1
+            },
+            {
+                label: "2 Laps",
+                value: 2
+            },
+            {
+                label: "3 Laps",
+                value: 3
+            },
+            {
+                label: "4 Laps",
+                value: 4
+            },
+            {
+                label: "5 Laps",
+                value: 5
+            }
+        ]
+        lap_selections.forEach(selection => {
+            if(selection.value == laps){
+                selection.default = true
+            }
+        })
 
         components.push(
             {
@@ -158,28 +186,7 @@ module.exports = {
                     {
                         type: 3,
                         custom_id: "simulate_laps",
-                        options: [
-                            {
-                                label: "1 Lap",
-                                value: 1
-                            },
-                            {
-                                label: "2 Laps",
-                                value: 2
-                            },
-                            {
-                                label: "3 Laps",
-                                value: 3
-                            },
-                            {
-                                label: "4 Laps",
-                                value: 4
-                            },
-                            {
-                                label: "5 Laps",
-                                value: 5
-                            }
-                        ],
+                        options: lap_selections,
                         placeholder: "Select Laps",
                         min_values: 1,
                         max_values: 1
