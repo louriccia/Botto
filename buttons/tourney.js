@@ -245,7 +245,6 @@ module.exports = {
             //get matches
             var mtch = Object.keys(tourney_matches_data)
             mtch = mtch.filter(m => Number(tourney_matches_data[m].tourney) == Number(tourney))
-            console.log(mtch)
             var match_options = []
             mtch.forEach(key => {
                 var m = tourney_matches_data[key]
@@ -348,11 +347,24 @@ module.exports = {
                 })
             } else if (sort == "time") {
                 mtch = mtch.sort(function (a, b) {
-                    return match_options[a].timediff - match_options[b].timediff
+                    if(match_options[a].timediff == null){
+                        return 1
+                    } else if(match_options[b].timediff == null){
+                        return -1
+                    } else {
+                        return match_options[a].timediff - match_options[b].timediff
+                    }
+                    
                 })
             } else if (sort == "closest") {
                 mtch = mtch.sort(function (a, b) {
-                    return match_options[a].closest - match_options[b].closest
+                    if(match_options[a].closest == null){
+                        return 1
+                    } else if(match_options[b].closest == null){
+                        return -1
+                    } else {
+                        return match_options[a].closest - match_options[b].closest
+                    }
                 })
             }
 
