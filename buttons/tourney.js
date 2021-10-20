@@ -135,7 +135,7 @@ module.exports = {
             const tourneyMatches = new Discord.MessageEmbed()
                 .setTitle("Tournament Matches")
                 .setColor("#3BA55D")
-                .setDescription("Use the select below to browse recent tournament matches.")
+                .setDescription("Use the selects below to explore tournament matches.")
                 .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
 
             var sort = "plays", tourney = "0", match = null, type = 7, offset = 0
@@ -694,6 +694,7 @@ module.exports = {
                 data: {
                     type: type,
                     data: {
+                        embeds: [tourneyMatches],
                         components: [
                             {
                                 type: 1,
