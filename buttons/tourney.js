@@ -356,7 +356,7 @@ module.exports = {
                 if (i == 0 + offset * 23 && offset > 0) {
                     matches.push(
                         {
-                            label: "More matches...",
+                            label: "Previous matches...",
                             value: "offset" + (offset - 1),
                         }
                     )
@@ -399,7 +399,7 @@ module.exports = {
                 if (i == (offset + 1) * 23 - 1) {
                     matches.push(
                         {
-                            label: "Previous matches...",
+                            label: "More matches...",
                             value: "offset" + (offset + 1),
                         }
                     )
@@ -702,7 +702,7 @@ module.exports = {
                                     {
                                         type: 3,
                                         custom_id: "tourney_matches_tourney",
-                                        options: sort_selections,
+                                        options: tourney_options,
                                         placeholder: "Select Tournament",
                                         min_values: 1,
                                         max_values: 1
