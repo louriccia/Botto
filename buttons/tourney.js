@@ -139,6 +139,12 @@ module.exports = {
                 .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
 
             var sort = "date_ascend", tourney = "0", match = null, type = 7, offset = 0
+            var ruleset_emojis = {
+                "1v1": "🆚",
+                "1vAll": "🏆",
+                "Qualifier": "⏳",
+                "Real-Time Attack": "⏱️"
+            }
             if (args.includes("initial")) {
                 type = 4
             } else {
@@ -265,7 +271,7 @@ module.exports = {
                             m_option.deaths += run.deaths
                         }
                     })
-                    if (timediff.length == 2) {
+                    if (timediff.length == 2 && !["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[m.ruleset].type)) {
                         var diff = Math.abs(timediff[0] - timediff[1])
                         m_option.timediff.push(diff)
                         if (m_option.closest == null || diff < m_option.closest) {
@@ -277,7 +283,7 @@ module.exports = {
                     m_option.timediff = m_option.timediff.reduce((a, b) => { return a + b }) / m_option.timediff.length
                 } else {
                     m_option.timediff = null
-
+                    m_option.closest = null
                 }
                 
                 match_options[key] = m_option
@@ -354,7 +360,6 @@ module.exports = {
                     } else {
                         return match_options[a].timediff - match_options[b].timediff
                     }
-                    
                 })
             } else if (sort == "closest") {
                 mtch = mtch.sort(function (a, b) {
@@ -403,7 +408,8 @@ module.exports = {
                 var r = {
                     label: title,
                     value: s,
-                    description: "📆 " + convertDate(match_options[s].date) + " 🏁 " + match_options[s].races + " 💀 " + match_options[s].deaths
+                    description: "📆 " + convertDate(match_options[s].date) + " 🏁 " + match_options[s].races + " 💀 " + match_options[s].deaths,
+                    emoji: {name: ruleset_emojis[tourney_rulesets_data.saved[tourney_matches_data[s].ruleset]]}
                 }
                 if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[tourney_matches_data[s].ruleset].type)){
                     r.description += " ⏱️ ±" + match_options[s].timediff.toFixed(3) + " 🤏 " + match_options[s].closest.toFixed(3)
