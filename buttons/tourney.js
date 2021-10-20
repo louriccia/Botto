@@ -272,7 +272,7 @@ module.exports = {
                         }
                     }
                 })
-                m_option.timediff = m_option.timediff.resolve((a, b) => { a + b }) / m_option.timediff.length
+                m_option.timediff = m_option.timediff.reduce((a, b) => { return a + b }) / m_option.timediff.length
                 match_options[key] = m_option
             })
 
