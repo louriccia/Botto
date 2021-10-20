@@ -168,6 +168,15 @@ module.exports = {
                 }
             }
 
+            function convertDate(unix) {
+                var date = new Date(unix);
+                var year = date.getUTCFullYear();
+                var month = date.getUTCMonth() + 1;
+                var day = date.getUTCDate();
+                var dateString = year + "-" + month + "-" + day;
+                return dateString
+            }
+
             //get selection
             if (args[1].startsWith("offset")) {
                 offset = Number(args[1].replace("offset", ""))
@@ -220,14 +229,7 @@ module.exports = {
                         })
                     }
                 })
-                function convertDate(unix) {
-                    var date = new Date(unix);
-                    var year = date.getUTCFullYear();
-                    var month = date.getUTCMonth() + 1;
-                    var day = date.getUTCDate();
-                    var dateString = year + "-" + month + "-" + day;
-                    return dateString
-                }
+                
                 var tourney_option = {
                     label: t.name,
                     value: key,
