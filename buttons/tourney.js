@@ -198,7 +198,7 @@ module.exports = {
                     deaths: 0
                 }
                 var tmatches = Object.values(tourney_matches_data)
-                tmatches.forEaceh(match => {
+                tmatches.forEach(match => {
                     if (Number(match.tourney) == Number(key)) {
                         t_stuff.matches++
                         if (t_stuff.oldest == null || match.datetime < t_stuff.oldest) {
