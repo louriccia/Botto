@@ -138,7 +138,7 @@ module.exports = {
                 .setDescription("Use the selects below to explore tournament matches.")
                 .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
 
-            var sort = "plays", tourney = "0", match = null, type = 7, offset = 0
+            var sort = "date_ascend", tourney = "0", match = null, type = 7, offset = 0
             if (args.includes("initial")) {
                 type = 4
             } else {
@@ -274,7 +274,13 @@ module.exports = {
                         }
                     }
                 })
-                m_option.timediff = m_option.timediff.reduce((a, b) => { return a + b }) / m_option.timediff.length
+                if(m_option.timediff.length> 0){
+                    m_option.timediff = m_option.timediff.reduce((a, b) => { return a + b }) / m_option.timediff.length
+                } else {
+                    m_option.timediff = null
+
+                }
+                
                 match_options[key] = m_option
             })
 
@@ -326,11 +332,11 @@ module.exports = {
             //sort matches
             if (sort == "date_ascend") {
                 mtch = mtch.sort(function (a, b) {
-                    return match_options[b].date - match_options[a].date
+                    return match_options[a].date - match_options[b].date
                 })
             } else if (sort == "date_descend") {
                 mtch = mtch.sort(function (a, b) {
-                    return match_options[a].date - match_options[b].date
+                    return match_options[b].date - match_options[a].date
                 })
             } else if (sort == "races") {
                 mtch = mtch.sort(function (a, b) {
@@ -342,11 +348,11 @@ module.exports = {
                 })
             } else if (sort == "time") {
                 mtch = mtch.sort(function (a, b) {
-                    return match_options[b].timediff - match_options[a].timediff
+                    return match_options[a].timediff - match_options[b].timediff
                 })
             } else if (sort == "closest") {
                 mtch = mtch.sort(function (a, b) {
-                    return match_options[b].closest - match_options[a].closest
+                    return match_options[a].closest - match_options[b].closest
                 })
             }
 
@@ -385,7 +391,10 @@ module.exports = {
                 var r = {
                     label: title,
                     value: s,
-                    description: "📆 " + convertDate(match_options[s].date) + " 🏁 " + match_options[s].races + " 💀 " + match_options[s].deaths + " ⏱️ ±" + match_options[s].timediff.toFixed(1) + " 🤏 " + match_options[s].closest.toFixed(1)
+                    description: "📆 " + convertDate(match_options[s].date) + " 🏁 " + match_options[s].races + " 💀 " + match_options[s].deaths
+                }
+                if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[tourney_matches_data[s].ruleset].type)){
+                    r.description += " ⏱️ ±" + match_options[s].timediff.toFixed(3) + " 🤏 " + match_options[s].closest.toFixed(3)
                 }
                 if (interaction.data.hasOwnProperty("values") && !interaction.data.values[0].includes("offset")) {
                     if (r.value == interaction.data.values[0]) {
