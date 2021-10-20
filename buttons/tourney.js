@@ -137,432 +137,630 @@ module.exports = {
                 .setColor("#3BA55D")
                 .setDescription("Use the select below to browse recent tournament matches.")
                 .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
-            if (args[1].startsWith("offset")) {
 
-                var offset = Number(args[1].replace("offset", ""))
+            var sort = "plays", tourney = "0", match = null, type = 7, offset = 0
+            if (args.includes("initial")) {
+                type = 4
+            } else {
+                for (var i = 0; i < interaction.message.components[0].components[0].options.length; i++) { //tourney
+                    var option = interaction.message.components[0].components[0].options[i]
+                    if (option.hasOwnProperty("default")) {
+                        if (option.default) {
+                            tourney = option.value
+                        }
+                    }
+                }
+                for (var i = 0; i < interaction.message.components[1].components[0].options.length; i++) { //sort
+                    var option = interaction.message.components[1].components[0].options[i]
+                    if (option.hasOwnProperty("default")) {
+                        if (option.default) {
+                            sort = option.value
+                        }
+                    }
+                }
+                for (var i = 0; i < interaction.message.components[2].components[0].options.length; i++) { //match
+                    var option = interaction.message.components[2].components[0].options[i]
+                    if (option.hasOwnProperty("default")) {
+                        if (option.default) {
+                            match = option.value
+                        }
+                    }
+                }
+            }
+
+            //get selection
+            if (args[1].startsWith("offset")) {
+                offset = Number(args[1].replace("offset", ""))
                 if (interaction.data.hasOwnProperty("values")) {
                     if (interaction.data.values[0].includes("offset")) {
                         offset = Number(interaction.data.values[0].replace("offset", ""))
-                    }
-                }
-                var type = 7
-                var mtch = Object.keys(tourney_matches_data)
-                mtch = mtch.sort(function (a, b) {
-                    return tourney_matches_data[b].datetime - tourney_matches_data[a].datetime;
-                })
-                //get matches
-                var matches = []
-                for (i = 0 + offset * 23; i < (offset + 1) * 23; i++) {
-                    if (i == 0 + offset * 23 && offset > 0) {
-                        matches.push(
-                            {
-                                label: "Newer matches...",
-                                value: "offset" + (offset - 1),
-                            }
-                        )
-                    }
-                    var s = mtch[i]
-                    var title = []
-                    if (![undefined, null, ""].includes(tourney_matches_data[s].bracket)) {
-                        title.push(tourney_matches_data[s].bracket)
-                    }
-                    if (![undefined, null, ""].includes(tourney_matches_data[s].round)) {
-                        title.push(tourney_matches_data[s].round)
-                    }
-                    var players = []
-                    for (p = 0; p < tourney_matches_data[s].races[0].runs.length; p++) {
-                        if (!players.includes(tourney_matches_data[s].races[0].runs[p].player)) {
-                            players.push(tourney_participants_data[tourney_matches_data[s].races[0].runs[p].player].name)
-                        }
-                    }
-                    var date = new Date(tourney_matches_data[s].datetime)
-                    date = date.toLocaleString().split(", ")
-                    if (title.length == 0) {
-                        title = players.join(" vs ")
                     } else {
-                        title = title.join(" ") + " - " + players.join(" vs ")
-                    }
-                    var r = {
-                        label: title,
-                        value: s,
-                        description: tourney_tournaments_data[tourney_matches_data[s].tourney].name + " (" + date[0] + ")"
-                    }
-                    if (interaction.data.hasOwnProperty("values") && !interaction.data.values[0].includes("offset")) {
-                        if (r.value == interaction.data.values[0]) {
-                            r.default = true
-                        }
-                    }
-                    matches.push(r)
-                    if (i == mtch.length - 1) {
-                        i = (offset + 1) * 23
-                    }
-                    if (i == (offset + 1) * 23 - 1) {
-                        matches.push(
-                            {
-                                label: "Older matches...",
-                                value: "offset" + (offset + 1),
-                            }
-                        )
+                        match = interaction.data.values[0]
                     }
                 }
-                if (args.includes("initial")) {
-                    type = 4
-                    client.api.interactions(interaction.id, interaction.token).callback.post({
-                        data: {
-                            type: type,
-                            data: {
-                                embeds: [tourneyMatches],
-                                components: [
-                                    {
-                                        type: 1,
-                                        components: [
-                                            {
-                                                type: 3,
-                                                custom_id: "tourney_matches_offset" + offset,
-                                                options: matches,
-                                                placeholder: "Select Match",
-                                                min_values: 1,
-                                                max_values: 1
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
-                        }
-                    })
-                    return
-                }
-
-                if (interaction.data.hasOwnProperty("values") && !interaction.data.values[0].includes("offset")) {
-                    var match = interaction.data.values[0]
-                    //get best times 
-                    var best_times = {}
-                    for (i = 0; i < 25; i++) {
-                        best_times[i] = { best: {}, pb: {} }
-                    }
-                    var mat = Object.values(tourney_matches_data)
-                    mat = mat.sort(function (a, b) {
-                        return a.datetime - b.datetime;
-                    })
-                    mat.forEach(m => {
-                        var current_match = tourney_matches_data[match]
-                        if (m.datetime < current_match.datetime && m.bracket !== "Qualifying") {
-                            m.races.forEach(race => {
-                                var conditions = []
-                                if (race.hasOwnProperty("conditions")) {
-                                    race.conditions.forEach(condition => {
-                                        conditions.push(condition.type)
-                                    })
-                                }
-                                race.runs.forEach(run => {
-                                    if (!best_times[race.track_selection.track].pb.hasOwnProperty(run.player)) {
-                                        best_times[race.track_selection.track].pb[run.player] = {}
-                                    }
-                                    if (conditions.includes("skips") && conditions.includes("no_upgrades")) {
-                                        if (best_times[race.track_selection.track].best.hasOwnProperty("nuskips")) {
-                                            if (Number(run.time) - Number(best_times[race.track_selection.track].best.nuskips) < 0) {
-                                                best_times[race.track_selection.track].best.nuskips = run.time
-                                            }
-                                        } else {
-                                            best_times[race.track_selection.track].best.nuskips = run.time
-                                        }
-                                        if (best_times[race.track_selection.track].pb[run.player].hasOwnProperty("nuskips")) {
-                                            if (Number(run.time) - Number(best_times[race.track_selection.track].pb[run.player].nuskips) < 0) {
-                                                best_times[race.track_selection.track].pb[run.player].nuskips = run.time
-                                            }
-                                        } else {
-                                            best_times[race.track_selection.track].pb[run.player].nuskips = run.time
-                                        }
-                                    } else if (conditions.includes("skips")) {
-                                        if (best_times[race.track_selection.track].best.hasOwnProperty("skips")) {
-                                            if (Number(run.time) - Number(best_times[race.track_selection.track].best.skips) < 0) {
-                                                best_times[race.track_selection.track].best.skips = run.time
-                                            }
-                                        } else {
-                                            best_times[race.track_selection.track].best.skips = run.time
-                                        }
-                                        if (best_times[race.track_selection.track].pb[run.player].hasOwnProperty("skips")) {
-                                            if (Number(run.time) - Number(best_times[race.track_selection.track].pb[run.player].skips) < 0) {
-                                                best_times[race.track_selection.track].pb[run.player].skips = run.time
-                                            }
-                                        } else {
-                                            best_times[race.track_selection.track].pb[run.player].skips = run.time
-                                        }
-                                    } else if (conditions.includes("no_upgrades")) {
-                                        if (best_times[race.track_selection.track].best.hasOwnProperty("nu")) {
-                                            if (Number(run.time) - Number(best_times[race.track_selection.track].best.nu) < 0) {
-                                                best_times[race.track_selection.track].best.nu = run.time
-                                            }
-                                        } else {
-                                            best_times[race.track_selection.track].best.nu = run.time
-                                        }
-                                        if (best_times[race.track_selection.track].pb[run.player].hasOwnProperty("nu")) {
-                                            if (Number(run.time) - Number(best_times[race.track_selection.track].pb[run.player].nu) < 0) {
-                                                best_times[race.track_selection.track].pb[run.player].nu = run.time
-                                            }
-                                        } else {
-                                            best_times[race.track_selection.track].pb[run.player].nu = run.time
-                                        }
-                                    } else if (conditions.length == 0) {
-                                        if (best_times[race.track_selection.track].best.hasOwnProperty("ft")) {
-                                            if (Number(run.time) - Number(best_times[race.track_selection.track].best.ft) < 0) {
-                                                best_times[race.track_selection.track].best.ft = run.time
-                                            }
-                                        } else {
-                                            best_times[race.track_selection.track].best.ft = run.time
-                                        }
-                                        if (best_times[race.track_selection.track].pb[run.player].hasOwnProperty("ft")) {
-                                            if (Number(run.time) - Number(best_times[race.track_selection.track].pb[run.player].ft) < 0) {
-                                                best_times[race.track_selection.track].pb[run.player].ft = run.time
-                                            }
-                                        } else {
-                                            best_times[race.track_selection.track].pb[run.player].ft = run.time
-                                        }
-                                    }
-
-                                })
-                            })
-                        }
-                    })
-                    var title = [], comms = []
-                    var description = ""
-                    if (![undefined, null, ""].includes(tourney_matches_data[match].bracket)) {
-                        title.push(tourney_matches_data[match].bracket)
-                    }
-                    if (![undefined, null, ""].includes(tourney_matches_data[match].round)) {
-                        title.push(tourney_matches_data[match].round)
-                    }
-                    var players = []
-                    for (p = 0; p < tourney_matches_data[match].races[0].runs.length; p++) {
-                        if (!players.includes(tourney_matches_data[match].races[0].runs[p].player)) {
-                            players.push(tourney_participants_data[tourney_matches_data[match].races[0].runs[p].player].name)
-                        }
-                    }
-
-                    if (title.length == 0) {
-                        title = players.join(" vs ")
-                    } else {
-                        title = title.join(" ") + " - " + players.join(" vs ")
-                    }
-                    tourney_matches_data[match].commentators.forEach(com => {
-                        comms.push(tourney_participants_data[com].name)
-                    })
-                    if (tourney_tournaments_data[tourney_matches_data[match].tourney].hasOwnProperty("challonge")) {
-                        description += "[:trophy: " + tourney_tournaments_data[tourney_matches_data[match].tourney].name + "](" + tourney_tournaments_data[tourney_matches_data[match].tourney].challonge[0] + ")\n"
-                    } else {
-                        description += ":trophy: " + tourney_tournaments_data[tourney_matches_data[match].tourney].name + "\n"
-                    }
-
-                    description += ":calendar_spiral: <t:" + Math.round(tourney_matches_data[match].datetime / 1000) + ":F>\n"
-                    description += ":scroll: " + tourney_rulesets_data.saved[tourney_matches_data[match].ruleset].name + "\n"
-                    description += ":microphone2: " + comms.join(", ")
-
-                    tourneyMatches
-                        .setTitle(title)
-                        .setDescription(description)
-                        .setColor("#3BA55D")
-                        .setURL(tourney_matches_data[match].vod)
-                        .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
-                    var already_played = []
-                    for (r = 0; r < tourney_matches_data[match].races.length; r++) {
-                        var field = ""
-                        if (tourney_matches_data[match].races[r].hasOwnProperty("tempbans")) {
-                            tourney_matches_data[match].races[r].tempbans.forEach(ban => {
-                                if (ban.type == "pod") {
-                                    field += ":x: " + racers[ban.selection].flag + " (*" + tourney_participants_data[ban.player].name.replace(" ", "").substring(0, 4) + "*)\n"
-                                } else if (ban.type == "track") {
-                                    field += ":x: " + tracks[ban.selection].nickname[0].toUpperCase() + " (*" + tourney_participants_data[ban.player].name.replace(" ", "").substring(0, 4) + "*)\n"
-                                }
-                            })
-                        }
-
-                        var track = tourney_matches_data[match].races[r].track_selection.track
-                        var gents = false
-                        tourney_matches_data[match].races[r].runs.forEach(run => {
-                            if (![undefined, null, ""].includes(run.notes)) {
-                                if (run.notes.toLowerCase().includes("gentle")) {
-                                    gents = true
-                                }
-                            }
-                        })
-                        if(gents){
-                            field += "🎩 "
-                        } else if (tourney_matches_data[match].races[r].track_selection.hasOwnProperty("player") && already_played.includes(track)) {
-                            field += "🔁 "
-                        } else {
-                            field += planets[tracks[track].planet].emoji + " "
-                        }
-                        field += tracks[track].nickname[0].toUpperCase() + " "
-                        if (tourney_matches_data[match].races[r].track_selection.hasOwnProperty("player")) {
-                            field += "(*" + tourney_participants_data[tourney_matches_data[match].races[r].track_selection.player].name.replace(" ", "").substring(0, 4) + "*)"
-                        }
-                        field += "\n"
-                        var conditions = []
-                        if (tourney_matches_data[match].races[r].hasOwnProperty("conditions")) {
-                            tourney_matches_data[match].races[r].conditions.forEach(condition => {
-                                if (condition.type == "skips") {
-                                    field += ":asterisk: Skips (*" + tourney_participants_data[condition.player].name.replace(" ", "").substring(0, 4) + "*)\n"
-                                    conditions.push("skips")
-                                } else if (condition.type == "no_upgrades") {
-                                    field += ":asterisk: NU (*" + tourney_participants_data[condition.player].name.replace(" ", "").substring(0, 4) + "*)\n"
-                                    conditions.push("nu")
-                                } else if (condition.type == "pod_ban") {
-                                    field += ":x: " + racers[condition.selection].flag + " (*" + tourney_participants_data[condition.player].name.replace(" ", "").substring(0, 4) + "*)\n"
-                                }
-                            })
-                        }
-                        var winner = {}
-                        for (p = 0; p < tourney_matches_data[match].races[r].runs.length; p++) {
-                            if ((winner.time == undefined || Number(tourney_matches_data[match].races[r].runs[p].time) < Number(winner.time)) && tourney_matches_data[match].races[r].runs[p].time !== "DNF") {
-                                winner.time = Number(tourney_matches_data[match].races[r].runs[p].time)
-                                winner.player = tourney_matches_data[match].races[r].runs[p].player
-                            }
-                        }
-                        tourney_matches_data[match].races[r].runs.forEach(run => {
-                            field += "**" + tourney_participants_data[run.player].name + "** "
-                            if (run.player == winner.player) {
-                                field += ":crown:"
-                            }
-                            field += "\n"
-                            if (run.hasOwnProperty("pod")) {
-                                field += racers[run.pod].flag + " "
-                            }
-                            if (run.time == "DNF") {
-                                field += "`DNF`"
-                            } else {
-                                field += "`" + tools.timefix(run.time) + "`"
-                            }
-                            if (run.deaths == 1) {
-                                field += " :skull:"
-                            } else if (run.deaths > 1) {
-                                field += ":skull:×" + run.deaths
-                            }
-                            field += " "
-                            if (tourney_matches_data[match].bracket !== "Qualifying") {
-                                if (conditions.includes("nu") && conditions.includes("skips")) {
-                                    if (best_times[track].best.hasOwnProperty("nuskips")) {
-                                        if (Number(run.time) - Number(best_times[track].best.nuskips) < 0 && run.player == winner.player) {
-                                            field += "<a:newrecord:672640831882133524>"
-                                        } else if (best_times[track].pb.hasOwnProperty(run.player)) {
-                                            if (best_times[track].pb[run.player].hasOwnProperty("nuskips")) {
-                                                if (Number(run.time) - Number(best_times[track].pb[run.player].nuskips) < 0) {
-                                                    field += ":medal:"
-                                                }
-                                            }
-                                        }
-                                    }
-                                } else if (conditions.includes("skips")) {
-                                    if (best_times[track].best.hasOwnProperty("skips")) {
-                                        if (Number(run.time) - Number(best_times[track].best.skips) < 0 && run.player == winner.player) {
-                                            field += "<a:newrecord:672640831882133524>"
-                                        } else if (best_times[track].pb.hasOwnProperty(run.player)) {
-                                            if (best_times[track].pb[run.player].hasOwnProperty("skips")) {
-                                                if (Number(run.time) - Number(best_times[track].pb[run.player].skips) < 0) {
-                                                    field += ":medal:"
-                                                }
-                                            }
-                                        }
-                                    }
-                                } else if (conditions.includes("nu")) {
-                                    if (best_times[track].best.hasOwnProperty("nu")) {
-                                        if (Number(run.time) - Number(best_times[track].best.nu) < 0 && run.player == winner.player) {
-                                            field += "<a:newrecord:672640831882133524>"
-                                        } else if (best_times[track].pb.hasOwnProperty(run.player)) {
-                                            if (best_times[track].pb[run.player].hasOwnProperty("nu")) {
-                                                if (Number(run.time) - Number(best_times[track].pb[run.player].nu) < 0) {
-                                                    field += ":medal:"
-                                                }
-                                            }
-                                        }
-                                    }
-                                } else if (conditions.length == 0) {
-                                    if (best_times[track].best.hasOwnProperty("ft")) {
-                                        if (Number(run.time) - Number(best_times[track].best.ft) < 0 && run.player == winner.player) {
-                                            field += "<a:newrecord:672640831882133524>"
-                                        } else if (best_times[track].pb.hasOwnProperty(run.player)) {
-                                            if (best_times[track].pb[run.player].hasOwnProperty("ft")) {
-                                                if (Number(run.time) - Number(best_times[track].pb[run.player].ft) < 0) {
-                                                    field += ":medal:"
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            if (![undefined, null, ""].includes(run.notes)) {
-                                field += "\n*" + run.notes + "*"
-                            }
-
-                            field += "\n"
-                        })
-                        tourneyMatches
-                            .addField("Race " + (r + 1), field, true)
-
-                        if (r == 0 && tourney_matches_data[match].hasOwnProperty("permabans")) {
-                            var permabans = ""
-                            tourney_matches_data[match].permabans.forEach(permaban => {
-                                if (permaban.type == "pod") {
-                                    permabans += ":no_entry_sign: " + racers[permaban.selection].flag + " (*" + tourney_participants_data[permaban.player].name.replace(" ", "").substring(0, 4) + "*)\n"
-                                } else if (permaban.type == "track") {
-                                    permabans += ":no_entry_sign: " + tracks[permaban.selection].nickname[0].toUpperCase() + " (*" + tourney_participants_data[permaban.player].name.replace(" ", "").substring(0, 4) + "*)\n"
-                                }
-                            })
-                            tourneyMatches
-                                .addField("Permabans", permabans, true)
-                        }
-
-                        already_played.push(track)
-                    }
-                    client.api.interactions(interaction.id, interaction.token).callback.post({
-                        data: {
-                            type: type,
-                            data: {
-                                embeds: [tourneyMatches],
-                                components: [
-                                    {
-                                        type: 1,
-                                        components: [
-                                            {
-                                                type: 3,
-                                                custom_id: "tourney_matches_offset" + offset,
-                                                options: matches,
-                                                placeholder: "Select Match",
-                                                min_values: 1,
-                                                max_values: 1
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
-                        }
-                    })
-                } else {
-                    client.api.interactions(interaction.id, interaction.token).callback.post({
-                        data: {
-                            type: type,
-                            data: {
-                                components: [
-                                    {
-                                        type: 1,
-                                        components: [
-                                            {
-                                                type: 3,
-                                                custom_id: "tourney_matches_offset" + offset,
-                                                options: matches,
-                                                placeholder: "Select Match",
-                                                min_values: 1,
-                                                max_values: 1
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
-                        }
-                    })
-                }
-
-
+            } else if (args[1] == "sort") {
+                sort = interaction.data.values[0]
+            } else if (args[1] == "tourney") {
+                tourney = interaction.data.values[0]
             }
+
+            //get tourneys
+            var tourney_options = []
+            var tourney_keys = Object.keys(tourney_tournaments_data)
+            tourney_keys.forEach(key => {
+                var t = tourney_tournaments_data[key]
+                var t_stuff = {
+                    oldest: null,
+                    newest: null,
+                    players: [],
+                    matches: 0,
+                    races: 0,
+                    deaths: 0
+                }
+                var tmatches = Object.values(tourney_matches_data)
+                tmatches.forEaceh(match => {
+                    if (Number(match.tourney) == Number(key)) {
+                        t_stuff.matches++
+                        if (t_stuff.oldest == null || match.datetime < t_stuff.oldest) {
+                            t_stuff.oldest = match.datetime
+                        }
+                        if (t_stuff.newest == null || match.datetime > t_stuff.newest) {
+                            t_stuff.newest = match.datetime
+                        }
+                        match.races.forEach(race => {
+                            t_stuff.races++
+                            race.runs.forEach(run => {
+                                if (!t_stuff.players.includes(run.player)) {
+                                    t_stuff.players.push(run.player)
+                                }
+                                if (![undefined, null, ""].includes(run.deaths)) {
+                                    t_stuff.deaths += Number(run.deaths)
+                                }
+                            })
+                        })
+                    }
+                })
+                function convertDate(unix) {
+                    var date = new Date(unix);
+                    var year = date.getUTCFullYear();
+                    var month = date.getUTCMonth() + 1;
+                    var day = date.getUTCDate();
+                    var dateString = year + "-" + month + "-" + day;
+                    return dateString
+                }
+                var tourney_option = {
+                    label: t.name,
+                    value: key,
+                    description: "📆 " + convertDate(t_stuff.oldest) + " - " + convertDate(t_stuff.newest) + " 👥 " + t_stuff.players.length + " ⚔️ " + t_stuff.matches + " 🏁 " + t_stuff.races + " 💀 " + t_stuff.deaths,
+                    emoji: { name: "🏆" }
+                }
+                if (Number(tourney) == Number(key)) {
+                    tourney_option.default = true
+                }
+                tourney_options.push(tourney_option)
+            })
+
+            //get matches
+            var mtch = Object.keys(tourney_matches_data)
+            mtch = mtch.filter(m => { Number(tourney_matches_data[m].tourney) == Number(tourney) })
+            var match_options = []
+            mtch.forEach(key => {
+                var m = tourney_matches_data[key]
+                var m_option = {
+                    date: m.datetime,
+                    races: m.races.length,
+                    deaths: 0,
+                    timediff: [],
+                    closest: null
+                }
+                m.races.forEach(race => {
+                    var timediff = []
+                    race.runs.forEach(run => {
+                        if (run.time !== "DNF") {
+                            timediff.push(run.time)
+                        }
+                        if (![undefined, null, ""].includes(run.deaths)) {
+                            m_option.deaths += run.deaths
+                        }
+                    })
+                    if (timediff.length == 2) {
+                        var diff = Math.abs(timediff[0] - timediff[1])
+                        m_option.timediff.push(diff)
+                        if (m_option.closest == null || diff < m_option.closest) {
+                            m_option.closest = diff
+                        }
+                    }
+                })
+                m_option.timediff = m_option.timediff.resolve((a, b) => { a + b }) / m_option.timediff.length
+                match_options[key] = m_option
+            })
+
+            //sort options
+            var sort_selections = [
+                {
+                    label: "Sort by Date (Ascending)",
+                    value: "date_ascend",
+                    description: "sort by date, oldest to newest",
+                    emoji: { name: "📆" }
+                },
+                {
+                    label: "Sort by Date (Descending)",
+                    value: "date_descend",
+                    description: "sort by date, newest to oldest",
+                    emoji: { name: "📆" }
+                },
+                {
+                    label: "Sort by Races",
+                    value: "races",
+                    description: "sort by number of races descending",
+                    emoji: { name: "🏁" }
+                },
+                {
+                    label: "Sort by Total Deaths",
+                    value: "deaths",
+                    description: "sort by total match deaths descending",
+                    emoji: { name: "💀" }
+                },
+                {
+                    label: "Sort by Avg. Time Difference",
+                    value: "time",
+                    description: "sort by average time difference ascending",
+                    emoji: { name: "⏱️" }
+                },
+                {
+                    label: "Sort by Closest Race",
+                    value: "closest",
+                    description: "sort by closest race difference ascending",
+                    emoji: { name: "🤏" }
+                }
+            ]
+            sort_selections.forEach(option => {
+                if (option.value == sort) {
+                    option.default = true
+                }
+            })
+
+            //sort matches
+            if (sort == "date_ascend") {
+                mtch = mtch.sort(function (a, b) {
+                    return match_options[b].date - match_options[a].date
+                })
+            } else if (sort == "date_descend") {
+                mtch = mtch.sort(function (a, b) {
+                    return match_options[a].date - match_options[b].date
+                })
+            } else if (sort == "races") {
+                mtch = mtch.sort(function (a, b) {
+                    return match_options[b].races - match_options[a].races
+                })
+            } else if (sort == "deaths") {
+                mtch = mtch.sort(function (a, b) {
+                    return match_options[b].deaths - match_options[a].deaths
+                })
+            } else if (sort == "time") {
+                mtch = mtch.sort(function (a, b) {
+                    return match_options[b].timediff - match_options[a].timediff
+                })
+            } else if (sort == "closest") {
+                mtch = mtch.sort(function (a, b) {
+                    return match_options[b].closest - match_options[a].closest
+                })
+            }
+
+            //assmble match options
+            var matches = []
+            for (i = 0 + offset * 23; i < (offset + 1) * 23; i++) {
+                if (i == 0 + offset * 23 && offset > 0) {
+                    matches.push(
+                        {
+                            label: "More matches...",
+                            value: "offset" + (offset - 1),
+                        }
+                    )
+                }
+                var s = mtch[i]
+                var title = []
+                if (![undefined, null, ""].includes(tourney_matches_data[s].bracket)) {
+                    title.push(tourney_matches_data[s].bracket)
+                }
+                if (![undefined, null, ""].includes(tourney_matches_data[s].round)) {
+                    title.push(tourney_matches_data[s].round)
+                }
+                var players = []
+                for (p = 0; p < tourney_matches_data[s].races[0].runs.length; p++) {
+                    if (!players.includes(tourney_matches_data[s].races[0].runs[p].player)) {
+                        players.push(tourney_participants_data[tourney_matches_data[s].races[0].runs[p].player].name)
+                    }
+                }
+                var date = new Date(tourney_matches_data[s].datetime)
+                date = date.toLocaleString().split(", ")
+                if (title.length == 0) {
+                    title = players.join(" vs ")
+                } else {
+                    title = title.join(" ") + " - " + players.join(" vs ")
+                }
+                var r = {
+                    label: title,
+                    value: s,
+                    description: "📆 " + convertDate(match_options[s].date) + " 🏁 " + match_options[s].races + " 💀 " + match_options[s].deaths + " ⏱️ ±" + match_options[s].timediff.toFixed(1) + " 🤏 " + match_options[s].closest.toFixed(1)
+                }
+                if (interaction.data.hasOwnProperty("values") && !interaction.data.values[0].includes("offset")) {
+                    if (r.value == interaction.data.values[0]) {
+                        r.default = true
+                    }
+                }
+                matches.push(r)
+                if (i == mtch.length - 1) {
+                    i = (offset + 1) * 23
+                }
+                if (i == (offset + 1) * 23 - 1) {
+                    matches.push(
+                        {
+                            label: "Previous matches...",
+                            value: "offset" + (offset + 1),
+                        }
+                    )
+                }
+            }
+            if (args.includes("initial")) {
+                type = 4
+                client.api.interactions(interaction.id, interaction.token).callback.post({
+                    data: {
+                        type: type,
+                        data: {
+                            embeds: [tourneyMatches],
+                            components: [
+                                {
+                                    type: 1,
+                                    components: [
+                                        {
+                                            type: 3,
+                                            custom_id: "tourney_matches_offset" + offset,
+                                            options: matches,
+                                            placeholder: "Select Match",
+                                            min_values: 1,
+                                            max_values: 1
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                })
+                return
+            }
+
+            match = interaction.data.values[0]
+            //get best times 
+            var best_times = {}
+            for (i = 0; i < 25; i++) {
+                best_times[i] = { best: {}, pb: {} }
+            }
+            var mat = Object.values(tourney_matches_data)
+            mat = mat.sort(function (a, b) {
+                return a.datetime - b.datetime;
+            })
+            mat.forEach(m => {
+                var current_match = tourney_matches_data[match]
+                if (m.datetime < current_match.datetime && m.bracket !== "Qualifying") {
+                    m.races.forEach(race => {
+                        var conditions = []
+                        if (race.hasOwnProperty("conditions")) {
+                            race.conditions.forEach(condition => {
+                                conditions.push(condition.type)
+                            })
+                        }
+                        race.runs.forEach(run => {
+                            if (!best_times[race.track_selection.track].pb.hasOwnProperty(run.player)) {
+                                best_times[race.track_selection.track].pb[run.player] = {}
+                            }
+                            if (conditions.includes("skips") && conditions.includes("no_upgrades")) {
+                                if (best_times[race.track_selection.track].best.hasOwnProperty("nuskips")) {
+                                    if (Number(run.time) - Number(best_times[race.track_selection.track].best.nuskips) < 0) {
+                                        best_times[race.track_selection.track].best.nuskips = run.time
+                                    }
+                                } else {
+                                    best_times[race.track_selection.track].best.nuskips = run.time
+                                }
+                                if (best_times[race.track_selection.track].pb[run.player].hasOwnProperty("nuskips")) {
+                                    if (Number(run.time) - Number(best_times[race.track_selection.track].pb[run.player].nuskips) < 0) {
+                                        best_times[race.track_selection.track].pb[run.player].nuskips = run.time
+                                    }
+                                } else {
+                                    best_times[race.track_selection.track].pb[run.player].nuskips = run.time
+                                }
+                            } else if (conditions.includes("skips")) {
+                                if (best_times[race.track_selection.track].best.hasOwnProperty("skips")) {
+                                    if (Number(run.time) - Number(best_times[race.track_selection.track].best.skips) < 0) {
+                                        best_times[race.track_selection.track].best.skips = run.time
+                                    }
+                                } else {
+                                    best_times[race.track_selection.track].best.skips = run.time
+                                }
+                                if (best_times[race.track_selection.track].pb[run.player].hasOwnProperty("skips")) {
+                                    if (Number(run.time) - Number(best_times[race.track_selection.track].pb[run.player].skips) < 0) {
+                                        best_times[race.track_selection.track].pb[run.player].skips = run.time
+                                    }
+                                } else {
+                                    best_times[race.track_selection.track].pb[run.player].skips = run.time
+                                }
+                            } else if (conditions.includes("no_upgrades")) {
+                                if (best_times[race.track_selection.track].best.hasOwnProperty("nu")) {
+                                    if (Number(run.time) - Number(best_times[race.track_selection.track].best.nu) < 0) {
+                                        best_times[race.track_selection.track].best.nu = run.time
+                                    }
+                                } else {
+                                    best_times[race.track_selection.track].best.nu = run.time
+                                }
+                                if (best_times[race.track_selection.track].pb[run.player].hasOwnProperty("nu")) {
+                                    if (Number(run.time) - Number(best_times[race.track_selection.track].pb[run.player].nu) < 0) {
+                                        best_times[race.track_selection.track].pb[run.player].nu = run.time
+                                    }
+                                } else {
+                                    best_times[race.track_selection.track].pb[run.player].nu = run.time
+                                }
+                            } else if (conditions.length == 0) {
+                                if (best_times[race.track_selection.track].best.hasOwnProperty("ft")) {
+                                    if (Number(run.time) - Number(best_times[race.track_selection.track].best.ft) < 0) {
+                                        best_times[race.track_selection.track].best.ft = run.time
+                                    }
+                                } else {
+                                    best_times[race.track_selection.track].best.ft = run.time
+                                }
+                                if (best_times[race.track_selection.track].pb[run.player].hasOwnProperty("ft")) {
+                                    if (Number(run.time) - Number(best_times[race.track_selection.track].pb[run.player].ft) < 0) {
+                                        best_times[race.track_selection.track].pb[run.player].ft = run.time
+                                    }
+                                } else {
+                                    best_times[race.track_selection.track].pb[run.player].ft = run.time
+                                }
+                            }
+
+                        })
+                    })
+                }
+            })
+
+            //assemble embed
+            var title = [], comms = []
+            var description = ""
+            if (![undefined, null, ""].includes(tourney_matches_data[match].bracket)) {
+                title.push(tourney_matches_data[match].bracket)
+            }
+            if (![undefined, null, ""].includes(tourney_matches_data[match].round)) {
+                title.push(tourney_matches_data[match].round)
+            }
+            var players = []
+            for (p = 0; p < tourney_matches_data[match].races[0].runs.length; p++) {
+                if (!players.includes(tourney_matches_data[match].races[0].runs[p].player)) {
+                    players.push(tourney_participants_data[tourney_matches_data[match].races[0].runs[p].player].name)
+                }
+            }
+
+            if (title.length == 0) {
+                title = players.join(" vs ")
+            } else {
+                title = title.join(" ") + " - " + players.join(" vs ")
+            }
+            tourney_matches_data[match].commentators.forEach(com => {
+                comms.push(tourney_participants_data[com].name)
+            })
+            if (tourney_tournaments_data[tourney_matches_data[match].tourney].hasOwnProperty("challonge")) {
+                description += "[:trophy: " + tourney_tournaments_data[tourney_matches_data[match].tourney].name + "](" + tourney_tournaments_data[tourney_matches_data[match].tourney].challonge[0] + ")\n"
+            } else {
+                description += ":trophy: " + tourney_tournaments_data[tourney_matches_data[match].tourney].name + "\n"
+            }
+
+            description += ":calendar_spiral: <t:" + Math.round(tourney_matches_data[match].datetime / 1000) + ":F>\n"
+            description += ":scroll: " + tourney_rulesets_data.saved[tourney_matches_data[match].ruleset].name + "\n"
+            description += ":microphone2: " + comms.join(", ")
+
+            tourneyMatches
+                .setTitle(title)
+                .setDescription(description)
+                .setColor("#3BA55D")
+                .setURL(tourney_matches_data[match].vod)
+                .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
+
+            //assemble fields
+            var already_played = []
+            for (r = 0; r < tourney_matches_data[match].races.length; r++) {
+                var field = ""
+                if (tourney_matches_data[match].races[r].hasOwnProperty("tempbans")) {
+                    tourney_matches_data[match].races[r].tempbans.forEach(ban => {
+                        if (ban.type == "pod") {
+                            field += ":x: " + racers[ban.selection].flag + " (*" + tourney_participants_data[ban.player].name.replace(" ", "").substring(0, 4) + "*)\n"
+                        } else if (ban.type == "track") {
+                            field += ":x: " + tracks[ban.selection].nickname[0].toUpperCase() + " (*" + tourney_participants_data[ban.player].name.replace(" ", "").substring(0, 4) + "*)\n"
+                        }
+                    })
+                }
+
+                var track = tourney_matches_data[match].races[r].track_selection.track
+                var gents = false
+                tourney_matches_data[match].races[r].runs.forEach(run => {
+                    if (![undefined, null, ""].includes(run.notes)) {
+                        if (run.notes.toLowerCase().includes("gentle")) {
+                            gents = true
+                        }
+                    }
+                })
+                if (gents) {
+                    field += "🎩 "
+                } else if (tourney_matches_data[match].races[r].track_selection.hasOwnProperty("player") && already_played.includes(track)) {
+                    field += "🔁 "
+                } else {
+                    field += planets[tracks[track].planet].emoji + " "
+                }
+                field += tracks[track].nickname[0].toUpperCase() + " "
+                if (tourney_matches_data[match].races[r].track_selection.hasOwnProperty("player")) {
+                    field += "(*" + tourney_participants_data[tourney_matches_data[match].races[r].track_selection.player].name.replace(" ", "").substring(0, 4) + "*)"
+                }
+                field += "\n"
+                var conditions = []
+                if (tourney_matches_data[match].races[r].hasOwnProperty("conditions")) {
+                    tourney_matches_data[match].races[r].conditions.forEach(condition => {
+                        if (condition.type == "skips") {
+                            field += ":asterisk: Skips (*" + tourney_participants_data[condition.player].name.replace(" ", "").substring(0, 4) + "*)\n"
+                            conditions.push("skips")
+                        } else if (condition.type == "no_upgrades") {
+                            field += ":asterisk: NU (*" + tourney_participants_data[condition.player].name.replace(" ", "").substring(0, 4) + "*)\n"
+                            conditions.push("nu")
+                        } else if (condition.type == "pod_ban") {
+                            field += ":x: " + racers[condition.selection].flag + " (*" + tourney_participants_data[condition.player].name.replace(" ", "").substring(0, 4) + "*)\n"
+                        }
+                    })
+                }
+                var winner = {}
+                for (p = 0; p < tourney_matches_data[match].races[r].runs.length; p++) {
+                    if ((winner.time == undefined || Number(tourney_matches_data[match].races[r].runs[p].time) < Number(winner.time)) && tourney_matches_data[match].races[r].runs[p].time !== "DNF") {
+                        winner.time = Number(tourney_matches_data[match].races[r].runs[p].time)
+                        winner.player = tourney_matches_data[match].races[r].runs[p].player
+                    }
+                }
+                tourney_matches_data[match].races[r].runs.forEach(run => {
+                    field += "**" + tourney_participants_data[run.player].name + "** "
+                    if (run.player == winner.player) {
+                        field += ":crown:"
+                    }
+                    field += "\n"
+                    if (run.hasOwnProperty("pod")) {
+                        field += racers[run.pod].flag + " "
+                    }
+                    if (run.time == "DNF") {
+                        field += "`DNF`"
+                    } else {
+                        field += "`" + tools.timefix(run.time) + "`"
+                    }
+                    if (run.deaths == 1) {
+                        field += " :skull:"
+                    } else if (run.deaths > 1) {
+                        field += ":skull:×" + run.deaths
+                    }
+                    field += " "
+                    if (tourney_matches_data[match].bracket !== "Qualifying") {
+                        if (conditions.includes("nu") && conditions.includes("skips")) {
+                            if (best_times[track].best.hasOwnProperty("nuskips")) {
+                                if (Number(run.time) - Number(best_times[track].best.nuskips) < 0 && run.player == winner.player) {
+                                    field += "<a:newrecord:672640831882133524>"
+                                } else if (best_times[track].pb.hasOwnProperty(run.player)) {
+                                    if (best_times[track].pb[run.player].hasOwnProperty("nuskips")) {
+                                        if (Number(run.time) - Number(best_times[track].pb[run.player].nuskips) < 0) {
+                                            field += ":medal:"
+                                        }
+                                    }
+                                }
+                            }
+                        } else if (conditions.includes("skips")) {
+                            if (best_times[track].best.hasOwnProperty("skips")) {
+                                if (Number(run.time) - Number(best_times[track].best.skips) < 0 && run.player == winner.player) {
+                                    field += "<a:newrecord:672640831882133524>"
+                                } else if (best_times[track].pb.hasOwnProperty(run.player)) {
+                                    if (best_times[track].pb[run.player].hasOwnProperty("skips")) {
+                                        if (Number(run.time) - Number(best_times[track].pb[run.player].skips) < 0) {
+                                            field += ":medal:"
+                                        }
+                                    }
+                                }
+                            }
+                        } else if (conditions.includes("nu")) {
+                            if (best_times[track].best.hasOwnProperty("nu")) {
+                                if (Number(run.time) - Number(best_times[track].best.nu) < 0 && run.player == winner.player) {
+                                    field += "<a:newrecord:672640831882133524>"
+                                } else if (best_times[track].pb.hasOwnProperty(run.player)) {
+                                    if (best_times[track].pb[run.player].hasOwnProperty("nu")) {
+                                        if (Number(run.time) - Number(best_times[track].pb[run.player].nu) < 0) {
+                                            field += ":medal:"
+                                        }
+                                    }
+                                }
+                            }
+                        } else if (conditions.length == 0) {
+                            if (best_times[track].best.hasOwnProperty("ft")) {
+                                if (Number(run.time) - Number(best_times[track].best.ft) < 0 && run.player == winner.player) {
+                                    field += "<a:newrecord:672640831882133524>"
+                                } else if (best_times[track].pb.hasOwnProperty(run.player)) {
+                                    if (best_times[track].pb[run.player].hasOwnProperty("ft")) {
+                                        if (Number(run.time) - Number(best_times[track].pb[run.player].ft) < 0) {
+                                            field += ":medal:"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (![undefined, null, ""].includes(run.notes)) {
+                        field += "\n*" + run.notes + "*"
+                    }
+
+                    field += "\n"
+                })
+                tourneyMatches
+                    .addField("Race " + (r + 1), field, true)
+
+                if (r == 0 && tourney_matches_data[match].hasOwnProperty("permabans")) {
+                    var permabans = ""
+                    tourney_matches_data[match].permabans.forEach(permaban => {
+                        if (permaban.type == "pod") {
+                            permabans += ":no_entry_sign: " + racers[permaban.selection].flag + " (*" + tourney_participants_data[permaban.player].name.replace(" ", "").substring(0, 4) + "*)\n"
+                        } else if (permaban.type == "track") {
+                            permabans += ":no_entry_sign: " + tracks[permaban.selection].nickname[0].toUpperCase() + " (*" + tourney_participants_data[permaban.player].name.replace(" ", "").substring(0, 4) + "*)\n"
+                        }
+                    })
+                    tourneyMatches
+                        .addField("Permabans", permabans, true)
+                }
+                already_played.push(track)
+            }
+
+            client.api.interactions(interaction.id, interaction.token).callback.post({
+                data: {
+                    type: type,
+                    data: {
+                        components: [
+                            {
+                                type: 1,
+                                components: [
+                                    {
+                                        type: 3,
+                                        custom_id: "tourney_matches_tourney",
+                                        options: sort_selections,
+                                        placeholder: "Select Tournament",
+                                        min_values: 1,
+                                        max_values: 1
+                                    }
+                                ]
+                            },
+                            {
+                                type: 1,
+                                components: [
+                                    {
+                                        type: 3,
+                                        custom_id: "tourney_matches_sort",
+                                        options: sort_selections,
+                                        placeholder: "Sort Options",
+                                        min_values: 1,
+                                        max_values: 1
+                                    }
+                                ]
+                            },
+                            {
+                                type: 1,
+                                components: [
+                                    {
+                                        type: 3,
+                                        custom_id: "tourney_matches_offset" + offset,
+                                        options: matches,
+                                        placeholder: "Select Match",
+                                        min_values: 1,
+                                        max_values: 1
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+            })
 
         } else if (args[0] == "schedule") {
             var type = 4
@@ -1563,7 +1761,7 @@ module.exports = {
             }
             if (args[1] == "browse") {
                 rulesetEmbed.setTitle(":scroll: Rulesets")
-                    .setDescription("This is the tournament ruleset manager. Browse existing rulesets using the dropdown below or make your own by pressing the New button.")
+                    .setDescription("This is the tournament ruleset manager. Browse existing rulesets using the dropdown below or make your own by pressing the New button.\n\n:grey_question: To learn more about making rulesets, watch [this video](https://youtu.be/fExzuOvn6iY)")
                 var buttons = [
                     {
                         type: 2,
@@ -4218,7 +4416,7 @@ module.exports = {
                 if (stats.matches.total > 0) {
                     if (player == "global") {
                         tourneyReport
-                            .setDescription("⏱️ Total race time: `" + tools.timefix(stats.race_time) + "`\n💀 Average deaths/race: `" + (stats.deaths.reduce((a, b) => { return a + b }) / stats.races.total).toFixed(2) + "`")
+                            .setDescription("⏱️ Total Race Yime: `" + tools.timefix(stats.race_time) + "`\n💀 Average Deaths/Race: `" + (stats.deaths.reduce((a, b) => { return a + b }) / stats.races.total).toFixed(2) + "`")
                             .addField(":crossed_swords: Matches", "total: `" + stats.matches.total + "`\n" +
                                 "qualifying: `" + stats.matches.qual + "`\n" +
                                 "winners: `" + stats.matches.winners + "`\n" +
@@ -4268,6 +4466,11 @@ module.exports = {
                                     }
                                 }
                             }
+                            if (tourney.hasOwnProperty("rookie")) {
+                                if (tourney.rookie == Number(player)) {
+                                    accomplishments.push(":beginner: " + tourney.name + "'s **Rookie of the Season**")
+                                }
+                            }
                             if (tourney.hasOwnProperty("predictions")) {
                                 var predictions = Object.values(tourney.predictions)
                                 if (predictions.includes(Number(player))) {
@@ -4310,7 +4513,7 @@ module.exports = {
                         }
                         player_conditions.forEach(condition => {
                             if (player_records[condition].length > 5) {
-                                accomplishments.push(":stopwatch: " + record_conditions[condition] + "** Record-Holder** on " + player_records[condition].length + " Tracks")
+                                accomplishments.push(":stopwatch: " + record_conditions[condition] + "** Record-Holder** on " + player_records[condition].length + " Tracks!")
                             } else {
                                 var player_tracks = []
                                 player_records[condition].forEach(t => {
@@ -4322,10 +4525,10 @@ module.exports = {
 
                         //win/deathless streak
                         if (win_streak >= 5) {
-                            accomplishments.push(":crown: " + win_streak + " Race **Win Streak**")
+                            accomplishments.push(":crown: " + win_streak + "-Race **Win Streak**")
                         }
                         if (deathless_streak >= 5) {
-                            accomplishments.push(":skull: " + deathless_streak + " Race **Deathless Streak**")
+                            accomplishments.push(":skull: " + deathless_streak + "-Race **Deathless Streak**")
                         }
 
                         //track/pod deathless, lossless
@@ -4418,7 +4621,7 @@ module.exports = {
                             for (i = 0; i < accomplishments.length; i++) {
                                 var accomp = accomplishments[i]
                                 if (accompstring.length + accomp.length > 1024) {
-                                    accompstring += "+ " + (accomplishments.length - i) + " More **🏅 Accomplishment(s)**"
+                                    accompstring += "+" + (accomplishments.length - i) + " More **🏅 Accomplishment(s)**"
                                     i = accomplishments.length
                                 } else {
                                     accompstring += accomp + "\n"
