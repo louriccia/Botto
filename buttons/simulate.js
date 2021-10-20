@@ -10,6 +10,7 @@ module.exports = {
         var upgrades = 5
         var fps = 60
         var type = 7
+        var laps = 3
 
         //get input
         if (args.includes("initial")) {
@@ -26,16 +27,24 @@ module.exports = {
                     }
                 }
             }
-            for (var i = 0; i < interaction.message.components[1].components[0].options.length; i++) { //upgrades
+            for (var i = 0; i < interaction.message.components[1].components[0].options.length; i++) { //laps
                 var option = interaction.message.components[1].components[0].options[i]
+                if (option.hasOwnProperty("default")) {
+                    if (option.default) {
+                        laps = Number(option.value)
+                    }
+                }
+            }
+            for (var i = 0; i < interaction.message.components[2].components[0].options.length; i++) { //upgrades
+                var option = interaction.message.components[2].components[0].options[i]
                 if (option.hasOwnProperty("default")) {
                     if (option.default) {
                         upgrades = Number(option.value)
                     }
                 }
             }
-            for (var i = 0; i < interaction.message.components[2].components[0].options.length; i++) { //fps
-                var option = interaction.message.components[2].components[0].options[i]
+            for (var i = 0; i < interaction.message.components[3].components[0].options.length; i++) { //fps
+                var option = interaction.message.components[3].components[0].options[i]
                 if (option.hasOwnProperty("default")) {
                     if (option.default) {
                         fps = Number(option.value)
@@ -48,6 +57,8 @@ module.exports = {
                 upgrades = Number(interaction.data.values[0])
             } else if (args[0] == "fps") {
                 fps = Number(interaction.data.values[0])
+            } else if (args[0] == "laps") {
+                laps = Number(interaction.data.values[0])
             }
         }
 
@@ -56,7 +67,7 @@ module.exports = {
         var postColumn1 = ""
         var postColumn2 = ""
         var postColumn3 = ""
-        var output = tools.simulateSpeed(track, fps, upgrades) //format:: [[pod index, average speed, finish time], [next pod], ... [final pod], fps, track]
+        var output = tools.simulateSpeed(track, fps, upgrades, laps) //format:: [[pod index, average speed, finish time], [next pod], ... [final pod], fps, track]
         for (let i = 0; i < 23; i++) {
             postColumn1 += racers[output[i][0]].flag + " " + racers[output[i][0]].name + "\n"
             postColumn2 += Math.round(output[i][1] * 10) / 10 + "\n"
@@ -66,7 +77,7 @@ module.exports = {
             .setTitle(planets[tracks[track].planet].emoji + " " + tracks[track].name) //track
             .setColor(planets[tracks[track].planet].color)
             .setAuthor("Simulate")
-            .setDescription("Simulation using " + upgradeName[upgrades] + " at " + fps + "fps") //upgrades & fps //"Max Upgrades, 60fps"
+            .setDescription("Simulation using " + upgradeName[upgrades] + " at " + fps + "fps for " + laps + " laps") //upgrades & fps //"Max Upgrades, 60fps"
             .addField("Racer", postColumn1, true)
             .addField("Speed", postColumn2, true)
             .addField("Est. Time", postColumn3, true)
@@ -136,6 +147,40 @@ module.exports = {
                         custom_id: "simulate_track",
                         options: track_selections,
                         placeholder: "Select Track",
+                        min_values: 1,
+                        max_values: 1
+                    },
+                ]
+            },
+            {
+                type: 1,
+                components: [
+                    {
+                        type: 3,
+                        custom_id: "simulate_laps",
+                        options: [
+                            {
+                                label: "1 Lap",
+                                value: 1
+                            },
+                            {
+                                label: "2 Laps",
+                                value: 2
+                            },
+                            {
+                                label: "3 Laps",
+                                value: 3
+                            },
+                            {
+                                label: "4 Laps",
+                                value: 4
+                            },
+                            {
+                                label: "5 Laps",
+                                value: 5
+                            }
+                        ],
+                        placeholder: "Select Laps",
                         min_values: 1,
                         max_values: 1
                     },

@@ -35,6 +35,7 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
     data: {
         name: 'simulate',
         description: "Average speed testing",
+        type: 1,
         options: [
             {
                 name: "track",
@@ -143,6 +144,12 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                         value: "24"
                     }
                 ]
+            },
+            {
+                name: "laps",
+                description: "number of laps to simulate",
+                type: 4,
+                required: false
             },
             {
                 name: "fps",

@@ -494,13 +494,18 @@ module.exports = {
         finaltime += deaths * (3 + accel)
         return finaltime
     },
-    simulateSpeed: function (chosenTrack, fps, upgradeLevel) {
+    simulateSpeed: function (chosenTrack, fps, upgradeLevel, laps) {
         var data = require('./data.js')
 
         var returnValue = [] //format:: [[pod index, average speed, finish time], [next pod], ... [final pod], fps, track]
 
         //var chosenTrack = track
-        var trackLength = tracks[chosenTrack].first_lap.length + 2 * tracks[chosenTrack].lap.length
+        var trackLength = null
+        if(laps == 1) {
+            trackLength = tracks[chosenTrack].first_lap.length
+        } else {
+            trackLength = tracks[chosenTrack].first_lap.length + (laps - 1 ) * tracks[chosenTrack].lap.length
+        }
         const firstPod = 0
         const lastPod = 22 //inclusive
         //var upgradeLevel = upgrades
@@ -565,12 +570,6 @@ module.exports = {
         }
 
         return returnValue
-
-
-
-
-
-
 
         //all functions
         //core loop functions

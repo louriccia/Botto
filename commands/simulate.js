@@ -8,6 +8,7 @@ module.exports = {
         var track = null
         var upgrades = 5
         var fps = 60
+        var laps = 3
         for (let i = 0; i < args.length; i++) {
             if (args[i].name == "track") {
                 track = Number(args[i].value)
@@ -15,10 +16,12 @@ module.exports = {
                 upgrades = Number(args[i].value)
             } else if (args[i].name == "fps") {
                 fps = args[i].value
-            }
+            } else if (args[i].name == "laps") {
+                laps = args[i].value
+            } 
         }
         
-        client.buttons.get("simulate").execute(client, interaction, [track, upgrades, fps, "initial"]);
+        client.buttons.get("simulate").execute(client, interaction, [track, upgrades, fps, laps, "initial"]);
         /*
         var upgradeName = {0: "No Upgrades", 5: "Max Upgrades"}
 
