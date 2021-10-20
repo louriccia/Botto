@@ -265,7 +265,7 @@ module.exports = {
                     tourney_option.default = true
                 }
                 if(Number(key) == Number(tourney) && args[1] == "tourney"){
-                    tourney_desc += "📆 Date Range: " + convertDate(t_stuff.oldest) + " - " + convertDate(t_stuff.newest) + "\n👥 Players: " + t_stuff.players.length + "\n⚔️ Matches: " + t_stuff.matches + "\n🏁 Races: " + t_stuff.races + "\n💀 Deaths: " + t_stuff.deaths
+                    tourney_desc += "📆 Date Range: `" + convertDate(t_stuff.oldest) + " - " + convertDate(t_stuff.newest) + "`\n👥 Players: `" + t_stuff.players.length + "`\n⚔️ Matches: `" + t_stuff.matches + "`\n🏁 Races: `" + t_stuff.races + "`\n💀 Deaths: `" + t_stuff.deaths + "`"
                     tourneyMatches.setDescription(tourney_desc)
                 }
                 tourney_options.push(tourney_option)
