@@ -409,7 +409,7 @@ module.exports = {
                     label: title,
                     value: s,
                     description: "📆 " + convertDate(match_options[s].date) + " 🏁 " + match_options[s].races + " 💀 " + match_options[s].deaths,
-                    emoji: {name: ruleset_emojis[tourney_rulesets_data.saved[tourney_matches_data[s].ruleset]]}
+                    emoji: {name: ruleset_emojis[tourney_rulesets_data.saved[tourney_matches_data[s].ruleset].type]}
                 }
                 if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[tourney_matches_data[s].ruleset].type)){
                     r.description += " ⏱️ ±" + match_options[s].timediff.toFixed(3) + " 🤏 " + match_options[s].closest.toFixed(3)
