@@ -184,6 +184,7 @@ module.exports = {
             }
 
             //get selection
+            var tourney_desc = ""
             if (args[1].startsWith("offset")) {
                 offset = Number(args[1].replace("offset", ""))
                 if (interaction.data.hasOwnProperty("values")) {
@@ -197,6 +198,24 @@ module.exports = {
                 sort = interaction.data.values[0]
             } else if (args[1] == "tourney") {
                 tourney = interaction.data.values[0]
+                tourneyMatches
+                .setTitle(tourney_tournaments_data[tourney].name)
+                if(tourney_tournaments_data[tourney].hasOwnProperty("challonge")){
+                    var links = []
+                    tourney_tournaments_data[tourney].challonge.forEach((link, num) => {
+                        links.push("[Challonge link " + (num+1) + "](" + link + ")")
+                    })
+                    tourney_desc += ":trophy: " + links.join(", ") + "\n"
+                }
+                if(tourney_tournaments_data[tourney].hasOwnProperty("matcherino")){
+                    tourney_desc += "💸 [Matcherino](" +  tourney_tournaments_data[tourney].matcherino + ")\n"
+                }
+                if(tourney_tournaments_data[tourney].hasOwnProperty("playlist")){
+                    tourney_desc += "📺 [Playlist](" +  tourney_tournaments_data[tourney].playlist + ")\n"
+                }
+                if(tourney_tournaments_data[tourney].hasOwnProperty("stats")){
+                    tourney_desc += "📊 [Stats](" +  tourney_tournaments_data[tourney].stats + ")\n"
+                }
             }
 
             //get tourneys
@@ -244,6 +263,10 @@ module.exports = {
                 }
                 if (Number(tourney) == Number(key)) {
                     tourney_option.default = true
+                }
+                if(Number(key) == Number(tourney) && args[1] == "tourney"){
+                    tourney_desc += "📆 Date Range: " + convertDate(t_stuff.oldest) + " - " + convertDate(t_stuff.newest) + "\n👥 Players: " + t_stuff.players.length + "\n⚔️ Matches: " + t_stuff.matches + "\n🏁 Races: " + t_stuff.races + "\n💀 Deaths: " + t_stuff.deaths
+                    tourneyMatches.setDescription(tourney_desc)
                 }
                 tourney_options.push(tourney_option)
             })
