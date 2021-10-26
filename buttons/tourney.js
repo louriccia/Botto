@@ -4425,7 +4425,10 @@ module.exports = {
                             scores.forEach(p => {
                                 if(p == player){
                                     if(comeback[p] == undefined){
-                                        comeback[p] = {low: null, high: null, lowrace: 0, op_low: null, op_high: null, match: tourney_tournaments_data[match.tourney].nickname + " " + match.bracket + " " + match.round}
+                                        comeback[p] = {low: null, high: null, lowrace: 0, op_low: null, op_high: null, match: tourney_tournaments_data[match.tourney].nickname + " " + match.bracket}
+                                        if(match.round !== undefined){
+                                            comeback[p].match += " " + match.round
+                                        }
                                     }
                                     scores.forEach(o => {
                                         if(o !== p){
@@ -4463,9 +4466,13 @@ module.exports = {
                             }
                         }
                         if(comeback[player] !== undefined && ![comeback[player].high, comeback[player].low].includes(null) && comeback[player].high - comeback[player].low > 2 && comeback[player].op_high >= comeback[player].op_low){
-                            accomp.comebacks.push("↩️ " + comeback[player].p_low + "-" + comeback[player].op_low + " to " + comeback[player].p_high + "-" + comeback[player].op_high + " **Comeback** vs " + tourney_participants_data[comeback[player].op].name + " (" + comeback[player].match + ")")
+                            accomp.comebacks.push(comeback[player])
+                            //"↩️ " + comeback[player].p_low + "-" + comeback[player].op_low + " to " + comeback[player].p_high + "-" + comeback[player].op_high + " **Comeback** vs " + tourney_participants_data[comeback[player].op].name + " (" + comeback[player].match + ")"
                         }
                     }
+                })
+                accomp.comebacks.sort((a, b) => {
+                    return (b.high - b.low) - (a.high - a.low)
                 })
                 console.log(accomp.comebacks)
                 //assemble embed
