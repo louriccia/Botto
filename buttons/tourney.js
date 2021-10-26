@@ -4022,7 +4022,7 @@ module.exports = {
                 return response
             }
             sendCallback().then(() => {
-                var accomp = { win: { count: 0, streaks: [] }, deathless: { count: 0, streaks: [] } }
+                var accomp = { win: { count: 0, streaks: [] }, deathless: { count: 0, streaks: [] }, comebacks: []}
                 var accomplishments = []
                 var stats = {
                     race_time: 0,
@@ -4141,7 +4141,7 @@ module.exports = {
                     }
                     stats.matches.total++
                     var already_banned = []
-                    var score = {}, comeback = {}, comebacks = []
+                    var score = {}, comeback = {}
                     match.races.forEach((race, num) => {
                         var temptrack = []
                         var temppod = []
@@ -4463,11 +4463,11 @@ module.exports = {
                             }
                         }
                         if(comeback[player] !== undefined && comeback[player].high - comeback[player].low > 2){
-                            comebacks.push(comeback[p])
+                            accomp.comebacks.push(comeback[p])
                         }
                     }
                 })
-                console.log(comebacks)
+                console.log(accomp.comebacks)
                 //assemble embed
                 var ranks = tools.getRanks()
                 if (stats.matches.total > 0) {
