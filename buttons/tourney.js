@@ -4462,7 +4462,7 @@ module.exports = {
                                 stats.players[scores[i]].matches.lost++
                             }
                         }
-                        if(comeback[player] !== undefined && ![comeback[player].high, comeback[player].low].includes(null) && comeback[player].high - comeback[player].low > 2){
+                        if(comeback[player] !== undefined && ![comeback[player].high, comeback[player].low].includes(null) && comeback[player].high - comeback[player].low > 2 && comeback[player].op_high >= comeback[player].op_low){
                             accomp.comebacks.push("↩️ " + comeback[player].p_low + "-" + comeback[player].op_low + " to " + comeback[player].p_high + "-" + comeback[player].op_high + " **Comeback** vs " + tourney_participants_data[comeback[player].op].name + " (" + comeback[player].match + ")")
                         }
                     }
