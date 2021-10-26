@@ -4478,7 +4478,6 @@ module.exports = {
                         return a.low - b.low
                     }
                 })
-                console.log(accomp.comebacks)
                 //assemble embed
                 var ranks = tools.getRanks()
                 if (stats.matches.total > 0) {
@@ -4598,9 +4597,13 @@ module.exports = {
                         if (deathless_streak >= 5) {
                             accomplishments.push(":skull: " + deathless_streak + "-Race **Deathless Streak**")
                         }
-                        accomp.comebacks.forEach(comeback => {
+                        for(i = 0; i < accomp.comebacks.length; i++) {
                             accomplishments.push("↩️ " + comeback.p_low + "-" + comeback.op_low + " to " + comeback.p_high + "-" + comeback.op_high + " **Comeback** vs " + tourney_participants_data[comeback.op].name + " (" + comeback.match + ")")
-                        })
+                            if(i == 2 && accomp.comebacks.length > 3){
+                                accomplishments.push("+" + (accomp.comebacks.length - i) + " More ↩️ **Comebacks**")
+                                i = accomp.comebacks.length
+                            }
+                        }
                         //track/pod deathless, lossless
                         accomp.win.tracks = []
                         accomp.win.pods = []
