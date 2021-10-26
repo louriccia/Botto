@@ -4431,12 +4431,12 @@ module.exports = {
                                         if(o !== p){
                                             var dif = score[p] - score[o]
                                             comeback[p].op = o
-                                            if(dif < 0 && (comeback[p].low == null || (dif < comeback[p].low && num > comeback[p].lowrace))){
+                                            if(dif < 0 && (comeback[p].low == null || (dif <= comeback[p].low && num > comeback[p].lowrace))){
                                                 comeback[p].low = dif
                                                 comeback[p].lowrace = num
                                                 comeback[p].op_low = score[o]
                                                 comeback[p].p_low = score[p]
-                                            } else if(dif > 0 && (comeback[p].high == null || (dif > comeback[p].high && num > comeback[p].lowrace))){
+                                            } else if(dif > 0 && (comeback[p].high == null || (dif >= comeback[p].high && num > comeback[p].lowrace))){
                                                 comeback[p].high = dif
                                                 comeback[p].op_high = score[o]
                                                 comeback[p].p_high = score[p]
