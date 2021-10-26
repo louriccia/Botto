@@ -4462,6 +4462,10 @@ module.exports = {
                                 stats.players[scores[i]].matches.lost++
                             }
                         }
+                        if(comeback[player] !== undefined){
+                            console.log(comeback)
+                        }
+                        
                         if(comeback[player] !== undefined && comeback[player].high - comeback[player].low > 2){
                             accomp.comebacks.push(comeback[p])
                         }
