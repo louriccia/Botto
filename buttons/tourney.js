@@ -4472,10 +4472,11 @@ module.exports = {
                     }
                 })
                 accomp.comebacks.sort((a, b) => {
-                    if((b.high - b.low) == (a.high - a.low)){
+                    if(a.low == b.low){
+                        return (b.high - b.low) - (a.high - a.low)
+                    } else {
                         return a.low - b.low
                     }
-                    return (b.high - b.low) - (a.high - a.low)
                 })
                 console.log(accomp.comebacks)
                 //assemble embed
