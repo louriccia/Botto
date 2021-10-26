@@ -4425,13 +4425,13 @@ module.exports = {
                             scores.forEach(p => {
                                 if(p == player){
                                     if(comeback[p] == undefined){
-                                        comeback[p] = {low: null, high: null, lowrace: 0, op_low: null, op_high: null}
+                                        comeback[p] = {low: null, high: null, lowrace: 0, op_low: null, op_high: null, match: tourney_tournaments_data[match.tourney].nickname + " " + match.bracket + " " + match.round}
                                     }
                                     scores.forEach(o => {
                                         if(o !== p){
                                             var dif = score[p] - score[o]
                                             comeback[p].op = o
-                                            if(dif < 0 && (comeback[p].low == null || dif < comeback[p].low)){
+                                            if(dif < 0 && (comeback[p].low == null || (dif < comeback[p].low && num > comeback[p].lowrace))){
                                                 comeback[p].low = dif
                                                 comeback[p].lowrace = num
                                                 comeback[p].op_low = score[o]
@@ -4463,7 +4463,7 @@ module.exports = {
                             }
                         }
                         if(comeback[player] !== undefined && ![comeback[player].high, comeback[player].low].includes(null) && comeback[player].high - comeback[player].low > 2){
-                            accomp.comebacks.push("↩️ " + comeback[player].p_low + "-" + comeback[player].op_low + " to " + comeback[player].p_high + "-" + comeback[player].op_high + " **Comeback** vs " + tourney_participants_data[comeback[player].op].name)
+                            accomp.comebacks.push("↩️ " + comeback[player].p_low + "-" + comeback[player].op_low + " to " + comeback[player].p_high + "-" + comeback[player].op_high + " **Comeback** vs " + tourney_participants_data[comeback[player].op].name + " (" + comeback[player].match + ")")
                         }
                     }
                 })
