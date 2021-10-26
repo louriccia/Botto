@@ -4141,7 +4141,7 @@ module.exports = {
                     }
                     stats.matches.total++
                     var already_banned = []
-                    var score = {}
+                    var score = {}, comeback = {}, comebacks = []
                     match.races.forEach((race, num) => {
                         var temptrack = []
                         var temppod = []
@@ -4421,6 +4421,30 @@ module.exports = {
                                 }
                             })
                             score[winner.player]++
+                            var scores = Object.keys(score)
+                            scores.forEach(p => {
+                                if(p == player){
+                                    if(comeback[p] == undefined){
+                                        comeback[p] = {low: null, high: null, lowrace: 0, op_low: null, op_high: null}
+                                    }
+                                    scores.forEach(o => {
+                                        if(o !== p){
+                                            var dif = scores[p] - scores[o]
+                                            comeback[p].op = o
+                                            if(comeback[p].low == null || (dif < 0 && dif < comeback[p].low)){
+                                                comeback[p].low = dif
+                                                comeback[p].lowrace = num
+                                                comeback[p].op_low = scores[o]
+                                                comeback[p].p_low = scores[p]
+                                            } else if(comeback[p].high == null || (dif > 0 && dif > comeback[p].high && num > comeback[p].lowrace)){
+                                                comeback[p].high = dif
+                                                comeback[p].op_high = scores[o]
+                                                comeback[p].p_high = scores[p]
+                                            }
+                                        }
+                                    })
+                                }
+                            })
                         }
 
                     })
@@ -4438,8 +4462,12 @@ module.exports = {
                                 stats.players[scores[i]].matches.lost++
                             }
                         }
+                        if(comeback[player] !== undefined && comeback[player].high - comeback[player].low > 2){
+                            comebacks.push(comeback[p])
+                        }
                     }
                 })
+                console.log(comebacks)
                 //assemble embed
                 var ranks = tools.getRanks()
                 if (stats.matches.total > 0) {
@@ -4503,7 +4531,7 @@ module.exports = {
                             if (tourney.hasOwnProperty("predictions")) {
                                 var predictions = Object.values(tourney.predictions)
                                 if (predictions.includes(Number(player))) {
-                                    accomplishments.push(":crystal_ball: **Best prediction** for " + tourney.name)
+                                    accomplishments.push(":crystal_ball: **Best Prediction** for " + tourney.name)
                                 }
                             }
                         })
