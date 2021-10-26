@@ -4467,7 +4467,7 @@ module.exports = {
                         }
                         if(comeback[player] !== undefined && ![comeback[player].high, comeback[player].low].includes(null) && comeback[player].high - comeback[player].low > 2 && comeback[player].op_high >= comeback[player].op_low){
                             accomp.comebacks.push(comeback[player])
-                            //"↩️ " + comeback[player].p_low + "-" + comeback[player].op_low + " to " + comeback[player].p_high + "-" + comeback[player].op_high + " **Comeback** vs " + tourney_participants_data[comeback[player].op].name + " (" + comeback[player].match + ")"
+                            
                         }
                     }
                 })
@@ -4597,7 +4597,9 @@ module.exports = {
                         if (deathless_streak >= 5) {
                             accomplishments.push(":skull: " + deathless_streak + "-Race **Deathless Streak**")
                         }
-
+                        accomp.comebacks.forEach(comeback => {
+                            accomplishments.push("↩️ " + comeback.p_low + "-" + comeback.op_low + " to " + comeback.p_high + "-" + comeback.op_high + " **Comeback** vs " + tourney_participants_data[comeback.op].name + " (" + comeback.match + ")")
+                        })
                         //track/pod deathless, lossless
                         accomp.win.tracks = []
                         accomp.win.pods = []
