@@ -4429,17 +4429,17 @@ module.exports = {
                                     }
                                     scores.forEach(o => {
                                         if(o !== p){
-                                            var dif = scores[p] - scores[o]
+                                            var dif = score[p] - score[o]
                                             comeback[p].op = o
                                             if(comeback[p].low == null || (dif < 0 && dif < comeback[p].low)){
                                                 comeback[p].low = dif
                                                 comeback[p].lowrace = num
-                                                comeback[p].op_low = scores[o]
-                                                comeback[p].p_low = scores[p]
+                                                comeback[p].op_low = score[o]
+                                                comeback[p].p_low = score[p]
                                             } else if(comeback[p].high == null || (dif > 0 && dif > comeback[p].high && num > comeback[p].lowrace)){
                                                 comeback[p].high = dif
-                                                comeback[p].op_high = scores[o]
-                                                comeback[p].p_high = scores[p]
+                                                comeback[p].op_high = score[o]
+                                                comeback[p].p_high = score[p]
                                             }
                                         }
                                     })
