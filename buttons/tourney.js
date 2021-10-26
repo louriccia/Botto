@@ -4473,7 +4473,7 @@ module.exports = {
                 })
                 accomp.comebacks.sort((a, b) => {
                     if((b.high - b.low) == (a.high - a.low)){
-                        return b.low - a.low
+                        return a.low - b.low
                     }
                     return (b.high - b.low) - (a.high - a.low)
                 })
