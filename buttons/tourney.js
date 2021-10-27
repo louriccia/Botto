@@ -4592,10 +4592,10 @@ module.exports = {
 
                         //win/deathless streak
                         if (win_streak >= 5) {
-                            accomplishments.push(":crown: " + win_streak + "-Race **Win Streak**")
+                            accomplishments.push(":crown: " + win_streak + "-Race **Win Streak** (Current streak: " + accomp.win.count + ")")
                         }
                         if (deathless_streak >= 5) {
-                            accomplishments.push(":skull: " + deathless_streak + "-Race **Deathless Streak**")
+                            accomplishments.push(":skull: " + deathless_streak + "-Race **Deathless Streak** (Current streak: " + accomp.deathless.count + ")")
                         }
                         for(i = 0; i < accomp.comebacks.length; i++) {
                             var comeback = accomp.comebacks[i]
@@ -5402,6 +5402,25 @@ module.exports = {
                 }
                 return [tourneyReport, components]
             }).then((embed) => sendResponse(embed))
+        } else if (args[0] == "play") {
+            //setup
+                //select ruleset
+                //select tournament/practice mode
+                //set bracket/round
+                //join match
+                //click play
+                    //adds botto if down a player
+            
+            //play
+                //reminders
+                    //ruleset
+	                //verify all pods/tracks/upgrades are unlocked
+	                //verify that your stream is running smoothly
+	                //if broadcasting, check that game music is disabled
+                //ready up for first race
+
+
+
         }
     }
 }
