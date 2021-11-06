@@ -4592,10 +4592,18 @@ module.exports = {
 
                         //win/deathless streak
                         if (win_streak >= 5) {
-                            accomplishments.push(":crown: " + win_streak + "-Race **Win Streak** (Current streak: " + accomp.win.count + ")")
+                            var winstring = ":crown: " + win_streak + "-Race **Win Streak**"
+                            if(accomp.win.count > 0){
+                                winstring += " (Current streak: " + accomp.win.count + ")"
+                            }
+                            accomplishments.push(winstring)
                         }
                         if (deathless_streak >= 5) {
-                            accomplishments.push(":skull: " + deathless_streak + "-Race **Deathless Streak** (Current streak: " + accomp.deathless.count + ")")
+                            var deathstring = ":skull: " + deathless_streak + "-Race **Deathless Streak**"
+                            if(accomp.win.count > 0){
+                                deathstring += " (Current streak: " + accomp.deathless.count + ")"
+                            }
+                            accomplishments.push(deathstring)
                         }
                         for(i = 0; i < accomp.comebacks.length; i++) {
                             var comeback = accomp.comebacks[i]

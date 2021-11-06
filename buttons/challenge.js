@@ -929,17 +929,20 @@ module.exports = {
                 async function sendResponse() {
                     var response = null
                     var data = updateChallenge()
-                    response = await client.api.webhooks(client.user.id, token).messages('@original').patch({
+                    var responsedata = {
                         data: {
                             embeds: [data.message],
-                            components: [
-                                {
-                                    type: 1,
-                                    components: data.components
-                                }
-                            ]
                         }
-                    })
+                    }
+                    if(data.components.length > 0){
+                        responsedata.data.components = [
+                            {
+                                type: 1,
+                                components: data.components
+                            }
+                        ]
+                    }
+                    response = await client.api.webhooks(client.user.id, token).messages('@original').patch(responsedata)
                     var webhook = await client.api.webhooks(client.user.id, token).messages('@original').get()
                     profileref.child(member).child("current").update({ message: webhook.id })
                     return response
@@ -953,18 +956,20 @@ module.exports = {
                             profileref.child(member).child("current").child("title").set(":warning: 5 Minute Warning: ")
                             try {
                                 var data = updateChallenge()
-                                await client.api.webhooks(client.user.id, token).messages('@original').patch({
+                                var responsedata = {
                                     data: {
-                                        content: warning,
                                         embeds: [data.message],
-                                        components: [
-                                            {
-                                                type: 1,
-                                                components: data.components
-                                            }
-                                        ]
                                     }
-                                })
+                                }
+                                if(data.components.length > 0){
+                                    responsedata.data.components = [
+                                        {
+                                            type: 1,
+                                            components: data.components
+                                        }
+                                    ]
+                                }
+                                await client.api.webhooks(client.user.id, token).messages('@original').patch(responsedata)
                             } catch { }
                         }
                     }, 600000)
@@ -973,18 +978,20 @@ module.exports = {
                             profileref.child(member).child("current").child("title").set("<a:countdown:672640791369482251> 1 Minute Warning: ")
                             try {
                                 var data = updateChallenge()
-                                await client.api.webhooks(client.user.id, token).messages('@original').patch({
+                                var responsedata = {
                                     data: {
-                                        content: warning,
                                         embeds: [data.message],
-                                        components: [
-                                            {
-                                                type: 1,
-                                                components: data.components
-                                            }
-                                        ]
                                     }
-                                })
+                                }
+                                if(data.components.length > 0){
+                                    responsedata.data.components = [
+                                        {
+                                            type: 1,
+                                            components: data.components
+                                        }
+                                    ]
+                                }
+                                await client.api.webhooks(client.user.id, token).messages('@original').patch(responsedata)
                             } catch { }
                         }
                     }, 840000)
@@ -1095,7 +1102,9 @@ module.exports = {
                                                 skips: profiledata[member].skips,
                                                 mirror_mode: profiledata[member].mirror_mode
                                             },
-                                            hunt: profiledata[member].hunt.bonus
+                                        }
+                                        if(![undefined, null, ""].includes(profiledata[member].hunt)){
+                                            submissiondata.hunt = profiledata[member].hunt.bonus
                                         }
                                         var newPostRef = ref.push(submissiondata);
                                         profileref.child(member).child("current").update({ submission: newPostRef.key, title: ":white_check_mark: Completed: ", completed: true })
