@@ -1,30 +1,30 @@
-var tournament_config = {
+var tournament_config = (function() {
 	//Number of Participants
-	participants_signups: 0,
-	participants_qualifiers: 0,
-	participants_group[6]: { 0, 0, 0, 0, 0, 0 },
-	participants_final_stage[3]: { 0, 0, 0 },
+	participants_signups = 0;
+	participants_qualifiers = 0;
+	participants_group = [ 0, 0, 0, 0, 0, 0 ];
+	participants_final_stage = [ 0, 0, 0 ];
 
 	//Bracket Type
-	//Type:: 0: SE, 1: DE, 2: DE-Truncated, 3: TE, 4: RR, 5: Swiss, 6: Accelerated Swiss, 7: Double-Accelerated Swiss
-	bracket_type_qualifiers: 0,
-	bracket_type_group: [ 6, 6, 0, 0, 0, 0 ],
-	bracket_type_final_stage: [ 3, 0, 0 ],
+	//Type: = 0 = SE, 1 = DE, 2 = DE-Truncated, 3 = TE, 4 = RR, 5 = Swiss, 6 = Accelerated Swiss, 7 = Double-Accelerated Swiss
+	bracket_type_qualifiers = 0;
+	bracket_type_group = [ 6, 6, 0, 0, 0, 0 ];
+	bracket_type_final_stage = [ 3, 0, 0 ];
 
 	//Number of Rounds (not matches)
-	number_of_rounds_qualifiers,
-	number_of_rounds_group: [],
-	number_of_rounds_final_stage: [],
+	number_of_rounds_qualifiers;
+	number_of_rounds_group[6] = [];
+	number_of_rounds_final_stage[3] = [];
 
 	//Number of Matches
-	number_of_matches_qualifiers,
-	number_of_matches_group: [],
-	number_of_matches_final_stage: [],
+	number_of_matches_qualifiers;
+	number_of_matches_group[6] = [];
+	number_of_matches_final_stage[3] = [];
 
 	//Totals
-	total_number_of_rounds,
-	total_number_of_matches
-}
+	total_number_of_rounds;
+	total_number_of_matches;
+})();
 
 function build_bracket(){
 	initialize_tournament_config();
