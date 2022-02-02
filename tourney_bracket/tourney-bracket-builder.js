@@ -1,35 +1,35 @@
-var tournament_config = (function() {
+var tournament_config = {
 	//Number of Participants
-	participants_signups = 0;
-	participants_qualifiers = 0;
-	participants_group = [ 0, 0, 0, 0, 0, 0 ];
-	participants_final_stage = [ 0, 0, 0 ];
+	participants_signups: 0,
+	participants_qualifiers: 0,
+	participants_group: [ 0, 0, 0, 0, 0, 0 ],
+	participants_final_stage: [ 0, 0, 0 ],
 
 	//Bracket Type
-	//Type: = 0 = SE, 1 = DE, 2 = DE-Truncated, 3 = TE, 4 = RR, 5 = Swiss, 6 = Accelerated Swiss, 7 = Double-Accelerated Swiss
-	bracket_type_qualifiers = 0;
-	bracket_type_group = [ 6, 6, 0, 0, 0, 0 ];
-	bracket_type_final_stage = [ 3, 0, 0 ];
+	//Type: 0: none, 1: SE, 2: DE, 3: DE-Truncated, 4: TE, 5: RR, 6: Swiss, 7: Accelerated Swiss, 8: Double-Accelerated Swiss
+	bracket_type_qualifiers: 0,
+	bracket_type_group: [ 6, 6, 0, 0, 0, 0 ],
+	bracket_type_final_stage: [ 3, 0, 0 ],
 
 	//Number of Rounds (not matches)
-	number_of_rounds_qualifiers;
-	number_of_rounds_group[6] = [];
-	number_of_rounds_final_stage[3] = [];
+	number_of_rounds_qualifiers: 0,
+	number_of_rounds_group: [],
+	number_of_rounds_final_stage: [],
 
 	//Number of Matches
-	number_of_matches_qualifiers;
-	number_of_matches_group[6] = [];
-	number_of_matches_final_stage[3] = [];
+	number_of_matches_qualifiers: 0,
+	number_of_matches_group: [],
+	number_of_matches_final_stage: [],
 
 	//Totals
-	total_number_of_rounds;
-	total_number_of_matches;
-})();
+	total_number_of_rounds: 0,
+	total_number_of_matches: 0
+}
 
 function build_bracket(){
-	initialize_tournament_config();
+	initialize_tournament_config(),
 
-	print("Rounds: " + tournament_config.total_number_of_rounds + "\nMatches: " + tournament_config.total_number_of_matches);
+	console.log("Rounds: " + tournament_config.total_number_of_rounds + "\nMatches: " + tournament_config.total_number_of_matches),
 	//for (int i = 4; i < 33; i++) std::cout << i << ": " << number_of_matches_calculator(5, i) << std::endl;
 }
 
