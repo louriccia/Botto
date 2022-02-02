@@ -27,32 +27,32 @@ var tournament_config = {
 }
 
 function build_bracket(){
-	initialize_tournament_config(),
+	initialize_tournament_config();
 
-	console.log("Rounds: " + tournament_config.total_number_of_rounds + "\nMatches: " + tournament_config.total_number_of_matches),
+	console.log("Rounds: " + tournament_config.total_number_of_rounds + "\nMatches: " + tournament_config.total_number_of_matches);
 	//for (int i = 4; i < 33; i++) std::cout << i << ": " << number_of_matches_calculator(5, i) << std::endl;
 }
 
 function initialize_tournament_config() {
 	//count qualifying
-	number_of_rounds_qualifiers = number_of_rounds_calculator(bracket_type_qualifiers, participants_qualifiers);
-	total_number_of_rounds = number_of_rounds_qualifiers;
-	total_number_of_matches = number_of_matches_qualifiers;
+	tournament_config.number_of_rounds_qualifiers = number_of_rounds_calculator(tournament_config.bracket_type_qualifiers, tournament_config.participants_qualifiers);
+	tournament_config.total_number_of_rounds = tournament_config.number_of_rounds_qualifiers;
+	tournament_config.total_number_of_matches = tournament_config.number_of_matches_qualifiers;
 
 	//count group stage
 	for (i = 0; i < 6; i++) {
-		number_of_rounds_group[i] = number_of_rounds_calculator(bracket_type_group[i], participants_group[i]);
-		number_of_matches_group[i] = number_of_matches_calculator(bracket_type_group[i], participants_group[i]);
-		total_number_of_rounds += number_of_rounds_group[i];
-		total_number_of_matches += number_of_matches_group[i];
+		tournament_config.number_of_rounds_group[i] = number_of_rounds_calculator(tournament_config.bracket_type_group[i], tournament_config.participants_group[i]);
+		tournament_config.number_of_matches_group[i] = number_of_matches_calculator(tournament_config.bracket_type_group[i], tournament_config.participants_group[i]);
+		tournament_config.total_number_of_rounds += tournament_config.number_of_rounds_group[i];
+		tournament_config.total_number_of_matches += tournament_config.number_of_matches_group[i];
 	}
 
 	//count final bracket
 	for (i = 0; i < 3; i++) {
-		number_of_rounds_final_stage[i] = number_of_rounds_calculator(bracket_type_final_stage[i], participants_final_stage[i]);
-		number_of_matches_final_stage[i] = number_of_matches_calculator(bracket_type_final_stage[i], participants_final_stage[i]);
-		total_number_of_rounds += number_of_rounds_final_stage[i];
-		total_number_of_matches += number_of_matches_final_stage[i];
+		tournament_config.number_of_rounds_final_stage[i] = number_of_rounds_calculator(tournament_config.bracket_type_final_stage[i], tournament_config.participants_final_stage[i]);
+		tournament_config.number_of_matches_final_stage[i] = number_of_matches_calculator(tournament_config.bracket_type_final_stage[i], tournament_config.participants_final_stage[i]);
+		tournament_config.total_number_of_rounds += tournament_config.number_of_rounds_final_stage[i];
+		tournament_config.total_number_of_matches += tournament_config.number_of_matches_final_stage[i];
 	}
 
 }
@@ -142,3 +142,4 @@ function get_bracket_name(type, length) {
 
 
 build_bracket();
+//command to run: node tourney-bracket-builder.js
