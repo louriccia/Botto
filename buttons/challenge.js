@@ -77,7 +77,7 @@ module.exports = {
             "Rerolls are discounted if you've already played a challenge",
             "Bribes are refunded when used to successfully find a :dart: Challenge Hunt",
             "The default conditions are max upgrades, 3-lap, full track",
-            "Get a 📀" + truguts.beat_opponent + " bonus for beating another player's best time", 
+            "Get a 📀" + truguts.beat_opponent + " bonus for beating another player's best time",
             "Get a 📀" + truguts.personal_best + " bonus for beating your own best time",
             "Get a 📀" + truguts.first + " bonus for being the first to complete a challenge",
             "You could win up to 📀" + tools.numberWithCommas(truguts.bonus_basic) + " bonus for completing a :dart: Challenge Hunt",
@@ -311,7 +311,7 @@ module.exports = {
                 //hunt condiiton
                 if (profiledata[member].hunt !== undefined) {
                     if (profiledata[member].current.racer == profiledata[member].hunt.racer && profiledata[member].current.track == profiledata[member].hunt.track && !profiledata[member].hunt.completed && Date.now() - 3600000 <= profiledata[member].hunt.date) {
-                        profileref.child(member).child("current").update({hunt: true})
+                        profileref.child(member).child("current").update({ hunt: true })
                     }
                 }
 
@@ -379,7 +379,7 @@ module.exports = {
                     desc = desc + movieQuotes[Math.floor(Math.random() * movieQuotes.length)]
                 }
                 if (profiledata[member].current.hunt) {
-                    if(!profiledata[member].current.completed){
+                    if (!profiledata[member].current.completed) {
                         desc += "\nYou found the Challenge Hunt! Complete the challenge to earn a `📀" + tools.numberWithCommas(profiledata[member].hunt.bonus) + "` bonus"
                     }
                     if (profiledata[member].current.racer_bribe) {
@@ -388,14 +388,14 @@ module.exports = {
                     if (profiledata[member].current.track_bribe) {
                         desc += "\n~~Bribed track `-📀" + tools.numberWithCommas(truguts.bribe_track) + "`~~"
                     }
-                    if(!profiledata[member].current.refunded){
+                    if (!profiledata[member].current.refunded) {
                         if (profiledata[member].current.racer_bribe) {
-                            profileref.child(member).update({truguts_spent: profiledata[member].truguts_spent - truguts.bribe_racer})
+                            profileref.child(member).update({ truguts_spent: profiledata[member].truguts_spent - truguts.bribe_racer })
                         }
                         if (profiledata[member].current.track_bribe) {
-                            profileref.child(member).update({truguts_spent: profiledata[member].truguts_spent - truguts.bribe_track})
+                            profileref.child(member).update({ truguts_spent: profiledata[member].truguts_spent - truguts.bribe_track })
                         }
-                        profileref.child(member).child("current").update({refunded: true})
+                        profileref.child(member).child("current").update({ refunded: true })
                     }
 
                 } else {
@@ -424,14 +424,25 @@ module.exports = {
                 if (title !== ":arrows_counterclockwise: Rerolled: ") {
                     profileref.child(member).child("current").child("reroll_cost").set(reroll.price)
                 }
-                if (current_truguts >= reroll.price) {
-                    var price = reroll.price
-                    if (price == 0) {
-                        price = "free"
-                    } else {
-                        price = "📀" + tools.numberWithCommas(price)
-                    }
-                    if (!profiledata[member].current.completed) {
+
+                //components
+                if (!profiledata[member].current.completed) {
+                    components.push({
+                        type: 2,
+                        style: 2,
+                        custom_id: "challenge_random_submit",
+                        label: "Submit Time",
+                        emoji: {
+                            name: "⏱️"
+                        }
+                    })
+                    if (current_truguts >= reroll.price) {
+                        var price = reroll.price
+                        if (price == 0) {
+                            price = "free"
+                        } else {
+                            price = "📀" + tools.numberWithCommas(price)
+                        }
                         components.push({
                             type: 2,
                             style: 2,
@@ -442,12 +453,7 @@ module.exports = {
                             }
                         })
                     }
-
-                }
-
-                //draw components
-                if (current_truguts >= truguts.bribe_track || current_truguts >= truguts.bribe_racer) {
-                    if (!profiledata[member].current.completed) {
+                    if (current_truguts >= truguts.bribe_track || current_truguts >= truguts.bribe_racer) {
                         components.push({
                             type: 2,
                             style: 2,
@@ -458,8 +464,7 @@ module.exports = {
                             }
                         })
                     }
-                }
-                if (profiledata[member].current.completed) {
+                } else {
                     components.push({
                         type: 2,
                         style: 4,
@@ -505,6 +510,8 @@ module.exports = {
                         }
                     })
                 }
+
+
                 //calculate goal time
                 var goals = getGoalTimes(profiledata[member].current.track, profiledata[member].current.racer, profiledata[member].current.skips, profiledata[member].current.nu, profiledata[member].current.laps)
                 var goal_symbols = [":gem:", ":first_place:", ":second_place:", ":third_place:", "<:bumpythumb:703107780860575875>"]
@@ -703,8 +710,8 @@ module.exports = {
                     if (profiledata[member].current.hunt) {
                         earnings += "Hunt Bonus `+📀" + tools.numberWithCommas(profiledata[member].hunt.bonus) + "`\n"
                         earnings_total += profiledata[member].hunt.bonus
-                        profileref.child(member).child("current").update({hunt_bonus: profiledata[member].hunt.bonus})
-                        profileref.child(member).child("hunt").update({ completed: true})
+                        profileref.child(member).child("current").update({ hunt_bonus: profiledata[member].hunt.bonus })
+                        profileref.child(member).child("hunt").update({ completed: true })
                     }
                     if (goal_earnings[winnings_text] > 0) {
                         earnings += goal_symbols[winnings_text] + " `+📀" + tools.numberWithCommas(goal_earnings[winnings_text]) + "`\n"
@@ -825,7 +832,7 @@ module.exports = {
                 var challengestart = Date.now()
 
                 //check if challenge already in progress
-                if(profiledata[member].hasOwnProperty("current")){
+                if (profiledata[member].hasOwnProperty("current")) {
                     if (profiledata[member].current.completed == false && profiledata[member].current.start > challengestart - 900000) {
                         var challengeinProgress = new Discord.MessageEmbed()
                         challengeinProgress
@@ -843,7 +850,7 @@ module.exports = {
                         return
                     }
                 }
-                
+
                 if (interaction.name !== "revive") {
                     client.api.interactions(interaction.id, interaction.token).callback.post({ data: { type: 5, data: {} } })
                 }
@@ -934,7 +941,7 @@ module.exports = {
                             embeds: [data.message],
                         }
                     }
-                    if(data.components.length > 0){
+                    if (data.components.length > 0) {
                         responsedata.data.components = [
                             {
                                 type: 1,
@@ -961,7 +968,7 @@ module.exports = {
                                         embeds: [data.message],
                                     }
                                 }
-                                if(data.components.length > 0){
+                                if (data.components.length > 0) {
                                     responsedata.data.components = [
                                         {
                                             type: 1,
@@ -983,7 +990,7 @@ module.exports = {
                                         embeds: [data.message],
                                     }
                                 }
-                                if(data.components.length > 0){
+                                if (data.components.length > 0) {
                                     responsedata.data.components = [
                                         {
                                             type: 1,
@@ -1103,7 +1110,7 @@ module.exports = {
                                                 mirror_mode: profiledata[member].mirror_mode
                                             },
                                         }
-                                        if(![undefined, null, ""].includes(profiledata[member].hunt)){
+                                        if (![undefined, null, ""].includes(profiledata[member].hunt)) {
                                             submissiondata.hunt = profiledata[member].hunt.bonus
                                         }
                                         var newPostRef = ref.push(submissiondata);
@@ -1123,7 +1130,7 @@ module.exports = {
                                                     ]
                                                 }
                                             })
-                                        } catch (error) {console.log(error) }
+                                        } catch (error) { console.log(error) }
                                         if (message.guild) {
                                             try {
                                                 message.delete() //delete time message
@@ -1256,8 +1263,8 @@ module.exports = {
                             if (args[2] == "track" && selection !== profiledata[member].current.track) {
                                 profileref.child(member).child("current").update({ track_bribe: true, track: selection })
                                 bribed = true
-                                if(!tracks[selection].hasOwnProperty("parskiptimes")){
-                                    profileref.child(member).child("current").update({ skips: false})
+                                if (!tracks[selection].hasOwnProperty("parskiptimes")) {
+                                    profileref.child(member).child("current").update({ skips: false })
                                 }
                             } else if (args[2] == "racer" && selection !== profiledata[member].current.racer) {
                                 profileref.child(member).child("current").update({ racer_bribe: true, racer: selection })
@@ -1505,7 +1512,7 @@ module.exports = {
                     .setAuthor("Random Challenge", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/game-die_1f3b2.png")
                     .setTitle("<:menu:862620287735955487> Menu")
                     .setColor("#ED4245")
-                    .setDescription("This is the Random Challenge menu. From here, you can access all options related to random challenges. Press the **Play** button to get rollin'.\n\n*" + tips[Math.floor(Math.random()*tips.length)] + "*")
+                    .setDescription("This is the Random Challenge menu. From here, you can access all options related to random challenges. Press the **Play** button to get rollin'.\n\n*" + tips[Math.floor(Math.random() * tips.length)] + "*")
                     .setFooter("/challenge random")
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
@@ -2363,9 +2370,9 @@ module.exports = {
                         }
                         option.description = description.join(" | ")
                         mirror_mode_options.push(option)
-                        if(i == 0){
+                        if (i == 0) {
                             i -= 4
-                        } else if (i == 1){
+                        } else if (i == 1) {
                             i -= 1
                         }
                     }
@@ -2436,7 +2443,7 @@ module.exports = {
                     .addField("Your Odds", "Skips - " + odds.skips + "%\nNo Upgrades - " + odds.no_upgrades + "%\nNon 3-Lap - " + odds.non_3_lap + "%\nMirror Mode - " + odds.mirror_mode + "%", true)
                     .addField("Your Winnings: " + winnings_map[winnings].name, winnings_map[winnings].text, true)
                 var type = 7
-                if(args.includes("new")){
+                if (args.includes("new")) {
                     type = 4
                 }
                 client.api.interactions(interaction.id, interaction.token).callback.post({
@@ -2495,7 +2502,7 @@ module.exports = {
                 }
                 async function sendCallback() {
                     var type = 6
-                    if(args.includes("new")){
+                    if (args.includes("new")) {
                         type = 5
                     }
                     const wait = client.api.interactions(interaction.id, interaction.token).callback.post({
@@ -3152,6 +3159,34 @@ module.exports = {
                             //content: "",
                             embeds: [challengeLeaderboard],
                             components: components
+                        }
+                    }
+                })
+            } else if (args[1] == "submit"){
+                client.api.interactions(interaction.id, interaction.token).callback.post({
+                    data: {
+                        type: 9,
+                        data: {
+                            custom_id: "challenge_random_sent",
+                            title: "Submit your random challenge results",
+                            components: [
+                                {
+                                    type: 1,
+                                    components: [
+                                        {
+                                            type: 4,
+                                            custom_id: "heyo",
+                                            label: "Total Time",
+                                            style: 1,
+                                            min_length: 6,
+                                            max_length: 9,
+                                            required: true,
+                                            placeholder: "--:--.---"
+                                        }
+                                        
+                                    ]
+                                }
+                            ]
                         }
                     }
                 })
