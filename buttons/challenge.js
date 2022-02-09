@@ -3194,10 +3194,10 @@ module.exports = {
                 var challengestart = profiledata[member].current.started
                 if (profiledata[member].current.completed == false) {
                     if (!isNaN(Number(subtime.replace(":", "")))){
-                        print("it's a number")
+                        console.log("it's a number")
                     }
                     if (tools.timetoSeconds(subtime) !== null){
-                        print("it's a number too")
+                        console.log("it's a number too")
                     }
                     if (!isNaN(Number(subtime.replace(":", ""))) && tools.timetoSeconds(subtime) !== null) {
                         console.log("valid time!")
