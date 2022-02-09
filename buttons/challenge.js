@@ -3233,9 +3233,9 @@ module.exports = {
                                 var data = updateChallenge()
                                 try {
                                     var data = updateChallenge()
-                                    client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({
+                                    client.api.interactions(interaction.id, interaction.token).callback.post({
                                         data: {
-                                            content: "",
+                                            type: 5,
                                             embeds: [data.message],
                                             components: [
                                                 {
