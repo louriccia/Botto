@@ -851,6 +851,9 @@ module.exports = {
                     }
                 }
 
+                client.api.interactions(interaction.id, interaction.token).callback.post({ data: { type: 5, data: {} } })
+                
+
                 //get values
                 var random_racer = Math.floor(Math.random() * 23)
                 var random_track = Math.floor(Math.random() * 25)
