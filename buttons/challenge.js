@@ -3193,7 +3193,7 @@ module.exports = {
                 var subtime = interaction.data.components[0].components[0].value
                 var challengestart = profiledata[member].current.started
                 if (profiledata[member].current.completed == false) {
-                    if (!isNaN(subtime.replace(":", "")) && tools.timetoSeconds(subtime) !== null) {
+                    if (!isNaN(Number(subtime.replace(":", ""))) && tools.timetoSeconds(subtime) !== null) {
                         console.log("valid time!")
                         var challengeend = Date.now()
                         if (member == message.author.id) {
