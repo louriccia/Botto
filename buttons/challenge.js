@@ -430,7 +430,7 @@ module.exports = {
                     components.push({
                         type: 2,
                         style: 2,
-                        custom_id: "challenge_random_submit",
+                        custom_id: "challenge_random_modal",
                         label: "Submit Time",
                         emoji: {
                             name: "⏱️"
@@ -955,8 +955,6 @@ module.exports = {
                     return response
                 }
                 sendResponse().then(() => {
-
-                    var warning = ""
                     warning = "<@" + member + ">"
                     setTimeout(async function () { //5 minute warning
                         if (!profiledata[member].current.completed && interaction.token == profiledata[member].current.token) {
@@ -3162,12 +3160,13 @@ module.exports = {
                         }
                     }
                 })
-            } else if (args[1] == "submit"){
+            } else if (args[1] == "modal"){
+                if(args[2])
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
                         type: 9,
                         data: {
-                            custom_id: "challenge_random_sent",
+                            custom_id: "challenge_random_modal",
                             title: "Submit your random challenge results",
                             components: [
                                 {
@@ -3175,7 +3174,7 @@ module.exports = {
                                     components: [
                                         {
                                             type: 4,
-                                            custom_id: "heyo",
+                                            custom_id: "challenge_random_submit",
                                             label: "Total Time",
                                             style: 1,
                                             min_length: 6,
@@ -3190,6 +3189,68 @@ module.exports = {
                         }
                     }
                 })
+            } else if (args[1] == "submit"){
+                console.log(interaction.data)
+                var subtime = interaction.data.values[0]
+                if (profiledata[member].current.start == challengestart && profiledata[member].current.completed == false) {
+                    if (!isNaN(subtime.replace(":", "")) && tools.timetoSeconds(subtime) !== null) {
+                        var challengeend = Date.now()
+                        if (member == message.author.id) {
+                            var time = tools.timetoSeconds(subtime)
+                            if ((challengeend - challengestart) < time * 1000 && interaction.name !== "revive") {
+                                //message.reply("*I warn you. No funny business.*")
+                                profileref.child(member).child("current").update({ completed: true, title: ":negative_squared_cross_mark: Closed: ", funny_business: true })
+                                try {
+                                    client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({ data: { embeds: [updateChallenge()], components: [] } })
+                                } catch (error) {
+                                    console.error(error)
+                                }
+                            } else {
+                                //log time
+                                var submissiondata = {
+                                    user: message.author.id,
+                                    name: message.author.username,
+                                    time: time,
+                                    date: challengestart,
+                                    racer: profiledata[member].current.racer,
+                                    track: profiledata[member].current.track,
+                                    laps: profiledata[member].current.laps,
+                                    nu: profiledata[member].current.nu,
+                                    skips: profiledata[member].current.skips,
+                                    mirror: profiledata[member].current.mirror,
+                                    settings: {
+                                        winnings: profiledata[member].winnings,
+                                        no_upgrades: profiledata[member].no_upgrades,
+                                        non_3_lap: profiledata[member].non_3_lap,
+                                        skips: profiledata[member].skips,
+                                        mirror_mode: profiledata[member].mirror_mode
+                                    },
+                                }
+                                if (![undefined, null, ""].includes(profiledata[member].hunt)) {
+                                    submissiondata.hunt = profiledata[member].hunt.bonus
+                                }
+                                var newPostRef = ref.push(submissiondata);
+                                profileref.child(member).child("current").update({ submission: newPostRef.key, title: ":white_check_mark: Completed: ", completed: true })
+                                var data = updateChallenge()
+                                try {
+                                    var data = updateChallenge()
+                                    client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({
+                                        data: {
+                                            content: "",
+                                            embeds: [data.message],
+                                            components: [
+                                                {
+                                                    type: 1,
+                                                    components: data.components
+                                                }
+                                            ]
+                                        }
+                                    })
+                                } catch (error) { console.log(error) }
+                            }
+                        }
+                    }
+                }
             }
         } else if (args[0] == "community") {
             if (args[1] == "submit") {
