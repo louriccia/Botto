@@ -3220,7 +3220,7 @@ module.exports = {
                                     user: interaction.member.user.id,
                                     name: interaction.member.user.username,
                                     time: time,
-                                    date: challengestart,
+                                    date: profiledata[member].current.started,
                                     racer: profiledata[member].current.racer,
                                     track: profiledata[member].current.track,
                                     laps: profiledata[member].current.laps,
