@@ -3243,9 +3243,9 @@ module.exports = {
                                 var data = updateChallenge()
                                 try {
                                     var data = updateChallenge()
-                                    client.api.interactions(interaction.id, interaction.token).callback.post({
+                                    client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({
                                         data: {
-                                            type: 5,
+                                            //type: 5,
                                             embeds: [data.message],
                                             components: [
                                                 {
@@ -3253,6 +3253,11 @@ module.exports = {
                                                     components: data.components
                                                 }
                                             ]
+                                        }
+                                    })
+                                    client.api.interactions(interaction.id, interaction.token).callback.post({
+                                        data: {
+                                            type: 1
                                         }
                                     })
                                 } catch (error) { console.log(error) }
