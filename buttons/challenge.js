@@ -851,10 +851,6 @@ module.exports = {
                     }
                 }
 
-                if (interaction.name !== "revive") {
-                    client.api.interactions(interaction.id, interaction.token).callback.post({ data: { type: 5, data: {} } })
-                }
-
                 //get values
                 var random_racer = Math.floor(Math.random() * 23)
                 var random_track = Math.floor(Math.random() * 25)
@@ -889,19 +885,6 @@ module.exports = {
                     mirror = true
                 }
 
-                //revived challenge
-                if (interaction.name == "revive") {
-                    if (interaction.recovery == true) {
-                        random_racer = profiledata[member].current.racer
-                        random_track = profiledata[member].current.track
-                        nu = profiledata[member].current.nu
-                        mirror = profiledata[member].current.mirror
-                        laps = profiledata[member].current.laps
-                        skips = profiledata[member].current.skips
-                        hunt = profiledata[member].current.hunt
-                    }
-                }
-
                 //set current challenge
                 var current = {
                     start: challengestart,
@@ -921,7 +904,6 @@ module.exports = {
                     track_bribe: false,
                     racer_bribe: false,
                     rated: false,
-                    revived: false,
                     undone: false,
                     rerolled: false,
                     refunded: false,
@@ -930,9 +912,6 @@ module.exports = {
                 profileref.child(member).child("current").set(current)
 
                 var token = interaction.token
-                if (interaction.name == "revive") {
-                    token = profiledata[member].current.token
-                }
                 async function sendResponse() {
                     var response = null
                     var data = updateChallenge()

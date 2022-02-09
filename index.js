@@ -167,45 +167,6 @@ client.once('ready', () => {
     } catch {
         console.error(error);
     }
-    profileref.get().then(function (snapshot) {
-        console.log("checking for incomplete challenges...")
-        var profiledata = snapshot.val()
-        var keys = Object.keys(profiledata)
-        for (var i = 0; i < keys.length; i++) {
-            var k = keys[i]
-            if (profiledata[k].current !== undefined) {
-                if (profiledata[k].current.completed == false) {
-                    var recovery_channel = client.channels.cache.get(profiledata[k].current.channel)
-                    console.log("dead challenge found for " + profileref.child(k).name)
-                    profileref.child(k).child("current").child("completed").set(true)
-                    if (profiledata[k].current.message !== undefined) {
-                        recovery_channel.messages.fetch(profiledata[k].current.message) //delete old challenge message
-                            .then(msg => { msg.delete() }).catch(err => console.log(err));
-                    }
-                    if (profiledata[k].current.start + 1200000 > Date.now()) {
-                        try {
-                            var fakeinteraction = {
-                                name: "revive",
-                                recovery: true,
-                                member: {
-                                    user: {
-                                        id: k,
-                                        username: profiledata[k].name
-                                    }
-                                },
-                                guild_id: recovery_channel.guild.id,
-                                channel_id: profiledata[k].current.channel
-                            }
-                            console.log(fakeinteraction)
-                            client.buttons.get("challenge").execute(client, fakeinteraction, ["random", "play"]);
-                        } catch {
-
-                        }
-                    }
-                }
-            }
-        }
-    });
     const updater = async () => {
         const rp = require('request-promise');
         const $ = require('cheerio');
