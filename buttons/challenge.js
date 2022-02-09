@@ -3192,7 +3192,7 @@ module.exports = {
                 console.log(interaction.data.components[0].components[0])
                 var subtime = interaction.data.components[0].components[0].value
                 console.log(subtime)
-                var challengestart = profiledata[member].current.started
+                var challengestart = profiledata[member].current.start
                 if (profiledata[member].current.completed == false) {
                     if (!isNaN(Number(subtime.replace(":", "")))){
                         console.log("it's a number")
@@ -3220,7 +3220,7 @@ module.exports = {
                                     user: interaction.member.user.id,
                                     name: interaction.member.user.username,
                                     time: time,
-                                    date: profiledata[member].current.started,
+                                    date: profiledata[member].current.start,
                                     racer: profiledata[member].current.racer,
                                     track: profiledata[member].current.track,
                                     laps: profiledata[member].current.laps,
