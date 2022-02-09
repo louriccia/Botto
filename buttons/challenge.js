@@ -3165,7 +3165,7 @@ module.exports = {
                     data: {
                         type: 9,
                         data: {
-                            custom_id: "challenge_random_modal",
+                            custom_id: "challenge_random_submit",
                             title: "Submit your random challenge results",
                             components: [
                                 {
@@ -3173,7 +3173,7 @@ module.exports = {
                                     components: [
                                         {
                                             type: 4,
-                                            custom_id: "challenge_random_submit",
+                                            custom_id: "challenge_random_submit_0",
                                             label: "Total Time",
                                             style: 1,
                                             min_length: 6,
