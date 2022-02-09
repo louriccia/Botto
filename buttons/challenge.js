@@ -3206,6 +3206,7 @@ module.exports = {
                                 }
                             } else {
                                 //log time
+                                console.log("submited time!")
                                 var submissiondata = {
                                     user: message.author.id,
                                     name: message.author.username,
