@@ -3203,7 +3203,7 @@ module.exports = {
                     if (!isNaN(Number(subtime.replace(":", ""))) && tools.timetoSeconds(subtime) !== null) {
                         console.log("valid time!")
                         var challengeend = Date.now()
-                        if (member == message.author.id) {
+                        if (interaction.message.id == profiledata[member].current.message) {
                             var time = tools.timetoSeconds(subtime)
                             if ((challengeend - challengestart) < time * 1000 && interaction.name !== "revive") {
                                 //message.reply("*I warn you. No funny business.*")
@@ -3217,8 +3217,8 @@ module.exports = {
                                 //log time
                                 console.log("submited time!")
                                 var submissiondata = {
-                                    user: message.author.id,
-                                    name: message.author.username,
+                                    user: interaction.member.user.id,
+                                    name: interaction.member.user.username,
                                     time: time,
                                     date: challengestart,
                                     racer: profiledata[member].current.racer,
