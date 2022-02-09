@@ -3191,6 +3191,7 @@ module.exports = {
             } else if (args[1] == "submit"){
                 console.log(interaction.data.components[0].components[0])
                 var subtime = interaction.data.components[0].components[0].value
+                console.log(subtime)
                 var challengestart = profiledata[member].current.started
                 if (profiledata[member].current.completed == false) {
                     if (!isNaN(Number(subtime.replace(":", "")))){
