@@ -3189,8 +3189,8 @@ module.exports = {
                     }
                 })
             } else if (args[1] == "submit"){
-                console.log(interaction.data)
-                var subtime = interaction.data.values[0]
+                console.log(interaction.data.components[0])
+                var subtime = interaction.data.components[0].value
                 if (profiledata[member].current.start == challengestart && profiledata[member].current.completed == false) {
                     if (!isNaN(subtime.replace(":", "")) && tools.timetoSeconds(subtime) !== null) {
                         var challengeend = Date.now()
