@@ -3160,13 +3160,13 @@ module.exports = {
                         }
                     }
                 })
-            } else if (args[1] == "modal"){
+            } else if (args[1] == "modal") {
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
                         type: 9,
                         data: {
                             custom_id: "challenge_random_submit",
-                            title: "Submit your random challenge results",
+                            title: "Submit Results",
                             components: [
                                 {
                                     type: 1,
@@ -3181,23 +3181,23 @@ module.exports = {
                                             required: true,
                                             placeholder: "--:--.---"
                                         }
-                                        
+
                                     ]
                                 }
                             ]
                         }
                     }
                 })
-            } else if (args[1] == "submit"){
+            } else if (args[1] == "submit") {
                 console.log(interaction.data.components[0].components[0])
                 var subtime = interaction.data.components[0].components[0].value
                 console.log(subtime)
                 var challengestart = profiledata[member].current.start
                 if (profiledata[member].current.completed == false) {
-                    if (!isNaN(Number(subtime.replace(":", "")))){
+                    if (!isNaN(Number(subtime.replace(":", "")))) {
                         console.log("it's a number")
                     }
-                    if (tools.timetoSeconds(subtime) !== null){
+                    if (tools.timetoSeconds(subtime) !== null) {
                         console.log("it's a number too")
                     }
                     if (!isNaN(Number(subtime.replace(":", ""))) && tools.timetoSeconds(subtime) !== null) {
@@ -3243,23 +3243,20 @@ module.exports = {
                                 var data = updateChallenge()
                                 try {
                                     var data = updateChallenge()
-                                    client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({
+                                    client.api.interactions(interaction.id, interaction.token).callback.post(
+                                        {
                                         data: {
-                                            //type: 5,
-                                            embeds: [data.message],
-                                            components: [
-                                                {
-                                                    type: 1,
-                                                    components: data.components
-                                                }
-                                            ]
-                                        }
-                                    })
-                                    client.api.interactions(interaction.id, interaction.token).callback.post({
-                                        data: {
-                                            type: 1
-                                        }
-                                    })
+                                            type: 7,
+                                            data: {
+                                                embeds: [data.message],
+                                                components: [
+                                                    {
+                                                        type: 1,
+                                                        components: data.components
+                                                    }
+                                                ]
+                                            }
+                                        }})
                                 } catch (error) { console.log(error) }
                             }
                         }
