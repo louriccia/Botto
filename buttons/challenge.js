@@ -3161,7 +3161,6 @@ module.exports = {
                     }
                 })
             } else if (args[1] == "modal"){
-                if(args[2])
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
                         type: 9,
