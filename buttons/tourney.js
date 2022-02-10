@@ -3379,37 +3379,50 @@ module.exports = {
                     //add random limited choice limit
                     //add pod pool limit
                 } else if (args[2] == "finalize") {
-                    var rename = true
                     if (args[3] == "rename") {
-                        type = 7
-                        rename = false
-                        client.api.webhooks(client.user.id, interaction.token).post({
-                            data: {
-                                content: "Send the new name for your ruleset in this channel",
-                                flags: 64
-                            }
-                        })
-
-                        async function sendResponse() {
-                            response = await client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({
-                                data: {
-                                    embeds: [rulesetEmbed],
-                                    components: components
-                                }
-                            })
-                            return response
-                        }
-                        //const filter = m => m.author.id == interaction.member.user.id
-                        const collector = new Discord.MessageCollector(client.channels.cache.get(interaction.channel_id), m => m.author.id == interaction.member.user.id, { max: 1, time: 300000 }); //messages
-                        collector.on('collect', message => {
-                            var newname = message.content.substring(0, 50)
+                        if(args.length > 4 && args[4] == "submit"){
+                            var newname = interaction.data.components[0].components[0].value.trim()
                             tourney_rulesets.child("new").child(interaction.member.user.id).child("name").set(newname)
                             rulesetEmbed.setTitle(newname)
-                            components[1].components[0].disabled = false
-                            message.delete().then(sendResponse())
-                        })
-                        //client.api.interactions(interaction.id, interaction.token).callback.post({ data: { type: 6, data: {} } })
-                        //return
+                            client.api.interactions(interaction.id, interaction.token).callback.post({
+                                data: {
+                                    type: 7,
+                                    data: {
+                                        flags: 64,
+                                        embeds: [rulesetEmbed],
+                                        components: components
+                                    }
+                                }
+                            })
+                        } else {
+                            client.api.webhooks(client.user.id, interaction.token).post({
+                                data: {
+                                    type: 9,
+                                    data: {
+                                        custom_id: "tourney_rulesets_new_finalize_rename_submit",
+                                        title: "Submit Results",
+                                        components: [
+                                            {
+                                                type: 1,
+                                                components: [
+                                                    {
+                                                        type: 4,
+                                                        custom_id: "challenge_random_submit_0",
+                                                        label: "Total Time",
+                                                        style: 1,
+                                                        min_length: 6,
+                                                        max_length: 9,
+                                                        required: true,
+                                                        placeholder: "--:--.---"
+                                                    }
+    
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                }
+                            })
+                        }
                     } else if (args[3] == "save") {
                         type = 7
                         rulesetEmbed

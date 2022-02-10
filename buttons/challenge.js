@@ -852,7 +852,7 @@ module.exports = {
                 }
 
                 client.api.interactions(interaction.id, interaction.token).callback.post({ data: { type: 5, data: {} } })
-                
+
 
                 //get values
                 var random_racer = Math.floor(Math.random() * 23)
@@ -3074,160 +3074,177 @@ module.exports = {
                     }
                 })
             } else if (args[1] == "modal") {
-                client.api.interactions(interaction.id, interaction.token).callback.post({
-                    data: {
-                        type: 9,
-                        data: {
-                            custom_id: "challenge_random_submit",
-                            title: "Submit Results",
-                            components: [
-                                {
-                                    type: 1,
+                if (profiledata[member].current == undefined || interaction.message.id == profiledata[member].current.message) {
+                    if (profiledata[member].current.completed == false) {
+                        client.api.interactions(interaction.id, interaction.token).callback.post({
+                            data: {
+                                type: 9,
+                                data: {
+                                    custom_id: "challenge_random_submit",
+                                    title: "Submit Results",
                                     components: [
                                         {
-                                            type: 4,
-                                            custom_id: "challenge_random_submit_0",
-                                            label: "Total Time",
-                                            style: 1,
-                                            min_length: 6,
-                                            max_length: 9,
-                                            required: true,
-                                            placeholder: "--:--.---"
+                                            type: 1,
+                                            components: [
+                                                {
+                                                    type: 4,
+                                                    custom_id: "challenge_random_submit_0",
+                                                    label: "Total Time",
+                                                    style: 1,
+                                                    min_length: 6,
+                                                    max_length: 9,
+                                                    required: true,
+                                                    placeholder: "--:--.---"
+                                                }
+
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        })
+                    } else {
+                        profileref.child(member).child("current").update({ completed: true })
+                        const holdUp = new Discord.MessageEmbed()
+                            .setTitle("<:WhyNobodyBuy:589481340957753363> Expired Challenge")
+                            .setDescription("This challenge is no longer available.")
+                        client.api.interactions(interaction.id, interaction.token).callback.post({
+                            data: {
+                                type: 4,
+                                data: {
+                                    content: "",
+                                    embeds: [holdUp],
+                                    flags: 64,
+                                    components: [
+                                        {
+                                            type: 1,
+                                            components: [
+                                                {
+                                                    type: 2,
+                                                    style: 4,
+                                                    custom_id: "challenge_random_play",
+                                                    emoji: {
+                                                        name: "🎲 New Challenge"
+                                                    }
+                                                },
+                                            ]
                                         }
 
                                     ]
                                 }
-                            ]
-                        }
+                            }
+                        })
                     }
-                })
+                } else {
+                    const holdUp = new Discord.MessageEmbed()
+                        .setTitle("<:WhyNobodyBuy:589481340957753363> Can't Submit")
+                        .setDescription("This is not your active challenge.")
+                    client.api.interactions(interaction.id, interaction.token).callback.post({
+                        data: {
+                            type: 4,
+                            data: {
+                                content: "",
+                                embeds: [holdUp],
+                                flags: 64
+                            }
+                        }
+                    })
+                }
             } else if (args[1] == "submit") {
                 console.log(interaction.data.components[0].components[0])
                 var subtime = interaction.data.components[0].components[0].value
                 console.log(subtime)
                 var challengestart = profiledata[member].current.start
-                if (profiledata[member].current.completed == false) {
-                    if (!isNaN(Number(subtime.replace(":", "")))) {
-                        console.log("it's a number")
-                    }
-                    if (tools.timetoSeconds(subtime) !== null) {
-                        console.log("it's a number too")
-                    }
-                    if (!isNaN(Number(subtime.replace(":", ""))) && tools.timetoSeconds(subtime) !== null) {
-                        console.log("valid time!")
-                        var challengeend = Date.now()
-                        if (interaction.message.id == profiledata[member].current.message) {
-                            var time = tools.timetoSeconds(subtime)
-                            if ((challengeend - challengestart) < time * 1000) {
-                                profileref.child(member).child("current").update({ completed: true, title: ":negative_squared_cross_mark: Closed: ", funny_business: true })
-                                try {
-                                    client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({ data: { embeds: [updateChallenge()], components: [] } })
-                                } catch (error) {
-                                    console.error(error)
-                                }
-                                const holdUp = new Discord.MessageEmbed()
-                                    .setTitle("<:WhyNobodyBuy:589481340957753363> I warn you. No funny business.")
-                                    .setDescription("You submitted a time that was impossible to achieve in the given timeframe.")
-                                client.api.interactions(interaction.id, interaction.token).callback.post({
-                                    data: {
-                                        type: 4,
-                                        data: {
-                                            content: "",
-                                            embeds: [holdUp],
-                                            flags: 64
-                                        }
-                                    }
-                                })
-                            } else {
-                                //log time
-                                var submissiondata = {
-                                    user: interaction.member.user.id,
-                                    name: interaction.member.user.username,
-                                    time: time,
-                                    date: profiledata[member].current.start,
-                                    racer: profiledata[member].current.racer,
-                                    track: profiledata[member].current.track,
-                                    laps: profiledata[member].current.laps,
-                                    nu: profiledata[member].current.nu,
-                                    skips: profiledata[member].current.skips,
-                                    mirror: profiledata[member].current.mirror,
-                                    settings: {
-                                        winnings: profiledata[member].winnings,
-                                        no_upgrades: profiledata[member].no_upgrades,
-                                        non_3_lap: profiledata[member].non_3_lap,
-                                        skips: profiledata[member].skips,
-                                        mirror_mode: profiledata[member].mirror_mode
-                                    },
-                                }
-                                if (![undefined, null, ""].includes(profiledata[member].hunt)) {
-                                    submissiondata.hunt = profiledata[member].hunt.bonus
-                                }
-                                var newPostRef = ref.push(submissiondata);
-                                profileref.child(member).child("current").update({ submission: newPostRef.key, title: ":white_check_mark: Completed: ", completed: true })
-                                var data = updateChallenge()
-                                try {
-                                    var data = updateChallenge()
-                                    client.api.interactions(interaction.id, interaction.token).callback.post(
-                                        {
-                                            data: {
-                                                type: 7,
-                                                data: {
-                                                    embeds: [data.message],
-                                                    components: [
-                                                        {
-                                                            type: 1,
-                                                            components: data.components
-                                                        }
-                                                    ]
-                                                }
-                                            }
-                                        })
-                                } catch (error) { console.log(error) }
-                            }
-                        } else {
-                            const holdUp = new Discord.MessageEmbed()
-                                    .setTitle("<:WhyNobodyBuy:589481340957753363> Expired Challenge")
-                                    .setDescription("This challenge is no longer available.")
-                                client.api.interactions(interaction.id, interaction.token).callback.post({
-                                    data: {
-                                        type: 4,
-                                        data: {
-                                            content: "",
-                                            embeds: [holdUp],
-                                            flags: 64
-                                        }
-                                    }
-                                })
+                if (!isNaN(Number(subtime.replace(":", "")))) {
+                    console.log("it's a number")
+                }
+                if (tools.timetoSeconds(subtime) !== null) {
+                    console.log("it's a number too")
+                }
+                if (!isNaN(Number(subtime.replace(":", ""))) && tools.timetoSeconds(subtime) !== null) {
+                    console.log("valid time!")
+                    var challengeend = Date.now()
+                    var time = tools.timetoSeconds(subtime)
+                    if ((challengeend - challengestart) < time * 1000) {
+                        profileref.child(member).child("current").update({ completed: true, title: ":negative_squared_cross_mark: Closed: ", funny_business: true })
+                        try {
+                            client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({ data: { embeds: [updateChallenge()], components: [] } })
+                        } catch (error) {
+                            console.error(error)
                         }
-                    } else {
                         const holdUp = new Discord.MessageEmbed()
-                                    .setTitle("<:WhyNobodyBuy:589481340957753363> Time Does Not Compute")
-                                    .setDescription("Your time was submitted in an incorrect format.")
-                                client.api.interactions(interaction.id, interaction.token).callback.post({
+                            .setTitle("<:WhyNobodyBuy:589481340957753363> I warn you. No funny business.")
+                            .setDescription("You submitted a time that was impossible to achieve in the given timeframe.")
+                        client.api.interactions(interaction.id, interaction.token).callback.post({
+                            data: {
+                                type: 4,
+                                data: {
+                                    content: "",
+                                    embeds: [holdUp],
+                                    flags: 64
+                                }
+                            }
+                        })
+                    } else {
+                        //log time
+                        var submissiondata = {
+                            user: interaction.member.user.id,
+                            name: interaction.member.user.username,
+                            time: time,
+                            date: profiledata[member].current.start,
+                            racer: profiledata[member].current.racer,
+                            track: profiledata[member].current.track,
+                            laps: profiledata[member].current.laps,
+                            nu: profiledata[member].current.nu,
+                            skips: profiledata[member].current.skips,
+                            mirror: profiledata[member].current.mirror,
+                            settings: {
+                                winnings: profiledata[member].winnings,
+                                no_upgrades: profiledata[member].no_upgrades,
+                                non_3_lap: profiledata[member].non_3_lap,
+                                skips: profiledata[member].skips,
+                                mirror_mode: profiledata[member].mirror_mode
+                            },
+                        }
+                        if (![undefined, null, ""].includes(profiledata[member].hunt)) {
+                            submissiondata.hunt = profiledata[member].hunt.bonus
+                        }
+                        var newPostRef = ref.push(submissiondata);
+                        profileref.child(member).child("current").update({ submission: newPostRef.key, title: ":white_check_mark: Completed: ", completed: true })
+                        var data = updateChallenge()
+                        try {
+                            var data = updateChallenge()
+                            client.api.interactions(interaction.id, interaction.token).callback.post(
+                                {
                                     data: {
-                                        type: 4,
+                                        type: 7,
                                         data: {
-                                            content: "",
-                                            embeds: [holdUp],
-                                            flags: 64
+                                            embeds: [data.message],
+                                            components: [
+                                                {
+                                                    type: 1,
+                                                    components: data.components
+                                                }
+                                            ]
                                         }
                                     }
                                 })
+                        } catch (error) { console.log(error) }
                     }
                 } else {
                     const holdUp = new Discord.MessageEmbed()
-                                    .setTitle("<:WhyNobodyBuy:589481340957753363> Can't Submit")
-                                    .setDescription("You already have an active challenge.")
-                                client.api.interactions(interaction.id, interaction.token).callback.post({
-                                    data: {
-                                        type: 4,
-                                        data: {
-                                            content: "",
-                                            embeds: [holdUp],
-                                            flags: 64
-                                        }
-                                    }
-                                })
+                        .setTitle("<:WhyNobodyBuy:589481340957753363> Time Does Not Compute")
+                        .setDescription("Your time was submitted in an incorrect format.")
+                    client.api.interactions(interaction.id, interaction.token).callback.post({
+                        data: {
+                            type: 4,
+                            data: {
+                                content: "",
+                                embeds: [holdUp],
+                                flags: 64
+                            }
+                        }
+                    })
                 }
             }
         } else if (args[0] == "community") {
