@@ -1725,7 +1725,7 @@ module.exports = {
                     return fields
                 }
             }
-
+            var modal = false
             if (args[1] == "edit") {
                 var key = args.slice(2).join("_")
                 var ruleset = tourney_rulesets_data.saved[key]
@@ -2037,6 +2037,7 @@ module.exports = {
 
                 )
             } else if (args[1] == "new") {
+                
                 if (args[2] == "create") {
                     var ruleset_type = "1v1"
                     for (var i = 0; i < interaction.message.components[0].components[0].options.length; i++) { //track
@@ -2337,7 +2338,7 @@ module.exports = {
                     .setFooter(interaction.member.user.username, client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
 
 
-
+                
                 if (args[2] == "general") {
                     var win_options = []
                     for (i = 2; i < 10; i++) {
@@ -3384,17 +3385,8 @@ module.exports = {
                             var newname = interaction.data.components[0].components[0].value.trim()
                             tourney_rulesets.child("new").child(interaction.member.user.id).child("name").set(newname)
                             rulesetEmbed.setTitle(newname)
-                            client.api.interactions(interaction.id, interaction.token).callback.post({
-                                data: {
-                                    type: 7,
-                                    data: {
-                                        flags: 64,
-                                        embeds: [rulesetEmbed],
-                                        components: components
-                                    }
-                                }
-                            })
                         } else {
+                            modal = true
                             client.api.interactions(interaction.id, interaction.token).callback.post({
                                 data: {
                                     type: 9,
@@ -3926,17 +3918,19 @@ module.exports = {
                     }
                 }
             }
-
-            client.api.interactions(interaction.id, interaction.token).callback.post({
-                data: {
-                    type: type,
+            if(!modal){
+                client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
-                        flags: flags,
-                        embeds: [rulesetEmbed],
-                        components: components
+                        type: type,
+                        data: {
+                            flags: flags,
+                            embeds: [rulesetEmbed],
+                            components: components
+                        }
                     }
-                }
-            })
+                })
+            }
+            
         } else if (args[0] == "stats") {
             var player = "global", type = 6, track = null, player_runs = []
             var sort = "plays"
