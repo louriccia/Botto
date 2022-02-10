@@ -3395,7 +3395,7 @@ module.exports = {
                                 }
                             })
                         } else {
-                            client.api.webhooks(client.user.id, interaction.token).post({
+                            client.api.interactions(interaction.id, interaction.token).callback.post({
                                 data: {
                                     type: 9,
                                     data: {
