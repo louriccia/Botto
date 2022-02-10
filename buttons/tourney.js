@@ -3400,20 +3400,20 @@ module.exports = {
                                     type: 9,
                                     data: {
                                         custom_id: "tourney_rulesets_new_finalize_rename_submit",
-                                        title: "Submit Results",
+                                        title: "Change Ruleset Name",
                                         components: [
                                             {
                                                 type: 1,
                                                 components: [
                                                     {
                                                         type: 4,
-                                                        custom_id: "challenge_random_submit_0",
-                                                        label: "Total Time",
+                                                        custom_id: "name",
+                                                        label: "Name",
                                                         style: 1,
-                                                        min_length: 6,
-                                                        max_length: 9,
+                                                        min_length: 1,
+                                                        max_length: 100,
                                                         required: true,
-                                                        placeholder: "--:--.---"
+                                                        value:  tourney_rulesets_data.new[interaction.member.user.id].name
                                                     }
     
                                                 ]
@@ -3453,7 +3453,6 @@ module.exports = {
                                         label: "Rename",
                                         style: 1,
                                         custom_id: "tourney_rulesets_new_finalize_rename",
-                                        disabled: !rename
                                     },
                                     {
                                         type: 2,
