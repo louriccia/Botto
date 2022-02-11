@@ -3591,7 +3591,7 @@ module.exports = {
                                 data: {
                                     type: 9,
                                     data: {
-                                        custom_id: "tourney_rulesets_new_" + args[2] + "_time",
+                                        custom_id: "tourney_rulesets_new_" + args[2] + "_time_submit",
                                         title: "Set Race " + Number(args[2].replace("race", "")) + " Times",
                                         components: [
                                             {
@@ -3764,7 +3764,7 @@ module.exports = {
                                         type: 2,
                                         label: "Time Limit & Penalty Time",
                                         style: 1,
-                                        custom_id: "tourney_rulesets_new_" + args[2] + "_time_submit",
+                                        custom_id: "tourney_rulesets_new_" + args[2] + "_time",
                                         emoji: {
                                             name: "⏱️"
                                         }
