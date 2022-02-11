@@ -199,22 +199,22 @@ module.exports = {
             } else if (args[1] == "tourney") {
                 tourney = interaction.data.values[0]
                 tourneyMatches
-                .setTitle(tourney_tournaments_data[tourney].name)
-                if(tourney_tournaments_data[tourney].hasOwnProperty("challonge")){
+                    .setTitle(tourney_tournaments_data[tourney].name)
+                if (tourney_tournaments_data[tourney].hasOwnProperty("challonge")) {
                     var links = []
                     tourney_tournaments_data[tourney].challonge.forEach((link, num) => {
-                        links.push("[Challonge link " + (num+1) + "](" + link + ")")
+                        links.push("[Challonge link " + (num + 1) + "](" + link + ")")
                     })
                     tourney_desc += ":trophy: " + links.join(", ") + "\n"
                 }
-                if(tourney_tournaments_data[tourney].hasOwnProperty("matcherino")){
-                    tourney_desc += "💸 [Matcherino](" +  tourney_tournaments_data[tourney].matcherino + ")\n"
+                if (tourney_tournaments_data[tourney].hasOwnProperty("matcherino")) {
+                    tourney_desc += "💸 [Matcherino](" + tourney_tournaments_data[tourney].matcherino + ")\n"
                 }
-                if(tourney_tournaments_data[tourney].hasOwnProperty("playlist")){
-                    tourney_desc += "📺 [Playlist](" +  tourney_tournaments_data[tourney].playlist + ")\n"
+                if (tourney_tournaments_data[tourney].hasOwnProperty("playlist")) {
+                    tourney_desc += "📺 [Playlist](" + tourney_tournaments_data[tourney].playlist + ")\n"
                 }
-                if(tourney_tournaments_data[tourney].hasOwnProperty("stats")){
-                    tourney_desc += "📊 [Stats](" +  tourney_tournaments_data[tourney].stats + ")\n"
+                if (tourney_tournaments_data[tourney].hasOwnProperty("stats")) {
+                    tourney_desc += "📊 [Stats](" + tourney_tournaments_data[tourney].stats + ")\n"
                 }
             }
 
@@ -264,7 +264,7 @@ module.exports = {
                 if (Number(tourney) == Number(key)) {
                     tourney_option.default = true
                 }
-                if(Number(key) == Number(tourney) && args[1] == "tourney"){
+                if (Number(key) == Number(tourney) && args[1] == "tourney") {
                     tourney_desc += "📆 Date Range: `" + convertDate(t_stuff.oldest) + " - " + convertDate(t_stuff.newest) + "`\n👥 Players: `" + t_stuff.players.length + "`\n⚔️ Matches: `" + t_stuff.matches + "`\n🏁 Races: `" + t_stuff.races + "`\n💀 Deaths: `" + t_stuff.deaths + "`"
                     tourneyMatches.setDescription(tourney_desc)
                 }
@@ -302,13 +302,13 @@ module.exports = {
                         }
                     }
                 })
-                if(m_option.timediff.length> 0){
+                if (m_option.timediff.length > 0) {
                     m_option.timediff = m_option.timediff.reduce((a, b) => { return a + b }) / m_option.timediff.length
                 } else {
                     m_option.timediff = null
                     m_option.closest = null
                 }
-                
+
                 match_options[key] = m_option
             })
 
@@ -376,9 +376,9 @@ module.exports = {
                 })
             } else if (sort == "time") {
                 mtch = mtch.sort(function (a, b) {
-                    if(match_options[a].timediff == null){
+                    if (match_options[a].timediff == null) {
                         return 1
-                    } else if(match_options[b].timediff == null){
+                    } else if (match_options[b].timediff == null) {
                         return -1
                     } else {
                         return match_options[a].timediff - match_options[b].timediff
@@ -386,9 +386,9 @@ module.exports = {
                 })
             } else if (sort == "closest") {
                 mtch = mtch.sort(function (a, b) {
-                    if(match_options[a].closest == null){
+                    if (match_options[a].closest == null) {
                         return 1
-                    } else if(match_options[b].closest == null){
+                    } else if (match_options[b].closest == null) {
                         return -1
                     } else {
                         return match_options[a].closest - match_options[b].closest
@@ -432,9 +432,9 @@ module.exports = {
                     label: title,
                     value: s,
                     description: "📆 " + convertDate(match_options[s].date) + " 🏁 " + match_options[s].races + " 💀 " + match_options[s].deaths,
-                    emoji: {name: ruleset_emojis[tourney_rulesets_data.saved[tourney_matches_data[s].ruleset].type]}
+                    emoji: { name: ruleset_emojis[tourney_rulesets_data.saved[tourney_matches_data[s].ruleset].type] }
                 }
-                if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[tourney_matches_data[s].ruleset].type)){
+                if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[tourney_matches_data[s].ruleset].type)) {
                     r.description += " ⏱️ ±" + match_options[s].timediff.toFixed(3) + " 🤏 " + match_options[s].closest.toFixed(3)
                 }
                 if (interaction.data.hasOwnProperty("values") && !interaction.data.values[0].includes("offset")) {
@@ -2037,7 +2037,7 @@ module.exports = {
 
                 )
             } else if (args[1] == "new") {
-                
+
                 if (args[2] == "create") {
                     var ruleset_type = "1v1"
                     for (var i = 0; i < interaction.message.components[0].components[0].options.length; i++) { //track
@@ -2338,7 +2338,7 @@ module.exports = {
                     .setFooter(interaction.member.user.username, client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
 
 
-                
+
                 if (args[2] == "general") {
                     var win_options = []
                     for (i = 2; i < 10; i++) {
@@ -3381,10 +3381,10 @@ module.exports = {
                     //add pod pool limit
                 } else if (args[2] == "finalize") {
                     if (args[3] == "rename") {
-                        if(args.length > 4 && args[4] == "submit"){
+                        if (args.length > 4 && args[4] == "submit") {
                             var newname = interaction.data.components[0].components[0].value.trim()
                             var desc = interaction.data.components[0].components[1].value.trim()
-                            tourney_rulesets.child("new").child(interaction.member.user.id).update({name: newname, description: desc})
+                            tourney_rulesets.child("new").child(interaction.member.user.id).update({ name: newname, description: desc })
                         } else {
                             modal = true
                             client.api.interactions(interaction.id, interaction.token).callback.post({
@@ -3405,7 +3405,7 @@ module.exports = {
                                                         min_length: 1,
                                                         max_length: 100,
                                                         required: true,
-                                                        value:  tourney_rulesets_data.new[interaction.member.user.id].name
+                                                        value: tourney_rulesets_data.new[interaction.member.user.id].name
                                                     },
                                                     {
                                                         type: 4,
@@ -3415,9 +3415,9 @@ module.exports = {
                                                         min_length: 0,
                                                         max_length: 300,
                                                         required: false,
-                                                        value:  tourney_rulesets_data.new[interaction.member.user.id].description
+                                                        value: tourney_rulesets_data.new[interaction.member.user.id].description
                                                     }
-    
+
                                                 ]
                                             }
                                         ]
@@ -3579,11 +3579,11 @@ module.exports = {
                     var races = Object.values(tourney_rulesets_data.new[interaction.member.user.id].races)
 
                     if (args[3] == "time") {
-                        if(args.length > 4 && args[4] == "submit"){
+                        if (args.length > 4 && args[4] == "submit") {
                             var race = Number(args[2].replace("race", "")) - 1
                             var races = tourney_rulesets_data.new[interaction.member.user.id].races
                             races[race].time = tools.timetoSeconds(interaction.data.components[0].components[0].value.trim())
-                            races[race].penalty = tools.timetoSeconds(interaction.data.components[0].components[1].value.trim())
+                            races[race].penalty = tools.timetoSeconds(interaction.data.components[1].components[0].value.trim())
                             tourney_rulesets.child("new").child(interaction.member.user.id).update({ races: races })
                         } else {
                             modal = true
@@ -3605,8 +3605,13 @@ module.exports = {
                                                         min_length: 6,
                                                         max_length: 10,
                                                         required: true,
-                                                        value:  tools.timefix(tourney_rulesets_data.new[interaction.member.user.id].races[Number(args[2].replace("race", ""))-1].time)
-                                                    },
+                                                        value: tools.timefix(tourney_rulesets_data.new[interaction.member.user.id].races[Number(args[2].replace("race", "")) - 1].time)
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                type: 1,
+                                                components: [
                                                     {
                                                         type: 4,
                                                         custom_id: "penalty",
@@ -3615,9 +3620,8 @@ module.exports = {
                                                         min_length: 6,
                                                         max_length: 10,
                                                         required: true,
-                                                        value:  tools.timefix(tourney_rulesets_data.new[interaction.member.user.id].races[Number(args[2].replace("race", ""))-1].penalty)
+                                                        value: tools.timefix(tourney_rulesets_data.new[interaction.member.user.id].races[Number(args[2].replace("race", "")) - 1].penalty)
                                                     }
-    
                                                 ]
                                             }
                                         ]
@@ -3922,7 +3926,7 @@ module.exports = {
                     }
                 }
             }
-            if(!modal){
+            if (!modal) {
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
                         type: type,
@@ -3934,7 +3938,7 @@ module.exports = {
                     }
                 })
             }
-            
+
         } else if (args[0] == "stats") {
             var player = "global", type = 6, track = null, player_runs = []
             var sort = "plays"
@@ -4032,7 +4036,7 @@ module.exports = {
                 return response
             }
             sendCallback().then(() => {
-                var accomp = { win: { count: 0, streaks: [] }, deathless: { count: 0, streaks: [] }, comebacks: []}
+                var accomp = { win: { count: 0, streaks: [] }, deathless: { count: 0, streaks: [] }, comebacks: [] }
                 var accomplishments = []
                 var stats = {
                     race_time: 0,
@@ -4433,23 +4437,23 @@ module.exports = {
                             score[winner.player]++
                             var scores = Object.keys(score)
                             scores.forEach(p => {
-                                if(p == player){
-                                    if(comeback[p] == undefined){
-                                        comeback[p] = {low: null, high: null, lowrace: 0, op_low: null, op_high: null, match: tourney_tournaments_data[match.tourney].nickname + " " + match.bracket}
-                                        if(match.round !== undefined){
+                                if (p == player) {
+                                    if (comeback[p] == undefined) {
+                                        comeback[p] = { low: null, high: null, lowrace: 0, op_low: null, op_high: null, match: tourney_tournaments_data[match.tourney].nickname + " " + match.bracket }
+                                        if (match.round !== undefined) {
                                             comeback[p].match += " " + match.round
                                         }
                                     }
                                     scores.forEach(o => {
-                                        if(o !== p){
+                                        if (o !== p) {
                                             var dif = score[p] - score[o]
                                             comeback[p].op = o
-                                            if(dif < 0 && (comeback[p].low == null || (dif <= comeback[p].low && num > comeback[p].lowrace))){
+                                            if (dif < 0 && (comeback[p].low == null || (dif <= comeback[p].low && num > comeback[p].lowrace))) {
                                                 comeback[p].low = dif
                                                 comeback[p].lowrace = num
                                                 comeback[p].op_low = score[o]
                                                 comeback[p].p_low = score[p]
-                                            } else if(dif > 0 && (comeback[p].high == null || (dif >= comeback[p].high && num > comeback[p].lowrace))){
+                                            } else if (dif > 0 && (comeback[p].high == null || (dif >= comeback[p].high && num > comeback[p].lowrace))) {
                                                 comeback[p].high = dif
                                                 comeback[p].op_high = score[o]
                                                 comeback[p].p_high = score[p]
@@ -4475,14 +4479,14 @@ module.exports = {
                                 stats.players[scores[i]].matches.lost++
                             }
                         }
-                        if(comeback[player] !== undefined && ![comeback[player].high, comeback[player].low].includes(null) && comeback[player].high - comeback[player].low > 2 && comeback[player].op_high >= comeback[player].op_low){
+                        if (comeback[player] !== undefined && ![comeback[player].high, comeback[player].low].includes(null) && comeback[player].high - comeback[player].low > 2 && comeback[player].op_high >= comeback[player].op_low) {
                             accomp.comebacks.push(comeback[player])
-                            
+
                         }
                     }
                 })
                 accomp.comebacks.sort((a, b) => {
-                    if(a.low == b.low){
+                    if (a.low == b.low) {
                         return b.p_low - a.p_low
                     } else {
                         return a.low - b.low
@@ -4603,22 +4607,22 @@ module.exports = {
                         //win/deathless streak
                         if (win_streak >= 5) {
                             var winstring = ":crown: " + win_streak + "-Race **Win Streak**"
-                            if(accomp.win.count > 0){
+                            if (accomp.win.count > 0) {
                                 winstring += " (Current streak: " + accomp.win.count + ")"
                             }
                             accomplishments.push(winstring)
                         }
                         if (deathless_streak >= 5) {
                             var deathstring = ":skull: " + deathless_streak + "-Race **Deathless Streak**"
-                            if(accomp.win.count > 0){
+                            if (accomp.win.count > 0) {
                                 deathstring += " (Current streak: " + accomp.deathless.count + ")"
                             }
                             accomplishments.push(deathstring)
                         }
-                        for(i = 0; i < accomp.comebacks.length; i++) {
+                        for (i = 0; i < accomp.comebacks.length; i++) {
                             var comeback = accomp.comebacks[i]
                             accomplishments.push("↩️ " + comeback.p_low + "-" + comeback.op_low + " to " + comeback.p_high + "-" + comeback.op_high + " **Comeback** vs " + tourney_participants_data[comeback.op].name + " (" + comeback.match + ")")
-                            if(i == 2 && accomp.comebacks.length > 3){
+                            if (i == 2 && accomp.comebacks.length > 3) {
                                 accomplishments.push("+" + (accomp.comebacks.length - i) + " More ↩️ **Comebacks**")
                                 i = accomp.comebacks.length
                             }
@@ -5422,20 +5426,20 @@ module.exports = {
             }).then((embed) => sendResponse(embed))
         } else if (args[0] == "play") {
             //setup
-                //select ruleset
-                //select tournament/practice mode
-                //set bracket/round
-                //join match
-                //click play
-                    //adds botto if down a player
-            
+            //select ruleset
+            //select tournament/practice mode
+            //set bracket/round
+            //join match
+            //click play
+            //adds botto if down a player
+
             //play
-                //reminders
-                    //ruleset
-	                //verify all pods/tracks/upgrades are unlocked
-	                //verify that your stream is running smoothly
-	                //if broadcasting, check that game music is disabled
-                //ready up for first race
+            //reminders
+            //ruleset
+            //verify all pods/tracks/upgrades are unlocked
+            //verify that your stream is running smoothly
+            //if broadcasting, check that game music is disabled
+            //ready up for first race
 
 
 
