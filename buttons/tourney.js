@@ -3383,8 +3383,8 @@ module.exports = {
                     if (args[3] == "rename") {
                         if(args.length > 4 && args[4] == "submit"){
                             var newname = interaction.data.components[0].components[0].value.trim()
-                            tourney_rulesets.child("new").child(interaction.member.user.id).child("name").set(newname)
-                            rulesetEmbed.setTitle(newname)
+                            var desc = interaction.data.components[0].components[1].value.trim()
+                            tourney_rulesets.child("new").child(interaction.member.user.id).update({name: newname, description: desc})
                         } else {
                             modal = true
                             client.api.interactions(interaction.id, interaction.token).callback.post({
@@ -3406,6 +3406,16 @@ module.exports = {
                                                         max_length: 100,
                                                         required: true,
                                                         value:  tourney_rulesets_data.new[interaction.member.user.id].name
+                                                    },
+                                                    {
+                                                        type: 4,
+                                                        custom_id: "description",
+                                                        label: "Description",
+                                                        style: 2,
+                                                        min_length: 0,
+                                                        max_length: 300,
+                                                        required: false,
+                                                        value:  tourney_rulesets_data.new[interaction.member.user.id].description
                                                     }
     
                                                 ]
@@ -3442,15 +3452,21 @@ module.exports = {
                                 components: [
                                     {
                                         type: 2,
-                                        label: "Rename",
+                                        label: "Name and Description",
                                         style: 1,
                                         custom_id: "tourney_rulesets_new_finalize_rename",
+                                        emoji: {
+                                            name: "✏️"
+                                        }
                                     },
                                     {
                                         type: 2,
                                         label: "Save",
                                         style: 3,
                                         custom_id: "tourney_rulesets_new_finalize_save",
+                                        emoji: {
+                                            name: "💾"
+                                        }
                                     }
                                 ]
                             }
@@ -3563,59 +3579,52 @@ module.exports = {
                     var races = Object.values(tourney_rulesets_data.new[interaction.member.user.id].races)
 
                     if (args[3] == "time") {
-                        type = 7
-                        client.api.webhooks(client.user.id, interaction.token).post({
-                            data: {
-                                content: "Send the time limit in this channel. Ex: `15:00.000`",
-                                flags: 64
-                            }
-                        })
-
-                        async function sendResponse() {
-                            response = await client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({
-                                data: {
-                                    embeds: [rulesetEmbed],
-                                    components: components
-                                }
-                            })
-                            return response
-                        }
-                        const collector = new Discord.MessageCollector(client.channels.cache.get(interaction.channel_id), m => m.author.id == interaction.member.user.id, { max: 1, time: 300000 }); //messages
-                        collector.on('collect', message => {
+                        if(args.length > 4 && args[4] == "submit"){
                             var race = Number(args[2].replace("race", "")) - 1
                             var races = tourney_rulesets_data.new[interaction.member.user.id].races
-                            races[race].time = tools.timetoSeconds(message.content)
+                            races[race].time = tools.timetoSeconds(interaction.data.components[0].components[0].value.trim())
+                            races[race].penalty = tools.timetoSeconds(interaction.data.components[0].components[1].value.trim())
                             tourney_rulesets.child("new").child(interaction.member.user.id).update({ races: races })
-                            //components[1].components[0].disabled = false
-                            message.delete().then(sendResponse())
-                        })
-                    } else if (args[3] == "penalty") {
-                        type = 7
-                        client.api.webhooks(client.user.id, interaction.token).post({
-                            data: {
-                                content: "Send the penalty time in this channel. Ex: `15:00.000`",
-                                flags: 64
-                            }
-                        })
-
-                        async function sendResponse() {
-                            response = await client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({
+                        } else {
+                            modal = true
+                            client.api.interactions(interaction.id, interaction.token).callback.post({
                                 data: {
-                                    embeds: [rulesetEmbed],
-                                    components: components
+                                    type: 9,
+                                    data: {
+                                        custom_id: "tourney_rulesets_new_" + args[2] + "_time",
+                                        title: "Set Race " + Number(args[2].replace("race", "")) + " Times",
+                                        components: [
+                                            {
+                                                type: 1,
+                                                components: [
+                                                    {
+                                                        type: 4,
+                                                        custom_id: "limit",
+                                                        label: "Time Limit",
+                                                        style: 1,
+                                                        min_length: 6,
+                                                        max_length: 10,
+                                                        required: true,
+                                                        value:  tourney_rulesets_data.new[interaction.member.user.id].races[Number(args[2].replace("race", ""))-1].time
+                                                    },
+                                                    {
+                                                        type: 4,
+                                                        custom_id: "penalty",
+                                                        label: "Penalty Time",
+                                                        style: 1,
+                                                        min_length: 6,
+                                                        max_length: 10,
+                                                        required: true,
+                                                        value:  tourney_rulesets_data.new[interaction.member.user.id].races[Number(args[2].replace("race", ""))-1].penalty
+                                                    }
+    
+                                                ]
+                                            }
+                                        ]
+                                    }
                                 }
                             })
-                            return response
                         }
-                        const collector = new Discord.MessageCollector(client.channels.cache.get(interaction.channel_id), m => m.author.id == interaction.member.user.id, { max: 1, time: 300000 }); //messages
-                        collector.on('collect', message => {
-                            var race = Number(args[2].replace("race", "")) - 1
-                            var races = tourney_rulesets_data.new[interaction.member.user.id].races
-                            races[race].penalty = tools.timetoSeconds(message.content)
-                            tourney_rulesets.child("new").child(interaction.member.user.id).update({ races: races })
-                            //components[1].components[0].disabled = false
-                            message.delete().then(sendResponse())
-                        })
                     }
 
                     var track_options = []
@@ -3753,22 +3762,17 @@ module.exports = {
                                 components: [
                                     {
                                         type: 2,
-                                        label: "Set Time Limit",
+                                        label: "Time Limit & Penalty Time",
                                         style: 1,
-                                        custom_id: "tourney_rulesets_new_" + args[2] + "_time"
-                                    },
-                                    {
-                                        type: 2,
-                                        label: "Set Penalty Time",
-                                        style: 1,
-                                        custom_id: "tourney_rulesets_new_" + args[2] + "_penalty"
+                                        custom_id: "tourney_rulesets_new_" + args[2] + "_time_submit",
+                                        emoji: {
+                                            name: "⏱️"
+                                        }
                                     }
                                 ]
                             }
                         )
                     }
-                    //time limit
-                    //penalty time
                 } else if (args[2] == "rta") {
                     var circuit_options = [
                         {
