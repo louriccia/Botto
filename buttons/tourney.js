@@ -1863,7 +1863,7 @@ module.exports = {
                     if (interaction.data.hasOwnProperty("values") && !interaction.data.values[0].includes("offset")) {
                         var ruleset = tourney_rulesets_data.saved[interaction.data.values[0]]
                         rulesetEmbed.setTitle(":scroll: Rulesets: " + ruleset.name)
-                            .setDescription("Type: " + emojis[ruleset.type] + " " + ruleset.type)
+                            .setDescription("Type: " + emojis[ruleset.type] + " " + ruleset.type + "\n" + ruleset.description)
                             .addFields(showRuleset(ruleset))
                             .setFooter(client.guilds.resolve(interaction.guild_id).members.resolve(ruleset.author).user.username, client.guilds.resolve(interaction.guild_id).members.resolve(ruleset.author).user.avatarURL())
                         buttons.push(
@@ -3407,6 +3407,11 @@ module.exports = {
                                                         required: true,
                                                         value: tourney_rulesets_data.new[interaction.member.user.id].name
                                                     },
+                                                ]
+                                            },
+                                            {
+                                                type: 1,
+                                                components: [
                                                     {
                                                         type: 4,
                                                         custom_id: "description",
@@ -3458,12 +3463,7 @@ module.exports = {
                                         emoji: {
                                             name: "✏️"
                                         }
-                                    }
-                                ]
-                            },
-                            {
-                                type: 1,
-                                components: [
+                                    },
                                     {
                                         type: 2,
                                         label: "Save",
@@ -3472,6 +3472,7 @@ module.exports = {
                                         emoji: {
                                             name: "💾"
                                         }
+
                                     }
                                 ]
                             }
@@ -3610,6 +3611,7 @@ module.exports = {
                                                         min_length: 6,
                                                         max_length: 10,
                                                         required: true,
+                                                        placeholder: "--:--.---",
                                                         value: tools.timefix(tourney_rulesets_data.new[interaction.member.user.id].races[Number(args[2].replace("race", "")) - 1].time)
                                                     }
                                                 ]
@@ -3625,6 +3627,7 @@ module.exports = {
                                                         min_length: 6,
                                                         max_length: 10,
                                                         required: true,
+                                                        placeholder: "--:--.---",
                                                         value: tools.timefix(tourney_rulesets_data.new[interaction.member.user.id].races[Number(args[2].replace("race", "")) - 1].penalty)
                                                     }
                                                 ]
