@@ -3383,7 +3383,7 @@ module.exports = {
                     if (args[3] == "rename") {
                         if (args.length > 4 && args[4] == "submit") {
                             var newname = interaction.data.components[0].components[0].value.trim()
-                            var desc = interaction.data.components[0].components[1].value.trim()
+                            var desc = interaction.data.components[1].components[0].value.trim()
                             tourney_rulesets.child("new").child(interaction.member.user.id).update({ name: newname, description: desc })
                         } else {
                             modal = true
@@ -3458,7 +3458,12 @@ module.exports = {
                                         emoji: {
                                             name: "✏️"
                                         }
-                                    },
+                                    }
+                                ]
+                            },
+                            {
+                                type: 1,
+                                components: [
                                     {
                                         type: 2,
                                         label: "Save",
