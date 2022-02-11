@@ -1504,7 +1504,7 @@ module.exports = {
                     }
 
                     rulesetEmbed
-                        .setDescription("Ruleset Type: 🆚 1v1")
+                        .setDescription("Ruleset Type: 🆚 1v1" + "\n" + ruleset.description)
                     var fields = []
                     //wins
                     var field = {}
@@ -1678,10 +1678,10 @@ module.exports = {
                         l5: "5 Laps"
                     }
                     rulesetEmbed
-                        .setDescription("Ruleset Type: 🏆 1vAll")
+                        .setDescription("Ruleset Type: 🏆 1vAll"  + "\n" + ruleset.description)
                     if (ruleset.type == "Qualifier") {
                         rulesetEmbed
-                            .setDescription("Ruleset Type: ⏱️ Qualifier")
+                        .setDescription("Ruleset Type: ⏱️ Qualifier"  + "\n" + ruleset.description)
                     }
                     var fields = []
                     //races
