@@ -3605,7 +3605,7 @@ module.exports = {
                                                         min_length: 6,
                                                         max_length: 10,
                                                         required: true,
-                                                        value:  tourney_rulesets_data.new[interaction.member.user.id].races[Number(args[2].replace("race", ""))-1].time
+                                                        value:  tools.timefix(tourney_rulesets_data.new[interaction.member.user.id].races[Number(args[2].replace("race", ""))-1].time)
                                                     },
                                                     {
                                                         type: 4,
@@ -3615,7 +3615,7 @@ module.exports = {
                                                         min_length: 6,
                                                         max_length: 10,
                                                         required: true,
-                                                        value:  tourney_rulesets_data.new[interaction.member.user.id].races[Number(args[2].replace("race", ""))-1].penalty
+                                                        value:  tools.timefix(tourney_rulesets_data.new[interaction.member.user.id].races[Number(args[2].replace("race", ""))-1].penalty)
                                                     }
     
                                                 ]
