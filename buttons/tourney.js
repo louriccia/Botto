@@ -1336,7 +1336,7 @@ module.exports = {
                 "1v1": "🆚",
                 "1vAll": "👑",
                 "Qualifier": "⏳",
-                "Real-Time Attack": "⏱️"
+                "RTA": "⏱️"
             }
 
             function showRuleset(ruleset) {
@@ -1727,7 +1727,7 @@ module.exports = {
                 }
             }
             var modal = false
-            if (args[1] == "edit") {
+            if (args[1] == "edit") { //edit existing ruleset
                 var key = args.slice(2).join("_")
                 var ruleset = tourney_rulesets_data.saved[key]
                 if (ruleset.author !== interaction.member.user.id) {
@@ -1752,7 +1752,7 @@ module.exports = {
                 }
                 type = 4
                 flags = 64
-            } else if (args[1] == "clone") {
+            } else if (args[1] == "clone") { //clone existing ruleset
                 var key = args.slice(2).join("_")
                 var ruleset = tourney_rulesets_data.saved[key]
                 ruleset.author = interaction.member.user.id
@@ -1765,7 +1765,7 @@ module.exports = {
                 }
                 type = 4
                 flags = 64
-            } else if (args[1] == "delete") {
+            } else if (args[1] == "delete") { //delete existing ruleset
                 var key = args.slice(2).join("_")
                 var ruleset = tourney_rulesets_data.saved[key]
                 if (ruleset.author !== interaction.member.user.id) {
@@ -1785,11 +1785,9 @@ module.exports = {
                     args[1] = "browse"
                     args[2] = 0
                 }
-            }
-            if (args[1] == "refresh") {
+            } else if (args[1] == "refresh") { //refresh ruleset list
                 args[1] = "browse"
-            }
-            if (args[1] == "browse") {
+            } else if (args[1] == "browse") { //browse ruleset list
                 rulesetEmbed.setTitle(":scroll: Rulesets")
                     .setDescription("This is the tournament ruleset manager. Browse existing rulesets using the dropdown below or make your own by pressing the New button.\n\n:grey_question: To learn more about making rulesets, watch [this video](https://youtu.be/fExzuOvn6iY)")
                 var buttons = [
@@ -1912,7 +1910,7 @@ module.exports = {
                     type: 1,
                     components: buttons
                 })
-            } else if (args[1] == "type") {
+            } else if (args[1] == "type") { //select type for new ruleset
                 flags = 64
                 type = 4
                 if (![null, undefined].includes(tourney_rulesets_data)) {
@@ -2039,7 +2037,7 @@ module.exports = {
                 )
             } else if (args[1] == "new") {
 
-                if (args[2] == "create") {
+                if (args[2] == "create") { //initial setup for new ruleset
                     var ruleset_type = "1v1"
                     for (var i = 0; i < interaction.message.components[0].components[0].options.length; i++) { //track
                         var option = interaction.message.components[0].components[0].options[i]
@@ -2126,7 +2124,7 @@ module.exports = {
                     }
 
                 }
-                if (interaction.data.hasOwnProperty("values")) {
+                if (interaction.data.hasOwnProperty("values")) { //update ruleset options in database
                     if (args[2] == "navigate") {
                         args[2] = interaction.data.values[0]
                     } else if (![undefined, "initial", "rename", "save", "races"].includes(args[3])) {
@@ -2138,14 +2136,10 @@ module.exports = {
                             if (args[3] == "track") {
                                 data = interaction.data.values[0]
                                 races[race].track = data
-                            } else if (args[3] == "conditions") {
-                                races[race].conditions = data
-                            } else if (args[3] == "pods") {
-                                races[race].pods = data
-                            }
+                            } 
                             tourney_rulesets.child("new").child(interaction.member.user.id).update({ races: races })
                         } else {
-                            if (!["default", "firsttrack", "podpods", "tracktracks", "conoptions", "ttrackmlimit", "tpodmlimit", "tconmlimit", "wins"].includes(args[3])) {
+                            if (!["default", "firsttrack", "podpods", "tracktracks", "conoptions", "ttrackmlimit", "tpodmlimit", "tconmlimit", "wins", "conditions"].includes(args[3])) {
                                 data = interaction.data.values[0]
                             }
                             tourney_rulesets.child("new").child(interaction.member.user.id).child(args[3]).set(data)
@@ -3648,7 +3642,7 @@ module.exports = {
                                 components: [
                                     {
                                         type: 3,
-                                        custom_id: "tourney_rulesets_new_" + ruleset.type + "_pods",
+                                        custom_id: "tourney_rulesets_new_" + ruleset.type + "_podpods",
                                         options: pod_options,
                                         placeholder: "Pod Options",
                                         min_values: 1,
