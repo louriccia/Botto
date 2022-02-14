@@ -2036,7 +2036,6 @@ module.exports = {
 
                 )
             } else if (args[1] == "new") {
-
                 if (args[2] == "create") { //initial setup for new ruleset
                     var ruleset_type = "1v1"
                     for (var i = 0; i < interaction.message.components[0].components[0].options.length; i++) { //track
@@ -3764,7 +3763,7 @@ module.exports = {
                 } 
 
                 if (![null, undefined].includes(tourney_rulesets_data)) {
-                    if (![null, undefined].includes(tourney_rulesets_data.new)) {
+                    if (![null, undefined].includes(tourney_rulesets_data.new) && args[3] !== "save"){
                         rulesetEmbed.addFields(showRuleset(tourney_rulesets_data.new[interaction.member.user.id]))
                     }
                 }
