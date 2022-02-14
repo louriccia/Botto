@@ -1993,7 +1993,7 @@ module.exports = {
                     {
                         label: "Real-Time Attack",
                         value: "RTA",
-                        emoji: { name: emojis["Real-Time Attack"] },
+                        emoji: { name: emojis["RTA"] },
                         description: "Players race a full circuit of tracks against the clock"
                     }
                 ]
@@ -2100,7 +2100,6 @@ module.exports = {
                             name: interaction.member.user.username + "'s Unnamed " + ruleset_type + " Ruleset",
                             description: "",
                             author: interaction.member.user.id,
-                            circuit: "amc",
                             conditions: ["mu", "ft", "l3"],
                             podmethod: "player_pick",
                             podpods: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22"],
