@@ -1787,7 +1787,8 @@ module.exports = {
                 }
             } else if (args[1] == "refresh") { //refresh ruleset list
                 args[1] = "browse"
-            } else if (args[1] == "browse") { //browse ruleset list
+            }
+            if (args[1] == "browse") { //browse ruleset list
                 rulesetEmbed.setTitle(":scroll: Rulesets")
                     .setDescription("This is the tournament ruleset manager. Browse existing rulesets using the dropdown below or make your own by pressing the New button.\n\n:grey_question: To learn more about making rulesets, watch [this video](https://youtu.be/fExzuOvn6iY)")
                 var buttons = [
@@ -2294,10 +2295,6 @@ module.exports = {
                 } else if (ruleset.type == "Bingo") {
 
                 }
-
-                rulesetEmbed
-                    .setTitle(tourney_rulesets_data.new[interaction.member.user.id].name)
-                    .setFooter(interaction.member.user.username, client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
 
                 if (args[2] == "general") {
                     var win_options = []
@@ -3340,6 +3337,7 @@ module.exports = {
                         if (args.length > 4 && args[4] == "submit") {
                             var newname = interaction.data.components[0].components[0].value.trim()
                             var desc = interaction.data.components[1].components[0].value.trim()
+                            
                             tourney_rulesets.child("new").child(interaction.member.user.id).update({ name: newname, description: desc })
                         } else {
                             modal = true
@@ -3762,6 +3760,9 @@ module.exports = {
                     }
                 } 
 
+                rulesetEmbed
+                    .setTitle(tourney_rulesets_data.new[interaction.member.user.id].name)
+                    .setFooter(interaction.member.user.username, client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
                 if (![null, undefined].includes(tourney_rulesets_data)) {
                     if (![null, undefined].includes(tourney_rulesets_data.new) && args[3] !== "save"){
                         rulesetEmbed.addFields(showRuleset(tourney_rulesets_data.new[interaction.member.user.id]))
