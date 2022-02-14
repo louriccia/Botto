@@ -2104,11 +2104,12 @@ module.exports = {
                             circuit: "amc",
                             conditions: ["mu", "ft", "l3"],
                             podmethod: "player_pick",
+                            podpods: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22"],
                             poollimit: 1,
                             racenum: 7,
                             races: []
                         }
-                        for (i = 0; i < 14; i++) {
+                        for (i = 0; i < 7; i++) {
                             ruleset.races.push(
                                 {
                                     track: String(i),
@@ -2363,10 +2364,6 @@ module.exports = {
                             label: "No Upgrades",
                             value: "nu"
                         },
-                        /*{
-                            label: "Unmirrored",
-                            value: "um"
-                        },*/
                         {
                             label: "Mirrored",
                             value: "mi"
@@ -3498,8 +3495,8 @@ module.exports = {
                             value: "ng"
                         },
                         {
-                            label: "New Game +",
-                            value: "ngp"
+                            label: "Free Play",
+                            value: "fp"
                         },
                         {
                             label: "No Junkyard",
@@ -3515,6 +3512,7 @@ module.exports = {
                             conoptions[i].default = true
                         }
                     }
+                    
                     var pod_options = []
                     for (var i = 0; i < 23; i++) {
                         var racer_option = {
@@ -3526,12 +3524,11 @@ module.exports = {
                                 id: racers[i].flag.split(":")[2].replace(">", "")
                             }
                         }
-                        if (races[race_num].pods.includes(String(racer_option.value))) {
+                        if (tourney_rulesets_data.new[interaction.member.user.id].conditions.podpods.includes(String(racer_option.value))) {
                             racer_option.default = true
                         }
                         pod_options.push(racer_option)
                     }
-
                     var race_options = []
                     for (i = 3; i < 15; i++) {
                         race_options.push(
@@ -3580,8 +3577,8 @@ module.exports = {
                                 {
                                     type: 3,
                                     custom_id: "tourney_rulesets_new_" + ruleset.type + "_conditions",
-                                    options: race_options,
-                                    placeholder: "Number of Races",
+                                    options: conoptions,
+                                    placeholder: "Default Conditions",
                                     min_values: 1,
                                     max_values: 1
                                 }
