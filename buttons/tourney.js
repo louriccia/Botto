@@ -1720,11 +1720,6 @@ module.exports = {
                         field = {}
                         field.name = ":triangular_flag_on_post: Race " + (i + 1)
                         field.value = planets[tracks[Number(ruleset.races[i].track)].planet].emoji + " **" + tracks[Number(ruleset.races[i].track)].name + "**\n"
-                        var cons = []
-                        for (j = 0; j < ruleset.races[i].conditions.length; j++) {
-                            cons.push("`" + conditions[ruleset.races[i].conditions[j]] + "`")
-                        }
-                        field.value += cons.join(" ") + "\n"
                         
                         if (ruleset.type == "Qualifier") {
                             field.value += "`" + tools.timefix(ruleset.races[i].time).replace(".000", "") + " Time Limit`\n"
