@@ -1663,7 +1663,7 @@ module.exports = {
                     fields.push(field)
                     //construct fields
                     return fields
-                } else if (["1vAll", "Qualifier", "Real-Time Attack"].includes(ruleset.type)) {
+                } else if (["1vAll", "Qualifier", "RTA"].includes(ruleset.type)) {
                     conditions = {
                         mu: "Upgrades Allowed",
                         nu: "No Upgrades",
@@ -1684,6 +1684,17 @@ module.exports = {
                     rulesetEmbed
                         .setDescription("Ruleset Type: " + emojis[ruleset.type] + " " + ruleset.type + "\n" + ruleset.description)
                     var fields = []
+                    //default conditions
+                    var field = {}
+                    field.name = ":eight_spoked_asterisk: Default Conditions"
+                    var cond = Object.values(ruleset.conditions)
+                    var cons = []
+                    cond.forEach(con => {
+                        cons.push("`" + conditions[con] + "`")
+                    })
+                    field.value = cons.join(" ")
+                    field.inline = true
+                    fields.push(field)
                     //races
                     var field = {}
                     field.name = ":checkered_flag: Races"
@@ -1696,6 +1707,9 @@ module.exports = {
                     field.value = "`" + methods[ruleset.podmethod] + "`\n"
                     if (ruleset.podmethod == "pod_pool") {
                         field.value += "`" + ruleset.poollimit + " Uses Per Pod`"
+                    }
+                    if (["player_pick", "limited_choice"].includes(ruleset.podmethod)) {
+                        field.value += podSelection(Object.values(ruleset.podpods)) + "\n"
                     }
                     field.inline = true
                     fields.push(field)
@@ -1711,9 +1725,7 @@ module.exports = {
                             cons.push("`" + conditions[ruleset.races[i].conditions[j]] + "`")
                         }
                         field.value += cons.join(" ") + "\n"
-                        if (["player_pick", "limited_choice"].includes(ruleset.podmethod)) {
-                            field.value += podSelection(Object.values(ruleset.races[i].pods)) + "\n"
-                        }
+                        
                         if (ruleset.type == "Qualifier") {
                             field.value += "`" + tools.timefix(ruleset.races[i].time).replace(".000", "") + " Time Limit`\n"
                             field.value += "`" + tools.timefix(ruleset.races[i].penalty).replace(".000", "") + " Penalty Time`"
@@ -3515,7 +3527,7 @@ module.exports = {
                     
                     
                     var race_options = []
-                    for (i = 3; i < 15; i++) {
+                    for (i = 3; i < 8; i++) {
                         race_options.push(
                             {
                                 label: i + " Races",
@@ -3651,7 +3663,7 @@ module.exports = {
                                         options: pod_options,
                                         placeholder: "Pod Options",
                                         min_values: 1,
-                                        max_values: 25
+                                        max_values: 23
                                     }
                                 ]
 
