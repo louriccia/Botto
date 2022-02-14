@@ -1686,19 +1686,13 @@ module.exports = {
                     var fields = []
                     //default conditions
                     var field = {}
-                    field.name = ":eight_spoked_asterisk: Default Conditions"
+                    field.name = ":eight_spoked_asterisk: Conditions"
                     var cond = Object.values(ruleset.conditions)
                     var cons = []
                     cond.forEach(con => {
                         cons.push("`" + conditions[con] + "`")
                     })
                     field.value = cons.join(" ")
-                    field.inline = true
-                    fields.push(field)
-                    //races
-                    var field = {}
-                    field.name = ":checkered_flag: Races"
-                    field.value = "`" + ruleset.racenum + "`"
                     field.inline = true
                     fields.push(field)
                     //pod selection
@@ -3754,38 +3748,8 @@ module.exports = {
                                     max_values: 1
                                 }
                             ]
-                        },
-                        {
-                            type: 1,
-                            components: [
-                                {
-                                    type: 3,
-                                    custom_id: "tourney_rulesets_new_" + args[2] + "_conditions",
-                                    options: conoptions,
-                                    placeholder: "Track Conditions",
-                                    min_values: 3,
-                                    max_values: 4
-                                }
-                            ]
                         }
                     )
-                    if (["player_pick", "limited_choice"].includes(tourney_rulesets_data.new[interaction.member.user.id].podmethod)) {
-                        components.push(
-                            {
-                                type: 1,
-                                components: [
-                                    {
-                                        type: 3,
-                                        custom_id: "tourney_rulesets_new_" + args[2] + "_pods",
-                                        options: pod_options,
-                                        placeholder: "Pod Selection Method",
-                                        min_values: 1,
-                                        max_values: 23
-                                    }
-                                ]
-                            }
-                        )
-                    }
                     if (tourney_rulesets_data.new[interaction.member.user.id].type == "Qualifier") {
                         components.push(
                             {
