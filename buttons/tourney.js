@@ -1663,26 +1663,26 @@ module.exports = {
                     fields.push(field)
                     //construct fields
                     return fields
-                } else if (ruleset.type == "1vAll" || ruleset.type == "Qualifier") {
+                } else if (["1vAll", "Qualifier", "Real-Time Attack"].includes(ruleset.type)) {
                     conditions = {
-                        mu: "MU",
-                        nu: "NU",
-                        ft: "FT",
+                        mu: "Upgrades Allowed",
+                        nu: "No Upgrades",
+                        ft: "Full Track",
                         sk: "Skips",
-                        //um: "Unmirrored",
                         mi: "Mirrored",
                         l1: "1 Lap",
                         l2: "2 Laps",
                         l3: "3 Laps",
                         l4: "4 Laps",
-                        l5: "5 Laps"
+                        l5: "5 Laps",
+                        fl: "Fast Lap",
+                        ng: "New Game",
+                        fp: "Free Play",
+                        nj: "No Junkyard",
+                        ch: "Cheats Allowed"
                     }
                     rulesetEmbed
-                        .setDescription("Ruleset Type: 🏆 1vAll"  + "\n" + ruleset.description)
-                    if (ruleset.type == "Qualifier") {
-                        rulesetEmbed
-                        .setDescription("Ruleset Type: ⏱️ Qualifier"  + "\n" + ruleset.description)
-                    }
+                        .setDescription("Ruleset Type: " + emojis[ruleset.type] + " " + ruleset.type + "\n" + ruleset.description)
                     var fields = []
                     //races
                     var field = {}
@@ -1983,7 +1983,7 @@ module.exports = {
                         label: "1vAll",
                         value: "1vAll",
                         emoji: { name: emojis["1vAll"] },
-                        description: "Players race against all other competitors in a set of races"
+                        description: "Players race against all other competitors in a circuit of races"
                     },
                     {
                         label: "Qualifier",
@@ -1993,7 +1993,7 @@ module.exports = {
                     },
                     {
                         label: "Real-Time Attack",
-                        value: "Real-Time Attack",
+                        value: "RTA",
                         emoji: { name: emojis["Real-Time Attack"] },
                         description: "Players race a full circuit of tracks against the clock"
                     }
@@ -2054,32 +2054,11 @@ module.exports = {
                         .setDescription("create a ruleset")
 
                     var ruleset = {}
-                    if (ruleset_type == "Qualifier") {
-                        ruleset = {
-                            type: "Qualifier",
-                            name: interaction.member.user.username + "'s Unnamed Qualifier Ruleset",
-                            author: interaction.member.user.id,
-                            podmethod: "player_pick",
-                            poollimit: 1,
-                            racenum: 7,
-                            races: []
-                        }
-                        for (i = 0; i < 14; i++) {
-                            ruleset.races.push(
-                                {
-                                    track: String(i),
-                                    conditions: ["mu", "ft", "l3"],
-                                    time: 600,
-                                    penalty: 300,
-                                    pods: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22"]
-                                }
-                            )
-                        }
-                        args[2] = "Qualifier"
-                    } else if (ruleset_type == "1v1") {
+                    if (ruleset_type == "1v1") {
                         ruleset = {
                             type: "1v1",
                             name: interaction.member.user.username + "'s Unnamed 1v1 Ruleset",
+                            description: "",
                             author: interaction.member.user.id,
                             wins: ["5_max"],
                             default: ["mu", "ft", "l3"],
@@ -2116,11 +2095,14 @@ module.exports = {
                             poollimit: 1
                         }
                         args[2] = "general"
-                    } else if (ruleset_type == "1vAll") {
+                    } else if (["Qualifier", "1vAll", "RTA"].includes(ruleset_type)) {
                         ruleset = {
-                            type: "1vAll",
-                            name: interaction.member.user.username + "'s Unnamed 1vAll Ruleset",
+                            type: ruleset_type,
+                            name: interaction.member.user.username + "'s Unnamed " + ruleset_type + " Ruleset",
+                            description: "",
                             author: interaction.member.user.id,
+                            circuit: "amc",
+                            conditions: ["mu", "ft", "l3"],
                             podmethod: "player_pick",
                             poollimit: 1,
                             racenum: 7,
@@ -2130,24 +2112,13 @@ module.exports = {
                             ruleset.races.push(
                                 {
                                     track: String(i),
-                                    conditions: ["mu", "ft", "l3"],
-                                    pods: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22"]
+                                    time: 600,
+                                    penalty: 300
                                 }
                             )
                         }
-                        args[2] = "1vAll"
-                    } else if (ruleset_type == "Real-Time Attack") {
-                        ruleset = {
-                            type: "Real-Time Attack",
-                            name: interaction.member.user.username + "'s Unnamed Real-Time Attack Ruleset",
-                            author: interaction.member.user.id,
-                            podmethod: "player_pick",
-                            circuits: ["0"],
-                            poollimit: 1,
-                            racenum: 7,
-                        }
-                        args[2] = "Qualifier"
-                    }
+                        args[2] = ruleset_type
+                    } 
                     if (ruleset !== {}) {
                         tourney_rulesets.child("new").child(interaction.member.user.id).set(ruleset)
                     }
@@ -2280,7 +2251,7 @@ module.exports = {
                             }
                         ]
                     })
-                } else if (ruleset.type == "1vAll" || ruleset.type == "Qualifier") {
+                } else if (["1vAll", "Qualifier", "RTA"].includes(ruleset.type)) {
                     var options = [
                         {
                             label: "General Settings",
@@ -2326,18 +2297,13 @@ module.exports = {
                             }
                         ]
                     })
-                } else if (ruleset.type == "Real-Time Attack") {
-
                 } else if (ruleset.type == "Bingo") {
 
                 }
 
-
                 rulesetEmbed
                     .setTitle(tourney_rulesets_data.new[interaction.member.user.id].name)
                     .setFooter(interaction.member.user.username, client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
-
-
 
                 if (args[2] == "general") {
                     var win_options = []
@@ -3481,7 +3447,91 @@ module.exports = {
 
 
 
-                } else if (args[2] == "1vAll" || args[2] == "Qualifier") {
+                } else if (["1vAll","Qualifier","RTA"].includes(args[2])) {
+                    var conoptions = [
+                        {
+                            label: "Full Track",
+                            value: "ft"
+                        },
+                        {
+                            label: "Skips",
+                            value: "sk"
+                        },
+                        {
+                            label: "Max Upgrades",
+                            value: "mu"
+                        },
+                        {
+                            label: "No Upgrades",
+                            value: "nu"
+                        },
+                        {
+                            label: "Mirrored",
+                            value: "mi"
+                        },
+                        {
+                            label: "1 Lap",
+                            value: "l1"
+                        },
+                        {
+                            label: "2 Lap",
+                            value: "l2"
+                        },
+                        {
+                            label: "3 Lap",
+                            value: "l3"
+                        },
+                        {
+                            label: "4 Lap",
+                            value: "l4"
+                        },
+                        {
+                            label: "5 Lap",
+                            value: "l5"
+                        },
+                        {
+                            label: "Fast Lap",
+                            value: "fl"
+                        },
+                        {
+                            label: "New Game",
+                            value: "ng"
+                        },
+                        {
+                            label: "New Game +",
+                            value: "ngp"
+                        },
+                        {
+                            label: "No Junkyard",
+                            value: "nj"
+                        },
+                        {
+                            label: "Cheats Allowed",
+                            value: "ch"
+                        }
+                    ]
+                    for (i = 0; i < conoptions.length; i++) {
+                        if (tourney_rulesets_data.new[interaction.member.user.id].conditions.includes(conoptions[i].value)) {
+                            conoptions[i].default = true
+                        }
+                    }
+                    var pod_options = []
+                    for (var i = 0; i < 23; i++) {
+                        var racer_option = {
+                            label: racers[i].name,
+                            value: i,
+                            description: racers[i].pod.substring(0, 50),
+                            emoji: {
+                                name: racers[i].flag.split(":")[1],
+                                id: racers[i].flag.split(":")[2].replace(">", "")
+                            }
+                        }
+                        if (races[race_num].pods.includes(String(racer_option.value))) {
+                            racer_option.default = true
+                        }
+                        pod_options.push(racer_option)
+                    }
+
                     var race_options = []
                     for (i = 3; i < 15; i++) {
                         race_options.push(
@@ -3524,6 +3574,19 @@ module.exports = {
                         }
                     }
                     components.push(
+                        {
+                            type: 1,
+                            components: [
+                                {
+                                    type: 3,
+                                    custom_id: "tourney_rulesets_new_" + ruleset.type + "_conditions",
+                                    options: race_options,
+                                    placeholder: "Number of Races",
+                                    min_values: 1,
+                                    max_values: 1
+                                }
+                            ]
+                        },
                         {
                             type: 1,
                             components: [
@@ -3655,73 +3718,7 @@ module.exports = {
                         }
                         track_options.push(track_option)
                     }
-                    var conoptions = [
-                        {
-                            label: "Full Track",
-                            value: "ft"
-                        },
-                        {
-                            label: "Skips",
-                            value: "sk"
-                        },
-                        {
-                            label: "Max Upgrades",
-                            value: "mu"
-                        },
-                        {
-                            label: "No Upgrades",
-                            value: "nu"
-                        },
-                        /*{
-                            label: "Unmirrored",
-                            value: "um"
-                        },*/
-                        {
-                            label: "Mirrored",
-                            value: "mi"
-                        },
-                        {
-                            label: "1 Lap",
-                            value: "l1"
-                        },
-                        {
-                            label: "2 Lap",
-                            value: "l2"
-                        },
-                        {
-                            label: "3 Lap",
-                            value: "l3"
-                        },
-                        {
-                            label: "4 Lap",
-                            value: "l4"
-                        },
-                        {
-                            label: "5 Lap",
-                            value: "l5"
-                        }
-                    ]
-                    for (i = 0; i < conoptions.length; i++) {
-                        if (races[race_num].conditions.includes(conoptions[i].value)) {
-                            conoptions[i].default = true
-                        }
-                    }
-                    var pod_options = []
-                    for (var i = 0; i < 23; i++) {
-                        var racer_option = {
-                            label: racers[i].name,
-                            value: i,
-                            description: racers[i].pod.substring(0, 50),
-                            emoji: {
-                                name: racers[i].flag.split(":")[1],
-                                id: racers[i].flag.split(":")[2].replace(">", "")
-                            }
-                        }
-                        if (races[race_num].pods.includes(String(racer_option.value))) {
-                            racer_option.default = true
-                        }
-                        pod_options.push(racer_option)
-                    }
+                    
                     components.push(
                         {
                             type: 1,
@@ -3785,148 +3782,7 @@ module.exports = {
                             }
                         )
                     }
-                } else if (args[2] == "rta") {
-                    var circuit_options = [
-                        {
-                            label: "Amateur Circuit",
-                            value: "amc",
-                            description: "players play through the entirety of the Amateur Circuit"
-                        },
-                        {
-                            label: "Semi-Pro Circuit",
-                            value: "spc",
-                            description: "players play through the entirety of the Semi-Pro Circuit"
-                        },
-                        {
-                            label: "Galactic Circuit",
-                            value: "gal",
-                            description: "players play through the entirety of the Galactic Circuit"
-                        },
-                        {
-                            label: "Invitational Circuit",
-                            value: "inv",
-                            description: "players play through the entirety of the Invitational Circuit"
-                        },
-                        {
-                            label: "Random Track Circuit (4 Tracks)",
-                            value: "r4",
-                            description: "players play through a circuit of 4 random tracks"
-                        },
-                        {
-                            label: "Random Track Circuit (5 Tracks)",
-                            value: "r5",
-                            description: "players play through a circuit of 5 random tracks"
-                        },
-                        {
-                            label: "Random Track Circuit (6 Tracks)",
-                            value: "r6",
-                            description: "players play through a circuit of 6 random tracks"
-                        },
-                        {
-                            label: "Random Track Circuit (7 Tracks)",
-                            value: "r7",
-                            description: "players play through a circuit of 7 random tracks"
-                        }
-                    ]
-                    for (i = 0; i < circuit_options.length; i++) {
-                        if (circuit_options[i].value == tourney_rulesets_data.new[interaction.member.user.id].circuit) {
-                            circuit_options[i].default = true
-                        }
-                    }
-
-                    var con_options = [
-                        {
-                            label: "New Game +",
-                            value: "ng"
-                        },
-                        {
-                            label: "Full Track",
-                            value: "ft"
-                        },
-                        {
-                            label: "Skips",
-                            value: "sk"
-                        },
-                        {
-                            label: "Max Upgrades",
-                            value: "mu"
-                        },
-                        {
-                            label: "No Upgrades",
-                            value: "nu"
-                        },
-                        {
-                            label: "Mirrored",
-                            value: "mi"
-                        },
-                        {
-                            label: "No Junkyard",
-                            value: "nj"
-                        },
-                        {
-                            label: "Cheats Allowed",
-                            value: "ca"
-                        }
-                    ]
-
-
-                    var gent_options = [
-                        {
-                            label: "Gentleman's Agreement: Allowed",
-                            value: "allowed"
-                        },
-                        {
-                            label: "Gentleman's Agreement: Disallowed",
-                            value: "disallowed"
-                        }
-                    ]
-                    for (i = 0; i < gent_options.length; i++) {
-                        if (gent_options[i].value == tourney_rulesets_data.new[interaction.member.user.id].gents) {
-                            gent_options[i].default = true
-                        }
-                    }
-                    components.push(
-                        {
-                            type: 1,
-                            components: [
-                                {
-                                    type: 3,
-                                    custom_id: "tourney_rulesets_new_general_wins",
-                                    options: win_options,
-                                    placeholder: "Set Win Conditions",
-                                    min_values: 1,
-                                    max_values: 3
-                                }
-                            ]
-                        },
-                        {
-                            type: 1,
-                            components: [
-                                {
-                                    type: 3,
-                                    custom_id: "tourney_rulesets_new_general_default",
-                                    options: con_options,
-                                    placeholder: "Set Default Conditions",
-                                    min_values: 4,
-                                    max_values: 4
-                                }
-                            ]
-                        },
-                        {
-                            type: 1,
-                            components: [
-                                {
-                                    type: 3,
-                                    custom_id: "tourney_rulesets_new_general_gents",
-                                    options: gent_options,
-                                    placeholder: "Gentleman's Agreement",
-                                    min_values: 1,
-                                    max_values: 1
-                                }
-                            ]
-                        }
-                    )
-                }
+                } 
 
                 if (![null, undefined].includes(tourney_rulesets_data)) {
                     if (![null, undefined].includes(tourney_rulesets_data.new)) {
