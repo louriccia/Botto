@@ -3513,22 +3513,7 @@ module.exports = {
                         }
                     }
                     
-                    var pod_options = []
-                    for (var i = 0; i < 23; i++) {
-                        var racer_option = {
-                            label: racers[i].name,
-                            value: i,
-                            description: racers[i].pod.substring(0, 50),
-                            emoji: {
-                                name: racers[i].flag.split(":")[1],
-                                id: racers[i].flag.split(":")[2].replace(">", "")
-                            }
-                        }
-                        if (tourney_rulesets_data.new[interaction.member.user.id].podpods.includes(String(racer_option.value))) {
-                            racer_option.default = true
-                        }
-                        pod_options.push(racer_option)
-                    }
+                    
                     var race_options = []
                     for (i = 3; i < 15; i++) {
                         race_options.push(
@@ -3580,7 +3565,7 @@ module.exports = {
                                     options: conoptions,
                                     placeholder: "Default Conditions",
                                     min_values: 1,
-                                    max_values: 1
+                                    max_values: 10
                                 }
                             ]
                         },
@@ -3629,11 +3614,44 @@ module.exports = {
                                 components: [
                                     {
                                         type: 3,
-                                        custom_id: "tourney_rulesets_new_podselect_poollimit",
+                                        custom_id: "tourney_rulesets_new_" + ruleset.type + "_poollimit",
                                         options: limits,
                                         placeholder: "Pod Pool Use Limit",
                                         min_values: 1,
                                         max_values: 1
+                                    }
+                                ]
+
+                            }
+                        )
+                    } else if (tourney_rulesets_data.new[interaction.member.user.id].podmethod == "limited_choice") {
+                        var pod_options = []
+                        for (var i = 0; i < 23; i++) {
+                            var racer_option = {
+                                label: racers[i].name,
+                                value: i,
+                                description: racers[i].pod.substring(0, 50),
+                                emoji: {
+                                    name: racers[i].flag.split(":")[1],
+                                    id: racers[i].flag.split(":")[2].replace(">", "")
+                                }
+                            }
+                            if (tourney_rulesets_data.new[interaction.member.user.id].podpods.includes(String(racer_option.value))) {
+                                racer_option.default = true
+                            }
+                            pod_options.push(racer_option)
+                        }
+                        components.push(
+                            {
+                                type: 1,
+                                components: [
+                                    {
+                                        type: 3,
+                                        custom_id: "tourney_rulesets_new_" + ruleset.type + "_pods",
+                                        options: pod_options,
+                                        placeholder: "Pod Options",
+                                        min_values: 1,
+                                        max_values: 25
                                     }
                                 ]
 
