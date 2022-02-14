@@ -3524,7 +3524,7 @@ module.exports = {
                                 id: racers[i].flag.split(":")[2].replace(">", "")
                             }
                         }
-                        if (tourney_rulesets_data.new[interaction.member.user.id].conditions.podpods.includes(String(racer_option.value))) {
+                        if (tourney_rulesets_data.new[interaction.member.user.id].podpods.includes(String(racer_option.value))) {
                             racer_option.default = true
                         }
                         pod_options.push(racer_option)
