@@ -5330,7 +5330,7 @@ module.exports = {
             if (args[1] == "setup") {
 
                 if (args[2] == "tournament") {
-                    tourney_live.child(interaction.channel_id).update({ tourney: interaction.data.values[0] })
+                    tourney_live.child(interaction.channel_id).update({ tourney: interaction.data.values[0], bracket: "", ruleset: "" })
                     type = 7
                 } else if (args[2] == "bracket") {
                     tourney_live.child(interaction.channel_id).update(
@@ -5340,23 +5340,27 @@ module.exports = {
                         }
                     )
                     type = 7
+                } else if (args[2] == "ruleset") {
+                    tourney_live.child(interaction.channel_id).update({ ruleset: interaction.data.values[0]})
+                    type = 7
                 } else if (args[2] == "player") {
-                    tourney_live.child(interaction.channel_id).update({ players: Object.values(tourney_live_data[interaction.channel_id].players).push(interaction.member.user.id) })
+                    if (tourney_live_data) { }
+                    tourney_live.child(interaction.channel_id).child("players").push(interaction.member.user.id)
                     type = 7
                 } else if (args[2] == "comm") {
-                    tourney_live.child(interaction.channel_id).update({ players: Object.values(tourney_live_data[interaction.channel_id].commentators).push(interaction.member.user.id) })
+                    tourney_live.child(interaction.channel_id).child("commentators").push(interaction.member.user.id)
                     type = 7
                 }
 
                 matchMaker = new Discord.MessageEmbed()
                     .setTitle("Match Setup")
-                    .setDescription("Tournament: `" + (tourney_live_data[interaction.channel_id].tourney == "" ? "" : tourney_tournaments_data[tourney_live_data[interaction.channel_id].tourney].name)  + "`\n" +
-                        "Bracket: `" + (tourney_live_data[interaction.channel_id].bracket == "" ? "" : tourney_tournaments_data[tourney_live_data[interaction.channel_id].tourney].stages[tourney_live_data[interaction.channel_id].bracket].bracket + " " + tourney_tournaments_data[tourney_live_data[interaction.channel_id].tourney].stages[tourney_live_data[interaction.channel_id].bracket].round) + "`\n" +
-                        "Ruleset: `")
+                    .setDescription("Tournament: `" + (tourney_live_data[interaction.channel_id].tourney == "" ? "" : tourney_tournaments_data[tourney_live_data[interaction.channel_id].tourney].name) + "`\n" +
+                        "Bracket/Round: `" + (tourney_live_data[interaction.channel_id].bracket == "" ? "" : tourney_tournaments_data[tourney_live_data[interaction.channel_id].tourney].stages[tourney_live_data[interaction.channel_id].bracket].bracket + " " + tourney_tournaments_data[tourney_live_data[interaction.channel_id].tourney].stages[tourney_live_data[interaction.channel_id].bracket].round) + "`\n" +
+                        "Ruleset: `" + (tourney_live_data[interaction.channel_id].ruleset == "" ? "" : tourney_rulesets_data[tourney_live_data[interaction.channel_id].ruleset].name))
                     .setColor("#3BA55D")
                     .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
                 var components = []
-                var tourney_options = [], bracket_options = []
+                var tourney_options = [], bracket_options = [], ruleset_options = []
                 var ttd = Object.keys(tourney_tournaments_data)
                 tourney_options.push({
                     label: "Practice Mode",
@@ -5373,20 +5377,39 @@ module.exports = {
                         }
                     )
                 })
-                if(tourney_live_data[interaction.channel_id].tourney){
-                    var stages = Object.keys(tourney_tournaments_data[tourney_live_data[interaction.channel_id].tourney].stages)
-                    stages.forEach(key => {
-                        var bracket = tourney_tournaments_data[tourney_live_data[interaction.channel_id].tourney].stages[key]
-                        bracket_options.push(
-                            {
-                                label: bracket.bracket + " " + bracket.round,
-                                value: key,
-                            }
-                        )
-                    })
+                if (tourney_live_data[interaction.channel_id].tourney) {
+                    if (tourney_live_data[interaction.channel_id.tourney == "practice"]) {
+                        var rulesets = Object.keys(tourney_rulesets_data)
+                        rulesets.forEach(key => {
+                            var ruleset = tourney_rulesets_data[key]
+                            ruleset_options.push(
+                                {
+                                    label: ruleset.name,
+                                    value: key,
+                                    description: ruleset.description
+                                }
+                            )
+                        })
+                    } else {
+                        var stages = Object.keys(tourney_tournaments_data[tourney_live_data[interaction.channel_id].tourney].stages)
+                        stages.forEach(key => {
+                            var bracket = tourney_tournaments_data[tourney_live_data[interaction.channel_id].tourney].stages[key]
+                            bracket_options.push(
+                                {
+                                    label: bracket.bracket + " " + bracket.round,
+                                    value: key,
+                                }
+                            )
+                        })
+                    }
                 }
                 tourney_options.forEach(option => {
                     if (option.value == tourney_live_data[interaction.channel_id].tourney) {
+                        option.default = true
+                    }
+                })
+                bracket_options.forEach(option => {
+                    if (option.value == tourney_live_data[interaction.channel_id].bracket) {
                         option.default = true
                     }
                 })
@@ -5403,7 +5426,7 @@ module.exports = {
                         }
                     ]
                 })
-                if(bracket_options.length > 0){
+                if (bracket_options.length > 0) {
                     components.push({
                         type: 1,
                         components: [
@@ -5452,7 +5475,7 @@ module.exports = {
                 })
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
-                        type: 4,
+                        type: type,
                         data: {
                             //content: "",
                             embeds: [matchMaker],
