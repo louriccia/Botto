@@ -5322,7 +5322,8 @@ module.exports = {
                 })
             }
             var type = 4
-            if ([null, undefined, ""].includes(tourney_live_data[interaction.channel_id])) {
+            var livematch = tourney_live_data[interaction.channel_id]
+            if ([null, undefined, ""].includes(livematch)) {
                 args[1] = "setup"
                 var match = {
                     status: "setup",
@@ -5336,7 +5337,7 @@ module.exports = {
                 }
                 tourney_live.child(interaction.channel_id).set(match)
             }
-            args[1] = tourney_live_data[interaction.channel_id].status
+            args[1] = livematch.status
             if (args[1] == "setup") {
 
                 if (args[2] == "tournament") {
@@ -5346,7 +5347,7 @@ module.exports = {
                     tourney_live.child(interaction.channel_id).update(
                         {
                             bracket: interaction.data.values[0],
-                            ruleset: tourney_tournaments_data[tourney_live_data[interaction.channel_id].tourney].stages[interaction.data.values[0]].ruleset
+                            ruleset: tourney_tournaments_data[livematch.tourney].stages[interaction.data.values[0]].ruleset
                         }
                     )
                     type = 7
@@ -5354,12 +5355,12 @@ module.exports = {
                     tourney_live.child(interaction.channel_id).update({ ruleset: interaction.data.values[0] })
                     type = 7
                 } else if (args[2] == "player") {
-                    if (!Object.values(tourney_live_data[interaction.channel_id].players).includes(interaction.member.user.id)) {
+                    if (livematch.players && !Object.values(livematch.players).includes(interaction.member.user.id)) {
                         tourney_live.child(interaction.channel_id).child("players").push(interaction.member.user.id)
                         type = 7
                     }
                 }  else if (args[2] == "comm") {
-                    if (!Object.values(tourney_live_data[interaction.channel_id].commentators).includes(interaction.member.user.id)) {
+                    if (livematch.commentators && !Object.values(livematch.commentators).includes(interaction.member.user.id)) {
                         tourney_live.child(interaction.channel_id).child("commentators").push(interaction.member.user.id)
                         type = 7
                     }
@@ -5367,12 +5368,11 @@ module.exports = {
 
                 matchMaker = new Discord.MessageEmbed()
                     .setTitle("Match Setup")
-                    .setDescription("Tournament: `" + (tourney_live_data[interaction.channel_id].tourney == "" ? "" : tourney_tournaments_data[tourney_live_data[interaction.channel_id].tourney].name) + "`\n" +
-                        "Bracket/Round: `" + (tourney_live_data[interaction.channel_id].bracket == "" ? "" : tourney_tournaments_data[tourney_live_data[interaction.channel_id].tourney].stages[tourney_live_data[interaction.channel_id].bracket].bracket + " " + tourney_tournaments_data[tourney_live_data[interaction.channel_id].tourney].stages[tourney_live_data[interaction.channel_id].bracket].round) + "`\n" +
-                        "Ruleset: `" + (tourney_live_data[interaction.channel_id].ruleset == "" ? "" : tourney_rulesets_data.saved[tourney_live_data[interaction.channel_id].ruleset].name) + "`\n" +
-                        tourney_participants_data["12"].name + "\n" +
-                        "Players: " + ([null, undefined, ""].includes(tourney_live_data[interaction.channel_id].players) ? "" : Object.values(tourney_live_data[interaction.channel_id].players).map(id => "<@" + id + "> ")) + "\n" + 
-                        "Commentators: " + ([null, undefined, ""].includes(tourney_live_data[interaction.channel_id].commentators) ? "" : Object.values(tourney_live_data[interaction.channel_id].commentators).map(id => "<@" + id + "> "))
+                    .setDescription("Tournament: `" + (livematch.tourney == "" ? "" : tourney_tournaments_data[livematch.tourney].name) + "`\n" +
+                        "Bracket/Round: `" + (livematch.bracket == "" ? "" : tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].bracket + " " + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].round) + "`\n" +
+                        "Ruleset: `" + (livematch.ruleset == "" ? "" : tourney_rulesets_data.saved[livematch.ruleset].name) + "`\n" +
+                        "Players: " + ([null, undefined, ""].includes(livematch.players) ? "" : Object.values(livematch.players).map(id => "<@" + id + "> ")) + "\n" + 
+                        "Commentators: " + ([null, undefined, ""].includes(livematch.commentators) ? "" : Object.values(livematch.commentators).map(id => "<@" + id + "> "))
                     )
                     .setColor("#3BA55D")
                     .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
@@ -5394,7 +5394,7 @@ module.exports = {
                         }
                     )
                 })
-                if (tourney_live_data[interaction.channel_id].tourney) {
+                if (livematch.tourney) {
                     if (tourney_live_data[interaction.channel_id.tourney == "practice"]) {
                         var rulesets = Object.keys(tourney_rulesets_data)
                         rulesets.forEach(key => {
@@ -5408,9 +5408,9 @@ module.exports = {
                             )
                         })
                     } else {
-                        var stages = Object.keys(tourney_tournaments_data[tourney_live_data[interaction.channel_id].tourney].stages)
+                        var stages = Object.keys(tourney_tournaments_data[livematch.tourney].stages)
                         stages.forEach(key => {
-                            var bracket = tourney_tournaments_data[tourney_live_data[interaction.channel_id].tourney].stages[key]
+                            var bracket = tourney_tournaments_data[livematch.tourney].stages[key]
                             bracket_options.push(
                                 {
                                     label: bracket.bracket + " " + bracket.round,
@@ -5421,12 +5421,12 @@ module.exports = {
                     }
                 }
                 tourney_options.forEach(option => {
-                    if (option.value == tourney_live_data[interaction.channel_id].tourney) {
+                    if (option.value == livematch.tourney) {
                         option.default = true
                     }
                 })
                 bracket_options.forEach(option => {
-                    if (option.value == tourney_live_data[interaction.channel_id].bracket) {
+                    if (option.value == livematch.bracket) {
                         option.default = true
                     }
                 })
