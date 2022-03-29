@@ -47,16 +47,6 @@ module.exports = {
         }, function (errorObject) {
             console.log("The read failed: " + errorObject);
         });
-        var tourney = database.ref('tourney')
-        tourney.child('live').child('841824106676224041').update({
-            tourney: null,
-            bracket: null,
-            ruleset: null,
-            datetime: null,
-            players: [],
-            commentators: [],
-            stream: null
-        })
         if (args[0] == "ranks") {
             if (args[1].startsWith("page")) {
                 var ranks = tools.getRanks()
@@ -5321,17 +5311,6 @@ module.exports = {
                 return [tourneyReport, components]
             }).then((embed) => sendResponse(embed))
         } else if (args[0] == "play") {
-            if([null, undefined, ""].includes(tourney_live_data)){
-                database.ref('tourney').child('841824106676224041').update({
-                    tourney: null,
-                    bracket: null,
-                    ruleset: null,
-                    datetime: null,
-                    players: [],
-                    commentators: [],
-                    stream: null
-                });
-            }
             var type = 4
             if (![null, undefined, ""].includes(tourney_live_data[interaction.channel_id])) {
                 args[1] = "setup"
