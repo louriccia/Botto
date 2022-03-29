@@ -47,6 +47,8 @@ module.exports = {
         }, function (errorObject) {
             console.log("The read failed: " + errorObject);
         });
+        var tourney_data = database.ref('tourney')
+        tourney_data.child('live').set("test")
         if (args[0] == "ranks") {
             if (args[1].startsWith("page")) {
                 var ranks = tools.getRanks()
@@ -5311,7 +5313,9 @@ module.exports = {
                 return [tourneyReport, components]
             }).then((embed) => sendResponse(embed))
         } else if (args[0] == "play") {
-            //if (![null, undefined, ""].includes(tourney_live_data[interaction.channel_id])) {
+            var type = 4
+            if (![null, undefined, ""].includes(tourney_live_data[interaction.channel_id])) {
+                args[1] = "setup"
                 var match = {
                     tourney: null,
                     bracket: null,
@@ -5322,12 +5326,33 @@ module.exports = {
                     stream: null
                 }
                 tourney_live.child(interaction.channel_id).set(match)
+            }
+            if (args[1] == "setup") {
+
+                if (args[2] == "tournament") {
+                    tourney_live.child(interaction.channel_id).update({ tourney: interaction.data.values[0] })
+                    type = 7
+                } else if (args[2] == "bracket") {
+                    tourney_live.child(interaction.channel_id).update(
+                        {
+                            bracket: interaction.data.values[0],
+                            ruleset: tourney_tournaments_data[tourney_live_data[interaction.channel_id].tourney].stages[interaction.data.values[0]].ruleset
+                        }
+                    )
+                    type = 7
+                } else if (args[2] == "player") {
+                    tourney_live.child(interaction.channel_id).update({ players: Object.values(tourney_live_data[interaction.channel_id].players).push(interaction.member.user.id) })
+                    type = 7
+                }
+
                 matchMaker = new Discord.MessageEmbed()
                     .setTitle("Match Setup")
+                    .setDescription("Tournament: `" + tourney_tournaments_data[tourney_live_data[interaction.channel.id].tourney].name + "`\n" +
+                        "Bracket: `")
                     .setColor("#3BA55D")
                     .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
                 var components = []
-                var tourney_options = []
+                var tourney_options = [], bracket_options = []
                 var ttd = Object.keys(tourney_tournaments_data)
                 ttd.forEach(key => {
                     var tourney = tourney_tournaments_data[key]
@@ -5340,8 +5365,11 @@ module.exports = {
                         }
                     )
                 })
+                if(tourney_live_data[interaction.channel_id].tourney){
+
+                }
                 tourney_options.forEach(option => {
-                    if (option.value == sort) {
+                    if (option.value == tourney_live_data[interaction.channel.id].tourney) {
                         option.default = true
                     }
                 })
@@ -5401,7 +5429,9 @@ module.exports = {
                         }
                     }
                 })
-            //}
+
+            }
+
 
             //a tourney cancel command can be used by an admin to cancel a match
 
