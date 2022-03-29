@@ -5312,9 +5312,11 @@ module.exports = {
             }).then((embed) => sendResponse(embed))
         } else if (args[0] == "play") {
             function getPlayer(id) {
+                console.log("id", id)
                 var tpd = Object.keys(tourney_participants_data)
                 tpd.forEach(key => {
                     if (tourney_participants_data[key].id == id) {
+                        console.log(key)
                         return key
                     }
                 })
