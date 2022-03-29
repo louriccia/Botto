@@ -41,6 +41,12 @@ module.exports = {
         }, function (errorObject) {
             console.log("The read failed: " + errorObject);
         });
+        var tourney_live = database.ref('tourney/live');
+        tourney_live.on("value", function (snapshot) {
+            tourney_live_data = snapshot.val();
+        }, function (errorObject) {
+            console.log("The read failed: " + errorObject);
+        });
         if (args[0] == "ranks") {
             if (args[1].startsWith("page")) {
                 var ranks = tools.getRanks()
@@ -143,7 +149,7 @@ module.exports = {
                 "1v1": "🆚",
                 "1vAll": "👑",
                 "Qualifier": "⏳",
-                "Real-Time Attack": "⏱️"
+                "RTA": "⏱️"
             }
             if (args.includes("initial")) {
                 type = 4
@@ -294,7 +300,7 @@ module.exports = {
                             m_option.deaths += run.deaths
                         }
                     })
-                    if (timediff.length == 2 && !["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[m.ruleset].type)) {
+                    if (timediff.length == 2 && !["Qualifier", "1vAll", "RTA"].includes(tourney_rulesets_data.saved[m.ruleset].type)) {
                         var diff = Math.abs(timediff[0] - timediff[1])
                         m_option.timediff.push(diff)
                         if (m_option.closest == null || diff < m_option.closest) {
@@ -738,6 +744,41 @@ module.exports = {
                             .addField("Permabans", permabans, true)
                     }
                     already_played.push(track)
+                }
+                if (tourney_rulesets_data.saved[tourney_matches_data[match].ruleset].type == "RTA") {
+                    var totals = ""
+                    var igt = {}
+                    tourney_matches_data[match].races.forEach(race => {
+                        race.forEach(run => {
+                            if (igt[run.player] == undefined) {
+                                igt[run.player] = { time: 0, deaths: 0 }
+                            }
+                            if (run.time !== "DNF") {
+                                igt[run.player].time += run.time
+                            }
+                            igt[run.player].deaths += run.deaths
+                        })
+                    })
+
+                    var rta_players = Object.keys(igt)
+
+                    rta_players.forEach(player => {
+                        totals += "**" + tourney_participants_data[player].name + "** "
+                        if (run.player == winner.player) {
+                            totals += ":crown:"
+                        }
+                        totals += "\n"
+                        totals += "`" + tools.timefix(igt[player].time) + " [IGT]`\n"
+                        if (tourney_matches_data[match].rta !== undefined) {
+                            tourney_matches_data[match].rta.forEach(rta => {
+                                if (rta.player == player) {
+                                    totals += "`" + tools.timefix(rta.time) + " [RTA]`\n"
+                                }
+                            })
+                        }
+                    })
+                    tourneyMatches
+                        .addField("Total", totals, true)
                 }
             }
 
@@ -1341,7 +1382,7 @@ module.exports = {
 
             function showRuleset(ruleset) {
                 var conditions = {
-                    mu: "Max Upgrades",
+                    mu: "Upgrades Allowed",
                     nu: "No Upgrades",
                     ft: "Full Track",
                     sk: "Skips",
@@ -1353,7 +1394,8 @@ module.exports = {
                     l2: "2 Laps",
                     l3: "3 Laps",
                     l4: "4 Laps",
-                    l5: "5 Laps"
+                    l5: "5 Laps",
+                    fl: "Fast Lap"
                 }
 
                 var methods = {
@@ -1714,7 +1756,7 @@ module.exports = {
                         field = {}
                         field.name = ":triangular_flag_on_post: Race " + (i + 1)
                         field.value = planets[tracks[Number(ruleset.races[i].track)].planet].emoji + " **" + tracks[Number(ruleset.races[i].track)].name + "**\n"
-                        
+
                         if (ruleset.type == "Qualifier") {
                             field.value += "`" + tools.timefix(ruleset.races[i].time).replace(".000", "") + " Time Limit`\n"
                             field.value += "`" + tools.timefix(ruleset.races[i].penalty).replace(".000", "") + " Penalty Time`"
@@ -1788,6 +1830,7 @@ module.exports = {
             } else if (args[1] == "refresh") { //refresh ruleset list
                 args[1] = "browse"
             }
+            //break if check here in case "refresh" changed to "browse"
             if (args[1] == "browse") { //browse ruleset list
                 rulesetEmbed.setTitle(":scroll: Rulesets")
                     .setDescription("This is the tournament ruleset manager. Browse existing rulesets using the dropdown below or make your own by pressing the New button.\n\n:grey_question: To learn more about making rulesets, watch [this video](https://youtu.be/fExzuOvn6iY)")
@@ -2117,7 +2160,7 @@ module.exports = {
                             )
                         }
                         args[2] = ruleset_type
-                    } 
+                    }
                     if (ruleset !== {}) {
                         tourney_rulesets.child("new").child(interaction.member.user.id).set(ruleset)
                     }
@@ -2135,7 +2178,7 @@ module.exports = {
                             if (args[3] == "track") {
                                 data = interaction.data.values[0]
                                 races[race].track = data
-                            } 
+                            }
                             tourney_rulesets.child("new").child(interaction.member.user.id).update({ races: races })
                         } else {
                             if (!["default", "firsttrack", "podpods", "tracktracks", "conoptions", "ttrackmlimit", "tpodmlimit", "tconmlimit", "wins", "conditions"].includes(args[3])) {
@@ -3337,7 +3380,7 @@ module.exports = {
                         if (args.length > 4 && args[4] == "submit") {
                             var newname = interaction.data.components[0].components[0].value.trim()
                             var desc = interaction.data.components[1].components[0].value.trim()
-                            
+
                             tourney_rulesets.child("new").child(interaction.member.user.id).update({ name: newname, description: desc })
                         } else {
                             modal = true
@@ -3435,7 +3478,7 @@ module.exports = {
 
 
 
-                } else if (["1vAll","Qualifier","RTA"].includes(args[2])) {
+                } else if (["1vAll", "Qualifier", "RTA"].includes(args[2])) {
                     var conoptions = [
                         {
                             label: "Full Track",
@@ -3503,8 +3546,8 @@ module.exports = {
                             conoptions[i].default = true
                         }
                     }
-                    
-                    
+
+
                     var race_options = []
                     for (i = 3; i < 8; i++) {
                         race_options.push(
@@ -3724,7 +3767,7 @@ module.exports = {
                         }
                         track_options.push(track_option)
                     }
-                    
+
                     components.push(
                         {
                             type: 1,
@@ -3758,13 +3801,13 @@ module.exports = {
                             }
                         )
                     }
-                } 
+                }
 
                 rulesetEmbed
                     .setTitle(tourney_rulesets_data.new[interaction.member.user.id].name)
                     .setFooter(interaction.member.user.username, client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
                 if (![null, undefined].includes(tourney_rulesets_data)) {
-                    if (![null, undefined].includes(tourney_rulesets_data.new) && args[3] !== "save"){
+                    if (![null, undefined].includes(tourney_rulesets_data.new) && args[3] !== "save") {
                         rulesetEmbed.addFields(showRuleset(tourney_rulesets_data.new[interaction.member.user.id]))
                     }
                 }
@@ -5268,6 +5311,68 @@ module.exports = {
                 return [tourneyReport, components]
             }).then((embed) => sendResponse(embed))
         } else if (args[0] == "play") {
+            if(![null, undefined, ""].includes(tourney_live_data[interaction.channel_id])){
+                var match = {
+                    tourney: null,
+                    bracket: null,
+                    ruleset: null,
+                    datetime: null,
+                    players: [],
+                    commentators: [],
+                    stream: null
+                }
+                tourney_live.child(interaction.channel_id).set(match)
+                matchMaker = new Discord.MessageEmbed()
+                    .setTitle("Match Setup")
+                    .setColor("#3BA55D")
+                    .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
+                client.api.interactions(interaction.id, interaction.token).callback.post({
+                    data: {
+                        type: type,
+                        data: {
+                            //content: "",
+                            embeds: [matchMaker],
+                            components: [
+                                {
+                                    type: 1,
+                                    components: [
+                                        {
+                                            type: 2,
+                                            label: "Join as Player",
+                                            emoji: {
+                                                name: "🕹️"
+                                            },
+                                            style: 1,
+                                            custom_id: "tourney_play_setup_player",
+                                            disabled: previous
+                                        },
+                                        {
+                                            type: 2,
+                                            label: "Join as Commentator",
+                                            emoji: {
+                                                name: "🎙️"
+                                            },
+                                            style: 1,
+                                            custom_id: "tourney_play_setup_comm",
+                                            disabled: next
+                                        },
+                                        {
+                                            type: 2,
+                                            label: "Leave Match",
+                                            style: 2,
+                                            custom_id: "tourney_play_setup_comm",
+                                            disabled: next
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                })
+            }
+            
+            //a tourney cancel command can be used by an admin to cancel a match
+
             //setup
             //select ruleset
             //select tournament/practice mode
@@ -5284,8 +5389,57 @@ module.exports = {
             //if broadcasting, check that game music is disabled
             //ready up for first race
 
+            /*
+            ruleset explanation:
+
+            reminders:
+                verify that your parts are fully upgraded
+                check that all pods/tracks are unlocked
+                verify that your stream is running smoothly
+                check that your music is disabled
+                wait until results screen to report your time
+            Update profile
+                set pronouns
+                set platform
+                appropriate nicknames/pronunciation
+                small bio
+                reveal pod selection to opponent
 
 
+
+            first track selection
+                predetermined
+                coin flip
+                    red or blue
+                circuit bans
+                    track bans
+                gentleman's agreement
+                    track
+                    racer
+                    conditions
+            
+            Ban phase
+                Pod ban
+                Track ban
+            Track selection 
+                Select Track (Use Salty Runback)
+                Conditions
+                    Skips
+                    No Upgrades
+                    Flap
+                Pod Bans (* per pod)
+                Gentleman’s Agreement (modal)
+            
+            Show selected track
+                (No Upgrades Verification)
+                show each player
+                Select Pod
+                Ready Up
+            Countdown
+            Time report
+                commentators verify both times
+                Winner report and summary
+            */
         }
     }
 }
