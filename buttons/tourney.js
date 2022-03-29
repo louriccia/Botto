@@ -5351,7 +5351,7 @@ module.exports = {
                         {
                             type: 3,
                             custom_id: "tourney_play_setup_tournament",
-                            options: racer_selections,
+                            options: tourney_options,
                             placeholder: "View Pod Stats",
                             min_values: 0,
                             max_values: 1
@@ -5385,7 +5385,7 @@ module.exports = {
                             type: 2,
                             label: "Leave Match",
                             style: 2,
-                            custom_id: "tourney_play_setup_comm",
+                            custom_id: "tourney_play_setup_leave",
                             disabled: next
                         }
                     ]
