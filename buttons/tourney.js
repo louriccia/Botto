@@ -5311,7 +5311,7 @@ module.exports = {
                 return [tourneyReport, components]
             }).then((embed) => sendResponse(embed))
         } else if (args[0] == "play") {
-            if(![null, undefined, ""].includes(tourney_live_data[interaction.channel_id])){
+            if (![null, undefined, ""].includes(tourney_live_data[interaction.channel_id])) {
                 var match = {
                     tourney: null,
                     bracket: null,
@@ -5326,51 +5326,83 @@ module.exports = {
                     .setTitle("Match Setup")
                     .setColor("#3BA55D")
                     .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
+                var components = []
+                var tourney_options = []
+                var ttd = Object.keys(tourney_tournaments_data)
+                ttd.forEach(key => {
+                    var tourney = tourney_tournaments_data[key]
+                    tourney_options.push(
+                        {
+                            label: tourney.name,
+                            value: key,
+                            emoji: { name: "🏆" },
+                            description: tourney.description
+                        }
+                    )
+                })
+                tourney_options.forEach(option => {
+                    if (option.value == sort) {
+                        option.default = true
+                    }
+                })
+                components.push({
+                    type: 1,
+                    components: [
+                        {
+                            type: 3,
+                            custom_id: "tourney_play_setup_tournament",
+                            options: racer_selections,
+                            placeholder: "View Pod Stats",
+                            min_values: 0,
+                            max_values: 1
+                        }
+                    ]
+                })
+                components.push({
+                    type: 1,
+                    components: [
+                        {
+                            type: 2,
+                            label: "Join as Player",
+                            emoji: {
+                                name: "🕹️"
+                            },
+                            style: 1,
+                            custom_id: "tourney_play_setup_player",
+                            disabled: previous
+                        },
+                        {
+                            type: 2,
+                            label: "Join as Commentator",
+                            emoji: {
+                                name: "🎙️"
+                            },
+                            style: 1,
+                            custom_id: "tourney_play_setup_comm",
+                            disabled: next
+                        },
+                        {
+                            type: 2,
+                            label: "Leave Match",
+                            style: 2,
+                            custom_id: "tourney_play_setup_comm",
+                            disabled: next
+                        }
+                    ]
+                })
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
                         type: type,
                         data: {
                             //content: "",
                             embeds: [matchMaker],
-                            components: [
-                                {
-                                    type: 1,
-                                    components: [
-                                        {
-                                            type: 2,
-                                            label: "Join as Player",
-                                            emoji: {
-                                                name: "🕹️"
-                                            },
-                                            style: 1,
-                                            custom_id: "tourney_play_setup_player",
-                                            disabled: previous
-                                        },
-                                        {
-                                            type: 2,
-                                            label: "Join as Commentator",
-                                            emoji: {
-                                                name: "🎙️"
-                                            },
-                                            style: 1,
-                                            custom_id: "tourney_play_setup_comm",
-                                            disabled: next
-                                        },
-                                        {
-                                            type: 2,
-                                            label: "Leave Match",
-                                            style: 2,
-                                            custom_id: "tourney_play_setup_comm",
-                                            disabled: next
-                                        }
-                                    ]
-                                }
-                            ]
+                            components: components
+
                         }
                     }
                 })
             }
-            
+
             //a tourney cancel command can be used by an admin to cancel a match
 
             //setup

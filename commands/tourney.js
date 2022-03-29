@@ -540,6 +540,8 @@ module.exports = {
             client.buttons.get("tourney").execute(client, interaction, ["matches", "offset0", "initial"]);
         } else if (args[0].name == "stats") {
             client.buttons.get("tourney").execute(client, interaction, ["stats", "initial"]);
+        }  else if (args[0].name == "play") {
+            client.buttons.get("tourney").execute(client, interaction, ["play"]);
         }
     }
 }
