@@ -5356,7 +5356,7 @@ module.exports = {
                     .setTitle("Match Setup")
                     .setDescription("Tournament: `" + (tourney_live_data[interaction.channel_id].tourney == "" ? "" : tourney_tournaments_data[tourney_live_data[interaction.channel_id].tourney].name) + "`\n" +
                         "Bracket/Round: `" + (tourney_live_data[interaction.channel_id].bracket == "" ? "" : tourney_tournaments_data[tourney_live_data[interaction.channel_id].tourney].stages[tourney_live_data[interaction.channel_id].bracket].bracket + " " + tourney_tournaments_data[tourney_live_data[interaction.channel_id].tourney].stages[tourney_live_data[interaction.channel_id].bracket].round) + "`\n" +
-                        "Ruleset: `" + (tourney_live_data[interaction.channel_id].ruleset == "" ? "" : tourney_rulesets_data[tourney_live_data[interaction.channel_id].ruleset].name))
+                        "Ruleset: `" + (tourney_live_data[interaction.channel_id].ruleset == "" ? "" : tourney_rulesets_data.saved[tourney_live_data[interaction.channel_id].ruleset].name))
                     .setColor("#3BA55D")
                     .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
                 var components = []
@@ -5435,6 +5435,21 @@ module.exports = {
                                 custom_id: "tourney_play_setup_bracket",
                                 options: bracket_options,
                                 placeholder: "Select Bracket",
+                                min_values: 0,
+                                max_values: 1
+                            }
+                        ]
+                    })
+                }
+                if (ruleset_options.length > 0) {
+                    components.push({
+                        type: 1,
+                        components: [
+                            {
+                                type: 3,
+                                custom_id: "tourney_play_setup_ruleset",
+                                options: ruleset_options,
+                                placeholder: "Select Ruleset",
                                 min_values: 0,
                                 max_values: 1
                             }
