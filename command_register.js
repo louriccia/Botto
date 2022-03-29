@@ -1943,6 +1943,12 @@ client.api.applications("545798436105224203").commands.post({
                 description: "view or add matches",
                 type: 1,
                 options: []
+            },
+            {
+                name: "play",
+                description: "create or resume a tournament match",
+                type: 1,
+                options: []
             }
         ]
 

@@ -485,150 +485,52 @@ client.on('message', message => {
         client.destroy()
     }
 })
-
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({
+client.api.applications("545798436105224203").commands.post({
     data: {
-        name: 'simulate',
-        description: "Average speed testing",
+        name: "tourney",
+        description: "get tourney stuff",
         type: 1,
         options: [
             {
-                name: "track",
-                description: "name or abbreviation of the track",
-                type: 3,
-                required: true,
-                choices: [
-                    {
-                        name: "The Boonta Training Course",
-                        value: "0"
-                    },
-                    {
-                        name: "Mon Gazza Speedway",
-                        value: "1"
-                    },
-                    {
-                        name: "Beedo's Wild Ride",
-                        value: "2"
-                    },
-                    {
-                        name: "Aquilaris Classic",
-                        value: "3"
-                    },
-                    {
-                        name: "Malastare 100",
-                        value: "4"
-                    },
-                    {
-                        name: "Vengeance",
-                        value: "5"
-                    },
-                    {
-                        name: "Spice Mine Run",
-                        value: "6"
-                    },
-                    {
-                        name: "Sunken City",
-                        value: "7"
-                    },
-                    {
-                        name: "Howler Gorge",
-                        value: "8"
-                    },
-                    {
-                        name: "Dug Derby",
-                        value: "9"
-                    },
-                    {
-                        name: "Scrapper's Run",
-                        value: "10"
-                    },
-                    {
-                        name: "Zugga Challenge",
-                        value: "11"
-                    },
-                    {
-                        name: "Baroo Coast",
-                        value: "12"
-                    },
-                    {
-                        name: "Bumpy's Breakers",
-                        value: "13"
-                    },
-                    {
-                        name: "Executioner",
-                        value: "14"
-                    },
-                    {
-                        name: "Sebulba's Legacy",
-                        value: "15"
-                    },
-                    {
-                        name: "Grabvine Gateway",
-                        value: "16"
-                    },
-                    {
-                        name: "Andobi Mountain Run",
-                        value: "17"
-                    },
-                    {
-                        name: "Dethro's Revenge",
-                        value: "18"
-                    },
-                    {
-                        name: "Fire Mountain Rally",
-                        value: "19"
-                    },
-                    {
-                        name: "The Boonta Classic",
-                        value: "20"
-                    },
-                    {
-                        name: "Ando Prime Centrum",
-                        value: "21"
-                    },
-                    {
-                        name: "Abyss",
-                        value: "22"
-                    },
-                    {
-                        name: "The Gauntlet",
-                        value: "23"
-                    },
-                    {
-                        name: "Inferno",
-                        value: "24"
-                    }
+                name: 'leaderboards',
+                description: 'get top-5 leaderboards for tournament runs',
+                type: 1,
+                options: []
+            },
+            {
+                name: "stats",
+                description: "get tournament stats for each player, pod, and track",
+                type: 1,
+                options: [
                 ]
             },
             {
-                name: "laps",
-                description: "number of laps to simulate",
-                type: 4,
-                required: false
-            },
-            {
-                name: "fps",
-                description: "frames per second for your simulation (between 24 and 60fps",
-                type: 4,
-                required: false
-            },
-            {
-                name: "upgrades",
-                description: "max upgrades or no upgrades",
-                type: 3,
-                required: false,
-                choices: [
-                    {
-                        name: "Max Upgrades",
-                        value: "5"
-                    },
-                    {
-                        name: "No Upgrades",
-                        value: "0"
-                    }
+                name: "schedule",
+                description: "get a look at upcoming matches on speedgaming.org",
+                type: 1,
+                options: [
                 ]
+            },
+            {
+                name: 'rulesets',
+                description: 'get and create tournament rulesets',
+                type: 1,
+                options: []
+            },
+            {
+                name: "matches",
+                description: "view or add matches",
+                type: 1,
+                options: []
+            },
+            {
+                name: "play",
+                description: "create or resume a tournament match",
+                type: 1,
+                options: []
             }
         ]
+
     }
 })
 
