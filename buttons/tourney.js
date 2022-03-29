@@ -47,8 +47,7 @@ module.exports = {
         }, function (errorObject) {
             console.log("The read failed: " + errorObject);
         });
-        var tourney_data = database.ref('tourney')
-        tourney_data.child('live').set("test")
+
         if (args[0] == "ranks") {
             if (args[1].startsWith("page")) {
                 var ranks = tools.getRanks()
@@ -5343,12 +5342,16 @@ module.exports = {
                 } else if (args[2] == "player") {
                     tourney_live.child(interaction.channel_id).update({ players: Object.values(tourney_live_data[interaction.channel_id].players).push(interaction.member.user.id) })
                     type = 7
+                } else if (args[2] == "comm") {
+                    tourney_live.child(interaction.channel_id).update({ players: Object.values(tourney_live_data[interaction.channel_id].commentators).push(interaction.member.user.id) })
+                    type = 7
                 }
 
                 matchMaker = new Discord.MessageEmbed()
                     .setTitle("Match Setup")
                     .setDescription("Tournament: `" + tourney_tournaments_data[tourney_live_data[interaction.channel.id].tourney].name + "`\n" +
-                        "Bracket: `")
+                        "Bracket: `" + tourney_tournaments_data[tourney_live_data[interaction.channel.id].tourney].stages[tourney_live_data[interaction.channel.id].bracket].bracket + " " + tourney_tournaments_data[tourney_live_data[interaction.channel.id].tourney].stages[tourney_live_data[interaction.channel.id].bracket].round + "`\n" +
+                        "Ruleset: `")
                     .setColor("#3BA55D")
                     .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
                 var components = []
@@ -5366,7 +5369,16 @@ module.exports = {
                     )
                 })
                 if(tourney_live_data[interaction.channel_id].tourney){
-
+                    var stages = Object.keys(tourney_tournaments_data[tourney_live_data[interaction.channel_id].tourney].stages)
+                    stages.forEach(key => {
+                        var bracket = tourney_tournaments_data[tourney_live_data[interaction.channel_id].tourney].stages[key]
+                        bracket_options.push(
+                            {
+                                label: bracket.bracket + " " + bracket.round,
+                                value: key,
+                            }
+                        )
+                    })
                 }
                 tourney_options.forEach(option => {
                     if (option.value == tourney_live_data[interaction.channel.id].tourney) {
@@ -5380,12 +5392,27 @@ module.exports = {
                             type: 3,
                             custom_id: "tourney_play_setup_tournament",
                             options: tourney_options,
-                            placeholder: "View Pod Stats",
+                            placeholder: "Select Tournament",
                             min_values: 0,
                             max_values: 1
                         }
                     ]
                 })
+                if(bracket_options.length > 0){
+                    components.push({
+                        type: 1,
+                        components: [
+                            {
+                                type: 3,
+                                custom_id: "tourney_play_setup_bracket",
+                                options: bracket_options,
+                                placeholder: "Select Bracket",
+                                min_values: 0,
+                                max_values: 1
+                            }
+                        ]
+                    })
+                }
                 components.push({
                     type: 1,
                     components: [
