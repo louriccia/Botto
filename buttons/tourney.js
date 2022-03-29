@@ -47,7 +47,16 @@ module.exports = {
         }, function (errorObject) {
             console.log("The read failed: " + errorObject);
         });
-
+        var tourney = database.ref('tourney')
+        tourney.child('live').child('841824106676224041').update({
+            tourney: null,
+            bracket: null,
+            ruleset: null,
+            datetime: null,
+            players: [],
+            commentators: [],
+            stream: null
+        })
         if (args[0] == "ranks") {
             if (args[1].startsWith("page")) {
                 var ranks = tools.getRanks()
