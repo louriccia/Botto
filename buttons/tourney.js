@@ -5315,6 +5315,7 @@ module.exports = {
             if ([null, undefined, ""].includes(tourney_live_data[interaction.channel_id])) {
                 args[1] = "setup"
                 var match = {
+                    status: "setup",
                     tourney: "",
                     bracket: "",
                     ruleset: "",
@@ -5325,6 +5326,7 @@ module.exports = {
                 }
                 tourney_live.child(interaction.channel_id).set(match)
             }
+            args[1] = tourney_live_data[interaction.channel_id].status
             if (args[1] == "setup") {
 
                 if (args[2] == "tournament") {
