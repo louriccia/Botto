@@ -5312,7 +5312,7 @@ module.exports = {
             }).then((embed) => sendResponse(embed))
         } else if (args[0] == "play") {
             var type = 4
-            if (![null, undefined, ""].includes(tourney_live_data[interaction.channel_id])) {
+            if ([null, undefined, ""].includes(tourney_live_data[interaction.channel_id])) {
                 args[1] = "setup"
                 var match = {
                     tourney: "",
@@ -5356,6 +5356,10 @@ module.exports = {
                 var components = []
                 var tourney_options = [], bracket_options = []
                 var ttd = Object.keys(tourney_tournaments_data)
+                tourney_options.push({
+                    label: "Practice Mode",
+                    value: "practice"
+                })
                 ttd.forEach(key => {
                     var tourney = tourney_tournaments_data[key]
                     console.log(tourney)
