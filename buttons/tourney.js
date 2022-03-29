@@ -5311,7 +5311,7 @@ module.exports = {
                 return [tourneyReport, components]
             }).then((embed) => sendResponse(embed))
         } else if (args[0] == "play") {
-            if (![null, undefined, ""].includes(tourney_live_data[interaction.channel_id])) {
+            //if (![null, undefined, ""].includes(tourney_live_data[interaction.channel_id])) {
                 var match = {
                     tourney: null,
                     bracket: null,
@@ -5401,7 +5401,7 @@ module.exports = {
                         }
                     }
                 })
-            }
+            //}
 
             //a tourney cancel command can be used by an admin to cancel a match
 
