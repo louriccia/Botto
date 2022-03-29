@@ -5355,12 +5355,12 @@ module.exports = {
                     tourney_live.child(interaction.channel_id).update({ ruleset: interaction.data.values[0] })
                     type = 7
                 } else if (args[2] == "player") {
-                    if (livematch.players && !Object.values(livematch.players).includes(interaction.member.user.id)) {
+                    if (!livematch.players || (livematch.players && !Object.values(livematch.players).includes(interaction.member.user.id))) {
                         tourney_live.child(interaction.channel_id).child("players").push(interaction.member.user.id)
                         type = 7
                     }
                 }  else if (args[2] == "comm") {
-                    if (livematch.commentators && !Object.values(livematch.commentators).includes(interaction.member.user.id)) {
+                    if (!livematch.commentators || (livematch.commentators && !Object.values(livematch.commentators).includes(interaction.member.user.id))) {
                         tourney_live.child(interaction.channel_id).child("commentators").push(interaction.member.user.id)
                         type = 7
                     }
@@ -5368,11 +5368,12 @@ module.exports = {
 
                 matchMaker = new Discord.MessageEmbed()
                     .setTitle("Match Setup")
-                    .setDescription("Tournament: `" + (livematch.tourney == "" ? "" : tourney_tournaments_data[livematch.tourney].name) + "`\n" +
-                        "Bracket/Round: `" + (livematch.bracket == "" ? "" : tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].bracket + " " + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].round) + "`\n" +
-                        "Ruleset: `" + (livematch.ruleset == "" ? "" : tourney_rulesets_data.saved[livematch.ruleset].name) + "`\n" +
+                    .setDescription("Tournament: " + (livematch.tourney == "" ? "" : "`" + tourney_tournaments_data[livematch.tourney].name) + "`\n" +
+                        "Bracket/Round: " + (livematch.bracket == "" ? "" : "`" + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].bracket + " " + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].round) + "`\n" +
+                        "Ruleset: " + (livematch.ruleset == "" ? "" : "`" + tourney_rulesets_data.saved[livematch.ruleset].name) + "`\n" +
                         "Players: " + ([null, undefined, ""].includes(livematch.players) ? "" : Object.values(livematch.players).map(id => "<@" + id + "> ")) + "\n" + 
-                        "Commentators: " + ([null, undefined, ""].includes(livematch.commentators) ? "" : Object.values(livematch.commentators).map(id => "<@" + id + "> "))
+                        "Commentators: " + ([null, undefined, ""].includes(livematch.commentators) ? "" : Object.values(livematch.commentators).map(id => "<@" + id + "> ")) + "\n" +
+                        "Stream: " + livematch.stream
                     )
                     .setColor("#3BA55D")
                     .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
