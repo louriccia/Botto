@@ -11,7 +11,7 @@ module.exports = {
         var database = admin.database();
         var firebase = require("firebase/app");
         var tourney_rulesets = database.ref('tourney/rulesets');
-        var tourney_rulesets_data = {}, tourney_races_data = {}, tourney_matches_data = {}, tourney_participants_data = {}, tourney_tournaments_data = {}
+        var tourney_rulesets_data = {}, tourney_races_data = {}, tourney_matches_data = {}, tourney_participants_data = {}, tourney_tournaments_data = {}, tourney_live_data = {}
         tourney_rulesets.on("value", function (snapshot) {
             tourney_rulesets_data = snapshot.val();
         }, function (errorObject) {
