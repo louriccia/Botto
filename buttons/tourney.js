@@ -5312,6 +5312,18 @@ module.exports = {
                 return [tourneyReport, components]
             }).then((embed) => sendResponse(embed))
         } else if (args[0] == "play") {
+            if(tourney_live_data == null){
+                var tourney = database.ref('tourney');
+                tourney.child('841824106676224041').update({
+                    tourney: null,
+                    bracket: null,
+                    ruleset: null,
+                    datetime: null,
+                    players: [],
+                    commentators: [],
+                    stream: null
+                })
+            }
             var type = 4
             if (![null, undefined, ""].includes(tourney_live_data[interaction.channel_id])) {
                 args[1] = "setup"
