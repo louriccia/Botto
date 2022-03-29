@@ -5311,10 +5311,10 @@ module.exports = {
                 return [tourneyReport, components]
             }).then((embed) => sendResponse(embed))
         } else if (args[0] == "play") {
-            function getPlayer (id) {
+            function getPlayer(id) {
                 var tpd = Object.keys(tourney_participants_data)
                 tpd.forEach(key => {
-                    if(tourney_participants_data[key].id == id){
+                    if (tourney_participants_data[key].id == id) {
                         return key
                     }
                 })
@@ -5349,7 +5349,7 @@ module.exports = {
                     )
                     type = 7
                 } else if (args[2] == "ruleset") {
-                    tourney_live.child(interaction.channel_id).update({ ruleset: interaction.data.values[0]})
+                    tourney_live.child(interaction.channel_id).update({ ruleset: interaction.data.values[0] })
                     type = 7
                 } else if (args[2] == "player") {
                     if (tourney_live_data) { }
@@ -5364,8 +5364,9 @@ module.exports = {
                     .setTitle("Match Setup")
                     .setDescription("Tournament: `" + (tourney_live_data[interaction.channel_id].tourney == "" ? "" : tourney_tournaments_data[tourney_live_data[interaction.channel_id].tourney].name) + "`\n" +
                         "Bracket/Round: `" + (tourney_live_data[interaction.channel_id].bracket == "" ? "" : tourney_tournaments_data[tourney_live_data[interaction.channel_id].tourney].stages[tourney_live_data[interaction.channel_id].bracket].bracket + " " + tourney_tournaments_data[tourney_live_data[interaction.channel_id].tourney].stages[tourney_live_data[interaction.channel_id].bracket].round) + "`\n" +
-                        "Ruleset: `" + (tourney_live_data[interaction.channel_id].ruleset == "" ? "" : tourney_rulesets_data.saved[tourney_live_data[interaction.channel_id].ruleset].name)) + "`\n" + 
-                        "Players: " + ([null, undefined, ""].includes(tourney_live_data[interaction.channel_id].players) ? "" : Object.values(tourney_live_data[interaction.channel_id].players).map(id=> "`" + tourney_participants_data[getPlayer(id)].name + "` ") ) + ""
+                        "Ruleset: `" + (tourney_live_data[interaction.channel_id].ruleset == "" ? "" : tourney_rulesets_data.saved[tourney_live_data[interaction.channel_id].ruleset].name)) + "`\n" +
+                    "Players: " + ([null, undefined, ""].includes(tourney_live_data[interaction.channel_id].players) ? "" : Object.values(tourney_live_data[interaction.channel_id].players).map(id => "`" + tourney_participants_data[getPlayer(id)].name + "` ")) + ""
+                matchMaker
                     .setColor("#3BA55D")
                     .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
                 var components = []
