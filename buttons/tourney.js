@@ -5331,12 +5331,12 @@ module.exports = {
                 var ttd = Object.keys(tourney_tournaments_data)
                 ttd.forEach(key => {
                     var tourney = tourney_tournaments_data[key]
+                    console.log(tourney)
                     tourney_options.push(
                         {
                             label: tourney.name,
                             value: key,
-                            emoji: { name: "🏆" },
-                            description: tourney.description
+                            emoji: { name: "🏆" }
                         }
                     )
                 })
