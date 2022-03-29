@@ -5357,20 +5357,20 @@ module.exports = {
                 } else if (args[2] == "player") {
                     if (!livematch.players || (livematch.players && !Object.values(livematch.players).includes(interaction.member.user.id))) {
                         tourney_live.child(interaction.channel_id).child("players").push(interaction.member.user.id)
-                        type = 7
                     }
+                    type = 7
                 }  else if (args[2] == "comm") {
                     if (!livematch.commentators || (livematch.commentators && !Object.values(livematch.commentators).includes(interaction.member.user.id))) {
                         tourney_live.child(interaction.channel_id).child("commentators").push(interaction.member.user.id)
-                        type = 7
                     }
+                    type = 7
                 }
-
+                livematch = tourney_live_data[interaction.channel_id]
                 matchMaker = new Discord.MessageEmbed()
                     .setTitle("Match Setup")
-                    .setDescription("Tournament: " + (livematch.tourney == "" ? "" : "`" + tourney_tournaments_data[livematch.tourney].name) + "`\n" +
-                        "Bracket/Round: " + (livematch.bracket == "" ? "" : "`" + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].bracket + " " + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].round) + "`\n" +
-                        "Ruleset: " + (livematch.ruleset == "" ? "" : "`" + tourney_rulesets_data.saved[livematch.ruleset].name) + "`\n" +
+                    .setDescription("Tournament: " + (livematch.tourney == "" ? "" : (livematch.trouney == "practice" ? "Practice Mode" : "`" + tourney_tournaments_data[livematch.tourney].name) + "`\n" +
+                        "Bracket/Round: " + (livematch.bracket == "" ? "" : "`" + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].bracket + " " + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].round + "`") + "\n" +
+                        "Ruleset: " + (livematch.ruleset == "" ? "" : "`" + tourney_rulesets_data.saved[livematch.ruleset].name + "`") + "\n" +
                         "Players: " + ([null, undefined, ""].includes(livematch.players) ? "" : Object.values(livematch.players).map(id => "<@" + id + "> ")) + "\n" + 
                         "Commentators: " + ([null, undefined, ""].includes(livematch.commentators) ? "" : Object.values(livematch.commentators).map(id => "<@" + id + "> ")) + "\n" +
                         "Stream: " + livematch.stream
@@ -5382,7 +5382,8 @@ module.exports = {
                 var ttd = Object.keys(tourney_tournaments_data)
                 tourney_options.push({
                     label: "Practice Mode",
-                    value: "practice"
+                    value: "practice",
+                    emoji: {name: "🚩"}
                 })
                 ttd.forEach(key => {
                     var tourney = tourney_tournaments_data[key]
