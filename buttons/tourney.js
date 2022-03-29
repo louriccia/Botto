@@ -5380,7 +5380,7 @@ module.exports = {
                     })
                 }
                 tourney_options.forEach(option => {
-                    if (option.value == tourney_live_data[interaction.channel.id].tourney) {
+                    if (option.value == tourney_live_data[interaction.channel_id].tourney) {
                         option.default = true
                     }
                 })
