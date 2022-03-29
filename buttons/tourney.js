@@ -5349,7 +5349,7 @@ module.exports = {
                 matchMaker = new Discord.MessageEmbed()
                     .setTitle("Match Setup")
                     .setDescription("Tournament: `" + (tourney_live_data[interaction.channel_id].tourney == "" ? "" : tourney_tournaments_data[tourney_live_data[interaction.channel_id].tourney].name)  + "`\n" +
-                        "Bracket: `" + (tourney_live_data[interaction.channel_id].tourney == "" ? "" : tourney_tournaments_data[tourney_live_data[interaction.channel_id].tourney].stages[tourney_live_data[interaction.channel_id].bracket].bracket + " " + tourney_tournaments_data[tourney_live_data[interaction.channel_id].tourney].stages[tourney_live_data[interaction.channel_id].bracket].round) + "`\n" +
+                        "Bracket: `" + (tourney_live_data[interaction.channel_id].bracket == "" ? "" : tourney_tournaments_data[tourney_live_data[interaction.channel_id].tourney].stages[tourney_live_data[interaction.channel_id].bracket].bracket + " " + tourney_tournaments_data[tourney_live_data[interaction.channel_id].tourney].stages[tourney_live_data[interaction.channel_id].bracket].round) + "`\n" +
                         "Ruleset: `")
                     .setColor("#3BA55D")
                     .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
