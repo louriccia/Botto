@@ -5315,13 +5315,13 @@ module.exports = {
             if (![null, undefined, ""].includes(tourney_live_data[interaction.channel_id])) {
                 args[1] = "setup"
                 var match = {
-                    tourney: null,
-                    bracket: null,
-                    ruleset: null,
-                    datetime: null,
+                    tourney: "",
+                    bracket: "",
+                    ruleset: "",
+                    datetime: "",
                     players: [],
                     commentators: [],
-                    stream: null
+                    stream: ""
                 }
                 tourney_live.child(interaction.channel_id).set(match)
             }
