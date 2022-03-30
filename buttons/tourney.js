@@ -5385,7 +5385,7 @@ module.exports = {
                 livematch = tourney_live_data[interaction.channel_id]
                 matchMaker = new Discord.MessageEmbed()
                     .setTitle("Match Setup")
-                    .setDescription("Tournament: " + (livematch.tourney == "" ? "" : livematch.tourney == "practice" ? "Practice Mode" : "`" + tourney_tournaments_data[livematch.tourney].name) + "`\n" +
+                    .setDescription("Tournament: " + (livematch.tourney == "" ? "" : livematch.tourney == "practice" ? "`Practice Mode`" : "`" + tourney_tournaments_data[livematch.tourney].name) + "`\n" +
                         "Bracket/Round: " + (livematch.bracket == "" || livematch.tourney == "practice" ? "" : "`" + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].bracket + " " + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].round + "`") + "\n" +
                         "Ruleset: " + (livematch.ruleset == "" ? "" : "`" + tourney_rulesets_data.saved[livematch.ruleset].name + "`") + "\n" +
                         "Players: " + ([null, undefined, ""].includes(livematch.players) ? "" : Object.values(livematch.players).map(id => "<@" + id + "> ")) + "\n" +
@@ -5448,6 +5448,11 @@ module.exports = {
                         option.default = true
                     }
                 })
+                ruleset_options.forEach(option => {
+                    if (option.value == livematch.ruleset) {
+                        option.default = true
+                    }
+                })
                 components.push({
                     type: 1,
                     components: [
@@ -5502,7 +5507,6 @@ module.exports = {
                             },
                             style: 1,
                             custom_id: "tourney_play_setup_player",
-                            disabled: previous
                         },
                         {
                             type: 2,
@@ -5512,14 +5516,28 @@ module.exports = {
                             },
                             style: 1,
                             custom_id: "tourney_play_setup_comm",
-                            disabled: next
                         },
                         {
                             type: 2,
                             label: "Leave Match",
                             style: 2,
                             custom_id: "tourney_play_setup_leave",
-                            disabled: next
+                        },
+                        {
+                            type: 2,
+                            label: "Set Stream",
+                            style: 2,
+                            custom_id: "tourney_play_setup_stream",
+                        }
+                    ]
+                },{
+                    type: 1,
+                    components: [
+                        {
+                            type: 2,
+                            label: "Start Match",
+                            style: 1,
+                            custom_id: "tourney_play_setup_start"
                         }
                     ]
                 })
