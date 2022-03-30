@@ -5387,7 +5387,7 @@ module.exports = {
                 livematch = tourney_live_data[interaction.channel_id]
                 matchMaker = new Discord.MessageEmbed()
                     .setTitle("Match Setup")
-                    .setDescription("Tournament: " + (livematch.tourney == "" ? "" : livematch.trouney == "practice" ? "Practice Mode" : "`" + tourney_tournaments_data[livematch.tourney].name) + "`\n" +
+                    .setDescription("Tournament: " + (livematch.tourney == "" ? "" : livematch.tourney == "practice" ? "Practice Mode" : "`" + tourney_tournaments_data[livematch.tourney].name) + "`\n" +
                         "Bracket/Round: " + (livematch.bracket == "" || livematch.tourney == "practice" ? "" : "`" + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].bracket + " " + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].round + "`") + "\n" +
                         "Ruleset: " + (livematch.ruleset == "" ? "" : "`" + tourney_rulesets_data.saved[livematch.ruleset].name + "`") + "\n" +
                         "Players: " + ([null, undefined, ""].includes(livematch.players) ? "" : Object.values(livematch.players).map(id => "<@" + id + "> ")) + "\n" +
