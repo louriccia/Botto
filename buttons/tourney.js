@@ -5312,11 +5312,9 @@ module.exports = {
             }).then((embed) => sendResponse(embed))
         } else if (args[0] == "play") {
             function getPlayer(id) {
-                console.log("id", id)
                 var tpd = Object.keys(tourney_participants_data)
                 tpd.forEach(key => {
                     if (tourney_participants_data[key].id == id) {
-                        console.log(key)
                         return key
                     }
                 })
@@ -5406,7 +5404,6 @@ module.exports = {
                 })
                 ttd.forEach(key => {
                     var tourney = tourney_tournaments_data[key]
-                    console.log(tourney)
                     tourney_options.push(
                         {
                             label: tourney.name,
@@ -5416,7 +5413,7 @@ module.exports = {
                     )
                 })
                 if (livematch.tourney) {
-                    if (tourney_live_data[interaction.channel_id.tourney == "practice"]) {
+                    if (livematch.tourney == "practice") {
                         var rulesets = Object.keys(tourney_rulesets_data)
                         rulesets.forEach(key => {
                             var ruleset = tourney_rulesets_data[key]
