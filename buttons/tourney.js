@@ -5496,9 +5496,15 @@ module.exports = {
                         ]
                     })
                 }
-                var playable = false
+                var playable = false, joinable_player = false, joinable_commentator = false
                 if (livematch.ruleset !== "" && livematch.players && livematch.commentators && Object.values(livematch.players).length == 2) {
                     playable = true
+                }
+                if (!livematch.players || Object.values(livematch.players).length < 2){
+                    joinable_player = true
+                }
+                if (!livematch.commentators || Object.values(livematch.commentators).length < 2){
+                    joinable_commentator = true
                 }
                 components.push({
                     type: 1,
@@ -5511,6 +5517,7 @@ module.exports = {
                             },
                             style: 1,
                             custom_id: "tourney_play_setup_player",
+                            disabled: !joinable_player
                         },
                         {
                             type: 2,
@@ -5520,6 +5527,7 @@ module.exports = {
                             },
                             style: 1,
                             custom_id: "tourney_play_setup_comm",
+                            disabled: !joinable_commentator
                         },
                         {
                             type: 2,
