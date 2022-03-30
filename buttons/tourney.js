@@ -5414,9 +5414,9 @@ module.exports = {
                 })
                 if (livematch.tourney) {
                     if (livematch.tourney == "practice") {
-                        var rulesets = Object.keys(tourney_rulesets_data)
+                        var rulesets = Object.keys(tourney_rulesets_data.saved)
                         rulesets.forEach(key => {
-                            var ruleset = tourney_rulesets_data[key]
+                            var ruleset = tourney_rulesets_data.saved[key]
                             ruleset_options.push(
                                 {
                                     label: ruleset.name,
