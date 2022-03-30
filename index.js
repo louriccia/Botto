@@ -105,6 +105,12 @@ tourney_rulesets.on("value", function (snapshot) {
 }, function (errorObject) {
     console.log("The read failed: " + errorObject);
 });
+var tourney_live = database.ref('tourney/live')
+tourney_live.on("value", function (snapshot) {
+    tourney_live_data = snapshot.val();
+}, function (errorObject) {
+    console.log("The read failed: " + errorObject);
+});
 client.ws.on('INTERACTION_CREATE', async interaction => {
     if (interaction.data.hasOwnProperty("name")) {
         const command = interaction.data.name.toLowerCase();

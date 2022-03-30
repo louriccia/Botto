@@ -5365,6 +5365,7 @@ module.exports = {
                     }
                     type = 7
                 } else if (args[2] == "leave") {
+                    type = 7
                     if (livematch.commentators) {
                         var comms = Object.keys(livematch.commentators)
                         comms.forEach(key => {
@@ -5387,7 +5388,7 @@ module.exports = {
                 matchMaker = new Discord.MessageEmbed()
                     .setTitle("Match Setup")
                     .setDescription("Tournament: " + (livematch.tourney == "" ? "" : (livematch.trouney == "practice" ? "Practice Mode" : "`" + tourney_tournaments_data[livematch.tourney].name)) + "`\n" +
-                        "Bracket/Round: " + (livematch.bracket == "" ? "" : "`" + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].bracket + " " + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].round + "`") + "\n" +
+                        "Bracket/Round: " + (livematch.bracket == "" || livematch.tourney == "practice" ? "" : "`" + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].bracket + " " + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].round + "`") + "\n" +
                         "Ruleset: " + (livematch.ruleset == "" ? "" : "`" + tourney_rulesets_data.saved[livematch.ruleset].name + "`") + "\n" +
                         "Players: " + ([null, undefined, ""].includes(livematch.players) ? "" : Object.values(livematch.players).map(id => "<@" + id + "> ")) + "\n" +
                         "Commentators: " + ([null, undefined, ""].includes(livematch.commentators) ? "" : Object.values(livematch.commentators).map(id => "<@" + id + "> ")) + "\n" +
@@ -5458,7 +5459,7 @@ module.exports = {
                             custom_id: "tourney_play_setup_tournament",
                             options: tourney_options,
                             placeholder: "Select Tournament",
-                            min_values: 0,
+                            min_values: 1,
                             max_values: 1
                         }
                     ]
@@ -5472,7 +5473,7 @@ module.exports = {
                                 custom_id: "tourney_play_setup_bracket",
                                 options: bracket_options,
                                 placeholder: "Select Bracket",
-                                min_values: 0,
+                                min_values: 1,
                                 max_values: 1
                             }
                         ]
@@ -5487,7 +5488,7 @@ module.exports = {
                                 custom_id: "tourney_play_setup_ruleset",
                                 options: ruleset_options,
                                 placeholder: "Select Ruleset",
-                                min_values: 0,
+                                min_values: 1,
                                 max_values: 1
                             }
                         ]
