@@ -5385,7 +5385,7 @@ module.exports = {
                 livematch = tourney_live_data[interaction.channel_id]
                 matchMaker = new Discord.MessageEmbed()
                     .setTitle("Match Setup")
-                    .setDescription("Tournament: " + (livematch.tourney == "" ? "" : livematch.tourney == "practice" ? "`Practice Mode`" : "`" + tourney_tournaments_data[livematch.tourney].name) + "`\n" +
+                    .setDescription("Tournament: " + (livematch.tourney == "" ? "" : livematch.tourney == "practice" ? "`Practice Mode`" : "`" + tourney_tournaments_data[livematch.tourney].name + "`") + "\n" +
                         "Bracket/Round: " + (livematch.bracket == "" || livematch.tourney == "practice" ? "" : "`" + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].bracket + " " + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].round + "`") + "\n" +
                         "Ruleset: " + (livematch.ruleset == "" ? "" : "`" + tourney_rulesets_data.saved[livematch.ruleset].name + "`") + "\n" +
                         "Players: " + ([null, undefined, ""].includes(livematch.players) ? "" : Object.values(livematch.players).map(id => "<@" + id + "> ")) + "\n" +
@@ -5520,7 +5520,7 @@ module.exports = {
                         {
                             type: 2,
                             label: "Leave Match",
-                            style: 2,
+                            style: 4,
                             custom_id: "tourney_play_setup_leave",
                         },
                         {
@@ -5536,9 +5536,15 @@ module.exports = {
                         {
                             type: 2,
                             label: "Start Match",
-                            style: 1,
+                            style: 3,
                             custom_id: "tourney_play_setup_start"
-                        }
+                        },
+                        {
+                            type: 2,
+                            label: "Start Match",
+                            style: 4,
+                            custom_id: "tourney_play_setup_cancel"
+                        },
                     ]
                 })
                 client.api.interactions(interaction.id, interaction.token).callback.post({
