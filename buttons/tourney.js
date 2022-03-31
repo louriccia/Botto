@@ -5335,6 +5335,9 @@ module.exports = {
                 }
                 tourney_live.child(interaction.channel_id).set(match)
             }
+            if (args[1] == "start") {
+                tourney_live.child(interaction.channel_id).child("status").set("start")
+            }
             args[1] = livematch.status
             if (args[1] == "setup") {
 
@@ -5500,10 +5503,10 @@ module.exports = {
                 if (livematch.ruleset !== "" && livematch.players && livematch.commentators && Object.values(livematch.players).length == 2) {
                     playable = true
                 }
-                if (!livematch.players || Object.values(livematch.players).length < 2){
+                if (!livematch.players || Object.values(livematch.players).length < 2) {
                     joinable_player = true
                 }
-                if (!livematch.commentators || Object.values(livematch.commentators).length < 2){
+                if (!livematch.commentators || Object.values(livematch.commentators).length < 2) {
                     joinable_commentator = true
                 }
                 components.push({
@@ -5529,7 +5532,7 @@ module.exports = {
                             custom_id: "tourney_play_setup_comm",
                             disabled: !joinable_commentator
                         },
-                        
+
                         {
                             type: 2,
                             label: "Set Stream",
@@ -5565,25 +5568,23 @@ module.exports = {
                     data: {
                         type: type,
                         data: {
-                            //content: "",
                             embeds: [matchMaker],
                             components: components
 
                         }
                     }
                 })
-            } else if (args[1] == "start"){
+            } else if (args[1] == "start") {
                 matchMaker = new Discord.MessageEmbed()
-                .setColor("#3BA55D")
-                .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png") 
-                .setTitle("Reminders")
-                .addField("Player Reminders", "○ Verify all pods/tracks/upgrades are unlocked\n○ Check that stream is running smoothly\n○ Disable game music\n○ Wait until the results screen to report your time", false)
-                .addField("Commentator Reminders", "○ Enable all voice related settings in Discord such as noise supression/reduction, advanced voice activity, etc.\n○  Open Twitch to respond to chat", false)
+                    .setColor("#3BA55D")
+                    .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
+                    .setTitle("Reminders")
+                    .addField("Player Reminders", "○ Verify all pods/tracks/upgrades are unlocked\n○ Check that stream is running smoothly\n○ Disable game music\n○ Wait until the results screen to report your time", false)
+                    .addField("Commentator Reminders", "○ Enable all voice related settings in Discord such as noise supression/reduction, advanced voice activity, etc.\n○  Open Twitch to respond to chat", false)
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
                         type: 7,
                         data: {
-                            //content: "",
                             embeds: [matchMaker],
                             components: components
 
@@ -5602,77 +5603,77 @@ module.exports = {
 
 
             //a tourney cancel command can be used by an admin to cancel a match
-/*
-            //setup
-            //select ruleset
-            //select tournament/practice mode
-            //set bracket/round
-            //join match
-            //click play
-            //adds botto if down a player
-
-            Update profile
-                country flag
-                set platform
-                set pronouns
-                appropriate nicknames/pronunciation
-                reveal pod selection to opponent
+            /*
+                        //setup
+                        //select ruleset
+                        //select tournament/practice mode
+                        //set bracket/round
+                        //join match
+                        //click play
+                        //adds botto if down a player
             
-
-            reminders (only posted if not in practice mode)
-                reminders to players
-                    verify all pods/tracks/upgrades are unlocked
-                    check that stream is running smoothly
-                    disable game music
-                    wait until results screen to report your time
-                reminders to commentators
-                    enable all voice related settings in Discord such as noise supression/reduction, advanced voice activity, etc.
-                    open Twitch to respond to chat
+                        Update profile
+                            country flag
+                            set platform
+                            set pronouns
+                            appropriate nicknames/pronunciation
+                            reveal pod selection to opponent
+                        
             
-            ruleset overview
+                        reminders (only posted if not in practice mode)
+                            reminders to players
+                                verify all pods/tracks/upgrades are unlocked
+                                check that stream is running smoothly
+                                disable game music
+                                wait until results screen to report your time
+                            reminders to commentators
+                                enable all voice related settings in Discord such as noise supression/reduction, advanced voice activity, etc.
+                                open Twitch to respond to chat
+                        
+                        ruleset overview
+                        
+                        how would you like to select the first track?
             
-            how would you like to select the first track?
-
+                        
+                        ruleset explanation:
+                            
+                        
             
-            ruleset explanation:
-                
             
-
-
-
-            first track selection
-                predetermined
-                coin flip
-                    red or blue
-                circuit bans
-                    track bans
-                gentleman's agreement
-                    track
-                    racer
-                    conditions
             
-            Ban phase
-                Pod ban
-                Track ban
-            Track selection 
-                Select Track (Use Salty Runback)
-                Conditions
-                    Skips
-                    No Upgrades
-                    Flap
-                Pod Bans (* per pod)
-                Gentleman’s Agreement (modal)
-            
-            Show selected track
-                (No Upgrades Verification)
-                show each player
-                Select Pod
-                Ready Up
-            Countdown
-            Time report
-                commentators verify both times
-                Winner report and summary
-            */
+                        first track selection
+                            predetermined
+                            coin flip
+                                red or blue
+                            circuit bans
+                                track bans
+                            gentleman's agreement
+                                track
+                                racer
+                                conditions
+                        
+                        Ban phase
+                            Pod ban
+                            Track ban
+                        Track selection 
+                            Select Track (Use Salty Runback)
+                            Conditions
+                                Skips
+                                No Upgrades
+                                Flap
+                            Pod Bans (* per pod)
+                            Gentleman’s Agreement (modal)
+                        
+                        Show selected track
+                            (No Upgrades Verification)
+                            show each player
+                            Select Pod
+                            Ready Up
+                        Countdown
+                        Time report
+                            commentators verify both times
+                            Winner report and summary
+                        */
         }
     }
 }
