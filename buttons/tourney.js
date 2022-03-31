@@ -5385,12 +5385,12 @@ module.exports = {
                 livematch = tourney_live_data[interaction.channel_id]
                 matchMaker = new Discord.MessageEmbed()
                     .setTitle("Match Setup")
-                    .setDescription("Tournament: " + (livematch.tourney == "" ? "" : livematch.tourney == "practice" ? "`Practice Mode`" : "`" + tourney_tournaments_data[livematch.tourney].name + "`") + "\n" +
-                        (livematch.tourney == "pracitce" ? "" : "Bracket/Round: " + (livematch.bracket == "" || livematch.tourney == "practice" ? "" : "`" + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].bracket + " " + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].round + "`") + "\n") +
-                        "Ruleset: " + (livematch.ruleset == "" ? "" : "`" + tourney_rulesets_data.saved[livematch.ruleset].name + "`") + "\n" +
-                        "Players: " + ([null, undefined, ""].includes(livematch.players) ? "" : Object.values(livematch.players).map(id => "<@" + id + "> ")) + "\n" +
-                        "Commentators: " + ([null, undefined, ""].includes(livematch.commentators) ? "" : Object.values(livematch.commentators).map(id => "<@" + id + "> ")) + "\n" +
-                        "Stream: " + livematch.stream
+                    .setDescription("🏆 Tournament: " + (livematch.tourney == "" ? "" : livematch.tourney == "practice" ? "`Practice Mode`" : "`" + tourney_tournaments_data[livematch.tourney].name + "`") + "\n" +
+                        (livematch.tourney == "practice" ? "" : "⭕ Bracket/Round: " + (livematch.bracket == "" || livematch.tourney == "practice" ? "" : "`" + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].bracket + " " + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].round + "`") + "\n") +
+                        "📜 Ruleset: " + (livematch.ruleset == "" ? "" : "`" + tourney_rulesets_data.saved[livematch.ruleset].name + "`") + "\n" +
+                        "👥 Players: " + ([null, undefined, ""].includes(livematch.players) ? "" : Object.values(livematch.players).map(id => "<@" + id + "> ")) + "\n" +
+                        "🎙️ Commentators: " + ([null, undefined, ""].includes(livematch.commentators) ? "" : Object.values(livematch.commentators).map(id => "<@" + id + "> ")) + "\n" +
+                        "📺 Stream: " + livematch.stream
                     )
                     .setColor("#3BA55D")
                     .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
@@ -5529,12 +5529,7 @@ module.exports = {
                             custom_id: "tourney_play_setup_comm",
                             disabled: !joinable_commentator
                         },
-                        {
-                            type: 2,
-                            label: "Leave Match",
-                            style: 4,
-                            custom_id: "tourney_play_setup_leave",
-                        },
+                        
                         {
                             type: 2,
                             label: "Set Stream",
@@ -5549,8 +5544,14 @@ module.exports = {
                             type: 2,
                             label: "Start Match",
                             style: 3,
-                            custom_id: "tourney_play_setup_start",
+                            custom_id: "tourney_play_start",
                             disabled: !playable
+                        },
+                        {
+                            type: 2,
+                            label: "Leave Match",
+                            style: 4,
+                            custom_id: "tourney_play_setup_leave",
                         },
                         {
                             type: 2,
@@ -5571,12 +5572,37 @@ module.exports = {
                         }
                     }
                 })
+            } else if (args[1] == "start"){
+                matchMaker = new Discord.MessageEmbed()
+                .setColor("#3BA55D")
+                .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png") 
+                .setTitle("Reminders")
+                .addField("Player Reminders", "○ Verify all pods/tracks/upgrades are unlocked\n○ Check that stream is running smoothly\n○ Disable game music\n○ Wait until the results screen to report your time", false)
+                .addField("Commentator Reminders", "○ Enable all voice related settings in Discord such as noise supression/reduction, advanced voice activity, etc.\n○  Open Twitch to respond to chat", false)
+                client.api.interactions(interaction.id, interaction.token).callback.post({
+                    data: {
+                        type: 7,
+                        data: {
+                            //content: "",
+                            embeds: [matchMaker],
+                            components: components
 
+                        }
+                    }
+                })
+                /*
+                client.api.webhooks(client.user.id, interaction.token).post({
+                    data: {
+                        embeds: [data.message],
+                        components: []
+                    }
+                })
+                */
             }
 
 
             //a tourney cancel command can be used by an admin to cancel a match
-
+/*
             //setup
             //select ruleset
             //select tournament/practice mode
@@ -5585,29 +5611,32 @@ module.exports = {
             //click play
             //adds botto if down a player
 
-            //play
-            //reminders
-            //ruleset
-            //verify all pods/tracks/upgrades are unlocked
-            //verify that your stream is running smoothly
-            //if broadcasting, check that game music is disabled
-            //ready up for first race
-
-            /*
-            ruleset explanation:
-
-            reminders:
-                verify that your parts are fully upgraded
-                check that all pods/tracks are unlocked
-                verify that your stream is running smoothly
-                check that your music is disabled
-                wait until results screen to report your time
             Update profile
-                set pronouns
+                country flag
                 set platform
+                set pronouns
                 appropriate nicknames/pronunciation
-                small bio
                 reveal pod selection to opponent
+            
+
+            reminders (only posted if not in practice mode)
+                reminders to players
+                    verify all pods/tracks/upgrades are unlocked
+                    check that stream is running smoothly
+                    disable game music
+                    wait until results screen to report your time
+                reminders to commentators
+                    enable all voice related settings in Discord such as noise supression/reduction, advanced voice activity, etc.
+                    open Twitch to respond to chat
+            
+            ruleset overview
+            
+            how would you like to select the first track?
+
+            
+            ruleset explanation:
+                
+            
 
 
 
