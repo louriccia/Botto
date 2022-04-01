@@ -87,19 +87,19 @@ module.exports = {
                 let genfield = {name: "General", description: "", inline: false}
                 genfield.description = "First to **" + ruleset.general.winlimit + " Wins**" + "\n" +
                 "**Default Conditions**: " + Object.values(ruleset.general.default).map(con => "`" + conditions[con] + "` ") + "\n" +
-                "**Gentleman's Agreement** is " + (!ruleset.general.gents && "*not* ") + "permitted" + "\n" +
-                "**Elo Rating** is " + (!ruleset.general.ranked && "*not* ") + "affected" + "\n" +
-                "**First Track** can be " + (Object.values(ruleset.general.firsttrack.options).length == 25 ? "any" : "a track from " + Object.values(ruleset.general.firsttrack.options).map(circuit => "`" + circuit.toUpperCase() + "` ")) + "\n" +
+                "**Gentleman's Agreement** is " + (ruleset.general.gents == false ? "": "*not* ") + "permitted" + "\n" +
+                "**Elo Rating** is " + (ruleset.general.ranked == false ? "": "*not* ") + "affected" + "\n" +
+                "**First Track** can be " + (Object.values(ruleset.general.firsttrack.options).length == 4 ? "any" : "a track from " + Object.values(ruleset.general.firsttrack.options).map(circuit => "`" + circuit.toUpperCase() + "` ")) + "\n" +
                 "**First Track** will be selected by " + methods[ruleset.general.firsttrack.primary] + "\n" +
                 "Alternatively, players may agree to select the **First Track** by " + Object.values(ruleset.general.firsttrack.primary).map(method => "`" + methods[method] + "` ")
 
                 let matchfield = {name: "Every Match", description: "", inline: false}
-                matchfield.description = "Both players start with " + ruleset.match.forcepoints.start + " **Force Points** (" + ruleset.match.forcepoints.max + " max)" + "\n" +
-                (ruleset.match.permabans && Object.values(ruleset.match.permabans).map(ban => choices[ban.choice] + " **Permanently Bans **" + ban.limit + " " + ban.type + " (" + (ban.cost == 0 ? "free" : ban.cost + " forcepoint") + ")\n")) + 
+                matchfield.description = (ruleset.match.forcepoints.start > 0 && "Both players start with " + ruleset.match.forcepoints.start + " **Force Points** (" + ruleset.match.forcepoints.max + " max)" + "\n") +
+                (ruleset.match.permabans && Object.values(ruleset.match.permabans).map(ban => choices[ban.choice] + " **Permanently Bans** " + ban.limit + " " + ban.type + " (" + (ban.cost == 0 ? "free" : ban.cost + " forcepoint") + ")\n")) + 
                 (ruleset.match.repeattrack && Object.values(ruleset.match.repeattrack).map(repeat => choices[repeat.choice] + " can use " + repeat.limit + " " + repeat.condition + " **Runback** " + (repeat.style == "soft" ? "(resets to default conditions)": "must be same conditions")))
 
                 let racefield = {name: "Every Race", description: "", inline: false}
-                racefield.description = Object.values(ruleset.race).map(race => choices[race.choice] + " " + (race.cost && race.cost > 0 && "may ") + "**" + events[race.event] + "** " + (race.limit ? race.limit + " ": " a ") + race.type + (race.cost && " (" + (race.cost == 0 ? "free" : race.cost + " forcepoint") + ")") + "\n")
+                racefield.description = Object.values(ruleset.race).map(race => choices[race.choice] + " " + (![undefined,null].includes(race.cost) && race.cost > 0 && "may ") + "**" + events[race.event] + "** " + (![undefined,null].includes(race.limit) ? race.limit + " ": "a ") + race.type + (![undefined,null].includes(race.cost) && " (" + (race.cost == 0 ? "free" : race.cost + " forcepoint") + ")") + "\n")
                 fields.push(genfield, matchfield, racefield)
             }
             return fields
