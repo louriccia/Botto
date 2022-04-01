@@ -83,7 +83,7 @@ module.exports = {
                 override: "Override"
             }
             let fields = []
-            if(ruleset.type == "1v1"){
+            if(ruleset.general && ruleset.general.type == "1v1"){
                 let genfield = {name: "General", description: "", inline: false}
                 genfield.description = "First to **" + ruleset.general.winlimit + " Wins**" + "\n" +
                 "**Default Conditions**: " + Object.values(ruleset.general.default).map(con => "`" + conditions[con] + "` ") + "\n" +
