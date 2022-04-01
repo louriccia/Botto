@@ -47,6 +47,63 @@ module.exports = {
         }, function (errorObject) {
             console.log("The read failed: " + errorObject);
         });
+        function rulesetOverview(ruleset){
+            let conditions = {
+                mu: "Upgrades Allowed",
+                nu: "No Upgrades",
+                ft: "Full Track",
+                sk: "Skips",
+                tt: "Total Time",
+                fl: "Fastest Lap",
+                um: "Unmirrored",
+                mi: "Mirrored",
+                l1: "1 Lap",
+                l2: "2 Laps",
+                l3: "3 Laps",
+                l4: "4 Laps",
+                l5: "5 Laps",
+            }
+            let methods = {
+                poe_c: "Process of Elimination by Circuit",
+                poe_p: "Process of Elimination by Planet",
+                poe_t: "Process of Elimination by Track",
+                random: "Random"
+            }
+            let choices = {
+                firstloser: "Loser of First Race",
+                firstwinner: "Winner of First Race",
+                both: "Both Players",
+                lastloser: "Loser of Last Race",
+                lastwinner: "Winner of Last Race",
+                player: "Each Player"
+            }
+            let events = {
+                tempban: "Temporarily Ban",
+                selection: "select",
+                override: "Override"
+            }
+            let fields = []
+            if(ruleset.type == "1v1"){
+                let genfield = {name: "General", description: "", inline: false}
+                genfield.description = "First to **" + ruleset.general.winlimit + " Wins**" + "\n" +
+                "**Default Conditions**: " + Object.values(ruleset.general.default).map(con => "`" + conditions[con] + "` ") + "\n" +
+                "**Gentleman's Agreement** is " + (!ruleset.general.gents && "*not* ") + "permitted" + "\n" +
+                "**Elo Rating** is " + (!ruleset.general.ranked && "*not* ") + "affected" + "\n" +
+                "**First Track** can be " + (Object.values(ruleset.general.firsttrack.options).length == 25 ? "any" : "a track from " + Object.values(ruleset.general.firsttrack.options).map(circuit => "`" + circuit.toUpperCase() + "` ")) + "\n" +
+                "**First Track** will be selected by " + methods[ruleset.general.firsttrack.primary] + "\n" +
+                "Alternatively, players may agree to select the **First Track** by " + Object.values(ruleset.general.firsttrack.primary).map(method => "`" + methods[method] + "` ")
+
+                let matchfield = {name: "Every Match", description: "", inline: false}
+                matchfield.description = "Both players start with " + ruleset.match.forcepoints.start + " **Force Points** (" + ruleset.match.forcepoints.max + " max)" + "\n" +
+                (ruleset.match.permabans && Object.values(ruleset.match.permabans).map(ban => choices[ban.choice] + " **Permanently Bans **" + ban.limit + " " + ban.type + " (" + (ban.cost == 0 ? "free" : ban.cost + " forcepoint") + ")\n")) + 
+                (ruleset.match.repeattrack && Object.values(ruleset.match.repeattrack).map(repeat => choices[repeat.choice] + " can use " + repeat.limit + " " + repeat.condition + " **Runback** " + (repeat.style == "soft" ? "(resets to default conditions)": "must be same conditions")))
+
+                let racefield = {name: "Every Race", description: "", inline: false}
+                racefield.description = Object.values(ruleset.race).map(race => choices[race.choice] + " " + (race.cost && race.cost > 0 && "may ") + "**" + events[race.event] + "** " + (race.limit ? race.limit + " ": " a ") + race.type + (race.cost && " (" + (race.cost == 0 ? "free" : ban.cost + " forcepoint") + ")") + "\n")
+                fields.push(genfield, matchfield, racefield)
+            }
+            return fields
+        }
         if (args[0] == "ranks") {
             if (args[1].startsWith("page")) {
                 var ranks = tools.getRanks()
@@ -5500,6 +5557,9 @@ module.exports = {
                     })
                 }
                 var playable = false, joinable_player = false, joinable_commentator = false
+                if(livematch.ruleset !== ""){
+                    console.log(rulesetOverview(tourney_rulesets_data.saved[livematch.ruleset]))
+                }
                 if (livematch.ruleset !== "" && livematch.players && livematch.commentators && Object.values(livematch.players).length == 2) {
                     playable = true
                 }
@@ -5577,16 +5637,15 @@ module.exports = {
             } else if (args[1] == "start") {
                 matchMaker = new Discord.MessageEmbed()
                     .setColor("#3BA55D")
-                    .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
                     .setTitle("Reminders")
-                    .addField("Player Reminders", "○ Verify all pods/tracks/upgrades are unlocked\n○ Check that stream is running smoothly\n○ Disable game music\n○ Wait until the results screen to report your time", false)
-                    .addField("Commentator Reminders", "○ Enable all voice related settings in Discord such as noise supression/reduction, advanced voice activity, etc.\n○  Open Twitch to respond to chat", false)
+                    .addField("🕹️ Player Reminders", "○ Verify all pods/tracks/upgrades are unlocked\n○ Check that stream is running smoothly\n○ Disable game music\n○ Wait until the results screen to report your time", false)
+                    .addField("🎙️ Commentator Reminders", "○ Enable all voice related settings in Discord such as noise supression/reduction, advanced voice activity, etc.\n○  Open Twitch to respond to chat", false)
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
                         type: 7,
                         data: {
                             embeds: [matchMaker],
-                            components: components
+                            components: []
 
                         }
                     }
