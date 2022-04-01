@@ -99,7 +99,7 @@ module.exports = {
                 (ruleset.match.repeattrack && Object.values(ruleset.match.repeattrack).map(repeat => choices[repeat.choice] + " can use " + repeat.limit + " " + repeat.condition + " **Runback** " + (repeat.style == "soft" ? "(resets to default conditions)": "must be same conditions")))
 
                 let racefield = {name: "Every Race", description: "", inline: false}
-                racefield.description = Object.values(ruleset.race).map(race => choices[race.choice] + " **" + events[race.event] + "** " + (![undefined,null].includes(race.limit) ? race.limit + " ": "a ") + race.type + (![undefined,null].includes(race.cost) && " (" + (race.cost == 0 ? "free" : race.cost + " forcepoint") + ")") + "\n")
+                racefield.description = Object.values(ruleset.race).map(race => choices[race.choice] + " **" + events[race.event] + "** " + (![undefined,null].includes(race.limit) ? race.limit == 0 ? "any number of " : "up to " + race.limit + " ": "a ") + race.type + ([undefined,null].includes(race.cost) ? "" :  " (" + (race.cost == 0 ? "free" : race.cost + " forcepoint/" + race.count + " " + race.type) + ")") + "\n")
                 fields.push(genfield, matchfield, racefield)
             }
             return fields
