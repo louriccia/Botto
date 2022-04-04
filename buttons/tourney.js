@@ -99,7 +99,14 @@ module.exports = {
                     (ruleset.match.repeattrack && Object.values(ruleset.match.repeattrack).map(repeat => "◉ " + choices[repeat.choice] + " can use " + repeat.limit + " " + repeat.condition + " **🔁 Runback** " + (repeat.style == "soft" ? "(resets to default conditions)" : "must be same conditions")))
 
                 let racefield = { name: "🏁 Every Race", value: "", inline: false }
-                racefield.value = Object.values(ruleset.race).map(race => "◉ " + choices[race.choice] + " **" + events[race.event] + "** " + (![undefined, null].includes(race.limit) ? race.limit == 0 ? "any number of " : "up to " + race.limit + " " : "a ") + race.type + (race.limit == 0 ? "s" : "") + ([undefined, null].includes(race.cost) ? "" : " (" + (race.cost == 0 ? "🆓" : race.cost + " 💠/" + (race.count == 1? "": race.count + " ") + race.type) + ")")+ ([null, undefined, ""].includes(race.options) ? "": " from the following options: " + Object.values(race.options).map(option => "`" + conditions[option] + "`")).join(", ") + "\n").join("")
+                racefield.value = Object.values(ruleset.race).map(
+                    race => "◉ " + choices[race.choice] + " **" + events[race.event] + "** " +
+                        (![undefined, null].includes(race.limit) ? race.limit == 0 ? "any number of " : "up to " + race.limit + " " : "a ") +
+                        race.type +
+                        (race.limit == 0 ? "s" : "") +
+                        ([undefined, null].includes(race.cost) ? "" : " (" + (race.cost == 0 ? "🆓" : race.cost + " 💠/" + (race.count == 1 ? "" : race.count + " ") + race.type) + ")") +
+                        ([null, undefined, ""].includes(race.options) ? "" : " from the following options: " + Object.values(race.options).map(option => "`" + conditions[option] + "`").join(", ")) + "\n"
+                ).join("")
                 fields.push(genfield, matchfield, racefield)
             }
             return fields
