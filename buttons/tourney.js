@@ -5664,7 +5664,7 @@ module.exports = {
                     .addFields(rulesetOverview(tourney_rulesets_data.saved[livematch.ruleset]))
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
-                        type: 7,
+                        type: type,
                         data: {
                             embeds: [matchmaker, ruleset, reminder],
                             components: []
