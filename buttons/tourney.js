@@ -5678,7 +5678,7 @@ module.exports = {
                     poe_t:  {label: "Process of Elimination by Track", description: "Players alternate track bans until one option remains"},
                     random:  {label: "Random", description: "First track is decided by rng"}
                 }
-
+                console.log(liverules)
                 let firstoptions = [
                     {
                         label: "Already Decided",
@@ -5698,7 +5698,7 @@ module.exports = {
                         }
                     ))
                 }
-
+                tourney_live.child(interaction.channel_id).child("status").set("first")
                 const firstselect = new Discord.MessageEmbed()
                     .setTitle("How would you like to select the first track?")
                     .setDescription("(0/2)")
