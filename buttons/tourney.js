@@ -78,28 +78,28 @@ module.exports = {
                 player: "Each player"
             }
             let events = {
-                tempban: "Temporarily bans",
-                selection: "Selects",
-                override: "Overrides"
+                tempban: "❌ Temporarily bans",
+                selection: "👆 Selects",
+                override: "✳️ Overrides"
             }
             let fields = []
             if (ruleset.general && ruleset.general.type == "1v1") {
-                let genfield = { name: "General", value: "", inline: false }
-                genfield.value = "First to **" + ruleset.general.winlimit + " Wins**" + "\n" +
-                    "**Default Conditions**: " + Object.values(ruleset.general.default).map(con => "`" + conditions[con] + "` ") + "\n" +
-                    "**Gentleman's Agreement** is " + (ruleset.general.gents == true ? "" : "*not* ") + "permitted" + "\n" +
-                    "**Elo Rating** is " + (ruleset.general.ranked == true ? "" : "*not* ") + "affected" + "\n" +
-                    "**First Track** can be " + (Object.values(ruleset.general.firsttrack.options).length == 4 ? "any track" : "a track from " + Object.values(ruleset.general.firsttrack.options).map(circuit => "`" + circuit.toUpperCase() + "` ")) + "\n" +
-                    "**First Track** will be selected by " + methods[ruleset.general.firsttrack.primary] + "\n" +
-                    (![undefined, null].includes(ruleset.general.firsttrack.secondary) && "Alternatively, players may agree to select the **First Track** by " + Object.values(ruleset.general.firsttrack.secondary).map(method => "`" + methods[method] + "` "))
+                let genfield = { name: "🔷 General", value: "", inline: false }
+                genfield.value = "◉ 👑 First to **" + ruleset.general.winlimit + " Wins**" + "\n" +
+                    "◉ **⚙️ Default Conditions**: " + Object.values(ruleset.general.default).map(con => "`" + conditions[con] + "`").join(", ") + "\n" +
+                    "◉ **🎩 Gentleman's Agreement** is " + (ruleset.general.gents == true ? "" : "*not* ") + "permitted" + "\n" +
+                    "◉ **⭐ Elo Rating** is " + (ruleset.general.ranked == true ? "" : "*not* ") + "affected" + "\n" +
+                    "◉ **1️⃣ First Track** can be " + (Object.values(ruleset.general.firsttrack.options).length == 4 ? "any track" : "a track from " + Object.values(ruleset.general.firsttrack.options).map(circuit => "`" + circuit.toUpperCase() + "` ")) + "\n" +
+                    "◉ **1️⃣ First Track** will be selected by " + methods[ruleset.general.firsttrack.primary] + "\n" +
+                    ([undefined, null].includes(ruleset.general.firsttrack.secondary) ? "" : "◉ Alternatively, players may agree to select the **First Track** by " + Object.values(ruleset.general.firsttrack.secondary).map(method => "`" + methods[method] + "` "))
 
-                let matchfield = { name: "Every Match", value: "", inline: false }
-                matchfield.value = (ruleset.match.forcepoints.start > 0 && "Both players start with " + ruleset.match.forcepoints.start + " **Force Points** (" + ruleset.match.forcepoints.max + " max)" + "\n") +
-                    (ruleset.match.permabans && Object.values(ruleset.match.permabans).map(ban => choices[ban.choice] + " **Permanently Bans** " + ban.limit + " " + ban.type + " (" + (ban.cost == 0 ? "free" : ban.cost + " forcepoint") + ")\n")) +
-                    (ruleset.match.repeattrack && Object.values(ruleset.match.repeattrack).map(repeat => choices[repeat.choice] + " can use " + repeat.limit + " " + repeat.condition + " **Runback** " + (repeat.style == "soft" ? "(resets to default conditions)" : "must be same conditions")))
+                let matchfield = { name: "⭕ Every Match", value: "", inline: false }
+                matchfield.value = (ruleset.match.forcepoints.start > 0 && "◉ Both players start with " + ruleset.match.forcepoints.start + " **💠 Force Points** (" + ruleset.match.forcepoints.max + " max)" + "\n") +
+                    (ruleset.match.permabans && Object.values(ruleset.match.permabans).map(ban => "◉ " + choices[ban.choice] + " **🚫 Permanently Bans** " + ban.limit + " " + ban.type + " (" + (ban.cost == 0 ? "free" : ban.cost + " forcepoint") + ")\n").join("")) +
+                    (ruleset.match.repeattrack && Object.values(ruleset.match.repeattrack).map(repeat => "◉ " + choices[repeat.choice] + " can use " + repeat.limit + " " + repeat.condition + " **🔁 Runback** " + (repeat.style == "soft" ? "(resets to default conditions)" : "must be same conditions")))
 
-                let racefield = { name: "Every Race", value: "", inline: false }
-                racefield.value = Object.values(ruleset.race).map(race => choices[race.choice] + " **" + events[race.event] + "** " + (![undefined, null].includes(race.limit) ? race.limit == 0 ? "any number of " : "up to " + race.limit + " " : "a ") + race.type + ([undefined, null].includes(race.cost) ? "" : " (" + (race.cost == 0 ? "free" : race.cost + " forcepoint/" + race.count + " " + race.type) + ")") + "\n")
+                let racefield = { name: "🏁 Every Race", value: "", inline: false }
+                racefield.value = Object.values(ruleset.race).map(race => "◉ " + choices[race.choice] + " **" + events[race.event] + "** " + (![undefined, null].includes(race.limit) ? race.limit == 0 ? "any number of " : "up to " + race.limit + " " : "a ") + race.type + (race.limit == 0 ? "s" : "") + ([undefined, null].includes(race.cost) ? "" : " (" + (race.cost == 0 ? "free" : race.cost + " forcepoint/" + (race.count == 1? "": race.count) + " " + race.type) + ")" + "\n")).join("")
                 fields.push(genfield, matchfield, racefield)
             }
             return fields
@@ -5639,7 +5639,7 @@ module.exports = {
                 const matchmaker = new Discord.MessageEmbed()
 
                     .setAuthor(livematch.tourney == "practice" ? "`Practice Mode`" : tourney_tournaments_data[livematch.tourney].name, "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
-                    .setTitle((livematch.tourney == "practice" ? "" : tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].bracket + " " + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].round) + " - " + Object.values(livematch.players).map(player => "<@" + player + ">").join(" vs "))
+                    .setTitle((livematch.tourney == "practice" ? "" : tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].bracket + " " + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].round) + " - " + Object.values(livematch.players).map(player => client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username).join(" vs "))
                     .setDescription("📜 " + tourney_rulesets_data.saved[livematch.ruleset].general.name + "\n" +
                         "🎙️ " + ([null, undefined, ""].includes(livematch.commentators) ? "" : Object.values(livematch.commentators).map(id => "<@" + id + "> ")) + "\n" +
                         "📺 " + livematch.stream
