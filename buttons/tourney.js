@@ -47,7 +47,7 @@ module.exports = {
         }, function (errorObject) {
             console.log("The read failed: " + errorObject);
         });
-        function rulesetOverview(ruleset){
+        function rulesetOverview(ruleset) {
             let conditions = {
                 mu: "Upgrades Allowed",
                 nu: "No Upgrades",
@@ -83,23 +83,23 @@ module.exports = {
                 override: "Overrides"
             }
             let fields = []
-            if(ruleset.general && ruleset.general.type == "1v1"){
-                let genfield = {name: "General", description: "", inline: false}
+            if (ruleset.general && ruleset.general.type == "1v1") {
+                let genfield = { name: "General", description: "", inline: false }
                 genfield.description = "First to **" + ruleset.general.winlimit + " Wins**" + "\n" +
-                "**Default Conditions**: " + Object.values(ruleset.general.default).map(con => "`" + conditions[con] + "` ") + "\n" +
-                "**Gentleman's Agreement** is " + (ruleset.general.gents == true ? "": "*not* ") + "permitted" + "\n" +
-                "**Elo Rating** is " + (ruleset.general.ranked == true ? "": "*not* ") + "affected" + "\n" +
-                "**First Track** can be " + (Object.values(ruleset.general.firsttrack.options).length == 4 ? "any track" : "a track from " + Object.values(ruleset.general.firsttrack.options).map(circuit => "`" + circuit.toUpperCase() + "` ")) + "\n" +
-                "**First Track** will be selected by " + methods[ruleset.general.firsttrack.primary] + "\n" +
-                (![undefined, null].includes(ruleset.general.firsttrack.secondary) && "Alternatively, players may agree to select the **First Track** by " + Object.values(ruleset.general.firsttrack.secondary).map(method => "`" + methods[method] + "` "))
+                    "**Default Conditions**: " + Object.values(ruleset.general.default).map(con => "`" + conditions[con] + "` ") + "\n" +
+                    "**Gentleman's Agreement** is " + (ruleset.general.gents == true ? "" : "*not* ") + "permitted" + "\n" +
+                    "**Elo Rating** is " + (ruleset.general.ranked == true ? "" : "*not* ") + "affected" + "\n" +
+                    "**First Track** can be " + (Object.values(ruleset.general.firsttrack.options).length == 4 ? "any track" : "a track from " + Object.values(ruleset.general.firsttrack.options).map(circuit => "`" + circuit.toUpperCase() + "` ")) + "\n" +
+                    "**First Track** will be selected by " + methods[ruleset.general.firsttrack.primary] + "\n" +
+                    (![undefined, null].includes(ruleset.general.firsttrack.secondary) && "Alternatively, players may agree to select the **First Track** by " + Object.values(ruleset.general.firsttrack.secondary).map(method => "`" + methods[method] + "` "))
 
-                let matchfield = {name: "Every Match", description: "", inline: false}
+                let matchfield = { name: "Every Match", description: "", inline: false }
                 matchfield.description = (ruleset.match.forcepoints.start > 0 && "Both players start with " + ruleset.match.forcepoints.start + " **Force Points** (" + ruleset.match.forcepoints.max + " max)" + "\n") +
-                (ruleset.match.permabans && Object.values(ruleset.match.permabans).map(ban => choices[ban.choice] + " **Permanently Bans** " + ban.limit + " " + ban.type + " (" + (ban.cost == 0 ? "free" : ban.cost + " forcepoint") + ")\n")) + 
-                (ruleset.match.repeattrack && Object.values(ruleset.match.repeattrack).map(repeat => choices[repeat.choice] + " can use " + repeat.limit + " " + repeat.condition + " **Runback** " + (repeat.style == "soft" ? "(resets to default conditions)": "must be same conditions")))
+                    (ruleset.match.permabans && Object.values(ruleset.match.permabans).map(ban => choices[ban.choice] + " **Permanently Bans** " + ban.limit + " " + ban.type + " (" + (ban.cost == 0 ? "free" : ban.cost + " forcepoint") + ")\n")) +
+                    (ruleset.match.repeattrack && Object.values(ruleset.match.repeattrack).map(repeat => choices[repeat.choice] + " can use " + repeat.limit + " " + repeat.condition + " **Runback** " + (repeat.style == "soft" ? "(resets to default conditions)" : "must be same conditions")))
 
-                let racefield = {name: "Every Race", description: "", inline: false}
-                racefield.description = Object.values(ruleset.race).map(race => choices[race.choice] + " **" + events[race.event] + "** " + (![undefined,null].includes(race.limit) ? race.limit == 0 ? "any number of " : "up to " + race.limit + " ": "a ") + race.type + ([undefined,null].includes(race.cost) ? "" :  " (" + (race.cost == 0 ? "free" : race.cost + " forcepoint/" + race.count + " " + race.type) + ")") + "\n")
+                let racefield = { name: "Every Race", description: "", inline: false }
+                racefield.description = Object.values(ruleset.race).map(race => choices[race.choice] + " **" + events[race.event] + "** " + (![undefined, null].includes(race.limit) ? race.limit == 0 ? "any number of " : "up to " + race.limit + " " : "a ") + race.type + ([undefined, null].includes(race.cost) ? "" : " (" + (race.cost == 0 ? "free" : race.cost + " forcepoint/" + race.count + " " + race.type) + ")") + "\n")
                 fields.push(genfield, matchfield, racefield)
             }
             return fields
@@ -5557,7 +5557,7 @@ module.exports = {
                     })
                 }
                 var playable = false, joinable_player = false, joinable_commentator = false
-                if(livematch.ruleset !== ""){
+                if (livematch.ruleset !== "") {
                     console.log(rulesetOverview(tourney_rulesets_data.saved[livematch.ruleset]))
                 }
                 if (livematch.ruleset !== "" && livematch.players && livematch.commentators && Object.values(livematch.players).length == 2) {
@@ -5635,19 +5635,35 @@ module.exports = {
                     }
                 })
             } else if (args[1] == "start") {
-                matchMaker = new Discord.MessageEmbed()
+                const matchmaker = new Discord.MessageEmbed()
+                    
+                    .setAuthor(livematch.tourney == "practice" ? "`Practice Mode`" :tourney_tournaments_data[livematch.tourney].name, "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
+                    .setTitle((livematch.tourney == "practice" ? "" : tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].bracket + " " + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].round) + " - " + Object.values(livematch.players).join(" vs "))
+                    .setDescription("📜 " + (livematch.ruleset == "" ? "" : "`" + tourney_rulesets_data.saved[livematch.ruleset].name + "`") + "\n" +
+                        "🎙️ " + ([null, undefined, ""].includes(livematch.commentators) ? "" : Object.values(livematch.commentators).map(id => "<@" + id + "> ")) + "\n" +
+                        "📺 " + livematch.stream
+                    )
                     .setColor("#3BA55D")
-                    .setTitle("Reminders")
-                    .addField("🕹️ Player Reminders", "○ Verify all pods/tracks/upgrades are unlocked\n○ Check that stream is running smoothly\n○ Disable game music\n○ Wait until the results screen to report your time", false)
-                    .addField("🎙️ Commentator Reminders", "○ Enable all voice related settings in Discord such as noise supression/reduction, advanced voice activity, etc.\n○  Open Twitch to respond to chat", false)
+                    
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
                         type: 7,
                         data: {
-                            embeds: [matchMaker],
+                            embeds: [matchmaker],
                             components: []
 
                         }
+                    }
+                })
+                const reminder = new Discord.MessageEmbed()
+                    .setColor("#3BA55D")
+                    .setTitle("Reminders")
+                    .addField("🕹️ Player Reminders", "○ Verify all pods/tracks/upgrades are unlocked\n○ Check that stream is running smoothly\n○ Disable game music\n○ Wait until the results screen to report your time", false)
+                    .addField("🎙️ Commentator Reminders", "○ Enable all voice related settings in Discord such as noise supression/reduction, advanced voice activity, etc.\n○  Open Twitch to respond to chat", false)
+                client.api.webhooks(client.user.id, interaction.token).post({
+                    data: {
+                        embeds: [reminder],
+                        components: []
                     }
                 })
                 /*
