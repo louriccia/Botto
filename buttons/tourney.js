@@ -5386,7 +5386,7 @@ module.exports = {
             }
             let type = 4
             let livematch = tourney_live_data[interaction.channel_id]
-            let liverules = tourney_ruleset_data.saved[livematch.ruleset]
+            let liverules = tourney_rulesets_data.saved[livematch.ruleset]
             if ([null, undefined, ""].includes(livematch)) {
                 args[1] = "setup"
                 let match = {
