@@ -5394,8 +5394,9 @@ module.exports = {
             }
             if (args[1] == "start") {
                 tourney_live.child(interaction.channel_id).child("status").set("start")
+            } else {
+                args[1] = livematch.status
             }
-            args[1] = livematch.status
             if (args[1] == "setup") {
 
                 if (args[2] == "tournament") {
@@ -5636,34 +5637,32 @@ module.exports = {
                 })
             } else if (args[1] == "start") {
                 const matchmaker = new Discord.MessageEmbed()
-                    
-                    .setAuthor(livematch.tourney == "practice" ? "`Practice Mode`" :tourney_tournaments_data[livematch.tourney].name, "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
-                    .setTitle((livematch.tourney == "practice" ? "" : tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].bracket + " " + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].round) + " - " + Object.values(livematch.players).join(" vs "))
-                    .setDescription("📜 " + (livematch.ruleset == "" ? "" : "`" + tourney_rulesets_data.saved[livematch.ruleset].name + "`") + "\n" +
+
+                    .setAuthor(livematch.tourney == "practice" ? "`Practice Mode`" : tourney_tournaments_data[livematch.tourney].name, "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
+                    .setTitle((livematch.tourney == "practice" ? "" : tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].bracket + " " + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].round) + " - " + Object.values(livematch.players).map(player => "<@" + player + ">").join(" vs "))
+                    .setDescription("📜 " + tourney_rulesets_data.saved[livematch.ruleset].general.name + "\n" +
                         "🎙️ " + ([null, undefined, ""].includes(livematch.commentators) ? "" : Object.values(livematch.commentators).map(id => "<@" + id + "> ")) + "\n" +
                         "📺 " + livematch.stream
                     )
                     .setColor("#3BA55D")
-                    
+                const reminder = new Discord.MessageEmbed()
+                    .setColor("#3BA55D")
+                    .setTitle("Reminders")
+                    .addField("🕹️ Player Reminders", "○ Verify all pods/tracks/upgrades are unlocked\n○ Check that stream is running smoothly\n○ Disable game music\n○ Wait until the results screen to report your times", false)
+                    .addField("🎙️ Commentator Reminders", "○ Enable all voice related settings in Discord such as noise supression/reduction, advanced voice activity, etc.\n○  Open Twitch to respond to chat", false)
+                const ruleset = new Discord.MessageEmbed()
+                    .setAuthor("Ruleset Overview")
+                    .setTitle("📜 " + tourney_rulesets_data.saved[livematch.ruleset].general.name)
+                    .setDescription(tourney_rulesets_data.saved[livematch.ruleset].general.description)
+                    .addFields(rulesetOverview(tourney_rulesets_data.saved[livematch.ruleset]))
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
                         type: 7,
                         data: {
-                            embeds: [matchmaker],
+                            embeds: [matchmaker, reminder, ruleset],
                             components: []
 
                         }
-                    }
-                })
-                const reminder = new Discord.MessageEmbed()
-                    .setColor("#3BA55D")
-                    .setTitle("Reminders")
-                    .addField("🕹️ Player Reminders", "○ Verify all pods/tracks/upgrades are unlocked\n○ Check that stream is running smoothly\n○ Disable game music\n○ Wait until the results screen to report your time", false)
-                    .addField("🎙️ Commentator Reminders", "○ Enable all voice related settings in Discord such as noise supression/reduction, advanced voice activity, etc.\n○  Open Twitch to respond to chat", false)
-                client.api.webhooks(client.user.id, interaction.token).post({
-                    data: {
-                        embeds: [reminder],
-                        components: []
                     }
                 })
                 /*
