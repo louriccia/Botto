@@ -84,8 +84,8 @@ module.exports = {
             }
             let fields = []
             if (ruleset.general && ruleset.general.type == "1v1") {
-                let genfield = { name: "General", description: "", inline: false }
-                genfield.description = "First to **" + ruleset.general.winlimit + " Wins**" + "\n" +
+                let genfield = { name: "General", value: "", inline: false }
+                genfield.value = "First to **" + ruleset.general.winlimit + " Wins**" + "\n" +
                     "**Default Conditions**: " + Object.values(ruleset.general.default).map(con => "`" + conditions[con] + "` ") + "\n" +
                     "**Gentleman's Agreement** is " + (ruleset.general.gents == true ? "" : "*not* ") + "permitted" + "\n" +
                     "**Elo Rating** is " + (ruleset.general.ranked == true ? "" : "*not* ") + "affected" + "\n" +
@@ -93,13 +93,13 @@ module.exports = {
                     "**First Track** will be selected by " + methods[ruleset.general.firsttrack.primary] + "\n" +
                     (![undefined, null].includes(ruleset.general.firsttrack.secondary) && "Alternatively, players may agree to select the **First Track** by " + Object.values(ruleset.general.firsttrack.secondary).map(method => "`" + methods[method] + "` "))
 
-                let matchfield = { name: "Every Match", description: "", inline: false }
-                matchfield.description = (ruleset.match.forcepoints.start > 0 && "Both players start with " + ruleset.match.forcepoints.start + " **Force Points** (" + ruleset.match.forcepoints.max + " max)" + "\n") +
+                let matchfield = { name: "Every Match", value: "", inline: false }
+                matchfield.value = (ruleset.match.forcepoints.start > 0 && "Both players start with " + ruleset.match.forcepoints.start + " **Force Points** (" + ruleset.match.forcepoints.max + " max)" + "\n") +
                     (ruleset.match.permabans && Object.values(ruleset.match.permabans).map(ban => choices[ban.choice] + " **Permanently Bans** " + ban.limit + " " + ban.type + " (" + (ban.cost == 0 ? "free" : ban.cost + " forcepoint") + ")\n")) +
                     (ruleset.match.repeattrack && Object.values(ruleset.match.repeattrack).map(repeat => choices[repeat.choice] + " can use " + repeat.limit + " " + repeat.condition + " **Runback** " + (repeat.style == "soft" ? "(resets to default conditions)" : "must be same conditions")))
 
-                let racefield = { name: "Every Race", description: "", inline: false }
-                racefield.description = Object.values(ruleset.race).map(race => choices[race.choice] + " **" + events[race.event] + "** " + (![undefined, null].includes(race.limit) ? race.limit == 0 ? "any number of " : "up to " + race.limit + " " : "a ") + race.type + ([undefined, null].includes(race.cost) ? "" : " (" + (race.cost == 0 ? "free" : race.cost + " forcepoint/" + race.count + " " + race.type) + ")") + "\n")
+                let racefield = { name: "Every Race", value: "", inline: false }
+                racefield.value = Object.values(ruleset.race).map(race => choices[race.choice] + " **" + events[race.event] + "** " + (![undefined, null].includes(race.limit) ? race.limit == 0 ? "any number of " : "up to " + race.limit + " " : "a ") + race.type + ([undefined, null].includes(race.cost) ? "" : " (" + (race.cost == 0 ? "free" : race.cost + " forcepoint/" + race.count + " " + race.type) + ")") + "\n")
                 fields.push(genfield, matchfield, racefield)
             }
             return fields
@@ -5448,7 +5448,7 @@ module.exports = {
                     .setTitle("Match Setup")
                     .setDescription("🏆 Tournament: " + (livematch.tourney == "" ? "" : livematch.tourney == "practice" ? "`Practice Mode`" : "`" + tourney_tournaments_data[livematch.tourney].name + "`") + "\n" +
                         (livematch.tourney == "practice" ? "" : "⭕ Bracket/Round: " + (livematch.bracket == "" || livematch.tourney == "practice" ? "" : "`" + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].bracket + " " + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].round + "`") + "\n") +
-                        "📜 Ruleset: " + (livematch.ruleset == "" ? "" : "`" + tourney_rulesets_data.saved[livematch.ruleset].name + "`") + "\n" +
+                        "📜 Ruleset: " + (livematch.ruleset == "" ? "" : "`" + tourney_rulesets_data.saved[livematch.ruleset].general.name + "`") + "\n" +
                         "👥 Players: " + ([null, undefined, ""].includes(livematch.players) ? "" : Object.values(livematch.players).map(id => "<@" + id + "> ")) + "\n" +
                         "🎙️ Commentators: " + ([null, undefined, ""].includes(livematch.commentators) ? "" : Object.values(livematch.commentators).map(id => "<@" + id + "> ")) + "\n" +
                         "📺 Stream: " + livematch.stream
@@ -5651,6 +5651,7 @@ module.exports = {
                     .addField("🕹️ Player Reminders", "○ Verify all pods/tracks/upgrades are unlocked\n○ Check that stream is running smoothly\n○ Disable game music\n○ Wait until the results screen to report your times", false)
                     .addField("🎙️ Commentator Reminders", "○ Enable all voice related settings in Discord such as noise supression/reduction, advanced voice activity, etc.\n○  Open Twitch to respond to chat", false)
                 const ruleset = new Discord.MessageEmbed()
+                    .setColor("#3BA55D")
                     .setAuthor("Ruleset Overview")
                     .setTitle("📜 " + tourney_rulesets_data.saved[livematch.ruleset].general.name)
                     .setDescription(tourney_rulesets_data.saved[livematch.ruleset].general.description)
