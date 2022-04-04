@@ -84,8 +84,8 @@ module.exports = {
             }
             let fields = []
             if (ruleset.general && ruleset.general.type == "1v1") {
-                let genfield = { name: "🔷 General", value: "", inline: false }
-                genfield.value = "◉ 👑 First to **" + ruleset.general.winlimit + " Wins**" + "\n" +
+                let genfield = { name: "General", value: "", inline: false }
+                genfield.value = "👑 First to **" + ruleset.general.winlimit + " Wins**" + "\n" +
                     "**⚙️ Default Conditions**: " + Object.values(ruleset.general.default).map(con => "`" + conditions[con] + "`").join(", ") + "\n" +
                     "**🎩 Gentleman's Agreement** is " + (ruleset.general.gents == true ? "" : "*not* ") + "permitted" + "\n" +
                     "**⭐ Elo Rating** is " + (ruleset.general.ranked == true ? "" : "*not* ") + "affected" + "\n" +
@@ -93,19 +93,19 @@ module.exports = {
                     "**1️⃣ First Track** will be selected by " + methods[ruleset.general.firsttrack.primary] + "\n" +
                     ([undefined, null].includes(ruleset.general.firsttrack.secondary) ? "" : "◉ Alternatively, players may agree to select the **1️⃣ First Track** by " + Object.values(ruleset.general.firsttrack.secondary).map(method => "`" + methods[method] + "` "))
 
-                let matchfield = { name: "⭕ Every Match", value: "", inline: false }
-                matchfield.value = (ruleset.match.forcepoints.start > 0 && "🔵 Both players start with " + ruleset.match.forcepoints.start + " **💠 Force Points** (" + ruleset.match.forcepoints.max + " max)" + "\n") +
-                    (ruleset.match.permabans && Object.values(ruleset.match.permabans).map(ban => choices[ban.choice] + " **🚫 Permanently Bans** " + ban.limit + " " + ban.type + " (" + (ban.cost == 0 ? "🆓" : ban.cost + " 💠") + ")\n").join("")) +
-                    (ruleset.match.repeattrack && Object.values(ruleset.match.repeattrack).map(repeat => choices[repeat.choice] + " can use " + repeat.limit + " " + repeat.condition + " **🔁 Runback** " + (repeat.style == "soft" ? "(resets to default conditions)" : "must be same conditions")))
+                let matchfield = { name: "Every Match", value: "", inline: false }
+                matchfield.value = (ruleset.match.forcepoints.start > 0 && "👥 Both players start with `" + ruleset.match.forcepoints.start + "` **💠 Force Points** (`" + ruleset.match.forcepoints.max + " max`)" + "\n") +
+                    (ruleset.match.permabans && Object.values(ruleset.match.permabans).map(ban => choices[ban.choice] + " **🚫 Permanently Bans** " + ban.limit + " " + ban.type + " (`" + (ban.cost == 0 ? "🆓" : ban.cost + " 💠") + "`)\n").join("")) +
+                    (ruleset.match.repeattrack && Object.values(ruleset.match.repeattrack).map(repeat => choices[repeat.choice] + " can use `" + repeat.limit + "` " + repeat.condition + " **🔁 Runback** " + (repeat.style == "soft" ? "(resets to default conditions)" : "(must be same conditions)")))
 
-                let racefield = { name: "🏁 Every Race", value: "", inline: false }
+                let racefield = { name: "Every Race", value: "", inline: false }
                 racefield.value = Object.values(ruleset.race).map(
                     race => choices[race.choice] + " **" + events[race.event] + "** " +
                         ([undefined, null].includes(race.limit) || race.limit == 1 ? "a " : 
-                        (race.limit == 0 ? "any number of " : "up to " + race.limit + " ")) +
+                        (race.limit == 0 ? "any number of " : "up to `" + race.limit + "` ")) +
                         race.type +
                         (race.limit == 0 ? "s" : "") +
-                        ([undefined, null].includes(race.cost) ? "" : " (" + (race.cost == 0 ? "🆓" : race.cost + " 💠/" + (race.count == 1 ? "" : race.count + " ") + race.type) + ")") +
+                        ([undefined, null].includes(race.cost) ? "" : " (`" + (race.cost == 0 ? "🆓" : race.cost + " 💠/" + (race.count == 1 ? "" : race.count + " ") + race.type) + "`)") +
                         ([null, undefined, ""].includes(race.options) ? "" : " from the following options: " + Object.values(race.options).map(option => "`" + conditions[option] + "`").join(", ")) + "\n"
                 ).join("")
                 fields.push(genfield, matchfield, racefield)
