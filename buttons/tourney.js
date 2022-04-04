@@ -95,8 +95,8 @@ module.exports = {
 
                 let matchfield = { name: "Every Match", value: "", inline: false }
                 matchfield.value = (ruleset.match.forcepoints.start > 0 && "👥 Both players start with `" + ruleset.match.forcepoints.start + "` **💠 Force Points** (`" + ruleset.match.forcepoints.max + " max`)" + "\n") +
-                    (ruleset.match.permabans && Object.values(ruleset.match.permabans).map(ban => choices[ban.choice] + " **🚫 Permanently Bans** " + ban.limit + " " + ban.type + " (`" + (ban.cost == 0 ? "🆓" : ban.cost + " 💠") + "`)\n").join("")) +
-                    (ruleset.match.repeattrack && Object.values(ruleset.match.repeattrack).map(repeat => choices[repeat.choice] + " can use `" + repeat.limit + "` " + repeat.condition + " **🔁 Runback** " + (repeat.style == "soft" ? "(resets to default conditions)" : "(must be same conditions)")))
+                    (ruleset.match.permabans && Object.values(ruleset.match.permabans).map(ban => choices[ban.choice] + " **🚫 Permanently Bans** " + ban.limit + " " + ban.type + " (`" + (ban.cost == 0 ? "free" : ban.cost + "💠") + "`)\n").join("")) +
+                    (ruleset.match.repeattrack && Object.values(ruleset.match.repeattrack).map(repeat => choices[repeat.choice] + " can use `" + repeat.limit + "` " + repeat.condition + " **🔁 Runback** " + (repeat.style == "soft" ? "(`resets to default conditions, " : "(`must be same conditions, ") + (ban.cost == 0 ? "free" : ban.cost + "💠") + "`)"))
 
                 let racefield = { name: "Every Race", value: "", inline: false }
                 racefield.value = Object.values(ruleset.race).map(
@@ -105,7 +105,7 @@ module.exports = {
                         (race.limit == 0 ? "any number of " : "up to `" + race.limit + "` ")) +
                         race.type +
                         (race.limit == 0 ? "s" : "") +
-                        ([undefined, null].includes(race.cost) ? "" : " (`" + (race.cost == 0 ? "🆓" : race.cost + " 💠/" + (race.count == 1 ? "" : race.count + " ") + race.type) + "`)") +
+                        ([undefined, null].includes(race.cost) ? "" : " (`" + (race.cost == 0 ? "free" : race.cost + "💠/" + (race.count == 1 ? "" : race.count + " ") + race.type) + "`)") +
                         ([null, undefined, ""].includes(race.options) ? "" : " from the following options: " + Object.values(race.options).map(option => "`" + conditions[option] + "`").join(", ")) + "\n"
                 ).join("")
                 fields.push(genfield, matchfield, racefield)
