@@ -70,12 +70,12 @@ module.exports = {
                 random: "Random"
             }
             let choices = {
-                firstloser: "🔴 Loser of first race",
-                firstwinner: "🟢 Winner of first race",
-                both: "🔵 Both players",
-                lastloser: "🔴 Loser of last race",
-                lastwinner: "🟢 Winner of last race",
-                player: "🔵 Each player"
+                firstloser: "🇱 Loser of first race",
+                firstwinner: "👑 Winner of first race",
+                both: "👥 Both players",
+                lastloser: "🇱 Loser of last race",
+                lastwinner: "👑 Winner of last race",
+                player: "👥 Each player"
             }
             let events = {
                 tempban: "❌ Temporarily bans",
@@ -5566,9 +5566,6 @@ module.exports = {
                     })
                 }
                 var playable = false, joinable_player = false, joinable_commentator = false
-                if (livematch.ruleset !== "") {
-                    console.log(rulesetOverview(tourney_rulesets_data.saved[livematch.ruleset]))
-                }
                 if (livematch.ruleset !== "" && livematch.players && livematch.commentators && Object.values(livematch.players).length == 2) {
                     playable = true
                 }
@@ -5668,7 +5665,7 @@ module.exports = {
                     data: {
                         type: 7,
                         data: {
-                            embeds: [matchmaker, reminder, ruleset],
+                            embeds: [matchmaker, ruleset, reminder],
                             components: []
 
                         }
