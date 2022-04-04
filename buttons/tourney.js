@@ -5704,7 +5704,7 @@ module.exports = {
                     .setDescription("(0/2)")
                 client.api.webhooks(client.user.id, interaction.token).post({
                     data: {
-                        content: livematch.players.map(player => "<@" + player + ">"),
+                        content: Object.values(livematch.players).map(player => "<@" + player + ">"),
                         embeds: [firstselect],
                         components: [{
                             type: 1,
