@@ -78,7 +78,7 @@ module.exports = {
                 player: "👥 Each player"
             }
             let events = {
-                tempban: "❌ Temporarily bans",
+                tempban: "❌ Temporarily Bans",
                 selection: "👆 Selects",
                 override: "✳️ Overrides"
             }
@@ -101,8 +101,8 @@ module.exports = {
                 let racefield = { name: "Every Race", value: "", inline: false }
                 racefield.value = Object.values(ruleset.race).map(
                     race => choices[race.choice] + " **" + events[race.event] + "** " +
-                        ([undefined, null].includes(race.limit) || race.limit == 1 ? "a " : 
-                        (race.limit == 0 ? "any number of " : "up to `" + race.limit + "` ")) +
+                        ([undefined, null].includes(race.limit) || race.limit == 1 ? "a " :
+                            (race.limit == 0 ? "any number of " : "up to `" + race.limit + "` ")) +
                         race.type +
                         (race.limit == 0 ? "s" : "") +
                         ([undefined, null].includes(race.cost) ? "" : " (`" + (race.cost == 0 ? "free" : race.cost + "💠/" + (race.count == 1 ? "" : race.count + " ") + race.type) + "`)") +
@@ -5377,18 +5377,19 @@ module.exports = {
             }).then((embed) => sendResponse(embed))
         } else if (args[0] == "play") {
             function getPlayer(id) {
-                var tpd = Object.keys(tourney_participants_data)
+                let tpd = Object.keys(tourney_participants_data)
                 tpd.forEach(key => {
                     if (tourney_participants_data[key].id == id) {
                         return key
                     }
                 })
             }
-            var type = 4
-            var livematch = tourney_live_data[interaction.channel_id]
+            let type = 4
+            let livematch = tourney_live_data[interaction.channel_id]
+            let liverules = tourney_ruleset_data.saved[livematch.ruleset]
             if ([null, undefined, ""].includes(livematch)) {
                 args[1] = "setup"
-                var match = {
+                let match = {
                     status: "setup",
                     tourney: "",
                     bracket: "",
@@ -5463,16 +5464,16 @@ module.exports = {
                     )
                     .setColor("#3BA55D")
                     .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
-                var components = []
-                var tourney_options = [], bracket_options = [], ruleset_options = []
-                var ttd = Object.keys(tourney_tournaments_data)
+                let components = []
+                let tourney_options = [], bracket_options = [], ruleset_options = []
+                let ttd = Object.keys(tourney_tournaments_data)
                 tourney_options.push({
                     label: "Practice Mode",
                     value: "practice",
                     emoji: { name: "🚩" }
                 })
                 ttd.forEach(key => {
-                    var tourney = tourney_tournaments_data[key]
+                    let tourney = tourney_tournaments_data[key]
                     tourney_options.push(
                         {
                             label: tourney.name,
@@ -5483,9 +5484,9 @@ module.exports = {
                 })
                 if (livematch.tourney) {
                     if (livematch.tourney == "practice") {
-                        var rulesets = Object.keys(tourney_rulesets_data.saved)
+                        let rulesets = Object.keys(tourney_rulesets_data.saved)
                         rulesets.forEach(key => {
-                            var ruleset = tourney_rulesets_data.saved[key]
+                            let ruleset = tourney_rulesets_data.saved[key]
                             ruleset_options.push(
                                 {
                                     label: ruleset.name,
@@ -5495,9 +5496,9 @@ module.exports = {
                             )
                         })
                     } else {
-                        var stages = Object.keys(tourney_tournaments_data[livematch.tourney].stages)
+                        let stages = Object.keys(tourney_tournaments_data[livematch.tourney].stages)
                         stages.forEach(key => {
-                            var bracket = tourney_tournaments_data[livematch.tourney].stages[key]
+                            let bracket = tourney_tournaments_data[livematch.tourney].stages[key]
                             bracket_options.push(
                                 {
                                     label: bracket.bracket + " " + bracket.round,
@@ -5671,14 +5672,56 @@ module.exports = {
                         }
                     }
                 })
-                /*
+                let firsts = {
+                    poe_c: {label: "Process of Elimination by Circuit", description: "Players alternate circuit bans, then track bans until one option remains"},
+                    poe_p:  {label: "Process of Elimination by Planet", description: "Players alternate planet bans, then track bans until one option remains"},
+                    poe_t:  {label: "Process of Elimination by Track", description: "Players alternate track bans until one option remains"},
+                    random:  {label: "Random", description: "First track is decided by rng"}
+                }
+
+                let firstoptions = [
+                    {
+                        label: "Already Decided",
+                        description: "Both players have already agreed to the starting track",
+                        value: "already"
+                    },
+                    {
+                        label: firsts[liverules.general.firsttrack.primary] + " (Default)",
+                        value: liverules.general.firsttrack.primary
+                    }
+                ]
+                if (![undefined, null, ""].includes(liverules.general.firsttrack.secondary)) {
+                    Object.values(liverules.general.firsttrack.secondary).forEach(first => firstoptions.push(
+                        {
+                            label: firsts[first],
+                            value: first
+                        }
+                    ))
+                }
+
+                const firstselect = new Discord.MessageEmbed()
+                    .setTitle("How would you like to select the first track?")
+                    .setDescription("(0/2)")
                 client.api.webhooks(client.user.id, interaction.token).post({
                     data: {
-                        embeds: [data.message],
-                        components: []
+                        content: livematch.players.map(player => "<@" + player + ">"),
+                        embeds: [firstselect],
+                        components: [{
+                            type: 1,
+                            components: [
+                                {
+                                    type: 3,
+                                    custom_id: "tourney_play_first",
+                                    options: firstoptions,
+                                    placeholder: "Select Option",
+                                    min_values: 1,
+                                    max_values: 1
+                                }
+                            ]
+                        }]
                     }
                 })
-                */
+
             }
 
 
