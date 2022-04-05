@@ -5652,12 +5652,10 @@ module.exports = {
                     )
                     .setColor("#3BA55D")
                 const reminder = new Discord.MessageEmbed()
-                    .setColor("#3BA55D")
                     .setTitle("Reminders")
                     .addField("🕹️ Player Reminders", "○ Verify all pods/tracks/upgrades are unlocked\n○ Check that stream is running smoothly\n○ Disable game music\n○ Wait until the results screen to report your times", false)
                     .addField("🎙️ Commentator Reminders", "○ Enable all voice related settings in Discord such as noise supression/reduction, advanced voice activity, etc.\n○  Open Twitch to respond to chat", false)
                 const ruleset = new Discord.MessageEmbed()
-                    .setColor("#3BA55D")
                     .setAuthor("Ruleset Overview")
                     .setTitle("📜 " + tourney_rulesets_data.saved[livematch.ruleset].general.name)
                     .setDescription(tourney_rulesets_data.saved[livematch.ruleset].general.description)
@@ -5686,10 +5684,19 @@ module.exports = {
                         value: "already"
                     },
                     {
-                        label: firsts[liverules.general.firsttrack.primary] + " (Default)",
-                        value: liverules.general.firsttrack.primary
+                        label: firsts[liverules.general.firsttrack.primary].label + " (Default)",
+                        value: firsts[liverules.general.firsttrack.primary].description
                     }
                 ]
+                if(liverules.gents){
+                    firstoptions.push(
+                        {
+                            label: "Gentleman's Agreement",
+                            description: "Propose a gentleman's agreement to your opponent",
+                            value: "gents"
+                        }
+                    )
+                }
                 if (![undefined, null, ""].includes(liverules.general.firsttrack.secondary)) {
                     Object.values(liverules.general.firsttrack.secondary).forEach(first => firstoptions.push(
                         {
@@ -5698,9 +5705,10 @@ module.exports = {
                         }
                     ))
                 }
+                
                 tourney_live.child(interaction.channel_id).child("status").set("first")
                 const firstselect = new Discord.MessageEmbed()
-                    .setTitle("How would you like to select the first track?")
+                    .setTitle("How would you like to determine the first track?")
                     .setDescription("(0/2)")
                 client.api.webhooks(client.user.id, interaction.token).post({
                     data: {
