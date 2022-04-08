@@ -5737,13 +5737,14 @@ module.exports = {
                 })
 
             } else if (args[1] == "first") {
-
+                let agreed = false
                 if (args[2] == "vote") {
                     tourney_live.child(interaction.channel_id).child("firstvote").child(interaction.member.user.id).set(interaction.data.values[0])
                     let votes = Object.values(tourney_live_data[interaction.channel_id].firstvote)
                     if (votes.length = 2) {
                         if (votes[0] == votes[1]) {
                             tourney_live.child(interaction.channel_id).child("firstmethod").set(votes[0])
+                            agreed = true
                         } else {
                             tourney_live.child(interaction.channel_id).child("firstmethod").set(liverules.general.firsttrack.primary)
                         }
@@ -5761,12 +5762,12 @@ module.exports = {
                 livematch = tourney_live_data[interaction.channel_id]
                 const firstselect = new Discord.MessageEmbed()
                     .setTitle("How would you like to determine the first track?")
-                    .setDescription("If players do not agree on a method, the default option will be used.\n" + ([undefined, null].includes(livematch.firstvote) ? "" : Object.keys(livematch.firstvote).map(key => "<@" + key + "> voted for " + methods[livematch.firstvote[key]]).join("\n")))
+                    .setDescription((agreed ? "": "*If players do not agree on a method, the default option will be used.*\n") + ([undefined, null].includes(livematch.firstvote) ? "" : Object.keys(livematch.firstvote).map(key => "<@" + key + "> voted for " + methods[livematch.firstvote[key]]).join("\n")))
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
                         type: type,
                         data: {
-                            content: "" + ([undefined, null].includes(livematch.firstvote) ? Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") : (Object.values(livematch.players).map(player => (Object.keys(livematch.firstvote).includes(player) ? null : "<@" + player + ">"))).join(" ")),
+                            content: "" + ([undefined, null].includes(livematch.firstvote) ? Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") : (Object.values(livematch.players).map(player => (Object.keys(livematch.firstvote).includes(player) ? "" : "<@" + player + ">"))).join(" ")),
                             embeds: [firstselect],
                             components: [
                                 {
