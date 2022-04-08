@@ -5397,7 +5397,8 @@ module.exports = {
                     datetime: "",
                     players: [],
                     commentators: [],
-                    stream: ""
+                    stream: "",
+                    firstvote: ""
                 }
                 tourney_live.child(interaction.channel_id).set(match)
             }
@@ -5685,10 +5686,11 @@ module.exports = {
                     },
                     {
                         label: firsts[liverules.general.firsttrack.primary].label + " (Default)",
-                        value: firsts[liverules.general.firsttrack.primary].description
+                        value: liverules.general.firsttrack.primary,
+                        description: firsts[liverules.general.firsttrack.primary].description
                     }
                 ]
-                if(liverules.gents){
+                if(liverules.general.gents){
                     firstoptions.push(
                         {
                             label: "Gentleman's Agreement",
@@ -5707,9 +5709,11 @@ module.exports = {
                 }
                 
                 tourney_live.child(interaction.channel_id).child("status").set("first")
+                tourney_live.child(interaction.channel_id).child("current_race").set(0)
+
                 const firstselect = new Discord.MessageEmbed()
                     .setTitle("How would you like to determine the first track?")
-                    .setDescription("(0/2)")
+                    .setDescription("")
                 client.api.webhooks(client.user.id, interaction.token).post({
                     data: {
                         content: Object.values(livematch.players).map(player => "<@" + player + ">").join(", "),
@@ -5719,7 +5723,7 @@ module.exports = {
                             components: [
                                 {
                                     type: 3,
-                                    custom_id: "tourney_play_first",
+                                    custom_id: "tourney_play_first_vote",
                                     options: firstoptions,
                                     placeholder: "Select Option",
                                     min_values: 1,
@@ -5730,8 +5734,48 @@ module.exports = {
                     }
                 })
 
-            }
+            } else if (args[1] == "first") {
+                if(args[2] == "vote"){
+                    tourney_live.child(interaction.channel_id).child("firstvote").child(interaction.member.user.id).set(interaction.data.values[0])
+                    let votes = Object.values(tourney_live_data[interaction.channel_id].firstvote)
+                    if(votes.length = 2){
+                        if(votes[0] == votes[1]){
+                            tourney_live.child(interaction.channel_id).child("firstmethod").set(votes[0])
+                        } else {
 
+                        }
+                    }
+                }
+                let methods = {
+                    poe_c: "Process of Elimination by Circuit",
+                    poe_p: "Process of Elimination by Planet",
+                    poe_t: "Process of Elimination by Track",
+                    random: "Random"
+                }
+                const firstselect = new Discord.MessageEmbed()
+                    .setTitle("How would you like to determine the first track?")
+                    .setDescription("" + ([undefined,null].includes(livematch.firstvote) ? "" : Object.keys(livematch.firstvote).map(key => "<@" + key + "> voted for " + methods[livematch.firstvote[key]]).join("\n")))
+                client.api.interactions(interaction.id, interaction.token).callback.post({
+                    data: {
+                        type: type,
+                        data: {
+                            content: Object.values(livematch.players).map(player => Object.keys(livematch.firstvote).includes(player) ? "" : "<@" + player + ">").join(", "),
+                            embeds: [firstselect],
+                            components: [
+                                {
+                                    type: 3,
+                                    custom_id: "tourney_play_first",
+                                    options: firstoptions,
+                                    placeholder: "Select Option",
+                                    min_values: 1,
+                                    max_values: 1
+                                }
+                            ]
+
+                        }
+                    }
+                })
+            }
 
             //a tourney cancel command can be used by an admin to cancel a match
             /*
