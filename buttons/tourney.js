@@ -5387,6 +5387,38 @@ module.exports = {
             let type = 4
             let livematch = tourney_live_data[interaction.channel_id]
             let liverules = tourney_rulesets_data.saved[livematch.ruleset]
+            function getFirstOptions(liverules){
+                let firstoptions = [
+                    {
+                        label: "Already Decided",
+                        description: "Both players have already agreed to the starting track",
+                        value: "already"
+                    },
+                    {
+                        label: firsts[liverules.general.firsttrack.primary].label + " (Default)",
+                        value: liverules.general.firsttrack.primary,
+                        description: firsts[liverules.general.firsttrack.primary].description
+                    }
+                ]
+                if(liverules.general.gents){
+                    firstoptions.push(
+                        {
+                            label: "Gentleman's Agreement",
+                            description: "Propose a gentleman's agreement to your opponent",
+                            value: "gents"
+                        }
+                    )
+                }
+                if (![undefined, null, ""].includes(liverules.general.firsttrack.secondary)) {
+                    Object.values(liverules.general.firsttrack.secondary).forEach(first => firstoptions.push(
+                        {
+                            label: firsts[first],
+                            value: first
+                        }
+                    ))
+                }
+                return(liverules)
+            }
             if ([null, undefined, ""].includes(livematch)) {
                 args[1] = "setup"
                 let match = {
@@ -5677,36 +5709,8 @@ module.exports = {
                     poe_t:  {label: "Process of Elimination by Track", description: "Players alternate track bans until one option remains"},
                     random:  {label: "Random", description: "First track is decided by rng"}
                 }
-                console.log(liverules)
-                let firstoptions = [
-                    {
-                        label: "Already Decided",
-                        description: "Both players have already agreed to the starting track",
-                        value: "already"
-                    },
-                    {
-                        label: firsts[liverules.general.firsttrack.primary].label + " (Default)",
-                        value: liverules.general.firsttrack.primary,
-                        description: firsts[liverules.general.firsttrack.primary].description
-                    }
-                ]
-                if(liverules.general.gents){
-                    firstoptions.push(
-                        {
-                            label: "Gentleman's Agreement",
-                            description: "Propose a gentleman's agreement to your opponent",
-                            value: "gents"
-                        }
-                    )
-                }
-                if (![undefined, null, ""].includes(liverules.general.firsttrack.secondary)) {
-                    Object.values(liverules.general.firsttrack.secondary).forEach(first => firstoptions.push(
-                        {
-                            label: firsts[first],
-                            value: first
-                        }
-                    ))
-                }
+                
+                
                 
                 tourney_live.child(interaction.channel_id).child("status").set("first")
                 tourney_live.child(interaction.channel_id).child("current_race").set(0)
@@ -5724,7 +5728,7 @@ module.exports = {
                                 {
                                     type: 3,
                                     custom_id: "tourney_play_first_vote",
-                                    options: firstoptions,
+                                    options: getFirstOptions(liverules),
                                     placeholder: "Select Option",
                                     min_values: 1,
                                     max_values: 1
@@ -5765,7 +5769,7 @@ module.exports = {
                                 {
                                     type: 3,
                                     custom_id: "tourney_play_first",
-                                    options: firstoptions,
+                                    options: getFirstOptions(liverules),
                                     placeholder: "Select Option",
                                     min_values: 1,
                                     max_values: 1
