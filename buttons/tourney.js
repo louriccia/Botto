@@ -5744,8 +5744,10 @@ module.exports = {
                 })
 
             } else if (args[1] == "first") {
+                livematch = tourney_live_data[interaction.channel_id]
                 let agreed = false
                 const firstselect = new Discord.MessageEmbed()
+                .setDescription(" ")
                 let components = []
                 let content = ""
                 let methods = {
