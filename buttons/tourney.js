@@ -5885,9 +5885,9 @@ module.exports = {
                         trackoptions = [undefined, null].includes(livematch.firstbans) ? trackoptions : trackoptions.filter(option => !Object.values(livematch.firstbans).map(ban => ban.ban).includes(option) && planetoptions.map(option => trackgroups[option].code).includes(tracks[option].planet))
                         let selectoptions = []
                         if (livematch.firstmethod == "poe_c" && circuitoptions.length > 1) {
-                            selectoptions = circuitoptions.map(option => { return ({ label: trackgroups[option], value: option, description: trackgroups[option].count + " tracks" }) })
+                            selectoptions = circuitoptions.map(option => { return ({ label: trackgroups[option].name, value: option, description: trackgroups[option].count + " tracks" }) })
                         } else if (livematch.firstmethod == "poe_p" && planetoptions.length > 1) {
-                            selectoptions = circuitoptions.map(option => { return ({ label: trackgroups[option], value: option, description: trackgroups[option].count + " tracks" }) })
+                            selectoptions = circuitoptions.map(option => { return ({ label: trackgroups[option].name, value: option, description: trackgroups[option].count + " tracks" }) })
                         } else {
                             selectoptions = trackoptions.map(option => { return ({ label: tracks[option].name, value: option, description: (circuits[tracks[option].circuit].name + " Circuit | Race " + tracks[option].cirnum + " | " + planets[tracks[option].planet].name).substring(0, 50) }) })
                         }
