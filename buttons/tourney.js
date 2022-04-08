@@ -5386,7 +5386,10 @@ module.exports = {
             }
             let type = 4
             let livematch = tourney_live_data[interaction.channel_id]
-            let liverules = tourney_rulesets_data.saved[livematch.ruleset]
+            let liverules
+            if (livematch){
+                liverules = tourney_rulesets_data.saved[livematch.ruleset]
+            }
             function getFirstOptions(liverules) {
                 let firsts = {
                     poe_c: { label: "Process of Elimination by Circuit", description: "Players alternate circuit bans, then track bans until one option remains" },
