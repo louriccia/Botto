@@ -5423,7 +5423,7 @@ module.exports = {
                         }
                     ))
                 }
-                return(liverules)
+                return(firstoptions)
             }
             if ([null, undefined, ""].includes(livematch)) {
                 args[1] = "setup"
