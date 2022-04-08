@@ -5820,8 +5820,9 @@ module.exports = {
                         mal: { name: "Malastare", type: "planet", code: 3, count: 3 }
                     }
                     if (livematch.firstmethod.includes("poe") && [undefined, null].includes(livematch.firstcolors)) {
-                        firstselect.setTitle("Pick a color")
-                        .setDescription("*I just happen to have a chancecube here...*")
+                        firstselect
+                        .setTitle("Pick a color")
+                        content = Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + "\n*I just happen to have a chancecube here...*"
                         components = [
                             {
                                 type: 1,
@@ -5910,7 +5911,7 @@ module.exports = {
 
                     firstselect
                         .setAuthor("First Track: " + methods[livematch.firstmethod])
-                        .setDescription(([undefined, null].includes(livematch.firstcolors) ? "" : Object.keys(livematch.firstcolors).map(key => livematch.firstcolors[key] + "_square - <@" + key + ">").join("\n")) + "\n" +
+                        .setDescription("" + ([undefined, null].includes(livematch.firstcolors) ? "" : Object.keys(livematch.firstcolors).map(key => livematch.firstcolors[key] + "_square - <@" + key + ">").join("\n")) + "\n" +
                             ([undefined, null].includes(livematch.firstbans) ? "" : Object.keys(livematch.firstbans).map(key => "<@" + livematch.firstbans[key].player + "> banned " + ([undefined, null].includes(trackgroups[livematch.firstbans[key].ban] ? tracks[trackgroups[livematch.firstbans[key].ban]].name : trackgroups[trackgroups[livematch.firstbans[key].ban]]))).join("\n")))
                 }
 
