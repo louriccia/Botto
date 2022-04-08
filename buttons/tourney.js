@@ -5755,8 +5755,10 @@ module.exports = {
                     poe_p: "Process of Elimination by Planet",
                     poe_t: "Process of Elimination by Track",
                     random: "Random",
-                    already: "Already Decided"
+                    already: "Already Decided",
+                    gents: "Gentleman's Agreement"
                 }
+                livematch = tourney_live_data[interaction.channel_id]
                 const firstselect = new Discord.MessageEmbed()
                     .setTitle("How would you like to determine the first track?")
                     .setDescription("" + ([undefined, null].includes(livematch.firstvote) ? "" : Object.keys(livematch.firstvote).map(key => "<@" + key + "> voted for " + methods[livematch.firstvote[key]]).join("\n")))
@@ -5764,7 +5766,7 @@ module.exports = {
                     data: {
                         type: type,
                         data: {
-                            content: "" + [undefined, null].includes(livematch.firstvote) ? Object.values(livematch.players).map(player => "<@" + player + ">").join(", ") : Object.values(livematch.players).map(player => Object.keys(livematch.firstvote).includes(player) ? "" : "<@" + player + ">").join(", "),
+                            content: "" + [undefined, null].includes(livematch.firstvote) ? Object.values(livematch.players).map(player => "<@" + player + ">").join(", ") : (Object.values(livematch.players).map(player => (Object.keys(livematch.firstvote).includes(player) ? "" : "<@" + player + ">"))).join(", "),
                             embeds: [firstselect],
                             components: [
                                 {
