@@ -5745,7 +5745,7 @@ module.exports = {
                         if (votes[0] == votes[1]) {
                             tourney_live.child(interaction.channel_id).child("firstmethod").set(votes[0])
                         } else {
-
+                            tourney_live.child(interaction.channel_id).child("firstmethod").set(liverules.general.firsttrack.primary)
                         }
                     }
                     type = 7
@@ -5761,12 +5761,12 @@ module.exports = {
                 livematch = tourney_live_data[interaction.channel_id]
                 const firstselect = new Discord.MessageEmbed()
                     .setTitle("How would you like to determine the first track?")
-                    .setDescription("" + ([undefined, null].includes(livematch.firstvote) ? "" : Object.keys(livematch.firstvote).map(key => "<@" + key + "> voted for " + methods[livematch.firstvote[key]]).join("\n")))
+                    .setDescription("If players do not agree on a method, the default option will be used.\n" + ([undefined, null].includes(livematch.firstvote) ? "" : Object.keys(livematch.firstvote).map(key => "<@" + key + "> voted for " + methods[livematch.firstvote[key]]).join("\n")))
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
                         type: type,
                         data: {
-                            content: "" + ([undefined, null].includes(livematch.firstvote) ? Object.values(livematch.players).map(player => "<@" + player + ">").join(",, ") : (Object.values(livematch.players).map(player => (Object.keys(livematch.firstvote).includes(player) ? "" : "<@" + player + ">"))).join(", ")),
+                            content: "" + ([undefined, null].includes(livematch.firstvote) ? Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") : (Object.values(livematch.players).map(player => (Object.keys(livematch.firstvote).includes(player) ? null : "<@" + player + ">"))).join(" ")),
                             embeds: [firstselect],
                             components: [
                                 {
@@ -5779,6 +5779,18 @@ module.exports = {
                                             placeholder: "Select Option",
                                             min_values: 1,
                                             max_values: 1
+                                        }
+                                    ]
+                                },
+                                {
+                                    type: 1,
+                                    components:[
+                                        {
+                                            type: 2,
+                                            label: "Proceed",
+                                            style: 3,
+                                            custom_id: "tourney_play_first_select",
+                                            disabled: [undefined,null].includes(livematch.firstvote) || Object.keys(livematch.firstvote).length < 2
                                         }
                                     ]
                                 }
