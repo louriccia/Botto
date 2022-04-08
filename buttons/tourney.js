@@ -5445,8 +5445,10 @@ module.exports = {
             }
             if (args[1] == "start") {
                 tourney_live.child(interaction.channel_id).child("status").set("start")
-            } else {
+            } else if(livematch) {
                 args[1] = livematch.status
+            } else {
+                args[1] = "setup"
             }
             if (args[1] == "setup") {
 
