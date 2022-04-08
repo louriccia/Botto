@@ -5387,12 +5387,12 @@ module.exports = {
             let type = 4
             let livematch = tourney_live_data[interaction.channel_id]
             let liverules = tourney_rulesets_data.saved[livematch.ruleset]
-            function getFirstOptions(liverules){
+            function getFirstOptions(liverules) {
                 let firsts = {
-                    poe_c: {label: "Process of Elimination by Circuit", description: "Players alternate circuit bans, then track bans until one option remains"},
-                    poe_p:  {label: "Process of Elimination by Planet", description: "Players alternate planet bans, then track bans until one option remains"},
-                    poe_t:  {label: "Process of Elimination by Track", description: "Players alternate track bans until one option remains"},
-                    random:  {label: "Random", description: "First track is decided by rng"}
+                    poe_c: { label: "Process of Elimination by Circuit", description: "Players alternate circuit bans, then track bans until one option remains" },
+                    poe_p: { label: "Process of Elimination by Planet", description: "Players alternate planet bans, then track bans until one option remains" },
+                    poe_t: { label: "Process of Elimination by Track", description: "Players alternate track bans until one option remains" },
+                    random: { label: "Random", description: "First track is decided by rng" }
                 }
                 let firstoptions = [
                     {
@@ -5406,7 +5406,7 @@ module.exports = {
                         description: firsts[liverules.general.firsttrack.primary].description
                     }
                 ]
-                if(liverules.general.gents){
+                if (liverules.general.gents) {
                     firstoptions.push(
                         {
                             label: "Gentleman's Agreement",
@@ -5423,7 +5423,7 @@ module.exports = {
                         }
                     ))
                 }
-                return(firstoptions)
+                return (firstoptions)
             }
             if ([null, undefined, ""].includes(livematch)) {
                 args[1] = "setup"
@@ -5692,7 +5692,7 @@ module.exports = {
                     .setColor("#3BA55D")
                 const reminder = new Discord.MessageEmbed()
                     .setTitle("Reminders")
-                    .addField("🕹️ Player Reminders", "○ Verify all pods/tracks/upgrades are unlocked\n○ Check that stream is running smoothly\n○ Disable game music\n○ Wait until the results screen to report your times", false)
+                    .addField("🕹️ Player Reminders", "○ Verify all pods/tracks/upgrades are unlocked\n○ Check that stream is running smoothly\n○ Disable game music\n○ Limit stream quality to 720p\n○ Wait until the results screen to report your times", false)
                     .addField("🎙️ Commentator Reminders", "○ Enable all voice related settings in Discord such as noise supression/reduction, advanced voice activity, etc.\n○  Open Twitch to respond to chat", false)
                 const ruleset = new Discord.MessageEmbed()
                     .setAuthor("Ruleset Overview")
@@ -5709,7 +5709,7 @@ module.exports = {
                         }
                     }
                 })
-                
+
                 tourney_live.child(interaction.channel_id).child("status").set("first")
                 tourney_live.child(interaction.channel_id).child("current_race").set(0)
 
@@ -5737,11 +5737,11 @@ module.exports = {
                 })
 
             } else if (args[1] == "first") {
-                if(args[2] == "vote"){
+                if (args[2] == "vote") {
                     tourney_live.child(interaction.channel_id).child("firstvote").child(interaction.member.user.id).set(interaction.data.values[0])
                     let votes = Object.values(tourney_live_data[interaction.channel_id].firstvote)
-                    if(votes.length = 2){
-                        if(votes[0] == votes[1]){
+                    if (votes.length = 2) {
+                        if (votes[0] == votes[1]) {
                             tourney_live.child(interaction.channel_id).child("firstmethod").set(votes[0])
                         } else {
 
@@ -5756,7 +5756,7 @@ module.exports = {
                 }
                 const firstselect = new Discord.MessageEmbed()
                     .setTitle("How would you like to determine the first track?")
-                    .setDescription("" + ([undefined,null].includes(livematch.firstvote) ? "" : Object.keys(livematch.firstvote).map(key => "<@" + key + "> voted for " + methods[livematch.firstvote[key]]).join("\n")))
+                    .setDescription("" + ([undefined, null].includes(livematch.firstvote) ? "" : Object.keys(livematch.firstvote).map(key => "<@" + key + "> voted for " + methods[livematch.firstvote[key]]).join("\n")))
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
                         type: type,
@@ -5765,12 +5765,17 @@ module.exports = {
                             embeds: [firstselect],
                             components: [
                                 {
-                                    type: 3,
-                                    custom_id: "tourney_play_first",
-                                    options: getFirstOptions(liverules),
-                                    placeholder: "Select Option",
-                                    min_values: 1,
-                                    max_values: 1
+                                    type: 1,
+                                    components: [
+                                        {
+                                            type: 3,
+                                            custom_id: "tourney_play_first_vote",
+                                            options: getFirstOptions(liverules),
+                                            placeholder: "Select Option",
+                                            min_values: 1,
+                                            max_values: 1
+                                        }
+                                    ]
                                 }
                             ]
 
