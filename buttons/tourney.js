@@ -5737,6 +5737,7 @@ module.exports = {
                 })
 
             } else if (args[1] == "first") {
+
                 if (args[2] == "vote") {
                     tourney_live.child(interaction.channel_id).child("firstvote").child(interaction.member.user.id).set(interaction.data.values[0])
                     let votes = Object.values(tourney_live_data[interaction.channel_id].firstvote)
@@ -5747,12 +5748,14 @@ module.exports = {
 
                         }
                     }
+                    type = 7
                 }
                 let methods = {
                     poe_c: "Process of Elimination by Circuit",
                     poe_p: "Process of Elimination by Planet",
                     poe_t: "Process of Elimination by Track",
-                    random: "Random"
+                    random: "Random",
+                    already: "Already Decided"
                 }
                 const firstselect = new Discord.MessageEmbed()
                     .setTitle("How would you like to determine the first track?")
@@ -5761,7 +5764,7 @@ module.exports = {
                     data: {
                         type: type,
                         data: {
-                            content: "" + [undefined, null].includes(livematch.players) ? Object.values(livematch.players).map(player => "<@" + player + ">").join(", ") : Object.values(livematch.players).map(player => Object.keys(livematch.firstvote).includes(player) ? "" : "<@" + player + ">").join(", "),
+                            content: "" + [undefined, null].includes(livematch.firstvote) ? Object.values(livematch.players).map(player => "<@" + player + ">").join(", ") : Object.values(livematch.players).map(player => Object.keys(livematch.firstvote).includes(player) ? "" : "<@" + player + ">").join(", "),
                             embeds: [firstselect],
                             components: [
                                 {
