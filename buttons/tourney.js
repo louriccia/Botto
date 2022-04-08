@@ -5882,7 +5882,7 @@ module.exports = {
                                 }
                             })
                         })
-                        trackoptions = trackoptions.filter(option => !Object.values(livematch.firstbans).map(ban => ban.ban).includes(option) && planetoptions.map(option => trackgroups[option].code).includes(tracks[option].planet))
+                        trackoptions = [undefined, null].includes(livematch.firstbans) ? trackoptions : trackoptions.filter(option => !Object.values(livematch.firstbans).map(ban => ban.ban).includes(option) && planetoptions.map(option => trackgroups[option].code).includes(tracks[option].planet))
                         let selectoptions = []
                         if (livematch.firstmethod == "poe_c" && circuitoptions.length > 1) {
                             selectoptions = circuitoptions.map(option => { return ({ label: trackgroups[option], value: option, description: trackgroups[option].count + " tracks" }) })
