@@ -5759,7 +5759,7 @@ module.exports = {
                     data: {
                         type: type,
                         data: {
-                            content: Object.values(livematch.players).map(player => Object.keys(livematch.firstvote).includes(player) ? "" : "<@" + player + ">").join(", "),
+                            content: "" + [undefined, null].includes(livematch.players) ? "" : Object.values(livematch.players).map(player => Object.keys(livematch.firstvote).includes(player) ? "" : "<@" + player + ">").join(", "),
                             embeds: [firstselect],
                             components: [
                                 {
