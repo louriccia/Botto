@@ -5759,11 +5759,8 @@ module.exports = {
                     gents: "Gentleman's Agreement"
                 }
                 if (args[2] == "vote") {
-                    firstselect
-                        .setTitle("How would you like to determine the first track?")
-                        .setDescription((agreed ? "" : "*If players do not agree on a method, the default option will be used.*\n") + ([undefined, null].includes(livematch.firstvote) ? "" : Object.keys(livematch.firstvote).map(key => "<@" + key + "> voted for " + methods[livematch.firstvote[key]]).join("\n")))
-                    content = "" + ([undefined, null].includes(livematch.firstvote) ? Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") : Object.values(livematch.players).map(player => Object.keys(livematch.firstvote).includes(player) ? "" : "<@" + player + ">").join(" "))
                     tourney_live.child(interaction.channel_id).child("firstvote").child(interaction.member.user.id).set(interaction.data.values[0])
+                    
                     let votes = Object.values(tourney_live_data[interaction.channel_id].firstvote)
                     if (votes.length = 2) {
                         if (votes[0] == votes[1]) {
@@ -5773,6 +5770,7 @@ module.exports = {
                             tourney_live.child(interaction.channel_id).child("firstmethod").set(liverules.general.firsttrack.primary)
                         }
                     }
+                    livematch = tourney_live_data[interaction.channel_id]
                     type = 7
                     components = [
                         {
@@ -5801,6 +5799,11 @@ module.exports = {
                             ]
                         }
                     ]
+                    firstselect
+                        .setTitle("How would you like to determine the first track?")
+                        .setDescription((agreed ? "" : "*If players do not agree on a method, the default option will be used.*\n") + ([undefined, null].includes(livematch.firstvote) ? "" : Object.keys(livematch.firstvote).map(key => "<@" + key + "> voted for " + methods[livematch.firstvote[key]]).join("\n")))
+                    content = "" + ([undefined, null].includes(livematch.firstvote) ? Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") : Object.values(livematch.players).map(player => Object.keys(livematch.firstvote).includes(player) ? "" : "<@" + player + ">").join(" "))
+                    
                 } else if (args[2] == "select") {
                     let trackgroups = {
                         amc: { name: "Amateur Circuit", type: "circuit", code: 0, count: 7 },
@@ -5817,7 +5820,8 @@ module.exports = {
                         mal: { name: "Malastare", type: "planet", code: 3, count: 3 }
                     }
                     if (livematch.firstmethod.includes("poe") && [undefined, null].includes(livematch.firstcolors)) {
-                        firstselect.setTitle("*I just happen to have a chancecube here...*")
+                        firstselect.setTitle("Pick a color")
+                        .setDescription("*I just happen to have a chancecube here...*")
                         components = [
                             {
                                 type: 1,
@@ -5863,7 +5867,7 @@ module.exports = {
                     }
 
                     if (args[3] == "ban") {
-                        if(interaction.data.hasOption("values")){
+                        if(interaction.data.hasOwnProperty("values")){
                             tourney_live.child(interaction.channel_id).child("firstbans").push({player: interaction.member.user.id, ban: interaction.data.values[0]})
                         }
                         livematch = tourney_live_data[interaction.channel_id]
