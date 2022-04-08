@@ -5388,6 +5388,12 @@ module.exports = {
             let livematch = tourney_live_data[interaction.channel_id]
             let liverules = tourney_rulesets_data.saved[livematch.ruleset]
             function getFirstOptions(liverules){
+                let firsts = {
+                    poe_c: {label: "Process of Elimination by Circuit", description: "Players alternate circuit bans, then track bans until one option remains"},
+                    poe_p:  {label: "Process of Elimination by Planet", description: "Players alternate planet bans, then track bans until one option remains"},
+                    poe_t:  {label: "Process of Elimination by Track", description: "Players alternate track bans until one option remains"},
+                    random:  {label: "Random", description: "First track is decided by rng"}
+                }
                 let firstoptions = [
                     {
                         label: "Already Decided",
@@ -5703,14 +5709,6 @@ module.exports = {
                         }
                     }
                 })
-                let firsts = {
-                    poe_c: {label: "Process of Elimination by Circuit", description: "Players alternate circuit bans, then track bans until one option remains"},
-                    poe_p:  {label: "Process of Elimination by Planet", description: "Players alternate planet bans, then track bans until one option remains"},
-                    poe_t:  {label: "Process of Elimination by Track", description: "Players alternate track bans until one option remains"},
-                    random:  {label: "Random", description: "First track is decided by rng"}
-                }
-                
-                
                 
                 tourney_live.child(interaction.channel_id).child("status").set("first")
                 tourney_live.child(interaction.channel_id).child("current_race").set(0)
