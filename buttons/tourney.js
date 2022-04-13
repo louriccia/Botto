@@ -5681,7 +5681,7 @@ module.exports = {
             function colorEmbed() {
                 livematch = tourney_live_data[interaction.channel_id]
                 const embed = new Discord.MessageEmbed()
-                    .setAuthor("First Track")
+                    .setAuthor("First Track: " + methods[livematch.firstmethod])
                     .setTitle("Pick a color")
                     .setDescription("" + ([undefined, null].includes(livematch.firstcolors) ? "" : Object.keys(livematch.firstcolors).map(key => ":" + livematch.firstcolors[key] + "_square: - <@" + key + ">").join("\n")))
                 return embed
@@ -5737,7 +5737,7 @@ module.exports = {
                                 type: 2,
                                 label: "Red",
                                 style: 2,
-                                custom_id: "tourney_play_first_red",
+                                custom_id: "tourney_play_first_color_red",
                                 emoji: {
                                     name: "🟥"
                                 }
@@ -5746,7 +5746,7 @@ module.exports = {
                                 type: 2,
                                 label: "Blue",
                                 style: 2,
-                                custom_id: "tourney_play_first_blue",
+                                custom_id: "tourney_play_first_color_blue",
                                 emoji: {
                                     name: "🟦"
                                 }
@@ -5913,7 +5913,7 @@ module.exports = {
                         updateMessage("", type, [colorEmbed()], colorComponents())
                         followupMessage("Rolling a chance cube...", [], [])
                         setTimeout(async function () {
-                            let firstcolor = Math.floor(Math.random()*2) == 1 ? "red" : "blue"
+                            let firstcolor = Math.floor(Math.random() * 2) == 1 ? "red" : "blue"
                             tourney_live.child(interaction.channel_id).child("firstcolor").set(firstcolor)
                             followupMessage(":" + firstcolor + "_square:", [], [])
                         }, 3000)
