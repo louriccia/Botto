@@ -5913,21 +5913,23 @@ module.exports = {
                         updateMessage("", type, [colorEmbed()], colorComponents())
                         followupMessage("Rolling a chance cube...", [], [])
                         setTimeout(async function () {
-                            let firstcolor = Math.floor(Math.random() * 2) == 1 ? "red" : "blue"
-                            tourney_live.child(interaction.channel_id).child("firstcolor").set(firstcolor)
-                            followupMessage(":" + firstcolor + "_square:", [], [])
+                            let players = Object.keys(livematch.firstcolors)
+                            let firstplayer = Math.floor(Math.random() * 2) == 1 ? players[1] : players[0]
+                            tourney_live.child(interaction.channel_id).child("firstplayer").set(firstcolor)
+                            followupMessage(":" + livematch.firstcolors[firstplayer] + "_square:", [], [])
                         }, 3000)
                         setTimeout(async function () {
-                            followupMessage("", [firstbanEmbed()], firstbanComponents())
-                        }, 5000)
+                            livematch = tourney_live_data[interaction.channel_id]
+                            followupMessage("<@" + livematch.firstplayer + "> goes first!", [firstbanEmbed()], firstbanComponents())
+                        }, 3500)
                         return
                     }
-                    updateMessage("", type, [colorEmbed()], colorComponents())
+                    updateMessage(content, type, [colorEmbed()], colorComponents())
                 } else if (args[2] == "ban") {
                     if (interaction.data.hasOwnProperty("values")) {
                         tourney_live.child(interaction.channel_id).child("firstbans").push({ player: interaction.member.user.id, ban: interaction.data.values[0] })
                     }
-                    updateMessage("", type, [firstBanEmbed()], firstbanComponents())
+                    updateMessage("", type, [firstbanEmbed()], firstbanComponents())
                 }
             }
 
