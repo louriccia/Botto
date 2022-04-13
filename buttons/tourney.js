@@ -5475,7 +5475,7 @@ module.exports = {
                 client.api.webhooks(client.user.id, interaction.token).post({
                     data: {
                         content: content,
-                        embeds: [embeds],
+                        embeds: embeds,
                         components: [components]
                     }
                 })
@@ -5853,7 +5853,7 @@ module.exports = {
                     }
 
                 }
-                updateMessage("", type, setupEmbed(), setupComponents())
+                updateMessage("", type, [setupEmbed()], setupComponents())
             } else if (args[1] == "start") {
                 const matchmaker = new Discord.MessageEmbed()
                     .setAuthor(livematch.tourney == "practice" ? "`Practice Mode`" : tourney_tournaments_data[livematch.tourney].name, "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
@@ -5889,7 +5889,7 @@ module.exports = {
                         }
                     }
                     let content = "" + ([undefined, null].includes(livematch.firstvote) ? Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") : Object.values(livematch.players).map(player => Object.keys(livematch.firstvote).includes(player) ? "" : "<@" + player + ">").join(" "))
-                    updateMessage(content, type, firstEmbed(), firstComponents())
+                    updateMessage(content, type, [firstEmbed()], firstComponents())
                 } else if (args[2] == "color") {
                     livematch = tourney_live_data[interaction.channel_id]
                     content = Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + "\n*I just happen to have a chancecube here...*"
@@ -5908,16 +5908,16 @@ module.exports = {
                         } else {
                             setColor("red")
                         }
-                        updateMessage("", type, colorEmbed(), colorComponents())
+                        updateMessage("", type, [colorEmbed()], colorComponents())
                         followupMessage("", firstbanEmbed(), firstbanComponents())
                         return
                     }
-                    updateMessage("", type, colorEmbed(), colorComponents())
+                    updateMessage("", type, [colorEmbed()], colorComponents())
                 } else if (args[2] == "ban") {
                     if (interaction.data.hasOwnProperty("values")) {
                         tourney_live.child(interaction.channel_id).child("firstbans").push({ player: interaction.member.user.id, ban: interaction.data.values[0] })
                     }
-                    updateMessage("", type, firstBanEmbed(), firstbanComponents())
+                    updateMessage("", type, [firstBanEmbed()], firstbanComponents())
                 }
             }
 
