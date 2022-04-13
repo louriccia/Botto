@@ -5691,7 +5691,7 @@ module.exports = {
                 livematch = tourney_live_data[interaction.channel_id]
                 const embed = new Discord.MessageEmbed()
                     .setAuthor("First Track: " + methods[livematch.firstmethod])
-                    .setDescription("" + ([undefined, null].includes(livematch.firstbans) ? "" : Object.keys(livematch.firstbans).map(key => "<@" + livematch.firstbans[key].player + "> banned " + ([undefined, null].includes(trackgroups[livematch.firstbans[key].ban] ? tracks[trackgroups[livematch.firstbans[key].ban]].ban : trackgroups[trackgroups[livematch.firstbans[key].ban]]))).join("\n")))
+                    .setDescription("" + ([undefined, null].includes(livematch.firstbans) ? "" : Object.keys(livematch.firstbans).map(key => "<@" + livematch.firstbans[key].player + "> banned " + ([undefined, null].includes(trackgroups[livematch.firstbans[key].ban] ? tracks[livematch.firstbans[key].ban].name : trackgroups[livematch.firstbans[key].ban].name))).join("\n")))
                 return embed
             }
 
