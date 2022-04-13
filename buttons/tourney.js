@@ -5800,6 +5800,7 @@ module.exports = {
 
             if ([null, undefined, ""].includes(livematch)) {
                 args[1] = "setup"
+                type = 4
                 let match = {
                     status: "setup",
                     tourney: "",
