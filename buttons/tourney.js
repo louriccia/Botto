@@ -5809,11 +5809,8 @@ module.exports = {
                 tourney_live.child(interaction.channel_id).set(match)
             }
             livematch = tourney_live_data[interaction.channel_id]
-            if (livematch && args.length == 0) {
+            if (args.length == 1) {
                 args[1] = livematch.status
-                type = 4
-            } else if (!livematch) {
-                args[1] = "setup"
                 type = 4
             }
             if (args[1] == "setup") {
