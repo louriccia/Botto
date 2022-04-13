@@ -5717,7 +5717,7 @@ module.exports = {
                                 type: 2,
                                 label: "Proceed",
                                 style: 3,
-                                custom_id: ("tourney_play_first_" + ([undefined, null].includes(livematch.firstvote) ? "" : (livematch.firstmethod.includes("poe") ? "color" : "ban"))),
+                                custom_id: ("tourney_play_first_" + ([undefined, null].includes(livematch.firstmethod) ? "" : (livematch.firstmethod.includes("poe") ? "color" : "ban"))),
                                 disabled: [undefined, null].includes(livematch.firstvote) || Object.keys(livematch.firstvote).length < 2
                             }
                         ]
