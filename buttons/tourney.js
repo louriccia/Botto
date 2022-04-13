@@ -5674,7 +5674,7 @@ module.exports = {
                 const embed = new Discord.MessageEmbed()
                     .setAuthor("First Track")
                     .setTitle("How would you like to determine the first track?")
-                    .setDescription((agreed ? "" : "*If players do not agree on a method, the default option will be used.*\n") + ([undefined, null].includes(livematch.firstvote) ? "" : Object.keys(livematch.firstvote).map(key => "<@" + key + "> voted for " + methods[livematch.firstvote[key]]).join("\n")))
+                    .setDescription("*If players do not agree on a method, the default option will be used.*\n" + ([undefined, null].includes(livematch.firstvote) ? "" : Object.keys(livematch.firstvote).map(key => "<@" + key + "> voted for " + methods[livematch.firstvote[key]]).join("\n")))
                 return embed
             }
 
@@ -5884,7 +5884,6 @@ module.exports = {
                     if (votes.length = 2) {
                         if (votes[0] == votes[1]) {
                             tourney_live.child(interaction.channel_id).child("firstmethod").set(votes[0])
-                            agreed = true
                         } else {
                             tourney_live.child(interaction.channel_id).child("firstmethod").set(liverules.general.firsttrack.primary)
                         }
