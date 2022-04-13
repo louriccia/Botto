@@ -5683,14 +5683,15 @@ module.exports = {
                 const embed = new Discord.MessageEmbed()
                     .setAuthor("First Track")
                     .setTitle("Pick a color")
+                    .setDescription("" + ([undefined, null].includes(livematch.firstcolors) ? "" : Object.keys(livematch.firstcolors).map(key => ":" + livematch.firstcolors[key] + "_square: - <@" + key + ">").join("\n")))
+                return embed
             }
 
             function firstbanEmbed() {
                 livematch = tourney_live_data[interaction.channel_id]
                 const embed = new Discord.MessageEmbed()
                     .setAuthor("First Track: " + methods[livematch.firstmethod])
-                    .setDescription("" + ([undefined, null].includes(livematch.firstcolors) ? "" : Object.keys(livematch.firstcolors).map(key => ":" + livematch.firstcolors[key] + "_square: - <@" + key + ">").join("\n")) + "\n" +
-                        ([undefined, null].includes(livematch.firstbans) ? "" : Object.keys(livematch.firstbans).map(key => "<@" + livematch.firstbans[key].player + "> banned " + ([undefined, null].includes(trackgroups[livematch.firstbans[key].ban] ? tracks[trackgroups[livematch.firstbans[key].ban]].ban : trackgroups[trackgroups[livematch.firstbans[key].ban]]))).join("\n")))
+                    .setDescription("" + ([undefined, null].includes(livematch.firstbans) ? "" : Object.keys(livematch.firstbans).map(key => "<@" + livematch.firstbans[key].player + "> banned " + ([undefined, null].includes(trackgroups[livematch.firstbans[key].ban] ? tracks[trackgroups[livematch.firstbans[key].ban]].ban : trackgroups[trackgroups[livematch.firstbans[key].ban]]))).join("\n")))
                 return embed
             }
 
@@ -5888,6 +5889,7 @@ module.exports = {
                             tourney_live.child(interaction.channel_id).child("firstmethod").set(liverules.general.firsttrack.primary)
                         }
                     }
+                    tourney_live.child(interaction.channel_id).child("status").set("first")
                     let content = "" + ([undefined, null].includes(livematch.firstvote) ? Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") : Object.values(livematch.players).map(player => Object.keys(livematch.firstvote).includes(player) ? "" : "<@" + player + ">").join(" "))
                     updateMessage(content, type, [firstEmbed()], firstComponents())
                 } else if (args[2] == "color") {
@@ -5909,7 +5911,15 @@ module.exports = {
                             setColor("red")
                         }
                         updateMessage("", type, [colorEmbed()], colorComponents())
-                        followupMessage("", [firstbanEmbed()], firstbanComponents())
+                        followupMessage("Rolling a chance cube...", [], [])
+                        setTimeout(async function () {
+                            let firstcolor = Math.floor(Math.random()*2) == 1 ? "red" : "blue"
+                            tourney_live.child(interaction.channel_id).child("firstcolor").set(firstcolor)
+                            followupMessage(":" + firstcolor + "_square:", [], [])
+                        }, 3000)
+                        setTimeout(async function () {
+                            followupMessage("", [firstbanEmbed()], firstbanComponents())
+                        }, 5000)
                         return
                     }
                     updateMessage("", type, [colorEmbed()], colorComponents())
