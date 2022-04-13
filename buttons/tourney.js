@@ -5481,6 +5481,16 @@ module.exports = {
                 })
             }
 
+            function postMessage(content, embeds, components) {
+                client.api.channels(interaction.channel_id).messages.post({
+                    data: {
+                        content: content,
+                        embeds: embeds,
+                        components: components
+                    }
+                })
+            }
+
             function setupEmbed() {
                 livematch = tourney_live_data[interaction.channel_id]
                 matchMaker = new Discord.MessageEmbed()
@@ -5693,8 +5703,9 @@ module.exports = {
                     .setAuthor("First Track: " + methods[livematch.firstmethod])
                     .setDescription("" + ([undefined, null].includes(livematch.firstbans) ? "" :
                         Object.keys(livematch.firstbans).map(key =>
+                            console.log(livematch.firstbans[key]) +
                             "<@" + livematch.firstbans[key].player + "> banned " +
-                            ([undefined, null].includes(trackgroups[livematch.firstbans[key].ban] ? tracks[livematch.firstbans[key].ban].name : trackgroups[livematch.firstbans[key].ban].name))
+                            ([undefined, null].includes(trackgroups[livematch.firstbans[key].ban] ? tracks[Number(livematch.firstbans[key].ban)].name : trackgroups[livematch.firstbans[key].ban].name))
                         ).join("\n")))
                 return embed
             }
@@ -5895,6 +5906,7 @@ module.exports = {
                         }
                     }
                     tourney_live.child(interaction.channel_id).child("status").set("first")
+                    livematch = tourney_live_data[interaction.channel_id]
                     let content = "" + ([undefined, null].includes(livematch.firstvote) ? Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") : Object.values(livematch.players).map(player => Object.keys(livematch.firstvote).includes(player) ? "" : "<@" + player + ">").join(" "))
                     updateMessage(content, type, [firstEmbed()], firstComponents())
                 } else if (args[2] == "color") {
@@ -5916,16 +5928,16 @@ module.exports = {
                             setColor("red")
                         }
                         updateMessage("", type, [colorEmbed()], [])
-                        followupMessage("Rolling a chance cube...", [], [])
+                        postMessage("Rolling a chance cube...", [], [])
                         setTimeout(async function () {
                             let players = Object.keys(livematch.firstcolors)
                             let firstplayer = Math.floor(Math.random() * 2) == 1 ? players[1] : players[0]
                             tourney_live.child(interaction.channel_id).child("firstplayer").set(firstplayer)
-                            followupMessage(":" + livematch.firstcolors[firstplayer] + "_square:", [], [])
+                            postMessage(":" + livematch.firstcolors[firstplayer] + "_square:", [], [])
                         }, 3000)
                         setTimeout(async function () {
                             livematch = tourney_live_data[interaction.channel_id]
-                            followupMessage("<@" + livematch.firstplayer + "> goes first!", [firstbanEmbed()], firstbanComponents())
+                            postMessage("<@" + livematch.firstplayer + "> goes first!", [firstbanEmbed()], firstbanComponents())
                         }, 3500)
                         return
                     }
