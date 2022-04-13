@@ -5463,7 +5463,7 @@ module.exports = {
                         type: type,
                         data: {
                             content: content,
-                            embeds: [embeds],
+                            embeds: embeds,
                             components: components
 
                         }
@@ -5476,7 +5476,7 @@ module.exports = {
                     data: {
                         content: content,
                         embeds: embeds,
-                        components: [components]
+                        components: components
                     }
                 })
             }
