@@ -5874,7 +5874,7 @@ module.exports = {
                     .addFields(rulesetOverview(tourney_rulesets_data.saved[livematch.ruleset]))
                 tourney_live.child(interaction.channel_id).child("current_race").set(0)
                 updateMessage("", type, [matchmaker, ruleset, reminder], [])
-                followupMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(", "), firstEmbed(), firstComponents())
+                followupMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(", "), [firstEmbed()], firstComponents())
             } else if (args[1] == "first") {
                 tourney_live.child(interaction.channel_id).child("status").set("first")
                 livematch = tourney_live_data[interaction.channel_id]
@@ -5909,7 +5909,7 @@ module.exports = {
                             setColor("red")
                         }
                         updateMessage("", type, [colorEmbed()], colorComponents())
-                        followupMessage("", firstbanEmbed(), firstbanComponents())
+                        followupMessage("", [firstbanEmbed()], firstbanComponents())
                         return
                     }
                     updateMessage("", type, [colorEmbed()], colorComponents())
