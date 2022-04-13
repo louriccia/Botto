@@ -5910,12 +5910,12 @@ module.exports = {
                         } else {
                             setColor("red")
                         }
-                        updateMessage("", type, [colorEmbed()], colorComponents())
+                        updateMessage("", type, [colorEmbed()], [])
                         followupMessage("Rolling a chance cube...", [], [])
                         setTimeout(async function () {
                             let players = Object.keys(livematch.firstcolors)
                             let firstplayer = Math.floor(Math.random() * 2) == 1 ? players[1] : players[0]
-                            tourney_live.child(interaction.channel_id).child("firstplayer").set(firstcolor)
+                            tourney_live.child(interaction.channel_id).child("firstplayer").set(firstplayer)
                             followupMessage(":" + livematch.firstcolors[firstplayer] + "_square:", [], [])
                         }, 3000)
                         setTimeout(async function () {
