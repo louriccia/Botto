@@ -5384,19 +5384,46 @@ module.exports = {
                     }
                 })
             }
-            let type = 4
+            let type = 7
             let livematch = tourney_live_data[interaction.channel_id]
             let liverules
             if (livematch) {
                 liverules = tourney_rulesets_data.saved[livematch.ruleset]
             }
+
+            let methods = {
+                poe_c: "Process of Elimination by Circuit",
+                poe_p: "Process of Elimination by Planet",
+                poe_t: "Process of Elimination by Track",
+                random: "Random",
+                already: "Already Decided",
+                gents: "Gentleman's Agreement"
+            }
+
+            let firsts = {
+                poe_c: { label: "Process of Elimination by Circuit", description: "Players alternate circuit bans, then track bans until one option remains" },
+                poe_p: { label: "Process of Elimination by Planet", description: "Players alternate planet bans, then track bans until one option remains" },
+                poe_t: { label: "Process of Elimination by Track", description: "Players alternate track bans until one option remains" },
+                random: { label: "Random", description: "First track is decided by rng" }
+            }
+
+            let trackgroups = {
+                amc: { name: "Amateur Circuit", type: "circuit", code: 0, count: 7 },
+                spc: { name: "Semi-Pro Circuit", type: "circuit", code: 1 }, count: 7,
+                gal: { name: "Galactic Circuit", type: "circuit", code: 2, count: 7 },
+                inv: { name: "Invitational Circuit", type: "circuit", code: 3, count: 4 },
+                and: { name: "Ando Prime", type: "planet", code: 0, count: 4 },
+                tat: { name: "Tatooine", type: "planet", code: 7, count: 2 },
+                oov: { name: "Oovo IV", type: "planet", code: 5, count: 3 },
+                ord: { name: "Ord Ibanna", type: "planet", code: 6, count: 3 },
+                bar: { name: "Baroonda", type: "planet", code: 2, count: 4 },
+                mon: { name: "Mon Gazza", type: "planet", code: 4, count: 3 },
+                aqu: { name: "Aquilaris", type: "planet", code: 1, count: 3 },
+                mal: { name: "Malastare", type: "planet", code: 3, count: 3 }
+            }
+
             function getFirstOptions(liverules) {
-                let firsts = {
-                    poe_c: { label: "Process of Elimination by Circuit", description: "Players alternate circuit bans, then track bans until one option remains" },
-                    poe_p: { label: "Process of Elimination by Planet", description: "Players alternate planet bans, then track bans until one option remains" },
-                    poe_t: { label: "Process of Elimination by Track", description: "Players alternate track bans until one option remains" },
-                    random: { label: "Random", description: "First track is decided by rng" }
-                }
+
                 let firstoptions = [
                     {
                         label: "Already Decided",
@@ -5421,82 +5448,40 @@ module.exports = {
                 if (![undefined, null, ""].includes(liverules.general.firsttrack.secondary)) {
                     Object.values(liverules.general.firsttrack.secondary).forEach(first => firstoptions.push(
                         {
-                            label: firsts[first],
+                            label: firsts[first].label,
+                            description: firsts[first].description,
                             value: first
                         }
                     ))
                 }
                 return (firstoptions)
             }
-            if ([null, undefined, ""].includes(livematch)) {
-                args[1] = "setup"
-                let match = {
-                    status: "setup",
-                    tourney: "",
-                    bracket: "",
-                    ruleset: "",
-                    datetime: "",
-                    players: [],
-                    commentators: [],
-                    stream: "",
-                    firstvote: ""
-                }
-                tourney_live.child(interaction.channel_id).set(match)
-            }
-            livematch = tourney_live_data[interaction.channel_id]
-            if (args[1] == "start") {
-                tourney_live.child(interaction.channel_id).child("status").set("start")
-            } else if (livematch) {
-                args[1] = livematch.status
-            } else {
-                args[1] = "setup"
-            }
-            if (args[1] == "setup") {
 
-                if (args[2] == "tournament") {
-                    tourney_live.child(interaction.channel_id).update({ tourney: interaction.data.values[0], bracket: "", ruleset: "" })
-                    type = 7
-                } else if (args[2] == "bracket") {
-                    tourney_live.child(interaction.channel_id).update(
-                        {
-                            bracket: interaction.data.values[0],
-                            ruleset: tourney_tournaments_data[livematch.tourney].stages[interaction.data.values[0]].ruleset
+            function updateMessage(content, type, embeds, components) {
+                client.api.interactions(interaction.id, interaction.token).callback.post({
+                    data: {
+                        type: type,
+                        data: {
+                            content: content,
+                            embeds: [embeds],
+                            components: components
+
                         }
-                    )
-                    type = 7
-                } else if (args[2] == "ruleset") {
-                    tourney_live.child(interaction.channel_id).update({ ruleset: interaction.data.values[0] })
-                    type = 7
-                } else if (args[2] == "player") {
-                    if (!livematch.players || (livematch.players && !Object.values(livematch.players).includes(interaction.member.user.id))) {
-                        tourney_live.child(interaction.channel_id).child("players").push(interaction.member.user.id)
                     }
-                    type = 7
-                } else if (args[2] == "comm") {
-                    if (!livematch.commentators || (livematch.commentators && !Object.values(livematch.commentators).includes(interaction.member.user.id))) {
-                        tourney_live.child(interaction.channel_id).child("commentators").push(interaction.member.user.id)
-                    }
-                    type = 7
-                } else if (args[2] == "leave") {
-                    type = 7
-                    if (livematch.commentators) {
-                        var comms = Object.keys(livematch.commentators)
-                        comms.forEach(key => {
-                            if (livematch.commentators[key] == interaction.member.user.id) {
-                                tourney_live.child(interaction.channel_id).child("commentators").child(key).remove()
-                            }
-                        })
-                    }
-                    if (livematch.players) {
-                        var players = Object.keys(livematch.players)
-                        players.forEach(key => {
-                            if (livematch.players[key] == interaction.member.user.id) {
-                                tourney_live.child(interaction.channel_id).child("players").child(key).remove()
-                            }
-                        })
-                    }
+                })
+            }
 
-                }
+            function followupMessage(content, embeds, components) {
+                client.api.webhooks(client.user.id, interaction.token).post({
+                    data: {
+                        content: content,
+                        embeds: [embeds],
+                        components: [components]
+                    }
+                })
+            }
+
+            function setupEmbed() {
                 livematch = tourney_live_data[interaction.channel_id]
                 matchMaker = new Discord.MessageEmbed()
                     .setTitle("Match Setup")
@@ -5509,6 +5494,11 @@ module.exports = {
                     )
                     .setColor("#3BA55D")
                     .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
+
+                return matchMaker
+            }
+
+            function setupComponents() {
                 let components = []
                 let tourney_options = [], bracket_options = [], ruleset_options = []
                 let ttd = Object.keys(tourney_tournaments_data)
@@ -5676,20 +5666,199 @@ module.exports = {
                         },
                     ]
                 })
-                client.api.interactions(interaction.id, interaction.token).callback.post({
-                    data: {
-                        type: type,
-                        data: {
-                            embeds: [matchMaker],
-                            components: components
+                return components
+            }
 
-                        }
+            function firstEmbed() {
+                livematch = tourney_live_data[interaction.channel_id]
+                const embed = new Discord.MessageEmbed()
+                    .setAuthor("First Track")
+                    .setTitle("How would you like to determine the first track?")
+                    .setDescription((agreed ? "" : "*If players do not agree on a method, the default option will be used.*\n") + ([undefined, null].includes(livematch.firstvote) ? "" : Object.keys(livematch.firstvote).map(key => "<@" + key + "> voted for " + methods[livematch.firstvote[key]]).join("\n")))
+                return embed
+            }
+
+            function colorEmbed() {
+                livematch = tourney_live_data[interaction.channel_id]
+                const embed = new Discord.MessageEmbed()
+                    .setAuthor("First Track")
+                    .setTitle("Pick a color")
+            }
+
+            function firstbanEmbed() {
+                livematch = tourney_live_data[interaction.channel_id]
+                const embed = new Discord.MessageEmbed()
+                    .setAuthor("First Track: " + methods[livematch.firstmethod])
+                    .setDescription("" + ([undefined, null].includes(livematch.firstcolors) ? "" : Object.keys(livematch.firstcolors).map(key => ":" + livematch.firstcolors[key] + "_square: - <@" + key + ">").join("\n")) + "\n" +
+                        ([undefined, null].includes(livematch.firstbans) ? "" : Object.keys(livematch.firstbans).map(key => "<@" + livematch.firstbans[key].player + "> banned " + ([undefined, null].includes(trackgroups[livematch.firstbans[key].ban] ? tracks[trackgroups[livematch.firstbans[key].ban]].ban : trackgroups[trackgroups[livematch.firstbans[key].ban]]))).join("\n")))
+                return embed
+            }
+
+            function firstComponents() {
+                livematch = tourney_live_data[interaction.channel_id]
+                let components = [
+                    {
+                        type: 1,
+                        components: [
+                            {
+                                type: 3,
+                                custom_id: "tourney_play_first_vote",
+                                options: getFirstOptions(liverules),
+                                placeholder: "Select Option",
+                                min_values: 1,
+                                max_values: 1
+                            }
+                        ]
+                    },
+                    {
+                        type: 1,
+                        components: [
+                            {
+                                type: 2,
+                                label: "Proceed",
+                                style: 3,
+                                custom_id: "tourney_play_first_" + [undefined, null].includes(livematch.firstvote) ? "" : (livematch.firstmethod.includes("poe") ? "color" : "ban"),
+                                disabled: [undefined, null].includes(livematch.firstvote) || Object.keys(livematch.firstvote).length < 2
+                            }
+                        ]
                     }
-                })
-            } else if (args[1] == "start") {
-                type = 7
-                const matchmaker = new Discord.MessageEmbed()
+                ]
+                return components
+            }
 
+            function colorComponents() {
+                livematch = tourney_live_data[interaction.channel_id]
+                return [
+                    {
+                        type: 1,
+                        components: [
+                            {
+                                type: 2,
+                                label: "Red",
+                                style: 2,
+                                custom_id: "tourney_play_first_red",
+                                emoji: {
+                                    name: "🟥"
+                                }
+                            },
+                            {
+                                type: 2,
+                                label: "Blue",
+                                style: 2,
+                                custom_id: "tourney_play_first_blue",
+                                emoji: {
+                                    name: "🟦"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+
+            function firstbanComponents() {
+                livematch = tourney_live_data[interaction.channel_id]
+                let circuitoptions = [undefined, null].includes(livematch.firstbans) ? Object.values(liverules.general.firsttrack.options) : Object.values(liverules.general.firsttrack.options).filter(option => !Object.values(livematch.firstbans).map(ban => ban.ban).includes(option))
+                let planetoptions = [undefined, null].includes(livematch.firstbans) ? ["and", "tat", "oov", "ord", "bar", "mon", "aqu", "mal"] : ["and", "tat", "oov", "ord", "bar", "mon", "aqu", "mal"].filter(option => !Object.values(livematch.firstbans).map(ban => ban.ban).includes(option))
+                let trackoptions = []
+                circuitoptions.forEach(circuit => {
+                    tracks.forEach((track, index) => {
+                        if (track.circuit == trackgroups[circuit].code) {
+                            trackoptions.push(index)
+                        }
+                    })
+                })
+                trackoptions = [undefined, null].includes(livematch.firstbans) ? trackoptions : trackoptions.filter(option => !Object.values(livematch.firstbans).map(ban => ban.ban).includes(option) && planetoptions.map(option => trackgroups[option].code).includes(tracks[option].planet))
+                let selectoptions = []
+                if (livematch.firstmethod == "poe_c" && circuitoptions.length > 1) {
+                    selectoptions = circuitoptions.map(option => { return ({ label: trackgroups[option].name, value: option, description: trackgroups[option].count + " tracks" }) })
+                } else if (livematch.firstmethod == "poe_p" && planetoptions.length > 1) {
+                    selectoptions = circuitoptions.map(option => { return ({ label: trackgroups[option].name, value: option, description: trackgroups[option].count + " tracks" }) })
+                } else {
+                    selectoptions = trackoptions.map(option => { return ({ label: tracks[option].name, value: option, description: (circuits[tracks[option].circuit].name + " Circuit | Race " + tracks[option].cirnum + " | " + planets[tracks[option].planet].name).substring(0, 50) }) })
+                }
+                return [
+                    {
+                        type: 1,
+                        components: [
+                            {
+                                type: 3,
+                                custom_id: "tourney_play_first_ban",
+                                options: selectoptions,
+                                placeholder: "Select Option",
+                                min_values: 1,
+                                max_values: 1
+                            }
+                        ]
+                    }
+                ]
+            }
+
+            if ([null, undefined, ""].includes(livematch)) {
+                args[1] = "setup"
+                let match = {
+                    status: "setup",
+                    tourney: "",
+                    bracket: "",
+                    ruleset: "",
+                    datetime: "",
+                    players: [],
+                    commentators: [],
+                    stream: "",
+                    firstvote: ""
+                }
+                tourney_live.child(interaction.channel_id).set(match)
+            }
+            livematch = tourney_live_data[interaction.channel_id]
+            if (livematch && args.length == 0) {
+                args[1] = livematch.status
+                type = 4
+            } else if (!livematch) {
+                args[1] = "setup"
+                type = 4
+            }
+            if (args[1] == "setup") {
+                tourney_live.child(interaction.channel_id).child("status").set("setup")
+                if (args[2] == "tournament") {
+                    tourney_live.child(interaction.channel_id).update({ tourney: interaction.data.values[0], bracket: "", ruleset: "" })
+                } else if (args[2] == "bracket") {
+                    tourney_live.child(interaction.channel_id).update(
+                        {
+                            bracket: interaction.data.values[0],
+                            ruleset: tourney_tournaments_data[livematch.tourney].stages[interaction.data.values[0]].ruleset
+                        }
+                    )
+                } else if (args[2] == "ruleset") {
+                    tourney_live.child(interaction.channel_id).update({ ruleset: interaction.data.values[0] })
+                } else if (args[2] == "player") {
+                    if (!livematch.players || (livematch.players && !Object.values(livematch.players).includes(interaction.member.user.id))) {
+                        tourney_live.child(interaction.channel_id).child("players").push(interaction.member.user.id)
+                    }
+                } else if (args[2] == "comm") {
+                    if (!livematch.commentators || (livematch.commentators && !Object.values(livematch.commentators).includes(interaction.member.user.id))) {
+                        tourney_live.child(interaction.channel_id).child("commentators").push(interaction.member.user.id)
+                    }
+                } else if (args[2] == "leave") {
+                    if (livematch.commentators) {
+                        var comms = Object.keys(livematch.commentators)
+                        comms.forEach(key => {
+                            if (livematch.commentators[key] == interaction.member.user.id) {
+                                tourney_live.child(interaction.channel_id).child("commentators").child(key).remove()
+                            }
+                        })
+                    }
+                    if (livematch.players) {
+                        var players = Object.keys(livematch.players)
+                        players.forEach(key => {
+                            if (livematch.players[key] == interaction.member.user.id) {
+                                tourney_live.child(interaction.channel_id).child("players").child(key).remove()
+                            }
+                        })
+                    }
+
+                }
+                updateMessage("", type, setupEmbed(), setupComponents())
+            } else if (args[1] == "start") {
+                const matchmaker = new Discord.MessageEmbed()
                     .setAuthor(livematch.tourney == "practice" ? "`Practice Mode`" : tourney_tournaments_data[livematch.tourney].name, "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
                     .setTitle((livematch.tourney == "practice" ? "" : tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].bracket + " " + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].round) + " - " + Object.values(livematch.players).map(player => client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username).join(" vs "))
                     .setDescription("📜 " + tourney_rulesets_data.saved[livematch.ruleset].general.name + "\n" +
@@ -5706,61 +5875,14 @@ module.exports = {
                     .setTitle("📜 " + tourney_rulesets_data.saved[livematch.ruleset].general.name)
                     .setDescription(tourney_rulesets_data.saved[livematch.ruleset].general.description)
                     .addFields(rulesetOverview(tourney_rulesets_data.saved[livematch.ruleset]))
-                client.api.interactions(interaction.id, interaction.token).callback.post({
-                    data: {
-                        type: type,
-                        data: {
-                            embeds: [matchmaker, ruleset, reminder],
-                            components: []
-
-                        }
-                    }
-                })
-
-                tourney_live.child(interaction.channel_id).child("status").set("first")
                 tourney_live.child(interaction.channel_id).child("current_race").set(0)
-
-                const firstselect = new Discord.MessageEmbed()
-                    .setTitle("How would you like to determine the first track?")
-                    .setDescription("")
-                client.api.webhooks(client.user.id, interaction.token).post({
-                    data: {
-                        content: Object.values(livematch.players).map(player => "<@" + player + ">").join(", "),
-                        embeds: [firstselect],
-                        components: [{
-                            type: 1,
-                            components: [
-                                {
-                                    type: 3,
-                                    custom_id: "tourney_play_first_vote",
-                                    options: getFirstOptions(liverules),
-                                    placeholder: "Select Option",
-                                    min_values: 1,
-                                    max_values: 1
-                                }
-                            ]
-                        }]
-                    }
-                })
-
+                updateMessage("", type, [matchmaker, ruleset, reminder], [])
+                followupMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(", "), firstEmbed(), firstComponents())
             } else if (args[1] == "first") {
+                tourney_live.child(interaction.channel_id).child("status").set("first")
                 livematch = tourney_live_data[interaction.channel_id]
-                let agreed = false
-                const firstselect = new Discord.MessageEmbed()
-                .setDescription(" ")
-                let components = []
-                let content = ""
-                let methods = {
-                    poe_c: "Process of Elimination by Circuit",
-                    poe_p: "Process of Elimination by Planet",
-                    poe_t: "Process of Elimination by Track",
-                    random: "Random",
-                    already: "Already Decided",
-                    gents: "Gentleman's Agreement"
-                }
                 if (args[2] == "vote") {
                     tourney_live.child(interaction.channel_id).child("firstvote").child(interaction.member.user.id).set(interaction.data.values[0])
-                    
                     let votes = Object.values(tourney_live_data[interaction.channel_id].firstvote)
                     if (votes.length = 2) {
                         if (votes[0] == votes[1]) {
@@ -5770,85 +5892,11 @@ module.exports = {
                             tourney_live.child(interaction.channel_id).child("firstmethod").set(liverules.general.firsttrack.primary)
                         }
                     }
+                    let content = "" + ([undefined, null].includes(livematch.firstvote) ? Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") : Object.values(livematch.players).map(player => Object.keys(livematch.firstvote).includes(player) ? "" : "<@" + player + ">").join(" "))
+                    updateMessage(content, type, firstEmbed(), firstComponents())
+                } else if (args[2] == "color") {
                     livematch = tourney_live_data[interaction.channel_id]
-                    type = 7
-                    components = [
-                        {
-                            type: 1,
-                            components: [
-                                {
-                                    type: 3,
-                                    custom_id: "tourney_play_first_vote",
-                                    options: getFirstOptions(liverules),
-                                    placeholder: "Select Option",
-                                    min_values: 1,
-                                    max_values: 1
-                                }
-                            ]
-                        },
-                        {
-                            type: 1,
-                            components: [
-                                {
-                                    type: 2,
-                                    label: "Proceed",
-                                    style: 3,
-                                    custom_id: "tourney_play_first_select",
-                                    disabled: [undefined, null].includes(livematch.firstvote) || Object.keys(livematch.firstvote).length < 2
-                                }
-                            ]
-                        }
-                    ]
-                    firstselect
-                        .setTitle("How would you like to determine the first track?")
-                        .setDescription((agreed ? "" : "*If players do not agree on a method, the default option will be used.*\n") + ([undefined, null].includes(livematch.firstvote) ? "" : Object.keys(livematch.firstvote).map(key => "<@" + key + "> voted for " + methods[livematch.firstvote[key]]).join("\n")))
-                    content = "" + ([undefined, null].includes(livematch.firstvote) ? Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") : Object.values(livematch.players).map(player => Object.keys(livematch.firstvote).includes(player) ? "" : "<@" + player + ">").join(" "))
-                    
-                } else if (args[2] == "select") {
-                    let trackgroups = {
-                        amc: { name: "Amateur Circuit", type: "circuit", code: 0, count: 7 },
-                        spc: { name: "Semi-Pro Circuit", type: "circuit", code: 1 }, count: 7,
-                        gal: { name: "Galactic Circuit", type: "circuit", code: 2, count: 7 },
-                        inv: { name: "Invitational Circuit", type: "circuit", code: 3, count: 4 },
-                        and: { name: "Ando Prime", type: "planet", code: 0, count: 4 },
-                        tat: { name: "Tatooine", type: "planet", code: 7, count: 2 },
-                        oov: { name: "Oovo IV", type: "planet", code: 5, count: 3 },
-                        ord: { name: "Ord Ibanna", type: "planet", code: 6, count: 3 },
-                        bar: { name: "Baroonda", type: "planet", code: 2, count: 4 },
-                        mon: { name: "Mon Gazza", type: "planet", code: 4, count: 3 },
-                        aqu: { name: "Aquilaris", type: "planet", code: 1, count: 3 },
-                        mal: { name: "Malastare", type: "planet", code: 3, count: 3 }
-                    }
-                    if (livematch.firstmethod.includes("poe") && [undefined, null].includes(livematch.firstcolors)) {
-                        firstselect
-                        .setTitle("Pick a color")
-                        content = Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + "\n*I just happen to have a chancecube here...*"
-                        components = [
-                            {
-                                type: 1,
-                                components: [
-                                    {
-                                        type: 2,
-                                        label: "Red",
-                                        style: 2,
-                                        custom_id: "tourney_play_first_select_red",
-                                        emoji: {
-                                            name: "🟥"
-                                        }
-                                    },
-                                    {
-                                        type: 2,
-                                        label: "Blue",
-                                        style: 2,
-                                        custom_id: "tourney_play_first_select_blue",
-                                        emoji: {
-                                            name: "🟦"
-                                        }
-                                    }
-                                ]
-                            }
-                        ]
-                    }
+                    content = Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + "\n*I just happen to have a chancecube here...*"
                     if (["red", "blue"].includes(args[3])) {
                         tourney_live.child(interaction.channel_id).child("firstcolors").child(interaction.member.user.id).set(args[3])
                         function setColor(color) {
@@ -5864,69 +5912,17 @@ module.exports = {
                         } else {
                             setColor("red")
                         }
-                        args[3] = "ban"
+                        updateMessage("", type, colorEmbed(), colorComponents())
+                        followupMessage("", firstbanEmbed(), firstbanComponents())
+                        return
                     }
-
-                    if (args[3] == "ban") {
-                        if(interaction.data.hasOwnProperty("values")){
-                            tourney_live.child(interaction.channel_id).child("firstbans").push({player: interaction.member.user.id, ban: interaction.data.values[0]})
-                        }
-                        livematch = tourney_live_data[interaction.channel_id]
-                        let circuitoptions = [undefined, null].includes(livematch.firstbans) ? Object.values(liverules.general.firsttrack.options) : Object.values(liverules.general.firsttrack.options).filter(option => !Object.values(livematch.firstbans).map(ban => ban.ban).includes(option))
-                        let planetoptions = [undefined, null].includes(livematch.firstbans) ? ["and", "tat", "oov", "ord", "bar", "mon", "aqu", "mal"] : ["and", "tat", "oov", "ord", "bar", "mon", "aqu", "mal"].filter(option => !Object.values(livematch.firstbans).map(ban => ban.ban).includes(option))
-                        let trackoptions = []
-                        circuitoptions.forEach(circuit => {
-                            tracks.forEach((track, index) => {
-                                if (track.circuit == trackgroups[circuit].code) {
-                                    trackoptions.push(index)
-                                }
-                            })
-                        })
-                        trackoptions = [undefined, null].includes(livematch.firstbans) ? trackoptions : trackoptions.filter(option => !Object.values(livematch.firstbans).map(ban => ban.ban).includes(option) && planetoptions.map(option => trackgroups[option].code).includes(tracks[option].planet))
-                        let selectoptions = []
-                        if (livematch.firstmethod == "poe_c" && circuitoptions.length > 1) {
-                            selectoptions = circuitoptions.map(option => { return ({ label: trackgroups[option].name, value: option, description: trackgroups[option].count + " tracks" }) })
-                        } else if (livematch.firstmethod == "poe_p" && planetoptions.length > 1) {
-                            selectoptions = circuitoptions.map(option => { return ({ label: trackgroups[option].name, value: option, description: trackgroups[option].count + " tracks" }) })
-                        } else {
-                            selectoptions = trackoptions.map(option => { return ({ label: tracks[option].name, value: option, description: (circuits[tracks[option].circuit].name + " Circuit | Race " + tracks[option].cirnum + " | " + planets[tracks[option].planet].name).substring(0, 50) }) })
-                        }
-
-                        components = [
-                            {
-                                type: 1,
-                                components: [
-                                    {
-                                        type: 3,
-                                        custom_id: "tourney_play_first_select_ban",
-                                        options: selectoptions,
-                                        placeholder: "Select Option",
-                                        min_values: 1,
-                                        max_values: 1
-                                    }
-                                ]
-                            }
-                        ]
+                    updateMessage("", type, colorEmbed(), colorComponents())
+                } else if (args[2] == "ban") {
+                    if (interaction.data.hasOwnProperty("values")) {
+                        tourney_live.child(interaction.channel_id).child("firstbans").push({ player: interaction.member.user.id, ban: interaction.data.values[0] })
                     }
-
-                    firstselect
-                        .setAuthor("First Track: " + methods[livematch.firstmethod])
-                        .setDescription("" + ([undefined, null].includes(livematch.firstcolors) ? "" : Object.keys(livematch.firstcolors).map(key => livematch.firstcolors[key] + "_square - <@" + key + ">").join("\n")) + "\n" +
-                            ([undefined, null].includes(livematch.firstbans) ? "" : Object.keys(livematch.firstbans).map(key => "<@" + livematch.firstbans[key].player + "> banned " + ([undefined, null].includes(trackgroups[livematch.firstbans[key].ban] ? tracks[trackgroups[livematch.firstbans[key].ban]].name : trackgroups[trackgroups[livematch.firstbans[key].ban]]))).join("\n")))
+                    updateMessage("", type, firstBanEmbed(), firstbanComponents())
                 }
-
-                livematch = tourney_live_data[interaction.channel_id]
-
-                client.api.interactions(interaction.id, interaction.token).callback.post({
-                    data: {
-                        type: type,
-                        data: {
-                            content: content,
-                            embeds: [firstselect],
-                            components: components
-                        }
-                    }
-                })
             }
 
             //a tourney cancel command can be used by an admin to cancel a match
