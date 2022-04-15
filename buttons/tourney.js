@@ -5534,7 +5534,7 @@ module.exports = {
                         client.api.channels(interaction.channel_id).messages.post({
                             data: {
                                 content: (i==5 ? "GO!" : (5-i)),
-                                tts: true
+                                tts: i == 5
                             }
                         })
                     }, 2000 + i*1000)
