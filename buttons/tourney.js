@@ -5803,10 +5803,10 @@ module.exports = {
                     }
                 }
                 if (podoptions.includes(8)) {
-                    podoptions.push(25)
+                    podoptions.push(23)
                 }
-                if (podoptions.includes(24)) {
-                    podoptions.push(26)
+                if (podoptions.includes(22)) {
+                    podoptions.push(24)
                 }
                 console.log(podoptions)
                 let components = [
