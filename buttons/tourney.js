@@ -6202,7 +6202,7 @@ module.exports = {
                         if (Object.values(livematch.players).includes(interaction.member.user.id)) {
                             tourney_live.child(interaction.channel_id).child("races").child(race).child("ready").child(interaction.member.user.id).set((args[2] == "ready" ? true : false))
                         }
-                        updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" "), [raceEmbed(race)], raceComponents(race))
+                        updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
                         if (Object.values(livematch.races[race].ready).filter(r => r == false).length == 0) {
                             countDown()
                         }
@@ -6212,7 +6212,7 @@ module.exports = {
 
                 } else if (args[2] == "racer") {
                     tourney_live.child(interaction.channel_id).child("races").child(race).child("runs").child(interaction.member.user.id).child("pod").set(interaction.data.values[0])
-                    updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" "), [raceEmbed(race)], raceComponents(race))
+                    updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
                 }
             }
 
