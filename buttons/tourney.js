@@ -6180,7 +6180,7 @@ module.exports = {
                                 Object.values(livematch.players).map(player => race_object.ready[player] = false)
                                 tourney_live.child(interaction.channel_id).child("races").child("0").set(race_object)
                                 updateMessage("", type, [firstbanEmbed()], [])
-                                postMessage("", [raceEmbed(0)], raceComponents(0))
+                                postMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), [raceEmbed(0)], raceComponents(0))
                             } else {
                                 let turn = whoseTurn()
                                 updateMessage("<@" + turn.current_turn + "> please make a selection", type, [firstbanEmbed()], firstbanComponents())
@@ -6198,7 +6198,8 @@ module.exports = {
                     if (livematch.races[race].runs !== undefined && livematch.races[race].runs[interaction.member.user.id] !== undefined && livematch.races[race].runs[interaction.member.user.id].pod !== undefined) {
                         if (Object.values(livematch.commentators).includes(interaction.member.user.id)) {
                             tourney_live.child(interaction.channel_id).child("races").child(race).child("ready").child("commentators").set((args[2] == "ready" ? true : false))
-                        } else if (Object.values(livematch.players).includes(interaction.member.user.id)) {
+                        }
+                        if (Object.values(livematch.players).includes(interaction.member.user.id)) {
                             tourney_live.child(interaction.channel_id).child("races").child(race).child("ready").child(interaction.member.user.id).set((args[2] == "ready" ? true : false))
                         }
                         updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" "), [raceEmbed(race)], raceComponents(race))
