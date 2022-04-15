@@ -5409,7 +5409,7 @@ module.exports = {
 
             let trackgroups = {
                 amc: { name: "Amateur Circuit", type: "circuit", code: 0, count: 7 },
-                spc: { name: "Semi-Pro Circuit", type: "circuit", code: 1, count: 7},
+                spc: { name: "Semi-Pro Circuit", type: "circuit", code: 1, count: 7 },
                 gal: { name: "Galactic Circuit", type: "circuit", code: 2, count: 7 },
                 inv: { name: "Invitational Circuit", type: "circuit", code: 3, count: 4 },
                 and: { name: "Ando Prime", type: "planet", code: 0, count: 4 },
@@ -5457,6 +5457,11 @@ module.exports = {
                 return (firstoptions)
             }
 
+            function getOpponent(player) {
+                let opponent = Object.values(livematch.players).filter(p => p != player)
+                return opponent[0]
+            }
+
             function updateMessage(content, type, embeds, components) {
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
@@ -5487,6 +5492,21 @@ module.exports = {
                         content: content,
                         embeds: embeds,
                         components: components
+                    }
+                })
+            }
+
+            function ephemeralMessage(content, embeds, components) {
+                client.api.interactions(interaction.id, interaction.token).callback.post({
+                    data: {
+                        type: 4,
+                        data: {
+                            flags: 64,
+                            content: content,
+                            embeds: embeds,
+                            components: components
+
+                        }
                     }
                 })
             }
@@ -5770,6 +5790,8 @@ module.exports = {
                 ]
             }
 
+
+
             function firstbanComponents() {
                 livematch = tourney_live_data[interaction.channel_id]
                 let circuitoptions = [undefined, null].includes(livematch.firstbans) ? Object.values(liverules.general.firsttrack.options) : Object.values(liverules.general.firsttrack.options).filter(option => !Object.values(livematch.firstbans).map(ban => ban.ban).includes(option))
@@ -5943,10 +5965,65 @@ module.exports = {
                     }
                     updateMessage(content, type, [colorEmbed()], colorComponents())
                 } else if (args[2] == "ban") {
-                    if (interaction.data.hasOwnProperty("values")) {
-                        tourney_live.child(interaction.channel_id).child("firstbans").push({ player: interaction.member.user.id, ban: interaction.data.values[0] })
+                    livematch = tourney_live_data[interaction.channel_id]
+                    let first = livematch.firstplayer
+                    let circuitoptions = [undefined, null].includes(livematch.firstbans) ? Object.values(liverules.general.firsttrack.options) : Object.values(liverules.general.firsttrack.options).filter(option => !Object.values(livematch.firstbans).map(ban => ban.ban).includes(option))
+                    let planetoptions = [undefined, null].includes(livematch.firstbans) ? ["and", "tat", "oov", "ord", "bar", "mon", "aqu", "mal"] : ["and", "tat", "oov", "ord", "bar", "mon", "aqu", "mal"].filter(option => !Object.values(livematch.firstbans).map(ban => ban.ban).includes(option))
+                    let trackoptions = []
+                    circuitoptions.forEach(circuit => {
+                        tracks.forEach((track, index) => {
+                            if (track.circuit == trackgroups[circuit].code) {
+                                trackoptions.push(index)
+                            }
+                        })
+                    })
+                    trackoptions = [undefined, null].includes(livematch.firstbans) ? trackoptions : trackoptions.filter(option => !Object.values(livematch.firstbans).map(ban => Number(ban.ban)).includes(option) && planetoptions.map(option => trackgroups[option].code).includes(Number(tracks[option].planet)))
+                    let current_turn = first
+                    let opponent = getOpponent(first)
+                    if (livematch.firstmethod == "poe_c"){
+                        if(circuitoptions.length > 1){
+                            if(circuitoptions.length % 2 == 0){
+                                current_turn = first
+                            } else {
+                                current_turn = opponent
+                            }
+                        } else {
+                            if(trackoptions.length % 2 == 0){
+                                current_turn = opponent
+                            } else {
+                                current_turn = first
+                            }
+                        }
+                    } else if (livematch.firstmethod == "poe_p"){
+                        if(planetoptions.length > 1){
+                            if(planetoptions.length % 2 == 0){
+                                current_turn = first
+                            } else {
+                                current_turn = opponent
+                            }
+                        } else {
+                            if(trackoptions.length % 2 == 0){
+                                current_turn = opponent
+                            } else {
+                                current_turn = first
+                            }
+                        }
+                    } else if (livematch.firstmethod == "poe_t"){
+                        if(trackoptions.length % 2 == 0){
+                            current_turn = opponent
+                        } else {
+                            current_turn = first
+                        }
                     }
-                    updateMessage("", type, [firstbanEmbed()], firstbanComponents())
+                    if (interaction.data.hasOwnProperty("values")) {
+                        if(interaction.member.user.id == current_turn){
+                            tourney_live.child(interaction.channel_id).child("firstbans").push({ player: interaction.member.user.id, ban: interaction.data.values[0] })
+                            updateMessage("<@" + current_turn + "> please make a selection", type, [firstbanEmbed()], firstbanComponents())
+                        } else {
+                            ephemeralMessage("It's not your turn to ban! <:WhyNobodyBuy:589481340957753363>", [], [])
+                        }
+                    }
+                    
                 }
             }
 
