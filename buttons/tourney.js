@@ -5703,9 +5703,8 @@ module.exports = {
                     .setAuthor("First Track: " + methods[livematch.firstmethod])
                     .setDescription("" + ([undefined, null].includes(livematch.firstbans) ? "" :
                         Object.keys(livematch.firstbans).map(key =>
-                            console.log(livematch.firstbans[key]) +
-                            "<@" + livematch.firstbans[key].player + "> banned " +
-                            ([undefined, null].includes(trackgroups[livematch.firstbans[key].ban]) ? tracks[Number(livematch.firstbans[key].ban)].name : trackgroups[livematch.firstbans[key].ban].name)
+                            "<@" + livematch.firstbans[key].player + "> banned **" +
+                            ([undefined, null].includes(trackgroups[livematch.firstbans[key].ban]) ? planets[tracks[Number(livematch.firstbans[key].ban)].planet].emoji + " " + tracks[Number(livematch.firstbans[key].ban)].name : trackgroups[livematch.firstbans[key].ban].name) + "**"
                         ).join("\n")))
                 return embed
             }
@@ -5783,7 +5782,8 @@ module.exports = {
                         }
                     })
                 })
-                trackoptions = [undefined, null].includes(livematch.firstbans) ? trackoptions : trackoptions.filter(option => !Object.values(livematch.firstbans).map(ban => ban.ban).includes(option) && planetoptions.map(option => trackgroups[option].code).includes(tracks[option].planet))
+                trackoptions = [undefined, null].includes(livematch.firstbans) ? trackoptions : trackoptions.filter(option => !Object.values(livematch.firstbans).map(ban => Number(ban.ban)).includes(option) && planetoptions.map(option => trackgroups[option].code).includes(Number(tracks[option].planet)))
+                console.log(trackoptions)
                 let selectoptions = []
                 if (livematch.firstmethod == "poe_c" && circuitoptions.length > 1) {
                     selectoptions = circuitoptions.map(option => { return ({ label: trackgroups[option].name, value: option, description: trackgroups[option].count + " tracks" }) })
