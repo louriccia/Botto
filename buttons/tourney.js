@@ -5424,7 +5424,7 @@ module.exports = {
 
             let condition_names = {
                 ft: "Full Track",
-                sk: "Skips", 
+                sk: "Skips",
                 mu: "Upgrades Allowed",
                 nu: "No Upgrades",
                 mi: "Mirrored",
@@ -5528,16 +5528,16 @@ module.exports = {
             }
 
             function countDown() {
-                postMessage("<a:countdown:672640791369482251> Countdown Incoming! <a:countdown:672640791369482251>", [], [])
-                for(let i = 0; i <= 5; i++){
+                postMessage("<a:countdown:672640791369482251> Countdown incoming! <a:countdown:672640791369482251>", [], [])
+                for (let i = 0; i <= 5; i++) {
                     setTimeout(async function () {
                         client.api.channels(interaction.channel_id).messages.post({
                             data: {
-                                content: (i==5 ? "GO!" : (5-i)),
+                                content: (i == 5 ? "*GO!*" : (5 - i)),
                                 tts: i == 5
                             }
                         })
-                    }, 2000 + i*1000)
+                    }, 2000 + i * 1000)
                 }
             }
 
@@ -5767,24 +5767,90 @@ module.exports = {
                 events.forEach(event => {
                     if (event.event == "selection" && event.type == "track") {
                         track = planets[tracks[Number(event.selection)].planet].emoji + " " + tracks[Number(event.selection)].name
-                    } 
-                    if (event.event == "override" && event.type == "condition"){
-                        if(event.selection == "skips"){
-                            conditions.forEach(con => {if(con == "ft"){ con = "sk"}})
-                        } else if(event.selection == "no_upgrades"){
-                            conditions.forEach(con => {if(con == "mu"){ con = "nu"}})
-                        } else if(event.selection == "fl"){
-                            conditions.forEach(con => {if(con == "tt"){ con = "fl"}})
-                        } 
+                    }
+                    if (event.event == "override" && event.type == "condition") {
+                        if (event.selection == "skips") {
+                            conditions.forEach(con => { if (con == "ft") { con = "sk" } })
+                        } else if (event.selection == "no_upgrades") {
+                            conditions.forEach(con => { if (con == "mu") { con = "nu" } })
+                        } else if (event.selection == "fl") {
+                            conditions.forEach(con => { if (con == "tt") { con = "fl" } })
+                        }
                     }
                 })
-                
+
                 const embed = new Discord.MessageEmbed()
                     .setAuthor("Race " + (race + 1))
                     .setTitle(track)
                     .setDescription(conditions.map(con => "`" + condition_names[con] + "`").join(" "))
                 Object.values(livematch.players).map(player => embed.addField(client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username, "Select Racer then Click Ready", true))
                 return embed
+            }
+
+            function raceComponents(race) {
+                livematch = tourney_live_data[interaction.channel_id]
+                let events = Object.values(livematch.races[race].events)
+                let podbans = []
+                let podoptions = []
+                events.forEach(event => {
+                    if (event.event == "tempban" && event.type == "racer") {
+                        podbans.push(event.selection)
+                    }
+                })
+                for (let i = 0; i < 25; i++) {
+                    if (!podbans.includes(i)) {
+                        podoptions.push(i)
+                    }
+                }
+                if (podoptions.includes(8)) {
+                    podoptions.push(25)
+                }
+                if (podoptions.includes(24)) {
+                    podoptions.push(26)
+                }
+                let components = [
+                    {
+                        type: 1,
+                        components: [
+                            {
+                                type: 3,
+                                custom_id: "tourney_play_race" + race + "_racer",
+                                options: podoptions.map(pod => {
+                                    return {
+                                        label: racers[pod].name,
+                                        value: pod,
+                                        description: racers[pod].pod.substring(0, 50),
+                                        emoji: {
+                                            name: racers[pod].flag.split(":")[1],
+                                            id: racers[pod].flag.split(":")[2].replace(">", "")
+                                        }
+                                    }
+                                }),
+                                placeholder: "Select Racer",
+                                min_values: 1,
+                                max_values: 1
+                            }
+                        ]
+                    },
+                    {
+                        type: 1,
+                        components: [
+                            {
+                                type: 2,
+                                label: "Ready",
+                                style: 1,
+                                custom_id: "tourney_play_race" + race + "_ready"
+                            },
+                            {
+                                type: 2,
+                                label: "Not Ready",
+                                style: 4,
+                                custom_id: "tourney_play_race" + race + "_unready"
+                            }
+                        ]
+                    },
+                ]
+                return components
             }
 
             function firstComponents() {
@@ -6076,7 +6142,7 @@ module.exports = {
                                 current_turn = first
                             }
                         }
-                        return {current_turn: current_turn, options: trackoptions}
+                        return { current_turn: current_turn, options: trackoptions }
                     }
 
 
@@ -6095,9 +6161,14 @@ module.exports = {
                                     cost: 0
                                 }
                                 tourney_live.child(interaction.channel_id).child("races").child("0").child("events").push(event)
+                                let race_object = {
+                                    events: [event],
+                                    ready: {}
+                                }
+                                Object.values(livematch.players).map(player => race_object.ready[player] = false)
+                                tourney_live.child(interaction.channel_id).child("races").child("0").set(race_object)
                                 updateMessage("", type, [firstbanEmbed()], [])
                                 postMessage("", [raceEmbed(0)], [])
-                                countDown()
                             } else {
                                 let turn = whoseTurn()
                                 updateMessage("<@" + turn.current_turn + "> please make a selection", type, [firstbanEmbed()], firstbanComponents())
@@ -6108,6 +6179,27 @@ module.exports = {
                         }
                     }
 
+                }
+            } else if (args[1].includes("race")) {
+                let race = Number(args[1].replace("race", ""))
+                if (["ready", "unready"].includes(args[2])) {
+                    if (livematch.races[race].runs[interaction.member.user.id] !== undefined && livematch.races[race].runs[interaction.member.user.id].pod !== undefined) {
+                        if(Object.values(livematch.commentators).includes(interaction.member.user.id)){
+                            tourney_live.child(interaction.channel_id).child("races").child(race).child("ready").child("commentators").set((args[2] == "ready" ? true : false))
+                        } else if(Object.values(livematch.players).includes(interaction.member.user.id)){
+                            tourney_live.child(interaction.channel_id).child("races").child(race).child("ready").child(interaction.member.user.id).set((args[2] == "ready" ? true : false))
+                        }
+                        updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" "), [raceEmbed(race)], raceComponents())
+                        if(Object.values(livematch.races[race].ready).filter(r => r == false).length == 0){
+                            countDown()
+                        }
+                    } else {
+                        ephemeralMessage("You have not selected a racer yet! <:WhyNobodyBuy:589481340957753363>")
+                    }
+
+                } else if (args[2] == "racer") {
+                    tourney_live.child(interaction.channel_id).child("races").child(race).child("runs").child(interaction.member.user.id).child("pod").set(interaction.data.values[0])
+                    updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" "), [raceEmbed(race)], raceComponents())
                 }
             }
 
@@ -6127,39 +6219,6 @@ module.exports = {
                             set pronouns
                             appropriate nicknames/pronunciation
                             reveal pod selection to opponent
-                        
-            
-                        reminders (only posted if not in practice mode)
-                            reminders to players
-                                verify all pods/tracks/upgrades are unlocked
-                                check that stream is running smoothly
-                                disable game music
-                                wait until results screen to report your time
-                            reminders to commentators
-                                enable all voice related settings in Discord such as noise supression/reduction, advanced voice activity, etc.
-                                open Twitch to respond to chat
-                        
-                        ruleset overview
-                        
-                        how would you like to select the first track?
-            
-                        
-                        ruleset explanation:
-                            
-                        
-            
-            
-            
-                        first track selection
-                            predetermined
-                            coin flip
-                                red or blue
-                            circuit bans
-                                track bans
-                            gentleman's agreement
-                                track
-                                racer
-                                conditions
                         
                         Ban phase
                             Pod ban
