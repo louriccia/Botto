@@ -5527,6 +5527,20 @@ module.exports = {
                 })
             }
 
+            function countDown() {
+                postMessage("<a:countdown:672640791369482251> Countdown Incoming! <a:countdown:672640791369482251>", [], [])
+                for(let i = 0; i <= 5; i++){
+                    setTimeout(async function () {
+                        client.api.channels(interaction.channel_id).messages.post({
+                            data: {
+                                content: (i==5 ? "GO!" : (5-i)),
+                                tts: true
+                            }
+                        })
+                    }, 2000 + i*1000)
+                }
+            }
+
             function setupEmbed() {
                 livematch = tourney_live_data[interaction.channel_id]
                 matchMaker = new Discord.MessageEmbed()
@@ -6082,7 +6096,8 @@ module.exports = {
                                 }
                                 tourney_live.child(interaction.channel_id).child("races").child("0").child("events").push(event)
                                 updateMessage("", type, [firstbanEmbed()], [])
-                                followupMessage("", [raceEmbed(0)], [])
+                                postMessage("", [raceEmbed(0)], [])
+                                countDown()
                             } else {
                                 let turn = whoseTurn()
                                 updateMessage("<@" + turn.current_turn + "> please make a selection", type, [firstbanEmbed()], firstbanComponents())
