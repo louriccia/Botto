@@ -5782,8 +5782,16 @@ module.exports = {
                 const embed = new Discord.MessageEmbed()
                     .setAuthor("Race " + (race + 1))
                     .setTitle(track)
-                    .setDescription(conditions.map(con => "`" + condition_names[con] + "`").join(" "))
-                Object.values(livematch.players).map(player => embed.addField(client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username, "Select Racer then Click Ready", true))
+                    .setDescription(conditions.map(con => "`" + condition_names[con] + "`").join(" ") + "\n\nCountdown will start when commentators/players have readied.")
+                Object.values(livematch.players).map(player => embed.addField(
+                    client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username,
+                    ([undefined, null, ""].includes(livematch.races[race].runs[player].pod) ?
+                        "Racer not selected" :
+                        "Racer selected " + (livematch.races[race].reveal[player] ?
+                            racers[livematch.races[race].runs[interaction.member.user.id].pod].flag + " " + racers[Number(livematch.races[race].runs[interaction.member.user.id].pod)].name : "(hidden)")) + "\n" + (livematch.races[race].ready[player] ?
+                                ":green_circle: Ready" :
+                                ":red_circle: Not Ready"),
+                    true))
                 return embed
             }
 
@@ -5808,7 +5816,6 @@ module.exports = {
                 if (podoptions.includes(22)) {
                     podoptions.push(24)
                 }
-                console.log(podoptions)
                 let components = [
                     {
                         type: 1,
@@ -5847,6 +5854,12 @@ module.exports = {
                                 label: "Not Ready",
                                 style: 4,
                                 custom_id: "tourney_play_race" + race + "_unready"
+                            },
+                            {
+                                type: 2,
+                                label: "Reveal Racer Choice",
+                                style: 2,
+                                custom_id: "tourney_play_race" + race + "_reveal"
                             }
                         ]
                     },
@@ -6175,9 +6188,14 @@ module.exports = {
                                 tourney_live.child(interaction.channel_id).child("races").child("0").child("events").push(event)
                                 let race_object = {
                                     events: [event],
-                                    ready: {}
+                                    ready: { commentators: false },
+                                    reveal: {}
                                 }
-                                Object.values(livematch.players).map(player => race_object.ready[player] = false)
+                                Object.values(livematch.players).map(player => {
+                                    race_object.ready[player] = false
+                                    race_object.reveal[player] = false
+                                }
+                                )
                                 tourney_live.child(interaction.channel_id).child("races").child("0").set(race_object)
                                 updateMessage("", type, [firstbanEmbed()], [])
                                 postMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), [raceEmbed(0)], raceComponents(0))
@@ -6202,9 +6220,11 @@ module.exports = {
                         if (Object.values(livematch.players).includes(interaction.member.user.id)) {
                             tourney_live.child(interaction.channel_id).child("races").child(race).child("ready").child(interaction.member.user.id).set((args[2] == "ready" ? true : false))
                         }
-                        updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
                         if (Object.values(livematch.races[race].ready).filter(r => r == false).length == 0) {
+                            updateMessage("", type, [raceEmbed(race)], [])
                             countDown()
+                        } else {
+                            updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
                         }
                     } else {
                         ephemeralMessage("You have not selected a racer yet! <:WhyNobodyBuy:589481340957753363>")
@@ -6212,6 +6232,11 @@ module.exports = {
 
                 } else if (args[2] == "racer") {
                     tourney_live.child(interaction.channel_id).child("races").child(race).child("runs").child(interaction.member.user.id).child("pod").set(interaction.data.values[0])
+                    updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
+                } else if (args[2] == "reveal") {
+                    if (Object.values(livematch.players).includes(interaction.member.user.id)) {
+                        livematch.races[race].reveal[interaction.member.user.id] = true
+                    }
                     updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
                 }
             }
