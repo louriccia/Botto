@@ -5422,6 +5422,22 @@ module.exports = {
                 mal: { name: "Malastare", type: "planet", code: 3, count: 3 }
             }
 
+            let condition_names = {
+                ft: "Full Track",
+                sk: "Skips", 
+                mu: "Upgrades Allowed",
+                nu: "No Upgrades",
+                mi: "Mirrored",
+                um: "Unmirrored",
+                l1: "1 Lap",
+                l2: "2 Laps",
+                l3: "3 Laps",
+                l4: "4 Laps",
+                l5: "5 Laps",
+                tt: "Total Time",
+                fl: "Fastest Lap"
+            }
+
             function getFirstOptions(liverules) {
 
                 let firstoptions = [
@@ -5733,15 +5749,27 @@ module.exports = {
                 livematch = tourney_live_data[interaction.channel_id]
                 let track = ""
                 let events = Object.values(livematch.races[race].events)
+                let conditions = Object.values(liverules.general.default)
                 events.forEach(event => {
                     if (event.event == "selection" && event.type == "track") {
                         track = planets[tracks[Number(event.selection)].planet].emoji + " " + tracks[Number(event.selection)].name
+                    } 
+                    if (event.event == "override" && event.type == "condition"){
+                        if(event.selection == "skips"){
+                            conditions.forEach(con => {if(con == "ft"){ con = "sk"}})
+                        } else if(event.selection == "no_upgrades"){
+                            conditions.forEach(con => {if(con == "mu"){ con = "nu"}})
+                        } else if(event.selection == "fl"){
+                            conditions.forEach(con => {if(con == "tt"){ con = "fl"}})
+                        } 
                     }
                 })
+                
                 const embed = new Discord.MessageEmbed()
                     .setAuthor("Race " + (race + 1))
                     .setTitle(track)
-                    .setDescription("")
+                    .setDescription(conditions.map(con => "`" + condition_names[con] + "`").join(" "))
+                Object.values(livematch.players).map(player => embed.addField(client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username, "Select Racer then Click Ready", true))
                 return embed
             }
 
