@@ -5734,7 +5734,7 @@ module.exports = {
                 let track = ""
                 let events = Object.values(livematch.races[race].events)
                 events.forEach(event => {
-                    if(event.event == "selection" && event.type == "track"){
+                    if (event.event == "selection" && event.type == "track") {
                         track = planets[tracks[Number(event.selection)].planet].emoji + " " + tracks[Number(event.selection)].name
                     }
                 })
@@ -5982,57 +5982,64 @@ module.exports = {
                     updateMessage(content, type, [colorEmbed()], colorComponents())
                 } else if (args[2] == "ban") {
                     livematch = tourney_live_data[interaction.channel_id]
-                    let first = livematch.firstplayer
-                    let circuitoptions = [undefined, null].includes(livematch.firstbans) ? Object.values(liverules.general.firsttrack.options) : Object.values(liverules.general.firsttrack.options).filter(option => !Object.values(livematch.firstbans).map(ban => ban.ban).includes(option))
-                    let planetoptions = [undefined, null].includes(livematch.firstbans) ? ["and", "tat", "oov", "ord", "bar", "mon", "aqu", "mal"] : ["and", "tat", "oov", "ord", "bar", "mon", "aqu", "mal"].filter(option => !Object.values(livematch.firstbans).map(ban => ban.ban).includes(option))
-                    let trackoptions = []
-                    circuitoptions.forEach(circuit => {
-                        tracks.forEach((track, index) => {
-                            if (track.circuit == trackgroups[circuit].code) {
-                                trackoptions.push(index)
-                            }
+
+                    function whoseTurn() {
+                        livematch = tourney_live_data[interaction.channel_id]
+                        let first = livematch.firstplayer
+                        let circuitoptions = [undefined, null].includes(livematch.firstbans) ? Object.values(liverules.general.firsttrack.options) : Object.values(liverules.general.firsttrack.options).filter(option => !Object.values(livematch.firstbans).map(ban => ban.ban).includes(option))
+                        let planetoptions = [undefined, null].includes(livematch.firstbans) ? ["and", "tat", "oov", "ord", "bar", "mon", "aqu", "mal"] : ["and", "tat", "oov", "ord", "bar", "mon", "aqu", "mal"].filter(option => !Object.values(livematch.firstbans).map(ban => ban.ban).includes(option))
+                        let trackoptions = []
+                        circuitoptions.forEach(circuit => {
+                            tracks.forEach((track, index) => {
+                                if (track.circuit == trackgroups[circuit].code) {
+                                    trackoptions.push(index)
+                                }
+                            })
                         })
-                    })
-                    trackoptions = [undefined, null].includes(livematch.firstbans) ? trackoptions : trackoptions.filter(option => !Object.values(livematch.firstbans).map(ban => Number(ban.ban)).includes(option) && planetoptions.map(option => trackgroups[option].code).includes(Number(tracks[option].planet)))
-                    let current_turn = first
-                    let opponent = getOpponent(first)
-                    if (livematch.firstmethod == "poe_c") {
-                        if (circuitoptions.length > 1) {
-                            if (circuitoptions.length % 2 == 0) {
-                                current_turn = first
+                        trackoptions = [undefined, null].includes(livematch.firstbans) ? trackoptions : trackoptions.filter(option => !Object.values(livematch.firstbans).map(ban => Number(ban.ban)).includes(option) && planetoptions.map(option => trackgroups[option].code).includes(Number(tracks[option].planet)))
+                        let current_turn = first
+                        let opponent = getOpponent(first)
+                        if (livematch.firstmethod == "poe_c") {
+                            if (circuitoptions.length > 1) {
+                                if (circuitoptions.length % 2 == 0) {
+                                    current_turn = first
+                                } else {
+                                    current_turn = opponent
+                                }
                             } else {
-                                current_turn = opponent
+                                if (trackoptions.length % 2 == 0) {
+                                    current_turn = opponent
+                                } else {
+                                    current_turn = first
+                                }
                             }
-                        } else {
+                        } else if (livematch.firstmethod == "poe_p") {
+                            if (planetoptions.length > 1) {
+                                if (planetoptions.length % 2 == 0) {
+                                    current_turn = first
+                                } else {
+                                    current_turn = opponent
+                                }
+                            } else {
+                                if (trackoptions.length % 2 == 0) {
+                                    current_turn = opponent
+                                } else {
+                                    current_turn = first
+                                }
+                            }
+                        } else if (livematch.firstmethod == "poe_t") {
                             if (trackoptions.length % 2 == 0) {
                                 current_turn = opponent
                             } else {
                                 current_turn = first
                             }
                         }
-                    } else if (livematch.firstmethod == "poe_p") {
-                        if (planetoptions.length > 1) {
-                            if (planetoptions.length % 2 == 0) {
-                                current_turn = first
-                            } else {
-                                current_turn = opponent
-                            }
-                        } else {
-                            if (trackoptions.length % 2 == 0) {
-                                current_turn = opponent
-                            } else {
-                                current_turn = first
-                            }
-                        }
-                    } else if (livematch.firstmethod == "poe_t") {
-                        if (trackoptions.length % 2 == 0) {
-                            current_turn = opponent
-                        } else {
-                            current_turn = first
-                        }
+                        return current_turn
                     }
+
+
                     if (interaction.data.hasOwnProperty("values")) {
-                        if (interaction.member.user.id == current_turn) {
+                        if (interaction.member.user.id == whoseTurn()) {
                             tourney_live.child(interaction.channel_id).child("firstbans").push({ player: interaction.member.user.id, ban: interaction.data.values[0] })
                             if (trackoptions.length == 2) {
                                 trackoptions.filter(t => t != interaction.data.values[0])
@@ -6046,9 +6053,9 @@ module.exports = {
                                 }
                                 tourney_live.child(interaction.channel_id).child("races").child("0").child("events").push(event)
                                 updateMessage("", type, [firstbanEmbed()], [])
-                                followupMessage("", [raceEmbed()], [])
+                                followupMessage("", [raceEmbed(0)], [])
                             } else {
-                                updateMessage("<@" + getOpponent(current_turn) + "> please make a selection", type, [firstbanEmbed()], firstbanComponents())
+                                updateMessage("<@" + whoseTurn() + "> please make a selection", type, [firstbanEmbed()], firstbanComponents())
                             }
 
                         } else {
