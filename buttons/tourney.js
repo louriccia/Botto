@@ -5808,6 +5808,7 @@ module.exports = {
                 if (podoptions.includes(24)) {
                     podoptions.push(26)
                 }
+                console.log(podoptions)
                 let components = [
                     {
                         type: 1,
@@ -5936,7 +5937,18 @@ module.exports = {
                 } else if (livematch.firstmethod == "poe_p" && planetoptions.length > 1) {
                     selectoptions = circuitoptions.map(option => { return ({ label: trackgroups[option].name, value: option, description: trackgroups[option].count + " tracks" }) })
                 } else {
-                    selectoptions = trackoptions.map(option => { return ({ label: tracks[option].name, value: option, description: (circuits[tracks[option].circuit].name + " Circuit | Race " + tracks[option].cirnum + " | " + planets[tracks[option].planet].name).substring(0, 50) }) })
+                    selectoptions = trackoptions.map(option => {
+                        return (
+                            {
+                                label: tracks[option].name,
+                                value: option,
+                                description: (circuits[tracks[option].circuit].name + " Circuit | Race " + tracks[option].cirnum + " | " + planets[tracks[option].planet].name).substring(0, 50),
+                                emoji: {
+                                    name: planets[tracks[option].planet].emoji.split(":")[1],
+                                    id: planets[tracks[option].planet].emoji.split(":")[2].replace(">", "")
+                                }
+                            })
+                    })
                 }
                 return [
                     {
@@ -6184,13 +6196,13 @@ module.exports = {
                 let race = Number(args[1].replace("race", ""))
                 if (["ready", "unready"].includes(args[2])) {
                     if (livematch.races[race].runs[interaction.member.user.id] !== undefined && livematch.races[race].runs[interaction.member.user.id].pod !== undefined) {
-                        if(Object.values(livematch.commentators).includes(interaction.member.user.id)){
+                        if (Object.values(livematch.commentators).includes(interaction.member.user.id)) {
                             tourney_live.child(interaction.channel_id).child("races").child(race).child("ready").child("commentators").set((args[2] == "ready" ? true : false))
-                        } else if(Object.values(livematch.players).includes(interaction.member.user.id)){
+                        } else if (Object.values(livematch.players).includes(interaction.member.user.id)) {
                             tourney_live.child(interaction.channel_id).child("races").child(race).child("ready").child(interaction.member.user.id).set((args[2] == "ready" ? true : false))
                         }
                         updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" "), [raceEmbed(race)], raceComponents(race))
-                        if(Object.values(livematch.races[race].ready).filter(r => r == false).length == 0){
+                        if (Object.values(livematch.races[race].ready).filter(r => r == false).length == 0) {
                             countDown()
                         }
                     } else {
