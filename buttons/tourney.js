@@ -5705,7 +5705,7 @@ module.exports = {
                         Object.keys(livematch.firstbans).map(key =>
                             console.log(livematch.firstbans[key]) +
                             "<@" + livematch.firstbans[key].player + "> banned " +
-                            ([undefined, null].includes(trackgroups[livematch.firstbans[key].ban] ? tracks[Number(livematch.firstbans[key].ban)].name : trackgroups[livematch.firstbans[key].ban].name))
+                            ([undefined, null].includes(trackgroups[livematch.firstbans[key].ban]) ? tracks[Number(livematch.firstbans[key].ban)].name : trackgroups[livematch.firstbans[key].ban].name)
                         ).join("\n")))
                 return embed
             }
