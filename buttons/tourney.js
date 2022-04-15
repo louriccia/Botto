@@ -6189,11 +6189,20 @@ module.exports = {
                                 let race_object = {
                                     events: [event],
                                     ready: { commentators: false },
-                                    reveal: {}
+                                    reveal: {},
+                                    runs: {}
                                 }
                                 Object.values(livematch.players).map(player => {
                                     race_object.ready[player] = false
                                     race_object.reveal[player] = false
+                                    race_object.runs[player] = {
+                                        deaths: "",
+                                        notes: "",
+                                        platform: "pc",
+                                        player: "",
+                                        pod: "",
+                                        time: ""
+                                    }
                                 }
                                 )
                                 tourney_live.child(interaction.channel_id).child("races").child("0").set(race_object)
