@@ -5797,12 +5797,17 @@ module.exports = {
                         podbans.push(event.selection)
                     }
                 })
-                for (let i = 0; i < 25; i++) {
+                for (let i = 0; i < 23; i++) {
                     if (!podbans.includes(i)) {
                         podoptions.push(i)
                     }
                 }
-                
+                if (podoptions.includes(8)) {
+                    podoptions.push(23)
+                }
+                if (podoptions.includes(22)) {
+                    podoptions.push(24)
+                }
                 console.log(podoptions)
                 let components = [
                     {
@@ -5834,7 +5839,7 @@ module.exports = {
                             {
                                 type: 2,
                                 label: "Ready",
-                                style: 1,
+                                style: 3,
                                 custom_id: "tourney_play_race" + race + "_ready"
                             },
                             {
@@ -6190,7 +6195,7 @@ module.exports = {
             } else if (args[1].includes("race")) {
                 let race = Number(args[1].replace("race", ""))
                 if (["ready", "unready"].includes(args[2])) {
-                    if (livematch.races[race].runs[interaction.member.user.id] !== undefined && livematch.races[race].runs[interaction.member.user.id].pod !== undefined) {
+                    if (livematch.races[race].runs !== undefined && livematch.races[race].runs[interaction.member.user.id] !== undefined && livematch.races[race].runs[interaction.member.user.id].pod !== undefined) {
                         if (Object.values(livematch.commentators).includes(interaction.member.user.id)) {
                             tourney_live.child(interaction.channel_id).child("races").child(race).child("ready").child("commentators").set((args[2] == "ready" ? true : false))
                         } else if (Object.values(livematch.players).includes(interaction.member.user.id)) {
@@ -6206,7 +6211,7 @@ module.exports = {
 
                 } else if (args[2] == "racer") {
                     tourney_live.child(interaction.channel_id).child("races").child(race).child("runs").child(interaction.member.user.id).child("pod").set(interaction.data.values[0])
-                    updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" "), [raceEmbed(race)], raceComponents())
+                    updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" "), [raceEmbed(race)], raceComponents(race))
                 }
             }
 
