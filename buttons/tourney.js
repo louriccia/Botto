@@ -5729,6 +5729,22 @@ module.exports = {
                 return embed
             }
 
+            function raceEmbed(race) {
+                livematch = tourney_live_data[interaction.channel_id]
+                let track = ""
+                let events = Object.values(livematch.races[race].events)
+                events.forEach(event => {
+                    if(event.event == "selection" && event.type == "track"){
+                        track = planets[tracks[Number(event.selection)].planet].emoji + " " + tracks[Number(event.selection)].name
+                    }
+                })
+                const embed = new Discord.MessageEmbed()
+                    .setAuthor("Race " + (race + 1))
+                    .setTitle(track)
+                    .setDescription("")
+                return embed
+            }
+
             function firstComponents() {
                 livematch = tourney_live_data[interaction.channel_id]
                 let components = [
@@ -5752,7 +5768,7 @@ module.exports = {
                                 type: 2,
                                 label: "Proceed",
                                 style: 3,
-                                custom_id: ("tourney_play_first_" + ([undefined, null].includes(livematch.firstmethod) ? "" : (livematch.firstmethod.includes("poe") ? "color" : "ban"))),
+                                custom_id: ("tourney_play_first_" + ([undefined, null].includes(livematch.firstmethod) ? "" : (livematch.firstmethod.includes("poe") ? "color" : livematch.firstmethod))),
                                 disabled: [undefined, null].includes(livematch.firstvote) || Object.keys(livematch.firstvote).length < 2
                             }
                         ]
@@ -5980,50 +5996,66 @@ module.exports = {
                     trackoptions = [undefined, null].includes(livematch.firstbans) ? trackoptions : trackoptions.filter(option => !Object.values(livematch.firstbans).map(ban => Number(ban.ban)).includes(option) && planetoptions.map(option => trackgroups[option].code).includes(Number(tracks[option].planet)))
                     let current_turn = first
                     let opponent = getOpponent(first)
-                    if (livematch.firstmethod == "poe_c"){
-                        if(circuitoptions.length > 1){
-                            if(circuitoptions.length % 2 == 0){
+                    if (livematch.firstmethod == "poe_c") {
+                        if (circuitoptions.length > 1) {
+                            if (circuitoptions.length % 2 == 0) {
                                 current_turn = first
                             } else {
                                 current_turn = opponent
                             }
                         } else {
-                            if(trackoptions.length % 2 == 0){
+                            if (trackoptions.length % 2 == 0) {
                                 current_turn = opponent
                             } else {
                                 current_turn = first
                             }
                         }
-                    } else if (livematch.firstmethod == "poe_p"){
-                        if(planetoptions.length > 1){
-                            if(planetoptions.length % 2 == 0){
+                    } else if (livematch.firstmethod == "poe_p") {
+                        if (planetoptions.length > 1) {
+                            if (planetoptions.length % 2 == 0) {
                                 current_turn = first
                             } else {
                                 current_turn = opponent
                             }
                         } else {
-                            if(trackoptions.length % 2 == 0){
+                            if (trackoptions.length % 2 == 0) {
                                 current_turn = opponent
                             } else {
                                 current_turn = first
                             }
                         }
-                    } else if (livematch.firstmethod == "poe_t"){
-                        if(trackoptions.length % 2 == 0){
+                    } else if (livematch.firstmethod == "poe_t") {
+                        if (trackoptions.length % 2 == 0) {
                             current_turn = opponent
                         } else {
                             current_turn = first
                         }
                     }
                     if (interaction.data.hasOwnProperty("values")) {
-                        if(interaction.member.user.id == current_turn){
+                        if (interaction.member.user.id == current_turn) {
                             tourney_live.child(interaction.channel_id).child("firstbans").push({ player: interaction.member.user.id, ban: interaction.data.values[0] })
-                            updateMessage("<@" + current_turn + "> please make a selection", type, [firstbanEmbed()], firstbanComponents())
+                            if (trackoptions.length == 2) {
+                                trackoptions.filter(t => t != interaction.data.values[0])
+                                let event = {
+                                    event: "selection",
+                                    type: "track",
+                                    player: "",
+                                    selection: trackoptions[0],
+                                    repeat: false,
+                                    cost: 0
+                                }
+                                tourney_live.child(interaction.channel_id).child("races").child("0").child("events").push(event)
+                                updateMessage("", type, [firstbanEmbed()], [])
+                                followupMessage("", [raceEmbed()], [])
+                            } else {
+                                updateMessage("<@" + getOpponent(current_turn) + "> please make a selection", type, [firstbanEmbed()], firstbanComponents())
+                            }
+
                         } else {
                             ephemeralMessage("It's not your turn to ban! <:WhyNobodyBuy:589481340957753363>", [], [])
                         }
                     }
-                    
+
                 }
             }
 
