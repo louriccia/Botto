@@ -5782,16 +5782,17 @@ module.exports = {
                 const embed = new Discord.MessageEmbed()
                     .setAuthor("Race " + (race + 1))
                     .setTitle(track)
-                    .setDescription(conditions.map(con => "`" + condition_names[con] + "`").join(" ") + "\n\nCountdown will start when commentators/players have readied.")
+                    .setDescription(conditions.map(con => "`" + condition_names[con] + "`").join(" ") + "\n\nCountdown will automatically start when commentators/players have readied.")
                 Object.values(livematch.players).map(player => embed.addField(
                     client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username,
                     ([undefined, null, ""].includes(livematch.races[race].runs[player].pod) ?
-                        "Racer not selected" :
-                        "Racer selected " + (livematch.races[race].reveal[player] ?
-                            racers[livematch.races[race].runs[interaction.member.user.id].pod].flag + " " + racers[Number(livematch.races[race].runs[interaction.member.user.id].pod)].name : "(hidden)")) + "\n" + (livematch.races[race].ready[player] ?
+                        ":red_circle: Racer not selected" :
+                        ":green_circle: Racer selected " + (livematch.races[race].reveal[player] ?
+                            "\n**" + racers[livematch.races[race].runs[interaction.member.user.id].pod].flag + " " + racers[Number(livematch.races[race].runs[interaction.member.user.id].pod)].name + "**" : "(hidden)")) + "\n" + (livematch.races[race].ready[player] ?
                                 ":green_circle: Ready" :
                                 ":red_circle: Not Ready"),
                     true))
+                    embed.addField("🎙️ Commentators", (livematch.races[race].ready.commentators ? ":green_circle: Ready": ":red_circle: Not Ready"))
                 return embed
             }
 
@@ -6244,7 +6245,7 @@ module.exports = {
                     updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
                 } else if (args[2] == "reveal") {
                     if (Object.values(livematch.players).includes(interaction.member.user.id)) {
-                        livematch.races[race].reveal[interaction.member.user.id] = true
+                        tourney_live.child(interaction.channel_id).child("races").child(race).child("reveal").child(interaction.member.user.id).set(true)
                     }
                     updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
                 }
