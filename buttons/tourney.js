@@ -6034,20 +6034,21 @@ module.exports = {
                                 current_turn = first
                             }
                         }
-                        return current_turn
+                        return {current_turn: current_turn, options: trackoptions}
                     }
 
 
                     if (interaction.data.hasOwnProperty("values")) {
-                        if (interaction.member.user.id == whoseTurn()) {
+                        let turn = whoseTurn()
+                        if (interaction.member.user.id == turn.current_turn) {
                             tourney_live.child(interaction.channel_id).child("firstbans").push({ player: interaction.member.user.id, ban: interaction.data.values[0] })
-                            if (trackoptions.length == 2) {
-                                trackoptions.filter(t => t != interaction.data.values[0])
+                            if (turn.options.length == 2) {
+                                turn.options.filter(t => t != interaction.data.values[0])
                                 let event = {
                                     event: "selection",
                                     type: "track",
                                     player: "",
-                                    selection: trackoptions[0],
+                                    selection: turn.options[0],
                                     repeat: false,
                                     cost: 0
                                 }
@@ -6055,7 +6056,8 @@ module.exports = {
                                 updateMessage("", type, [firstbanEmbed()], [])
                                 followupMessage("", [raceEmbed(0)], [])
                             } else {
-                                updateMessage("<@" + whoseTurn() + "> please make a selection", type, [firstbanEmbed()], firstbanComponents())
+                                let turn = whoseTurn()
+                                updateMessage("<@" + turn.current_turn + "> please make a selection", type, [firstbanEmbed()], firstbanComponents())
                             }
 
                         } else {
