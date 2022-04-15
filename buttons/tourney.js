@@ -5409,7 +5409,7 @@ module.exports = {
 
             let trackgroups = {
                 amc: { name: "Amateur Circuit", type: "circuit", code: 0, count: 7 },
-                spc: { name: "Semi-Pro Circuit", type: "circuit", code: 1 }, count: 7,
+                spc: { name: "Semi-Pro Circuit", type: "circuit", code: 1, count: 7},
                 gal: { name: "Galactic Circuit", type: "circuit", code: 2, count: 7 },
                 inv: { name: "Invitational Circuit", type: "circuit", code: 3, count: 4 },
                 and: { name: "Ando Prime", type: "planet", code: 0, count: 4 },
