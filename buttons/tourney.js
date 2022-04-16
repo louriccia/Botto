@@ -6294,6 +6294,7 @@ module.exports = {
                     }
                     updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
                 } else if (args[2] == "submit") {
+                    console.log(interaction)
                     if (interaction.type == 9) {
                         tourney_live.child(interaction.member.user.id).child("races").child(race).child(interaction.member.user.id).update(
                             {
@@ -6302,9 +6303,7 @@ module.exports = {
                                 notes: interaction.data.components[2].components[0].value.trim()
                             }
                         )
-                        console.log(type)
                         updateMessage("", type, [raceEmbed(race)], raceComponents(race))
-                        console.log(type, " after")
                     } else {
                         client.api.interactions(interaction.id, interaction.token).callback.post({
                             data: {
