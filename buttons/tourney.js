@@ -6296,7 +6296,7 @@ module.exports = {
                 } else if (args[2] == "submit") {
                     console.log(interaction)
                     if (interaction.type == 5) {
-                        tourney_live.child(interaction.member.user.id).child("races").child(race).child(interaction.member.user.id).update(
+                        tourney_live.child(interaction.channel_id).child("races").child(race).child(interaction.member.user.id).update(
                             {
                                 time: tools.timetoSeconds(interaction.data.components[0].components[0].value.trim()),
                                 deaths: Number(interaction.data.components[1].components[0].value.trim()),
@@ -6310,7 +6310,7 @@ module.exports = {
                                 type: 9,
                                 data: {
                                     custom_id: "tourney_play_race" + race + "_submit",
-                                    title: "Set Race " + Number(args[2].replace("race", "")) + " Times",
+                                    title: "Submit Race " + (race + 1) + " Results",
                                     components: [
                                         {
                                             type: 1,
