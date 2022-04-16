@@ -6295,7 +6295,7 @@ module.exports = {
                     updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
                 } else if (args[2] == "submit") {
                     console.log(interaction)
-                    if (interaction.type == 9) {
+                    if (interaction.type == 5) {
                         tourney_live.child(interaction.member.user.id).child("races").child(race).child(interaction.member.user.id).update(
                             {
                                 time: tools.timetoSeconds(interaction.data.components[0].components[0].value.trim()),
