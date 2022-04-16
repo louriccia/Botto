@@ -5479,6 +5479,7 @@ module.exports = {
             }
 
             function getWinner(race) {
+                let players = Object.values(livematch.players)
                 let winner = null
                 if(livematch.races[race].runs[players[0]].time.toLowerCase() == "dnf"){
                     winner = players[1]
@@ -5815,9 +5816,7 @@ module.exports = {
                         embed.setDescription(conditions.map(con => "`" + condition_names[con] + "`").join(" "))
                             .setColor("#FFFFFF")
                         if (Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length == 0) {
-                            let players = Object.values(livematch.players)
                             let winner = getWinner(race)
-                            
                             Object.values(livematch.players).map(player => embed.addField(
                                 (player == winner ? "👑 " : "") + client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username,
                                 racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name + "\n" +
@@ -6257,7 +6256,7 @@ module.exports = {
                             tourney_live.child(interaction.channel_id).child("firstbans").push({ player: interaction.member.user.id, ban: interaction.data.values[0] })
                             livematch = tourney_live_data[interaction.channel_id]
                             if (turn.options.length == 2) {
-                                turn.options.filter(t => t !== interaction.data.values[0])
+                                turn.options = turn.options.filter(t => t !== interaction.data.values[0])
                                 let event = {
                                     event: "selection",
                                     type: "track",
