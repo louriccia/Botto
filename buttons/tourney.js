@@ -5787,10 +5787,10 @@ module.exports = {
                         Object.values(livematch.players).map(player => embed.addField(
                             client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username,
                             (livematch.races[race].runs[player].time == "" ? ":red_circle: Awaiting submission" : 
-                            Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length == 0 ? ":green_circle: Result Submitted" :
+                            Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length > 0 ? ":green_circle: Result Submitted" :
                             racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name + "\n" +
-                                "⏱️ " + (livematch.races[race].runs[player].time == "" ? "--:--.---" : tools.timefix(livematch.races[race].runs[player].time)) + "\n" +
-                                "💀 " + (livematch.races[race].runs[player].deaths == "" ? "--" : livematch.races[race].runs[player].deaths) + "\n" +
+                                "⏱️ " + (livematch.races[race].runs[player].time === "" ? "--:--.---" : tools.timefix(livematch.races[race].runs[player].time)) + "\n" +
+                                "💀 " + (livematch.races[race].runs[player].deaths === "" ? "--" : livematch.races[race].runs[player].deaths) + "\n" +
                                 (livematch.races[race].runs[player].notes == "" ? "" : "📝 " + livematch.races[race].runs[player].notes))
                             ,
                             true))
@@ -5910,7 +5910,7 @@ module.exports = {
                                 custom_id: "tourney_play_race" + race + "_restart"
                             }
                         )
-                    } else {
+                    } else if (Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length == 0) {
                         components[0].components.push(
                             {
                                 type: 2,
