@@ -5480,9 +5480,9 @@ module.exports = {
 
             function getWinner(race) {
                 let winner = null
-                if(livematch.races[race].runs[playesrs[0]].time.toLowerCase() == "dnf"){
+                if(livematch.races[race].runs[players[0]].time.toLowerCase() == "dnf"){
                     winner = players[1]
-                } else if(livematch.races[race].runs[playesrs[1]].time.toLowerCase() == "dnf"){
+                } else if(livematch.races[race].runs[players[1]].time.toLowerCase() == "dnf"){
                     winner = players[0]
                 } else if(Number(livematch.races[race].runs[players[0]].time) < Number(livematch.races[race].runs[players[1]].time)){
                     winner = players[0]
@@ -6257,7 +6257,7 @@ module.exports = {
                             tourney_live.child(interaction.channel_id).child("firstbans").push({ player: interaction.member.user.id, ban: interaction.data.values[0] })
                             livematch = tourney_live_data[interaction.channel_id]
                             if (turn.options.length == 2) {
-                                turn.options.filter(t => t != interaction.data.values[0])
+                                turn.options.filter(t => t !== interaction.data.values[0])
                                 let event = {
                                     event: "selection",
                                     type: "track",
