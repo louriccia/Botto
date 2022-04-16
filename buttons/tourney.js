@@ -6296,7 +6296,7 @@ module.exports = {
                 } else if (args[2] == "submit") {
                     console.log(interaction)
                     if (interaction.type == 5) {
-                        tourney_live.child(interaction.channel_id).child("races").child(race).child(interaction.member.user.id).update(
+                        tourney_live.child(interaction.channel_id).child("races").child(race).child("runs").child(interaction.member.user.id).update(
                             {
                                 time: tools.timetoSeconds(interaction.data.components[0].components[0].value.trim()),
                                 deaths: Number(interaction.data.components[1].components[0].value.trim()),
