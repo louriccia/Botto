@@ -5792,14 +5792,8 @@ module.exports = {
                             (livematch.races[race].runs[player].notes == "" ? "" : "📝 " + livematch.races[race].runs[player].notes),
                             true))
                     } else {
-                        Object.values(livematch.players).map(player => embed.addField(
-                            client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username,
-                            (
-                                livematch.races[race].reveal[player] ?
-                                    "**" + racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name + "**" :
-                                    "Racer Hidden"
-                            ),
-                            true))
+                        embed.setDescription(conditions.map(con => "`" + condition_names[con] + "`").join(" "))
+                        .setColor("#FFFFFF")
                     }
                 } else {
                     Object.values(livematch.players).map(player => embed.addField(
@@ -6354,7 +6348,6 @@ module.exports = {
                                                     min_length: 1,
                                                     max_length: 100,
                                                     required: false,
-                                                    placeholder: "did something interesting happen? anything highlight-worthy?",
                                                     value: livematch.races[race].runs[interaction.member.user.id].notes
                                                 }
                                             ]
