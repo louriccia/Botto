@@ -5781,16 +5781,26 @@ module.exports = {
                 const embed = new Discord.MessageEmbed()
                     .setAuthor("Race " + (race + 1))
                     .setTitle(track)
-                    .setDescription(conditions.map(con => "`" + condition_names[con] + "`").join(" ") + "\n\nCountdown will automatically start when commentators/players have readied.")
+                    .setDescription(conditions.map(con => "`" + condition_names[con] + "`").join(" ") + "\nCountdown will automatically start when commentators/players have readied.")
                 if (Object.values(livematch.races[race].ready).filter(r => r == false).length == 0) {
-                    Object.values(livematch.players).map(player => embed.addField(
-                        client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username,
-                        (
-                            livematch.races[race].reveal[player] ?
-                                "**" + racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name + "**" :
-                                "Racer Hidden"
-                        ),
-                        true))
+                    if(livematch.races[race].live){
+                        Object.values(livematch.players).map(player => embed.addField(
+                            client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username,
+                            "**" + racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name + "\n" + 
+                            "⏱️ " + tools.timefix(livematch.races[race].runs[player].time) + "\n" +
+                            "💀 " + livematch.races[race].runs[player].deaths + "\n" +
+                            (livematch.races[race].runs[player].notes == "" ? "" : "📝 " + livematch.races[race].runs[player].notes),
+                            true))
+                    } else {
+                        Object.values(livematch.players).map(player => embed.addField(
+                            client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username,
+                            (
+                                livematch.races[race].reveal[player] ?
+                                    "**" + racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name + "**" :
+                                    "Racer Hidden"
+                            ),
+                            true))
+                    }
                 } else {
                     Object.values(livematch.players).map(player => embed.addField(
                         client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username,
@@ -5877,6 +5887,27 @@ module.exports = {
                         ]
                     },
                 ]
+                if (livematch.races[race].live){
+                    components = [
+                        {
+                            type: 1,
+                            components: [
+                                {
+                                    type: 2,
+                                    label: "Submit Results",
+                                    style: 3,
+                                    custom_id: "tourney_play_race" + race + "_submit"
+                                },
+                                {
+                                    type: 2,
+                                    label: "Restart",
+                                    style: 2,
+                                    custom_id: "tourney_play_race" + race + "_restart"
+                                }
+                            ]
+                        }
+                    ]
+                }
                 return components
             }
 
@@ -5940,8 +5971,6 @@ module.exports = {
                     }
                 ]
             }
-
-
 
             function firstbanComponents() {
                 livematch = tourney_live_data[interaction.channel_id]
@@ -6128,7 +6157,6 @@ module.exports = {
                     updateMessage(content, type, [colorEmbed()], colorComponents())
                 } else if (args[2] == "ban") {
                     livematch = tourney_live_data[interaction.channel_id]
-
                     function whoseTurn() {
                         livematch = tourney_live_data[interaction.channel_id]
                         let first = livematch.firstplayer
@@ -6182,8 +6210,6 @@ module.exports = {
                         }
                         return { current_turn: current_turn, options: trackoptions }
                     }
-
-
                     if (interaction.data.hasOwnProperty("values")) {
                         let turn = whoseTurn()
                         if (interaction.member.user.id == turn.current_turn) {
@@ -6203,7 +6229,8 @@ module.exports = {
                                     events: [event],
                                     ready: { commentators: false },
                                     reveal: {},
-                                    runs: {}
+                                    runs: {},
+                                    live: false
                                 }
                                 Object.values(livematch.players).map(player => {
                                     race_object.ready[player] = false
@@ -6230,7 +6257,6 @@ module.exports = {
                             ephemeralMessage("It's not your turn to ban! <:WhyNobodyBuy:589481340957753363>", [], [])
                         }
                     }
-
                 }
             } else if (args[1].includes("race")) {
                 livematch = tourney_live_data[interaction.channel_id]
@@ -6247,6 +6273,11 @@ module.exports = {
                         if (Object.values(livematch.races[race].ready).filter(r => r == false).length == 0) {
                             updateMessage("", type, [raceEmbed(race)], [])
                             countDown()
+                            //initiate race
+                            tourney_live.child(interaction.channel_id).child("races").child(race).child("live").set(true)
+                            setTimeout(async function () {
+                                postMessage("", [raceEmbed(race)], raceComponents(race))
+                            }, 10000)
                         } else {
                             updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
                         }
@@ -6262,6 +6293,71 @@ module.exports = {
                         tourney_live.child(interaction.channel_id).child("races").child(race).child("reveal").child(interaction.member.user.id).set(true)
                     }
                     updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
+                } else if (args[2] == "submit") {
+                    if(interaction.type == 9){
+                        updateMessage("", type, [raceEmbed(race)], raceComponents(race))
+                    } else {
+                        client.api.interactions(interaction.id, interaction.token).callback.post({
+                            data: {
+                                type: 9,
+                                data: {
+                                    custom_id: "tourney_play_race" + race + "_submit",
+                                    title: "Set Race " + Number(args[2].replace("race", "")) + " Times",
+                                    components: [
+                                        {
+                                            type: 1,
+                                            components: [
+                                                {
+                                                    type: 4,
+                                                    custom_id: "time",
+                                                    label: "⏱️ Time",
+                                                    style: 1,
+                                                    min_length: 6,
+                                                    max_length: 10,
+                                                    required: true,
+                                                    placeholder: "--:--.---",
+                                                    value: tools.timefix(livematch.races[race].runs[interaction.member.user.id].time)
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            type: 1,
+                                            components: [
+                                                {
+                                                    type: 4,
+                                                    custom_id: "deaths",
+                                                    label: "💀 Deaths (leave blank if unsure)",
+                                                    style: 1,
+                                                    min_length: 1,
+                                                    max_length: 2,
+                                                    required: false,
+                                                    value: livematch.races[race].runs[interaction.member.user.id].deaths
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            type: 1,
+                                            components: [
+                                                {
+                                                    type: 4,
+                                                    custom_id: "deaths",
+                                                    label: "📝 Notes",
+                                                    style: 1,
+                                                    min_length: 1,
+                                                    max_length: 100,
+                                                    required: false,
+                                                    placeholder: "did something interesting happen? highlight-worthy?",
+                                                    value: livematch.races[race].runs[interaction.member.user.id].notes
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        })
+                    }
+                } else if (args[2] == "restart") {
+
                 }
             }
 
