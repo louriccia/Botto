@@ -6302,7 +6302,9 @@ module.exports = {
                                 notes: interaction.data.components[2].components[0].value.trim()
                             }
                         )
+                        console.log(type)
                         updateMessage("", type, [raceEmbed(race)], raceComponents(race))
+                        console.log(type, " after")
                     } else {
                         client.api.interactions(interaction.id, interaction.token).callback.post({
                             data: {
