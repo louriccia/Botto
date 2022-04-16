@@ -6403,10 +6403,11 @@ module.exports = {
                                             custom_id: "time" + key,
                                             label: "⏱️ " + client.guilds.resolve(interaction.guild_id).members.resolve(key).user.username + "'s Time",
                                             style: 1,
-                                            min_length: 5,
+                                            min_length: 1,
                                             max_length: 10,
                                             required: true,
-                                            placeholder: "--:--.---"
+                                            placeholder: "--:--.---",
+                                            value: tools.timefix(livematch.races[race].runs[key].time)
                                         }
                                     ]
                                 }
@@ -6422,7 +6423,8 @@ module.exports = {
                                             style: 1,
                                             min_length: 1,
                                             max_length: 2,
-                                            required: true
+                                            required: true,
+                                            value: livematch.races[race].runs[key].deaths
                                         }
                                     ]
                                 }
