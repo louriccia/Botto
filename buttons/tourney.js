@@ -5793,7 +5793,7 @@ module.exports = {
                             true))
                     } else {
                         embed.setDescription(conditions.map(con => "`" + condition_names[con] + "`").join(" "))
-                        .setColor("#FFFFFF")
+                            .setColor("#FFFFFF")
                     }
                 } else {
                     Object.values(livematch.players).map(player => embed.addField(
@@ -5892,15 +5892,28 @@ module.exports = {
                                     style: 3,
                                     custom_id: "tourney_play_race" + race + "_submit"
                                 },
-                                {
-                                    type: 2,
-                                    label: "Restart",
-                                    style: 2,
-                                    custom_id: "tourney_play_race" + race + "_restart"
-                                }
                             ]
                         }
                     ]
+                    if (Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time !== "").length == 0) {
+                        components[0].components.push(
+                            {
+                                type: 2,
+                                label: "Restart",
+                                style: 2,
+                                custom_id: "tourney_play_race" + race + "_restart"
+                            }
+                        )
+                    } else {
+                        components[0].components.push(
+                            {
+                                type: 2,
+                                label: "Verify",
+                                style: 1,
+                                custom_id: "tourney_play_race" + race + "_verify"
+                            }
+                        )
+                    }
                 }
                 return components
             }
@@ -6352,6 +6365,63 @@ module.exports = {
                                                 }
                                             ]
                                         }
+                                    ]
+                                }
+                            }
+                        })
+                    }
+                } else if (args[2] == "verify") {
+                    if (interaction.type == 5) {
+                        if(Object.values(livematch.commentators).includes(interaction.member.user.id)){
+                            interaction.data.components.map(field => {
+                                if(field.components[0].custom_id.includes("time")){
+                                    tourney_live.child(interaction.channel_id).child("races").child(race).child("runs").child(field.components[0].custom_id.replace("time", "")).update({time: tools.timetoSeconds(field.components[0].value)})
+                                } else if (field.components[0].custom_id.includes("deaths")){
+                                    tourney_live.child(interaction.channel_id).child("races").child(race).child("runs").child(field.components[0].custom_id.replace("deaths", "")).update({deaths: tools.timetoSeconds(field.components[0].value)})
+                                }
+                            })
+                        }
+                        updateMessage("", type, [raceEmbed(race)], raceComponents(race))
+                    } else {
+                        client.api.interactions(interaction.id, interaction.token).callback.post({
+                            data: {
+                                type: 9,
+                                data: {
+                                    custom_id: "tourney_play_race" + race + "_submit",
+                                    title: "Submit Race " + (race + 1) + " Results",
+                                    components: [
+                                        Object.keys(livematch.races[race].runs).map(key => {
+                                            return ({
+                                                type: 1,
+                                                components: [
+                                                    {
+                                                        type: 4,
+                                                        custom_id: "time" + key,
+                                                        label: "⏱️ " + client.guilds.resolve(interaction.guild_id).members.resolve(key).user.username + "'s Time",
+                                                        style: 1,
+                                                        min_length: 5,
+                                                        max_length: 10,
+                                                        required: true,
+                                                        placeholder: "--:--.---"
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                type: 1,
+                                                components: [
+                                                    {
+                                                        type: 4,
+                                                        custom_id: "deaths" + key,
+                                                        label: "💀 " + client.guilds.resolve(interaction.guild_id).members.resolve(key).user.username + "'s Deaths",
+                                                        style: 1,
+                                                        min_length: 1,
+                                                        max_length: 2,
+                                                        required: true
+                                                    }
+                                                ]
+                                            }
+                                            )
+                                        })
                                     ]
                                 }
                             }
