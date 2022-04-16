@@ -5778,21 +5778,33 @@ module.exports = {
                         }
                     }
                 })
-
                 const embed = new Discord.MessageEmbed()
                     .setAuthor("Race " + (race + 1))
                     .setTitle(track)
                     .setDescription(conditions.map(con => "`" + condition_names[con] + "`").join(" ") + "\n\nCountdown will automatically start when commentators/players have readied.")
-                Object.values(livematch.players).map(player => embed.addField(
-                    client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username,
-                    ([undefined, null, ""].includes(livematch.races[race].runs[player].pod) ?
-                        ":red_circle: Racer not selected" :
-                        ":green_circle: Racer selected " + (livematch.races[race].reveal[player] ?
-                            "\n**" + racers[livematch.races[race].runs[interaction.member.user.id].pod].flag + " " + racers[Number(livematch.races[race].runs[interaction.member.user.id].pod)].name + "**" : "(hidden)")) + "\n" + (livematch.races[race].ready[player] ?
-                                ":green_circle: Ready" :
-                                ":red_circle: Not Ready"),
-                    true))
-                    embed.addField("🎙️ Commentators", (livematch.races[race].ready.commentators ? ":green_circle: Ready": ":red_circle: Not Ready"))
+                if (Object.values(livematch.races[race].ready).filter(r => r == false).length == 0) {
+                    Object.values(livematch.players).map(player => embed.addField(
+                        client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username,
+                        (
+                            livematch.races[race].reveal[player] ?
+                                "**" + racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name + "**" :
+                                "Racer Hidden"
+                        ),
+                        true))
+                } else {
+                    Object.values(livematch.players).map(player => embed.addField(
+                        client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username,
+                        ([undefined, null, ""].includes(livematch.races[race].runs[player].pod) ?
+                            ":red_circle: Racer not selected" :
+                            ":green_circle: Racer selected " + (livematch.races[race].reveal[player] ?
+                                "\n**" + racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name + "**" : "(hidden)")) + "\n" + (livematch.races[race].ready[player] ?
+                                    ":green_circle: Ready" :
+                                    ":red_circle: Not Ready"),
+                        true))
+
+                    embed.addField("🎙️ Commentators", (livematch.races[race].ready.commentators ? ":green_circle: Ready" : ":red_circle: Not Ready"))
+                }
+
                 return embed
             }
 
@@ -6221,15 +6233,17 @@ module.exports = {
 
                 }
             } else if (args[1].includes("race")) {
+                livematch = tourney_live_data[interaction.channel_id]
                 let race = Number(args[1].replace("race", ""))
                 if (["ready", "unready"].includes(args[2])) {
-                    if (livematch.races[race].runs !== undefined && livematch.races[race].runs[interaction.member.user.id] !== undefined && livematch.races[race].runs[interaction.member.user.id].pod !== undefined) {
+                    if (![undefined, null, ""].includes(livematch.races[race].runs) && ![undefined, null, ""].includes(livematch.races[race].runs[interaction.member.user.id]) && ![undefined, null, ""].includes(livematch.races[race].runs[interaction.member.user.id].pod)) {
                         if (Object.values(livematch.commentators).includes(interaction.member.user.id)) {
                             tourney_live.child(interaction.channel_id).child("races").child(race).child("ready").child("commentators").set((args[2] == "ready" ? true : false))
                         }
                         if (Object.values(livematch.players).includes(interaction.member.user.id)) {
                             tourney_live.child(interaction.channel_id).child("races").child(race).child("ready").child(interaction.member.user.id).set((args[2] == "ready" ? true : false))
                         }
+                        livematch = tourney_live_data[interaction.channel_id]
                         if (Object.values(livematch.races[race].ready).filter(r => r == false).length == 0) {
                             updateMessage("", type, [raceEmbed(race)], [])
                             countDown()
