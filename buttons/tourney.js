@@ -5549,7 +5549,7 @@ module.exports = {
                         (livematch.tourney == "practice" ? "" : "⭕ Bracket/Round: " + (livematch.bracket == "" || livematch.tourney == "practice" ? "" : "`" + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].bracket + " " + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].round + "`") + "\n") +
                         "📜 Ruleset: " + (livematch.ruleset == "" ? "" : "`" + tourney_rulesets_data.saved[livematch.ruleset].general.name + "`") + "\n" +
                         "👥 Players: " + ([null, undefined, ""].includes(livematch.players) ? "" : Object.values(livematch.players).map(id => "<@" + id + "> ")) + "\n" +
-                        "🎙️ Commentators: " + ([null, undefined, ""].includes(livematch.commentators) ? "" : Object.values(livematch.commentators).map(id => "<@" + id + "> ")) + "\n" +
+                        "🎙️ Commentators/Trackers: " + ([null, undefined, ""].includes(livematch.commentators) ? "" : Object.values(livematch.commentators).map(id => "<@" + id + "> ")) + "\n" +
                         "📺 Stream: " + livematch.stream
                     )
                     .setColor("#3BA55D")
@@ -5686,7 +5686,7 @@ module.exports = {
                         },
                         {
                             type: 2,
-                            label: "Join as Commentator",
+                            label: "Join as Commentator/Tracker",
                             emoji: {
                                 name: "🎙️"
                             },
@@ -5786,11 +5786,17 @@ module.exports = {
                     if (livematch.races[race].live) {
                         Object.values(livematch.players).map(player => embed.addField(
                             client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username,
-                            "||" + racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name + "||\n" +
-                            "⏱️ " + (livematch.races[race].runs[player].time == "" ? "--:--.---" : tools.timefix(livematch.races[race].runs[player].time)) + "\n" +
-                            "💀 " + (livematch.races[race].runs[player].deaths == "" ? "--" : livematch.races[race].runs[player].deaths) + "\n" +
-                            (livematch.races[race].runs[player].notes == "" ? "" : "📝 " + livematch.races[race].runs[player].notes),
+                            (livematch.races[race].runs[player].time == "" ? ":red_circle: Awaiting submission" : 
+                            Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length == 0 ? ":green_circle: Result Submitted" :
+                            racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name + "\n" +
+                                "⏱️ " + (livematch.races[race].runs[player].time == "" ? "--:--.---" : tools.timefix(livematch.races[race].runs[player].time)) + "\n" +
+                                "💀 " + (livematch.races[race].runs[player].deaths == "" ? "--" : livematch.races[race].runs[player].deaths) + "\n" +
+                                (livematch.races[race].runs[player].notes == "" ? "" : "📝 " + livematch.races[race].runs[player].notes))
+                            ,
                             true))
+                        if(Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length == 0){
+                            embed.addField("🎙️ Commentators/Trackers", ":red_circle: Awaiting Verification", false)
+                        }
                     } else {
                         embed.setDescription(conditions.map(con => "`" + condition_names[con] + "`").join(" "))
                             .setColor("#FFFFFF")
@@ -5806,7 +5812,7 @@ module.exports = {
                                     ":red_circle: Not Ready"),
                         true))
 
-                    embed.addField("🎙️ Commentators", (livematch.races[race].ready.commentators ? ":green_circle: Ready" : ":red_circle: Not Ready"))
+                    embed.addField("🎙️ Commentators/Trackers", (livematch.races[race].ready.commentators ? ":green_circle: Ready" : ":red_circle: Not Ready"))
                 }
 
                 return embed
@@ -6325,9 +6331,9 @@ module.exports = {
                                                 {
                                                     type: 4,
                                                     custom_id: "time",
-                                                    label: "⏱️ Time",
+                                                    label: "⏱️ Time (write 'dnf' if forfeited)",
                                                     style: 1,
-                                                    min_length: 6,
+                                                    min_length: 1,
                                                     max_length: 10,
                                                     required: true,
                                                     placeholder: "--:--.---",
@@ -6372,65 +6378,70 @@ module.exports = {
                     }
                 } else if (args[2] == "verify") {
                     if (interaction.type == 5) {
-                        if(Object.values(livematch.commentators).includes(interaction.member.user.id)){
+                        if (Object.values(livematch.commentators).includes(interaction.member.user.id)) {
                             interaction.data.components.map(field => {
-                                if(field.components[0].custom_id.includes("time")){
-                                    tourney_live.child(interaction.channel_id).child("races").child(race).child("runs").child(field.components[0].custom_id.replace("time", "")).update({time: tools.timetoSeconds(field.components[0].value)})
-                                } else if (field.components[0].custom_id.includes("deaths")){
-                                    tourney_live.child(interaction.channel_id).child("races").child(race).child("runs").child(field.components[0].custom_id.replace("deaths", "")).update({deaths: tools.timetoSeconds(field.components[0].value)})
+                                if (field.components[0].custom_id.includes("time")) {
+                                    tourney_live.child(interaction.channel_id).child("races").child(race).child("runs").child(field.components[0].custom_id.replace("time", "")).update({ time: tools.timetoSeconds(field.components[0].value) })
+                                } else if (field.components[0].custom_id.includes("deaths")) {
+                                    tourney_live.child(interaction.channel_id).child("races").child(race).child("runs").child(field.components[0].custom_id.replace("deaths", "")).update({ deaths: tools.timetoSeconds(field.components[0].value) })
                                 }
                             })
                         }
-                        updateMessage("", type, [raceEmbed(race)], raceComponents(race))
+                        livematch = tourney_live_data[interaction.channel_id]
+                        updateMessage("", type, [raceEmbed(race)], [])
                     } else {
-                        let modal = {
-                            data: {
-                                type: 9,
+                        if (Object.values(livematch.commentators).includes(interaction.member.user.id)) {
+                            let modal = {
                                 data: {
-                                    custom_id: "tourney_play_race" + race + "_submit",
-                                    title: "Submit Race " + (race + 1) + " Results",
-                                    components: []
+                                    type: 9,
+                                    data: {
+                                        custom_id: "tourney_play_race" + race + "_submit",
+                                        title: "Verify Race " + (race + 1) + " Results",
+                                        components: []
+                                    }
                                 }
                             }
+                            Object.keys(livematch.races[race].runs).map(key => {
+                                modal.data.data.components.push(
+                                    {
+                                        type: 1,
+                                        components: [
+                                            {
+                                                type: 4,
+                                                custom_id: "time" + key,
+                                                label: "⏱️ " + client.guilds.resolve(interaction.guild_id).members.resolve(key).user.username + "'s Time (write 'dnf' if forfeited)",
+                                                style: 1,
+                                                min_length: 1,
+                                                max_length: 10,
+                                                required: true,
+                                                placeholder: "--:--.---",
+                                                value: tools.timefix(livematch.races[race].runs[key].time)
+                                            }
+                                        ]
+                                    }
+                                )
+                                modal.data.data.components.push(
+                                    {
+                                        type: 1,
+                                        components: [
+                                            {
+                                                type: 4,
+                                                custom_id: "deaths" + key,
+                                                label: "💀 " + client.guilds.resolve(interaction.guild_id).members.resolve(key).user.username + "'s Deaths (leave blank if unsure)",
+                                                style: 1,
+                                                min_length: 1,
+                                                max_length: 2,
+                                                required: true,
+                                                value: livematch.races[race].runs[key].deaths
+                                            }
+                                        ]
+                                    }
+                                )
+                            })
+                            client.api.interactions(interaction.id, interaction.token).callback.post(modal)
+                        } else {
+                            ephemeralMessage("Only commentators/trackers can verify match times. <:WhyNobodyBuy:589481340957753363>")
                         }
-                        Object.keys(livematch.races[race].runs).map(key => {
-                            modal.data.data.components.push(
-                                {
-                                    type: 1,
-                                    components: [
-                                        {
-                                            type: 4,
-                                            custom_id: "time" + key,
-                                            label: "⏱️ " + client.guilds.resolve(interaction.guild_id).members.resolve(key).user.username + "'s Time",
-                                            style: 1,
-                                            min_length: 1,
-                                            max_length: 10,
-                                            required: true,
-                                            placeholder: "--:--.---",
-                                            value: tools.timefix(livematch.races[race].runs[key].time)
-                                        }
-                                    ]
-                                }
-                            )
-                            modal.data.data.components.push(
-                                {
-                                    type: 1,
-                                    components: [
-                                        {
-                                            type: 4,
-                                            custom_id: "deaths" + key,
-                                            label: "💀 " + client.guilds.resolve(interaction.guild_id).members.resolve(key).user.username + "'s Deaths",
-                                            style: 1,
-                                            min_length: 1,
-                                            max_length: 2,
-                                            required: true,
-                                            value: livematch.races[race].runs[key].deaths
-                                        }
-                                    ]
-                                }
-                            )
-                        })
-                        client.api.interactions(interaction.id, interaction.token).callback.post(modal)
                     }
                 } else if (args[2] == "restart") {
 
