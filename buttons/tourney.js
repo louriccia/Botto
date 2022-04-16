@@ -5528,7 +5528,7 @@ module.exports = {
             }
 
             function countDown() {
-                postMessage("<a:countdown:672640791369482251> Countdown incoming! <a:countdown:672640791369482251>", [], [])
+                postMessage("<a:countdown:672640791369482251> Countdown incoming! Good luck <a:countdown:672640791369482251>", [], [])
                 for (let i = 0; i <= 5; i++) {
                     setTimeout(async function () {
                         client.api.channels(interaction.channel_id).messages.post({
@@ -6383,49 +6383,52 @@ module.exports = {
                         }
                         updateMessage("", type, [raceEmbed(race)], raceComponents(race))
                     } else {
-                        client.api.interactions(interaction.id, interaction.token).callback.post({
+                        let modal = {
                             data: {
                                 type: 9,
                                 data: {
                                     custom_id: "tourney_play_race" + race + "_submit",
                                     title: "Submit Race " + (race + 1) + " Results",
-                                    components: [
-                                        Object.keys(livematch.races[race].runs).map(key => {
-                                            return ({
-                                                type: 1,
-                                                components: [
-                                                    {
-                                                        type: 4,
-                                                        custom_id: "time" + key,
-                                                        label: "⏱️ " + client.guilds.resolve(interaction.guild_id).members.resolve(key).user.username + "'s Time",
-                                                        style: 1,
-                                                        min_length: 5,
-                                                        max_length: 10,
-                                                        required: true,
-                                                        placeholder: "--:--.---"
-                                                    }
-                                                ]
-                                            },
-                                            {
-                                                type: 1,
-                                                components: [
-                                                    {
-                                                        type: 4,
-                                                        custom_id: "deaths" + key,
-                                                        label: "💀 " + client.guilds.resolve(interaction.guild_id).members.resolve(key).user.username + "'s Deaths",
-                                                        style: 1,
-                                                        min_length: 1,
-                                                        max_length: 2,
-                                                        required: true
-                                                    }
-                                                ]
-                                            }
-                                            )
-                                        })
-                                    ]
+                                    components: []
                                 }
                             }
+                        }
+                        Object.keys(livematch.races[race].runs).map(key => {
+                            modal.data.data.components.push(
+                                {
+                                    type: 1,
+                                    components: [
+                                        {
+                                            type: 4,
+                                            custom_id: "time" + key,
+                                            label: "⏱️ " + client.guilds.resolve(interaction.guild_id).members.resolve(key).user.username + "'s Time",
+                                            style: 1,
+                                            min_length: 5,
+                                            max_length: 10,
+                                            required: true,
+                                            placeholder: "--:--.---"
+                                        }
+                                    ]
+                                }
+                            )
+                            modal.data.data.components.push(
+                                {
+                                    type: 1,
+                                    components: [
+                                        {
+                                            type: 4,
+                                            custom_id: "deaths" + key,
+                                            label: "💀 " + client.guilds.resolve(interaction.guild_id).members.resolve(key).user.username + "'s Deaths",
+                                            style: 1,
+                                            min_length: 1,
+                                            max_length: 2,
+                                            required: true
+                                        }
+                                    ]
+                                }
+                            )
                         })
+                        client.api.interactions(interaction.id, interaction.token).callback.post(modal)
                     }
                 } else if (args[2] == "restart") {
 
