@@ -5537,7 +5537,7 @@ module.exports = {
                                 tts: i == 5
                             }
                         })
-                    }, 2000 + i * 1000)
+                    }, 4000 + i * 1000)
                 }
             }
 
@@ -6409,7 +6409,7 @@ module.exports = {
                                             {
                                                 type: 4,
                                                 custom_id: "time" + key,
-                                                label: "⏱️ " + client.guilds.resolve(interaction.guild_id).members.resolve(key).user.username + "'s Time (write 'dnf' if forfeited)",
+                                                label: ("⏱️ " + client.guilds.resolve(interaction.guild_id).members.resolve(key).user.username + "'s Time").substring(0, 45),
                                                 style: 1,
                                                 min_length: 1,
                                                 max_length: 10,
@@ -6427,7 +6427,7 @@ module.exports = {
                                             {
                                                 type: 4,
                                                 custom_id: "deaths" + key,
-                                                label: "💀 " + client.guilds.resolve(interaction.guild_id).members.resolve(key).user.username + "'s Deaths (leave blank if unsure)",
+                                                label: ("💀 " + client.guilds.resolve(interaction.guild_id).members.resolve(key).user.username + "'s Deaths").substring(0, 45),
                                                 style: 1,
                                                 min_length: 1,
                                                 max_length: 2,
