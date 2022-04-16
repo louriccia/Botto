@@ -6251,9 +6251,11 @@ module.exports = {
                         return { current_turn: current_turn, options: trackoptions }
                     }
                     if (interaction.data.hasOwnProperty("values")) {
+                        livematch = tourney_live_data[interaction.channel_id]
                         let turn = whoseTurn()
                         if (interaction.member.user.id == turn.current_turn) {
                             tourney_live.child(interaction.channel_id).child("firstbans").push({ player: interaction.member.user.id, ban: interaction.data.values[0] })
+                            livematch = tourney_live_data[interaction.channel_id]
                             if (turn.options.length == 2) {
                                 turn.options.filter(t => t != interaction.data.values[0])
                                 let event = {
@@ -6423,7 +6425,7 @@ module.exports = {
                                 data: {
                                     type: 9,
                                     data: {
-                                        custom_id: "tourney_play_race" + race + "_submit",
+                                        custom_id: "tourney_play_race" + race + "_verify",
                                         title: "Verify Race " + (race + 1) + " Results",
                                         components: []
                                     }
