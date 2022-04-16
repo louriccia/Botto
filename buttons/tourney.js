@@ -5781,14 +5781,14 @@ module.exports = {
                 const embed = new Discord.MessageEmbed()
                     .setAuthor("Race " + (race + 1))
                     .setTitle(track)
-                    .setDescription(conditions.map(con => "`" + condition_names[con] + "`").join(" ") + "\nCountdown will automatically start when commentators/players have readied.")
+                    .setDescription(conditions.map(con => "`" + condition_names[con] + "`").join(" ") + (livematch.races[race].live ? "" : "\nCountdown will automatically start when commentators/players have readied."))
                 if (Object.values(livematch.races[race].ready).filter(r => r == false).length == 0) {
-                    if(livematch.races[race].live){
+                    if (livematch.races[race].live) {
                         Object.values(livematch.players).map(player => embed.addField(
                             client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username,
-                            "**" + racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name + "\n" + 
-                            "⏱️ " + tools.timefix(livematch.races[race].runs[player].time) + "\n" +
-                            "💀 " + livematch.races[race].runs[player].deaths + "\n" +
+                            "||" + racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name + "||\n" +
+                            "⏱️ " + (livematch.races[race].runs[player].time == "" ? "--:--.---" : tools.timefix(livematch.races[race].runs[player].time)) + "\n" +
+                            "💀 " + (livematch.races[race].runs[player].deaths == "" ? "--" : livematch.races[race].runs[player].deaths) + "\n" +
                             (livematch.races[race].runs[player].notes == "" ? "" : "📝 " + livematch.races[race].runs[player].notes),
                             true))
                     } else {
@@ -5887,7 +5887,7 @@ module.exports = {
                         ]
                     },
                 ]
-                if (livematch.races[race].live){
+                if (livematch.races[race].live) {
                     components = [
                         {
                             type: 1,
@@ -6294,7 +6294,14 @@ module.exports = {
                     }
                     updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
                 } else if (args[2] == "submit") {
-                    if(interaction.type == 9){
+                    if (interaction.type == 9) {
+                        tourney_live.child(interaction.member.user.id).child("races").child(race).child(interaction.member.user.id).update(
+                            {
+                                time: tools.timetoSeconds(interaction.data.components[0].components[0].value.trim()),
+                                deaths: Number(interaction.data.components[1].components[0].value.trim()),
+                                notes: interaction.data.components[2].components[0].value.trim()
+                            }
+                        )
                         updateMessage("", type, [raceEmbed(race)], raceComponents(race))
                     } else {
                         client.api.interactions(interaction.id, interaction.token).callback.post({
@@ -6316,7 +6323,7 @@ module.exports = {
                                                     max_length: 10,
                                                     required: true,
                                                     placeholder: "--:--.---",
-                                                    value: tools.timefix(livematch.races[race].runs[interaction.member.user.id].time)
+                                                    //value: tools.timefix(livematch.races[race].runs[interaction.member.user.id].time)
                                                 }
                                             ]
                                         },
@@ -6340,13 +6347,13 @@ module.exports = {
                                             components: [
                                                 {
                                                     type: 4,
-                                                    custom_id: "deaths",
+                                                    custom_id: "notes",
                                                     label: "📝 Notes",
                                                     style: 1,
                                                     min_length: 1,
                                                     max_length: 100,
                                                     required: false,
-                                                    placeholder: "did something interesting happen? highlight-worthy?",
+                                                    placeholder: "did something interesting happen? anything highlight-worthy?",
                                                     value: livematch.races[race].runs[interaction.member.user.id].notes
                                                 }
                                             ]
