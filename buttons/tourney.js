@@ -5824,7 +5824,7 @@ module.exports = {
                                 "💀 " + (livematch.races[race].runs[player].deaths === "" ? "--" : livematch.races[race].runs[player].deaths) + "\n" +
                                 (livematch.races[race].runs[player].notes == "" ? "" : "📝 " + livematch.races[race].runs[player].notes),
                                 true))
-                            embed.setTitle(track + ": " + client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username + " Wins!")
+                            embed.setTitle(track + ": " + (client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username) + " Wins!")
                         }
                     }
                 } else {
@@ -6256,7 +6256,9 @@ module.exports = {
                             tourney_live.child(interaction.channel_id).child("firstbans").push({ player: interaction.member.user.id, ban: interaction.data.values[0] })
                             livematch = tourney_live_data[interaction.channel_id]
                             if (turn.options.length == 2) {
+                                console.log(turn.options)
                                 turn.options = turn.options.filter(t => t !== interaction.data.values[0])
+                                console.log(turn.options)
                                 let event = {
                                     event: "selection",
                                     type: "track",
