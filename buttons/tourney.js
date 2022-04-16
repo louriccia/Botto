@@ -5478,6 +5478,20 @@ module.exports = {
                 return opponent[0]
             }
 
+            function getWinner(race) {
+                let winner = null
+                if(livematch.races[race].runs[playesrs[0]].time.toLowerCase() == "dnf"){
+                    winner = players[1]
+                } else if(livematch.races[race].runs[playesrs[1]].time.toLowerCase() == "dnf"){
+                    winner = players[0]
+                } else if(Number(livematch.races[race].runs[players[0]].time) < Number(livematch.races[race].runs[players[1]].time)){
+                    winner = players[0]
+                }  else if(Number(livematch.races[race].runs[players[1]].time) < Number(livematch.races[race].runs[players[0]].time)){
+                    winner = players[1]
+                }
+                return winner
+            }
+
             function updateMessage(content, type, embeds, components) {
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
@@ -5537,7 +5551,7 @@ module.exports = {
                                 tts: i == 5
                             }
                         })
-                    }, 4000 + i * 1000)
+                    }, 3000 + i * 1000)
                 }
             }
 
@@ -5786,20 +5800,33 @@ module.exports = {
                     if (livematch.races[race].live) {
                         Object.values(livematch.players).map(player => embed.addField(
                             client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username,
-                            (livematch.races[race].runs[player].time == "" ? ":red_circle: Awaiting submission" : 
-                            Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length > 0 ? ":green_circle: Result Submitted" :
-                            racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name + "\n" +
-                                "⏱️ " + (livematch.races[race].runs[player].time === "" ? "--:--.---" : tools.timefix(livematch.races[race].runs[player].time)) + "\n" +
-                                "💀 " + (livematch.races[race].runs[player].deaths === "" ? "--" : livematch.races[race].runs[player].deaths) + "\n" +
-                                (livematch.races[race].runs[player].notes == "" ? "" : "📝 " + livematch.races[race].runs[player].notes))
+                            (livematch.races[race].runs[player].time == "" ? ":red_circle: Awaiting submission" :
+                                Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length > 0 ? ":green_circle: Results Submitted" :
+                                    racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name + "\n" +
+                                    "⏱️ " + (livematch.races[race].runs[player].time === "" ? "--:--.---" : tools.timefix(livematch.races[race].runs[player].time)) + "\n" +
+                                    "💀 " + (livematch.races[race].runs[player].deaths === "" ? "--" : livematch.races[race].runs[player].deaths) + "\n" +
+                                    (livematch.races[race].runs[player].notes == "" ? "" : "📝 " + livematch.races[race].runs[player].notes))
                             ,
                             true))
-                        if(Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length == 0){
+                        if (Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length == 0) {
                             embed.addField("🎙️ Commentators/Trackers", ":red_circle: Awaiting Verification", false)
                         }
                     } else {
                         embed.setDescription(conditions.map(con => "`" + condition_names[con] + "`").join(" "))
                             .setColor("#FFFFFF")
+                        if (Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length == 0) {
+                            let players = Object.values(livematch.players)
+                            let winner = getWinner(race)
+                            
+                            Object.values(livematch.players).map(player => embed.addField(
+                                (player == winner ? "👑 " : "") + client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username,
+                                racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name + "\n" +
+                                "⏱️ " + (player == winner ? "__" : "") + tools.timefix(livematch.races[race].runs[player].time) + (player == winner ? "__" : "")+ "\n" +
+                                "💀 " + (livematch.races[race].runs[player].deaths === "" ? "--" : livematch.races[race].runs[player].deaths) + "\n" +
+                                (livematch.races[race].runs[player].notes == "" ? "" : "📝 " + livematch.races[race].runs[player].notes),
+                                true))
+                            embed.setTitle(track + ": " + client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username + " Wins!")
+                        }
                     }
                 } else {
                     Object.values(livematch.players).map(player => embed.addField(
@@ -6387,6 +6414,7 @@ module.exports = {
                                 }
                             })
                         }
+                        tourney_live.child(interaction.channel_id).child("races").child(race).child("live").set(false)
                         livematch = tourney_live_data[interaction.channel_id]
                         updateMessage("", type, [raceEmbed(race)], [])
                     } else {
@@ -6444,7 +6472,12 @@ module.exports = {
                         }
                     }
                 } else if (args[2] == "restart") {
-
+                    tourney_live.child(interaction.channel_id).child("races").child(race).child("live").set(false)
+                    Object.keys(livematch.races[race].ready).map(key => {
+                        tourney_live.child(interaction.channel_id).child("races").child(race).child("ready").child(key).set(false)
+                    })
+                    livematch = tourney_live_data[interaction.channel_id]
+                    updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
                 }
             }
 
