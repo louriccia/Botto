@@ -6257,7 +6257,8 @@ module.exports = {
                             livematch = tourney_live_data[interaction.channel_id]
                             if (turn.options.length == 2) {
                                 console.log(turn.options)
-                                turn.options = turn.options.filter(t => t !== interaction.data.values[0])
+                                console.log("values", interaction.data.values[0])
+                                turn.options = turn.options.filter(t => Number(t) !== Number(interaction.data.values[0]))
                                 console.log(turn.options)
                                 let event = {
                                     event: "selection",
