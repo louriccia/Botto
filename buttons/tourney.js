@@ -5481,13 +5481,13 @@ module.exports = {
             function getWinner(race) {
                 let players = Object.values(livematch.players)
                 let winner = null
-                if(livematch.races[race].runs[players[0]].time.toLowerCase() == "dnf"){
+                if (livematch.races[race].runs[players[0]].time.toLowerCase() == "dnf") {
                     winner = players[1]
-                } else if(livematch.races[race].runs[players[1]].time.toLowerCase() == "dnf"){
+                } else if (livematch.races[race].runs[players[1]].time.toLowerCase() == "dnf") {
                     winner = players[0]
-                } else if(Number(livematch.races[race].runs[players[0]].time) < Number(livematch.races[race].runs[players[1]].time)){
+                } else if (Number(livematch.races[race].runs[players[0]].time) < Number(livematch.races[race].runs[players[1]].time)) {
                     winner = players[0]
-                }  else if(Number(livematch.races[race].runs[players[1]].time) < Number(livematch.races[race].runs[players[0]].time)){
+                } else if (Number(livematch.races[race].runs[players[1]].time) < Number(livematch.races[race].runs[players[0]].time)) {
                     winner = players[1]
                 }
                 return winner
@@ -5820,7 +5820,7 @@ module.exports = {
                             Object.values(livematch.players).map(player => embed.addField(
                                 (player == winner ? "👑 " : "") + client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username,
                                 racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name + "\n" +
-                                "⏱️ " + (player == winner ? "__" : "") + tools.timefix(livematch.races[race].runs[player].time) + (player == winner ? "__" : "")+ "\n" +
+                                "⏱️ " + (player == winner ? "__" : "") + tools.timefix(livematch.races[race].runs[player].time) + (player == winner ? "__" : "") + "\n" +
                                 "💀 " + (livematch.races[race].runs[player].deaths === "" ? "--" : livematch.races[race].runs[player].deaths) + "\n" +
                                 (livematch.races[race].runs[player].notes == "" ? "" : "📝 " + livematch.races[race].runs[player].notes),
                                 true))
@@ -6296,7 +6296,6 @@ module.exports = {
                                 let turn = whoseTurn()
                                 updateMessage("<@" + turn.current_turn + "> please make a selection", type, [firstbanEmbed()], firstbanComponents())
                             }
-
                         } else {
                             ephemeralMessage("It's not your turn to ban! <:WhyNobodyBuy:589481340957753363>", [], [])
                         }
@@ -6307,28 +6306,31 @@ module.exports = {
                 let race = Number(args[1].replace("race", ""))
                 if (["ready", "unready"].includes(args[2])) {
                     if (![undefined, null, ""].includes(livematch.races[race].runs) && ![undefined, null, ""].includes(livematch.races[race].runs[interaction.member.user.id]) && ![undefined, null, ""].includes(livematch.races[race].runs[interaction.member.user.id].pod)) {
-                        if (Object.values(livematch.commentators).includes(interaction.member.user.id)) {
-                            tourney_live.child(interaction.channel_id).child("races").child(race).child("ready").child("commentators").set((args[2] == "ready" ? true : false))
-                        }
                         if (Object.values(livematch.players).includes(interaction.member.user.id)) {
                             tourney_live.child(interaction.channel_id).child("races").child(race).child("ready").child(interaction.member.user.id).set((args[2] == "ready" ? true : false))
                         }
-                        livematch = tourney_live_data[interaction.channel_id]
-                        if (Object.values(livematch.races[race].ready).filter(r => r == false).length == 0) {
-                            updateMessage("", type, [raceEmbed(race)], [])
-                            countDown()
-                            //initiate race
-                            tourney_live.child(interaction.channel_id).child("races").child(race).child("live").set(true)
-                            setTimeout(async function () {
-                                postMessage("", [raceEmbed(race)], raceComponents(race))
-                            }, 10000)
-                        } else {
-                            updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
+                        if (Object.values(livematch.commentators).includes(interaction.member.user.id)) {
+                            livematch = tourney_live_data[interaction.channel_id]
+                            if (Object.values(livematch.races[race].ready).filter(r => r == false).length == 0) {
+                                tourney_live.child(interaction.channel_id).child("races").child(race).child("ready").child("commentators").set((args[2] == "ready" ? true : false))
+                                updateMessage("", type, [raceEmbed(race)], [])
+                                countDown()
+                                //initiate race
+                                tourney_live.child(interaction.channel_id).child("races").child(race).child("live").set(true)
+                                setTimeout(async function () {
+                                    postMessage("", [raceEmbed(race)], raceComponents(race))
+                                }, 10000)
+                                return
+                            } else {
+                                ephemeralMessage("Players are not ready yet! <:WhyNobodyBuy:589481340957753363>", [], [])
+                                return
+                            }
                         }
+                        livematch = tourney_live_data[interaction.channel_id]
+                        updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
                     } else {
-                        ephemeralMessage("You have not selected a racer yet! <:WhyNobodyBuy:589481340957753363>")
+                        ephemeralMessage("You have not selected a racer yet! <:WhyNobodyBuy:589481340957753363>", [], [])
                     }
-
                 } else if (args[2] == "racer") {
                     tourney_live.child(interaction.channel_id).child("races").child(race).child("runs").child(interaction.member.user.id).child("pod").set(interaction.data.values[0])
                     updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
@@ -6472,16 +6474,21 @@ module.exports = {
                             })
                             client.api.interactions(interaction.id, interaction.token).callback.post(modal)
                         } else {
-                            ephemeralMessage("Only commentators/trackers can verify match times. <:WhyNobodyBuy:589481340957753363>")
+                            ephemeralMessage("Only commentators/trackers can verify match times. <:WhyNobodyBuy:589481340957753363>", [], [])
                         }
                     }
                 } else if (args[2] == "restart") {
-                    tourney_live.child(interaction.channel_id).child("races").child(race).child("live").set(false)
-                    Object.keys(livematch.races[race].ready).map(key => {
-                        tourney_live.child(interaction.channel_id).child("races").child(race).child("ready").child(key).set(false)
-                    })
-                    livematch = tourney_live_data[interaction.channel_id]
-                    updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
+                    if (Object.values(livematch.commentators).includes(interaction.member.user.id)) {
+                        tourney_live.child(interaction.channel_id).child("races").child(race).child("live").set(false)
+                        Object.keys(livematch.races[race].ready).map(key => {
+                            tourney_live.child(interaction.channel_id).child("races").child(race).child("ready").child(key).set(false)
+                        })
+                        livematch = tourney_live_data[interaction.channel_id]
+                        updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
+                    } else {
+                        ephemeralMessage("Only commentators/trackers can restart a race. <:WhyNobodyBuy:589481340957753363>", [], [])
+                    }
+
                 }
             }
 
