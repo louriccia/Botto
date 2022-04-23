@@ -5824,7 +5824,7 @@ module.exports = {
                                 "💀 " + (livematch.races[race].runs[player].deaths === "" ? "--" : livematch.races[race].runs[player].deaths) + "\n" +
                                 (livematch.races[race].runs[player].notes == "" ? "" : "📝 " + livematch.races[race].runs[player].notes),
                                 true))
-                            embed.setTitle(track + ": " + (client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username) + " Wins!")
+                            embed.setTitle(track + ": " + (client.guilds.resolve(interaction.guild_id).members.resolve(winner).user.username) + " Wins!")
                         }
                     }
                 } else {
