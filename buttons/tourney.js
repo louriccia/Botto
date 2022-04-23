@@ -6345,7 +6345,7 @@ module.exports = {
                         tourney_live.child(interaction.channel_id).child("races").child(race).child("runs").child(interaction.member.user.id).update(
                             {
                                 time: tools.timetoSeconds(interaction.data.components[0].components[0].value.trim()),
-                                deaths: Number(interaction.data.components[1].components[0].value.trim()),
+                                deaths: Number(interaction.data.components[1].components[0].value.trim()).toFixed(0),
                                 notes: interaction.data.components[2].components[0].value.trim()
                             }
                         )
@@ -6385,7 +6385,7 @@ module.exports = {
                                                     min_length: 1,
                                                     max_length: 2,
                                                     required: false,
-                                                    value: livematch.races[race].runs[interaction.member.user.id].deaths
+                                                    value: Number(livematch.races[race].runs[interaction.member.user.id].deaths).toFixed(0)
                                                 }
                                             ]
                                         },
@@ -6466,7 +6466,7 @@ module.exports = {
                                                 min_length: 1,
                                                 max_length: 2,
                                                 required: true,
-                                                value: livematch.races[race].runs[key].deaths
+                                                value: Number(livematch.races[race].runs[key].deaths).toFixed(0)
                                             }
                                         ]
                                     }
