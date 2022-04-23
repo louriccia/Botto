@@ -6310,9 +6310,9 @@ module.exports = {
                             tourney_live.child(interaction.channel_id).child("races").child(race).child("ready").child(interaction.member.user.id).set((args[2] == "ready" ? true : false))
                         }
                         if (Object.values(livematch.commentators).includes(interaction.member.user.id)) {
+                            tourney_live.child(interaction.channel_id).child("races").child(race).child("ready").child("commentators").set((args[2] == "ready" ? true : false))
                             livematch = tourney_live_data[interaction.channel_id]
                             if (Object.values(livematch.races[race].ready).filter(r => r == false).length == 0) {
-                                tourney_live.child(interaction.channel_id).child("races").child(race).child("ready").child("commentators").set((args[2] == "ready" ? true : false))
                                 updateMessage("", type, [raceEmbed(race)], [])
                                 countDown()
                                 //initiate race
