@@ -250,7 +250,7 @@ client.once('ready', () => {
                                     eventdup = true
                                     client.guilds.cache.get("441839750555369474").scheduledEvents.edit(client.guilds.cache.get("441839750555369474").scheduledEvents.resolve(event.id), {
                                         name: match.players.map(id=> tourney_participants_data[id]).join(" vs "),
-                                        description: "Commentary: " + match.commentary.map(id=> tourney_participants_data[id].name).join(", "),
+                                        description: "Commentary: " + match.commentary.length > 0 ? match.commentary.map(id=> tourney_participants_data[id].name).join(", ") : "",
                                         entityType: 'EXTERNAL',
                                         entityMetadata: {location: match.channel == "" ? "twitch.tv/SpeedGaming" : match.channel}
                                     })
