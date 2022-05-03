@@ -157,7 +157,7 @@ async function getCommands() {
 client.once('ready', () => {
     console.log('Ready!')
 
-    console.log(client.guilds.cache.get("441839750555369474").scheduledEvents.cache.toJSON())
+    console.log(client.guilds.cache.get("441839750555369474").scheduledEvent.cache.toJSON())
 
 
     //set bot activity
@@ -179,118 +179,86 @@ client.once('ready', () => {
     }
     const updater = async () => {
         const rp = require('request-promise');
-        const $ = require('cheerio');
-        const url = 'http://speedgaming.org/swe1racer/';
-        const fs = require('fs');
-        rp(url)
-            .then(function (html) {
-                var table = $('tbody', html)
-                var schedule = []
-                $('tr', table).each((i, elem) => {
-                    var text = $('td', elem).text().replace(/\t/g, "").split(/\n/)
-                    for (var i = 0; i < text.length; i++) {
-                        if (text[i] == "") {
-                            text.splice(i, 1)
-                            i = i - 1
-                        }
-                    }
-                    schedule.push(text)
-                })
-                schedule.splice(0, 1)
-                var datetimes = []
-                if (schedule.length > 0) {
-                    for (i = 0; i < schedule.length; i++) {
-                        var data = {}
-                        data.commentators = []
-                        data.players = []
-                        var comm = ""
-                        function getParticipantbyName(name) {
-                            var ptc = Object.keys(tourney_participants_data)
-                            for (k = 0; k < ptc.length; k++) {
-                                var p = ptc[k]
-                                if (tourney_participants_data[p].name == name.trim()) {
-                                    return p
-                                }
-                            }
-                            return name
-                        }
-                        if (schedule[i].length > 4) {
-                            if (!schedule[i][4].includes("?")) {
-                                data.url = "https://www.twitch.tv/" + schedule[i][4]
-                            }
-                            if (schedule[i][5] !== undefined) {
-                                comm = schedule[i][5].split(",")
-                                if (comm.length > 0) {
-                                    for (j = 0; j < comm.length; j++) {
-                                        data.commentators.push(getParticipantbyName(comm[j]))
-                                    }
-                                }
-                            }
-                        }
-                        var datetime = new Date(schedule[i][0].replace(", ", " " + new Date().getFullYear() + " ") + schedule[i][1].replace(" ", " ") + " EDT").toUTCString()//this stupid 'no-break' space was messing up Date.parse and I was losing my mind
-                        data.datetime = datetime
-                        datetimes.push(data.datetime)
-                        data.bracket = schedule[i][2]
-                        var players = schedule[i][3].split(",")
-                        if (players.length > 0) {
-                            for (j = 0; j < players.length; j++) {
-                                data.players.push({
-                                    player: getParticipantbyName(players[j]),
-                                    permabans: [],
-                                    score: null
-                                })
-                            }
-                        }
-                        var dup = false
-                        if (![undefined, null].includes(tourney_scheduled_data)) {
-                            var tsd = Object.keys(tourney_scheduled_data)
+const $ = require('cheerio');
+var cheerio = require('cheerio').default
+const url = 'http://speedgaming.org/swe1racer/';
+const fs = require('fs');
 
-                            for (j = 0; j < tsd.length; j++) {
-                                var s = tsd[j]
-                                if (tourney_scheduled_data[s].datetime == datetime) {
-                                    tourney_scheduled.child(s).update(data)
-                                    dup = true
-                                    j = tsd.length
-                                }
-                            }
-                        }
-                        if (!dup) {
-                            data.stream_notification = false
-                            tourney_scheduled.push(data)
-                        }
-                    }
-                    /*if (![undefined, null].includes(tourney_scheduled_data)) {
-                        var tsd = Object.keys(tourney_scheduled_data)
-                        for (var i = 0; i < tsd.length; i++) {
-                            var s = tsd[i]
-                            if (!datetimes.includes(tourney_scheduled_data[s].datetime)) {
-                                tourney_scheduled.child(s).remove()
-                            }
-                        }
-                    }*/
+function getParticipantbyName(name) {
+    
+    let ptc = Object.keys(tourney_participants_data)
+    for (k = 0; k < ptc.length; k++) {
+        let p = ptc[k]
+        if (tourney_participants_data[p].name == name.trim()) {
+            return p
+        }
+    }
+    return name
+}
+
+rp(url)
+    .then(function (html) {
+        let table = cheerio('tbody', html)
+        console.log(table)
+        let schedule = []
+        let values = []
+
+        cheerio('tr', table).each((i, elem) => {
+            let match = {}
+            cheerio('td', elem).each((j, cell) => {
+                let content = cheerio(cell).text().trim().replace(/\t/g, "").replace(/\n/g, "")
+                if (i == 0) {
+                    values.push(content.replace(/ /g, "").toLowerCase().replace("(edt)", ""))
                 } else {
-                    //delete all scheduled
-                }
-                var tsd = Object.keys(tourney_scheduled_data)
-                for (i = 0; i < tsd.length; i++) {
-                    var s = tsd[i]
-                    if (tourney_scheduled_data[s].stream_notification == false && Date.parse(tourney_scheduled_data[s].datetime) <= Date.now() + 1000 * 60 * 5 && Date.now() <= Date.parse(tourney_scheduled_data[s].datetime + 1000 * 60 * 10)) {
-                        var players = []
-                        var commentators = []
-                        Object.values(tourney_scheduled_data[s].commentators).forEach(c => {
-                            commentators.push(tourney_participants_data[c].name)
-                        })
-                        Object.values(tourney_scheduled_data[s].players).forEach(p => {
-                            players.push(tourney_participants_data[p.player].name)
-                        })
-                        if (commentators.length == 0) {
-                            commentators.push("WhyNobodyCommentate")
+                    if (values[j].includes("channel")) {
+                        if (content !== "?") {
+                            match.url = "https://www.twitch.tv/" + content
+                        } else {
+                            match.url = ""
                         }
-                        client.channels.cache.get("515311630100463656").send("<@&841059665474617353>\n**" + tourney_scheduled_data[s].bracket + ": " + players.join(" vs. ") + "**\n:microphone2: " + commentators.join(", ") + "\n" + tourney_scheduled_data[s].url);
-                        tourney_scheduled.child(s).child("stream_notification").set(true)
+                    } else if (values[j].includes("comm")) {
+                        match.commentary = content.split(",").map(comm => getParticipantbyName(comm))
+                    } else if (values[j].includes("date")) {
+                        match.datetime = Date.parse(content.replace(", ", " " + new Date().getFullYear() + " ").replace(" ", " ") + " EDT")
+                    } else if (values[j].includes("players")) {
+                        match.players = content.split("vs").map(play => getParticipantbyName(play))
+                    } else {
+                        match[values[j]] = content
                     }
                 }
             })
+            if (i !== 0) {
+                var dup = false
+                if (![undefined, null].includes(tourney_scheduled_data)) {
+                    Object.keys(tourney_scheduled_data).forEach(key => {
+                        let s = tourney_scheduled_data[key]
+                        if (tourney_scheduled_data[s].datetime == match.datetime) {
+                            tourney_scheduled.child(s).update(match)
+                            dup = true
+                        }
+                    })
+                }
+                if (!dup) {
+                    match.notification = false
+                    tourney_scheduled.push(match)
+                }
+                //schedule.push(match)
+            }
+        })
+        console.log(schedule)
+
+        Object.keys(tourney_scheduled_data).forEach(key => {
+            let match = tourney_scheduled_data[key]
+            if (match.notification == false && match.datetime <= Date.now() + 1000 * 60 * 5 && Date.now() <= match.datetime + 1000 * 60 * 10) {
+                tourney_scheduled.child(key).child("notification").set(true)
+                client.api.channels("515311630100463656").messages.post({
+                    data: {
+                        content: "<@&841059665474617353>\n**" + match.players.join(" vs. ") + "**\n:microphone2: " + match.commentary.join(", ") + "\n" + match.channel
+                    }
+                })
+            }
+        })
+    })
         setTimeout(updater, 1000 * 60)
     }
     updater()
