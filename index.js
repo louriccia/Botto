@@ -200,7 +200,11 @@ client.once('ready', () => {
                 const Guild = client.guilds.cache.get("441839750555369474")
                 let events = Guild.scheduledEvents.cache.toJSON()
                 let values = []
-                
+
+                Object.keys(tourney_scheduled_data).forEach(key => {
+                    tourney_scheduled.child(key).update({current: false})
+                })
+
                 cheerio('tr', table).each((i, elem) => { //for each row
                     let match = {}
                     cheerio('td', elem).each((j, cell) => { //for each cell, populate match
@@ -229,8 +233,8 @@ client.once('ready', () => {
                         let dup = false
                         if (![undefined, null].includes(tourney_scheduled_data)) {
                             Object.keys(tourney_scheduled_data).forEach(key => {
-                                let s = tourney_scheduled_data[key]
                                 if (tourney_scheduled_data[key].datetime == match.datetime) {
+                                    match.current = true
                                     tourney_scheduled.child(key).update(match)
                                     dup = true
                                 }
@@ -238,6 +242,7 @@ client.once('ready', () => {
                         }
                         if (!dup) {
                             match.notification = false
+                            match.current = true
                             tourney_scheduled.push(match)
                         }
                     }
@@ -262,7 +267,7 @@ client.once('ready', () => {
                             
                         }
                     })
-                    if(!eventdup){
+                    if(!eventdup && match.current){
                         Guild.scheduledEvents.create({
                             name: match.players.map(id=> tourney_participants_data[id].name).join(" vs "),
                             scheduledStartTime: match.datetime,
