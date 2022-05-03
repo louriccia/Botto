@@ -262,7 +262,7 @@ client.once('ready', () => {
                                     scheduledEndTime: match.datetime + 1000*60*60,
                                     entityType: "EXTERNAL",
                                     description: "Commentary: " + match.commentary.map(id=> tourney_participants_data[id]).join(", "),
-                                    entityMetadata: {location: match.channel}
+                                    entityMetadata: {location: match.channel == "" ? "twitch.tv/SpeedGaming" : match.channel}
                                 })
                             }
                         })
