@@ -157,7 +157,7 @@ async function getCommands() {
 client.once('ready', () => {
     console.log('Ready!')
 
-    console.log(client.guilds.cache.get("441839750555369474").scheduledEvent.cache.toJSON())
+    console.log(client.guilds.cache.get("441839750555369474"))
 
 
     //set bot activity
