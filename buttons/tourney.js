@@ -913,8 +913,8 @@ module.exports = {
             if (Object.values(tourney_scheduled_data).length > 0) {
                 Object.values(tourney_scheduled_data).filter(match => match.datetime >= Date.now()).map(match => {
                     tourneyReport
-                        .addField("<t:" + match.datetime + ":F>", "\n" + match.url + "\n[event](" + match.event + ")", true)
-                        .addField(":crossed_swords: " + match.players.map(player => tourney_participants_data[player].name).join(" vs "), ":microphone2: " + (Object.values(match.commentary).length > 0 ? match.commentary.map(player => tourney_participants_data[player].name).join(", "): "Sign up for commentary!"), true)
+                        .addField("<t:" + match.datetime + ":F>", "\n" + match.url + "\n[event](https://discord.gg/dWRsGTutSC?event=" + match.event + ")", true)
+                        .addField(":crossed_swords: " + match.players.map(player => tourney_participants_data[player].name).join(" vs "), ":microphone2: " + (Object.values(match.commentary).length > 0 ? Object.values(match.commentary).map(player => tourney_participants_data[player].name).join(", "): "Sign up for commentary!"), true)
                         .addField('\u200B', '\u200B', true)
                 })
             } else {
