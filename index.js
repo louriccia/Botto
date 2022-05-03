@@ -243,7 +243,7 @@ client.once('ready', () => {
                             tourney_scheduled.push(match)
                         }
 
-                        Object.values(tourney_scheduled_data).filter(datetime >= Date.now()).map(match => {
+                        Object.values(tourney_scheduled_data).filter(match => match.datetime >= Date.now()).map(match => {
                             let eventdup = false
                             events.forEach(event => {
                                 if (event.scheduledStartTimestamp == match.datetime) {
