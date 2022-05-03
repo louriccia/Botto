@@ -179,8 +179,8 @@ client.once('ready', () => {
     }
     const updater = async () => {
         const rp = require('request-promise');
-const $ = require('cheerio');
-var cheerio = require('cheerio').default
+const cheerio = require('cheerio');
+//var cheerio = require('cheerio').default
 const url = 'http://speedgaming.org/swe1racer/';
 const fs = require('fs');
 
