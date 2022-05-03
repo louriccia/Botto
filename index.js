@@ -1,7 +1,8 @@
 const fs = require('fs');
 const Discord = require('discord.js');
+const {Client, Intents} = require('discord.js')
 const { prefix, token } = require('./config.json');
-const client = new Discord.Client();
+const client = new Discord.Client({intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES]});
 var lookup = require("./data.js");
 var tourneylookup = require("./tourneydata.js");
 var tools = require('./tools.js');
