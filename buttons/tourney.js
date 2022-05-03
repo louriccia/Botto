@@ -1,4 +1,5 @@
 const { count } = require('console');
+const e = require('express');
 const { ordinalSuffix } = require('./../tools.js');
 
 module.exports = {
@@ -5805,7 +5806,7 @@ module.exports = {
                                 Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length > 0 ? ":green_circle: Results Submitted" :
                                     racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name + "\n" +
                                     "⏱️ " + (livematch.races[race].runs[player].time === "" ? "--:--.---" : tools.timefix(livematch.races[race].runs[player].time)) + "\n" +
-                                    "💀 " + (livematch.races[race].runs[player].deaths === "" ? "--" : livematch.races[race].runs[player].deaths) + "\n" +
+                                    "💀 " + (livematch.races[race].runs[player].deaths === "" ? "--" : Number(livematch.races[race].runs[player].deaths)).toFixed(0) + "\n" +
                                     (livematch.races[race].runs[player].notes == "" ? "" : "📝 " + livematch.races[race].runs[player].notes))
                             ,
                             true))
@@ -6055,6 +6056,74 @@ module.exports = {
                                 placeholder: "Select Option",
                                 min_values: 1,
                                 max_values: 1
+                            }
+                        ]
+                    }
+                ]
+            }
+
+            function permabanEmbed(permaban) {
+                livematch = tourney_live_data[interaction.channel_id]
+                const embed = new Discord.MessageEmbed()
+                    .setAuthor("Permanent Bans")
+                    .setDescription("" + ([undefined, null].includes(livematch.firstbans) ? "" :
+                        Object.values(livematch.races[1].events).filter(event => event.event == "permaban").map(ban =>
+                            "<@" + ban.player + "> banned **" + (ban.type == "track" ? tracks[ban.selection].name : racers[ban.selection].flag + " " + racers[ban.selection].name) + "**"
+                        ).join("\n")))
+                return embed
+            }
+
+            function permabanComponents(permaban) {
+                let pban = liverules.match.permabans[permaban]
+                livematch = tourney_live_data[interaction.channel_id]
+                let selectoptions = []
+                if (pban.type == "track") {
+                    let permatrackbans = Object.values(livematch.races[1].events).filter(event => event.event == "permaban").filter(event => event.type == "track").map(event => event.selection)
+                    for (let i = 0; i < 25; i++) {
+                        if (!permatrackbans.includes(i)) {
+                            selectoptions.push(
+                                {
+                                    label: tracks[option].name,
+                                    value: option,
+                                    description: (circuits[tracks[option].circuit].name + " Circuit | Race " + tracks[option].cirnum + " | " + planets[tracks[option].planet].name).substring(0, 50),
+                                    emoji: {
+                                        name: planets[tracks[option].planet].emoji.split(":")[1],
+                                        id: planets[tracks[option].planet].emoji.split(":")[2].replace(">", "")
+                                    }
+                                }
+                            )
+                        }
+                    }
+                } else if (pban.type == "racer") {
+                    let permaracerbans = Object.values(livematch.races[1].events).filter(event => event.event == "permaban").filter(event => event.type == "track").map(event => event.selection)
+                    for (let i = 0; i < 25; i++) {
+                        if (!permaracerbans.includes(i)) {
+                            selectoptions.push(
+                                {
+                                    label: racers[option].name,
+                                    value: option,
+                                    description: (circuits[racers[option].circuit].name + " Circuit | Race " + racers[option].cirnum + " | " + planets[tracks[option].planet].name).substring(0, 50),
+                                    emoji: {
+                                        name: planets[tracks[option].planet].emoji.split(":")[1],
+                                        id: planets[tracks[option].planet].emoji.split(":")[2].replace(">", "")
+                                    }
+                                }
+                            )
+                        }
+                    }
+                }
+
+                return [
+                    {
+                        type: 1,
+                        components: [
+                            {
+                                type: 3,
+                                custom_id: "tourney_play_permaban_" + permaban,
+                                options: selectoptions,
+                                placeholder: "Select Permaban",
+                                min_values: pban.count,
+                                max_values: pban.limit * pban.count
                             }
                         ]
                     }
@@ -6342,14 +6411,18 @@ module.exports = {
                 } else if (args[2] == "submit") {
                     console.log(interaction)
                     if (interaction.type == 5) {
-                        tourney_live.child(interaction.channel_id).child("races").child(race).child("runs").child(interaction.member.user.id).update(
-                            {
-                                time: tools.timetoSeconds(interaction.data.components[0].components[0].value.trim()),
-                                deaths: Number(interaction.data.components[1].components[0].value.trim()).toFixed(0),
-                                notes: interaction.data.components[2].components[0].value.trim()
-                            }
-                        )
-                        updateMessage("", type, [raceEmbed(race)], raceComponents(race))
+                        if (livematch.races[race].live) {
+                            tourney_live.child(interaction.channel_id).child("races").child(race).child("runs").child(interaction.member.user.id).update(
+                                {
+                                    time: tools.timetoSeconds(interaction.data.components[0].components[0].value.trim()),
+                                    deaths: Number(interaction.data.components[1].components[0].value.trim()).toFixed(0),
+                                    notes: interaction.data.components[2].components[0].value.trim()
+                                }
+                            )
+                            updateMessage("", type, [raceEmbed(race)], raceComponents(race))
+                        } else {
+                            ephemeralMessage("Race is no longer live. <:WhyNobodyBuy:589481340957753363>", [], [])
+                        }
                     } else {
                         client.api.interactions(interaction.id, interaction.token).callback.post({
                             data: {
@@ -6370,7 +6443,7 @@ module.exports = {
                                                     max_length: 10,
                                                     required: true,
                                                     placeholder: "--:--.---",
-                                                    //value: tools.timefix(livematch.races[race].runs[interaction.member.user.id].time)
+                                                    value: tools.timefix(livematch.races[race].runs[interaction.member.user.id].time)
                                                 }
                                             ]
                                         },
@@ -6423,6 +6496,28 @@ module.exports = {
                         tourney_live.child(interaction.channel_id).child("races").child(race).child("live").set(false)
                         livematch = tourney_live_data[interaction.channel_id]
                         updateMessage("", type, [raceEmbed(race)], [])
+                        //check win condition
+                        let scoreboard = {}
+                        Object.keys(livematch.races).forEach(race => {
+                            let winner = getWinner(race)
+                            if (winner) {
+                                if ([null, undefined, ""].includes(scoreboard[winner])) {
+                                    scoreboard[winner] = 1
+                                } else {
+                                    scoreboard[winner]++
+                                }
+                            }
+                        })
+                        Object.keys(scoreboard).forEach(player => {
+                            if (scoreboard[player] == livematch.general.winlimit) {
+                                //win condition
+                            }
+                        })
+                        if (race == 0) {
+                            postMessage("<@" + (liverules.match.permabans[0].choice == "firstloser" ? getOpponent(getWinner(0)) : getWinner(0)) + "> please select a permanent ban", [permabanEmbed(0)], permabanComponents(0))
+                        } else {
+                            //restart race event loop
+                        }
                     } else {
                         if (Object.values(livematch.commentators).includes(interaction.member.user.id)) {
                             let modal = {
