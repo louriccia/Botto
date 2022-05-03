@@ -249,21 +249,21 @@ client.once('ready', () => {
                                 if (event.scheduledStartTimestamp == match.datetime) {
                                     eventdup = true
                                     client.guilds.cache.get("441839750555369474").scheduledEvents.edit(client.guilds.cache.get("441839750555369474").scheduledEvents.resolve(event.id), {
-                                        name: match.players.map(id=> tourney_participants_data[id]).join(" vs "),
+                                        name: match.players.map(id=> tourney_participants_data[id].name).join(" vs "),
                                         description: "Commentary: " + match.commentary.length > 0 ? match.commentary.map(id=> tourney_participants_data[id].name).join(", ") : "",
                                         entityType: 'EXTERNAL',
-                                        entityMetadata: {location: match.channel == "" ? "twitch.tv/SpeedGaming" : match.channel}
+                                        entityMetadata: {location: (match.url == "" ? "twitch.tv/SpeedGaming" : match.url)}
                                     })
                                 }
                             })
                             if(!eventdup){
-                                client.guilds.cahce.get("441839750555369474").scheduledEvents.create({
-                                    name: match.players.map(id=> tourney_participants_data[id]).join(" vs "),
+                                client.guilds.cache.get("441839750555369474").scheduledEvents.create({
+                                    name: match.players.map(id=> tourney_participants_data[id].name).join(" vs "),
                                     scheduledStartTime: match.datetime,
                                     scheduledEndTime: match.datetime + 1000*60*60,
                                     entityType: "EXTERNAL",
                                     description: "Commentary: " + match.commentary.map(id=> tourney_participants_data[id].name).join(", "),
-                                    entityMetadata: {location: match.channel == "" ? "twitch.tv/SpeedGaming" : match.channel}
+                                    entityMetadata: {location: (match.url == "" ? "twitch.tv/SpeedGaming" : match.url)}
                                 })
                             }
                         })
