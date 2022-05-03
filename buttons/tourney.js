@@ -913,11 +913,11 @@ module.exports = {
             if (Object.values(tourney_scheduled_data).length > 0) {
                 Object.values(tourney_scheduled_data).filter(match => match.datetime >= Date.now()).map(match => {
                     tourneyReport
-                        .addField("<t:" + match.datetime + ":F>", "\n" + (match.url == "" ? "":"📺 [Stream Link](" + match.url + ")") + "\n📅 [Event Link](https://discord.gg/dWRsGTutSC?event=" + match.event + ")", true)
+                        .addField("<t:" + match.datetime/1000 + ":F>", "\n" + (match.url == "" ? "":"📺 [Stream Link](" + match.url + ")") + "\n📅 [Event Link](https://discord.gg/dWRsGTutSC?event=" + match.event + ")", true)
                         .addField(":crossed_swords: " + match.players.map(
                             player => tourney_participants_data[player].name
                         ).join(" vs "),
-                            ":microphone2: " + (match.commentary.length > 0 ? (match.commentary.filter(player => player !== "").map(player => tourney_participants_data[player].name).join(", ")): "Sign up for commentary!"), true
+                            ":microphone2: " + (match.commentary.filter(player => player !== "").length > 0 ? (match.commentary.filter(player => player !== "").map(player => tourney_participants_data[player].name).join(", ")): "Sign up for commentary!"), true
                         )
                         .addField('\u200B', '\u200B', true)
                 })
