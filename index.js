@@ -248,7 +248,7 @@ client.once('ready', () => {
                             events.forEach(event => {
                                 if (event.scheduledStartTimestamp == match.datetime) {
                                     eventdup = true
-                                    client.guilds.cache.get("441839750555369474").scheduledEvents.edit(client.guilds.cache.get("441839750555369474").scheduledEvents.fetch(event.id), {
+                                    client.guilds.cache.get("441839750555369474").scheduledEvents.edit(client.guilds.cache.get("441839750555369474").scheduledEvents.cache.fetch(event.id), {
                                         name: match.players.map(id=> tourney_participants_data[id]).join(" vs "),
                                         description: "Commentary: " + match.commentary.map(id=> tourney_participants_data[id]).join(", "),
                                         entityMetadata: {location: match.channel}
