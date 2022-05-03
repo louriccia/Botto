@@ -903,93 +903,63 @@ module.exports = {
             if (args[1] == "refresh") {
                 type = 7
             }
-            const rp = require('request-promise');
-            const $ = require('cheerio');
-            const url = 'http://speedgaming.org/swe1racer/';
-            const fs = require('fs');
-            rp(url)
-                .then(function (html) {
-                    var table = $('tbody', html)
-                    var schedule = []
-                    $('tr', table).each((i, elem) => {
-                        var text = $('td', elem).text().replace(/\t/g, "").split(/\n/)
-                        for (var i = 0; i < text.length; i++) {
-                            if (text[i] == "") {
-                                text.splice(i, 1)
-                                i = i - 1
-                            }
-                        }
-                        schedule.push(text)
-                    })
-                    const tourneyReport = new Discord.MessageEmbed()
+            const tourneyReport = new Discord.MessageEmbed()
+            tourneyReport
+                .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
+                .setTitle("Match Schedule")
+                .setURL("http://speedgaming.org/swe1racer/")
+                .setDescription("Upcoming matches on speedgaming.org/swe1racer\n(Current as of <t:" + Math.round(Date.now() / 1000) + ":R>)")
+                .setFooter("Times are displayed in your local time")
+            if (Object.values(tourney_scheduled_data).length > 0) {
+                Object.values(tourney_scheduled_data).filter(match => match.datetime >= Date.now()).map(match => {
                     tourneyReport
-                        .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
-                        .setTitle("Match Schedule")
-                        .setURL("http://speedgaming.org/swe1racer/")
-                        .setDescription("Upcoming matches on speedgaming.org/swe1racer\n(Current as of <t:" + Math.round(Date.now() / 1000) + ":R>)")
-                        .setFooter("Times are displayed in your local time")
-                    schedule.splice(0, 1)
-                    if (schedule.length > 0) {
-                        for (i = 0; i < schedule.length; i++) {
-                            var channel = ""
-                            var comm = ""
-                            if (schedule[i].length > 4) {
-                                if (!schedule[i][4].includes("?")) {
-                                    channel = "[" + schedule[i][4] + "](https://www.twitch.tv/" + schedule[i][4] + ")"
-                                }
-                                if (schedule[i][5] !== undefined) {
-                                    comm = schedule[i][5]
-                                }
-                            }
-                            var datetime = new Date(schedule[i][0].replace(", ", " " + new Date().getFullYear() + " ") + schedule[i][1].replace(" ", " ") + " EDT").getTime() / 1000
-                            tourneyReport
-                                .addField("<t:" + datetime + ":F>", schedule[i][2] + "\n" + channel, true)
-                                .addField(":crossed_swords: " + schedule[i][3].replace(/,/g, " vs."), ":microphone2: " + comm, true)
-                                .addField('\u200B', '\u200B', true)
-                        }
-                    } else {
-                        tourneyReport.setDescription("No matches are currently scheduled")
-                    }
-                    client.api.interactions(interaction.id, interaction.token).callback.post({
-                        data: {
-                            type: type,
-                            data: {
-                                //content: content,
-                                //flags: 64
-                                embeds: [tourneyReport],
+                        .addField("<t:" + match.datetime + ":F>", "\n" + channel, true)
+                        .addField(":crossed_swords: " + match.players.map(player => tourney_participants_data[player].name).join(" vs "), ":microphone2: " + match.commentary.map(player => tourney_participants_data[player].name).join(", "), true)
+                        .addField('\u200B', '\u200B', true)
+                })
+            } else {
+                tourneyReport.setDescription("No matches are currently scheduled")
+            }
+            client.api.interactions(interaction.id, interaction.token).callback.post({
+                data: {
+                    type: type,
+                    data: {
+                        //content: content,
+                        //flags: 64
+                        embeds: [tourneyReport],
+                        components: [
+                            {
+                                type: 1,
                                 components: [
                                     {
-                                        type: 1,
-                                        components: [
-                                            {
-                                                type: 2,
-                                                label: "",
-                                                emoji: {
-                                                    id: "854097998357987418",
-                                                    name: "refresh"
-                                                },
-                                                style: 2,
-                                                custom_id: "tourney_schedule_refresh",
-                                            },
-                                            {
-                                                type: 2,
-                                                label: "Schedule Match",
-                                                style: 5,
-                                                url: "http://speedgaming.org/swe1racer/submit/"
-                                            },
-                                            {
-                                                type: 2,
-                                                label: "Sign Up for Commentary",
-                                                style: 5,
-                                                url: "http://speedgaming.org/swe1racer/crew/"
-                                            }
-                                        ]
+                                        type: 2,
+                                        label: "",
+                                        emoji: {
+                                            id: "854097998357987418",
+                                            name: "refresh"
+                                        },
+                                        style: 2,
+                                        custom_id: "tourney_schedule_refresh",
+                                    },
+                                    {
+                                        type: 2,
+                                        label: "Schedule Match",
+                                        style: 5,
+                                        url: "http://speedgaming.org/swe1racer/submit/"
+                                    },
+                                    {
+                                        type: 2,
+                                        label: "Sign Up for Commentary",
+                                        style: 5,
+                                        url: "http://speedgaming.org/swe1racer/crew/"
                                     }
                                 ]
                             }
-                        }
-                    })
-                })
+                        ]
+                    }
+                }
+            })
+
         } else if (args[0] == "leaderboards") {
             const tourneyReport = new Discord.MessageEmbed()
             var type = 7
