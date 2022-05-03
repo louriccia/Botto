@@ -158,7 +158,8 @@ async function getCommands() {
 client.once('ready', () => {
     console.log('Ready!')
 
-    console.log(client.guilds.cache.get("441839750555369474").scheduledEvents.cache.toJSON())
+
+
 
 
     //set bot activity
@@ -186,7 +187,6 @@ client.once('ready', () => {
         const fs = require('fs');
 
         function getParticipantbyName(name) {
-
             let ptc = Object.keys(tourney_participants_data)
             for (k = 0; k < ptc.length; k++) {
                 let p = ptc[k]
@@ -200,8 +200,7 @@ client.once('ready', () => {
         rp(url)
             .then(function (html) {
                 let table = cheerio('tbody', html)
-                console.log(table)
-                let schedule = []
+                let events = client.guilds.cache.get("441839750555369474").scheduledEvents.cache.toJSON()
                 let values = []
 
                 cheerio('tr', table).each((i, elem) => {
@@ -229,7 +228,7 @@ client.once('ready', () => {
                         }
                     })
                     if (i !== 0) {
-                        var dup = false
+                        let dup = false
                         if (![undefined, null].includes(tourney_scheduled_data)) {
                             Object.keys(tourney_scheduled_data).forEach(key => {
                                 let s = tourney_scheduled_data[key]
@@ -243,10 +242,32 @@ client.once('ready', () => {
                             match.notification = false
                             tourney_scheduled.push(match)
                         }
-                        //schedule.push(match)
+
+                        Object.values(tourney_scheduled_data).filter(datetime >= Date.now()).map(match => {
+                            let eventdup = false
+                            events.forEach(event => {
+                                if (event.scheduledStartTimestamp == match.datetime) {
+                                    eventdup = true
+                                    client.guilds.cache.get("441839750555369474").scheduledEvents.edit(client.guilds.cache.get("441839750555369474").scheduledEvents.fetch(event.id), {
+                                        name: match.players.map(id=> tourney_participants_data[id]).join(" vs "),
+                                        description: "Commentary: " + match.commentary.map(id=> tourney_participants_data[id]).join(", "),
+                                        entityMetadata: {location: match.channel}
+                                    })
+                                }
+                            })
+                            if(!eventdup){
+                                client.guilds.cahce.get("441839750555369474").scheduledEvents.create({
+                                    name: match.players.map(id=> tourney_participants_data[id]).join(" vs "),
+                                    scheduledStartTime: match.datetime,
+                                    scheduledEndTime: match.datetime + 1000*60*60,
+                                    entityType: "EXTERNAL",
+                                    description: "Commentary: " + match.commentary.map(id=> tourney_participants_data[id]).join(", "),
+                                    entityMetadata: {location: match.channel}
+                                })
+                            }
+                        })
                     }
                 })
-                console.log(schedule)
 
                 Object.keys(tourney_scheduled_data).forEach(key => {
                     let match = tourney_scheduled_data[key]
