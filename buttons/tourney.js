@@ -911,7 +911,7 @@ module.exports = {
                 .setDescription("Upcoming matches on speedgaming.org/swe1racer\n(Current as of <t:" + Math.round(Date.now() / 1000) + ":R>)")
                 .setFooter("Times are displayed in your local time")
             if (Object.values(tourney_scheduled_data).length > 0) {
-                Object.values(tourney_scheduled_data).filter(match => match.datetime >= Date.now()).map(match => {
+                Object.values(tourney_scheduled_data).filter(match => match.datetime >= Date.now()).sort(function(a,b) {return a.datetime-b.datetime}).map(match => {
                     tourneyReport
                         .addField("<t:" + match.datetime/1000 + ":F>", "\n" + (match.url == "" ? "":"📺 [Stream Link](" + match.url + ")") + "\n📅 [Event Link](https://discord.gg/dWRsGTutSC?event=" + match.event + ")", true)
                         .addField(":crossed_swords: " + match.players.map(

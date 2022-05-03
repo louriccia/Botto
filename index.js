@@ -249,12 +249,17 @@ client.once('ready', () => {
                         if (event.scheduledStartTimestamp == match.datetime) {
                             eventdup = true
                             tourney_scheduled.child(key).update({event: event.id})
-                            Guild.scheduledEvents.edit(Guild.scheduledEvents.resolve(event.id), {
-                                name: match.players.map(id=> tourney_participants_data[id].name).join(" vs "),
-                                description: "Commentary: " + Object.values(match.commentary).length > 0 ? Object.values(match.commentary).map(id=> tourney_participants_data[id].name).join(", ") : "",
-                                entityType: 'EXTERNAL',
-                                entityMetadata: {location: (match.url == "" ? "https://twitch.tv/SpeedGaming" : match.url)}
-                            })
+                            try{
+                                Guild.scheduledEvents.edit(Guild.scheduledEvents.resolve(event.id), {
+                                    name: match.players.map(id=> tourney_participants_data[id].name).join(" vs "),
+                                    description: "Commentary: " + Object.values(match.commentary).length > 0 ? Object.values(match.commentary).map(id=> tourney_participants_data[id].name).join(", ") : "",
+                                    entityType: 'EXTERNAL',
+                                    entityMetadata: {location: (match.url == "" ? "https://twitch.tv/SpeedGaming" : match.url)}
+                                })
+                            } catch {
+                                console.log("failed to edit scheduled event")
+                            }
+                            
                         }
                     })
                     if(!eventdup){
