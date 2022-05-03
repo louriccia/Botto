@@ -282,7 +282,7 @@ client.once('ready', () => {
 
                 Object.keys(tourney_scheduled_data).forEach(key => {
                     let match = tourney_scheduled_data[key]
-                    if (match.notification == false && match.datetime <= Date.now() + 1000 * 60 * 5 && Date.now() <= match.datetime + 1000 * 60 * 10) {
+                    if (match.current && match.notification == false && match.datetime <= Date.now() + 1000 * 60 * 5 && Date.now() <= match.datetime + 1000 * 60 * 10) {
                         tourney_scheduled.child(key).child("notification").set(true)
                         //add roles
                         match.players.forEach(player => Guild.members.cache.get(tourney_participants_data[player].id).roles.add('970995237952569404').catch(error => console.log(error)))

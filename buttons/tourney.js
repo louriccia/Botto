@@ -911,7 +911,7 @@ module.exports = {
                 .setDescription("Upcoming matches on speedgaming.org/swe1racer\n(Current as of <t:" + Math.round(Date.now() / 1000) + ":R>)")
                 .setFooter("Times are displayed in your local time")
             if (Object.values(tourney_scheduled_data).length > 0) {
-                Object.values(tourney_scheduled_data).filter(match => match.datetime >= Date.now()).sort(function(a,b) {return a.datetime-b.datetime-0}).map(match => {
+                Object.values(tourney_scheduled_data).filter(match => match.datetime >= Date.now() && match.current).sort(function(a,b) {return a.datetime-b.datetime-0}).map(match => {
                     tourneyReport
                         .addField("<t:" + match.datetime/1000 + ":F>", "\n" + (match.url == "" ? "":"📺 [Stream Link](" + match.url + ")") + "\n📅 [Event Link](https://discord.gg/dWRsGTutSC?event=" + match.event + ")", true)
                         .addField(":crossed_swords: " + match.players.map(
@@ -5548,6 +5548,127 @@ module.exports = {
                 return matchMaker
             }
 
+            function firstEmbed() {
+                livematch = tourney_live_data[interaction.channel_id]
+                const embed = new Discord.MessageEmbed()
+                    .setAuthor("First Track")
+                    .setTitle("How would you like to determine the first track?")
+                    .setDescription("*If players do not agree on a method, the default option will be used.*\n" + ([undefined, null].includes(livematch.firstvote) ? "" : Object.keys(livematch.firstvote).map(key => "<@" + key + "> voted for " + methods[livematch.firstvote[key]]).join("\n")))
+                return embed
+            }
+
+            function colorEmbed() {
+                livematch = tourney_live_data[interaction.channel_id]
+                const embed = new Discord.MessageEmbed()
+                    .setAuthor("First Track: " + methods[livematch.firstmethod])
+                    .setTitle("Pick a color")
+                    .setDescription("" + ([undefined, null].includes(livematch.firstcolors) ? "" : Object.keys(livematch.firstcolors).map(key => ":" + livematch.firstcolors[key] + "_square: - <@" + key + ">").join("\n")))
+                return embed
+            }
+
+            function firstbanEmbed() {
+                livematch = tourney_live_data[interaction.channel_id]
+                const embed = new Discord.MessageEmbed()
+                    .setAuthor("First Track: " + methods[livematch.firstmethod])
+                    .setDescription("" + ([undefined, null].includes(livematch.firstbans) ? "" :
+                        Object.keys(livematch.firstbans).map(key =>
+                            "<@" + livematch.firstbans[key].player + "> banned **" +
+                            ([undefined, null].includes(trackgroups[livematch.firstbans[key].ban]) ? planets[tracks[Number(livematch.firstbans[key].ban)].planet].emoji + " " + tracks[Number(livematch.firstbans[key].ban)].name : trackgroups[livematch.firstbans[key].ban].name) + "**"
+                        ).join("\n")))
+                return embed
+            }
+
+            function raceEmbed(race) {
+                livematch = tourney_live_data[interaction.channel_id]
+                let track = ""
+                let events = Object.values(livematch.races[race].events)
+                let conditions = Object.values(liverules.general.default)
+                events.forEach(event => {
+                    if (event.event == "selection" && event.type == "track") {
+                        track = planets[tracks[Number(event.selection)].planet].emoji + " " + tracks[Number(event.selection)].name
+                    }
+                    if (event.event == "override" && event.type == "condition") {
+                        if (event.selection == "skips") {
+                            conditions.forEach(con => { if (con == "ft") { con = "sk" } })
+                        } else if (event.selection == "no_upgrades") {
+                            conditions.forEach(con => { if (con == "mu") { con = "nu" } })
+                        } else if (event.selection == "fl") {
+                            conditions.forEach(con => { if (con == "tt") { con = "fl" } })
+                        }
+                    }
+                })
+                const embed = new Discord.MessageEmbed()
+                    .setAuthor("Race " + (race + 1))
+                    .setTitle(track)
+                    .setDescription(conditions.map(con => "`" + condition_names[con] + "`").join(" ") + (livematch.races[race].live ? "" : "\nCountdown will automatically start when commentators/players have readied."))
+                if (Object.values(livematch.races[race].ready).filter(r => r == false).length == 0) {
+                    if (livematch.races[race].live) {
+                        Object.values(livematch.players).map(player => embed.addField(
+                            client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username,
+                            (livematch.races[race].runs[player].time == "" ? ":red_circle: Awaiting submission" :
+                                Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length > 0 ? ":green_circle: Results Submitted" :
+                                    racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name + "\n" +
+                                    "⏱️ " + (livematch.races[race].runs[player].time === "" ? "--:--.---" : tools.timefix(livematch.races[race].runs[player].time)) + "\n" +
+                                    "💀 " + (livematch.races[race].runs[player].deaths === "" ? "--" : Number(livematch.races[race].runs[player].deaths)).toFixed(0) + "\n" +
+                                    (livematch.races[race].runs[player].notes == "" ? "" : "📝 " + livematch.races[race].runs[player].notes))
+                            ,
+                            true))
+                        if (Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length == 0) {
+                            embed.addField("🎙️ Commentators/Trackers", ":red_circle: Awaiting Verification", false)
+                        }
+                    } else {
+                        embed.setDescription(conditions.map(con => "`" + condition_names[con] + "`").join(" "))
+                            .setColor("#FFFFFF")
+                        if (Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length == 0) {
+                            let winner = getWinner(race)
+                            Object.values(livematch.players).map(player => embed.addField(
+                                (player == winner ? "👑 " : "") + client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username,
+                                racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name + "\n" +
+                                "⏱️ " + (player == winner ? "__" : "") + tools.timefix(livematch.races[race].runs[player].time) + (player == winner ? "__" : "") + "\n" +
+                                "💀 " + (livematch.races[race].runs[player].deaths === "" ? "--" : Number(livematch.races[race].runs[player].deaths)).toFixed(0) + "\n" +
+                                (livematch.races[race].runs[player].notes == "" ? "" : "📝 " + livematch.races[race].runs[player].notes),
+                                true))
+                            embed.setTitle(track + ": " + (client.guilds.resolve(interaction.guild_id).members.resolve(winner).user.username) + " Wins!")
+                        }
+                    }
+                } else {
+                    Object.values(livematch.players).map(player => embed.addField(
+                        client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username,
+                        ([undefined, null, ""].includes(livematch.races[race].runs[player].pod) ?
+                            ":red_circle: Racer not selected" :
+                            ":green_circle: Racer selected " + (livematch.races[race].reveal[player] ?
+                                "\n**" + racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name + "**" : "(hidden)")) + "\n" + (livematch.races[race].ready[player] ?
+                                    ":green_circle: Ready" :
+                                    ":red_circle: Not Ready"),
+                        true))
+
+                    embed.addField("🎙️ Commentators/Trackers", (livematch.races[race].ready.commentators ? ":green_circle: Ready" : ":red_circle: Not Ready"))
+                }
+
+                return embed
+            }
+
+            function raceEventEmbed(event) {
+                const embed = new Discord.MessageEmbed()
+                    .setAuthor("Race " + (race + 1))
+                    .setTitle(track)
+            }
+
+            function raceEventComponents(event) {
+                
+            }
+
+            function permabanEmbed(permaban) {
+                livematch = tourney_live_data[interaction.channel_id]
+                const embed = new Discord.MessageEmbed()
+                    .setAuthor("Permanent Bans")
+                    .setDescription("" + ([undefined, null].includes(livematch.firstbans) ? "" :
+                        Object.values(livematch.races[1].events).filter(event => event.event == "permaban").map(ban =>
+                            "<@" + ban.player + "> banned **" + (ban.type == "track" ? tracks[ban.selection].name : racers[ban.selection].flag + " " + racers[ban.selection].name) + "**"
+                        ).join("\n")))
+                return embed
+            }
+
             function setupComponents() {
                 let components = []
                 let tourney_options = [], bracket_options = [], ruleset_options = []
@@ -5717,106 +5838,6 @@ module.exports = {
                     ]
                 })
                 return components
-            }
-
-            function firstEmbed() {
-                livematch = tourney_live_data[interaction.channel_id]
-                const embed = new Discord.MessageEmbed()
-                    .setAuthor("First Track")
-                    .setTitle("How would you like to determine the first track?")
-                    .setDescription("*If players do not agree on a method, the default option will be used.*\n" + ([undefined, null].includes(livematch.firstvote) ? "" : Object.keys(livematch.firstvote).map(key => "<@" + key + "> voted for " + methods[livematch.firstvote[key]]).join("\n")))
-                return embed
-            }
-
-            function colorEmbed() {
-                livematch = tourney_live_data[interaction.channel_id]
-                const embed = new Discord.MessageEmbed()
-                    .setAuthor("First Track: " + methods[livematch.firstmethod])
-                    .setTitle("Pick a color")
-                    .setDescription("" + ([undefined, null].includes(livematch.firstcolors) ? "" : Object.keys(livematch.firstcolors).map(key => ":" + livematch.firstcolors[key] + "_square: - <@" + key + ">").join("\n")))
-                return embed
-            }
-
-            function firstbanEmbed() {
-                livematch = tourney_live_data[interaction.channel_id]
-                const embed = new Discord.MessageEmbed()
-                    .setAuthor("First Track: " + methods[livematch.firstmethod])
-                    .setDescription("" + ([undefined, null].includes(livematch.firstbans) ? "" :
-                        Object.keys(livematch.firstbans).map(key =>
-                            "<@" + livematch.firstbans[key].player + "> banned **" +
-                            ([undefined, null].includes(trackgroups[livematch.firstbans[key].ban]) ? planets[tracks[Number(livematch.firstbans[key].ban)].planet].emoji + " " + tracks[Number(livematch.firstbans[key].ban)].name : trackgroups[livematch.firstbans[key].ban].name) + "**"
-                        ).join("\n")))
-                return embed
-            }
-
-            function raceEmbed(race) {
-                livematch = tourney_live_data[interaction.channel_id]
-                let track = ""
-                let events = Object.values(livematch.races[race].events)
-                let conditions = Object.values(liverules.general.default)
-                events.forEach(event => {
-                    if (event.event == "selection" && event.type == "track") {
-                        track = planets[tracks[Number(event.selection)].planet].emoji + " " + tracks[Number(event.selection)].name
-                    }
-                    if (event.event == "override" && event.type == "condition") {
-                        if (event.selection == "skips") {
-                            conditions.forEach(con => { if (con == "ft") { con = "sk" } })
-                        } else if (event.selection == "no_upgrades") {
-                            conditions.forEach(con => { if (con == "mu") { con = "nu" } })
-                        } else if (event.selection == "fl") {
-                            conditions.forEach(con => { if (con == "tt") { con = "fl" } })
-                        }
-                    }
-                })
-                const embed = new Discord.MessageEmbed()
-                    .setAuthor("Race " + (race + 1))
-                    .setTitle(track)
-                    .setDescription(conditions.map(con => "`" + condition_names[con] + "`").join(" ") + (livematch.races[race].live ? "" : "\nCountdown will automatically start when commentators/players have readied."))
-                if (Object.values(livematch.races[race].ready).filter(r => r == false).length == 0) {
-                    if (livematch.races[race].live) {
-                        Object.values(livematch.players).map(player => embed.addField(
-                            client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username,
-                            (livematch.races[race].runs[player].time == "" ? ":red_circle: Awaiting submission" :
-                                Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length > 0 ? ":green_circle: Results Submitted" :
-                                    racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name + "\n" +
-                                    "⏱️ " + (livematch.races[race].runs[player].time === "" ? "--:--.---" : tools.timefix(livematch.races[race].runs[player].time)) + "\n" +
-                                    "💀 " + (livematch.races[race].runs[player].deaths === "" ? "--" : Number(livematch.races[race].runs[player].deaths)).toFixed(0) + "\n" +
-                                    (livematch.races[race].runs[player].notes == "" ? "" : "📝 " + livematch.races[race].runs[player].notes))
-                            ,
-                            true))
-                        if (Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length == 0) {
-                            embed.addField("🎙️ Commentators/Trackers", ":red_circle: Awaiting Verification", false)
-                        }
-                    } else {
-                        embed.setDescription(conditions.map(con => "`" + condition_names[con] + "`").join(" "))
-                            .setColor("#FFFFFF")
-                        if (Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length == 0) {
-                            let winner = getWinner(race)
-                            Object.values(livematch.players).map(player => embed.addField(
-                                (player == winner ? "👑 " : "") + client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username,
-                                racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name + "\n" +
-                                "⏱️ " + (player == winner ? "__" : "") + tools.timefix(livematch.races[race].runs[player].time) + (player == winner ? "__" : "") + "\n" +
-                                "💀 " + (livematch.races[race].runs[player].deaths === "" ? "--" : livematch.races[race].runs[player].deaths) + "\n" +
-                                (livematch.races[race].runs[player].notes == "" ? "" : "📝 " + livematch.races[race].runs[player].notes),
-                                true))
-                            embed.setTitle(track + ": " + (client.guilds.resolve(interaction.guild_id).members.resolve(winner).user.username) + " Wins!")
-                        }
-                    }
-                } else {
-                    Object.values(livematch.players).map(player => embed.addField(
-                        client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username,
-                        ([undefined, null, ""].includes(livematch.races[race].runs[player].pod) ?
-                            ":red_circle: Racer not selected" :
-                            ":green_circle: Racer selected " + (livematch.races[race].reveal[player] ?
-                                "\n**" + racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name + "**" : "(hidden)")) + "\n" + (livematch.races[race].ready[player] ?
-                                    ":green_circle: Ready" :
-                                    ":red_circle: Not Ready"),
-                        true))
-
-                    embed.addField("🎙️ Commentators/Trackers", (livematch.races[race].ready.commentators ? ":green_circle: Ready" : ":red_circle: Not Ready"))
-                }
-
-                return embed
             }
 
             function raceComponents(race) {
@@ -6034,17 +6055,6 @@ module.exports = {
                         ]
                     }
                 ]
-            }
-
-            function permabanEmbed(permaban) {
-                livematch = tourney_live_data[interaction.channel_id]
-                const embed = new Discord.MessageEmbed()
-                    .setAuthor("Permanent Bans")
-                    .setDescription("" + ([undefined, null].includes(livematch.firstbans) ? "" :
-                        Object.values(livematch.races[1].events).filter(event => event.event == "permaban").map(ban =>
-                            "<@" + ban.player + "> banned **" + (ban.type == "track" ? tracks[ban.selection].name : racers[ban.selection].flag + " " + racers[ban.selection].name) + "**"
-                        ).join("\n")))
-                return embed
             }
 
             function permabanComponents(permaban) {
@@ -6345,7 +6355,7 @@ module.exports = {
                     }
                 }
             } else if (args[1].includes("permaban")) {
-                
+
             } else if (args[1].includes("race")) {
                 livematch = tourney_live_data[interaction.channel_id]
                 let race = Number(args[1].replace("race", ""))
@@ -6465,7 +6475,7 @@ module.exports = {
                                 if (field.components[0].custom_id.includes("time")) {
                                     tourney_live.child(interaction.channel_id).child("races").child(race).child("runs").child(field.components[0].custom_id.replace("time", "")).update({ time: tools.timetoSeconds(field.components[0].value) })
                                 } else if (field.components[0].custom_id.includes("deaths")) {
-                                    tourney_live.child(interaction.channel_id).child("races").child(race).child("runs").child(field.components[0].custom_id.replace("deaths", "")).update({ deaths: tools.timetoSeconds(field.components[0].value) })
+                                    tourney_live.child(interaction.channel_id).child("races").child(race).child("runs").child(field.components[0].custom_id.replace("deaths", "")).update({ deaths: Number(field.components[0].value) })
                                 }
                             })
                         }
@@ -6485,11 +6495,11 @@ module.exports = {
                             }
                         })
                         Object.keys(scoreboard).forEach(player => {
-                            if (scoreboard[player] == livematch.general.winlimit) {
+                            if (scoreboard[player] == liverules.general.winlimit) {
                                 //win condition
                             }
                         })
-                        if (race == 0) {
+                        if (race == 0 && Object.values(liverules.match.permabans).length > 0) {
                             postMessage("<@" + (liverules.match.permabans[0].choice == "firstloser" ? getOpponent(getWinner(0)) : getWinner(0)) + "> please select a permanent ban", [permabanEmbed(0)], permabanComponents(0))
                         } else {
                             //restart race event loop
