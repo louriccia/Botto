@@ -158,10 +158,6 @@ async function getCommands() {
 client.once('ready', () => {
     console.log('Ready!')
 
-
-
-
-
     //set bot activity
     client.user.setActivity("/help");
     //client.users.cache.get("256236315144749059").send("Ready!")
@@ -185,6 +181,7 @@ client.once('ready', () => {
         //var cheerio = require('cheerio').default
         const url = 'http://speedgaming.org/swe1racer/';
         const fs = require('fs');
+        const livechannel = "515311630100463656"
 
         function getParticipantbyName(name) {
             let ptc = Object.keys(tourney_participants_data)
@@ -200,9 +197,10 @@ client.once('ready', () => {
         rp(url)
             .then(function (html) {
                 let table = cheerio('tbody', html)
-                let events = client.guilds.cache.get("441839750555369474").scheduledEvents.cache.toJSON()
+                const Guild = client.guilds.cache.get("441839750555369474")
+                let events = Guild.scheduledEvents.cache.toJSON()
                 let values = []
-
+                
                 cheerio('tr', table).each((i, elem) => {
                     let match = {}
                     cheerio('td', elem).each((j, cell) => {
@@ -250,7 +248,7 @@ client.once('ready', () => {
                                 if (event.scheduledStartTimestamp == match.datetime) {
                                     eventdup = true
                                     tourney_scheduled.child(key).update({event: event.id})
-                                    client.guilds.cache.get("441839750555369474").scheduledEvents.edit(client.guilds.cache.get("441839750555369474").scheduledEvents.resolve(event.id), {
+                                    Guild.scheduledEvents.edit(Guild.scheduledEvents.resolve(event.id), {
                                         name: match.players.map(id=> tourney_participants_data[id].name).join(" vs "),
                                         description: "Commentary: " + Object.values(match.commentary).length > 0 ? Object.values(match.commentary).map(id=> tourney_participants_data[id].name).join(", ") : "",
                                         entityType: 'EXTERNAL',
@@ -259,13 +257,14 @@ client.once('ready', () => {
                                 }
                             })
                             if(!eventdup){
-                                client.guilds.cache.get("441839750555369474").scheduledEvents.create({
+                                Guild.scheduledEvents.create({
                                     name: match.players.map(id=> tourney_participants_data[id].name).join(" vs "),
                                     scheduledStartTime: match.datetime,
                                     scheduledEndTime: match.datetime + 1000*60*60,
                                     entityType: "EXTERNAL",
                                     description: "Commentary: " + Object.values(match.commentary).length > 0 ? Object.values(match.commentary).map(id=> tourney_participants_data[id].name).join(", ") : "",
-                                    entityMetadata: {location: (match.url == "" ? "https://twitch.tv/SpeedGaming" : match.url)}
+                                    entityMetadata: {location: (match.url == "" ? "https://twitch.tv/SpeedGaming" : match.url)},
+                                    privacyLevel: "PUBLIC"
                                 })
                             }
                         })
@@ -276,9 +275,43 @@ client.once('ready', () => {
                     let match = tourney_scheduled_data[key]
                     if (match.notification == false && match.datetime <= Date.now() + 1000 * 60 * 5 && Date.now() <= match.datetime + 1000 * 60 * 10) {
                         tourney_scheduled.child(key).child("notification").set(true)
+                        //add roles
+                        match.players.forEach(player => Guild.members.cache.get(tourney_participants_data[player].id).roles.add('970995237952569404').catch(error => console.log(error)))
+                        match.commentary.forEach(player => Guild.members.cache.get(tourney_participants_data[player].id).roles.add('970995237952569404').catch(error => console.log(error)))
+                        //setup match
+                        let newmatch = {
+                            status: "setup",
+                            tourney: "",
+                            bracket: "",
+                            ruleset: "",
+                            datetime: match.datetime,
+                            players: match.players.map(player => tourney_participants_data[player].id),
+                            commentators: match.commentary.map(player => tourney_participants_data[player].id),
+                            stream: match.url,
+                            firstvote: ""
+                        }
+                        tourney_live.child("970994773517299712").set(newmatch)
                         client.api.channels("515311630100463656").messages.post({
                             data: {
-                                content: "<@&841059665474617353>\n**" + match.players.join(" vs. ") + "**\n:microphone2: " + match.commentary.join(", ") + "\n" + match.channel
+                                content: "<@&841059665474617353>\n**" + match.players.join(" vs. ") + "**\n:microphone2: " + match.commentary.join(", ") + "\n" + match.channel + "\nhttps://discord.gg/dWRsGTutSC?event=" + match.event
+                            }
+                        })
+                        client.api.channels("970994773517299712").messages.post({
+                            data: {
+                                content: "**" + match.players.join(" vs. ") + "** is about to begin!",
+                                components: [
+                                    {
+                                        type: 1,
+                                        components: [
+                                            {
+                                                type: 2,
+                                                label: "Set Up Match",
+                                                style: 1,
+                                                custom_id: "tourney_play_setup",
+                                            }
+                                        ]
+                                    }
+                                ]
                             }
                         })
                     }
