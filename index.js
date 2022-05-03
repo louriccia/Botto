@@ -1,8 +1,8 @@
 const fs = require('fs');
 const Discord = require('discord.js');
-const {Client, Intents} = require('discord.js')
+const { Client, Intents } = require('discord.js')
 const { prefix, token } = require('./config.json');
-const client = new Discord.Client({intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES]});
+const client = new Discord.Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
 var lookup = require("./data.js");
 var tourneylookup = require("./tourneydata.js");
 var tools = require('./tools.js');
@@ -158,7 +158,7 @@ async function getCommands() {
 client.once('ready', () => {
     console.log('Ready!')
 
-    console.log(client.guilds.cache.get("441839750555369474"))
+    console.log(client.guilds.cache.get("441839750555369474").scheduledEvents.cache.toJSON())
 
 
     //set bot activity
@@ -180,86 +180,86 @@ client.once('ready', () => {
     }
     const updater = async () => {
         const rp = require('request-promise');
-const cheerio = require('cheerio');
-//var cheerio = require('cheerio').default
-const url = 'http://speedgaming.org/swe1racer/';
-const fs = require('fs');
+        const cheerio = require('cheerio');
+        //var cheerio = require('cheerio').default
+        const url = 'http://speedgaming.org/swe1racer/';
+        const fs = require('fs');
 
-function getParticipantbyName(name) {
-    
-    let ptc = Object.keys(tourney_participants_data)
-    for (k = 0; k < ptc.length; k++) {
-        let p = ptc[k]
-        if (tourney_participants_data[p].name == name.trim()) {
-            return p
-        }
-    }
-    return name
-}
+        function getParticipantbyName(name) {
 
-rp(url)
-    .then(function (html) {
-        let table = cheerio('tbody', html)
-        console.log(table)
-        let schedule = []
-        let values = []
-
-        cheerio('tr', table).each((i, elem) => {
-            let match = {}
-            cheerio('td', elem).each((j, cell) => {
-                let content = cheerio(cell).text().trim().replace(/\t/g, "").replace(/\n/g, "")
-                if (i == 0) {
-                    values.push(content.replace(/ /g, "").toLowerCase().replace("(edt)", ""))
-                } else {
-                    if (values[j].includes("channel")) {
-                        if (content !== "?") {
-                            match.url = "https://www.twitch.tv/" + content
-                        } else {
-                            match.url = ""
-                        }
-                    } else if (values[j].includes("comm")) {
-                        match.commentary = content.split(",").map(comm => getParticipantbyName(comm))
-                    } else if (values[j].includes("date")) {
-                        match.datetime = Date.parse(content.replace(", ", " " + new Date().getFullYear() + " ").replace(" ", " ") + " EDT")
-                    } else if (values[j].includes("players")) {
-                        match.players = content.split("vs").map(play => getParticipantbyName(play))
-                    } else {
-                        match[values[j]] = content
-                    }
+            let ptc = Object.keys(tourney_participants_data)
+            for (k = 0; k < ptc.length; k++) {
+                let p = ptc[k]
+                if (tourney_participants_data[p].name == name.trim()) {
+                    return p
                 }
-            })
-            if (i !== 0) {
-                var dup = false
-                if (![undefined, null].includes(tourney_scheduled_data)) {
-                    Object.keys(tourney_scheduled_data).forEach(key => {
-                        let s = tourney_scheduled_data[key]
-                        if (tourney_scheduled_data[s].datetime == match.datetime) {
-                            tourney_scheduled.child(s).update(match)
-                            dup = true
+            }
+            return name
+        }
+
+        rp(url)
+            .then(function (html) {
+                let table = cheerio('tbody', html)
+                console.log(table)
+                let schedule = []
+                let values = []
+
+                cheerio('tr', table).each((i, elem) => {
+                    let match = {}
+                    cheerio('td', elem).each((j, cell) => {
+                        let content = cheerio(cell).text().trim().replace(/\t/g, "").replace(/\n/g, "")
+                        if (i == 0) {
+                            values.push(content.replace(/ /g, "").toLowerCase().replace("(edt)", ""))
+                        } else {
+                            if (values[j].includes("channel")) {
+                                if (content !== "?") {
+                                    match.url = "https://www.twitch.tv/" + content
+                                } else {
+                                    match.url = ""
+                                }
+                            } else if (values[j].includes("comm")) {
+                                match.commentary = content.split(",").map(comm => getParticipantbyName(comm))
+                            } else if (values[j].includes("date")) {
+                                match.datetime = Date.parse(content.replace(", ", " " + new Date().getFullYear() + " ").replace(" ", " ") + " EDT")
+                            } else if (values[j].includes("players")) {
+                                match.players = content.split("vs").map(play => getParticipantbyName(play))
+                            } else {
+                                match[values[j]] = content
+                            }
                         }
                     })
-                }
-                if (!dup) {
-                    match.notification = false
-                    tourney_scheduled.push(match)
-                }
-                //schedule.push(match)
-            }
-        })
-        console.log(schedule)
-
-        Object.keys(tourney_scheduled_data).forEach(key => {
-            let match = tourney_scheduled_data[key]
-            if (match.notification == false && match.datetime <= Date.now() + 1000 * 60 * 5 && Date.now() <= match.datetime + 1000 * 60 * 10) {
-                tourney_scheduled.child(key).child("notification").set(true)
-                client.api.channels("515311630100463656").messages.post({
-                    data: {
-                        content: "<@&841059665474617353>\n**" + match.players.join(" vs. ") + "**\n:microphone2: " + match.commentary.join(", ") + "\n" + match.channel
+                    if (i !== 0) {
+                        var dup = false
+                        if (![undefined, null].includes(tourney_scheduled_data)) {
+                            Object.keys(tourney_scheduled_data).forEach(key => {
+                                let s = tourney_scheduled_data[key]
+                                if (tourney_scheduled_data[key].datetime == match.datetime) {
+                                    tourney_scheduled.child(key).update(match)
+                                    dup = true
+                                }
+                            })
+                        }
+                        if (!dup) {
+                            match.notification = false
+                            tourney_scheduled.push(match)
+                        }
+                        //schedule.push(match)
                     }
                 })
-            }
-        })
-    })
+                console.log(schedule)
+
+                Object.keys(tourney_scheduled_data).forEach(key => {
+                    let match = tourney_scheduled_data[key]
+                    if (match.notification == false && match.datetime <= Date.now() + 1000 * 60 * 5 && Date.now() <= match.datetime + 1000 * 60 * 10) {
+                        tourney_scheduled.child(key).child("notification").set(true)
+                        client.api.channels("515311630100463656").messages.post({
+                            data: {
+                                content: "<@&841059665474617353>\n**" + match.players.join(" vs. ") + "**\n:microphone2: " + match.commentary.join(", ") + "\n" + match.channel
+                            }
+                        })
+                    }
+                })
+            })
         setTimeout(updater, 1000 * 60)
     }
     updater()
@@ -332,7 +332,7 @@ client.on("messageDelete", async messageDelete => {
             const { executor, target } = deletionLog;
             if (target.id === messageDelete.author.id) {
                 deleter = executor.tag
-            } 
+            }
             const deletedMessage = new Discord.MessageEmbed()
             deletedMessage
                 .setTitle("Deleted Message")
