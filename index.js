@@ -243,11 +243,13 @@ client.once('ready', () => {
                             tourney_scheduled.push(match)
                         }
 
-                        Object.values(tourney_scheduled_data).filter(match => match.datetime >= Date.now()).map(match => {
+                        Object.keys(tourney_scheduled_data).map(key => {
+                            let match = tourney_scheduled_data[key]
                             let eventdup = false
                             events.forEach(event => {
                                 if (event.scheduledStartTimestamp == match.datetime) {
                                     eventdup = true
+                                    tourney_scheduled.child(key).update({event: event.id})
                                     client.guilds.cache.get("441839750555369474").scheduledEvents.edit(client.guilds.cache.get("441839750555369474").scheduledEvents.resolve(event.id), {
                                         name: match.players.map(id=> tourney_participants_data[id].name).join(" vs "),
                                         description: "Commentary: " + Object.values(match.commentary).length > 0 ? Object.values(match.commentary).map(id=> tourney_participants_data[id].name).join(", ") : "",
