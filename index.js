@@ -264,7 +264,7 @@ client.once('ready', () => {
                                     entityType: "EXTERNAL",
                                     description: "Commentary: " + Object.values(match.commentary).length > 0 ? Object.values(match.commentary).map(id=> tourney_participants_data[id].name).join(", ") : "",
                                     entityMetadata: {location: (match.url == "" ? "https://twitch.tv/SpeedGaming" : match.url)},
-                                    privacyLevel: 1
+                                    privacyLevel: 'GUILD_ONLY'
                                 })
                             }
                         })
