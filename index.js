@@ -251,7 +251,7 @@ client.once('ready', () => {
                                     client.guilds.cache.get("441839750555369474").scheduledEvents.edit(client.guilds.cache.get("441839750555369474").scheduledEvents.resolve(event.id), {
                                         name: match.players.map(id=> tourney_participants_data[id]).join(" vs "),
                                         description: "Commentary: " + match.commentary.map(id=> tourney_participants_data[id]).join(", "),
-                                        entityMetadata: {location: match.channel}
+                                        entityMetadata: {location: match.channel == "" ? "twitch.tv/SpeedGaming" : match.channel}
                                     })
                                 }
                             })
