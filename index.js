@@ -201,9 +201,9 @@ client.once('ready', () => {
                 let events = Guild.scheduledEvents.cache.toJSON()
                 let values = []
                 
-                cheerio('tr', table).each((i, elem) => {
+                cheerio('tr', table).each((i, elem) => { //for each row
                     let match = {}
-                    cheerio('td', elem).each((j, cell) => {
+                    cheerio('td', elem).each((j, cell) => { //for each cell, populate match
                         let content = cheerio(cell).text().trim().replace(/\t/g, "").replace(/\n/g, "")
                         if (i == 0) {
                             values.push(content.replace(/ /g, "").toLowerCase().replace("(edt)", ""))
@@ -240,33 +240,32 @@ client.once('ready', () => {
                             match.notification = false
                             tourney_scheduled.push(match)
                         }
-
-                        Object.keys(tourney_scheduled_data).map(key => {
-                            let match = tourney_scheduled_data[key]
-                            let eventdup = false
-                            events.forEach(event => {
-                                if (event.scheduledStartTimestamp == match.datetime) {
-                                    eventdup = true
-                                    tourney_scheduled.child(key).update({event: event.id})
-                                    Guild.scheduledEvents.edit(Guild.scheduledEvents.resolve(event.id), {
-                                        name: match.players.map(id=> tourney_participants_data[id].name).join(" vs "),
-                                        description: "Commentary: " + Object.values(match.commentary).length > 0 ? Object.values(match.commentary).map(id=> tourney_participants_data[id].name).join(", ") : "",
-                                        entityType: 'EXTERNAL',
-                                        entityMetadata: {location: (match.url == "" ? "https://twitch.tv/SpeedGaming" : match.url)}
-                                    })
-                                }
+                    }
+                })
+                Object.keys(tourney_scheduled_data).map(key => {
+                    let match = tourney_scheduled_data[key]
+                    let eventdup = false
+                    events.forEach(event => {
+                        if (event.scheduledStartTimestamp == match.datetime) {
+                            eventdup = true
+                            tourney_scheduled.child(key).update({event: event.id})
+                            Guild.scheduledEvents.edit(Guild.scheduledEvents.resolve(event.id), {
+                                name: match.players.map(id=> tourney_participants_data[id].name).join(" vs "),
+                                description: "Commentary: " + Object.values(match.commentary).length > 0 ? Object.values(match.commentary).map(id=> tourney_participants_data[id].name).join(", ") : "",
+                                entityType: 'EXTERNAL',
+                                entityMetadata: {location: (match.url == "" ? "https://twitch.tv/SpeedGaming" : match.url)}
                             })
-                            if(!eventdup){
-                                Guild.scheduledEvents.create({
-                                    name: match.players.map(id=> tourney_participants_data[id].name).join(" vs "),
-                                    scheduledStartTime: match.datetime,
-                                    scheduledEndTime: match.datetime + 1000*60*60,
-                                    entityType: "EXTERNAL",
-                                    description: "Commentary: " + Object.values(match.commentary).length > 0 ? Object.values(match.commentary).map(id=> tourney_participants_data[id].name).join(", ") : "",
-                                    entityMetadata: {location: (match.url == "" ? "https://twitch.tv/SpeedGaming" : match.url)},
-                                    privacyLevel: 'GUILD_ONLY'
-                                })
-                            }
+                        }
+                    })
+                    if(!eventdup){
+                        Guild.scheduledEvents.create({
+                            name: match.players.map(id=> tourney_participants_data[id].name).join(" vs "),
+                            scheduledStartTime: match.datetime,
+                            scheduledEndTime: match.datetime + 1000*60*60,
+                            entityType: "EXTERNAL",
+                            description: "Commentary: " + Object.values(match.commentary).length > 0 ? Object.values(match.commentary).map(id=> tourney_participants_data[id].name).join(", ") : "",
+                            entityMetadata: {location: (match.url == "" ? "https://twitch.tv/SpeedGaming" : match.url)},
+                            privacyLevel: 'GUILD_ONLY'
                         })
                     }
                 })
