@@ -6371,7 +6371,7 @@ module.exports = {
                     updateMessage("", type, [permabanEmbed()], [])
                     postMessage("<@>", [raceEventEmbed(0)], raceEventComponents(0))
                 } else {
-                    updateMessage("<@" + liverules.match.permabans[permaban_num+1].choice == 'firstwinner' ? getWinner(0) : getOpponent(getWinner(0)) + ">", type, [permabanEmbed()], permabanComponents())
+                    updateMessage("<@" + liverules.match.permabans[permaban_num+1].choice == 'firstwinner' ? getWinner(0) : getOpponent(getWinner(0)) + ">", type, [permabanEmbed(permaban_num+1)], permabanComponents(permaban_num+1))
                 }
             } else if (args[1].includes("race")) {
                 livematch = tourney_live_data[interaction.channel_id]
