@@ -254,20 +254,23 @@ client.once('ready', () => {
                         if (event.scheduledStartTimestamp == match.datetime) {
                             eventdup = true
                             tourney_scheduled.child(key).update({event: event.id})
-                            try{
-                                Guild.scheduledEvents.edit(Guild.scheduledEvents.resolve(event.id), {
-                                    name: match.players.map(id=> tourney_participants_data[id].name).join(" vs "),
-                                    description: "Commentary: " + Object.values(match.commentary).length > 0 ? Object.values(match.commentary).map(id=> tourney_participants_data[id].name).join(", ") : "",
-                                    entityType: 'EXTERNAL',
-                                    entityMetadata: {location: (match.url == "" ? "https://twitch.tv/SpeedGaming" : match.url)}
-                                })
-                            } catch {
-                                console.log("failed to edit scheduled event")
+                            if(event.status == "SCHEDULED"){
+                                try{
+                                    Guild.scheduledEvents.edit(Guild.scheduledEvents.resolve(event.id), {
+                                        name: match.players.map(id=> tourney_participants_data[id].name).join(" vs "),
+                                        description: "Commentary: " + Object.values(match.commentary).length > 0 ? Object.values(match.commentary).map(id=> tourney_participants_data[id].name).join(", ") : "",
+                                        entityType: 'EXTERNAL',
+                                        entityMetadata: {location: (match.url == "" ? "https://twitch.tv/SpeedGaming" : match.url)}
+                                    })
+                                } catch {
+                                    console.log("failed to edit scheduled event")
+                                }
                             }
+                            
                             
                         }
                     })
-                    if(!eventdup && match.current){
+                    if(!eventdup && match.current && match.datetime > Date.now()){
                         Guild.scheduledEvents.create({
                             name: match.players.map(id=> tourney_participants_data[id].name).join(" vs "),
                             scheduledStartTime: match.datetime,
@@ -282,7 +285,7 @@ client.once('ready', () => {
 
                 Object.keys(tourney_scheduled_data).forEach(key => {
                     let match = tourney_scheduled_data[key]
-                    if (match.current && match.notification == false && match.datetime <= Date.now() + 1000 * 60 * 5 && Date.now() <= match.datetime + 1000 * 60 * 10) {
+                    if (match.current && match.notification == false && match.datetime <= Date.now() + 1000 * 60 * 10 && Date.now() <= match.datetime + 1000 * 60 * 10) {
                         tourney_scheduled.child(key).child("notification").set(true)
                         //add roles
                         match.players.forEach(player => Guild.members.cache.get(tourney_participants_data[player].id).roles.add('970995237952569404').catch(error => console.log(error)))
