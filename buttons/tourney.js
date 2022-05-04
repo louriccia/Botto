@@ -5660,10 +5660,11 @@ module.exports = {
 
             function permabanEmbed(permaban) {
                 livematch = tourney_live_data[interaction.channel_id]
+                let events = Object.values(livematch.races[1].events)
                 const embed = new Discord.MessageEmbed()
                     .setAuthor("Permanent Bans")
-                    .setDescription("" + ([undefined, null].includes(livematch.races[1].events) ? "" :
-                        Object.values(livematch.races[1].events).filter(event => event.event == "permaban").map(ban =>
+                    .setDescription("" + ([undefined, null, ""].includes(events) ? "" :
+                        Object.values(events).filter(event => event.event == "permaban").map(ban =>
                             "<@" + ban.player + "> banned **" + (ban.type == "track" ? tracks[ban.selection].name : racers[ban.selection].flag + " " + racers[ban.selection].name) + "**"
                         ).join("\n")))
                 return embed
@@ -6020,7 +6021,6 @@ module.exports = {
                     })
                 })
                 trackoptions = [undefined, null].includes(livematch.firstbans) ? trackoptions : trackoptions.filter(option => !Object.values(livematch.firstbans).map(ban => Number(ban.ban)).includes(option) && planetoptions.map(option => trackgroups[option].code).includes(Number(tracks[option].planet)))
-                console.log(trackoptions)
                 let selectoptions = []
                 if (livematch.firstmethod == "poe_c" && circuitoptions.length > 1) {
                     selectoptions = circuitoptions.map(option => { return ({ label: trackgroups[option].name, value: option, description: trackgroups[option].count + " tracks" }) })
@@ -6309,10 +6309,7 @@ module.exports = {
                             tourney_live.child(interaction.channel_id).child("firstbans").push({ player: interaction.member.user.id, ban: interaction.data.values[0] })
                             livematch = tourney_live_data[interaction.channel_id]
                             if (turn.options.length == 2) {
-                                console.log(turn.options)
-                                console.log("values", interaction.data.values[0])
                                 turn.options = turn.options.filter(t => Number(t) !== Number(interaction.data.values[0]))
-                                console.log(turn.options)
                                 let event = {
                                     event: "selection",
                                     type: "track",
@@ -6414,7 +6411,6 @@ module.exports = {
                     }
                     updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
                 } else if (args[2] == "submit") {
-                    console.log(interaction)
                     if (interaction.type == 5) {
                         if (livematch.races[race].live) {
                             tourney_live.child(interaction.channel_id).child("races").child(race).child("runs").child(interaction.member.user.id).update(
