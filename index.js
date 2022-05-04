@@ -289,7 +289,7 @@ client.once('ready', () => {
                         tourney_scheduled.child(key).child("notification").set(true)
                         //add roles
                         match.players.forEach(player => Guild.members.cache.get(tourney_participants_data[player].id).roles.add('970995237952569404').catch(error => console.log(error)))
-                        match.commentary.forEach(player => Guild.members.cache.get(tourney_participants_data[player].id).roles.add('970995237952569404').catch(error => console.log(error)))
+                        Object.values(match.commentary).forEach(player => Guild.members.cache.get(tourney_participants_data[player].id).roles.add('970995237952569404').catch(error => console.log(error)))
                         //setup match
                         let newmatch = {
                             status: "setup",
