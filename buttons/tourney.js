@@ -5660,7 +5660,8 @@ module.exports = {
 
             function permabanEmbed(permaban) {
                 livematch = tourney_live_data[interaction.channel_id]
-                let events = Object.values(livematch.races[1].events)
+                let races = Object.values(livematch.races)
+                let events = races[1].events
                 const embed = new Discord.MessageEmbed()
                     .setAuthor("Permanent Bans")
                     .setDescription("" + ([undefined, null, ""].includes(events) ? "" :
@@ -6514,8 +6515,9 @@ module.exports = {
                                 //win condition
                             }
                         })
-                        tourney_live.child(interaction.channel_id).child("current_race").set(livematch.current_race +1)
-                        tourney_live.child(interaction.channel_id).child('races').push({live:false, events: "", ready: "", reveal: "", runs: ""})
+                        let nextrace = livematch.current_race +1
+                        tourney_live.child(interaction.channel_id).child("current_race").set(nextrace)
+                        tourney_live.child(interaction.channel_id).child('races').child(nextrace).set({live:false, events: "", ready: "", reveal: "", runs: ""})
                         if (race == 0 && Object.values(liverules.match.permabans).length > 0) {
                             postMessage("<@" + (liverules.match.permabans[0].choice == "firstloser" ? getOpponent(getWinner(0)) : getWinner(0)) + "> please select a permanent ban", [permabanEmbed(0)], permabanComponents(0))
                         } else {
