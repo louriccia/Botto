@@ -6353,26 +6353,32 @@ module.exports = {
                     }
                 }
             } else if (args[1].includes("permaban")) {
+
                 let permaban_num = Number(args[2])
                 let permaban = liverules.match.permabans[permaban_num]
-                interaction.data.values.forEach(selection => {
-                    tourney_live.child(interaction.channel_id).child("races").child(1).child("events").push(
-                        {
-                            event: "permaban",
-                            type: permaban.type,
-                            player: interaction.member.user.id,
-                            selection: selection,
-                            cost: permaban.cost
-                        },
-                    )
-                })
-                
-                if (permaban_num == Object.values(liverules.match.permabans).length){
-                    updateMessage("", type, [permabanEmbed()], [])
-                    postMessage("<@>", [raceEventEmbed(0)], raceEventComponents(0))
+                if((permaban.choice == "firstwinner" && interaction.member.user.id == getWinner(0)) || (permaban.choice == "firstloser" && interaction.member.user.id == getOpponent(getWinner(0)))){
+                    interaction.data.values.forEach(selection => {
+                        tourney_live.child(interaction.channel_id).child("races").child(1).child("events").push(
+                            {
+                                event: "permaban",
+                                type: permaban.type,
+                                player: interaction.member.user.id,
+                                selection: selection,
+                                cost: permaban.cost
+                            },
+                        )
+                    })
+                    
+                    if (permaban_num+1 == Object.values(liverules.match.permabans).length){
+                        updateMessage("", type, [permabanEmbed()], [])
+                        postMessage("<@>", [raceEventEmbed(0)], raceEventComponents(0))
+                    } else {
+                        updateMessage("<@" + (liverules.match.permabans[permaban_num+1].choice == 'firstwinner' ? getWinner(0) : getOpponent(getWinner(0))) + ">", type, [permabanEmbed(permaban_num+1)], permabanComponents(permaban_num+1))
+                    }
                 } else {
-                    updateMessage("<@" + liverules.match.permabans[permaban_num+1].choice == 'firstwinner' ? getWinner(0) : getOpponent(getWinner(0)) + ">", type, [permabanEmbed(permaban_num+1)], permabanComponents(permaban_num+1))
+                    ephemeralMessage("It's not your turn to ban! <:WhyNobodyBuy:589481340957753363>", [], [])
                 }
+                
             } else if (args[1].includes("race")) {
                 livematch = tourney_live_data[interaction.channel_id]
                 let race = Number(args[1].replace("race", ""))
