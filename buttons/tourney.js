@@ -6068,12 +6068,12 @@ module.exports = {
                         if (!permatrackbans.includes(i)) {
                             selectoptions.push(
                                 {
-                                    label: tracks[option].name,
-                                    value: option,
-                                    description: (circuits[tracks[option].circuit].name + " Circuit | Race " + tracks[option].cirnum + " | " + planets[tracks[option].planet].name).substring(0, 50),
+                                    label: tracks[i].name,
+                                    value: i,
+                                    description: (circuits[tracks[i].circuit].name + " Circuit | Race " + tracks[i].cirnum + " | " + planets[tracks[i].planet].name).substring(0, 50),
                                     emoji: {
-                                        name: planets[tracks[option].planet].emoji.split(":")[1],
-                                        id: planets[tracks[option].planet].emoji.split(":")[2].replace(">", "")
+                                        name: planets[tracks[i].planet].emoji.split(":")[1],
+                                        id: planets[tracks[i].planet].emoji.split(":")[2].replace(">", "")
                                     }
                                 }
                             )
@@ -6085,12 +6085,12 @@ module.exports = {
                         if (!permaracerbans.includes(i)) {
                             selectoptions.push(
                                 {
-                                    label: racers[option].name,
-                                    value: option,
-                                    description: (circuits[racers[option].circuit].name + " Circuit | Race " + racers[option].cirnum + " | " + planets[tracks[option].planet].name).substring(0, 50),
+                                    label: racers[i].name,
+                                    value: i,
+                                    description: (circuits[racers[i].circuit].name + " Circuit | Race " + racers[i].cirnum + " | " + planets[tracks[i].planet].name).substring(0, 50),
                                     emoji: {
-                                        name: planets[tracks[option].planet].emoji.split(":")[1],
-                                        id: planets[tracks[option].planet].emoji.split(":")[2].replace(">", "")
+                                        name: planets[tracks[i].planet].emoji.split(":")[1],
+                                        id: planets[tracks[i].planet].emoji.split(":")[2].replace(">", "")
                                     }
                                 }
                             )
