@@ -2,6 +2,9 @@ module.exports = {
     numberWithCommas: function (x) {
         return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     },
+    capitalize: function(string){
+        return string[0].toUpperCase() + string.slice(1)
+    },
     timefix: function (time) {
         if(time == "DNF"){
             return "DNF"
