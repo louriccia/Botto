@@ -5553,7 +5553,7 @@ module.exports = {
                 const embed = new Discord.MessageEmbed()
                     .setAuthor("First Track")
                     .setTitle("How would you like to determine the first track?")
-                    .setDescription("*If players do not agree on a method, the default option will be used.*\n" + ([undefined, null].includes(livematch.firstvote) ? "" : Object.keys(livematch.firstvote).map(key => "<@" + key + "> voted for " + methods[livematch.firstvote[key]]).join("\n")))
+                    .setDescription("*If players do not agree on a method, the default option will be used.*\n" + ([undefined, null].includes(livematch.firstvote) ? "" : Object.keys(livematch.firstvote).map(key => "<@" + key + "> voted for **" + methods[livematch.firstvote[key]] + "**").join("\n")))
                 return embed
             }
 
@@ -5728,7 +5728,7 @@ module.exports = {
                         components: [
                             {
                                 type: 3,
-                                custom_id: "tourney_play_race" + race + "_event" + eventstart+i,
+                                custom_id: "tourney_play_race" + race + "_event" + (eventstart+i),
                                 options: options,
                                 placeholder: [event.type, event.event].join(" ").toUpperCase(),
                                 min_values: [undefined, null, ""].includes(event.count) ? 1 : event.count,
@@ -6067,7 +6067,7 @@ module.exports = {
                         components: [
                             {
                                 type: 2,
-                                label: "Proceed",
+                                label: ([undefined, null].includes(livematch.firstmethod) ? methods[liverules.general.firsttrack.primary] + " (Default)" : methods[livematch.firstmethod]),
                                 style: 3,
                                 custom_id: ("tourney_play_first_" + ([undefined, null].includes(livematch.firstmethod) ? "" : (livematch.firstmethod.includes("poe") ? "color" : livematch.firstmethod))),
                                 disabled: [undefined, null].includes(livematch.firstvote) || Object.keys(livematch.firstvote).length < 2
