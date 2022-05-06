@@ -288,8 +288,12 @@ client.once('ready', () => {
                     if (match.current && match.notification == false && match.datetime <= Date.now() + 1000 * 60 * 10 && Date.now() <= match.datetime + 1000 * 60 * 10) {
                         tourney_scheduled.child(key).child("notification").set(true)
                         //add roles
-                        match.players.forEach(player => Guild.members.cache.get(tourney_participants_data[player].id).roles.add('970995237952569404').catch(error => console.log(error)))
-                        Object.values(match.commentary).forEach(player => Guild.members.cache.get(tourney_participants_data[player].id).roles.add('970995237952569404').catch(error => console.log(error)))
+                        let everybody = Object.values(match.players).concat(Object.values(match.commentary))
+                        everybody.forEach(player => 
+                            Guild.members.cache.get(tourney_participants_data[player].id).then(member => {
+                                member.roles.add('970995237952569404').catch(error => console.log(error))
+                            })
+                        )
                         //setup match
                         let newmatch = {
                             status: "setup",
