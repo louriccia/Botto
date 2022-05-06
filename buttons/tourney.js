@@ -5662,7 +5662,7 @@ module.exports = {
                     .setAuthor("Race " + (race + 1))
                     .setDescription("" + ([undefined, null, ""].includes(events) ? "" :
                         Object.values(events).map(e =>
-                            "<@" + e.player + "> " + actions[e.event] + " a " + e.type + ": **" + (ban.type == "track" ? planets[tracks[ban.selection].planet].emoji + " " + tracks[ban.selection].name : ban.type == "racer" ? racers[ban.selection].flag + " " + racers[ban.selection].name : condition_names[e.selection]) + "**"
+                            "<@" + e.player + "> " + actions[e.event] + " a " + e.type + ": **" + (e.type == "track" ? planets[tracks[e.selection].planet].emoji + " " + tracks[e.selection].name : e.type == "racer" ? racers[e.selection].flag + " " + racers[e.selection].name : condition_names[e.selection]) + "**"
                         ).join("\n")))
                 return embed
             }
@@ -5749,7 +5749,7 @@ module.exports = {
                     .setAuthor("Permanent Bans")
                     .setDescription("" + ([undefined, null, ""].includes(events) ? "" :
                         Object.values(events).filter(event => event.event == "permaban").map(ban =>
-                            "<@" + ban.player + "> 🚫 perma-banned **" + (ban.type == "track" ? planets[tracks[ban.selection].planet].emoji + " " + tracks[ban.selection].name : racers[ban.selection].flag + " " + racers[ban.selection].name) + "**"
+                            "<@" + ban.player + "> 🚫 perma-banned a "+ (ban.type == "track" ? "track: **" + planets[tracks[ban.selection].planet].emoji + " " + tracks[ban.selection].name : "racer: " + racers[ban.selection].flag + " " + racers[ban.selection].name) + "**"
                         ).join("\n")))
                 return embed
             }
