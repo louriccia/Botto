@@ -5676,8 +5676,17 @@ module.exports = {
                 for (let i = eventstart; i <= eventend; i++) {
                     let event = events[i]
                     let options = []
-
-
+                    let default_stuff = []
+                    interaction.message.components.forEach(component => {
+                        let this_args = component.components[0].custom_id.split("_")
+                        if(Number(this_args[3].replace("event", "")) == event){
+                            default_stuff = component.components[0].options.filter(option => option.default).map(option => Number(option.value))
+                        }
+                    })
+                    let this_args = interaction.data.custom_id.split("_")
+                    if(interaction.data.hasOwnProperty("values") && Number(this_args[3].replace("event", "")) == event){
+                        default_stuff = interaction.data.values.map(value => Number(value))
+                    }
                     if (event.type == "racer") {
                         let permabanned_racers = Object.values(livematch.races[1].events).filter(event => event.event == "permaban" && event.type == "racer").map(event => Number(event.selection))
                         let tempbanned_racers = Object.values(livematch.races[race].events).filter(event => event.event == "tempban" && event.type == "racer").map(event => Number(event.selection))
@@ -5692,7 +5701,8 @@ module.exports = {
                                             emoji: {
                                                 name: racers[i].flag.split(":")[1],
                                                 id: racers[i].flag.split(":")[2].replace(">", "")
-                                            }
+                                            },
+                                            default: default_stuff.includes(i)
                                         }
                                     )
                             }
@@ -5710,7 +5720,8 @@ module.exports = {
                                         emoji: {
                                             name: planets[tracks[i].planet].emoji.split(":")[1],
                                             id: planets[tracks[i].planet].emoji.split(":")[2].replace(">", "")
-                                        }
+                                        },
+                                        default: default_stuff.includes(i)
                                     }
                                 )
                             }
@@ -5720,7 +5731,8 @@ module.exports = {
                             return (
                                 {
                                     label: condition_names[e],
-                                    value: e
+                                    value: e,
+                                    default: default_stuff.includes(i)
                                 }
                             )
                         })
@@ -5730,7 +5742,7 @@ module.exports = {
                         components: [
                             {
                                 type: 3,
-                                custom_id: "tourney_play_race" + race + "_event" + (eventstart+i),
+                                custom_id: "tourney_play_race" + race + "_event" + (eventstart + i),
                                 options: options,
                                 placeholder: [event.type, event.event].join(" ").toUpperCase(),
                                 min_values: [undefined, null, ""].includes(event.count) ? 1 : event.count,
@@ -5740,7 +5752,7 @@ module.exports = {
                     }
                     components.push(component)
                 }
-                if(components.length > 1){
+                if (components.length > 1) {
                     components.push(
                         {
                             type: 1,
@@ -5749,10 +5761,10 @@ module.exports = {
                                     type: 2,
                                     label: "Submit",
                                     style: 1,
-                                    custom_id: "tourney_play_race"+race + "_event_submit",
+                                    custom_id: "tourney_play_race" + race + "_event_submit",
                                 },
                             ]
-                        } 
+                        }
                     )
                 }
                 return components
@@ -5766,7 +5778,7 @@ module.exports = {
                     .setAuthor("Permanent Bans")
                     .setDescription("" + ([undefined, null, ""].includes(events) ? "" :
                         Object.values(events).filter(event => event.event == "permaban").map(ban =>
-                            "<@" + ban.player + "> 🚫 perma-banned a "+ (ban.type == "track" ? "track: **" + planets[tracks[ban.selection].planet].emoji + " " + tracks[ban.selection].name : "racer: " + racers[ban.selection].flag + " " + racers[ban.selection].name) + "**"
+                            "<@" + ban.player + "> 🚫 perma-banned a " + (ban.type == "track" ? "track: **" + planets[tracks[ban.selection].planet].emoji + " " + tracks[ban.selection].name : "racer: " + racers[ban.selection].flag + " " + racers[ban.selection].name) + "**"
                         ).join("\n")))
                 return embed
             }
@@ -6344,7 +6356,7 @@ module.exports = {
                         }, 1000)
                         setTimeout(async function () {
                             livematch = tourney_live_data[interaction.channel_id]
-                            postMessage("<@" + (livematch.firstmethod == "poe_t" ? getOpponent(livematch.firstplayer): livematch.firstplayer) + "> goes first!", [firstbanEmbed()], firstbanComponents())
+                            postMessage("<@" + (livematch.firstmethod == "poe_t" ? getOpponent(livematch.firstplayer) : livematch.firstplayer) + "> goes first!", [firstbanEmbed()], firstbanComponents())
                         }, 2000)
                         return
                     }
@@ -6482,10 +6494,19 @@ module.exports = {
             } else if (args[1].includes("race")) {
                 livematch = tourney_live_data[interaction.channel_id]
                 let race = Number(args[1].replace("race", ""))
+                let event = Number(args[2].replace("event", ""))
+                let events = Object.values(liverules.race)
+                let e = events[event]
                 if (args[2].includes("event")) {
-                    let event = Number(args[2].replace("event", ""))
-                    let events = Object.values(liverules.race)
-                    let e = events[event]
+                    if (interaction.message.components.length > 1) {
+                        if (args[3] == "submit") {
+
+                        } else {
+                            updateMessage("<@" + (events[event].choice == "lastwinner" ? getWinner(0) : getOpponent(getWinner(0))) + "> please make a selection", type, [raceEventEmbed(race)], raceEventComponents(race, event, event + interaction.message.components.length - 1))
+                            return
+                        }
+                    }
+
                     //save result
                     interaction.data.values.forEach(selection => {
                         let new_event = {
@@ -6494,25 +6515,25 @@ module.exports = {
                             player: interaction.member.user.id,
                             selection: selection,
                         }
-                        if(![null, undefined, ""].includes(e.cost)){
+                        if (![null, undefined, ""].includes(e.cost)) {
                             new_event.cost = e.cost
                         }
                         tourney_live.child(interaction.channel_id).child("races").child(race).child("events").push(new_event)
                     })
                     let streak = 0
-                    let choice = events[event+1].choice
-                    for(i = event+2; i < events.length; i++){
-                        if(events[i].choice == choice && streak <4){
-                            streak ++
+                    let choice = events[event + 1].choice
+                    for (i = event + 2; i < events.length; i++) {
+                        if (events[i].choice == choice && streak < 4) {
+                            streak++
                         }
                     }
-                    if(event+1 == events.length){
+                    if (event + 1 == events.length) {
                         updateMessage("", [raceEventEmbed(race)], [])
                         postMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), [raceEmbed(race)], raceComponents(race))
                     } else {
-                        updateMessage("<@" + (events[event+1].choice == "lastwinner" ? getWinner(0) : getOpponent(getWinner(0))) + "> please make a selection", type, [raceEventEmbed(race)], raceEventComponents(race, event+1, event+1+streak))
+                        updateMessage("<@" + (events[event + 1].choice == "lastwinner" ? getWinner(0) : getOpponent(getWinner(0))) + "> please make a selection", type, [raceEventEmbed(race)], raceEventComponents(race, event + 1, event + 1 + streak))
                     }
-                    
+
                 } else if (["ready", "unready"].includes(args[2])) {
                     if (![undefined, null, ""].includes(livematch.races[race].runs) && ![undefined, null, ""].includes(livematch.races[race].runs[interaction.member.user.id]) && ![undefined, null, ""].includes(livematch.races[race].runs[interaction.member.user.id].pod)) {
                         if (Object.values(livematch.players).includes(interaction.member.user.id)) {
