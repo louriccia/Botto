@@ -5679,9 +5679,10 @@ module.exports = {
 
 
                     if (event.type == "racer") {
-                        let banned_racers = Object.values(livematch.races[1].events).filter(event => event.event == "permaban" && event.type == "racer").concat(Object.values(livematch.races[race].events).filter(event => event.event == "tempban" && event.type == "racer"))
+                        let permabanned_racers = Object.values(livematch.races[1].events).filter(event => event.event == "permaban" && event.type == "racer").map(event => Number(event.selection))
+                        let tempbanned_racers = Object.values(livematch.races[race].events).filter(event => event.event == "tempban" && event.type == "racer").map(event => Number(event.selection))
                         for (let i = 0; i < 25; i++) {
-                            if (!banned_racers.includes(i)) {
+                            if (!tempbanned_racers.includes(i) && !permabanned_racers.includes(i)) {
                                 if (i < 23 || (!banned_racers.includes(8) && i == 23) || (!banned_racers.includes(22) && i == 24))
                                     options.push(
                                         {
@@ -5697,9 +5698,10 @@ module.exports = {
                             }
                         }
                     } else if (event.type == "track") {
-                        let banned_tracks = Object.values(livematch.races[1].events).filter(event => event.event == "permaban" && event.type == "track").concat(Object.values(livematch.races[race].events).filter(event => event.event == "tempban" && event.type == "track"))
+                        let permabanned_tracks = Object.values(livematch.races[1].events).filter(event => event.event == "permaban" && event.type == "track").map(event => Number(event.selection))
+                        let tempbanned_tracks = Object.values(livematch.races[race].events).filter(event => event.event == "tempban" && event.type == "track").map(event => Number(event.selection))
                         for (let i = 0; i < 25; i++) {
-                            if (!banned_tracks.includes(i)) {
+                            if (!permabanned_tracks.includes(i) && !tempbanned_tracks.includes(i)) {
                                 options.push(
                                     {
                                         label: tracks[i].name,
@@ -6288,7 +6290,7 @@ module.exports = {
                 const reminder = new Discord.MessageEmbed()
                     .setTitle("Reminders")
                     .addField("🕹️ Player Reminders", "○ Verify all pods/tracks/upgrades are unlocked\n○ Check that stream is running smoothly\n○ Disable game music\n○ Limit stream quality to 720p\n○ Wait until the results screen to report your times", false)
-                    .addField("🎙️ Commentator Reminders", "○ Enable all voice related settings in Discord such as noise supression/reduction, advanced voice activity, etc.\n○  Open Twitch to respond to chat", false)
+                    .addField("🎙️ Commentator Reminders", "○ Enable all voice related settings in Discord such as noise supression/reduction, advanced voice activity, etc.\n○  Open stream on Twitch to respond to chat", false)
                 const ruleset = new Discord.MessageEmbed()
                     .setAuthor("Ruleset Overview")
                     .setTitle("📜 " + tourney_rulesets_data.saved[livematch.ruleset].general.name)
@@ -6486,15 +6488,16 @@ module.exports = {
                     let e = events[event]
                     //save result
                     interaction.data.values.forEach(selection => {
-                        tourney_live.child(interaction.channel_id).child("races").child(race).child("events").push(
-                            {
-                                event: e.event,
-                                type: e.type,
-                                player: interaction.member.user.id,
-                                selection: selection,
-                                cost: e.cost
-                            }
-                        )
+                        let new_event = {
+                            event: e.event,
+                            type: e.type,
+                            player: interaction.member.user.id,
+                            selection: selection,
+                        }
+                        if(![null, undefined, ""].includes(e.cost)){
+                            new_event.cost = e.cost
+                        }
+                        tourney_live.child(interaction.channel_id).child("races").child(race).child("events").push(new_event)
                     })
                     let streak = 0
                     let choice = events[event+1].choice
