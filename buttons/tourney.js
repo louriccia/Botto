@@ -5728,7 +5728,7 @@ module.exports = {
                         components: [
                             {
                                 type: 3,
-                                custom_id: "tourney_play_race" + race + "_event" + event,
+                                custom_id: "tourney_play_race" + race + "_event" + eventstart+i,
                                 options: options,
                                 placeholder: [event.type, event.event].join(" ").toUpperCase(),
                                 min_values: [undefined, null, ""].includes(event.count) ? 1 : event.count,
@@ -5737,6 +5737,21 @@ module.exports = {
                         ]
                     }
                     components.push(component)
+                }
+                if(components.length > 1){
+                    components.push(
+                        {
+                            type: 1,
+                            components: [
+                                {
+                                    type: 2,
+                                    label: "Submit",
+                                    style: 1,
+                                    custom_id: "tourney_play_race"+race + "_event_submit",
+                                },
+                            ]
+                        } 
+                    )
                 }
                 return components
             }
@@ -6484,7 +6499,7 @@ module.exports = {
                     let streak = 0
                     let choice = events[event+1].choice
                     for(i = event+2; i < events.length; i++){
-                        if(events[i].choice == choice){
+                        if(events[i].choice == choice && streak <4){
                             streak ++
                         }
                     }
