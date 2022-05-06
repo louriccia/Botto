@@ -5742,9 +5742,9 @@ module.exports = {
                         components: [
                             {
                                 type: 3,
-                                custom_id: "tourney_play_race" + race + "_event" + (eventstart + i),
+                                custom_id: "tourney_play_race" + race + "_event" + i,
                                 options: options,
-                                placeholder: [event.type, event.event].join(" ").toUpperCase(),
+                                placeholder: [event.event, event.type].join(" "),
                                 min_values: [undefined, null, ""].includes(event.count) ? 1 : event.count,
                                 max_values: [undefined, null, ""].includes(event.count) ? 1 : [undefined, null, ""].includes(event.limit) ? options.length : event.limit == 0 ? options.length : event.count * event.limit
                             }
@@ -6502,7 +6502,7 @@ module.exports = {
                         if (args[3] == "submit") {
 
                         } else {
-                            updateMessage("<@" + (events[event].choice == "lastwinner" ? getWinner(0) : getOpponent(getWinner(0))) + "> please make a selection", type, [raceEventEmbed(race)], raceEventComponents(race, event, event + interaction.message.components.length - 1))
+                            updateMessage("<@" + (e.choice == "lastwinner" ? getWinner(0) : getOpponent(getWinner(0))) + "> please make a selection", type, [raceEventEmbed(race)], raceEventComponents(race, event, event + interaction.message.components.length - 1))
                             return
                         }
                     }
@@ -6531,7 +6531,7 @@ module.exports = {
                         updateMessage("", [raceEventEmbed(race)], [])
                         postMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), [raceEmbed(race)], raceComponents(race))
                     } else {
-                        updateMessage("<@" + (events[event + 1].choice == "lastwinner" ? getWinner(0) : getOpponent(getWinner(0))) + "> please make a selection", type, [raceEventEmbed(race)], raceEventComponents(race, event + 1, event + 1 + streak))
+                        updateMessage("<@" + (events[event + 1].choice == "lastwinner" ? getWinner(0) : getOpponent(getWinner(0))) + "> please make a selection", type, [raceEventEmbed(race)], raceEventComponents(race, (event + 1), (event + 1 + streak)))
                     }
 
                 } else if (["ready", "unready"].includes(args[2])) {
