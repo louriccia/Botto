@@ -5609,7 +5609,7 @@ module.exports = {
                                 Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length > 0 ? ":green_circle: Results Submitted" :
                                     racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name + "\n" +
                                     "⏱️ " + (livematch.races[race].runs[player].time === "" ? "--:--.---" : tools.timefix(livematch.races[race].runs[player].time)) + "\n" +
-                                    "💀 " + (livematch.races[race].runs[player].deaths === "" ? "--" : livematch.races[race].runs[player].deaths == "" ? "?" : Number(livematch.races[race].runs[player].deaths)).toFixed(0) + "\n" +
+                                    "💀 " + (livematch.races[race].runs[player].deaths === "" ? "--" : Number(livematch.races[race].runs[player].deaths)) + "\n" +
                                     (livematch.races[race].runs[player].notes == "" ? "" : "📝 " + livematch.races[race].runs[player].notes))
                             ,
                             true))
@@ -5625,7 +5625,7 @@ module.exports = {
                                 (player == winner ? "👑 " : "") + client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username,
                                 racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name + "\n" +
                                 "⏱️ " + (player == winner ? "__" : "") + tools.timefix(livematch.races[race].runs[player].time) + (player == winner ? "__" : "") + "\n" +
-                                "💀 " + (livematch.races[race].runs[player].deaths === "" ? "--" : Number(livematch.races[race].runs[player].deaths)).toFixed(0) + "\n" +
+                                "💀 " + (livematch.races[race].runs[player].deaths == "" ? "--" : Number(livematch.races[race].runs[player].deaths)) + "\n" +
                                 (livematch.races[race].runs[player].notes == "" ? "" : "📝 " + livematch.races[race].runs[player].notes),
                                 true))
                             embed.setTitle(track + ": " + (client.guilds.resolve(interaction.guild_id).members.resolve(winner).user.username) + " Wins!")
@@ -6327,7 +6327,7 @@ module.exports = {
                         }, 1000)
                         setTimeout(async function () {
                             livematch = tourney_live_data[interaction.channel_id]
-                            postMessage("<@" + livematch.firstplayer + "> goes first!", [firstbanEmbed()], firstbanComponents())
+                            postMessage("<@" + (livematch.firstmethod == "poe_t" ? getOpponent(livematch.firstplayer): livematch.firstplayer) + "> goes first!", [firstbanEmbed()], firstbanComponents())
                         }, 2000)
                         return
                     }
