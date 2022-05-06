@@ -5655,7 +5655,6 @@ module.exports = {
                 let events = races[race].events
                 const embed = new Discord.MessageEmbed()
                     .setAuthor("Race " + (race + 1))
-                    .setTitle(track)
                     .setDescription("" + ([undefined, null, ""].includes(events) ? "" :
                         Object.values(events).map(e =>
                             "<@" + e.player + "> banned **" + (ban.type == "track" ? planets[tracks[ban.selection].planet].emoji + " " + tracks[ban.selection].name : racers[ban.selection].flag + " " + racers[ban.selection].name) + "**"
@@ -5744,7 +5743,7 @@ module.exports = {
                     .setAuthor("Permanent Bans")
                     .setDescription("" + ([undefined, null, ""].includes(events) ? "" :
                         Object.values(events).filter(event => event.event == "permaban").map(ban =>
-                            "<@" + ban.player + "> banned **" + (ban.type == "track" ? tracks[ban.selection].name : racers[ban.selection].flag + " " + racers[ban.selection].name) + "**"
+                            "<@" + ban.player + "> banned **" + (ban.type == "track" ? planets[tracks[ban.selection].planet].emoji + " " + tracks[ban.selection].name : racers[ban.selection].flag + " " + racers[ban.selection].name) + "**"
                         ).join("\n")))
                 return embed
             }
@@ -6449,8 +6448,7 @@ module.exports = {
                     })
 
                     if (permaban_num + 1 == Object.values(liverules.match.permabans).length) {
-                        updateMessage("", type, [permabanEmbed()], [])
-                        postMessage("<@>", [raceEventEmbed(0)], raceEventComponents(0))
+                        updateMessage("<@>", [raceEventEmbed(0)], raceEventComponents(0))
                     } else {
                         updateMessage("<@" + (liverules.match.permabans[permaban_num + 1].choice == 'firstwinner' ? getWinner(0) : getOpponent(getWinner(0))) + ">", type, [permabanEmbed(permaban_num + 1)], permabanComponents(permaban_num + 1))
                     }
@@ -6461,7 +6459,10 @@ module.exports = {
             } else if (args[1].includes("race")) {
                 livematch = tourney_live_data[interaction.channel_id]
                 let race = Number(args[1].replace("race", ""))
-                if (["ready", "unready"].includes(args[2])) {
+                if(args[2].includes("event")){
+                    let event = Number(args[2].replace("event", ""))
+                    
+                } else if (["ready", "unready"].includes(args[2])) {
                     if (![undefined, null, ""].includes(livematch.races[race].runs) && ![undefined, null, ""].includes(livematch.races[race].runs[interaction.member.user.id]) && ![undefined, null, ""].includes(livematch.races[race].runs[interaction.member.user.id].pod)) {
                         if (Object.values(livematch.players).includes(interaction.member.user.id)) {
                             tourney_live.child(interaction.channel_id).child("races").child(race).child("ready").child(interaction.member.user.id).set((args[2] == "ready" ? true : false))
