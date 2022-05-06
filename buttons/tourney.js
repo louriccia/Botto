@@ -5648,9 +5648,9 @@ module.exports = {
                 return embed
             }
 
-            function raceEventEmbed(race, event) {
+            function raceEventEmbed(race, current_event) {
                 livematch = tourney_live_data[interaction.channel_id]
-                let event = liverules.race[event]
+                let event = liverules.race[current_event]
                 let races = Object.values(livematch.races)
                 let events = races[race].events
                 const embed = new Discord.MessageEmbed()
