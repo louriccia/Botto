@@ -6454,7 +6454,7 @@ module.exports = {
                     })
                     if (permaban_num + 1 == Object.values(liverules.match.permabans).length) {
                         let events = Object.values(liverules.race)
-                        updateMessage("<@" + (events[0].choice == "lastwinner" ? getWinner(0) : getOpponent(getWinner(0))) + "> please make a selection", [raceEventEmbed(1)], raceEventComponents(1, 0))
+                        updateMessage("<@" + (events[0].choice == "lastwinner" ? getWinner(0) : getOpponent(getWinner(0))) + "> please make a selection", type, [raceEventEmbed(1)], raceEventComponents(1, 0))
                     } else {
                         updateMessage("<@" + (liverules.match.permabans[permaban_num + 1].choice == 'firstwinner' ? getWinner(0) : getOpponent(getWinner(0))) + ">", type, [permabanEmbed(permaban_num + 1)], permabanComponents(permaban_num + 1))
                     }
