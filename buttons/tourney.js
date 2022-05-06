@@ -6492,7 +6492,7 @@ module.exports = {
                         updateMessage("", [raceEventEmbed(race)], [])
                         postMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), [raceEmbed(race)], raceComponents(race))
                     } else {
-                        updateMessage("<@" + (events[event+1].choice == "lastwinner" ? getWinner(0) : getOpponent(getWinner(0))) + "> please make a selection", [raceEventEmbed(race)], raceEventComponents(race, event+1, event+1+streak))
+                        updateMessage("<@" + (events[event+1].choice == "lastwinner" ? getWinner(0) : getOpponent(getWinner(0))) + "> please make a selection", type, [raceEventEmbed(race)], raceEventComponents(race, event+1, event+1+streak))
                     }
                     
                 } else if (["ready", "unready"].includes(args[2])) {
