@@ -5683,7 +5683,7 @@ module.exports = {
                         let tempbanned_racers = Object.values(livematch.races[race].events).filter(event => event.event == "tempban" && event.type == "racer").map(event => Number(event.selection))
                         for (let i = 0; i < 25; i++) {
                             if (!tempbanned_racers.includes(i) && !permabanned_racers.includes(i)) {
-                                if (i < 23 || (!banned_racers.includes(8) && i == 23) || (!banned_racers.includes(22) && i == 24))
+                                if (i < 23 || (!permabanned_racers.includes(8) && i == 23) || (!tempbanned_racers.includes(22) && i == 24))
                                     options.push(
                                         {
                                             label: racers[i].name,
