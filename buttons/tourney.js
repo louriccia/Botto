@@ -5734,7 +5734,7 @@ module.exports = {
                                 options: options,
                                 placeholder: [event.type, event.event].join(" ").toUpperCase(),
                                 min_values: [undefined, null, ""].includes(event.count) ? 1 : event.count,
-                                max_values: [undefined, null, ""].includes(event.count) ? 1 : [undefined, null, ""].includes(event.limit) ? options.length : event.count * event.limit
+                                max_values: [undefined, null, ""].includes(event.count) ? 1 : [undefined, null, ""].includes(event.limit) ? options.length : event.limit == 0 ? options.length : event.count * event.limit
                             }
                         ]
                     }
