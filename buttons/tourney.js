@@ -5609,7 +5609,7 @@ module.exports = {
                                 Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length > 0 ? ":green_circle: Results Submitted" :
                                     racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name + "\n" +
                                     "⏱️ " + (livematch.races[race].runs[player].time === "" ? "--:--.---" : tools.timefix(livematch.races[race].runs[player].time)) + "\n" +
-                                    "💀 " + (livematch.races[race].runs[player].deaths === "" ? "--" : Number(livematch.races[race].runs[player].deaths)).toFixed(0) + "\n" +
+                                    "💀 " + (livematch.races[race].runs[player].deaths === "" ? "--" : livematch.races[race].runs[player].deaths == "" ? "?" : Number(livematch.races[race].runs[player].deaths)).toFixed(0) + "\n" +
                                     (livematch.races[race].runs[player].notes == "" ? "" : "📝 " + livematch.races[race].runs[player].notes))
                             ,
                             true))
@@ -6324,11 +6324,11 @@ module.exports = {
                             let firstplayer = Math.floor(Math.random() * 2) == 1 ? players[1] : players[0]
                             tourney_live.child(interaction.channel_id).child("firstplayer").set(firstplayer)
                             postMessage(":" + livematch.firstcolors[firstplayer] + "_square:", [], [])
-                        }, 3000)
+                        }, 1000)
                         setTimeout(async function () {
                             livematch = tourney_live_data[interaction.channel_id]
                             postMessage("<@" + livematch.firstplayer + "> goes first!", [firstbanEmbed()], firstbanComponents())
-                        }, 3500)
+                        }, 2000)
                         return
                     }
                     updateMessage(content, type, [colorEmbed()], colorComponents())
