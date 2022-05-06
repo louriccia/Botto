@@ -6468,7 +6468,33 @@ module.exports = {
                 if (args[2].includes("event")) {
                     let event = Number(args[2].replace("event", ""))
                     let events = Object.values(liverules.race)
-                    updateMessage("<@" + (events[event+1].choice == "lastwinner" ? getWinner(0) : getOpponent(getWinner(0))) + "> please make a selection", [raceEventEmbed(event+1)], raceEventComponents(event+1))
+                    let e = events[event]
+                    //save result
+                    interaction.data.values.forEach(selection => {
+                        tourney_live.child(interaction.channel_id).child("races").child(race).child("events").push(
+                            {
+                                event: e.event,
+                                type: e.type,
+                                player: interaction.member.user.id,
+                                selection: selection,
+                                cost: e.cost
+                            }
+                        )
+                    })
+                    let streak = 0
+                    let choice = events[event+1].choice
+                    for(i = event+2; i < events.length; i++){
+                        if(events[i].choice == choice){
+                            streak ++
+                        }
+                    }
+                    if(event+1 == events.length){
+                        updateMessage("", [raceEventEmbed(race)], [])
+                        postMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), [raceEmbed(race)], raceComponents(race))
+                    } else {
+                        updateMessage("<@" + (events[event+1].choice == "lastwinner" ? getWinner(0) : getOpponent(getWinner(0))) + "> please make a selection", [raceEventEmbed(race)], raceEventComponents(race, event+1, event+1+streak))
+                    }
+                    
                 } else if (["ready", "unready"].includes(args[2])) {
                     if (![undefined, null, ""].includes(livematch.races[race].runs) && ![undefined, null, ""].includes(livematch.races[race].runs[interaction.member.user.id]) && ![undefined, null, ""].includes(livematch.races[race].runs[interaction.member.user.id].pod)) {
                         if (Object.values(livematch.players).includes(interaction.member.user.id)) {
