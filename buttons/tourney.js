@@ -5706,7 +5706,7 @@ module.exports = {
                     if (interaction.data.hasOwnProperty("values") && Number(this_args[3].replace("event", "")) == i) {
                         default_stuff = interaction.data.values.map(value => String(value))
                     }
-                    if([null, undefined, ""].includes(event.cost) || getForcePoints(player) >= event.cost){
+                    if ([null, undefined, ""].includes(event.cost) || getForcePoints(player) >= event.cost) {
                         if (![null, undefined, ""].includes(event.cost)) {
                             fptotal += (default_stuff.length / event.count) * event.cost
                         }
@@ -6526,33 +6526,35 @@ module.exports = {
                             if (args[3] == "submit") {
                                 let newevents = []
                                 interaction.message.components.forEach(component => {
-                                    let thisargs = component.components[0].custom_id.split("_")
-                                    let thisevent = Number(thisargs[3].replace("event", ""))
-                                    let e = liverules.race[thisevent]
-                                    let options = component.components[0].options.filter(option => option.default)
-                                    if ([null, undefined, ""].includes(e.count)){
-                                        e.count = 1
-                                    }
-                                    if (options.length % e.count !== 0) {
-                                        ephemeralMessage("You must " + e.event.replace("selection", "select") + " " + e.type + "s in sets of " + e.count + " <:WhyNobodyBuy:589481340957753363>", [], [])
-                                        return
-                                    } else {
-                                        for (let i = 0; i < options.length / e.count; i++) {
-                                            let option = options.slice(0, e.count)
-                                            options = options.slice(e.count)
-                                            if(option.length == 1){
-                                                option = option[0]
+                                    if (component.components[0].type == 3) {
+                                        let thisargs = component.components[0].custom_id.split("_")
+                                        let thisevent = Number(thisargs[3].replace("event", ""))
+                                        let e = liverules.race[thisevent]
+                                        let options = component.components[0].options.filter(option => option.default)
+                                        if ([null, undefined, ""].includes(e.count)) {
+                                            e.count = 1
+                                        }
+                                        if (options.length % e.count !== 0) {
+                                            ephemeralMessage("You must " + e.event.replace("selection", "select") + " " + e.type + "s in sets of " + e.count + " <:WhyNobodyBuy:589481340957753363>", [], [])
+                                            return
+                                        } else {
+                                            for (let i = 0; i < options.length / e.count; i++) {
+                                                let option = options.slice(0, e.count)
+                                                options = options.slice(e.count)
+                                                if (option.length == 1) {
+                                                    option = option[0]
+                                                }
+                                                let new_event = {
+                                                    event: e.event,
+                                                    type: e.type,
+                                                    player: interaction.member.user.id,
+                                                    selection: option,
+                                                }
+                                                if (![null, undefined, ""].includes(e.cost)) {
+                                                    new_event.cost = e.cost
+                                                }
+                                                newevents.push(new_event)
                                             }
-                                            let new_event = {
-                                                event: e.event,
-                                                type: e.type,
-                                                player: interaction.member.user.id,
-                                                selection: option,
-                                            }
-                                            if (![null, undefined, ""].includes(e.cost)) {
-                                                new_event.cost = e.cost
-                                            }
-                                            newevents.push(new_event)
                                         }
                                     }
                                 })
