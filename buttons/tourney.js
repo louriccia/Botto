@@ -5634,7 +5634,7 @@ module.exports = {
                     } else {
                         embed.setDescription(conditions.map(con => "`" + condition_names[con] + "`").join(" "))
                             .setColor("#FFFFFF")
-                        if (Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length == 0) {
+                        if (![null, undefined, ""].includes(livematch.races[race].runs) && Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length == 0) {
                             let winner = getWinner(race)
                             Object.values(livematch.players).map(player => embed.addField(
                                 (player == winner ? "👑 " : "") + client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username,
