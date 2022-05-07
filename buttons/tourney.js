@@ -5677,7 +5677,13 @@ module.exports = {
                     .setAuthor("Race " + (race + 1))
                     .setDescription("" + ([undefined, null, ""].includes(events) ? "" :
                         Object.values(events).map(e =>
-                            "<@" + e.player + "> " + actions[e.event] + " a " + e.type + ": **" + (e.type == "track" ? planets[tracks[e.selection].planet].emoji + " " + tracks[e.selection].name : e.type == "racer" ? racers[e.selection].flag + " " + racers[e.selection].name : condition_names[e.selection]) + "**"
+                            "<@" + e.player + "> " + actions[e.event] + " a " + e.type + ": **" + (e.type == "track" ?
+                                planets[tracks[e.selection].planet].emoji + " " + tracks[e.selection].name :
+                                e.type == "racer" ?
+                                    Array.isArray(e.selection) ?
+                                        e.selection.map(racer => racers[racer].flag + " " + racers[racer].name).join(", ") :
+                                        racers[e.selection].flag + " " + racers[e.selection].name :
+                                    condition_names[e.selection]) + "**"
                         ).join("\n")))
                 return embed
             }
@@ -6584,7 +6590,7 @@ module.exports = {
                         }
 
                         //save result
-                        
+
                         let streak = 0
                         let choice = events[event + 1].choice
                         for (i = event + 2; i < events.length; i++) {
