@@ -5802,6 +5802,7 @@ module.exports = {
                         }
                     )
                 }
+                console.log(components)
                 return components
             }
 
@@ -6342,6 +6343,10 @@ module.exports = {
                         })
                     }
 
+                } else if (args[2] == 'cancel'){
+                    tourney_live.child(interaction.channel_id).remove()
+                    updateMessage("Match was cancelled", type, [], [])
+                    return
                 }
                 updateMessage("", type, [setupEmbed()], setupComponents())
             } else if (args[1] == "start") {
@@ -6398,7 +6403,7 @@ module.exports = {
                         }
                     }
                     )
-                    tourney_live.child(interaction.channel_id).child("races").child("0").set(race_object)
+                    tourney_live.child(interaction.channel_id).child("races").child("0").update(race_object)
                 }
                 if (args[2] == 'start') {
                     if ([undefined, null].includes(livematch.firstmethod)) {
