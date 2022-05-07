@@ -6014,15 +6014,15 @@ module.exports = {
                 if (podoptions.includes(22)) {
                     podoptions.push(24)
                 }
-                podoptions.map(option => {
+                podoptions = podoptions.map(option => {
                     return (
                         {
                             value: option,
                             avg: tools.avgSpeed(
                                 tools.upgradeTopSpeed(racers[option].max_speed, upg),
-                                racers[option].boost_thrust, racers[option].heat_rate,
-                                tools.upgradeCooling(racers[option].cool_rate)
-                            )
+                                racers[option].boost_thrust, 
+                                racers[option].heat_rate,
+                                tools.upgradeCooling(racers[option].cool_rate, upg))
                         }
                     )}
                 ).sort(function (a, b) { return (b.avg - a.avg) })
