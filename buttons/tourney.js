@@ -5989,7 +5989,7 @@ module.exports = {
                 let podoptions = []
                 let upg = 5
                 events.forEach(event => {
-                    if(Object.values(liverules.general.default).includes('nu') || (event.event == 'override' && event.type == 'condition' && event.selection == 'nu')){
+                    if (Object.values(liverules.general.default).includes('nu') || (event.event == 'override' && event.type == 'condition' && event.selection == 'nu')) {
                         upg = 0
                     }
                     if (event.event == "tempban" && event.type == "racer") {
@@ -5998,7 +5998,7 @@ module.exports = {
                                 podbans.push(selection)
                             })
                         } else {
-                            podbans.push(selection)
+                            podbans.push(event.selection)
                         }
                         podbans.push(event.selection)
                     }
@@ -6014,7 +6014,20 @@ module.exports = {
                 if (podoptions.includes(22)) {
                     podoptions.push(24)
                 }
-                podoptions.map(option => {return ({value: option, avg: tools.avgSpeed(tools.upgradeTopSpeed(racers[option].max_speed, upg), racers[option].boost_thrust, racers[option].heat_rate, tools.upgradeCooling(racers[option].cool_rate))})}).sort((a,b) => b.avg - a.avg).map(option => option.option)
+                podoptions.map(option => {
+                    return (
+                        {
+                            value: option,
+                            avg: tools.avgSpeed(
+                                tools.upgradeTopSpeed(racers[option].max_speed, upg),
+                                racers[option].boost_thrust, racers[option].heat_rate,
+                                tools.upgradeCooling(racers[option].cool_rate)
+                            )
+                        }
+                    )}
+                ).sort(function (a, b) { return (b.avg - a.avg) })
+                console.log(podoptions)
+                podoptions = podoptions.map(option => option.option)
                 let components = [
                     {
                         type: 1,
