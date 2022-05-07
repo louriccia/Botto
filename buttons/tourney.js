@@ -5946,13 +5946,6 @@ module.exports = {
                             style: 1,
                             custom_id: "tourney_play_setup_comm",
                             disabled: !joinable_commentator
-                        },
-
-                        {
-                            type: 2,
-                            label: "Set Stream",
-                            style: 2,
-                            custom_id: "tourney_play_setup_stream",
                         }
                     ]
                 }, {
@@ -6556,9 +6549,12 @@ module.exports = {
                                             if (![null, undefined, ""].includes(e.cost)) {
                                                 new_event.cost = e.cost
                                             }
-                                            tourney_live.child(interaction.channel_id).child("races").child(race).child('events').push(new_event)
+                                            newevents.push(new_event)
                                         }
                                     }
+                                })
+                                newevents.forEach(event => {
+                                    tourney_live.child(interaction.channel_id).child("races").child(race).child('events').push(event)
                                 })
                             } else {
                                 updateMessage("<@" + (e.choice == "lastwinner" ? getWinner(0) : getOpponent(getWinner(0))) + "> please make a selection", type, [raceEventEmbed(race)], raceEventComponents(race))
