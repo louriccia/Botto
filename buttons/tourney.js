@@ -5680,12 +5680,12 @@ module.exports = {
                     interaction.message.components.forEach(component => {
                         let this_args = component.components[0].custom_id.split("_")
                         if(Number(this_args[3].replace("event", "")) == i){
-                            default_stuff = component.components[0].options.filter(option => option.default).map(option => Number(option.value))
+                            default_stuff = component.components[0].options.filter(option => option.default).map(option => String(option.value))
                         }
                     })
                     let this_args = interaction.data.custom_id.split("_")
                     if(interaction.data.hasOwnProperty("values") && Number(this_args[3].replace("event", "")) == i){
-                        default_stuff = interaction.data.values.map(value => Number(value))
+                        default_stuff = interaction.data.values.map(value => String(value))
                     }
                     if (event.type == "racer") {
                         let permabanned_racers = Object.values(livematch.races[1].events).filter(event => event.event == "permaban" && event.type == "racer").map(event => Number(event.selection))
@@ -5744,7 +5744,7 @@ module.exports = {
                                 type: 3,
                                 custom_id: "tourney_play_race" + race + "_event" + i,
                                 options: options,
-                                placeholder: [event.event, event.type].join(" "),
+                                placeholder: tools.capitalize([event.event.replace("selection", "select"), event.type].join(" ")) + " (" + (event.cost == 0 ? "free" : event.cost + " forcepoint/" + (event.count == 1 ? event.type: event.count + " " + event.type + "s")) + ")",
                                 min_values: [undefined, null, ""].includes(event.count) ? 1 : event.count,
                                 max_values: [undefined, null, ""].includes(event.count) ? 1 : [undefined, null, ""].includes(event.limit) ? options.length : event.limit == 0 ? options.length : event.count * event.limit
                             }

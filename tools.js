@@ -3,7 +3,7 @@ module.exports = {
         return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     },
     capitalize: function(string){
-        return string[0].toUpperCase() + string.slice(1)
+        return string.split(" ").map(word => word[0].toUpperCase() + word.slice(1)).join(" ")
     },
     timefix: function (time) {
         if(time == "DNF"){

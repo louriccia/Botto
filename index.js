@@ -202,7 +202,7 @@ client.once('ready', () => {
                 let values = []
 
                 Object.keys(tourney_scheduled_data).forEach(key => {
-                    tourney_scheduled.child(key).update({current: false})
+                    tourney_scheduled.child(key).update({ current: false })
                 })
 
                 cheerio('tr', table).each((i, elem) => { //for each row
@@ -253,31 +253,31 @@ client.once('ready', () => {
                     events.forEach(event => {
                         if (event.scheduledStartTimestamp == match.datetime) {
                             eventdup = true
-                            tourney_scheduled.child(key).update({event: event.id})
-                            if(event.status == "SCHEDULED"){
-                                try{
+                            tourney_scheduled.child(key).update({ event: event.id })
+                            if (event.status == "SCHEDULED") {
+                                try {
                                     Guild.scheduledEvents.edit(Guild.scheduledEvents.resolve(event.id), {
-                                        name: match.players.map(id=> tourney_participants_data[id].name).join(" vs "),
-                                        description: "Commentary: " + Object.values(match.commentary).length > 0 ? Object.values(match.commentary).map(id=> tourney_participants_data[id].name).join(", ") : "",
+                                        name: match.players.map(id => tourney_participants_data[id].name).join(" vs "),
+                                        description: "Commentary: " + Object.values(match.commentary).length > 0 ? Object.values(match.commentary).map(id => tourney_participants_data[id].name).join(", ") : "",
                                         entityType: 'EXTERNAL',
-                                        entityMetadata: {location: (match.url == "" ? "https://twitch.tv/SpeedGaming" : match.url)}
+                                        entityMetadata: { location: (match.url == "" ? "https://twitch.tv/SpeedGaming" : match.url) }
                                     })
                                 } catch {
                                     console.log("failed to edit scheduled event")
                                 }
                             }
-                            
-                            
+
+
                         }
                     })
-                    if(!eventdup && match.current && match.datetime > Date.now()){
+                    if (!eventdup && match.current && match.datetime > Date.now()) {
                         Guild.scheduledEvents.create({
-                            name: match.players.map(id=> tourney_participants_data[id].name).join(" vs "),
+                            name: match.players.map(id => tourney_participants_data[id].name).join(" vs "),
                             scheduledStartTime: match.datetime,
-                            scheduledEndTime: match.datetime + 1000*60*60,
+                            scheduledEndTime: match.datetime + 1000 * 60 * 60,
                             entityType: "EXTERNAL",
-                            description: "Commentary: " + Object.values(match.commentary).length > 0 ? Object.values(match.commentary).map(id=> tourney_participants_data[id].name).join(", ") : "",
-                            entityMetadata: {location: (match.url == "" ? "https://twitch.tv/SpeedGaming" : match.url)},
+                            description: "Commentary: " + Object.values(match.commentary).length > 0 ? Object.values(match.commentary).map(id => tourney_participants_data[id].name).join(", ") : "",
+                            entityMetadata: { location: (match.url == "" ? "https://twitch.tv/SpeedGaming" : match.url) },
                             privacyLevel: 'GUILD_ONLY'
                         })
                     }
@@ -289,10 +289,11 @@ client.once('ready', () => {
                         tourney_scheduled.child(key).child("notification").set(true)
                         //add roles
                         let everybody = Object.values(match.players).concat(Object.values(match.commentary))
-                        everybody.forEach(player => 
-                            Guild.members.cache.get(tourney_participants_data[player].id).then(member => {
-                                member.roles.add('970995237952569404').catch(error => console.log(error))
-                            })
+                        everybody.forEach(player => {
+                            const thismember = await Guild.members.fetch(tourney_participants_data[player].id)
+                            thismember.roles.add('970995237952569404').catch(error => console.log(error))
+                        }
+
                         )
                         //setup match
                         let newmatch = {
