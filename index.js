@@ -289,7 +289,7 @@ client.once('ready', () => {
                         tourney_scheduled.child(key).child("notification").set(true)
                         //add roles
                         let everybody = Object.values(match.players).concat(Object.values(match.commentary))
-                        everybody.forEach(player => {
+                        everybody.forEach(async function(player) {
                             const thismember = await Guild.members.fetch(tourney_participants_data[player].id)
                             thismember.roles.add('970995237952569404').catch(error => console.log(error))
                         }
