@@ -6542,7 +6542,9 @@ module.exports = {
                                                 let option = options.slice(0, e.count)
                                                 options = options.slice(e.count)
                                                 if (option.length == 1) {
-                                                    option = option[0]
+                                                    option = option[0].value
+                                                } else {
+                                                    option = option.map(o => o.value)
                                                 }
                                                 let new_event = {
                                                     event: e.event,
@@ -6561,25 +6563,28 @@ module.exports = {
                                 newevents.forEach(event => {
                                     tourney_live.child(interaction.channel_id).child("races").child(race).child('events').push(event)
                                 })
+
                             } else {
                                 updateMessage("<@" + (e.choice == "lastwinner" ? getWinner(0) : getOpponent(getWinner(0))) + "> please make a selection", type, [raceEventEmbed(race)], raceEventComponents(race))
                                 return
                             }
+                        } else {
+                            interaction.data.values.forEach(selection => {
+                                let new_event = {
+                                    event: e.event,
+                                    type: e.type,
+                                    player: interaction.member.user.id,
+                                    selection: selection,
+                                }
+                                if (![null, undefined, ""].includes(e.cost)) {
+                                    new_event.cost = e.cost
+                                }
+                                tourney_live.child(interaction.channel_id).child("races").child(race).child("events").push(new_event)
+                            })
                         }
 
                         //save result
-                        interaction.data.values.forEach(selection => {
-                            let new_event = {
-                                event: e.event,
-                                type: e.type,
-                                player: interaction.member.user.id,
-                                selection: selection,
-                            }
-                            if (![null, undefined, ""].includes(e.cost)) {
-                                new_event.cost = e.cost
-                            }
-                            tourney_live.child(interaction.channel_id).child("races").child(race).child("events").push(new_event)
-                        })
+                        
                         let streak = 0
                         let choice = events[event + 1].choice
                         for (i = event + 2; i < events.length; i++) {
@@ -6587,7 +6592,7 @@ module.exports = {
                                 streak++
                             }
                         }
-                        if (event + 1 == events.length) {
+                        if (eventend + 1 == events.length) {
                             updateMessage("", [raceEventEmbed(race)], [])
                             postMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), [raceEmbed(race)], raceComponents(race))
                         } else {
