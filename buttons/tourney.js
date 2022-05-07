@@ -6530,6 +6530,9 @@ module.exports = {
                                     let thisevent = Number(thisargs[2].replace("event", ""))
                                     let e = liverules.race[thisevent]
                                     let options = component.components[0].options.filter(option => option.default)
+                                    if ([null, undefined, ""].includes(e.count)){
+                                        e.count = 1
+                                    }
                                     if (options.length % e.count !== 0) {
                                         ephemeralMessage("You must " + e.event.replace("selection", "select") + " " + e.type + "s in sets of " + e.count + " <:WhyNobodyBuy:589481340957753363>", [], [])
                                         return
