@@ -5475,7 +5475,7 @@ module.exports = {
                 races.forEach(race => {
                     let events = Object.values(race.events)
                     events.forEach(event => {
-                        if(event.player == player && [null, undefined, ""].includes(event.cost)){
+                        if (event.player == player && [null, undefined, ""].includes(event.cost)) {
                             forcepoints -= event.cost
                         }
                     })
@@ -5689,89 +5689,95 @@ module.exports = {
                 let eventend = livematch.races[race].eventend
                 let events = Object.values(liverules.race)
                 let fptotal = 0
-                let player = (events[eventstart].choice == "lastwinner" ? getWinner(race-1) : getOpponent(getWinner(race-1)))
+                let player = (events[eventstart].choice == "lastwinner" ? getWinner(race - 1) : getOpponent(getWinner(race - 1)))
+                let notrack = false
                 for (let i = eventstart; i <= eventend; i++) {
                     let event = events[i]
                     let options = []
                     let default_stuff = []
+                    //get defaults
                     interaction.message.components.forEach(component => {
                         let this_args = component.components[0].custom_id.split("_")
-                        if(Number(this_args[3].replace("event", "")) == i){
+                        if (Number(this_args[3].replace("event", "")) == i) {
                             default_stuff = component.components[0].options.filter(option => option.default).map(option => String(option.value))
                         }
                     })
                     let this_args = interaction.data.custom_id.split("_")
-                    if(interaction.data.hasOwnProperty("values") && Number(this_args[3].replace("event", "")) == i){
+                    if (interaction.data.hasOwnProperty("values") && Number(this_args[3].replace("event", "")) == i) {
                         default_stuff = interaction.data.values.map(value => String(value))
                     }
-                    if(![null, undefined, ""].includes(event.cost)){
-                        fptotal += (default_stuff.length / event.count)*event.cost
-                    }
-                    console.log(default_stuff)
-                    if (event.type == "racer") {
-                        let permabanned_racers = Object.values(livematch.races[1].events).filter(event => event.event == "permaban" && event.type == "racer").map(event => Number(event.selection))
-                        let tempbanned_racers = Object.values(livematch.races[race].events).filter(event => event.event == "tempban" && event.type == "racer").map(event => Number(event.selection))
-                        for (let i = 0; i < 25; i++) {
-                            if (!tempbanned_racers.includes(i) && !permabanned_racers.includes(i)) {
-                                if (i < 23 || (!permabanned_racers.includes(8) && i == 23) || (!tempbanned_racers.includes(22) && i == 24))
+                    if([null, undefined, ""].includes(event.cost) || getForcePoints(player) >= event.cost){
+                        if (![null, undefined, ""].includes(event.cost)) {
+                            fptotal += (default_stuff.length / event.count) * event.cost
+                        }
+                        if (event.type == "racer") {
+                            let permabanned_racers = Object.values(livematch.races[1].events).filter(event => event.event == "permaban" && event.type == "racer").map(event => Number(event.selection))
+                            let tempbanned_racers = Object.values(livematch.races[race].events).filter(event => event.event == "tempban" && event.type == "racer").map(event => Number(event.selection))
+                            for (let i = 0; i < 25; i++) {
+                                if (!tempbanned_racers.includes(i) && !permabanned_racers.includes(i)) {
+                                    if (i < 23 || (!permabanned_racers.includes(8) && i == 23) || (!tempbanned_racers.includes(22) && i == 24))
+                                        options.push(
+                                            {
+                                                label: racers[i].name,
+                                                value: i,
+                                                description: racers[i].pod.substring(0, 50),
+                                                emoji: {
+                                                    name: racers[i].flag.split(":")[1],
+                                                    id: racers[i].flag.split(":")[2].replace(">", "")
+                                                },
+                                                default: default_stuff.includes(String(i))
+                                            }
+                                        )
+                                }
+                            }
+                        } else if (event.type == "track") {
+                            let permabanned_tracks = Object.values(livematch.races[1].events).filter(event => event.event == "permaban" && event.type == "track").map(event => Number(event.selection))
+                            let tempbanned_tracks = Object.values(livematch.races[race].events).filter(event => event.event == "tempban" && event.type == "track").map(event => Number(event.selection))
+                            if (event.event == "selection" && default_stuff.length == 0) {
+                                notrack = true
+                            }
+                            for (let i = 0; i < 25; i++) {
+                                if (!permabanned_tracks.includes(i) && !tempbanned_tracks.includes(i)) {
                                     options.push(
                                         {
-                                            label: racers[i].name,
+                                            label: tracks[i].name,
                                             value: i,
-                                            description: racers[i].pod.substring(0, 50),
+                                            description: (circuits[tracks[i].circuit].name + " Circuit | Race " + tracks[i].cirnum + " | " + planets[tracks[i].planet].name).substring(0, 50),
                                             emoji: {
-                                                name: racers[i].flag.split(":")[1],
-                                                id: racers[i].flag.split(":")[2].replace(">", "")
+                                                name: planets[tracks[i].planet].emoji.split(":")[1],
+                                                id: planets[tracks[i].planet].emoji.split(":")[2].replace(">", "")
                                             },
                                             default: default_stuff.includes(String(i))
                                         }
                                     )
+                                }
                             }
-                        }
-                    } else if (event.type == "track") {
-                        let permabanned_tracks = Object.values(livematch.races[1].events).filter(event => event.event == "permaban" && event.type == "track").map(event => Number(event.selection))
-                        let tempbanned_tracks = Object.values(livematch.races[race].events).filter(event => event.event == "tempban" && event.type == "track").map(event => Number(event.selection))
-                        for (let i = 0; i < 25; i++) {
-                            if (!permabanned_tracks.includes(i) && !tempbanned_tracks.includes(i)) {
-                                options.push(
+                        } else if (event.type == "condition") {
+                            options = Object.values(event.options).map(e => {
+                                return (
                                     {
-                                        label: tracks[i].name,
-                                        value: i,
-                                        description: (circuits[tracks[i].circuit].name + " Circuit | Race " + tracks[i].cirnum + " | " + planets[tracks[i].planet].name).substring(0, 50),
-                                        emoji: {
-                                            name: planets[tracks[i].planet].emoji.split(":")[1],
-                                            id: planets[tracks[i].planet].emoji.split(":")[2].replace(">", "")
-                                        },
-                                        default: default_stuff.includes(String(i))
+                                        label: condition_names[e],
+                                        value: e,
+                                        default: default_stuff.includes(e)
                                     }
                                 )
-                            }
+                            })
                         }
-                    } else if (event.type == "condition") {
-                        options = Object.values(event.options).map(e => {
-                            return (
+                        let component = {
+                            type: 1,
+                            components: [
                                 {
-                                    label: condition_names[e],
-                                    value: e,
-                                    default: default_stuff.includes(e)
+                                    type: 3,
+                                    custom_id: "tourney_play_race" + race + "_event" + i,
+                                    options: options,
+                                    placeholder: tools.capitalize([event.event.replace("selection", "select"), event.type].join(" ")) + ([null, undefined, ""].includes(event.cost) ? "" : " (" + (event.cost == 0 ? "free" : event.cost + "💠/" + (event.count == 1 ? event.type : event.count + " " + event.type + "s")) + ")"),
+                                    min_values: [undefined, null, ""].includes(event.count) ? 1 : 0,
+                                    max_values: [undefined, null, ""].includes(event.count) ? 1 : [undefined, null, ""].includes(event.limit) ? options.length : event.limit == 0 ? options.length : event.count * event.limit
                                 }
-                            )
-                        })
+                            ]
+                        }
+                        components.push(component)
                     }
-                    let component = {
-                        type: 1,
-                        components: [
-                            {
-                                type: 3,
-                                custom_id: "tourney_play_race" + race + "_event" + i,
-                                options: options,
-                                placeholder: tools.capitalize([event.event.replace("selection", "select"), event.type].join(" ")) + ([null, undefined, ""].includes(event.cost)? "" : " (" + (event.cost == 0 ? "free" : event.cost + "💠/" + (event.count == 1 ? event.type: event.count + " " + event.type + "s")) + ")"),
-                                min_values: [undefined, null, ""].includes(event.count) ? 1 : 0,
-                                max_values: [undefined, null, ""].includes(event.count) ? 1 : [undefined, null, ""].includes(event.limit) ? options.length : event.limit == 0 ? options.length : event.count * event.limit
-                            }
-                        ]
-                    }
-                    components.push(component)
                 }
                 if (components.length > 1) {
                     components.push(
@@ -5783,7 +5789,7 @@ module.exports = {
                                     label: "Submit" + (fptotal == 0 ? "" : " (" + fptotal + "💠)"),
                                     style: 1,
                                     custom_id: "tourney_play_race" + race + "_event_submit",
-                                    disabled: getForcePoints(player) - fptotal < 0
+                                    disabled: (getForcePoints(player) - fptotal < 0) || notrack
                                 },
                             ]
                         }
@@ -6522,16 +6528,44 @@ module.exports = {
                 let eventstart = livematch.races[race].eventstart
                 let eventend = livematch.races[race].eventend
                 if (args[2].includes("event")) {
-                    if(interaction.member.user.id == (e.choice == "lastwinner" ? getWinner(race-1) : getOpponent(getWinner(race-1)))){
+                    if (interaction.member.user.id == (e.choice == "lastwinner" ? getWinner(race - 1) : getOpponent(getWinner(race - 1)))) {
                         if (interaction.message.components.length > 1) {
                             if (args[3] == "submit") {
-    
+                                let newevents = []
+                                interaction.message.components.forEach(component => {
+                                    let thisargs = component.components[0].custom_id.split("_")
+                                    let thisevent = Number(thisargs[2].replace("event", ""))
+                                    let e = liverules.race[thisevent]
+                                    let options = component.components[0].options.filter(option => option.default)
+                                    if (options.length % e.count !== 0) {
+                                        ephemeralMessage("You must " + e.event.replace("selection", "select") + " " + e.type + "s in sets of " + e.count + " <:WhyNobodyBuy:589481340957753363>", [], [])
+                                        return
+                                    } else {
+                                        for (let i = 0; i < options.length / e.count; i++) {
+                                            let option = options.slice(0, e.count)
+                                            options = options.slice(e.count)
+                                            if(option.length == 1){
+                                                option = option[0]
+                                            }
+                                            let new_event = {
+                                                event: e.event,
+                                                type: e.type,
+                                                player: interaction.member.user.id,
+                                                selection: selection,
+                                            }
+                                            if (![null, undefined, ""].includes(e.cost)) {
+                                                new_event.cost = e.cost
+                                            }
+                                            tourney_live.child(interaction.channel_id).child("races").child(race).child('events').push(new_event)
+                                        }
+                                    }
+                                })
                             } else {
                                 updateMessage("<@" + (e.choice == "lastwinner" ? getWinner(0) : getOpponent(getWinner(0))) + "> please make a selection", type, [raceEventEmbed(race)], raceEventComponents(race))
                                 return
                             }
                         }
-    
+
                         //save result
                         interaction.data.values.forEach(selection => {
                             let new_event = {
@@ -6556,13 +6590,13 @@ module.exports = {
                             updateMessage("", [raceEventEmbed(race)], [])
                             postMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), [raceEmbed(race)], raceComponents(race))
                         } else {
-                            tourney_live.child(interaction.channel_id).child("races").child(race).update({eventstart: eventend+1, eventend: eventend+1+streak})
+                            tourney_live.child(interaction.channel_id).child("races").child(race).update({ eventstart: eventend + 1, eventend: eventend + 1 + streak })
                             updateMessage("<@" + (events[event + 1].choice == "lastwinner" ? getWinner(0) : getOpponent(getWinner(0))) + "> please make a selection", type, [raceEventEmbed(race)], raceEventComponents(race))
                         }
                     } else {
                         ephemeralMessage("It's not your turn! <:WhyNobodyBuy:589481340957753363>", [], [])
                     }
-                    
+
 
                 } else if (["ready", "unready"].includes(args[2])) {
                     if (![undefined, null, ""].includes(livematch.races[race].runs) && ![undefined, null, ""].includes(livematch.races[race].runs[interaction.member.user.id]) && ![undefined, null, ""].includes(livematch.races[race].runs[interaction.member.user.id].pod)) {
