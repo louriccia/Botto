@@ -6027,7 +6027,7 @@ module.exports = {
                     )}
                 ).sort(function (a, b) { return (b.avg - a.avg) })
                 console.log(podoptions)
-                podoptions = podoptions.map(option => option.option)
+                podoptions = podoptions.map(option => option.value)
                 let components = [
                     {
                         type: 1,
