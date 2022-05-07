@@ -5616,7 +5616,7 @@ module.exports = {
                 const embed = new Discord.MessageEmbed()
                     .setAuthor("Race " + (race + 1))
                     .setTitle(track + (forces.length > 0 ? " (" + forces.join(", ") + ")" : ""))
-                    .setDescription(conditions.map(con => "`" + condition_names[con] + "`").join(" ") + (livematch.races[race].live ? "" : "\nCountdown will automatically start when commentators/players have readied."))
+                    .setDescription(conditions.map(con => "`" + condition_names[con] + "`").join(" ") + ([null, undefined, ""].includes(livematch.races[race].gents) ? "": "\n🎩 " + livematch.races[race].gents) + (livematch.races[race].live ? "" : "\nCountdown will automatically start when commentators/players have readied."))
                 if (Object.values(livematch.races[race].ready).filter(r => r == false).length == 0) {
                     if (livematch.races[race].live) {
                         Object.values(livematch.players).map(player => embed.addField(
@@ -5698,8 +5698,10 @@ module.exports = {
                 let fptotal = 0
                 let player = (events[eventstart].choice == "lastwinner" ? getWinner(race - 1) : getOpponent(getWinner(race - 1)))
                 let notrack = false
+                console.log('eventstart-end', eventstart, eventend)
                 for (let i = eventstart; i <= eventend; i++) {
                     let event = events[i]
+                    console.log('event', event)
                     let options = []
                     let default_stuff = []
                     //get defaults
