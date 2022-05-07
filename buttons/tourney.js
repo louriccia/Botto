@@ -6807,8 +6807,8 @@ module.exports = {
                         //start permabans
                         if (race == 0 && Object.values(liverules.match.permabans).length > 0) {
                             postMessage("<@" + (liverules.match.permabans[0].choice == "firstloser" ? getOpponent(getWinner(0)) : getWinner(0)) + "> please select a permanent ban", [permabanEmbed(0)], permabanComponents(0))
-                        } else {
-                            postMessage('', [raceEventEmbed(0)], raceEventComponents(0))
+                        } else { //restart event loop for next race
+                            postMessage('', [raceEventEmbed(nextrace)], raceEventComponents(nextrace))
                         }
                     } else {
                         if (Object.values(livematch.commentators).includes(interaction.member.user.id)) {
