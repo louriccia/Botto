@@ -5533,7 +5533,7 @@ module.exports = {
             }
 
             function countDown() {
-                postMessage("<a:countdown:672640791369482251> Countdown incoming! Good luck <a:countdown:672640791369482251>", [], [])
+                postMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + "\n<a:countdown:672640791369482251> Countdown incoming! Good luck <a:countdown:672640791369482251>", [], [])
                 for (let i = 0; i <= 5; i++) {
                     setTimeout(async function () {
                         client.api.channels(interaction.channel_id).messages.post({
@@ -5716,10 +5716,12 @@ module.exports = {
                         default_stuff = interaction.data.values.map(value => String(value))
                     }
                     if ([null, undefined, ""].includes(event.cost) || getForcePoints(player) >= event.cost) {
+                        console.log('if passed')
                         if (![null, undefined, ""].includes(event.cost)) {
                             fptotal += (default_stuff.length / event.count) * event.cost
                         }
                         if (event.type == "racer") {
+                            console.log('racer event')
                             let permabanned_racers = Object.values(livematch.races[1].events).filter(event => event.event == "permaban" && event.type == "racer").map(event => Number(event.selection))
                             let tempbanned_racers = Object.values(livematch.races[race].events).filter(event => event.event == "tempban" && event.type == "racer").map(event => Number(event.selection))
                             for (let i = 0; i < 25; i++) {
