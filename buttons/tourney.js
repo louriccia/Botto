@@ -5603,18 +5603,19 @@ module.exports = {
                         track = planets[tracks[Number(event.selection)].planet].emoji + " " + tracks[Number(event.selection)].name
                     }
                     if (event.event == "override" && event.type == "condition") {
-                        if (event.selection == "skips") {
-                            conditions.forEach(con => { if (con == "ft") { con = "sk" } })
-                        } else if (event.selection == "no_upgrades") {
-                            conditions.forEach(con => { if (con == "mu") { con = "nu" } })
+                        if (event.selection == "sk") {
+                            conditions[conditions.indexOf('ft')] = "sk"
+                        } else if (event.selection == "nu") {
+                            conditions[conditions.indexOf('mu')] = "nu"
                         } else if (event.selection == "fl") {
-                            conditions.forEach(con => { if (con == "tt") { con = "fl" } })
+                            conditions[conditions.indexOf('tt')] = "fl"
                         }
                     }
                 })
+                let forces = events.filter(event => event.event == 'override' && event.type == 'condition').map(event => tools.capitalize(condition_names[event.selection]))
                 const embed = new Discord.MessageEmbed()
                     .setAuthor("Race " + (race + 1))
-                    .setTitle(track)
+                    .setTitle(track + (forces.length > 0 ? "(" + forces.join(", ") + ")" : ""))
                     .setDescription(conditions.map(con => "`" + condition_names[con] + "`").join(" ") + (livematch.races[race].live ? "" : "\nCountdown will automatically start when commentators/players have readied."))
                 if (Object.values(livematch.races[race].ready).filter(r => r == false).length == 0) {
                     if (livematch.races[race].live) {
@@ -5674,7 +5675,7 @@ module.exports = {
                     override: "✳️ overrode"
                 }
                 const embed = new Discord.MessageEmbed()
-                    .setAuthor("Race " + (race + 1))
+                    .setAuthor("Race " + (race + 1) + " - Events")
                     .setDescription("" + ([undefined, null, ""].includes(events) ? "" :
                         Object.values(events).map(e =>
                             "<@" + e.player + "> " + actions[e.event] + " a " + e.type + ": **" + (e.type == "track" ?
@@ -5992,7 +5993,7 @@ module.exports = {
                     }
                 })
                 for (let i = 0; i < 23; i++) {
-                    if (!podbans.includes(i)) {
+                    if (!podbans.includes(String(i))) {
                         podoptions.push(i)
                     }
                 }
@@ -6751,7 +6752,27 @@ module.exports = {
                         })
                         let nextrace = livematch.current_race + 1
                         tourney_live.child(interaction.channel_id).child("current_race").set(nextrace)
-                        tourney_live.child(interaction.channel_id).child('races').child(nextrace).set({ live: false, events: "", ready: "", reveal: "", runs: "", eventstart: 0, eventend: 0 })
+                        let race_object = {
+                            ready: { commentators: false },
+                            reveal: {},
+                            runs: {},
+                            live: false
+                        }
+                        Object.values(livematch.players).map(player => {
+                            race_object.ready[player] = false
+                            race_object.reveal[player] = false
+                            race_object.runs[player] = {
+                                deaths: "",
+                                notes: "",
+                                platform: "pc",
+                                player: "",
+                                pod: "",
+                                time: ""
+                            }
+                        }
+                        )
+                        tourney_live.child(interaction.channel_id).child('races').child(nextrace).update(race_object)
+                        //start permabans
                         if (race == 0 && Object.values(liverules.match.permabans).length > 0) {
                             postMessage("<@" + (liverules.match.permabans[0].choice == "firstloser" ? getOpponent(getWinner(0)) : getWinner(0)) + "> please select a permanent ban", [permabanEmbed(0)], permabanComponents(0))
                         } else {
