@@ -6547,7 +6547,7 @@ module.exports = {
                                                 event: e.event,
                                                 type: e.type,
                                                 player: interaction.member.user.id,
-                                                selection: selection,
+                                                selection: option,
                                             }
                                             if (![null, undefined, ""].includes(e.cost)) {
                                                 new_event.cost = e.cost
