@@ -6599,7 +6599,7 @@ module.exports = {
                             }
                         }
                         if (eventend + 1 == events.length) {
-                            updateMessage("", [raceEventEmbed(race)], [])
+                            updateMessage("", type, [raceEventEmbed(race)], [])
                             postMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), [raceEmbed(race)], raceComponents(race))
                         } else {
                             tourney_live.child(interaction.channel_id).child("races").child(race).update({ eventstart: eventend + 1, eventend: eventend + 1 + streak })
