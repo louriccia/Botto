@@ -6756,7 +6756,8 @@ module.exports = {
                             ready: { commentators: false },
                             reveal: {},
                             runs: {},
-                            live: false
+                            live: false,
+                            events: ""
                         }
                         Object.values(livematch.players).map(player => {
                             race_object.ready[player] = false
