@@ -5689,6 +5689,7 @@ module.exports = {
                 let eventend = livematch.races[race].eventend
                 let events = Object.values(liverules.race)
                 let fptotal = 0
+                let player = (events[eventstart].choice == "lastwinner" ? getWinner(race-1) : getOpponent(getWinner(race-1)))
                 for (let i = eventstart; i <= eventend; i++) {
                     let event = events[i]
                     let options = []
@@ -5765,7 +5766,7 @@ module.exports = {
                                 custom_id: "tourney_play_race" + race + "_event" + i,
                                 options: options,
                                 placeholder: tools.capitalize([event.event.replace("selection", "select"), event.type].join(" ")) + ([null, undefined, ""].includes(event.cost)? "" : " (" + (event.cost == 0 ? "free" : event.cost + "💠/" + (event.count == 1 ? event.type: event.count + " " + event.type + "s")) + ")"),
-                                min_values: [undefined, null, ""].includes(event.count) ? 1 : event.count,
+                                min_values: [undefined, null, ""].includes(event.count) ? 1 : 0,
                                 max_values: [undefined, null, ""].includes(event.count) ? 1 : [undefined, null, ""].includes(event.limit) ? options.length : event.limit == 0 ? options.length : event.count * event.limit
                             }
                         ]
@@ -5782,6 +5783,7 @@ module.exports = {
                                     label: "Submit" + (fptotal == 0 ? "" : " (" + fptotal + "💠)"),
                                     style: 1,
                                     custom_id: "tourney_play_race" + race + "_event_submit",
+                                    disabled: getForcePoints(player) - fptotal < 0
                                 },
                             ]
                         }
@@ -6520,42 +6522,47 @@ module.exports = {
                 let eventstart = livematch.races[race].eventstart
                 let eventend = livematch.races[race].eventend
                 if (args[2].includes("event")) {
-                    if (interaction.message.components.length > 1) {
-                        if (args[3] == "submit") {
-
+                    if(interaction.member.user.id == (e.choice == "lastwinner" ? getWinner(race-1) : getOpponent(getWinner(race-1)))){
+                        if (interaction.message.components.length > 1) {
+                            if (args[3] == "submit") {
+    
+                            } else {
+                                updateMessage("<@" + (e.choice == "lastwinner" ? getWinner(0) : getOpponent(getWinner(0))) + "> please make a selection", type, [raceEventEmbed(race)], raceEventComponents(race))
+                                return
+                            }
+                        }
+    
+                        //save result
+                        interaction.data.values.forEach(selection => {
+                            let new_event = {
+                                event: e.event,
+                                type: e.type,
+                                player: interaction.member.user.id,
+                                selection: selection,
+                            }
+                            if (![null, undefined, ""].includes(e.cost)) {
+                                new_event.cost = e.cost
+                            }
+                            tourney_live.child(interaction.channel_id).child("races").child(race).child("events").push(new_event)
+                        })
+                        let streak = 0
+                        let choice = events[event + 1].choice
+                        for (i = event + 2; i < events.length; i++) {
+                            if (events[i].choice == choice && streak < 4) {
+                                streak++
+                            }
+                        }
+                        if (event + 1 == events.length) {
+                            updateMessage("", [raceEventEmbed(race)], [])
+                            postMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), [raceEmbed(race)], raceComponents(race))
                         } else {
-                            updateMessage("<@" + (e.choice == "lastwinner" ? getWinner(0) : getOpponent(getWinner(0))) + "> please make a selection", type, [raceEventEmbed(race)], raceEventComponents(race))
-                            return
+                            tourney_live.child(interaction.channel_id).child("races").child(race).update({eventstart: eventend+1, eventend: eventend+1+streak})
+                            updateMessage("<@" + (events[event + 1].choice == "lastwinner" ? getWinner(0) : getOpponent(getWinner(0))) + "> please make a selection", type, [raceEventEmbed(race)], raceEventComponents(race))
                         }
-                    }
-
-                    //save result
-                    interaction.data.values.forEach(selection => {
-                        let new_event = {
-                            event: e.event,
-                            type: e.type,
-                            player: interaction.member.user.id,
-                            selection: selection,
-                        }
-                        if (![null, undefined, ""].includes(e.cost)) {
-                            new_event.cost = e.cost
-                        }
-                        tourney_live.child(interaction.channel_id).child("races").child(race).child("events").push(new_event)
-                    })
-                    let streak = 0
-                    let choice = events[event + 1].choice
-                    for (i = event + 2; i < events.length; i++) {
-                        if (events[i].choice == choice && streak < 4) {
-                            streak++
-                        }
-                    }
-                    if (event + 1 == events.length) {
-                        updateMessage("", [raceEventEmbed(race)], [])
-                        postMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), [raceEmbed(race)], raceComponents(race))
                     } else {
-                        tourney_live.child(interaction.channel_id).child("races").child(race).update({eventstart: eventend+1, eventend: eventend+1+streak})
-                        updateMessage("<@" + (events[event + 1].choice == "lastwinner" ? getWinner(0) : getOpponent(getWinner(0))) + "> please make a selection", type, [raceEventEmbed(race)], raceEventComponents(race))
+                        ephemeralMessage("It's not your turn! <:WhyNobodyBuy:589481340957753363>", [], [])
                     }
+                    
 
                 } else if (["ready", "unready"].includes(args[2])) {
                     if (![undefined, null, ""].includes(livematch.races[race].runs) && ![undefined, null, ""].includes(livematch.races[race].runs[interaction.member.user.id]) && ![undefined, null, ""].includes(livematch.races[race].runs[interaction.member.user.id].pod)) {
