@@ -5468,6 +5468,21 @@ module.exports = {
                 return winner
             }
 
+            function getForcePoints(player) {
+                livematch = tourney_live_data[interaction.channel_id]
+                let forcepoints = liverules.match.forcepoints.start
+                let races = Object.values(livematch.races)
+                races.forEach(race => {
+                    let events = Object.values(race.events)
+                    events.forEach(event => {
+                        if(event.player == player && [null, undefined, ""].includes(event.cost)){
+                            forcepoints -= event.cost
+                        }
+                    })
+                })
+                return forcepoints
+            }
+
             function updateMessage(content, type, embeds, components) {
                 client.api.interactions(interaction.id, interaction.token).callback.post({
                     data: {
@@ -5673,6 +5688,7 @@ module.exports = {
                 let eventstart = livematch.races[race].eventstart
                 let eventend = livematch.races[race].eventend
                 let events = Object.values(liverules.race)
+                let fptotal = 0
                 for (let i = eventstart; i <= eventend; i++) {
                     let event = events[i]
                     let options = []
@@ -5687,6 +5703,10 @@ module.exports = {
                     if(interaction.data.hasOwnProperty("values") && Number(this_args[3].replace("event", "")) == i){
                         default_stuff = interaction.data.values.map(value => String(value))
                     }
+                    if(![null, undefined, ""].includes(event.cost)){
+                        fptotal += (default_stuff.length / event.count)*event.cost
+                    }
+                    console.log(default_stuff)
                     if (event.type == "racer") {
                         let permabanned_racers = Object.values(livematch.races[1].events).filter(event => event.event == "permaban" && event.type == "racer").map(event => Number(event.selection))
                         let tempbanned_racers = Object.values(livematch.races[race].events).filter(event => event.event == "tempban" && event.type == "racer").map(event => Number(event.selection))
@@ -5702,7 +5722,7 @@ module.exports = {
                                                 name: racers[i].flag.split(":")[1],
                                                 id: racers[i].flag.split(":")[2].replace(">", "")
                                             },
-                                            default: default_stuff.includes(i)
+                                            default: default_stuff.includes(String(i))
                                         }
                                     )
                             }
@@ -5721,7 +5741,7 @@ module.exports = {
                                             name: planets[tracks[i].planet].emoji.split(":")[1],
                                             id: planets[tracks[i].planet].emoji.split(":")[2].replace(">", "")
                                         },
-                                        default: default_stuff.includes(i)
+                                        default: default_stuff.includes(String(i))
                                     }
                                 )
                             }
@@ -5732,7 +5752,7 @@ module.exports = {
                                 {
                                     label: condition_names[e],
                                     value: e,
-                                    default: default_stuff.includes(i)
+                                    default: default_stuff.includes(e)
                                 }
                             )
                         })
@@ -5744,7 +5764,7 @@ module.exports = {
                                 type: 3,
                                 custom_id: "tourney_play_race" + race + "_event" + i,
                                 options: options,
-                                placeholder: tools.capitalize([event.event.replace("selection", "select"), event.type].join(" ")) + " (" + (event.cost == 0 ? "free" : event.cost + " forcepoint/" + (event.count == 1 ? event.type: event.count + " " + event.type + "s")) + ")",
+                                placeholder: tools.capitalize([event.event.replace("selection", "select"), event.type].join(" ")) + ([null, undefined, ""].includes(event.cost)? "" : " (" + (event.cost == 0 ? "free" : event.cost + "💠/" + (event.count == 1 ? event.type: event.count + " " + event.type + "s")) + ")"),
                                 min_values: [undefined, null, ""].includes(event.count) ? 1 : event.count,
                                 max_values: [undefined, null, ""].includes(event.count) ? 1 : [undefined, null, ""].includes(event.limit) ? options.length : event.limit == 0 ? options.length : event.count * event.limit
                             }
@@ -5759,7 +5779,7 @@ module.exports = {
                             components: [
                                 {
                                     type: 2,
-                                    label: "Submit",
+                                    label: "Submit" + (fptotal == 0 ? "" : " (" + fptotal + "💠)"),
                                     style: 1,
                                     custom_id: "tourney_play_race" + race + "_event_submit",
                                 },
