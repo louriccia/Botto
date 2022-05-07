@@ -5615,7 +5615,7 @@ module.exports = {
                 let forces = events.filter(event => event.event == 'override' && event.type == 'condition').map(event => tools.capitalize(condition_names[event.selection]))
                 const embed = new Discord.MessageEmbed()
                     .setAuthor("Race " + (race + 1))
-                    .setTitle(track + (forces.length > 0 ? "(" + forces.join(", ") + ")" : ""))
+                    .setTitle(track + (forces.length > 0 ? " (" + forces.join(", ") + ")" : ""))
                     .setDescription(conditions.map(con => "`" + condition_names[con] + "`").join(" ") + (livematch.races[race].live ? "" : "\nCountdown will automatically start when commentators/players have readied."))
                 if (Object.values(livematch.races[race].ready).filter(r => r == false).length == 0) {
                     if (livematch.races[race].live) {
@@ -6527,6 +6527,7 @@ module.exports = {
                 let e = events[event]
                 let eventstart = livematch.races[race].eventstart
                 let eventend = livematch.races[race].eventend
+                let responded = false
                 if (args[2].includes("event")) {
                     if (interaction.member.user.id == (e.choice == "lastwinner" ? getWinner(race - 1) : getOpponent(getWinner(race - 1)))) {
                         if (interaction.message.components.length > 1) {
@@ -6543,6 +6544,7 @@ module.exports = {
                                         }
                                         if (options.length % e.count !== 0) {
                                             ephemeralMessage("You must " + e.event.replace("selection", "select") + " " + e.type + "s in sets of " + e.count + " <:WhyNobodyBuy:589481340957753363>", [], [])
+                                            responded = true
                                             return
                                         } else {
                                             for (let i = 0; i < options.length / e.count; i++) {
@@ -6591,21 +6593,23 @@ module.exports = {
                         }
 
                         //save result
-
-                        let streak = 0
-                        let choice = events[event + 1].choice
-                        for (i = event + 2; i < events.length; i++) {
-                            if (events[i].choice == choice && streak < 4) {
-                                streak++
+                        if (!responded) {
+                            let streak = 0
+                            let choice = events[event + 1].choice
+                            for (i = event + 2; i < events.length; i++) {
+                                if (events[i].choice == choice && streak < 4) {
+                                    streak++
+                                }
+                            }
+                            if (eventend + 1 == events.length) {
+                                updateMessage("", type, [raceEventEmbed(race)], [])
+                                postMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), [raceEmbed(race)], raceComponents(race))
+                            } else {
+                                tourney_live.child(interaction.channel_id).child("races").child(race).update({ eventstart: eventend + 1, eventend: eventend + 1 + streak })
+                                updateMessage("<@" + (events[event + 1].choice == "lastwinner" ? getWinner(0) : getOpponent(getWinner(0))) + "> please make a selection", type, [raceEventEmbed(race)], raceEventComponents(race))
                             }
                         }
-                        if (eventend + 1 == events.length) {
-                            updateMessage("", type, [raceEventEmbed(race)], [])
-                            postMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), [raceEmbed(race)], raceComponents(race))
-                        } else {
-                            tourney_live.child(interaction.channel_id).child("races").child(race).update({ eventstart: eventend + 1, eventend: eventend + 1 + streak })
-                            updateMessage("<@" + (events[event + 1].choice == "lastwinner" ? getWinner(0) : getOpponent(getWinner(0))) + "> please make a selection", type, [raceEventEmbed(race)], raceEventComponents(race))
-                        }
+
                     } else {
                         ephemeralMessage("It's not your turn! <:WhyNobodyBuy:589481340957753363>", [], [])
                     }
