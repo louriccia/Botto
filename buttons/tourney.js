@@ -6527,7 +6527,7 @@ module.exports = {
                                 let newevents = []
                                 interaction.message.components.forEach(component => {
                                     let thisargs = component.components[0].custom_id.split("_")
-                                    let thisevent = Number(thisargs[2].replace("event", ""))
+                                    let thisevent = Number(thisargs[3].replace("event", ""))
                                     let e = liverules.race[thisevent]
                                     let options = component.components[0].options.filter(option => option.default)
                                     if ([null, undefined, ""].includes(e.count)){
