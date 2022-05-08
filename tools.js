@@ -167,8 +167,6 @@ module.exports = {
     getTrackEmbed: function (numb, client, channel, interaction) {
         const Discord = require('discord.js');
         const fetch = require('node-fetch');
-        const attachment = new Discord
-            .MessageAttachment('./img/tracks/' + (numb + 1) + '.png', (numb + 1) + '.png');
         const trackEmbed = new Discord.MessageEmbed()
             //.setThumbnail(planets[tracks[numb].planet].img)
             //.setFooter(footer)

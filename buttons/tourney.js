@@ -5413,6 +5413,37 @@ module.exports = {
                 fl: "Fastest Lap"
             }
 
+            function getTrackOption(i) {
+                return (
+                    {
+                        label: racers[i].name,
+                        value: i,
+                        description: (circuits[racers[i].circuit].name + " Circuit | Race " + racers[i].cirnum + " | " + planets[tracks[i].planet].name).substring(0, 50),
+                        emoji: {
+                            name: planets[tracks[i].planet].emoji.split(":")[1],
+                            id: planets[tracks[i].planet].emoji.split(":")[2].replace(">", "")
+                        }
+                    }
+                )
+            }
+
+            function getRacerOption(i) {
+                let tiers = ['Top', 'High', 'Mid', 'Low']
+                let muspeed = tools.avgSpeed(tools.upgradeTopSpeed(racers[option].max_speed, 5), racers[option].boost_thrust, racers[option].heat_rate, tools.upgradeCooling(racers[option].cool_rate, 5))
+                let nuspeed = tools.avgSpeed(tools.upgradeTopSpeed(racers[option].max_speed, 0), racers[option].boost_thrust, racers[option].heat_rate, tools.upgradeCooling(racers[option].cool_rate, 0))
+                return (
+                    {
+                        label: racers[i].name,
+                        value: i,
+                        description: "Tier: MU " + tiers[racers[i].mu_tier] + ", NU " + tiers[racers[i].nu_tier] + 'Avg Speed: MU ' + muspeed + ', NU ' + nuspeed + " Max Turn Rate: " + racers[i].max_turn_rate + "°/s",
+                        emoji: {
+                            name: racers[i].flag.split(":")[1],
+                            id: racers[i].flag.split(":")[2].replace(">", "")
+                        }
+                    }
+                )
+            }
+
             function getFirstOptions(liverules) {
 
                 let firstoptions = [
@@ -5472,18 +5503,16 @@ module.exports = {
                 livematch = tourney_live_data[interaction.channel_id]
                 let forcepoints = Number(liverules.match.forcepoints.start)
                 let races = Object.values(livematch.races)
-                console.log("player: ", player, "\nforce points", forcepoints)
                 races.forEach(race => {
                     if (![null, undefined, ""].includes(race.events)) {
                         let events = Object.values(race.events)
                         events.forEach(event => {
-                            if (event.player == player && [null, undefined, ""].includes(event.cost)) {
+                            if (event.player == player && ![null, undefined, ""].includes(event.cost)) {
                                 forcepoints -= Number(event.cost)
                             }
                         })
                     }
                 })
-                console.log("return fp", forcepoints)
                 return forcepoints
             }
 
@@ -5735,16 +5764,8 @@ module.exports = {
                                 if (!tempbanned_racers.includes(i) && !permabanned_racers.includes(i)) {
                                     if (i < 23 || (!permabanned_racers.includes(8) && i == 23) || (!tempbanned_racers.includes(22) && i == 24))
                                         options.push(
-                                            {
-                                                label: racers[i].name,
-                                                value: i,
-                                                description: racers[i].pod.substring(0, 50),
-                                                emoji: {
-                                                    name: racers[i].flag.split(":")[1],
-                                                    id: racers[i].flag.split(":")[2].replace(">", "")
-                                                },
-                                                default: default_stuff.includes(String(i))
-                                            }
+                                            getRacerOption(i)
+
                                         )
                                 }
                             }
@@ -5756,18 +5777,11 @@ module.exports = {
                             }
                             for (let i = 0; i < 25; i++) {
                                 if (!permabanned_tracks.includes(i) && !tempbanned_tracks.includes(i)) {
-                                    options.push(
-                                        {
-                                            label: tracks[i].name,
-                                            value: i,
-                                            description: (circuits[tracks[i].circuit].name + " Circuit | Race " + tracks[i].cirnum + " | " + planets[tracks[i].planet].name).substring(0, 50),
-                                            emoji: {
-                                                name: planets[tracks[i].planet].emoji.split(":")[1],
-                                                id: planets[tracks[i].planet].emoji.split(":")[2].replace(">", "")
-                                            },
-                                            default: default_stuff.includes(String(i))
-                                        }
-                                    )
+                                    let option = getTrackOption(i)
+                                    if (default_stuff.includes(String(i))) {
+                                        option.default = true
+                                    }
+                                    options.push(option)
                                 }
                             }
                         } else if (event.type == "condition") {
@@ -6049,15 +6063,7 @@ module.exports = {
                                 type: 3,
                                 custom_id: "tourney_play_race" + race + "_racer",
                                 options: podoptions.map(pod => {
-                                    return {
-                                        label: racers[pod].name,
-                                        value: pod,
-                                        description: racers[pod].pod.substring(0, 50),
-                                        emoji: {
-                                            name: racers[pod].flag.split(":")[1],
-                                            id: racers[pod].flag.split(":")[2].replace(">", "")
-                                        }
-                                    }
+                                    return getRacerOption(pod)
                                 }),
                                 placeholder: "Select Racer",
                                 min_values: 1,
@@ -6207,16 +6213,7 @@ module.exports = {
                     selectoptions = planetoptions.map(option => { return ({ label: trackgroups[option].name, value: option, description: trackgroups[option].count + " tracks" }) })
                 } else {
                     selectoptions = trackoptions.map(option => {
-                        return (
-                            {
-                                label: tracks[option].name,
-                                value: option,
-                                description: (circuits[tracks[option].circuit].name + " Circuit | Race " + tracks[option].cirnum + " | " + planets[tracks[option].planet].name).substring(0, 50),
-                                emoji: {
-                                    name: planets[tracks[option].planet].emoji.split(":")[1],
-                                    id: planets[tracks[option].planet].emoji.split(":")[2].replace(">", "")
-                                }
-                            })
+                        return getTrackOption(option)
                     })
                 }
                 return [
@@ -6245,15 +6242,7 @@ module.exports = {
                     for (let i = 0; i < 25; i++) {
                         if (!permatrackbans.includes(i)) {
                             selectoptions.push(
-                                {
-                                    label: tracks[i].name,
-                                    value: i,
-                                    description: (circuits[tracks[i].circuit].name + " Circuit | Race " + tracks[i].cirnum + " | " + planets[tracks[i].planet].name).substring(0, 50),
-                                    emoji: {
-                                        name: planets[tracks[i].planet].emoji.split(":")[1],
-                                        id: planets[tracks[i].planet].emoji.split(":")[2].replace(">", "")
-                                    }
-                                }
+                                getTrackOption(i)
                             )
                         }
                     }
@@ -6262,15 +6251,8 @@ module.exports = {
                     for (let i = 0; i < 25; i++) {
                         if (!permaracerbans.includes(i)) {
                             selectoptions.push(
-                                {
-                                    label: racers[i].name,
-                                    value: i,
-                                    description: (circuits[racers[i].circuit].name + " Circuit | Race " + racers[i].cirnum + " | " + planets[tracks[i].planet].name).substring(0, 50),
-                                    emoji: {
-                                        name: planets[tracks[i].planet].emoji.split(":")[1],
-                                        id: planets[tracks[i].planet].emoji.split(":")[2].replace(">", "")
-                                    }
-                                }
+                                getRacerOption(i)
+
                             )
                         }
                     }
@@ -6707,7 +6689,7 @@ module.exports = {
                                 postMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), [raceEmbed(race)], raceComponents(race))
                             } else {
                                 tourney_live.child(interaction.channel_id).child("races").child(race).update({ eventstart: eventend + 1, eventend: eventend + 1 + streak })
-                                updateMessage("<@" + (events[event + 1].choice == "lastwinner" ? getWinner(race-1) : getOpponent(getWinner(race-1))) + "> please make a selection", type, [raceEventEmbed(race)], raceEventComponents(race))
+                                updateMessage("<@" + (events[event + 1].choice == "lastwinner" ? getWinner(race - 1) : getOpponent(getWinner(race - 1))) + "> please make a selection", type, [raceEventEmbed(race)], raceEventComponents(race))
                             }
                         }
 
