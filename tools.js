@@ -171,7 +171,6 @@ module.exports = {
             //.setThumbnail(planets[tracks[numb].planet].img)
             //.setFooter(footer)
             .setColor(planets[tracks[numb].planet].color)
-            .attachFiles(attachment)
             .setURL("https://docs.google.com/spreadsheets/d/1CPF8lfU_iDpLNIJsOWeU8Xg23BzQrxzi3-DEELAgxUA/edit#gid=1682683709")
             .setImage(tracks[numb].img)
             //.setImage('attachment://' + (numb+1) + '.png')
