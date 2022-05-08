@@ -5473,12 +5473,14 @@ module.exports = {
                 let forcepoints = liverules.match.forcepoints.start
                 let races = Object.values(livematch.races)
                 races.forEach(race => {
-                    let events = Object.values(race.events)
-                    events.forEach(event => {
-                        if (event.player == player && [null, undefined, ""].includes(event.cost)) {
-                            forcepoints -= event.cost
-                        }
-                    })
+                    if (![null, undefined, ""].includes(race.events)) {
+                        let events = Object.values(race.events)
+                        events.forEach(event => {
+                            if (event.player == player && [null, undefined, ""].includes(event.cost)) {
+                                forcepoints -= event.cost
+                            }
+                        })
+                    }
                 })
                 return forcepoints
             }
@@ -5616,7 +5618,7 @@ module.exports = {
                 const embed = new Discord.MessageEmbed()
                     .setAuthor("Race " + (race + 1))
                     .setTitle(track + (forces.length > 0 ? " (" + forces.join(", ") + ")" : ""))
-                    .setDescription(conditions.map(con => "`" + condition_names[con] + "`").join(" ") + ([null, undefined, ""].includes(livematch.races[race].gents) ? "": "\n🎩 " + livematch.races[race].gents) + (livematch.races[race].live ? "" : "\nCountdown will automatically start when commentators/players have readied."))
+                    .setDescription(conditions.map(con => "`" + condition_names[con] + "`").join(" ") + ([null, undefined, ""].includes(livematch.races[race].gents) ? "" : "\n🎩 " + livematch.races[race].gents) + (livematch.races[race].live ? "" : "\nCountdown will automatically start when commentators/players have readied."))
                 if (Object.values(livematch.races[race].ready).filter(r => r == false).length == 0) {
                     if (livematch.races[race].live) {
                         Object.values(livematch.players).map(player => embed.addField(
@@ -6350,7 +6352,7 @@ module.exports = {
                         })
                     }
 
-                } else if (args[2] == 'cancel'){
+                } else if (args[2] == 'cancel') {
                     tourney_live.child(interaction.channel_id).remove()
                     updateMessage("Match was cancelled", type, [], [])
                     return
@@ -6380,7 +6382,7 @@ module.exports = {
             } else if (args[1] == "first") {
                 tourney_live.child(interaction.channel_id).child("status").set("first")
                 livematch = tourney_live_data[interaction.channel_id]
-                function setRace(track){
+                function setRace(track) {
                     let event = {
                         event: "selection",
                         type: "track",
@@ -6420,9 +6422,9 @@ module.exports = {
                         livematch = tourney_live_data[interaction.channel_id]
                         updateMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + "\n*I just happen to have a chancecube here...*", type, [colorEmbed()], colorComponents())
                     } else if (livematch.firstmethod == 'random') {
-                        updateMessage("The first track will be... <a:OovoDoor:964369275559223306>",type, [], [])
+                        updateMessage("The first track will be... <a:OovoDoor:964369275559223306>", type, [], [])
                         setTimeout(async function () {
-                            let randomtrack = Math.floor(Math.random()*25)
+                            let randomtrack = Math.floor(Math.random() * 25)
                             setRace(randomtrack)
                             postMessage("**" + planets[tracks[randomtrack].planet].emoji + " " + tracks[randomtrack].name + "**", [], [])
                         }, 2000)
@@ -6585,7 +6587,7 @@ module.exports = {
                             ephemeralMessage("It's not your turn to ban! <:WhyNobodyBuy:589481340957753363>", [], [])
                         }
                     }
-                } else if (args[2] == 'pick'){
+                } else if (args[2] == 'pick') {
                     let firsttrack = interaction.data.values[0]
                     setRace(firsttrack)
                     updateMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), type, [raceEmbed(0)], raceComponents(0))
