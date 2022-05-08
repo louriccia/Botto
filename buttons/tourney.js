@@ -5715,6 +5715,7 @@ module.exports = {
                     if (interaction.data.hasOwnProperty("values") && Number(this_args[3].replace("event", "")) == i) {
                         default_stuff = interaction.data.values.map(value => String(value))
                     }
+                    console.log(player)
                     console.log('fp', getForcePoints(player))
                     console.log('event cost', event.cost)
                     if ([null, undefined, ""].includes(event.cost) || getForcePoints(player) >= event.cost) {
