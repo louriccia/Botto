@@ -5471,16 +5471,13 @@ module.exports = {
             function getForcePoints(player) {
                 livematch = tourney_live_data[interaction.channel_id]
                 let forcepoints = Number(liverules.match.forcepoints.start)
-                console.log(forcepoints)
                 let races = Object.values(livematch.races)
                 races.forEach(race => {
                     if (![null, undefined, ""].includes(race.events)) {
                         let events = Object.values(race.events)
                         events.forEach(event => {
-                            console.log(event)
                             if (event.player == player && [null, undefined, ""].includes(event.cost)) {
                                 forcepoints -= Number(event.cost)
-                                console.log(forcepoints)
                             }
                         })
                     }
