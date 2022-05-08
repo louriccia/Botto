@@ -5633,7 +5633,7 @@ module.exports = {
                 let conditions = Object.values(liverules.general.default)
                 events.forEach(event => {
                     if (event.event == "selection" && event.type == "track") {
-                        track = planets[tracks[Number(event.selection)].planet].emoji + " " + tracks[Number(event.selection)].name
+                        track = Number(event.selection)
                     }
                     if (event.event == "override" && event.type == "condition") {
                         if (event.selection == "sk") {
@@ -5648,7 +5648,7 @@ module.exports = {
                 let forces = events.filter(event => event.event == 'override' && event.type == 'condition').map(event => tools.capitalize(condition_names[event.selection]))
                 const embed = new Discord.MessageEmbed()
                     .setAuthor("Race " + (race + 1))
-                    .setTitle(track + (forces.length > 0 ? " (" + forces.join(", ") + ")" : ""))
+                    .setTitle(planets[tracks[track].planet].emoji + " " + tracks[track].name + (forces.length > 0 ? " (" + forces.join(", ") + ")" : ""))
                     .setThumbnail(tracks[track].preview)
                     .setDescription(conditions.map(con => "`" + condition_names[con] + "`").join(" ") + ([null, undefined, ""].includes(livematch.races[race].gents) ? "" : "\n🎩 " + livematch.races[race].gents) + (livematch.races[race].live ? "" : "\nCountdown will automatically start when commentators/players have readied."))
                 if (Object.values(livematch.races[race].ready).filter(r => r == false).length == 0) {
