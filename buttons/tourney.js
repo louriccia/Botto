@@ -5418,7 +5418,7 @@ module.exports = {
                     {
                         label: tracks[i].name,
                         value: i,
-                        description: [(circuits[tracks[i].circuit].abbreviation + " - Race " + tracks[i].cirnum , planets[tracks[i].planet].name).substring(0, 50), difficulties[tracks[i].difficulty].name, tracks[i].lengthclass].join(" | "),
+                        description: [circuits[tracks[i].circuit].abbreviation + " - Race " + tracks[i].cirnum, planets[tracks[i].planet].name, difficulties[tracks[i].difficulty].name, tracks[i].lengthclass].join(" | "),
                         emoji: {
                             name: planets[tracks[i].planet].emoji.split(":")[1],
                             id: planets[tracks[i].planet].emoji.split(":")[2].replace(">", "")
@@ -5649,6 +5649,7 @@ module.exports = {
                 const embed = new Discord.MessageEmbed()
                     .setAuthor("Race " + (race + 1))
                     .setTitle(track + (forces.length > 0 ? " (" + forces.join(", ") + ")" : ""))
+                    .setThumbnail(tracks[track].preview)
                     .setDescription(conditions.map(con => "`" + condition_names[con] + "`").join(" ") + ([null, undefined, ""].includes(livematch.races[race].gents) ? "" : "\n🎩 " + livematch.races[race].gents) + (livematch.races[race].live ? "" : "\nCountdown will automatically start when commentators/players have readied."))
                 if (Object.values(livematch.races[race].ready).filter(r => r == false).length == 0) {
                     if (livematch.races[race].live) {
@@ -5664,6 +5665,12 @@ module.exports = {
                             true))
                         if (Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length == 0) {
                             embed.addField("🎙️ Commentators/Trackers", ":red_circle: Awaiting Verification", false)
+                        }
+                        if (forces.includes("No Upgrades")) {
+                            embed.addField("🕹️ Players", ":orange_circle: Don't forget to show your parts to verify upgrades", false)
+                        }
+                        if (forces.includes("Fastest Lap")) {
+                            embed.addField("🕹️ Players", ":orange_circle: Don't forget to delete your `tgdf.dat` file or set your laps to 4", false)
                         }
                     } else {
                         embed.setDescription(conditions.map(con => "`" + condition_names[con] + "`").join(" "))
@@ -5697,6 +5704,63 @@ module.exports = {
                 return embed
             }
 
+            function matchSummaryEmbed() {
+                livematch = tourney_live_data[interaction.channel_id]
+                let summary = {}
+                Object.values(livematch.players).forEach(player => {
+                    summary[player] = {
+                        wins: 0,
+                        forcepoints: liverules.match.forcepoints.start,
+                        runbacks: liverules.match.repeattrack.limit,
+                        deaths: 0,
+                        deathtrue: true,
+                        time: 0,
+                        timetrue: true
+                    }
+                })
+                Object.values(livematch.races).forEach(race => {
+                    summary[getWinner(race)].wins++
+                    if (![null, undefined, ""].includes(race.events)) {
+                        Object.values(race.events).forEach(event => {
+                            if (![null, undefined, ""].includes(event.cost)) {
+                                summary[event.player].forcepoints -= Number(event.cost)
+                            }
+                            if (event.event == 'selection' && event.type == 'track' && event.repeat == true) {
+                                summary[event.player].runbacks --
+                            }
+                        })
+                        Object.values(race.runs).forEach(run => {
+                            if(![null, undefined, ""].includes(run.deaths)){
+                                summary[run.player].deaths += run.deaths
+                            } else {
+                                summary[run.player].deathtrue = false
+                            }
+                            if(![null, undefined, "", 'DNF'].includes(run.time)){
+                                summary[run.player].time += run.time
+                            } else {
+                                summary[run.player].timetrue = false
+                            }
+
+                        })
+                    }
+                }
+                )
+                const embed = new Discord.MessageEmbed()
+                    .setAuthor('Match Summary')
+                    .setTitle(Object.values(livematch.players).join(" vs "))
+                Object.values(livematch.players).map(player => embed.addField(
+                    client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username,
+                    "👑 Wins: " + summary[player].wins +
+                    '\n💠 Forcepoints: ' + summary[player].forcepoints +
+                    '\n🔁 Runbacks: ' + summary[player].runbacks  +
+                    '\n⏱️ Total Time: ' + summary[player].time + (summary[player].timetrue ? "" : "+") +
+                    '\n💀 Total Deaths: ' + summary[player].deaths + (summary[player].deathtrue ? "" : "+"),
+                    true
+                ))
+                embed.addField("🎙️ Commentators/Trackers",":orange_circle: Don't forget to update the score!", false)
+                return embed
+            }
+
             function raceEventEmbed(race) {
                 livematch = tourney_live_data[interaction.channel_id]
                 let races = Object.values(livematch.races)
@@ -5717,7 +5781,7 @@ module.exports = {
                                     Array.isArray(e.selection) ?
                                         e.selection.map(racer => racers[racer].flag + " " + racers[racer].name).join(", ") :
                                         racers[e.selection].flag + " " + racers[e.selection].name :
-                                    condition_names[e.selection]) + "**"
+                                    condition_names[e.selection]) + "**" + ([null, undefined, "", 0].includes(e.cost) ? "" : "(" + e.cost + "💠)")
                         ).join("\n")))
                 return embed
             }
@@ -5731,6 +5795,7 @@ module.exports = {
                 let fptotal = 0
                 let player = (events[eventstart].choice == "lastwinner" ? getWinner(race - 1) : getOpponent(getWinner(race - 1)))
                 let notrack = false
+                let oddselect = false
                 console.log('eventstart-end', eventstart, eventend)
                 for (let i = eventstart; i <= eventend; i++) {
                     let event = events[i]
@@ -5748,6 +5813,9 @@ module.exports = {
                     if (interaction.data.hasOwnProperty("values") && Number(this_args[3].replace("event", "")) == i) {
                         default_stuff = interaction.data.values.map(value => String(value))
                     }
+                    if (![null, undefined, ""].includes(event.count) && default_stuff.length % event.count !== 0) {
+                        oddselect = true
+                    }
                     console.log(player)
                     console.log('fp', getForcePoints(player))
                     console.log('event cost', event.cost)
@@ -5762,16 +5830,26 @@ module.exports = {
                             let tempbanned_racers = Object.values(livematch.races[race].events).filter(event => event.event == "tempban" && event.type == "racer").map(event => Number(event.selection))
                             for (let i = 0; i < 25; i++) {
                                 if (!tempbanned_racers.includes(i) && !permabanned_racers.includes(i)) {
-                                    if (i < 23 || (!permabanned_racers.includes(8) && i == 23) || (!tempbanned_racers.includes(22) && i == 24))
-                                        options.push(
-                                            getRacerOption(i)
-
-                                        )
+                                    if (i < 23 || (!permabanned_racers.includes(8) && i == 23) || (!tempbanned_racers.includes(22) && i == 24)) { //handle secret pods
+                                        let option = getRacerOption(i)
+                                        if (default_stuff.includes(String(i))) {
+                                            option.default = true
+                                        }
+                                        options.push(option)
+                                    }
                                 }
                             }
                         } else if (event.type == "track") {
                             let permabanned_tracks = Object.values(livematch.races[1].events).filter(event => event.event == "permaban" && event.type == "track").map(event => Number(event.selection))
                             let tempbanned_tracks = Object.values(livematch.races[race].events).filter(event => event.event == "tempban" && event.type == "track").map(event => Number(event.selection))
+                            let already_played = []
+                            Object.values(livematch.races).forEach(race => {
+                                Object.values(race.events).forEach(event => {
+                                    if (event.event == 'selection' && event.type == 'track') {
+                                        already_played.push(event.selection)
+                                    }
+                                })
+                            })
                             if (event.event == "selection" && default_stuff.length == 0) {
                                 notrack = true
                             }
@@ -5785,10 +5863,16 @@ module.exports = {
                                 }
                             }
                         } else if (event.type == "condition") {
+                            let conditions = {
+                                nu: { name: 'No Upgrades', desc: "Players must race with stock parts" },
+                                sk: { name: 'Skips', desc: "Players can use skips (including AI and MFG skips)" },
+                                fl: { name: 'Fastest Lap', desc: "The winner of the track will be determined by the fastest lap time set in 3 laps" }
+                            }
                             options = Object.values(event.options).map(e => {
                                 return (
                                     {
                                         label: condition_names[e],
+                                        description: conditions[e].desc,
                                         value: e,
                                         default: default_stuff.includes(e)
                                     }
@@ -5802,7 +5886,7 @@ module.exports = {
                                     type: 3,
                                     custom_id: "tourney_play_race" + race + "_event" + i,
                                     options: options,
-                                    placeholder: tools.capitalize([event.event.replace("selection", "select"), event.type].join(" ")) + ([null, undefined, ""].includes(event.cost) ? "" : " (" + (event.cost == 0 ? "free" : event.cost + "💠/" + (event.count == 1 ? event.type : event.count + " " + event.type + "s")) + ")"),
+                                    placeholder: tools.capitalize([event.event.replace("selection", "select"), event.type].join(" ")) + ([null, undefined, ""].includes(event.cost) ? "" : " (" + (event.cost == 0 ? "free" : event.cost + "💠/" + (event.count == 1 ? event.type : event.count + " " + event.type + "s")) + ")") + (oddselect ? " (select in sets of " + event.count : ""),
                                     min_values: [undefined, null, ""].includes(event.count) ? 1 : 0,
                                     max_values: [undefined, null, ""].includes(event.count) ? 1 : [undefined, null, ""].includes(event.limit) ? options.length : event.limit == 0 ? options.length : event.count * event.limit
                                 }
@@ -6817,7 +6901,7 @@ module.exports = {
                         }
                         tourney_live.child(interaction.channel_id).child("races").child(race).child("live").set(false)
                         livematch = tourney_live_data[interaction.channel_id]
-                        updateMessage("", type, [raceEmbed(race)], [])
+                        updateMessage("", type, [raceEmbed(race), matchSummaryEmbed()], [])
                         //check win condition
                         let scoreboard = {}
                         Object.keys(livematch.races).forEach(race => {
@@ -6830,42 +6914,52 @@ module.exports = {
                                 }
                             }
                         })
+                        let wincondition = false
                         Object.keys(scoreboard).forEach(player => {
                             if (scoreboard[player] == liverules.general.winlimit) {
                                 //win condition
+                                const winEmbed = new Discord.MessageEmbed()
+                                    .setAuthor("Match Concluded")
+                                    .setTitle("<@" + player + "> Wins!")
+                                postMessage('', [winEmbed], [])
+                                wincondition = true
+                                return
                             }
                         })
-                        let nextrace = livematch.current_race + 1
-                        tourney_live.child(interaction.channel_id).child("current_race").set(nextrace)
-                        let race_object = {
-                            ready: { commentators: false },
-                            reveal: {},
-                            runs: {},
-                            live: false,
-                            events: "",
-                            eventstart: 0,
-                            eventend: 0
-                        }
-                        Object.values(livematch.players).map(player => {
-                            race_object.ready[player] = false
-                            race_object.reveal[player] = false
-                            race_object.runs[player] = {
-                                deaths: "",
-                                notes: "",
-                                platform: "pc",
-                                player: "",
-                                pod: "",
-                                time: ""
+                        if (!wincondition) {
+                            let nextrace = livematch.current_race + 1
+                            tourney_live.child(interaction.channel_id).child("current_race").set(nextrace)
+                            let race_object = {
+                                ready: { commentators: false },
+                                reveal: {},
+                                runs: {},
+                                live: false,
+                                events: "",
+                                eventstart: 0,
+                                eventend: 0
+                            }
+                            Object.values(livematch.players).map(player => {
+                                race_object.ready[player] = false
+                                race_object.reveal[player] = false
+                                race_object.runs[player] = {
+                                    deaths: "",
+                                    notes: "",
+                                    platform: "pc",
+                                    player: "",
+                                    pod: "",
+                                    time: ""
+                                }
+                            }
+                            )
+                            tourney_live.child(interaction.channel_id).child('races').child(nextrace).update(race_object)
+                            //start permabans
+                            if (race == 0 && Object.values(liverules.match.permabans).length > 0) {
+                                postMessage("<@" + (liverules.match.permabans[0].choice == "firstloser" ? getOpponent(getWinner(0)) : getWinner(0)) + "> please select a permanent ban", [permabanEmbed(0)], permabanComponents(0))
+                            } else { //restart event loop for next race
+                                postMessage("<@" + (events[0].choice == "lastwinner" ? getWinner(race) : getOpponent(getWinner(race))) + "> please make a selection", [raceEventEmbed(nextrace)], raceEventComponents(nextrace))
                             }
                         }
-                        )
-                        tourney_live.child(interaction.channel_id).child('races').child(nextrace).update(race_object)
-                        //start permabans
-                        if (race == 0 && Object.values(liverules.match.permabans).length > 0) {
-                            postMessage("<@" + (liverules.match.permabans[0].choice == "firstloser" ? getOpponent(getWinner(0)) : getWinner(0)) + "> please select a permanent ban", [permabanEmbed(0)], permabanComponents(0))
-                        } else { //restart event loop for next race
-                            postMessage("<@" + (events[0].choice == "lastwinner" ? getWinner(race) : getOpponent(getWinner(race))) + "> please make a selection", [raceEventEmbed(nextrace)], raceEventComponents(nextrace))
-                        }
+
                     } else {
                         if (Object.values(livematch.commentators).includes(interaction.member.user.id)) {
                             let modal = {
