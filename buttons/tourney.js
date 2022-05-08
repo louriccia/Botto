@@ -5429,8 +5429,8 @@ module.exports = {
 
             function getRacerOption(i) {
                 let tiers = ['Top', 'High', 'Mid', 'Low']
-                let muspeed = tools.avgSpeed(tools.upgradeTopSpeed(racers[option].max_speed, 5), racers[option].boost_thrust, racers[option].heat_rate, tools.upgradeCooling(racers[option].cool_rate, 5))
-                let nuspeed = tools.avgSpeed(tools.upgradeTopSpeed(racers[option].max_speed, 0), racers[option].boost_thrust, racers[option].heat_rate, tools.upgradeCooling(racers[option].cool_rate, 0))
+                let muspeed = tools.avgSpeed(tools.upgradeTopSpeed(racers[i].max_speed, 5), racers[i].boost_thrust, racers[i].heat_rate, tools.upgradeCooling(racers[i].cool_rate, 5))
+                let nuspeed = tools.avgSpeed(tools.upgradeTopSpeed(racers[i].max_speed, 0), racers[i].boost_thrust, racers[i].heat_rate, tools.upgradeCooling(racers[i].cool_rate, 0))
                 return (
                     {
                         label: racers[i].name,
