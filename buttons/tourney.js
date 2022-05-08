@@ -5418,7 +5418,7 @@ module.exports = {
                     {
                         label: tracks[i].name,
                         value: i,
-                        description: [(circuits[tracks[i].circuit].abbreviation + " - Race " + tracks[i].cirnum , planets[tracks[i].planet].name).substring(0, 50), difficulties[tracks[numb].difficulty].name, tracks[i].lengthclass].join(" | "),
+                        description: [(circuits[tracks[i].circuit].abbreviation + " - Race " + tracks[i].cirnum , planets[tracks[i].planet].name).substring(0, 50), difficulties[tracks[i].difficulty].name, tracks[i].lengthclass].join(" | "),
                         emoji: {
                             name: planets[tracks[i].planet].emoji.split(":")[1],
                             id: planets[tracks[i].planet].emoji.split(":")[2].replace(">", "")
@@ -5429,13 +5429,13 @@ module.exports = {
 
             function getRacerOption(i) {
                 let tiers = ['Top', 'High', 'Mid', 'Low']
-                let muspeed = tools.avgSpeed(tools.upgradeTopSpeed(racers[i].max_speed, 5), racers[i].boost_thrust, racers[i].heat_rate, tools.upgradeCooling(racers[i].cool_rate, 5))
-                let nuspeed = tools.avgSpeed(tools.upgradeTopSpeed(racers[i].max_speed, 0), racers[i].boost_thrust, racers[i].heat_rate, tools.upgradeCooling(racers[i].cool_rate, 0))
+                let muspeed = tools.avgSpeed(tools.upgradeTopSpeed(racers[i].max_speed, 5), racers[i].boost_thrust, racers[i].heat_rate, tools.upgradeCooling(racers[i].cool_rate, 5)).toFixed(0)
+                let nuspeed = tools.avgSpeed(tools.upgradeTopSpeed(racers[i].max_speed, 0), racers[i].boost_thrust, racers[i].heat_rate, tools.upgradeCooling(racers[i].cool_rate, 0)).toFixed(0)
                 return (
                     {
                         label: racers[i].name,
                         value: i,
-                        description: "Tier: MU " + tiers[racers[i].mu_tier] + ", NU " + tiers[racers[i].nu_tier] + 'Avg Speed: MU ' + muspeed + ', NU ' + nuspeed + " Max Turn Rate: " + racers[i].max_turn_rate + "°/s",
+                        description: "Tier: " + tiers[racers[i].mu_tier] + "/" + tiers[racers[i].nu_tier] + ' Avg Speed: ' + muspeed + '/' + nuspeed + " Max Turn Rate: " + racers[i].max_turn_rate + "°/s",
                         emoji: {
                             name: racers[i].flag.split(":")[1],
                             id: racers[i].flag.split(":")[2].replace(">", "")
