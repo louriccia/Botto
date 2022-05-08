@@ -5472,6 +5472,7 @@ module.exports = {
                 livematch = tourney_live_data[interaction.channel_id]
                 let forcepoints = Number(liverules.match.forcepoints.start)
                 let races = Object.values(livematch.races)
+                console.log("player: ", player, "\nforce points", forcepoints)
                 races.forEach(race => {
                     if (![null, undefined, ""].includes(race.events)) {
                         let events = Object.values(race.events)
@@ -5482,6 +5483,7 @@ module.exports = {
                         })
                     }
                 })
+                console.log("return fp", forcepoints)
                 return forcepoints
             }
 
@@ -6705,7 +6707,7 @@ module.exports = {
                                 postMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), [raceEmbed(race)], raceComponents(race))
                             } else {
                                 tourney_live.child(interaction.channel_id).child("races").child(race).update({ eventstart: eventend + 1, eventend: eventend + 1 + streak })
-                                updateMessage("<@" + (events[event + 1].choice == "lastwinner" ? getWinner(0) : getOpponent(getWinner(0))) + "> please make a selection", type, [raceEventEmbed(race)], raceEventComponents(race))
+                                updateMessage("<@" + (events[event + 1].choice == "lastwinner" ? getWinner(race-1) : getOpponent(getWinner(race-1))) + "> please make a selection", type, [raceEventEmbed(race)], raceEventComponents(race))
                             }
                         }
 
@@ -6882,7 +6884,7 @@ module.exports = {
                         if (race == 0 && Object.values(liverules.match.permabans).length > 0) {
                             postMessage("<@" + (liverules.match.permabans[0].choice == "firstloser" ? getOpponent(getWinner(0)) : getWinner(0)) + "> please select a permanent ban", [permabanEmbed(0)], permabanComponents(0))
                         } else { //restart event loop for next race
-                            postMessage("<@" + (events[0].choice == "lastwinner" ? getWinner(0) : getOpponent(getWinner(0))) + "> please make a selection", [raceEventEmbed(nextrace)], raceEventComponents(nextrace))
+                            postMessage("<@" + (events[0].choice == "lastwinner" ? getWinner(race) : getOpponent(getWinner(race))) + "> please make a selection", [raceEventEmbed(nextrace)], raceEventComponents(nextrace))
                         }
                     } else {
                         if (Object.values(livematch.commentators).includes(interaction.member.user.id)) {
