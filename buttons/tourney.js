@@ -5658,7 +5658,7 @@ module.exports = {
                             (livematch.races[race].runs[player].time == "" ? ":red_circle: Awaiting submission" :
                                 Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length > 0 ? ":green_circle: Results Submitted" :
                                     racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name + "\n" +
-                                    "⏱️ " + (livematch.races[race].runs[player].time === "" ? "--:--.---" : tools.timefix(livematch.races[race].runs[player].time)) + "\n" +
+                                    "⏱️ " + (livematch.races[race].runs[player].time.toLowerCase() == 'dnf' ? 'DNF' : (livematch.races[race].runs[player].time === "" ? "--:--.---" : tools.timefix(livematch.races[race].runs[player].time))) + "\n" +
                                     "💀 " + (livematch.races[race].runs[player].deaths === "" ? "--" : Number(livematch.races[race].runs[player].deaths)) + "\n" +
                                     (livematch.races[race].runs[player].notes == "" ? "" : "📝 " + livematch.races[race].runs[player].notes))
                             ,
@@ -5666,12 +5666,7 @@ module.exports = {
                         if (Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length == 0) {
                             embed.addField("🎙️ Commentators/Trackers", ":red_circle: Awaiting Verification", false)
                         }
-                        if (forces.includes("No Upgrades")) {
-                            embed.addField("🕹️ Players", ":orange_circle: Don't forget to show your parts to verify upgrades", false)
-                        }
-                        if (forces.includes("Fastest Lap")) {
-                            embed.addField("🕹️ Players", ":orange_circle: Don't forget to delete your `tgdf.dat` file or set your laps to 4", false)
-                        }
+                        
                     } else {
                         embed.setDescription(conditions.map(con => "`" + condition_names[con] + "`").join(" "))
                             .setColor("#FFFFFF")
@@ -5680,7 +5675,7 @@ module.exports = {
                             Object.values(livematch.players).map(player => embed.addField(
                                 (player == winner ? "👑 " : "") + client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username,
                                 racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name + "\n" +
-                                "⏱️ " + (player == winner ? "__" : "") + tools.timefix(livematch.races[race].runs[player].time) + (player == winner ? "__" : "") + "\n" +
+                                "⏱️ " + (livematch.races[race].runs[player].time.toLowerCase() == 'dnf' ? 'DNF' : (player == winner ? "__" : "") + tools.timefix(livematch.races[race].runs[player].time) + (player == winner ? "__" : "")) + "\n" +
                                 "💀 " + (livematch.races[race].runs[player].deaths == "" ? "--" : Number(livematch.races[race].runs[player].deaths)) + "\n" +
                                 (livematch.races[race].runs[player].notes == "" ? "" : "📝 " + livematch.races[race].runs[player].notes),
                                 true))
@@ -5699,6 +5694,12 @@ module.exports = {
                         true))
 
                     embed.addField("🎙️ Commentators/Trackers", (livematch.races[race].ready.commentators ? ":green_circle: Ready" : ":red_circle: Not Ready"))
+                    if (forces.includes("No Upgrades")) {
+                        embed.addField("🕹️ Players", ":orange_circle: Don't forget to show your parts to verify upgrades", false)
+                    }
+                    if (forces.includes("Fastest Lap")) {
+                        embed.addField("🕹️ Players", ":orange_circle: Don't forget to delete your `tgdf.dat` file or set your laps to 4", false)
+                    }
                 }
 
                 return embed
@@ -5749,7 +5750,7 @@ module.exports = {
                 )
                 const embed = new Discord.MessageEmbed()
                     .setAuthor('Match Summary')
-                    .setTitle(Object.values(livematch.players).map(player => "<@" + player + ">").join(" vs "))
+                    .setTitle(Object.values(livematch.players).map(player => client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username).join(" vs "))
                 Object.values(livematch.players).map(player => embed.addField(
                     client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username + " - " + summary[player].wins,
                    //"👑 Wins: **" +  + "**" +
@@ -5783,7 +5784,7 @@ module.exports = {
                                     Array.isArray(e.selection) ?
                                         e.selection.map(racer => racers[racer].flag + " " + racers[racer].name).join(", ") :
                                         racers[e.selection].flag + " " + racers[e.selection].name :
-                                    condition_names[e.selection]) + "**" + ([null, undefined, "", 0].includes(e.cost) ? "" : "(" + e.cost + "💠)")
+                                    condition_names[e.selection]) + "**" + ([null, undefined, "", 0].includes(e.cost) ? "" : " (" + e.cost + "💠)")
                         ).join("\n")))
                 return embed
             }
@@ -6843,7 +6844,7 @@ module.exports = {
                                                     max_length: 10,
                                                     required: true,
                                                     placeholder: "--:--.---",
-                                                    value: (livematch.races[race].runs[interaction.member.user.id].time == "" ? "" : tools.timefix(livematch.races[race].runs[interaction.member.user.id].time))
+                                                    value: (livematch.races[race].runs[interaction.member.user.id].time.toLowerCase() == 'dnf' ? 'DNF' : (livematch.races[race].runs[interaction.member.user.id].time == "" ? "" : tools.timefix(livematch.races[race].runs[interaction.member.user.id].time)))
                                                 }
                                             ]
                                         },
