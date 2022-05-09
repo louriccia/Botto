@@ -5718,8 +5718,8 @@ module.exports = {
                         timetrue: true
                     }
                 })
-                Object.values(livematch.races).forEach(race => {
-                    summary[getWinner(race)].wins++
+                Object.values(livematch.races).forEach((race, index) => {
+                    summary[getWinner(index)].wins++
                     if (![null, undefined, ""].includes(race.events)) {
                         Object.values(race.events).forEach(event => {
                             if (![null, undefined, ""].includes(event.cost)) {
