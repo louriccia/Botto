@@ -5684,7 +5684,7 @@ module.exports = {
                                 "💀 " + (livematch.races[race].runs[player].deaths == "" ? "--" : Number(livematch.races[race].runs[player].deaths)) + "\n" +
                                 (livematch.races[race].runs[player].notes == "" ? "" : "📝 " + livematch.races[race].runs[player].notes),
                                 true))
-                            embed.setTitle(track + ": " + (client.guilds.resolve(interaction.guild_id).members.resolve(winner).user.username) + " Wins!")
+                            embed.setTitle(planets[tracks[track].planet].emoji + " " + tracks[track].name + ": " + (client.guilds.resolve(interaction.guild_id).members.resolve(winner).user.username) + " Wins!")
                         }
                     }
                 } else {
@@ -5733,12 +5733,12 @@ module.exports = {
                         })
                         Object.values(race.runs).forEach(run => {
                             if(![null, undefined, ""].includes(run.deaths)){
-                                summary[run.player].deaths += run.deaths
+                                summary[run.player].deaths += Number(run.deaths)
                             } else {
                                 summary[run.player].deathtrue = false
                             }
                             if(![null, undefined, "", 'DNF'].includes(run.time)){
-                                summary[run.player].time += run.time
+                                summary[run.player].time += Number(run.time)
                             } else {
                                 summary[run.player].timetrue = false
                             }
@@ -5749,14 +5749,14 @@ module.exports = {
                 )
                 const embed = new Discord.MessageEmbed()
                     .setAuthor('Match Summary')
-                    .setTitle(Object.values(livematch.players).join(" vs "))
+                    .setTitle(Object.values(livematch.players).map(player => "<@" + player + ">").join(" vs "))
                 Object.values(livematch.players).map(player => embed.addField(
-                    client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username,
-                    "👑 Wins: " + summary[player].wins +
-                    '\n💠 Forcepoints: ' + summary[player].forcepoints +
-                    '\n🔁 Runbacks: ' + summary[player].runbacks  +
-                    '\n⏱️ Total Time: ' + summary[player].time + (summary[player].timetrue ? "" : "+") +
-                    '\n💀 Total Deaths: ' + summary[player].deaths + (summary[player].deathtrue ? "" : "+"),
+                    client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username + " - " + summary[player].wins,
+                   //"👑 Wins: **" +  + "**" +
+                    '💠 Forcepoints: **' + summary[player].forcepoints + "**" +
+                    '\n🔁 Runbacks: **' + summary[player].runbacks + "**"  +
+                    '\n⏱️ Total Time: **' + tools.timefix(summary[player].time) + (summary[player].timetrue ? "" : "+") + "**" +
+                    '\n💀 Total Deaths: **' + summary[player].deaths + (summary[player].deathtrue ? "" : "+") + "**",
                     true
                 ))
                 embed.addField("🎙️ Commentators/Trackers",":orange_circle: Don't forget to update the score!", false)
@@ -5861,7 +5861,7 @@ module.exports = {
                             let conditions = {
                                 nu: { name: 'No Upgrades', desc: "Players must race with stock parts" },
                                 sk: { name: 'Skips', desc: "Players can use skips (including AI and MFG skips)" },
-                                fl: { name: 'Fastest Lap', desc: "The winner of the track will be determined by the fastest lap time set in 3 laps" }
+                                fl: { name: 'Fastest Lap', desc: "winner is determined by fastest lap time of 3 laps" }
                             }
                             options = Object.values(event.options).map(e => {
                                 return (
@@ -5900,7 +5900,7 @@ module.exports = {
                                     label: "Submit" + (fptotal == 0 ? "" : " (" + fptotal + "💠)"),
                                     style: 1,
                                     custom_id: "tourney_play_race" + race + "_event_submit",
-                                    disabled: (getForcePoints(player) - fptotal < 0) || notrack
+                                    disabled: (getForcePoints(player) - fptotal < 0) || notrack || oddselect
                                 },
                             ]
                         }
