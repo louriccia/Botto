@@ -5722,11 +5722,13 @@ module.exports = {
                     summary[getWinner(index)].wins++
                     if (![null, undefined, ""].includes(race.events)) {
                         Object.values(race.events).forEach(event => {
-                            if (![null, undefined, ""].includes(event.cost)) {
-                                summary[event.player].forcepoints -= Number(event.cost)
-                            }
-                            if (event.event == 'selection' && event.type == 'track' && event.repeat == true) {
-                                summary[event.player].runbacks --
+                            if(![null, undefined, ""].includes(event.player)){
+                                if (![null, undefined, ""].includes(event.cost)) {
+                                    summary[event.player].forcepoints -= Number(event.cost)
+                                }
+                                if (event.event == 'selection' && event.type == 'track' && event.repeat == true) {
+                                    summary[event.player].runbacks --
+                                }
                             }
                         })
                         Object.values(race.runs).forEach(run => {
@@ -5796,10 +5798,8 @@ module.exports = {
                 let player = (events[eventstart].choice == "lastwinner" ? getWinner(race - 1) : getOpponent(getWinner(race - 1)))
                 let notrack = false
                 let oddselect = false
-                console.log('eventstart-end', eventstart, eventend)
                 for (let i = eventstart; i <= eventend; i++) {
                     let event = events[i]
-                    console.log('event', event)
                     let options = []
                     let default_stuff = []
                     //get defaults
@@ -5816,16 +5816,11 @@ module.exports = {
                     if (![null, undefined, ""].includes(event.count) && default_stuff.length % event.count !== 0) {
                         oddselect = true
                     }
-                    console.log(player)
-                    console.log('fp', getForcePoints(player))
-                    console.log('event cost', event.cost)
                     if ([null, undefined, ""].includes(event.cost) || getForcePoints(player) >= event.cost) {
-                        console.log('if passed')
                         if (![null, undefined, ""].includes(event.cost)) {
                             fptotal += (default_stuff.length / event.count) * event.cost
                         }
                         if (event.type == "racer") {
-                            console.log('racer event')
                             let permabanned_racers = Object.values(livematch.races[1].events).filter(event => event.event == "permaban" && event.type == "racer").map(event => Number(event.selection))
                             let tempbanned_racers = Object.values(livematch.races[race].events).filter(event => event.event == "tempban" && event.type == "racer").map(event => Number(event.selection))
                             for (let i = 0; i < 25; i++) {
@@ -5911,7 +5906,6 @@ module.exports = {
                         }
                     )
                 }
-                console.log(components)
                 return components
             }
 
@@ -6137,7 +6131,6 @@ module.exports = {
                     )
                 }
                 ).sort(function (a, b) { return (b.avg - a.avg) })
-                console.log(podoptions)
                 podoptions = podoptions.map(option => option.value)
                 let components = [
                     {
