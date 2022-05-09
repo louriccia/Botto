@@ -6815,7 +6815,8 @@ module.exports = {
                                 {
                                     time: tools.timetoSeconds(interaction.data.components[0].components[0].value.trim()),
                                     deaths: interaction.data.components[1].components[0].value.trim(),
-                                    notes: interaction.data.components[2].components[0].value.trim()
+                                    notes: interaction.data.components[2].components[0].value.trim(),
+                                    player: interaction.member.user.id
                                 }
                             )
                             updateMessage("", type, [raceEmbed(race)], raceComponents(race))
@@ -6842,7 +6843,7 @@ module.exports = {
                                                     max_length: 10,
                                                     required: true,
                                                     placeholder: "--:--.---",
-                                                    value: tools.timefix(livematch.races[race].runs[interaction.member.user.id].time)
+                                                    value: (livematch.races[race].runs[interaction.member.user.id].time == "" ? "" : tools.timefix(livematch.races[race].runs[interaction.member.user.id].time))
                                                 }
                                             ]
                                         },
