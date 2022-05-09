@@ -5750,7 +5750,7 @@ module.exports = {
                 )
                 const embed = new Discord.MessageEmbed()
                     .setAuthor('Match Summary')
-                    .setTitle(Object.values(livematch.players).map(player => client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username).join(" vs "))
+                    //.setTitle(Object.values(livematch.players).map(player => client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username).join(" vs "))
                 Object.values(livematch.players).map(player => embed.addField(
                     client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username + " - " + summary[player].wins,
                    //"👑 Wins: **" +  + "**" +
