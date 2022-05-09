@@ -5566,7 +5566,7 @@ module.exports = {
             }
 
             function countDown() {
-                postMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + "\n<a:countdown:672640791369482251> Countdown incoming! Good luck <a:countdown:672640791369482251>", [], [])
+                //postMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + "\n<a:countdown:672640791369482251> Countdown incoming! Good luck <a:countdown:672640791369482251>", [], [])
                 for (let i = 0; i <= 5; i++) {
                     setTimeout(async function () {
                         client.api.channels(interaction.channel_id).messages.post({
@@ -6783,7 +6783,7 @@ module.exports = {
                             tourney_live.child(interaction.channel_id).child("races").child(race).child("ready").child("commentators").set((args[2] == "ready" ? true : false))
                             livematch = tourney_live_data[interaction.channel_id]
                             if (Object.values(livematch.races[race].ready).filter(r => r == false).length == 0) {
-                                updateMessage("", type, [raceEmbed(race)], [])
+                                updateMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + "\n<a:countdown:672640791369482251> Countdown incoming! Good luck <a:countdown:672640791369482251>", type, [], [])
                                 countDown()
                                 //initiate race
                                 tourney_live.child(interaction.channel_id).child("races").child(race).child("live").set(true)
@@ -6915,7 +6915,9 @@ module.exports = {
                                 //win condition
                                 const winEmbed = new Discord.MessageEmbed()
                                     .setAuthor("Match Concluded")
-                                    .setTitle("<@" + player + "> Wins!")
+                                    .setTitle(client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username + " Wins!")
+                                    .setDescription("GGs, racers!")
+                                    .addField(":microphone2: Commentators/Trackers", ":orange_circle: Don't forget to click 'Episode Finished' after the interviews")
                                 postMessage('', [winEmbed], [])
                                 wincondition = true
                                 return
