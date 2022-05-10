@@ -5458,7 +5458,7 @@ module.exports = {
                         description: firsts[liverules.general.firsttrack.primary].description
                     }
                 ]
-                if (liverules.general.gents) {
+                if (liverules.general.gents && false) {
                     firstoptions.push(
                         {
                             label: "Gentleman's Agreement",
@@ -5672,7 +5672,7 @@ module.exports = {
                 const embed = new Discord.MessageEmbed()
                     .setTitle((repeat ? "🔁" : planets[tracks[track].planet].emoji) + " " + tracks[track].name + (forces.length > 0 ? " (" + forces.join(", ") + ")" : ""))
                     .setThumbnail(tracks[track].preview)
-                    .setDescription(conmap + ([null, undefined, ""].includes(livematch.races[race].gents) ? "" : "\n🎩 " + livematch.races[race].gents))
+                    .setDescription(conmap + ([null, undefined, ""].includes(livematch.races[race].gents) ? "" : "\n🎩 " + livematch.races[race].gents.terms))
                 if (Object.values(livematch.races[race].ready).filter(r => r == false).length == 0) {
                     if (livematch.races[race].live) {
                         embed
@@ -5712,7 +5712,7 @@ module.exports = {
                     embed
                         .setAuthor("Race " + (race + 1) + " - Setup")
                         .setColor("#FAA81A")
-                        .setDescription(conmap + ([null, undefined, ""].includes(livematch.races[race].gents) ? "" : "\n🎩 " + livematch.races[race].gents) + (livematch.races[race].live ? "" : "\nCountdown will automatically start when players and commentators have readied."))
+                        .setDescription(conmap + ([null, undefined, ""].includes(livematch.races[race].gents) ? "" : "\n🎩 " + livematch.races[race].gents.terms) + (livematch.races[race].live ? "" : "\nCountdown will automatically start when players and commentators have readied."))
                     Object.values(livematch.players).map(player => embed.addField(
                         client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username,
                         ([undefined, null, ""].includes(livematch.races[race].runs[player].pod) ?
@@ -6938,12 +6938,17 @@ module.exports = {
                                 }
                             })
                         } else {
-                            if(args[3] == 'true'){
-                                tourney_live.child(interaction.channel_id).child('races').child(race).child('gents').set({agreed: true})
-                            } else {
-                                tourney_live.child(interaction.channel_id).child('races').child(race).child('gents').remove()
+                            if(interaction.member.user.id == getOpponent(livematch.races[race].gents?.player)){
+                                if(args[3] == 'true'){
+                                    tourney_live.child(interaction.channel_id).child('races').child(race).child('gents').set({agreed: true})
+                                } else {
+                                    tourney_live.child(interaction.channel_id).child('races').child(race).child('gents').remove()
+                                }
+                                updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(comm => "<@" + comm + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
+                            } else{
+                                ephemeralMessage("Not you! <:WhyNobodyBuy:589481340957753363>", [], [])
                             }
-                            updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(comm => "<@" + comm + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
+                            
                         }
                     }    
                 } else if (args[2] == "racer") {
