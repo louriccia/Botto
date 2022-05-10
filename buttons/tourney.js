@@ -5644,11 +5644,15 @@ module.exports = {
             function raceEmbed(race) {
                 livematch = tourney_live_data[interaction.channel_id]
                 let track = ""
+                let repeat = false
                 let events = Object.values(livematch.races[race].events)
                 let conditions = Object.values(liverules.general.default)
                 events.forEach(event => {
                     if (event.event == "selection" && event.type == "track") {
                         track = Number(event.selection)
+                        if (event.repeat) {
+                            repeat = true
+                        }
                     }
                     if (event.event == "override" && event.type == "condition") {
                         if (event.selection == "sk") {
@@ -5661,10 +5665,12 @@ module.exports = {
                     }
                 })
                 let forces = events.filter(event => event.event == 'override' && event.type == 'condition').map(event => tools.capitalize(condition_names[event.selection]))
+                if (repeat) {
+                    forces.push('Runback')
+                }
                 let conmap = conditions.map(con => "`" + condition_names[con] + "`").join(" ")
                 const embed = new Discord.MessageEmbed()
-
-                    .setTitle(planets[tracks[track].planet].emoji + " " + tracks[track].name + (forces.length > 0 ? " (" + forces.join(", ") + ")" : ""))
+                    .setTitle((repeat ? "🔁" : planets[tracks[track].planet].emoji) + " " + tracks[track].name + (forces.length > 0 ? " (" + forces.join(", ") + ")" : ""))
                     .setThumbnail(tracks[track].preview)
                     .setDescription(conmap + ([null, undefined, ""].includes(livematch.races[race].gents) ? "" : "\n🎩 " + livematch.races[race].gents))
                 if (Object.values(livematch.races[race].ready).filter(r => r == false).length == 0) {
@@ -5706,7 +5712,7 @@ module.exports = {
                     embed
                         .setAuthor("Race " + (race + 1) + " - Setup")
                         .setColor("#FAA81A")
-                        .setDescription(conmap + ([null, undefined, ""].includes(livematch.races[race].gents) ? "" : "\n🎩 " + livematch.races[race].gents) + (livematch.races[race].live ? "" : "\nCountdown will automatically start when commentators/players have readied."))
+                        .setDescription(conmap + ([null, undefined, ""].includes(livematch.races[race].gents) ? "" : "\n🎩 " + livematch.races[race].gents) + (livematch.races[race].live ? "" : "\nCountdown will automatically start when players and commentators have readied."))
                     Object.values(livematch.players).map(player => embed.addField(
                         client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username,
                         ([undefined, null, ""].includes(livematch.races[race].runs[player].pod) ?
@@ -5813,12 +5819,12 @@ module.exports = {
                     .setDescription("" + ([undefined, null, ""].includes(events) ? "" :
                         Object.values(events).map(e =>
                             "<@" + e.player + "> " + actions[e.event] + " a " + e.type + ": **" + (e.type == "track" ?
-                                planets[tracks[e.selection].planet].emoji + " " + tracks[e.selection].name :
+                                (e.repeat ? "🔁" : planets[tracks[e.selection].planet].emoji) + " " + tracks[e.selection].name :
                                 e.type == "racer" ?
                                     Array.isArray(e.selection) ?
                                         e.selection.map(racer => racers[racer].flag + " " + racers[racer].name).join(", ") :
                                         racers[e.selection].flag + " " + racers[e.selection].name :
-                                    condition_names[e.selection]) + "**" + ([null, undefined, "", 0].includes(e.cost) ? "" : " (" + e.cost + "💠)")
+                                    condition_names[e.selection]) + "**" + ([null, undefined, "", 0].includes(e.cost) ? "" : " for " + e.cost + "💠 forcepoint(s)")
                         ).join("\n")))
                 return embed
             }
@@ -5861,7 +5867,7 @@ module.exports = {
                             let tempbanned_racers = Object.values(livematch.races[race].events).filter(event => event.event == "tempban" && event.type == "racer").map(event => Number(event.selection))
                             for (let i = 0; i < 25; i++) {
                                 if (!tempbanned_racers.includes(i) && !permabanned_racers.includes(i)) {
-                                    if (i < 23 || (!permabanned_racers.includes(8) && i == 23) || (!tempbanned_racers.includes(22) && i == 24)) { //handle secret pods
+                                    if (i < 23 || (event.event == 'selection' && ((!tempbanned_racers.includes(8) && !permabanned_racers.includes(i) && i == 23)) || (!tempbanned_racers.includes(22) && !permabanned_racers.includes(i) && i == 24))) { //handle secret pods
                                         let option = getRacerOption(i)
                                         if (default_stuff.includes(String(i))) {
                                             option.default = true
@@ -5957,7 +5963,7 @@ module.exports = {
                             components: [
                                 {
                                     type: 2,
-                                    label: "Submit" + (fptotal == 0 ? "" : " (" + fptotal + "💠)") + (repeat ? "(1🔁)" : ""),
+                                    label: "Submit" + (fptotal == 0 ? "" : " (" + fptotal + "💠)") + (repeat ? " (🔁)" : ""),
                                     style: 1,
                                     custom_id: "tourney_play_race" + race + "_event_submit",
                                     disabled: (getForcePoints(player) - fptotal < 0) || notrack || oddselect
@@ -6232,6 +6238,19 @@ module.exports = {
                         ]
                     },
                 ]
+                if (liverules.general.gents) {
+                    components[1].components.push(
+                        {
+                            type: 2,
+                            label: "",
+                            emoji: {
+                                name: "🎩"
+                            },
+                            style: 1,
+                            custom_id: "tourney_play_race" + race + "_gents"
+                        }
+                    )
+                }
                 if (livematch.races[race].live) {
                     components = [
                         {
@@ -6265,6 +6284,27 @@ module.exports = {
                             }
                         )
                     }
+                }
+                if(livematch.races[race].gents?.agreed == "?"){
+                    components = [
+                        {
+                            type: 1,
+                            components: [
+                                {
+                                    type: 2,
+                                    label: "Accept",
+                                    style: 3,
+                                    custom_id: "tourney_play_race" + race + "_gents_true"
+                                },
+                                {
+                                    type: 2,
+                                    label: "Deny",
+                                    style: 4,
+                                    custom_id: "tourney_play_race" + race + "_gents_false"
+                                }
+                            ]
+                        }
+                    ]
                 }
                 return components
             }
@@ -6865,6 +6905,47 @@ module.exports = {
                     } else {
                         ephemeralMessage("You have not selected a racer yet! <:WhyNobodyBuy:589481340957753363>", [], [])
                     }
+                } else if (args[2] == 'gents') {
+                    if (interaction.type == 5) {
+                        let terms = interaction.data.components[0].components[0].value.trim()
+                        tourney_live.child(interaction.channel_id).child('races').child(race).child('gents').set({terms: terms, player: interaction.member.user.id, agreed: "?"})
+                        updateMessage("<@" + getOpponent(interaction.member.user.id) + "> do you accept the terms of the proposed 🎩 **Gentlemen's Agreement**?\n*" + terms + "*", type, [raceEmbed(race)], raceComponents(race))
+                    } else {
+                        if(args.length == 3){
+                            client.api.interactions(interaction.id, interaction.token).callback.post({
+                                data: {
+                                    type: 9,
+                                    data: {
+                                        custom_id: "tourney_play_race" + race + "_gents",
+                                        title: "Make a Gentleman's Agreement",
+                                        components: [
+                                            {
+                                                type: 1,
+                                                components: [
+                                                    {
+                                                        type: 4,
+                                                        custom_id: "gents",
+                                                        label: "Agreement Terms",
+                                                        style: 1,
+                                                        min_length: 0,
+                                                        max_length: 100,
+                                                        required: false
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                }
+                            })
+                        } else {
+                            if(args[3] == 'true'){
+                                tourney_live.child(interaction.channel_id).child('races').child(race).child('gents').set({agreed: true})
+                            } else {
+                                tourney_live.child(interaction.channel_id).child('races').child(race).child('gents').remove()
+                            }
+                            updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(comm => "<@" + comm + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
+                        }
+                    }    
                 } else if (args[2] == "racer") {
                     tourney_live.child(interaction.channel_id).child("races").child(race).child("runs").child(interaction.member.user.id).child("pod").set(interaction.data.values[0])
                     updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(comm => "<@" + comm + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
@@ -6984,6 +7065,7 @@ module.exports = {
                                     .addField(":microphone2: Commentators/Trackers", ":orange_circle: Don't forget to click 'Episode Finished' after the interviews")
                                 postMessage('', [winEmbed], [])
                                 wincondition = true
+
                                 return
                             }
                         })
