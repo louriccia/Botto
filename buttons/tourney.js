@@ -5476,6 +5476,7 @@ module.exports = {
                         return participant.name
                     }
                 })
+                return "?"
             }
 
             function getOpponent(player) {
