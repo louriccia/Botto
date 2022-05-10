@@ -5768,7 +5768,7 @@ module.exports = {
                 const embed = new Discord.MessageEmbed()
                     .setAuthor('Match Summary')
                 Object.values(livematch.players).map(player => embed.addField(
-                    client.guilds.resolve((leader.player == player ? "👑 " : "") + interaction.guild_id).members.resolve(player).user.username + " - " + summary[player].wins + (summary[player].wins == liverules.general.winlimit - 1 ? " (Match Point)" : ""),
+                    (leader.player == player ? "👑 " : "") + client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username + " - " + summary[player].wins + (summary[player].wins == liverules.general.winlimit - 1 ? " (Match Point)" : ""),
                     '💠 Forcepoints: **' + summary[player].forcepoints + "**" +
                     (liverules.match.repeattrack ? '\n🔁 **' + summary[player].runbacks + "**" : "") +
                     '\n⏱️ **' + tools.timefix(summary[player].time) + (summary[player].timetrue ? "" : "+") + "**" +
