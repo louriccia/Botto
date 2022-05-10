@@ -6010,7 +6010,7 @@ module.exports = {
                             let ruleset = tourney_rulesets_data.saved[key]
                             ruleset_options.push(
                                 {
-                                    label: ruleset.general.name,
+                                    label: ruleset.general?.name ?? ruleset.name,
                                     value: key,
                                     description: ruleset.general.description
                                 }
@@ -6022,7 +6022,7 @@ module.exports = {
                             let bracket = tourney_tournaments_data[livematch.tourney].stages[key]
                             bracket_options.push(
                                 {
-                                    label: bracket.bracket + " " + bracket.round,
+                                    label: bracket.bracket + " " + (bracket.round ?? ""),
                                     value: key,
                                 }
                             )
