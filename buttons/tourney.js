@@ -6802,7 +6802,7 @@ module.exports = {
                             if (Object.values(livematch.races[race].ready).filter(r => r == false).length == 0) {
                                 updateMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + "\n<a:countdown:672640791369482251> Countdown incoming! Good luck <a:countdown:672640791369482251>", type, [], [])
                                 setTimeout(async function() {
-                                    client.guilds.get(interaction.guild_id).channels.get(interaction.channel_id).fetchMessage(interaction.message.id).then(message => message.delete());
+                                    client.guilds.cache.get(interaction.guild_id).channels.cache.get(interaction.channel_id).fetchMessage(interaction.message.id).then(message => message.delete());
                                 }, 10000)
                                 countDown()
                                 //initiate race
