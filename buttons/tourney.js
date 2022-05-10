@@ -5895,12 +5895,16 @@ module.exports = {
                                 notrack = true
                             }
                             for (let i = 0; i < 25; i++) {
-                                if (!permabanned_tracks.includes(i) && !tempbanned_tracks.includes(i) && (!already_played[i] || (already_played[i] && saltmap[liverules.match.repeattrack.condition] <= already_played[i].played && getRunbacks(player) > 0))) {
+                                if (!permabanned_tracks.includes(i) && //hasn't been permabanned
+                                    !tempbanned_tracks.includes(i) && //hasn't been tempbanned
+                                    (!already_played[i] || //hasn't been played
+                                    (event.event !== 'selection' && already_played[i] && saltmap[liverules.match.repeattrack.condition] <= already_played[i].played && getRunbacks(getOpponent(player)) > 0) || //not selecting the track but it still could be runback
+                                    (event.event == 'selection' && already_played[i] && saltmap[liverules.match.repeattrack.condition] <= already_played[i].played && getRunbacks(player) > 0))) { //selecting the track and it can be runback
                                     let option = getTrackOption(i)
                                     if (default_stuff.includes(String(i))) {
                                         option.default = true
                                     }
-                                    if (already_played[i]) {
+                                    if (already_played[i] && event.event == 'selection') {
                                         option.emoji = {
                                             name: "🔁"
                                         }
@@ -6769,7 +6773,7 @@ module.exports = {
                                             if (![null, undefined, ""].includes(e.cost)) {
                                                 new_event.cost = e.cost
                                             }
-                                            if(option.includes("repeat")){
+                                            if (option.includes("repeat")) {
                                                 new_event.selection = option.replace("repeat", "")
                                                 new_event.repeat = true
                                             }
@@ -6796,7 +6800,7 @@ module.exports = {
                                 if (![null, undefined, ""].includes(e.cost)) {
                                     new_event.cost = e.cost
                                 }
-                                if(selection.includes("repeat")){
+                                if (selection.includes("repeat")) {
                                     new_event.selection = selection.replace("repeat", "")
                                     new_event.repeat = true
                                 }
