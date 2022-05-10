@@ -5683,7 +5683,7 @@ module.exports = {
                                 "💀 " + (livematch.races[race].runs[player].deaths == "" ? "--" : Number(livematch.races[race].runs[player].deaths)) + "\n" +
                                 (livematch.races[race].runs[player].notes == "" ? "" : "📝 " + livematch.races[race].runs[player].notes),
                                 true))
-                            embed.setTitle(planets[tracks[track].planet].emoji + " " + tracks[track].name + ": " + (client.guilds.resolve(interaction.guild_id).members.resolve(winner).user.username) + " Wins!")
+                            embed.setTitle(planets[tracks[track].planet].emoji + " " + tracks[track].name + (forces.length > 0 ? " (" + forces.join(", ") + ")" : "") + " - " + (client.guilds.resolve(interaction.guild_id).members.resolve(winner).user.username) + " Wins!")
                         }
                     }
                 } else {
@@ -5767,9 +5767,10 @@ module.exports = {
                 })
                 const embed = new Discord.MessageEmbed()
                     .setAuthor('Match Summary')
+                    .setColor("#FFFFFF")
                 Object.values(livematch.players).map(player => embed.addField(
                     (leader.player == player ? "👑 " : "") + client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username + " - " + summary[player].wins + (summary[player].wins == liverules.general.winlimit - 1 ? " (Match Point)" : ""),
-                    '💠 Forcepoints: **' + summary[player].forcepoints + "**" +
+                    '💠 **' + summary[player].forcepoints + "**" +
                     (liverules.match.repeattrack ? '\n🔁 **' + summary[player].runbacks + "**" : "") +
                     '\n⏱️ **' + tools.timefix(summary[player].time) + (summary[player].timetrue ? "" : "+") + "**" +
                     '\n💀 **' + summary[player].deaths + (summary[player].deathtrue ? "" : "+") + "**",
@@ -6749,7 +6750,7 @@ module.exports = {
                                 })
 
                             } else {
-                                updateMessage("<@" + (e.choice == "lastwinner" ? getWinner(0) : getOpponent(getWinner(0))) + "> please make a selection", type, [raceEventEmbed(race)], raceEventComponents(race))
+                                updateMessage("<@" + (events[event].choice == "lastwinner" ? getWinner(race - 1) : getOpponent(getWinner(race - 1))) + "> please make a selection", type, [raceEventEmbed(race)], raceEventComponents(race))
                                 return
                             }
                         } else {
@@ -6800,6 +6801,9 @@ module.exports = {
                             livematch = tourney_live_data[interaction.channel_id]
                             if (Object.values(livematch.races[race].ready).filter(r => r == false).length == 0) {
                                 updateMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + "\n<a:countdown:672640791369482251> Countdown incoming! Good luck <a:countdown:672640791369482251>", type, [], [])
+                                setTimeout(async function() {
+                                    client.guilds.get(interaction.guild_id).channels.get(interaction.channel_id).fetchMessage(interaction.message.id).then(message => message.delete());
+                                }, 10000)
                                 countDown()
                                 //initiate race
                                 tourney_live.child(interaction.channel_id).child("races").child(race).child("live").set(true)
@@ -6999,7 +7003,7 @@ module.exports = {
                                                 max_length: 10,
                                                 required: true,
                                                 placeholder: "--:--.---",
-                                                value: tools.timefix(livematch.races[race].runs[key].time)
+                                                value: (livematch.races[race].runs[key].time.toLowerCase() == "dnf" ? "DNF" : tools.timefix(livematch.races[race].runs[key].time))
                                             }
                                         ]
                                     }
@@ -7016,7 +7020,7 @@ module.exports = {
                                                 min_length: 1,
                                                 max_length: 2,
                                                 required: true,
-                                                value: Number(livematch.races[race].runs[key].deaths).toFixed(0)
+                                                value: livematch.races[race].runs[key].deaths
                                             }
                                         ]
                                     }
