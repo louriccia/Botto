@@ -5376,10 +5376,10 @@ module.exports = {
             }
 
             let firsts = {
-                poe_c: { label: "Process of Elimination by Circuit", description: "Players alternate circuit bans, then track bans until one option remains" },
-                poe_p: { label: "Process of Elimination by Planet", description: "Players alternate planet bans, then track bans until one option remains" },
-                poe_t: { label: "Process of Elimination by Track", description: "Players alternate track bans until one option remains" },
-                random: { label: "Random", description: "First track is decided by rng" }
+                poe_c: { label: "Process of Elimination by Circuit", description: "Alternate circuit bans then track bans until one option remains" },
+                poe_p: { label: "Process of Elimination by Planet", description: "Alternate planet bans then track bans until one option remains" },
+                poe_t: { label: "Process of Elimination by Track", description: "Alternate track bans until one option remains" },
+                random: { label: "Random", description: "First track is randomly decided by Botto" }
             }
 
             let trackgroups = {
@@ -5458,15 +5458,6 @@ module.exports = {
                         description: firsts[liverules.general.firsttrack.primary].description
                     }
                 ]
-                if (liverules.general.gents && false) {
-                    firstoptions.push(
-                        {
-                            label: "Gentleman's Agreement",
-                            description: "Propose a gentleman's agreement to your opponent",
-                            value: "gents"
-                        }
-                    )
-                }
                 if (![undefined, null, ""].includes(liverules.general.firsttrack.secondary)) {
                     Object.values(liverules.general.firsttrack.secondary).forEach(first => firstoptions.push(
                         {
@@ -5919,6 +5910,7 @@ module.exports = {
                                             name: "🔁"
                                         }
                                         option.value += "repeat"
+                                        option.label += " (Runback)"
                                         if (option.default) {
                                             repeat = true
                                         }
@@ -5992,6 +5984,7 @@ module.exports = {
             }
 
             function setupComponents() {
+                livematch == tourney_live_data[interaction.channel_id]
                 let components = []
                 let tourney_options = [], bracket_options = [], ruleset_options = []
                 let ttd = Object.keys(tourney_tournaments_data)
@@ -6017,9 +6010,9 @@ module.exports = {
                             let ruleset = tourney_rulesets_data.saved[key]
                             ruleset_options.push(
                                 {
-                                    label: ruleset.name,
+                                    label: ruleset.general.name,
                                     value: key,
-                                    description: ruleset.description
+                                    description: ruleset.general.description
                                 }
                             )
                         })
@@ -6582,7 +6575,7 @@ module.exports = {
                         updateMessage(content, type, [firstEmbed()], firstComponents())
                     } else if (livematch.firstmethod.includes("poe")) {
                         livematch = tourney_live_data[interaction.channel_id]
-                        updateMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + "\n*I just happen to have a chancecube here...*", type, [colorEmbed()], colorComponents())
+                        updateMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + "\n*I just happen to have a chancecube here...* <a:OovoDoor:964369275559223306>", type, [colorEmbed()], colorComponents())
                     } else if (livematch.firstmethod == 'random') {
                         updateMessage("The first track will be... <a:OovoDoor:964369275559223306>", type, [], [])
                         setTimeout(async function () {
@@ -6594,37 +6587,6 @@ module.exports = {
                             livematch = tourney_live_data[interaction.channel_id]
                             postMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), [raceEmbed(0)], raceComponents(0))
                         }, 3000)
-                    } else if (livematch.firstmethod == 'gents') {
-                        if (interaction.type == 5) {
-                            tourney_live.child(interaction.channel_id).child('races').child(0).child('gents').set(interaction.data.components[0].components[0].value.trim())
-                            updateMessage('Please select a track', type, [], firstbanComponents())
-                        } else {
-                            client.api.interactions(interaction.id, interaction.token).callback.post({
-                                data: {
-                                    type: 9,
-                                    data: {
-                                        custom_id: "tourney_play_first_start",
-                                        title: "Make a Gentleman's Agreement",
-                                        components: [
-                                            {
-                                                type: 1,
-                                                components: [
-                                                    {
-                                                        type: 4,
-                                                        custom_id: "gents",
-                                                        label: "Agreement Conditions",
-                                                        style: 1,
-                                                        min_length: 0,
-                                                        max_length: 100,
-                                                        required: true
-                                                    }
-                                                ]
-                                            }
-                                        ]
-                                    }
-                                }
-                            })
-                        }
                     } else {
                         updateMessage('Please select a track', type, [], firstbanComponents())
                     }
