@@ -97,7 +97,7 @@ module.exports = {
                 let matchfield = { name: "Every Match", value: "", inline: false }
                 matchfield.value = (ruleset.match.forcepoints.start > 0 && "👥 Both players start with `" + ruleset.match.forcepoints.start + "` **💠 Force Points** (`" + ruleset.match.forcepoints.max + " max`)" + "\n") +
                     (ruleset.match.permabans && Object.values(ruleset.match.permabans).map(ban => choices[ban.choice] + " **🚫 Permanently Bans** " + ban.limit + " " + ban.type + " (`" + (ban.cost == 0 ? "free" : ban.cost + "💠") + "`)\n").join("")) +
-                    (ruleset.match.repeattrack && Object.values(ruleset.match.repeattrack).map(repeat => choices[repeat.choice] + " can use `" + repeat.limit + "` " + repeat.condition + " **🔁 Runback** " + (repeat.style == "soft" ? "(`resets to default conditions, " : "(`must be same conditions, ") + (repeat.cost == 0 ? "free" : repeat.cost + "💠") + "`)"))
+                    (ruleset.match.repeattrack && ("👥 Both players can use `" + ruleset.match.repeattrack.limit + "` " + ruleset.match.repeattrack.condition + " **🔁 Runback** " + (ruleset.match.repeattrack.style == "soft" ? "(`resets to default conditions, " : "(`must be same conditions, ") + (ruleset.match.repeattrack.cost == 0 ? "free" : ruleset.match.repeattrack.cost + "💠") + "`)"))
 
                 let racefield = { name: "Every Race", value: "", inline: false }
                 racefield.value = Object.values(ruleset.race).map(
@@ -5647,12 +5647,15 @@ module.exports = {
                 })
                 let forces = events.filter(event => event.event == 'override' && event.type == 'condition').map(event => tools.capitalize(condition_names[event.selection]))
                 const embed = new Discord.MessageEmbed()
-                    .setAuthor("Race " + (race + 1))
+
                     .setTitle(planets[tracks[track].planet].emoji + " " + tracks[track].name + (forces.length > 0 ? " (" + forces.join(", ") + ")" : ""))
                     .setThumbnail(tracks[track].preview)
                     .setDescription(conditions.map(con => "`" + condition_names[con] + "`").join(" ") + ([null, undefined, ""].includes(livematch.races[race].gents) ? "" : "\n🎩 " + livematch.races[race].gents) + (livematch.races[race].live ? "" : "\nCountdown will automatically start when commentators/players have readied."))
                 if (Object.values(livematch.races[race].ready).filter(r => r == false).length == 0) {
                     if (livematch.races[race].live) {
+                        embed
+                            .setAuthor("Race " + (race + 1) + " - In Progress")
+                            .setColor("#DD2E44")
                         Object.values(livematch.players).map(player => embed.addField(
                             client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username,
                             (livematch.races[race].runs[player].time == "" ? ":red_circle: Awaiting submission" :
@@ -5666,10 +5669,11 @@ module.exports = {
                         if (Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length == 0) {
                             embed.addField("🎙️ Commentators/Trackers", ":red_circle: Awaiting Verification", false)
                         }
-                        
+
                     } else {
-                        embed.setDescription(conditions.map(con => "`" + condition_names[con] + "`").join(" "))
-                            .setColor("#FFFFFF")
+                        embed
+                            .setAuthor("Race " + (race + 1) + " - Results")
+                            .setColor("#2D7D46")
                         if (![null, undefined, ""].includes(livematch.races[race].runs) && Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length == 0) {
                             let winner = getWinner(race)
                             Object.values(livematch.players).map(player => embed.addField(
@@ -5683,6 +5687,9 @@ module.exports = {
                         }
                     }
                 } else {
+                    embed
+                        .setAuthor("Race " + (race + 1) + " - Setup")
+                        .setColor("#FAA81A")
                     Object.values(livematch.players).map(player => embed.addField(
                         client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username,
                         ([undefined, null, ""].includes(livematch.races[race].runs[player].pod) ?
@@ -5723,22 +5730,22 @@ module.exports = {
                     summary[getWinner(index)].wins++
                     if (![null, undefined, ""].includes(race.events)) {
                         Object.values(race.events).forEach(event => {
-                            if(![null, undefined, ""].includes(event.player)){
+                            if (![null, undefined, ""].includes(event.player)) {
                                 if (![null, undefined, ""].includes(event.cost)) {
                                     summary[event.player].forcepoints -= Number(event.cost)
                                 }
                                 if (event.event == 'selection' && event.type == 'track' && event.repeat == true) {
-                                    summary[event.player].runbacks --
+                                    summary[event.player].runbacks--
                                 }
                             }
                         })
                         Object.values(race.runs).forEach(run => {
-                            if(![null, undefined, ""].includes(run.deaths)){
+                            if (![null, undefined, ""].includes(run.deaths)) {
                                 summary[run.player].deaths += Number(run.deaths)
                             } else {
                                 summary[run.player].deathtrue = false
                             }
-                            if(![null, undefined, "", 'DNF'].includes(run.time)){
+                            if (![null, undefined, "", 'DNF'].includes(run.time)) {
                                 summary[run.player].time += Number(run.time)
                             } else {
                                 summary[run.player].timetrue = false
@@ -5748,19 +5755,27 @@ module.exports = {
                     }
                 }
                 )
+                let leader = { player: "", wins: 0 }
+                Object.keys(summary).forEach(player => {
+                    let stats = summary[player]
+                    if (stats.wins > leader.wins) {
+                        leader.player = player
+                        leader.wins = stats.wins
+                    } else if (stats.wins == leader.wins) {
+                        leader.player = "tie"
+                    }
+                })
                 const embed = new Discord.MessageEmbed()
                     .setAuthor('Match Summary')
-                    //.setTitle(Object.values(livematch.players).map(player => client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username).join(" vs "))
                 Object.values(livematch.players).map(player => embed.addField(
-                    client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username + " - " + summary[player].wins,
-                   //"👑 Wins: **" +  + "**" +
+                    client.guilds.resolve((leader.player == player ? "👑 " : "") + interaction.guild_id).members.resolve(player).user.username + " - " + summary[player].wins + (summary[player].wins == liverules.general.winlimit - 1 ? " (Match Point)" : ""),
                     '💠 Forcepoints: **' + summary[player].forcepoints + "**" +
-                    '\n🔁 Runbacks: **' + summary[player].runbacks + "**"  +
-                    '\n⏱️ Total Time: **' + tools.timefix(summary[player].time) + (summary[player].timetrue ? "" : "+") + "**" +
-                    '\n💀 Total Deaths: **' + summary[player].deaths + (summary[player].deathtrue ? "" : "+") + "**",
+                    (liverules.match.repeattrack ? '\n🔁 **' + summary[player].runbacks + "**" : "") +
+                    '\n⏱️ **' + tools.timefix(summary[player].time) + (summary[player].timetrue ? "" : "+") + "**" +
+                    '\n💀 **' + summary[player].deaths + (summary[player].deathtrue ? "" : "+") + "**",
                     true
                 ))
-                embed.addField("🎙️ Commentators/Trackers",":orange_circle: Don't forget to update the score!", false)
+                embed.addField("🎙️ Commentators/Trackers", ":orange_circle: Don't forget to update the score!", false)
                 return embed
             }
 
@@ -5775,7 +5790,8 @@ module.exports = {
                     override: "✳️ overrode"
                 }
                 const embed = new Discord.MessageEmbed()
-                    .setAuthor("Race " + (race + 1) + " - Events")
+                    .setAuthor("Race " + (race + 1) + " - Ban Phase")
+                    .setColor("#FAA81A")
                     .setDescription("" + ([undefined, null, ""].includes(events) ? "" :
                         Object.values(events).map(e =>
                             "<@" + e.player + "> " + actions[e.event] + " a " + e.type + ": **" + (e.type == "track" ?
