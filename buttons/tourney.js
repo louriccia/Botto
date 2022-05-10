@@ -5873,7 +5873,7 @@ module.exports = {
                         } else if (event.type == "track") {
                             let permabanned_tracks = Object.values(livematch.races[1].events).filter(event => event.event == "permaban" && event.type == "track").map(event => Number(event.selection))
                             let tempbanned_tracks = Object.values(livematch.races[race].events).filter(event => event.event == "tempban" && event.type == "track").map(event => Number(event.selection))
-                            let already_played = []
+                            let already_played = {}
                             Object.values(livematch.races).forEach((race, index) => {
                                 Object.values(race.events).forEach(event => {
                                     if (event.event == 'selection' && event.type == 'track') {
@@ -5899,8 +5899,8 @@ module.exports = {
                                 if (!permabanned_tracks.includes(i) && //hasn't been permabanned
                                     !tempbanned_tracks.includes(i) && //hasn't been tempbanned
                                     (!already_played[i] || //hasn't been played
-                                    (event.event !== 'selection' && already_played[i] && saltmap[liverules.match.repeattrack.condition] <= already_played[i].played && getRunbacks(getOpponent(player)) > 0) || //not selecting the track but opponent could still runback
-                                    (event.event == 'selection' && already_played[i] && saltmap[liverules.match.repeattrack.condition] <= already_played[i].played && getRunbacks(player) > 0))) { //selecting the track and it can be runback
+                                        (event.event !== 'selection' && already_played[i] && saltmap[liverules.match.repeattrack.condition] <= already_played[i].played && already_played[i].loser == getOpponent(player) && getRunbacks(getOpponent(player)) > 0) || //not selecting the track but opponent could still runback
+                                        (event.event == 'selection' && already_played[i] && saltmap[liverules.match.repeattrack.condition] <= already_played[i].played && already_played[i].loser == player && getRunbacks(player) > 0))) { //selecting the track and it can be runback
                                     let option = getTrackOption(i)
                                     if (default_stuff.includes(String(i))) {
                                         option.default = true
@@ -5910,7 +5910,7 @@ module.exports = {
                                             name: "🔁"
                                         }
                                         option.value += "repeat"
-                                        if(option.default){
+                                        if (option.default) {
                                             repeat = true
                                         }
                                     }
@@ -5957,7 +5957,7 @@ module.exports = {
                             components: [
                                 {
                                     type: 2,
-                                    label: "Submit" + (fptotal == 0 ? "" : " (" + fptotal + "💠)") + (repeat ? "(1🔁)": ""),
+                                    label: "Submit" + (fptotal == 0 ? "" : " (" + fptotal + "💠)") + (repeat ? "(1🔁)" : ""),
                                     style: 1,
                                     custom_id: "tourney_play_race" + race + "_event_submit",
                                     disabled: (getForcePoints(player) - fptotal < 0) || notrack || oddselect
