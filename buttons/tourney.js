@@ -5833,6 +5833,7 @@ module.exports = {
                 let player = (events[eventstart].choice == "lastwinner" ? getWinner(race - 1) : getOpponent(getWinner(race - 1)))
                 let notrack = false
                 let oddselect = false
+                let repeat = false
                 for (let i = eventstart; i <= eventend; i++) {
                     let event = events[i]
                     let options = []
@@ -5841,12 +5842,12 @@ module.exports = {
                     interaction.message.components.forEach(component => {
                         let this_args = component.components[0].custom_id.split("_")
                         if (Number(this_args[3].replace("event", "")) == i) {
-                            default_stuff = component.components[0].options.filter(option => option.default).map(option => String(option.value))
+                            default_stuff = component.components[0].options.filter(option => option.default).map(option => String(option.value).replace("repeat", ""))
                         }
                     })
                     let this_args = interaction.data.custom_id.split("_")
                     if (interaction.data.hasOwnProperty("values") && Number(this_args[3].replace("event", "")) == i) {
-                        default_stuff = interaction.data.values.map(value => String(value))
+                        default_stuff = interaction.data.values.map(value => String(value).replace("repeat", ""))
                     }
                     if (![null, undefined, ""].includes(event.count) && default_stuff.length % event.count !== 0) {
                         oddselect = true
@@ -5898,7 +5899,7 @@ module.exports = {
                                 if (!permabanned_tracks.includes(i) && //hasn't been permabanned
                                     !tempbanned_tracks.includes(i) && //hasn't been tempbanned
                                     (!already_played[i] || //hasn't been played
-                                    (event.event !== 'selection' && already_played[i] && saltmap[liverules.match.repeattrack.condition] <= already_played[i].played && getRunbacks(getOpponent(player)) > 0) || //not selecting the track but it still could be runback
+                                    (event.event !== 'selection' && already_played[i] && saltmap[liverules.match.repeattrack.condition] <= already_played[i].played && getRunbacks(getOpponent(player)) > 0) || //not selecting the track but opponent could still runback
                                     (event.event == 'selection' && already_played[i] && saltmap[liverules.match.repeattrack.condition] <= already_played[i].played && getRunbacks(player) > 0))) { //selecting the track and it can be runback
                                     let option = getTrackOption(i)
                                     if (default_stuff.includes(String(i))) {
@@ -5909,6 +5910,9 @@ module.exports = {
                                             name: "🔁"
                                         }
                                         option.value += "repeat"
+                                        if(option.default){
+                                            repeat = true
+                                        }
                                     }
                                     options.push(option)
                                 }
@@ -5953,7 +5957,7 @@ module.exports = {
                             components: [
                                 {
                                     type: 2,
-                                    label: "Submit" + (fptotal == 0 ? "" : " (" + fptotal + "💠)"),
+                                    label: "Submit" + (fptotal == 0 ? "" : " (" + fptotal + "💠)" + (repeat ? "(1🔁)": "")),
                                     style: 1,
                                     custom_id: "tourney_play_race" + race + "_event_submit",
                                     disabled: (getForcePoints(player) - fptotal < 0) || notrack || oddselect
