@@ -5788,7 +5788,7 @@ module.exports = {
                 Object.values(livematch.players).map(player => embed.addField(
                     (leader.player == player ? "👑 " : "") + client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username + " - " + summary[player].wins + (summary[player].wins == liverules.general.winlimit - 1 ? " (Match Point)" : ""),
                     '💠 ' + summary[player].forcepoints +
-                    (liverules.match.repeattrack ? '\n🔁 **' + summary[player].runbacks : "") +
+                    (liverules.match.repeattrack ? '\n🔁 ' + summary[player].runbacks : "") +
                     '\n⏱️ ' + tools.timefix(summary[player].time) + (summary[player].timetrue ? "" : "+") +
                     '\n💀 ' + summary[player].deaths + (summary[player].deathtrue ? "" : "+"),
                     true
@@ -6796,8 +6796,8 @@ module.exports = {
                                 if (![null, undefined, ""].includes(e.cost)) {
                                     new_event.cost = e.cost
                                 }
-                                if(option.includes("repeat")){
-                                    new_event.selection = option.replace("repeat", "")
+                                if(selection.includes("repeat")){
+                                    new_event.selection = selection.replace("repeat", "")
                                     new_event.repeat = true
                                 }
                                 tourney_live.child(interaction.channel_id).child("races").child(race).child("events").push(new_event)
@@ -7055,7 +7055,7 @@ module.exports = {
                                                 style: 1,
                                                 min_length: 0,
                                                 max_length: 2,
-                                                required: true,
+                                                required: false,
                                                 value: livematch.races[race].runs[key].deaths
                                             }
                                         ]
