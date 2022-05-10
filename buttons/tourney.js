@@ -5470,6 +5470,14 @@ module.exports = {
                 return (firstoptions)
             }
 
+            function getUsername(user){
+                Object.values(tourney_participants_data).forEach(participant => {
+                    if(participant.id == user){
+                        return participant.name
+                    }
+                })
+            }
+
             function getOpponent(player) {
                 let opponent = Object.values(livematch.players).filter(p => p != player)
                 return opponent[0]
@@ -5673,7 +5681,7 @@ module.exports = {
                             .setAuthor("Race " + (race + 1) + " - In Progress")
                             .setColor("#DD2E44")
                         Object.values(livematch.players).map(player => embed.addField(
-                            client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username,
+                            getUsername(player),
                             (livematch.races[race].runs[player].time == "" ? ":red_circle: Awaiting submission" :
                                 Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length > 0 ? ":green_circle: Results Submitted" :
                                     racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name + "\n" +
@@ -5693,13 +5701,13 @@ module.exports = {
                         if (![null, undefined, ""].includes(livematch.races[race].runs) && Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length == 0) {
                             let winner = getWinner(race)
                             Object.values(livematch.players).map(player => embed.addField(
-                                (player == winner ? "👑 " : "") + client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username,
+                                (player == winner ? "👑 " : "") + getUsername(player),
                                 racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name + "\n" +
                                 "⏱️ " + (livematch.races[race].runs[player].time.toLowerCase() == 'dnf' ? 'DNF' : (player == winner ? "__" : "") + tools.timefix(livematch.races[race].runs[player].time) + (player == winner ? "__" : "")) + "\n" +
                                 "💀 " + (livematch.races[race].runs[player].deaths == "" ? "--" : Number(livematch.races[race].runs[player].deaths)) + "\n" +
                                 (livematch.races[race].runs[player].notes == "" ? "" : "📝 " + livematch.races[race].runs[player].notes),
                                 true))
-                            embed.setTitle(planets[tracks[track].planet].emoji + " " + tracks[track].name + (forces.length > 0 ? " (" + forces.join(", ") + ")" : "") + " \n" + (client.guilds.resolve(interaction.guild_id).members.resolve(winner).user.username) + " Wins!")
+                            embed.setTitle(planets[tracks[track].planet].emoji + " " + tracks[track].name + (forces.length > 0 ? " (" + forces.join(", ") + ")" : "") + " \n" + (getUsername(winner)) + " Wins!")
                         }
                     }
                 } else {
@@ -5708,7 +5716,7 @@ module.exports = {
                         .setColor("#FAA81A")
                         .setDescription(conmap + ([null, undefined, ""].includes(livematch.races[race].gents) ? "" : "\n🎩 " + livematch.races[race].gents.terms) + (livematch.races[race].live ? "" : "\nCountdown will automatically start when players and commentators have readied."))
                     Object.values(livematch.players).map(player => embed.addField(
-                        client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username,
+                        getUsername(player),
                         ([undefined, null, ""].includes(livematch.races[race].runs[player].pod) ?
                             ":red_circle: Racer not selected" :
                             ":green_circle: Racer selected " + (livematch.races[race].reveal[player] ?
@@ -5786,7 +5794,7 @@ module.exports = {
                     .setAuthor('Match Summary')
                     .setColor("#FFFFFF")
                 Object.values(livematch.players).map(player => embed.addField(
-                    (leader.player == player ? "👑 " : "") + client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username + " - " + summary[player].wins + (summary[player].wins == liverules.general.winlimit - 1 ? " (Match Point)" : ""),
+                    (leader.player == player ? "👑 " : "") + getUsername(player) + " - " + summary[player].wins + (summary[player].wins == liverules.general.winlimit - 1 ? " (Match Point)" : ""),
                     '💠 ' + summary[player].forcepoints +
                     (liverules.match.repeattrack ? '\n🔁 ' + summary[player].runbacks : "") +
                     '\n⏱️ ' + tools.timefix(summary[player].time) + (summary[player].timetrue ? "" : "+") +
@@ -6483,6 +6491,12 @@ module.exports = {
                     tourney_live.child(interaction.channel_id).update({ ruleset: interaction.data.values[0] })
                 } else if (args[2] == "player") {
                     if (!livematch.players || (livematch.players && !Object.values(livematch.players).includes(interaction.member.user.id))) {
+                        if(!Object.values(tourney_participants_data).map(p => p.id).filter(id => ![null, undefined, ""].includes(id)).includes(interaction.member.user.id)){
+                            tourney_participants.push({
+                                id: interaction.member.user.id,
+                                name: interaction.member.user.username
+                            })
+                        }
                         tourney_live.child(interaction.channel_id).child("players").push(interaction.member.user.id)
                     }
                 } else if (args[2] == "comm") {
@@ -6516,7 +6530,7 @@ module.exports = {
             } else if (args[1] == "start") {
                 const matchmaker = new Discord.MessageEmbed()
                     .setAuthor(livematch.tourney == "practice" ? "`Practice Mode`" : tourney_tournaments_data[livematch.tourney].name, "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
-                    .setTitle((livematch.tourney == "practice" ? "" : tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].bracket + " " + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].round) + " - " + Object.values(livematch.players).map(player => client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username).join(" vs "))
+                    .setTitle((livematch.tourney == "practice" ? "" : tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].bracket + " " + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].round) + " - " + Object.values(livematch.players).map(player => getUsername(player)).join(" vs "))
                     .setDescription("📜 " + tourney_rulesets_data.saved[livematch.ruleset].general.name + "\n" +
                         "🎙️ " + ([null, undefined, ""].includes(livematch.commentators) ? "" : Object.values(livematch.commentators).map(id => "<@" + id + "> ")) + "\n" +
                         "📺 " + livematch.stream
@@ -6575,7 +6589,7 @@ module.exports = {
                         updateMessage(content, type, [firstEmbed()], firstComponents())
                     } else if (livematch.firstmethod.includes("poe")) {
                         livematch = tourney_live_data[interaction.channel_id]
-                        updateMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + "\n*I just happen to have a chancecube here...* <a:OovoDoor:964369275559223306>", type, [colorEmbed()], colorComponents())
+                        updateMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + "\n*I just happen to have a chancecube here...*", type, [colorEmbed()], colorComponents())
                     } else if (livematch.firstmethod == 'random') {
                         updateMessage("The first track will be... <a:OovoDoor:964369275559223306>", type, [], [])
                         setTimeout(async function () {
@@ -6623,7 +6637,7 @@ module.exports = {
                             setColor("red")
                         }
                         updateMessage("", type, [colorEmbed()], [])
-                        postMessage("Rolling a chance cube...", [], [])
+                        postMessage("Rolling a chance cube... <a:OovoDoor:964369275559223306>", [], [])
                         setTimeout(async function () {
                             let players = Object.keys(livematch.firstcolors)
                             let firstplayer = Math.floor(Math.random() * 2) == 1 ? players[1] : players[0]
@@ -7030,7 +7044,7 @@ module.exports = {
                                 //win condition
                                 const winEmbed = new Discord.MessageEmbed()
                                     .setAuthor("Match Concluded")
-                                    .setTitle(client.guilds.resolve(interaction.guild_id).members.resolve(player).user.username + " Wins!")
+                                    .setTitle(getUsername(player) + " Wins!")
                                     .setDescription("GGs, racers!")
                                     .addField(":microphone2: Commentators/Trackers", ":orange_circle: Don't forget to click 'Episode Finished' after the interviews")
                                 postMessage('', [winEmbed], [])
@@ -7093,7 +7107,7 @@ module.exports = {
                                             {
                                                 type: 4,
                                                 custom_id: "time" + key,
-                                                label: ("⏱️ " + client.guilds.resolve(interaction.guild_id).members.resolve(key).user.username + "'s Time").substring(0, 45),
+                                                label: ("⏱️ " + getUsername(key) + "'s Time").substring(0, 45),
                                                 style: 1,
                                                 min_length: 1,
                                                 max_length: 10,
@@ -7111,7 +7125,7 @@ module.exports = {
                                             {
                                                 type: 4,
                                                 custom_id: "deaths" + key,
-                                                label: ("💀 " + client.guilds.resolve(interaction.guild_id).members.resolve(key).user.username + "'s Deaths").substring(0, 45),
+                                                label: ("💀 " + getUsername(key) + "'s Deaths").substring(0, 45),
                                                 style: 1,
                                                 min_length: 0,
                                                 max_length: 2,
