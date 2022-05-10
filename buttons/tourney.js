@@ -5668,6 +5668,9 @@ module.exports = {
                 if (repeat) {
                     forces.push('Runback')
                 }
+                if(livematch.races[race].gents?.agreed){
+                    forces.push("🎩 Gentleman's Agreement")
+                }
                 let conmap = conditions.map(con => "`" + condition_names[con] + "`").join(" ")
                 const embed = new Discord.MessageEmbed()
                     .setTitle((repeat ? "🔁" : planets[tracks[track].planet].emoji) + " " + tracks[track].name + (forces.length > 0 ? " (" + forces.join(", ") + ")" : ""))
@@ -6940,7 +6943,7 @@ module.exports = {
                         } else {
                             if(interaction.member.user.id == getOpponent(livematch.races[race].gents?.player)){
                                 if(args[3] == 'true'){
-                                    tourney_live.child(interaction.channel_id).child('races').child(race).child('gents').set({agreed: true})
+                                    tourney_live.child(interaction.channel_id).child('races').child(race).child('gents').update({agreed: true})
                                 } else {
                                     tourney_live.child(interaction.channel_id).child('races').child(race).child('gents').remove()
                                 }
