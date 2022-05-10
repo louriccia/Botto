@@ -5957,7 +5957,7 @@ module.exports = {
                             components: [
                                 {
                                     type: 2,
-                                    label: "Submit" + (fptotal == 0 ? "" : " (" + fptotal + "💠)" + (repeat ? "(1🔁)": "")),
+                                    label: "Submit" + (fptotal == 0 ? "" : " (" + fptotal + "💠)") + (repeat ? "(1🔁)": ""),
                                     style: 1,
                                     custom_id: "tourney_play_race" + race + "_event_submit",
                                     disabled: (getForcePoints(player) - fptotal < 0) || notrack || oddselect
