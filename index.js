@@ -310,7 +310,7 @@ client.once('ready', () => {
                         tourney_live.child("970994773517299712").set(newmatch)
                         client.api.channels("515311630100463656").messages.post({
                             data: {
-                                content: "<@&841059665474617353>\n**" + match.players.join(" vs. ") + "**\n:microphone2: " + match.commentary.join(", ") + "\n" + match.channel + "\nhttps://discord.gg/dWRsGTutSC?event=" + match.event
+                                content: "<@&841059665474617353>\n**" + match.players.map(p => tourney_participants_data[p].name).join(" vs. ") + "**\n:microphone2: " + match.commentary.map(comm => tourney_participants_data[comm].name).join(", ") + "\n" + match.stream
                             }
                         })
                         client.api.channels("970994773517299712").messages.post({

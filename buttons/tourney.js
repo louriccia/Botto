@@ -5473,7 +5473,6 @@ module.exports = {
             function getUsername(user){
                 let name = ""
                 Object.values(tourney_participants_data).forEach(participant => {
-                    console.log(participant.id, "==", user)
                     if(participant.id== user){
                         name = participant.name
                         return
@@ -5797,6 +5796,7 @@ module.exports = {
                 const embed = new Discord.MessageEmbed()
                     .setAuthor('Match Summary')
                     .setColor("#FFFFFF")
+                    .setTitle(leader.player == "tie" ? "Tied Match " + leader.wins + " to " + leader.wins : getUsername(leader.player) + " Leads " + leader.win + " to " + summary[getOpponent(leader.player)].wins)
                 Object.values(livematch.players).map(player => embed.addField(
                     (leader.player == player ? "👑 " : "") + getUsername(player) + " - " + summary[player].wins + (summary[player].wins == liverules.general.winlimit - 1 ? " (Match Point)" : ""),
                     '💠 ' + summary[player].forcepoints +
@@ -5903,7 +5903,6 @@ module.exports = {
                                 slatier: 2,
                                 saltiest: 3
                             }
-                            console.log(already_played)
                             if (event.event == "selection" && default_stuff.length == 0) {
                                 notrack = true
                             }
@@ -6505,6 +6504,12 @@ module.exports = {
                     }
                 } else if (args[2] == "comm") {
                     if (!livematch.commentators || (livematch.commentators && !Object.values(livematch.commentators).includes(interaction.member.user.id))) {
+                        if(!Object.values(tourney_participants_data).map(p => p.id).filter(id => ![null, undefined, ""].includes(id)).includes(interaction.member.user.id)){
+                            tourney_participants.push({
+                                id: interaction.member.user.id,
+                                name: interaction.member.user.username
+                            })
+                        }
                         tourney_live.child(interaction.channel_id).child("commentators").push(interaction.member.user.id)
                     }
                 } else if (args[2] == "leave") {
@@ -6550,6 +6555,9 @@ module.exports = {
                     .setDescription(tourney_rulesets_data.saved[livematch.ruleset].general.description)
                     .addFields(rulesetOverview(tourney_rulesets_data.saved[livematch.ruleset]))
                 tourney_live.child(interaction.channel_id).child("current_race").set(0)
+                if(![null, undefined, ""].includes(livematch.datetime)){
+                    tourney_live.child('datetime').set(Date.now())
+                }
                 updateMessage("", type, [matchmaker, ruleset, reminder], [])
                 followupMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(", "), [firstEmbed()], firstComponents())
             } else if (args[1] == "first") {
@@ -6771,7 +6779,6 @@ module.exports = {
                 let responded = false
                 if (args[2].includes("event")) {
                     if (interaction.member.user.id == (e.choice == "lastwinner" ? getWinner(race - 1) : getOpponent(getWinner(race - 1)))) {
-                        console.log(interaction.message.components)
                         if (interaction.message.components.length > 1) {
                             if (args[3] == "submit") {
                                 let newevents = []
@@ -6784,14 +6791,10 @@ module.exports = {
                                         if ([null, undefined, ""].includes(e.count)) {
                                             e.count = 1
                                         }
-                                        console.log(options)
-                                        console.log('loops',options.length / e.count)
                                         let loops = options.length //this value needs to be stored in a variable otherwise you'll be a dumbass and have the loop be cut short as the array shrinks
                                         for (let i = 0; i < loops / e.count; i++) {
                                             let option = options.slice(0, e.count)
-                                            console.log("post slice", option)
                                             options = options.slice(e.count)
-                                            console.log("options", options)
                                             if (option.length == 1) {
                                                 option = option[0].value
                                             } else {
@@ -6810,7 +6813,6 @@ module.exports = {
                                                 new_event.selection = option.replace("repeat", "")
                                                 new_event.repeat = true
                                             }
-                                            console.log(new_event)
                                             newevents.push(new_event)
                                         }
                                     }
@@ -7056,11 +7058,11 @@ module.exports = {
                                 const winEmbed = new Discord.MessageEmbed()
                                     .setAuthor("Match Concluded")
                                     .setTitle(getUsername(player) + " Wins!")
-                                    .setDescription("GGs, racers!")
+                                    .setDescription("GGs, racers! The match has been saved.")
                                     .addField(":microphone2: Commentators/Trackers", ":orange_circle: Don't forget to click 'Episode Finished' after the interviews")
                                 postMessage('', [winEmbed], [])
                                 wincondition = true
-
+                                tourney_matches.push(tourney_live_data[interaction.channel_id])
                                 return
                             }
                         })
@@ -7169,21 +7171,13 @@ module.exports = {
 
             //a tourney cancel command can be used by an admin to cancel a match
             /*
-                        //setup
-                        //select ruleset
-                        //select tournament/practice mode
-                        //set bracket/round
-                        //join match
-                        //click play
-                        //adds botto if down a player
-            
-                        Update profile
-                            country flag
-                            set platform
-                            set pronouns
-                            appropriate nicknames/pronunciation
-                            reveal pod selection to opponent
-                            */
+            Update profile
+            country flag
+            set platform
+            set pronouns
+            appropriate nicknames/pronunciation
+            reveal pod selection to opponent
+            */
         }
     }
 }
