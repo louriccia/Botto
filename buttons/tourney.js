@@ -6786,7 +6786,8 @@ module.exports = {
                                         }
                                         console.log(options)
                                         console.log('loops',options.length / e.count)
-                                        for (let i = 0; i < options.length / e.count; i++) {
+                                        let loops = options.length
+                                        for (let i = 0; i < loops / e.count; i++) {
                                             let option = options.slice(0, e.count)
                                             console.log("post slice", option)
                                             options = options.slice(e.count)
