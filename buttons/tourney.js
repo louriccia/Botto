@@ -5472,7 +5472,8 @@ module.exports = {
 
             function getUsername(user){
                 Object.values(tourney_participants_data).forEach(participant => {
-                    if(participant.id == user){
+                    console.log(participant.id, "==", user)
+                    if(participant.id== user){
                         return participant.name
                     }
                 })
