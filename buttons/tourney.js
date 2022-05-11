@@ -6785,9 +6785,12 @@ module.exports = {
                                             e.count = 1
                                         }
                                         console.log(options)
+                                        console.log('loops',options.length / e.count)
                                         for (let i = 0; i < options.length / e.count; i++) {
                                             let option = options.slice(0, e.count)
+                                            console.log("post slice", option)
                                             options = options.slice(e.count)
+                                            console.log("options", options)
                                             if (option.length == 1) {
                                                 option = option[0].value
                                             } else {
