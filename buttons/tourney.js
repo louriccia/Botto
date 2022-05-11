@@ -5471,13 +5471,15 @@ module.exports = {
             }
 
             function getUsername(user){
+                let name = ""
                 Object.values(tourney_participants_data).forEach(participant => {
                     console.log(participant.id, "==", user)
                     if(participant.id== user){
-                        return participant.name
+                        name = participant.name
+                        return
                     }
                 })
-                return "?"
+                return name
             }
 
             function getOpponent(player) {
