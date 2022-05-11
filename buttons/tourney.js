@@ -6781,6 +6781,7 @@ module.exports = {
                                         if ([null, undefined, ""].includes(e.count)) {
                                             e.count = 1
                                         }
+                                        console.log(options)
                                         for (let i = 0; i < options.length / e.count; i++) {
                                             let option = options.slice(0, e.count)
                                             options = options.slice(e.count)
@@ -6802,6 +6803,7 @@ module.exports = {
                                                 new_event.selection = option.replace("repeat", "")
                                                 new_event.repeat = true
                                             }
+                                            console.log(new_event)
                                             newevents.push(new_event)
                                         }
                                     }
