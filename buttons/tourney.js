@@ -5873,7 +5873,7 @@ module.exports = {
                             let tempbanned_racers = Object.values(livematch.races[race].events).filter(event => event.event == "tempban" && event.type == "racer").map(event => Number(event.selection))
                             for (let i = 0; i < 25; i++) {
                                 if (!tempbanned_racers.includes(i) && !permabanned_racers.includes(i)) {
-                                    if (i < 23 || (event.event == 'selection' && ((!tempbanned_racers.includes(8) && !permabanned_racers.includes(i) && i == 23)) || (!tempbanned_racers.includes(22) && !permabanned_racers.includes(i) && i == 24))) { //handle secret pods
+                                    if (i < 23 || (event.event == 'selection' && ((!tempbanned_racers.includes(8) && !permabanned_racers.includes(i) && i == 23) || (!tempbanned_racers.includes(22) && !permabanned_racers.includes(i) && i == 24)))) { //handle secret pods
                                         let option = getRacerOption(i)
                                         if (default_stuff.includes(String(i))) {
                                             option.default = true
@@ -6786,7 +6786,7 @@ module.exports = {
                                         }
                                         console.log(options)
                                         console.log('loops',options.length / e.count)
-                                        let loops = options.length
+                                        let loops = options.length //this value needs to be stored in a variable otherwise you'll be a dumbass and have the loop be cut short as the array shrinks
                                         for (let i = 0; i < loops / e.count; i++) {
                                             let option = options.slice(0, e.count)
                                             console.log("post slice", option)
