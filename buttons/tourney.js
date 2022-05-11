@@ -6771,6 +6771,7 @@ module.exports = {
                 let responded = false
                 if (args[2].includes("event")) {
                     if (interaction.member.user.id == (e.choice == "lastwinner" ? getWinner(race - 1) : getOpponent(getWinner(race - 1)))) {
+                        console.log(interaction.message.components)
                         if (interaction.message.components.length > 1) {
                             if (args[3] == "submit") {
                                 let newevents = []
