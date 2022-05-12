@@ -5428,14 +5428,13 @@ module.exports = {
             }
 
             function getRacerOption(i) {
-                let tiers = ['Top', 'High', 'Mid', 'Low']
                 let muspeed = tools.avgSpeed(tools.upgradeTopSpeed(racers[i].max_speed, 5), racers[i].boost_thrust, racers[i].heat_rate, tools.upgradeCooling(racers[i].cool_rate, 5)).toFixed(0)
                 let nuspeed = tools.avgSpeed(tools.upgradeTopSpeed(racers[i].max_speed, 0), racers[i].boost_thrust, racers[i].heat_rate, tools.upgradeCooling(racers[i].cool_rate, 0)).toFixed(0)
                 return (
                     {
                         label: racers[i].name,
                         value: i,
-                        description: "Tier: " + tiers[racers[i].mu_tier] + "/" + tiers[racers[i].nu_tier] + ' Avg Speed: ' + muspeed + '/' + nuspeed + " Max Turn Rate: " + racers[i].max_turn_rate + "°/s",
+                        description: 'Avg Speed ' + muspeed + ' (NU ' + nuspeed + "); Max Turn " + racers[i].max_turn_rate + "°/s",
                         emoji: {
                             name: racers[i].flag.split(":")[1],
                             id: racers[i].flag.split(":")[2].replace(">", "")
@@ -5470,10 +5469,10 @@ module.exports = {
                 return (firstoptions)
             }
 
-            function getUsername(user){
+            function getUsername(user) {
                 let name = ""
                 Object.values(tourney_participants_data).forEach(participant => {
-                    if(participant.id== user){
+                    if (participant.id == user) {
                         name = participant.name
                         return
                     }
@@ -5670,7 +5669,7 @@ module.exports = {
                 if (repeat) {
                     forces.push('Runback')
                 }
-                if(livematch.races[race].gents?.agreed){
+                if (livematch.races[race].gents?.agreed) {
                     forces.push("🎩 Gentleman's Agreement")
                 }
                 let conmap = conditions.map(con => "`" + condition_names[con] + "`").join(" ")
@@ -5796,13 +5795,13 @@ module.exports = {
                 const embed = new Discord.MessageEmbed()
                     .setAuthor('Match Summary')
                     .setColor("#FFFFFF")
-                    .setTitle(leader.player == "tie" ? "Tied Match " + leader.wins + " to " + leader.wins : getUsername(leader.player) + " Leads " + leader.win + " to " + summary[getOpponent(leader.player)].wins)
+                    .setTitle(leader.player == "tie" ? "Tied Match " + leader.wins + " to " + leader.wins : getUsername(leader.player) + " leads " + leader.wins + " to " + summary[getOpponent(leader.player)].wins) + (leader.wins == liverules.general.winlimit - 1 ? " (Match Point)" : "")
                 Object.values(livematch.players).map(player => embed.addField(
-                    (leader.player == player ? "👑 " : "") + getUsername(player) + " - " + summary[player].wins + (summary[player].wins == liverules.general.winlimit - 1 ? " (Match Point)" : ""),
+                    (leader.player == player ? "👑 " : "") + getUsername(player) + " - " + summary[player].wins,
                     '💠 ' + summary[player].forcepoints +
                     (liverules.match.repeattrack ? '\n🔁 ' + summary[player].runbacks : "") +
-                    '\n⏱️ ' + tools.timefix(summary[player].time) + (summary[player].timetrue ? "" : "+") +
-                    '\n💀 ' + summary[player].deaths + (summary[player].deathtrue ? "" : "+"),
+                    '\n⏱️ ' + tools.timefix(summary[player].time) + (summary[player].timetrue ? "" : "+") + " (total)" +
+                    '\n💀 ' + summary[player].deaths + (summary[player].deathtrue ? "" : "+") + " (total)",
                     true
                 ))
                 embed.addField("🎙️ Commentators/Trackers", ":orange_circle: Don't forget to update the score!", false)
@@ -5846,6 +5845,7 @@ module.exports = {
                 let notrack = false
                 let oddselect = false
                 let repeat = false
+                let upg = 5
                 for (let i = eventstart; i <= eventend; i++) {
                     let event = events[i]
                     let options = []
@@ -5882,6 +5882,19 @@ module.exports = {
                                     }
                                 }
                             }
+                            options = options.sort(function (a, b) {
+                                let aspeed = tools.avgSpeed(
+                                    tools.upgradeTopSpeed(racers[Number(a)].max_speed, upg),
+                                    racers[Number(a)].boost_thrust,
+                                    racers[Number(a)].heat_rate,
+                                    tools.upgradeCooling(racers[Number(a)].cool_rate, upg))
+                                let bspeed = tools.avgSpeed(
+                                    tools.upgradeTopSpeed(racers[Number(b)].max_speed, upg),
+                                    racers[Number(b)].boost_thrust,
+                                    racers[Number(b)].heat_rate,
+                                    tools.upgradeCooling(racers[Number(b)].cool_rate, upg))
+                                return bspeed - aspeed
+                            })
                         } else if (event.type == "track") {
                             let permabanned_tracks = Object.values(livematch.races[1].events).filter(event => event.event == "permaban" && event.type == "track").map(event => Number(event.selection))
                             let tempbanned_tracks = Object.values(livematch.races[race].events).filter(event => event.event == "tempban" && event.type == "track").map(event => Number(event.selection))
@@ -5936,6 +5949,9 @@ module.exports = {
                                 fl: { name: 'Fastest Lap', desc: "winner is determined by fastest lap time of 3 laps" }
                             }
                             options = Object.values(event.options).map(e => {
+                                if(e == 'nu' && default_stuff.includes(e)){
+                                    upg = 0
+                                }
                                 return (
                                     {
                                         label: condition_names[e],
@@ -6292,7 +6308,7 @@ module.exports = {
                         )
                     }
                 }
-                if(livematch.races[race].gents?.agreed == "?"){
+                if (livematch.races[race].gents?.agreed == "?") {
                     components = [
                         {
                             type: 1,
@@ -6494,7 +6510,7 @@ module.exports = {
                     tourney_live.child(interaction.channel_id).update({ ruleset: interaction.data.values[0] })
                 } else if (args[2] == "player") {
                     if (!livematch.players || (livematch.players && !Object.values(livematch.players).includes(interaction.member.user.id))) {
-                        if(!Object.values(tourney_participants_data).map(p => p.id).filter(id => ![null, undefined, ""].includes(id)).includes(interaction.member.user.id)){
+                        if (!Object.values(tourney_participants_data).map(p => p.id).filter(id => ![null, undefined, ""].includes(id)).includes(interaction.member.user.id)) {
                             tourney_participants.push({
                                 id: interaction.member.user.id,
                                 name: interaction.member.user.username
@@ -6504,7 +6520,7 @@ module.exports = {
                     }
                 } else if (args[2] == "comm") {
                     if (!livematch.commentators || (livematch.commentators && !Object.values(livematch.commentators).includes(interaction.member.user.id))) {
-                        if(!Object.values(tourney_participants_data).map(p => p.id).filter(id => ![null, undefined, ""].includes(id)).includes(interaction.member.user.id)){
+                        if (!Object.values(tourney_participants_data).map(p => p.id).filter(id => ![null, undefined, ""].includes(id)).includes(interaction.member.user.id)) {
                             tourney_participants.push({
                                 id: interaction.member.user.id,
                                 name: interaction.member.user.username
@@ -6555,8 +6571,8 @@ module.exports = {
                     .setDescription(tourney_rulesets_data.saved[livematch.ruleset].general.description)
                     .addFields(rulesetOverview(tourney_rulesets_data.saved[livematch.ruleset]))
                 tourney_live.child(interaction.channel_id).child("current_race").set(0)
-                if(![null, undefined, ""].includes(livematch.datetime)){
-                    tourney_live.child('datetime').set(Date.now())
+                if (![null, undefined, ""].includes(livematch.datetime)) {
+                    tourney_live.child(interaction.channel_id).child('datetime').set(Date.now())
                 }
                 updateMessage("", type, [matchmaker, ruleset, reminder], [])
                 followupMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(", "), [firstEmbed()], firstComponents())
@@ -6617,157 +6633,176 @@ module.exports = {
                         updateMessage('Please select a track', type, [], firstbanComponents())
                     }
                 } else if (args[2] == "vote") {
-                    tourney_live.child(interaction.channel_id).child("firstvote").child(interaction.member.user.id).set(interaction.data.values[0])
-                    let votes = Object.values(tourney_live_data[interaction.channel_id].firstvote)
-                    if (votes.length = 2) {
-                        if (votes[0] == votes[1]) {
-                            tourney_live.child(interaction.channel_id).child("firstmethod").set(votes[0])
-                        } else {
-                            tourney_live.child(interaction.channel_id).child("firstmethod").set(liverules.general.firsttrack.primary)
+                    if (Object.values(livematch.players).includes(interaction.member.user.id)) {
+                        tourney_live.child(interaction.channel_id).child("firstvote").child(interaction.member.user.id).set(interaction.data.values[0])
+                        let votes = Object.values(tourney_live_data[interaction.channel_id].firstvote)
+                        if (votes.length = 2) {
+                            if (votes[0] == votes[1]) {
+                                tourney_live.child(interaction.channel_id).child("firstmethod").set(votes[0])
+                            } else {
+                                tourney_live.child(interaction.channel_id).child("firstmethod").set(liverules.general.firsttrack.primary)
+                            }
                         }
+                        tourney_live.child(interaction.channel_id).child("status").set("first")
+                        livematch = tourney_live_data[interaction.channel_id]
+                        let content = "" + ([undefined, null].includes(livematch.firstvote) ? Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") : Object.values(livematch.players).map(player => Object.keys(livematch.firstvote).includes(player) ? "" : "<@" + player + ">").join(" "))
+                        updateMessage(content, type, [firstEmbed()], firstComponents())
+                    } else {
+                        ephemeralMessage("You're not a player! <:WhyNobodyBuy:589481340957753363>", [], [])
                     }
-                    tourney_live.child(interaction.channel_id).child("status").set("first")
-                    livematch = tourney_live_data[interaction.channel_id]
-                    let content = "" + ([undefined, null].includes(livematch.firstvote) ? Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") : Object.values(livematch.players).map(player => Object.keys(livematch.firstvote).includes(player) ? "" : "<@" + player + ">").join(" "))
-                    updateMessage(content, type, [firstEmbed()], firstComponents())
+
                 } else if (args[2] == "color") {
                     livematch = tourney_live_data[interaction.channel_id]
-                    content = Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + "\n*I just happen to have a chancecube here...*"
-                    if (["red", "blue"].includes(args[3])) {
-                        tourney_live.child(interaction.channel_id).child("firstcolors").child(interaction.member.user.id).set(args[3])
-                        function setColor(color) {
-                            let players = Object.values(livematch.players)
-                            players.forEach(player => {
-                                if (player !== interaction.member.user.id) {
-                                    tourney_live.child(interaction.channel_id).child("firstcolors").child(player).set(color)
-                                }
-                            })
+                    if (Object.values(livematch.players).includes(interaction.member.user.id)) {
+                        content = Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + "\n*I just happen to have a chancecube here...*"
+                        if (["red", "blue"].includes(args[3])) {
+                            tourney_live.child(interaction.channel_id).child("firstcolors").child(interaction.member.user.id).set(args[3])
+                            function setColor(color) {
+                                let players = Object.values(livematch.players)
+                                players.forEach(player => {
+                                    if (player !== interaction.member.user.id) {
+                                        tourney_live.child(interaction.channel_id).child("firstcolors").child(player).set(color)
+                                    }
+                                })
+                            }
+                            if (args[3] == "red") {
+                                setColor("blue")
+                            } else {
+                                setColor("red")
+                            }
+                            updateMessage("", type, [colorEmbed()], [])
+                            postMessage("Rolling a chance cube... <a:OovoDoor:964369275559223306>", [], [])
+                            setTimeout(async function () {
+                                let players = Object.keys(livematch.firstcolors)
+                                let firstplayer = Math.floor(Math.random() * 2) == 1 ? players[1] : players[0]
+                                tourney_live.child(interaction.channel_id).child("firstplayer").set(firstplayer)
+                                postMessage(":" + livematch.firstcolors[firstplayer] + "_square:", [], [])
+                            }, 1000)
+                            setTimeout(async function () {
+                                livematch = tourney_live_data[interaction.channel_id]
+                                postMessage("<@" + (livematch.firstmethod == "poe_t" ? getOpponent(livematch.firstplayer) : livematch.firstplayer) + "> goes first!", [firstbanEmbed()], firstbanComponents())
+                            }, 2000)
+                            return
                         }
-                        if (args[3] == "red") {
-                            setColor("blue")
-                        } else {
-                            setColor("red")
-                        }
-                        updateMessage("", type, [colorEmbed()], [])
-                        postMessage("Rolling a chance cube... <a:OovoDoor:964369275559223306>", [], [])
-                        setTimeout(async function () {
-                            let players = Object.keys(livematch.firstcolors)
-                            let firstplayer = Math.floor(Math.random() * 2) == 1 ? players[1] : players[0]
-                            tourney_live.child(interaction.channel_id).child("firstplayer").set(firstplayer)
-                            postMessage(":" + livematch.firstcolors[firstplayer] + "_square:", [], [])
-                        }, 1000)
-                        setTimeout(async function () {
-                            livematch = tourney_live_data[interaction.channel_id]
-                            postMessage("<@" + (livematch.firstmethod == "poe_t" ? getOpponent(livematch.firstplayer) : livematch.firstplayer) + "> goes first!", [firstbanEmbed()], firstbanComponents())
-                        }, 2000)
-                        return
+                        updateMessage(content, type, [colorEmbed()], colorComponents())
+                    } else {
+                        ephemeralMessage("You're not a player! <:WhyNobodyBuy:589481340957753363>", [], [])
                     }
-                    updateMessage(content, type, [colorEmbed()], colorComponents())
                 } else if (args[2] == "ban") {
                     livematch = tourney_live_data[interaction.channel_id]
-                    function whoseTurn() {
-                        livematch = tourney_live_data[interaction.channel_id]
-                        let first = livematch.firstplayer
-                        let circuitoptions = [undefined, null].includes(livematch.firstbans) ? Object.values(liverules.general.firsttrack.options) : Object.values(liverules.general.firsttrack.options).filter(option => !Object.values(livematch.firstbans).map(ban => ban.ban).includes(option))
-                        let planetoptions = [undefined, null].includes(livematch.firstbans) ? ["and", "tat", "oov", "ord", "bar", "mon", "aqu", "mal"] : ["and", "tat", "oov", "ord", "bar", "mon", "aqu", "mal"].filter(option => !Object.values(livematch.firstbans).map(ban => ban.ban).includes(option))
-                        let trackoptions = []
-                        circuitoptions.forEach(circuit => {
-                            tracks.forEach((track, index) => {
-                                if (track.circuit == trackgroups[circuit].code) {
-                                    trackoptions.push(index)
-                                }
-                            })
-                        })
-                        trackoptions = [undefined, null].includes(livematch.firstbans) ? trackoptions : trackoptions.filter(option => !Object.values(livematch.firstbans).map(ban => Number(ban.ban)).includes(option) && planetoptions.map(option => trackgroups[option].code).includes(Number(tracks[option].planet)))
-                        let current_turn = first
-                        let opponent = getOpponent(first)
-                        if (livematch.firstmethod == "poe_c") {
-                            if (circuitoptions.length > 1) {
-                                if (circuitoptions.length % 2 == 0) {
-                                    current_turn = first
-                                } else {
-                                    current_turn = opponent
-                                }
-                            } else {
-                                if (trackoptions.length % 2 == 0) {
-                                    current_turn = opponent
-                                } else {
-                                    current_turn = first
-                                }
-                            }
-                        } else if (livematch.firstmethod == "poe_p") {
-                            if (planetoptions.length > 1) {
-                                if (planetoptions.length % 2 == 0) {
-                                    current_turn = first
-                                } else {
-                                    current_turn = opponent
-                                }
-                            } else {
-                                if (trackoptions.length % 2 == 0) {
-                                    current_turn = opponent
-                                } else {
-                                    current_turn = first
-                                }
-                            }
-                        } else if (livematch.firstmethod == "poe_t") {
-                            if (trackoptions.length % 2 == 0) {
-                                current_turn = first
-                            } else {
-                                current_turn = opponent
-                            }
-                        }
-                        return { current_turn: current_turn, options: trackoptions }
-                    }
-                    if (interaction.data.hasOwnProperty("values")) {
-                        livematch = tourney_live_data[interaction.channel_id]
-                        let turn = whoseTurn()
-                        if (interaction.member.user.id == turn.current_turn) {
-                            tourney_live.child(interaction.channel_id).child("firstbans").push({ player: interaction.member.user.id, ban: interaction.data.values[0] })
+                    if (Object.values(livematch.players).includes(interaction.member.user.id)) {
+                        function whoseTurn() {
                             livematch = tourney_live_data[interaction.channel_id]
-                            if (turn.options.length == 2) {
-                                turn.options = turn.options.filter(t => Number(t) !== Number(interaction.data.values[0]))
-                                setRace(turn.options[0])
-                                updateMessage("", type, [firstbanEmbed()], [])
-                                postMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), [raceEmbed(0)], raceComponents(0))
+                            let first = livematch.firstplayer
+                            let circuitoptions = [undefined, null].includes(livematch.firstbans) ? Object.values(liverules.general.firsttrack.options) : Object.values(liverules.general.firsttrack.options).filter(option => !Object.values(livematch.firstbans).map(ban => ban.ban).includes(option))
+                            let planetoptions = [undefined, null].includes(livematch.firstbans) ? ["and", "tat", "oov", "ord", "bar", "mon", "aqu", "mal"] : ["and", "tat", "oov", "ord", "bar", "mon", "aqu", "mal"].filter(option => !Object.values(livematch.firstbans).map(ban => ban.ban).includes(option))
+                            let trackoptions = []
+                            circuitoptions.forEach(circuit => {
+                                tracks.forEach((track, index) => {
+                                    if (track.circuit == trackgroups[circuit].code) {
+                                        trackoptions.push(index)
+                                    }
+                                })
+                            })
+                            trackoptions = [undefined, null].includes(livematch.firstbans) ? trackoptions : trackoptions.filter(option => !Object.values(livematch.firstbans).map(ban => Number(ban.ban)).includes(option) && planetoptions.map(option => trackgroups[option].code).includes(Number(tracks[option].planet)))
+                            let current_turn = first
+                            let opponent = getOpponent(first)
+                            if (livematch.firstmethod == "poe_c") {
+                                if (circuitoptions.length > 1) {
+                                    if (circuitoptions.length % 2 == 0) {
+                                        current_turn = first
+                                    } else {
+                                        current_turn = opponent
+                                    }
+                                } else {
+                                    if (trackoptions.length % 2 == 0) {
+                                        current_turn = opponent
+                                    } else {
+                                        current_turn = first
+                                    }
+                                }
+                            } else if (livematch.firstmethod == "poe_p") {
+                                if (planetoptions.length > 1) {
+                                    if (planetoptions.length % 2 == 0) {
+                                        current_turn = first
+                                    } else {
+                                        current_turn = opponent
+                                    }
+                                } else {
+                                    if (trackoptions.length % 2 == 0) {
+                                        current_turn = opponent
+                                    } else {
+                                        current_turn = first
+                                    }
+                                }
+                            } else if (livematch.firstmethod == "poe_t") {
+                                if (trackoptions.length % 2 == 0) {
+                                    current_turn = first
+                                } else {
+                                    current_turn = opponent
+                                }
+                            }
+                            return { current_turn: current_turn, options: trackoptions }
+                        }
+                        if (interaction.data.hasOwnProperty("values")) {
+                            livematch = tourney_live_data[interaction.channel_id]
+                            let turn = whoseTurn()
+                            if (interaction.member.user.id == turn.current_turn) {
+                                tourney_live.child(interaction.channel_id).child("firstbans").push({ player: interaction.member.user.id, ban: interaction.data.values[0] })
+                                livematch = tourney_live_data[interaction.channel_id]
+                                if (turn.options.length == 2) {
+                                    turn.options = turn.options.filter(t => Number(t) !== Number(interaction.data.values[0]))
+                                    setRace(turn.options[0])
+                                    updateMessage("", type, [firstbanEmbed()], [])
+                                    postMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), [raceEmbed(0)], raceComponents(0))
+                                } else {
+                                    let turn = whoseTurn()
+                                    updateMessage("<@" + turn.current_turn + "> please make a selection", type, [firstbanEmbed()], firstbanComponents())
+                                }
                             } else {
-                                let turn = whoseTurn()
-                                updateMessage("<@" + turn.current_turn + "> please make a selection", type, [firstbanEmbed()], firstbanComponents())
+                                ephemeralMessage("It's not your turn to ban! <:WhyNobodyBuy:589481340957753363>", [], [])
                             }
                         } else {
-                            ephemeralMessage("It's not your turn to ban! <:WhyNobodyBuy:589481340957753363>", [], [])
+                            ephemeralMessage("You're not a player! <:WhyNobodyBuy:589481340957753363>", [], [])
                         }
                     }
                 } else if (args[2] == 'pick') {
-                    let firsttrack = interaction.data.values[0]
-                    setRace(firsttrack)
-                    updateMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), type, [raceEmbed(0)], raceComponents(0))
+                    if (Object.values(livematch.players).includes(interaction.member.user.id)) {
+                        let firsttrack = interaction.data.values[0]
+                        setRace(firsttrack)
+                        updateMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), type, [raceEmbed(0)], raceComponents(0))
+                    } else {
+                        ephemeralMessage("You're not a player! <:WhyNobodyBuy:589481340957753363>", [], [])
+                    }
                 }
             } else if (args[1].includes("permaban")) {
-
-                let permaban_num = Number(args[2])
-                let permaban = liverules.match.permabans[permaban_num]
-                if ((permaban.choice == "firstwinner" && interaction.member.user.id == getWinner(0)) || (permaban.choice == "firstloser" && interaction.member.user.id == getOpponent(getWinner(0)))) {
-                    interaction.data.values.forEach(selection => {
-                        tourney_live.child(interaction.channel_id).child("races").child(1).child("events").push(
-                            {
-                                event: "permaban",
-                                type: permaban.type,
-                                player: interaction.member.user.id,
-                                selection: selection,
-                                cost: permaban.cost
-                            },
-                        )
-                    })
-                    if (permaban_num + 1 == Object.values(liverules.match.permabans).length) {
-                        let events = Object.values(liverules.race)
-                        updateMessage("<@" + (events[0].choice == "lastwinner" ? getWinner(0) : getOpponent(getWinner(0))) + "> please make a selection", type, [raceEventEmbed(1)], raceEventComponents(1))
+                if (Object.values(livematch.players).includes(interaction.member.user.id)) {
+                    let permaban_num = Number(args[2])
+                    let permaban = liverules.match.permabans[permaban_num]
+                    if ((permaban.choice == "firstwinner" && interaction.member.user.id == getWinner(0)) || (permaban.choice == "firstloser" && interaction.member.user.id == getOpponent(getWinner(0)))) {
+                        interaction.data.values.forEach(selection => {
+                            tourney_live.child(interaction.channel_id).child("races").child(1).child("events").push(
+                                {
+                                    event: "permaban",
+                                    type: permaban.type,
+                                    player: interaction.member.user.id,
+                                    selection: selection,
+                                    cost: permaban.cost
+                                },
+                            )
+                        })
+                        if (permaban_num + 1 == Object.values(liverules.match.permabans).length) {
+                            let events = Object.values(liverules.race)
+                            updateMessage("<@" + (events[0].choice == "lastwinner" ? getWinner(0) : getOpponent(getWinner(0))) + "> please make a selection", type, [raceEventEmbed(1)], raceEventComponents(1))
+                        } else {
+                            updateMessage("<@" + (liverules.match.permabans[permaban_num + 1].choice == 'firstwinner' ? getWinner(0) : getOpponent(getWinner(0))) + ">", type, [permabanEmbed(permaban_num + 1)], permabanComponents(permaban_num + 1))
+                        }
                     } else {
-                        updateMessage("<@" + (liverules.match.permabans[permaban_num + 1].choice == 'firstwinner' ? getWinner(0) : getOpponent(getWinner(0))) + ">", type, [permabanEmbed(permaban_num + 1)], permabanComponents(permaban_num + 1))
+                        ephemeralMessage("It's not your turn to ban! <:WhyNobodyBuy:589481340957753363>", [], [])
                     }
                 } else {
-                    ephemeralMessage("It's not your turn to ban! <:WhyNobodyBuy:589481340957753363>", [], [])
+                    ephemeralMessage("You're not a player! <:WhyNobodyBuy:589481340957753363>", [], [])
                 }
-
             } else if (args[1].includes("race")) {
                 livematch = tourney_live_data[interaction.channel_id]
                 let race = Number(args[1].replace("race", ""))
@@ -6898,53 +6933,59 @@ module.exports = {
                         ephemeralMessage("You have not selected a racer yet! <:WhyNobodyBuy:589481340957753363>", [], [])
                     }
                 } else if (args[2] == 'gents') {
-                    if (interaction.type == 5) {
-                        let terms = interaction.data.components[0].components[0].value.trim()
-                        tourney_live.child(interaction.channel_id).child('races').child(race).child('gents').set({terms: terms, player: interaction.member.user.id, agreed: "?"})
-                        updateMessage("<@" + getOpponent(interaction.member.user.id) + "> do you accept the terms of the proposed 🎩 **Gentlemen's Agreement**?\n*" + terms + "*", type, [raceEmbed(race)], raceComponents(race))
-                    } else {
-                        if(args.length == 3){
-                            client.api.interactions(interaction.id, interaction.token).callback.post({
-                                data: {
-                                    type: 9,
-                                    data: {
-                                        custom_id: "tourney_play_race" + race + "_gents",
-                                        title: "Make a Gentleman's Agreement",
-                                        components: [
-                                            {
-                                                type: 1,
-                                                components: [
-                                                    {
-                                                        type: 4,
-                                                        custom_id: "gents",
-                                                        label: "Agreement Terms",
-                                                        style: 1,
-                                                        min_length: 0,
-                                                        max_length: 100,
-                                                        required: false
-                                                    }
-                                                ]
-                                            }
-                                        ]
-                                    }
-                                }
-                            })
+                    if (Object.values(livematch.players).includes(interaction.member.user.id)) {
+                        if (interaction.type == 5) {
+                            let terms = interaction.data.components[0].components[0].value.trim()
+                            tourney_live.child(interaction.channel_id).child('races').child(race).child('gents').set({ terms: terms, player: interaction.member.user.id, agreed: "?" })
+                            updateMessage("<@" + getOpponent(interaction.member.user.id) + "> do you accept the terms of the proposed 🎩 **Gentlemen's Agreement**?\n*" + terms + "*", type, [raceEmbed(race)], raceComponents(race))
                         } else {
-                            if(interaction.member.user.id == getOpponent(livematch.races[race].gents?.player)){
-                                if(args[3] == 'true'){
-                                    tourney_live.child(interaction.channel_id).child('races').child(race).child('gents').update({agreed: true})
+                            if (args.length == 3) {
+                                client.api.interactions(interaction.id, interaction.token).callback.post({
+                                    data: {
+                                        type: 9,
+                                        data: {
+                                            custom_id: "tourney_play_race" + race + "_gents",
+                                            title: "Make a Gentleman's Agreement",
+                                            components: [
+                                                {
+                                                    type: 1,
+                                                    components: [
+                                                        {
+                                                            type: 4,
+                                                            custom_id: "gents",
+                                                            label: "Agreement Terms",
+                                                            style: 1,
+                                                            min_length: 0,
+                                                            max_length: 100,
+                                                            required: false
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                })
+                            } else {
+                                if (interaction.member.user.id == getOpponent(livematch.races[race].gents?.player)) {
+                                    if (args[3] == 'true') {
+                                        tourney_live.child(interaction.channel_id).child('races').child(race).child('gents').update({ agreed: true })
+                                    } else {
+                                        tourney_live.child(interaction.channel_id).child('races').child(race).child('gents').remove()
+                                    }
+                                    updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(comm => "<@" + comm + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
                                 } else {
-                                    tourney_live.child(interaction.channel_id).child('races').child(race).child('gents').remove()
+                                    ephemeralMessage("Not you! <:WhyNobodyBuy:589481340957753363>", [], [])
                                 }
-                                updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(comm => "<@" + comm + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
-                            } else{
-                                ephemeralMessage("Not you! <:WhyNobodyBuy:589481340957753363>", [], [])
+
                             }
-                            
                         }
-                    }    
+                    } else {
+                        ephemeralMessage("You're not a player! <:WhyNobodyBuy:589481340957753363>", [], [])
+                    }
                 } else if (args[2] == "racer") {
-                    tourney_live.child(interaction.channel_id).child("races").child(race).child("runs").child(interaction.member.user.id).child("pod").set(interaction.data.values[0])
+                    if (Object.values(livematch.players).includes(interaction.member.user.id)) {
+                        tourney_live.child(interaction.channel_id).child("races").child(race).child("runs").child(interaction.member.user.id).child("pod").set(interaction.data.values[0])
+                    }
                     updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(comm => "<@" + comm + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
                 } else if (args[2] == "reveal") {
                     if (Object.values(livematch.players).includes(interaction.member.user.id)) {
@@ -6952,78 +6993,82 @@ module.exports = {
                     }
                     updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
                 } else if (args[2] == "submit") {
-                    if (interaction.type == 5) {
-                        if (livematch.races[race].live) {
-                            tourney_live.child(interaction.channel_id).child("races").child(race).child("runs").child(interaction.member.user.id).update(
-                                {
-                                    time: (interaction.data.components[0].components[0].value.toLowerCase() == 'dnf' ? 'DNF' : tools.timetoSeconds(interaction.data.components[0].components[0].value.trim())),
-                                    deaths: interaction.data.components[1].components[0].value.trim(),
-                                    notes: interaction.data.components[2].components[0].value.trim(),
-                                    player: interaction.member.user.id
-                                }
-                            )
-                            updateMessage("", type, [raceEmbed(race)], raceComponents(race))
+                    if (Object.values(livematch.players).includes(interaction.member.user.id)) {
+                        if (interaction.type == 5) {
+                            if (livematch.races[race].live) {
+                                tourney_live.child(interaction.channel_id).child("races").child(race).child("runs").child(interaction.member.user.id).update(
+                                    {
+                                        time: (interaction.data.components[0].components[0].value.toLowerCase() == 'dnf' ? 'DNF' : tools.timetoSeconds(interaction.data.components[0].components[0].value.trim())),
+                                        deaths: interaction.data.components[1].components[0].value.trim(),
+                                        notes: interaction.data.components[2].components[0].value.trim(),
+                                        player: interaction.member.user.id
+                                    }
+                                )
+                                updateMessage("", type, [raceEmbed(race)], raceComponents(race))
+                            } else {
+                                ephemeralMessage("Race is no longer live. <:WhyNobodyBuy:589481340957753363>", [], [])
+                            }
                         } else {
-                            ephemeralMessage("Race is no longer live. <:WhyNobodyBuy:589481340957753363>", [], [])
+                            client.api.interactions(interaction.id, interaction.token).callback.post({
+                                data: {
+                                    type: 9,
+                                    data: {
+                                        custom_id: "tourney_play_race" + race + "_submit",
+                                        title: "Submit Race " + (race + 1) + " Results",
+                                        components: [
+                                            {
+                                                type: 1,
+                                                components: [
+                                                    {
+                                                        type: 4,
+                                                        custom_id: "time",
+                                                        label: "⏱️ Time (write 'dnf' if forfeited)",
+                                                        style: 1,
+                                                        min_length: 1,
+                                                        max_length: 10,
+                                                        required: true,
+                                                        placeholder: "--:--.---",
+                                                        value: (livematch.races[race].runs[interaction.member.user.id].time.toLowerCase() == 'dnf' ? 'DNF' : (livematch.races[race].runs[interaction.member.user.id].time == "" ? "" : tools.timefix(livematch.races[race].runs[interaction.member.user.id].time)))
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                type: 1,
+                                                components: [
+                                                    {
+                                                        type: 4,
+                                                        custom_id: "deaths",
+                                                        label: "💀 Deaths (leave blank if unsure)",
+                                                        style: 1,
+                                                        min_length: 0,
+                                                        max_length: 2,
+                                                        required: false,
+                                                        value: livematch.races[race].runs[interaction.member.user.id].deaths
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                type: 1,
+                                                components: [
+                                                    {
+                                                        type: 4,
+                                                        custom_id: "notes",
+                                                        label: "📝 Notes",
+                                                        style: 1,
+                                                        min_length: 0,
+                                                        max_length: 100,
+                                                        required: false,
+                                                        value: livematch.races[race].runs[interaction.member.user.id].notes
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                }
+                            })
                         }
                     } else {
-                        client.api.interactions(interaction.id, interaction.token).callback.post({
-                            data: {
-                                type: 9,
-                                data: {
-                                    custom_id: "tourney_play_race" + race + "_submit",
-                                    title: "Submit Race " + (race + 1) + " Results",
-                                    components: [
-                                        {
-                                            type: 1,
-                                            components: [
-                                                {
-                                                    type: 4,
-                                                    custom_id: "time",
-                                                    label: "⏱️ Time (write 'dnf' if forfeited)",
-                                                    style: 1,
-                                                    min_length: 1,
-                                                    max_length: 10,
-                                                    required: true,
-                                                    placeholder: "--:--.---",
-                                                    value: (livematch.races[race].runs[interaction.member.user.id].time.toLowerCase() == 'dnf' ? 'DNF' : (livematch.races[race].runs[interaction.member.user.id].time == "" ? "" : tools.timefix(livematch.races[race].runs[interaction.member.user.id].time)))
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            type: 1,
-                                            components: [
-                                                {
-                                                    type: 4,
-                                                    custom_id: "deaths",
-                                                    label: "💀 Deaths (leave blank if unsure)",
-                                                    style: 1,
-                                                    min_length: 0,
-                                                    max_length: 2,
-                                                    required: false,
-                                                    value: livematch.races[race].runs[interaction.member.user.id].deaths
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            type: 1,
-                                            components: [
-                                                {
-                                                    type: 4,
-                                                    custom_id: "notes",
-                                                    label: "📝 Notes",
-                                                    style: 1,
-                                                    min_length: 0,
-                                                    max_length: 100,
-                                                    required: false,
-                                                    value: livematch.races[race].runs[interaction.member.user.id].notes
-                                                }
-                                            ]
-                                        }
-                                    ]
-                                }
-                            }
-                        })
+                        ephemeralMessage("You're not a player! <:WhyNobodyBuy:589481340957753363>", [], [])
                     }
                 } else if (args[2] == "verify") {
                     if (interaction.type == 5) {
