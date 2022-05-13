@@ -113,6 +113,16 @@ module.exports = {
             }
             return fields
         }
+        function getUsername(user) {
+            let name = ""
+            Object.values(tourney_participants_data).forEach(participant => {
+                if (participant.id == user) {
+                    name = participant.name
+                    return
+                }
+            })
+            return name
+        }
         if (args[0] == "ranks") {
             if (args[1].startsWith("page")) {
                 var ranks = tools.getRanks()
@@ -144,7 +154,7 @@ module.exports = {
                             rnk_vals[i].change = Math.abs(rnk_vals[i].change)
                         }
                         tourneyRanks
-                            .addField(tools.ordinalSuffix(i) + " " + tourney_participants_data[rnk_vals[i].player].name, "`" + rnk_vals[i].matches + " matches`", true)
+                            .addField(tools.ordinalSuffix(i) + " " + getUsername(rnk_vals[i].player), "`" + rnk_vals[i].matches + " matches`", true)
                             .addField(Math.round(rnk_vals[i].rank), arrow + " " + Math.round(rnk_vals[i].change), true)
                             .addField('\u200B', '\u200B', true)
                     }
@@ -469,8 +479,10 @@ module.exports = {
             }
 
             //assmble match options
-            var matches = []
+            let matches = []
             for (i = 0 + offset * 23; i < (offset + 1) * 23; i++) {
+                let s = mtch[i]
+                let match = tourney_matches_data[s]
                 if (i == 0 + offset * 23 && offset > 0) {
                     matches.push(
                         {
@@ -479,34 +491,28 @@ module.exports = {
                         }
                     )
                 }
-                var s = mtch[i]
-                var title = []
-                if (![undefined, null, ""].includes(tourney_matches_data[s].bracket)) {
-                    title.push(tourney_matches_data[s].bracket)
+                let title = []
+                if (match.bracket) {
+                    title.push(match.bracket)
                 }
-                if (![undefined, null, ""].includes(tourney_matches_data[s].round)) {
-                    title.push(tourney_matches_data[s].round)
+                if (match.round) {
+                    title.push(match.round)
                 }
-                var players = []
-                for (p = 0; p < tourney_matches_data[s].races[0].runs.length; p++) {
-                    if (!players.includes(tourney_matches_data[s].races[0].runs[p].player)) {
-                        players.push(tourney_participants_data[tourney_matches_data[s].races[0].runs[p].player].name)
-                    }
-                }
-                var date = new Date(tourney_matches_data[s].datetime)
+                let players = Object.values(match.races[0].runs).map(run=> getUsername(run.player)).join(" vs ")
+                let date = new Date(match.datetime)
                 date = date.toLocaleString().split(", ")
                 if (title.length == 0) {
                     title = players.join(" vs ")
                 } else {
                     title = title.join(" ") + " - " + players.join(" vs ")
                 }
-                var r = {
+                let r = {
                     label: title,
                     value: s,
                     description: "📆 " + convertDate(match_options[s].date) + " 🏁 " + match_options[s].races + " 💀 " + match_options[s].deaths,
-                    emoji: { name: ruleset_emojis[tourney_rulesets_data.saved[tourney_matches_data[s].ruleset].type] }
+                    emoji: { name: ruleset_emojis[tourney_rulesets_data.saved[match.ruleset].type] }
                 }
-                if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[tourney_matches_data[s].ruleset].type)) {
+                if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type)) {
                     r.description += " ⏱️ ±" + match_options[s].timediff.toFixed(3) + " 🤏 " + match_options[s].closest.toFixed(3)
                 }
                 if (interaction.data.hasOwnProperty("values") && !interaction.data.values[0].includes("offset")) {
@@ -631,7 +637,7 @@ module.exports = {
                 var players = []
                 for (p = 0; p < tourney_matches_data[match].races[0].runs.length; p++) {
                     if (!players.includes(tourney_matches_data[match].races[0].runs[p].player)) {
-                        players.push(tourney_participants_data[tourney_matches_data[match].races[0].runs[p].player].name)
+                        players.push(getUsername(tourney_matches_data[match].races[0].runs[p].player))
                     }
                 }
 
@@ -641,7 +647,7 @@ module.exports = {
                     title = title.join(" ") + " - " + players.join(" vs ")
                 }
                 tourney_matches_data[match].commentators.forEach(com => {
-                    comms.push(tourney_participants_data[com].name)
+                    comms.push(getUsername(com))
                 })
                 if (tourney_tournaments_data[tourney_matches_data[match].tourney].hasOwnProperty("challonge")) {
                     description += "[:trophy: " + tourney_tournaments_data[tourney_matches_data[match].tourney].name + "](" + tourney_tournaments_data[tourney_matches_data[match].tourney].challonge[0] + ")\n"
@@ -667,9 +673,9 @@ module.exports = {
                     if (tourney_matches_data[match].races[r].hasOwnProperty("tempbans")) {
                         tourney_matches_data[match].races[r].tempbans.forEach(ban => {
                             if (ban.type == "pod") {
-                                field += ":x: " + racers[ban.selection].flag + " (*" + tourney_participants_data[ban.player].name.replace(" ", "").substring(0, 4) + "*)\n"
+                                field += ":x: " + racers[ban.selection].flag + " (*" + getUsername(ban.player).replace(" ", "").substring(0, 4) + "*)\n"
                             } else if (ban.type == "track") {
-                                field += ":x: " + tracks[ban.selection].nickname[0].toUpperCase() + " (*" + tourney_participants_data[ban.player].name.replace(" ", "").substring(0, 4) + "*)\n"
+                                field += ":x: " + tracks[ban.selection].nickname[0].toUpperCase() + " (*" + getUsername(ban.player).replace(" ", "").substring(0, 4) + "*)\n"
                             }
                         })
                     }
@@ -692,14 +698,14 @@ module.exports = {
                     }
                     field += tracks[track].nickname[0].toUpperCase() + " "
                     if (tourney_matches_data[match].races[r].track_selection.hasOwnProperty("player")) {
-                        field += "(*" + tourney_participants_data[tourney_matches_data[match].races[r].track_selection.player].name.replace(" ", "").substring(0, 4) + "*)"
+                        field += "(*" + getUsername(tourney_matches_data[match].races[r].track_selection.player).replace(" ", "").substring(0, 4) + "*)"
                     }
                     field += "\n"
                     var conditions = []
                     if (tourney_matches_data[match].races[r].hasOwnProperty("conditions")) {
                         tourney_matches_data[match].races[r].conditions.forEach(condition => {
                             if (condition.type == "skips") {
-                                field += ":asterisk: Skips (*" + tourney_participants_data[condition.player].name.replace(" ", "").substring(0, 4) + "*)\n"
+                                field += ":asterisk: Skips (*" + getUsername(condition.player).replace(" ", "").substring(0, 4) + "*)\n"
                                 conditions.push("skips")
                             } else if (condition.type == "no_upgrades") {
                                 field += ":asterisk: NU (*" + tourney_participants_data[condition.player].name.replace(" ", "").substring(0, 4) + "*)\n"
@@ -5467,17 +5473,6 @@ module.exports = {
                     ))
                 }
                 return (firstoptions)
-            }
-
-            function getUsername(user) {
-                let name = ""
-                Object.values(tourney_participants_data).forEach(participant => {
-                    if (participant.id == user) {
-                        name = participant.name
-                        return
-                    }
-                })
-                return name
             }
 
             function getOpponent(player) {
