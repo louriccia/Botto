@@ -502,9 +502,9 @@ module.exports = {
                 let date = new Date(match.datetime)
                 date = date.toLocaleString().split(", ")
                 if (title.length == 0) {
-                    title = players.join(" vs ")
+                    title = players
                 } else {
-                    title = title.join(" ") + " - " + players.join(" vs ")
+                    title = title.join(" ") + " - " + players
                 }
                 let r = {
                     label: title,
