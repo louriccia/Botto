@@ -532,7 +532,7 @@ module.exports = {
                     let gents = false
                     let field = ""
                     let repeat = false
-                    let conditions = tourney_rulesets_data.saved[current_match.ruleset].general.default
+                    let conditions = tourney_rulesets_data.saved[thematch.ruleset].general.default
                     Object.values(race.events).forEach(event => {
                         field += [event.player != "" ? "(*" + getUsername(event.player).replace(" ", "").substring(0, 4) + "*)" : "",
                         eventmap[event.event],
