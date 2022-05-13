@@ -572,11 +572,11 @@ module.exports = {
                         field += "**" + getUsername(run.player) + "** " + run.player == winner.player ? ":crown:" : "" + "\n" + 
                         (run.pod ? racers[run.pod].flag : "") + " " + (run.time.toLowerCase() == 'dnf' ? "DNF" : "`" + tools.timefix(run.time) + "`") + " " + (run.deaths > 0 ? ":skull:" + (run.deaths > 1 ? "×" + run.deaths: ""): "")
                         if (thematch.bracket !== "Qualifying") {
-                            if (Number(run.time) - Number(best_times[track].best[Object.values(conditions).join("")]) < 0 && run.player == winner.player) {
+                            if (Number(run.time) - Number(best_times[thetrack].best[Object.values(conditions).join("")]) < 0 && run.player == winner.player) {
                                 field += "<a:newrecord:672640831882133524>"
-                            } else if (best_times[track].pb.hasOwnProperty(run.player)) {
-                                if (best_times[track].pb[run.player].hasOwnProperty(Object.values(conditions).join(""))) {
-                                    if (Number(run.time) - Number(best_times[track].pb[run.player][Object.values(conditions).join("")]) < 0) {
+                            } else if (best_times[thetrack].pb.hasOwnProperty(run.player)) {
+                                if (best_times[thetrack].pb[run.player].hasOwnProperty(Object.values(conditions).join(""))) {
+                                    if (Number(run.time) - Number(best_times[thetrack].pb[run.player][Object.values(conditions).join("")]) < 0) {
                                         field += ":medal:"
                                     }
                                 }
