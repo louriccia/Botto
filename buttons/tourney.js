@@ -480,7 +480,7 @@ module.exports = {
                                 if (!best_times[thistrack].pb?.run?.player) {
                                     best_times[thistrack].pb[run.player] = {}
                                 }
-                                let constring = conditions.join("")
+                                let constring = Object.values(conditions).join("")
                                 if (best_times[thistrack]?.best[constring]) {
                                     if (Number(run.time) - Number(best_times[thistrack].best[constring]) < 0) {
                                         best_times[thistrack].best[constring] = run.time
