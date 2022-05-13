@@ -123,97 +123,7 @@ module.exports = {
             })
             return name
         }
-        if (args[0] == "ranks") {
-            if (args[1].startsWith("page")) {
-                var ranks = tools.getRanks()
-                const tourneyRanks = new Discord.MessageEmbed()
-                tourneyRanks.setTitle("Elo Ratings")
-                var offset = Number(args[1].replace("page", ""))
-                var rnk_keys = Object.keys(ranks)
-                var rnk_vals = Object.values(ranks)
-                var pages = 0
-                if (rnk_vals.length % 5 == 0) {
-                    pages = Math.floor(rnk_vals.length / 5)
-                } else {
-                    pages = Math.floor(rnk_vals.length / 5) + 1
-                }
-                for (var i = 0; i < rnk_keys.length; i++) {
-                    rnk_vals[i].player = rnk_keys[i]
-                }
-                rnk_vals.sort(function (a, b) {
-                    return b.rank - a.rank;
-                })
-                for (var i = 5 * offset; i < 5 * (1 + offset); i++) {
-                    if (i == rnk_vals.length) {
-                        i = 5 * (1 + offset)
-                    } else {
-
-                        var arrow = "<:green_arrow:852392123093614642>"
-                        if (rnk_vals[i].change < 0) {
-                            arrow = ":small_red_triangle_down:"
-                            rnk_vals[i].change = Math.abs(rnk_vals[i].change)
-                        }
-                        tourneyRanks
-                            .addField(tools.ordinalSuffix(i) + " " + getUsername(rnk_vals[i].player), "`" + rnk_vals[i].matches + " matches`", true)
-                            .addField(Math.round(rnk_vals[i].rank), arrow + " " + Math.round(rnk_vals[i].change), true)
-                            .addField('\u200B', '\u200B', true)
-                    }
-                }
-                var previous = false, next = false
-                if (offset <= 0) {
-                    previous = true
-                }
-                if (offset + 1 == pages) {
-                    next = true
-                }
-                var type = 7
-                if (args.includes("initial")) {
-                    type = 4
-                }
-                tourneyRanks
-                    .setFooter("Page " + (offset + 1) + " / " + pages)
-                    .setColor("#3BA55D")
-                    .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
-                client.api.interactions(interaction.id, interaction.token).callback.post({
-                    data: {
-                        type: type,
-                        data: {
-                            //content: "",
-                            embeds: [tourneyRanks],
-                            components: [
-                                {
-                                    type: 1,
-                                    components: [
-                                        {
-                                            type: 2,
-                                            label: "",
-                                            emoji: {
-                                                id: "852392123151679548",
-                                                name: "left"
-                                            },
-                                            style: 2,
-                                            custom_id: "tourney_ranks_page" + (offset - 1),
-                                            disabled: previous
-                                        },
-                                        {
-                                            type: 2,
-                                            label: "",
-                                            emoji: {
-                                                id: "852392123109998602",
-                                                name: "right"
-                                            },
-                                            style: 2,
-                                            custom_id: "tourney_ranks_page" + (offset + 1),
-                                            disabled: next
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    }
-                })
-            }
-        } else if (args[0] == "matches") {
+        if (args[0] == "matches") {
             const tourneyMatches = new Discord.MessageEmbed()
                 .setTitle("Tournament Matches")
                 .setColor("#3BA55D")
@@ -493,10 +403,10 @@ module.exports = {
                 }
                 let title = []
                 if (matchoption.bracket) {
-                    title.push(match.bracket)
+                    title.push(matchoption.bracket)
                 }
                 if (matchoption.round) {
-                    title.push(match.round)
+                    title.push(matchoption.round)
                 }
                 let players = Object.values(matchoption.races[0].runs).map(run => getUsername(run.player)).join(" vs ")
                 let date = new Date(matchoption.datetime)
