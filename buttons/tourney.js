@@ -917,9 +917,9 @@ module.exports = {
             if (user !== null && conditions.includes("user")) {
                 runs = runs.filter(e => tourney_participants_data[e.player].id == user)
             }
-            if (qual === false) {
+            /*if (qual === false) {
                 runs = runs.filter(e => e.bracket !== "Qualifying")
-            }
+            }*/
             runs.sort(function (a, b) {
                 if (a.time == "DNF" && b.time == "DNF") {
                     return 0
