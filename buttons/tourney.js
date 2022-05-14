@@ -906,11 +906,11 @@ module.exports = {
             })
 
             runs = runs.filter(run => run.conditions.forEach(con => { if (!conditions.includes(con)) { return false } }))
-            if (!deaths.includes(true)) {
+            /*if (!deaths.includes(true)) {
                 runs = runs.filter(e => e.deaths == 0)
             } else if (!deaths.includes(false)) {
                 runs = runs.filter(e => e.deaths > 0)
-            }
+            }*/
             if (pods.length > 0) {
                 runs = runs.filter(e => pods.includes(String(e.pod)))
             }
