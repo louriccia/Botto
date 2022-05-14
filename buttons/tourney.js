@@ -477,10 +477,18 @@ module.exports = {
                                 }
                             })
                             race.runs.forEach(run => {
-                                if (!best_times[thistrack].pb?.run?.player) {
+                                if (!best_times[thistrack].pb.hasOwnProperty(run.player)) {
                                     best_times[thistrack].pb[run.player] = {}
                                 }
+                                
                                 let constring = Object.values(conditions).join("")
+                                if(best_times[thistrack].pb[run.player][constring]){
+                                    if(Number(run.time) - Number(best_times[thistrack].pb[run.player][constring]) < 0){
+                                        best_times[thistrack].pb[run.player][constring] = run.time
+                                    }
+                                } else {
+                                    best_times[thistrack].pb[run.player][constring] = run.time
+                                }
                                 if (best_times[thistrack]?.best[constring]) {
                                     if (Number(run.time) - Number(best_times[thistrack].best[constring]) < 0) {
                                         best_times[thistrack].best[constring] = run.time
@@ -516,7 +524,7 @@ module.exports = {
 
                 //assemble fields
                 let eventmap = {
-                    select: "👆",
+                    selection: "👆",
                     override: "✳️",
                     permaban: "🚫",
                     tempban: "❌"
@@ -534,8 +542,7 @@ module.exports = {
                     let repeat = false
                     let conditions = tourney_rulesets_data.saved[thematch.ruleset].general.default
                     Object.values(race.events).forEach(event => {
-                        field += [event.player != "" ? "(*" + getUsername(event.player).replace(" ", "").substring(0, 4) + "*)" : "",
-                        eventmap[event.event],
+                        field += [eventmap[event.event],
                         (event.type == 'track' ?
                             tracks[event.selection].nickname[0].toUpperCase() :
                             event.type == 'racer' ?
@@ -543,7 +550,8 @@ module.exports = {
                                 event.type == "condition" ?
                                     conmap[event.selection] : ""),
                         [null, undefined, "", 0].includes(event.cost) ? "" : "(💠" + event.cost + ")",
-                        [null, undefined, "", 0].includes(event.repeat) ? "" : "(🔁" + event.cost + ")"
+                        [null, undefined, "", false].includes(event.repeat) ? "" : "(🔁)",
+                        event.player !== "" ? "(*" + getUsername(event.player).replace(" ", "").substring(0, 4) + "*)" : ""
                         ].join(" ") + "\n"
                         if(event.event == 'selection' && event.type == 'track'){
                             thetrack = event.selection
