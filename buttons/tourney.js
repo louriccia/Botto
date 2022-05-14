@@ -1065,7 +1065,7 @@ module.exports = {
                     return 0
                 }
             })
-            var components = []
+            components = []
             components.push(
                 {
                     type: 1,
