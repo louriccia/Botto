@@ -480,10 +480,10 @@ module.exports = {
                                 if (!best_times[thistrack].pb.hasOwnProperty(run.player)) {
                                     best_times[thistrack].pb[run.player] = {}
                                 }
-                                
+
                                 let constring = Object.values(conditions).join("")
-                                if(best_times[thistrack].pb[run.player][constring]){
-                                    if(Number(run.time) - Number(best_times[thistrack].pb[run.player][constring]) < 0){
+                                if (best_times[thistrack].pb[run.player][constring]) {
+                                    if (Number(run.time) - Number(best_times[thistrack].pb[run.player][constring]) < 0) {
                                         best_times[thistrack].pb[run.player][constring] = run.time
                                     }
                                 } else {
@@ -534,7 +534,7 @@ module.exports = {
                     nu: "No Upgrades",
                     fl: "Fast Lap"
                 }
-               
+
                 thematch.races.forEach((race, index) => {
                     let thetrack = null
                     let gents = false
@@ -553,7 +553,7 @@ module.exports = {
                         [null, undefined, "", false].includes(event.repeat) ? "" : "(🔁)",
                         event.player !== "" ? "(*" + getUsername(event.player).replace(" ", "").substring(0, 4) + "*)" : ""
                         ].join(" ") + "\n"
-                        if(event.event == 'selection' && event.type == 'track'){
+                        if (event.event == 'selection' && event.type == 'track') {
                             thetrack = event.selection
                             repeat = event.repeat ?? false
                         }
@@ -577,8 +577,8 @@ module.exports = {
                         }
                     })
                     Object.values(race.runs).forEach(run => {
-                        field += "**" + getUsername(run.player) + "** " + (run.player == winner.player ? ":crown:" : "") + "\n" + 
-                        (run.pod ? racers[run.pod].flag : "") + " " + (run.time.toLowerCase() == 'dnf' ? "DNF" : "`" + tools.timefix(run.time) + "`") + " " + (run.deaths > 0 ? ":skull:" + (run.deaths > 1 ? "×" + run.deaths: ""): "")
+                        field += "**" + getUsername(run.player) + "** " + (run.player == winner.player ? ":crown:" : "") + "\n" +
+                            (run.pod ? racers[run.pod].flag : "") + " " + (run.time.toLowerCase() == 'dnf' ? "DNF" : "`" + tools.timefix(run.time) + "`") + " " + (run.deaths > 0 ? ":skull:" + (run.deaths > 1 ? "×" + run.deaths : "") : "")
                         if (thematch.bracket !== "Qualifying") {
                             if (Number(run.time) - Number(best_times[thetrack].best[Object.values(conditions).join("")]) < 0 && run.player == winner.player) {
                                 field += "<a:newrecord:672640831882133524>"
@@ -590,12 +590,13 @@ module.exports = {
                                 }
                             }
                         }
+                        field += "\n"
                         if (run.notes.toLowerCase().includes("gentle")) {
                             gents = true
                         }
                         let notes = run.notes.toLowerCase().replace("salty runback", "").replace("gentleman's agreement", "").replace("gentlemen's agreement", "")
                         if (![undefined, null, ""].includes(notes)) {
-                            field += "\n*" + notes + "*\n"
+                            field += "*" + notes + "*\n"
                         }
                     })
                     tourneyMatches
@@ -756,33 +757,33 @@ module.exports = {
 
         } else if (args[0] == "leaderboards") {
             const tourneyReport = new Discord.MessageEmbed()
-            var type = 7
+            let type = 7
             if (args.includes("initial")) {
                 type = 4
             }
-            var track = Math.floor(Math.random() * 25)
-            var pods = []
-            var conditions = []
-            var showall = false
+            let track = Math.floor(Math.random() * 25)
+            let pods = []
+            let conditions = []
+            let showall = false
             if (!args.includes("initial")) {
-                for (var i = 0; i < interaction.message.components[0].components[0].options.length; i++) { //track
-                    var option = interaction.message.components[0].components[0].options[i]
+                for (let i = 0; i < interaction.message.components[0].components[0].options.length; i++) { //track
+                    let option = interaction.message.components[0].components[0].options[i]
                     if (option.hasOwnProperty("default")) {
                         if (option.default) {
                             track = option.value
                         }
                     }
                 }
-                for (var i = 0; i < interaction.message.components[1].components[0].options.length; i++) { //conditions
-                    var option = interaction.message.components[1].components[0].options[i]
+                for (let i = 0; i < interaction.message.components[1].components[0].options.length; i++) { //conditions
+                    let option = interaction.message.components[1].components[0].options[i]
                     if (option.hasOwnProperty("default")) {
                         if (option.default) {
                             conditions.push(option.value)
                         }
                     }
                 }
-                for (var i = 0; i < interaction.message.components[2].components[0].options.length; i++) { //pods
-                    var option = interaction.message.components[2].components[0].options[i]
+                for (let i = 0; i < interaction.message.components[2].components[0].options.length; i++) { //pods
+                    let option = interaction.message.components[2].components[0].options[i]
                     if (option.hasOwnProperty("default")) {
                         if (option.default) {
                             pods.push(String(option.value))
@@ -804,75 +805,59 @@ module.exports = {
                 }
             }
             if (conditions.length == 0) {
-                conditions = ["mu", "nu", "ft", "skips", "deaths", "deathless", "pb"]
+                conditions = ["mu", "nu", "ft", "sk", "de", "dl", "pb"]
             }
             //prepare filters
-            var nu = [], skips = [], user = null, qual = false, deaths = []
-            if (conditions.includes("mu")) {
-                nu.push(false)
-            }
-            if (conditions.includes("nu")) {
-                nu.push(true)
-            }
-            if (conditions.includes("ft")) {
-                skips.push(false)
-            }
-            if (conditions.includes("skips")) {
-                skips.push(true)
-            }
-            if (conditions.includes("qual")) {
-                qual = true
-            }
-            if (!conditions.includes("pb")) {
-                showall = true
-            }
-            if (conditions.includes("deaths")) {
-                deaths.push(true)
-            }
-            if (conditions.includes("deathless")) {
-                deaths.push(false)
-            }
             if (interaction.member) {
                 user = interaction.member.user.id
             } else {
                 user = interaction.user.id
             }
             //account for missing values
-            if (deaths.length == 0) { deaths.push(true, false), conditions.push("deaths", "deathless") }
+            if (deaths.length == 0) { deaths.push(true, false), conditions.push("de", "dl") }
             if (nu.length == 0) { nu.push(true, false), conditions.push("mu", "nu") }
-            if (skips.length == 0) { skips.push(true, false), conditions.push("ft", "skips") }
+            if (skips.length == 0) { skips.push(true, false), conditions.push("ft", "sk") }
             //get runs and apply filters
-            var runs = []
-            var matches = Object.values(tourney_matches_data)
-            var counts = { mu: 0, nu: 0, ft: 0, skips: 0, nuskips: 0, deaths: 0, deathless: 0, qual: 0, user: 0, tracks: {} }
-            var pod_counts = {}
+            let runs = []
+            let matches = Object.values(tourney_matches_data)
+            let counts = { mu: 0, nu: 0, ft: 0, skips: 0, nuskips: 0, deaths: 0, deathless: 0, qual: 0, user: 0, tracks: {} }
+            let pod_counts = {}
             matches.forEach(match => {
                 match.races.forEach((race, num) => {
-                    if (counts.tracks[race.track_selection.track] == undefined) {
-                        counts.tracks[race.track_selection.track] = { total: 0, skips: 0, nu: 0, nuskips: 0 }
-                    }
-                    race.runs.forEach(run => {
-                        counts.tracks[race.track_selection.track].total++
-                        if (race.conditions !== undefined) {
-                            var conditions = []
-                            race.conditions.forEach(condition => {
-                                if (condition.type == "skips") {
-                                    conditions.push("skips")
-                                } else if (condition.type == "no_upgrades") {
-                                    conditions.push("nu")
-                                }
-                            })
-                            if (conditions.includes("skips") && conditions.includes("nu")) {
-                                counts.tracks[race.track_selection.track].nuskips++
-                            } else if (conditions.includes("skips")) {
-                                counts.tracks[race.track_selection.track].skips++
-                            } else if (conditions.includes("nu")) {
-                                counts.tracks[race.track_selection.track].nu++
+                    let conditions = tourney_rulesets_data.saved[match.ruleset].general.default
+                    let thistrack = null
+                    Object.values(race.events).forEach(event => {
+                        if (event.event == 'selection' && event.type == 'track') {
+                            if (counts.tracks[event.selection] == undefined) {
+                                counts.tracks[event.selection] = { total: 0, skips: 0, nu: 0, nuskips: 0 }
+                            }
+                            thistrack = event.selection
+                        }
+                        if (event.event == 'override' && event.type == 'condition') {
+                            if (event.selection == 'nu') {
+                                conditions.upgr = 'nu'
+                            }
+                            if (event.selection == 'sk') {
+                                conditions.trak = 'sk'
+                            }
+                            if (event.selection == 'fl') {
+                                conditions.time = 'fl'
                             }
                         }
                     })
-                    if (race.track_selection.track == track) {
-                        var opponents = []
+
+                    race.runs.forEach(run => {
+                        counts.tracks[thistrack].total++
+                        if (conditions.upgr == 'nu' && conditions.trak == 'sk') {
+                            counts.tracks[thistrack].nuskips++
+                        } else if (conditions.includes("sk")) {
+                            counts.tracks[thistrack].skips++
+                        } else if (conditions.includes("nu")) {
+                            counts.tracks[thistrack].nu++
+                        }
+                    })
+                    if (thistrack == track) {
+                        let opponents = []
                         race.runs.forEach(run => {
                             opponents.push(run.player)
                         })
@@ -882,43 +867,19 @@ module.exports = {
                             run.tourney = match.tourney
                             run.bracket = match.bracket
                             run.round = match.round
-                            run.podbans = []
-                            if (race.tempbans !== undefined) {
-                                race.tempbans.forEach(ban => {
-                                    if (ban.type == "pod") {
-                                        run.podbans.push(ban.selection)
-                                    }
-                                })
+                            run.podbans = Object.values(race.events).filter(event => event.event == 'tempban' && event.type == 'race').map(event => event.selection)
+                            run.opponents = opponents.filter(op => op !== run.player)
+                            run.conditions = Object.values(conditions)
+                            if (run.conditions.includes('sk')) {
+                                counts.skips++
                             }
-                            run.opponents = []
-                            opponents.forEach(opponent => {
-                                if (opponent !== run.player) {
-                                    run.opponents.push(opponent)
-                                }
-                            })
-                            run.skips = false
-                            run.nu = false
-                            if (race.conditions !== undefined) {
-                                race.conditions.forEach(condition => {
-                                    if (condition.type == "skips") {
-                                        run.skips = true
-                                    } else if (condition.type == "no_upgrades") {
-                                        run.nu = true
-                                    } else if (condition.type == "pod_ban") {
-                                        run.podbans.push(condition.selection)
-                                    }
-                                    if (run.skips == true) {
-                                        counts.skips++
-                                    }
-                                    if (run.nu == true) {
-                                        counts.nu++
-                                    }
-                                })
+                            if (run.conditions.includes('nu')) {
+                                counts.nu++
                             }
-                            if (run.skips == false) {
+                            if (run.conditions.includes('ft')) {
                                 counts.ft++
                             }
-                            if (run.nu == false) {
+                            if (run.conditions.includes('mu')) {
                                 counts.mu++
                             }
                             if (run.deaths == 0) {
@@ -930,7 +891,7 @@ module.exports = {
                             if (match.bracket == "Qualifying") {
                                 counts.qual++
                             }
-                            if (String(tourney_participants_data[run.player].id) == String(user)) {
+                            if (run.player == String(user)) {
                                 counts.user++
                             }
                             if (pod_counts[run.pod] == undefined) {
@@ -944,8 +905,7 @@ module.exports = {
                 })
             })
 
-            runs = runs.filter(e => nu.includes(e.nu))
-            runs = runs.filter(e => skips.includes(e.skips))
+            runs = runs.filter(run => run.conditions.forEach(con => { if (!conditions.includes(con)) { return false } }))
             if (!deaths.includes(true)) {
                 runs = runs.filter(e => e.deaths == 0)
             } else if (!deaths.includes(false)) {
@@ -992,58 +952,23 @@ module.exports = {
             if (!showall) {
                 tourneyReport.setFooter(runs.length + "/" + counts.tracks[track].total + " Runs (PBs Only)")
             }
-            var pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>", "4th", "5th"]
-            var already = []
+            let pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>", "4th", "5th"]
+            let already = []
             if (runs.length > 0) {
                 for (i = 0; i < runs.length; i++) {
                     if (runs[i].hasOwnProperty("time") && !already.includes(runs[i].player + runs[i].nu + runs[i].skips)) {
-                        var character = ""
-                        var deaths = ""
-                        var characterban = ""
-                        var link = ""
-                        var upgrade = "MU"
-                        var cond = []
-                        var opponent = ""
-                        var bracket = ""
-                        if (runs[i].nu == true) {
-                            upgrade = "NU"
-                        }
-                        if (runs[i].skips == true) {
-                            cond.push("Skips")
-                        } else {
-                            cond.push("FT")
-                        }
-                        link = runs[i].vod
-                        if (runs[i].podbans.length > 0) {
-                            characterban += " | :x: "
-                        }
-                        runs[i].podbans.forEach(ban => {
-                            characterban += racers[ban].flag + " "
-                        })
-                        var opponents = []
-                        runs[i].opponents.forEach(opponent => {
-                            opponents.push(tourney_participants_data[opponent].name)
-                        })
-                        opponent = " vs " + opponents.join(", ")
-                        if (runs[i].deaths > 1) {
-                            deaths = " | :skull:×" + runs[i].deaths
-                        } else if (runs[i].deaths == 1) {
-                            deaths = " | :skull:"
-                        }
+                        let bracket = ""
                         if (![undefined, "", null].includes(runs[i].bracket)) {
                             bracket = " " + runs[i].bracket
                             if (![undefined, "", null].includes(runs[i].round)) {
                                 bracket += " " + runs[i].round
                             }
                         }
-                        character = racers[runs[i].pod].flag
-                        var time = "DNF"
-                        if (runs[i].time !== "DNF") {
-                            time = tools.timefix(Number(runs[i].time).toFixed(3))
-                        }
                         tourneyReport
-                            .addField(pos[0] + " " + tourney_participants_data[runs[i].player].name, tourney_tournaments_data[runs[i].tourney].nickname + bracket + "\n[Race " + runs[i].num + opponent + "](" + link + ")", true)
-                            .addField(time, " " + character + " | " + upgrade + deaths + "\n" + cond.join(" | ") + characterban, true)
+                            .addField(pos[0] + " " + getUsername(runs[i].player),
+                                tourney_tournaments_data[runs[i].tourney].nickname + bracket +
+                                "\n[Race " + runs[i].num + (runs[i].opponents.length > 0 ? " vs " + runs[i].opponents.map(op => getUsername(op)).join(" ") : "") + "](" + runs[i].vod + ")", true)
+                            .addField(time == "DNF" ? "DNF" : tools.timefix(Number(runs[i].time).toFixed(3)), " " + racers[runs[i].pod].flag + " | " + (runs[i].deaths > 1 ? " | :skull:×" + runs[i].deaths : " | :skull:") + "\n" + runs[i].conditions.map(con => con.toUpperCase()).join(" | ") + " | :x:" + runs[i].podbans.map(ban => racers[ban].flag).join(" "), true)
                             .addField('\u200B', '\u200B', true)
                         if (showall == false) { already.push(runs[i].player + runs[i].nu + runs[i].skips) }
                         pos.splice(0, 1)
@@ -1059,13 +984,13 @@ module.exports = {
             }
 
             //construct components
-            var components = []
-            var cond = { mu: "Max Upgrades", nu: "No Upgrades", ft: "Full Track", skips: "Skips", deaths: "Deaths", deathless: "Deathless", qual: "Include Qualifying Runs", pb: "Personal Bests Only", user: "My Runs Only" }
-            var track_selections = []
-            var racer_selections = []
-            var cond_selections = []
-            for (var i = 0; i < 25; i++) {
-                var racer_option = {
+            let components = []
+            let cond = { mu: "Max Upgrades", nu: "No Upgrades", ft: "Full Track", sk: "Skips", de: "Deaths", dl: "Deathless", qu: "Include Qualifying Runs", pb: "Personal Bests Only", user: "My Runs Only" }
+            let track_selections = []
+            let racer_selections = []
+            let cond_selections = []
+            for (let i = 0; i < 25; i++) {
+                let racer_option = {
                     label: racers[i].name,
                     value: i,
                     description: racers[i].pod.substring(0, 50),
@@ -1083,7 +1008,7 @@ module.exports = {
                 if (pods.includes(String(i))) {
                     racer_option.default = true
                 }
-                var track_option = {
+                let track_option = {
                     label: tracks[i].name,
                     value: i,
                     description: (circuits[tracks[i].circuit].name + " Circuit | Race " + tracks[i].cirnum + " | " + planets[tracks[i].planet].name).substring(0, 50),
@@ -1097,7 +1022,7 @@ module.exports = {
                     track_option.description = counts.tracks[i].total + " Runs"
                 }
                 if (counts.tracks[i].nu > 0 || counts.tracks[i].skips > 0 || counts.tracks[i].nuskips > 0) {
-                    var stuff = []
+                    let stuff = []
                     if (counts.tracks[i].nu > 0) {
                         stuff.push(counts.tracks[i].nu + " NU")
                     }
@@ -1114,9 +1039,9 @@ module.exports = {
                 }
                 racer_selections.push(racer_option)
                 track_selections.push(track_option)
-                var condkeys = Object.keys(cond)
+                let condkeys = Object.keys(cond)
                 if (i < condkeys.length) {
-                    var cond_option = {
+                    let cond_option = {
                         label: cond[condkeys[i]],
                         value: condkeys[i],
                     }
