@@ -595,7 +595,7 @@ module.exports = {
                         }
                         let notes = run.notes.toLowerCase().replace("salty runback", "").replace("gentleman's agreement", "").replace("gentlemen's agreement", "")
                         if (![undefined, null, ""].includes(notes)) {
-                            field += "\n*" + notes + "*"
+                            field += "\n*" + notes + "*\n"
                         }
                     })
                     tourneyMatches
