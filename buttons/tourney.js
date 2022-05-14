@@ -814,9 +814,9 @@ module.exports = {
                 user = interaction.user.id
             }
             //account for missing values
-            if (deaths.length == 0) {conditions.push("de", "dl") }
-            if (nu.length == 0) {conditions.push("mu", "nu") }
-            if (skips.length == 0) {conditions.push("ft", "sk") }
+            //if (deaths.length == 0) {conditions.push("de", "dl") }
+            //if (nu.length == 0) {conditions.push("mu", "nu") }
+            //if (skips.length == 0) {conditions.push("ft", "sk") }
             //get runs and apply filters
             let runs = []
             let matches = Object.values(tourney_matches_data)
