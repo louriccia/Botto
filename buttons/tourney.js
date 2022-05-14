@@ -850,9 +850,9 @@ module.exports = {
                         counts.tracks[thistrack].total++
                         if (conditions.upgr == 'nu' && conditions.trak == 'sk') {
                             counts.tracks[thistrack].nuskips++
-                        } else if (conditions.includes("sk")) {
+                        } else if (conditions.trak == 'sk') {
                             counts.tracks[thistrack].skips++
-                        } else if (conditions.includes("nu")) {
+                        } else if (conditions.upgr == 'nu') {
                             counts.tracks[thistrack].nu++
                         }
                     })
