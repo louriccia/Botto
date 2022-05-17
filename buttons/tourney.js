@@ -423,7 +423,7 @@ module.exports = {
                     emoji: { name: ruleset_emojis[tourney_rulesets_data.saved[matchoption.ruleset].type] }
                 }
                 if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[matchoption.ruleset].type)) {
-                    r.description += " ⏱️ ±" + match_options[s].timediff.toFixed(3) + " 🤏 " + match_options[s].closest.toFixed(3)
+                    r.description += " ⏱️ ±" + (match_options[s].timediff == null ? "--" : match_options[s].timediff.toFixed(3)) + " 🤏 " + (match_options[s].closest == null ? "--" : match_options[s].closest.toFixed(3))
                 }
                 if (interaction.data.hasOwnProperty("values") && !interaction.data.values[0].includes("offset")) {
                     if (r.value == interaction.data.values[0]) {
