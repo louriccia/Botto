@@ -5516,6 +5516,7 @@ module.exports = {
                 livematch = tourney_live_data[interaction.channel_id]
                 let races = Object.values(livematch.races)
                 let events = races[race].events
+                let player = (events[eventstart].choice == "lastwinner" ? getWinner(race - 1) : getOpponent(getWinner(race - 1)))
                 let actions = {
                     permaban: "🚫 perma-banned",
                     tempban: "❌ temp-banned",
@@ -5535,6 +5536,20 @@ module.exports = {
                                         racers[e.selection].flag + " " + racers[e.selection].name :
                                     condition_names[e.selection]) + "**" + ([null, undefined, "", 0].includes(e.cost) ? "" : " for " + e.cost + "💠 forcepoint(s)")
                         ).join("\n")))
+
+                        let summary = {}
+                        Object.values(livematch.players).forEach(player => {
+                            summary[player] = {
+                                wins: 0
+                            }
+                        })
+                        Object.values(livematch.races).forEach((race, index) => {
+                            summary[getWinner(index)].wins++
+                        })
+                if(getForcePoints(player) > 0 && summary[getOpponent(player)].wins == liverules.general.winlimit -1){
+                    embed.setFooter("Last chance to use forcepoints!")
+                }
+                    
                 return embed
             }
 
@@ -5689,7 +5704,7 @@ module.exports = {
                             components: [
                                 {
                                     type: 2,
-                                    label: "Submit" + (fptotal == 0 ? "" : " (" + fptotal + "💠)") + (repeat ? " (🔁)" : ""),
+                                    label: notrack ? "No Track Selected": (getForcePoints(player) - fptotal < 0) ? "Not enough forcepoints" : oddselect? "Invalid Selection" : "Submit" + (fptotal == 0 ? "" : " (" + fptotal + "💠)") + (repeat ? " (🔁)" : ""),
                                     style: 1,
                                     custom_id: "tourney_play_race" + race + "_event_submit",
                                     disabled: (getForcePoints(player) - fptotal < 0) || notrack || oddselect
