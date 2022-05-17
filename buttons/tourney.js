@@ -5500,14 +5500,14 @@ module.exports = {
                     .setAuthor('Match Summary')
                     .setColor("#FFFFFF")
                     .setTitle(leader.player == "tie" ? "Tied Match " + leader.wins + " to " + leader.wins : getUsername(leader.player) + " leads " + leader.wins + " to " + summary[getOpponent(leader.player)].wins) + (leader.wins == liverules.general.winlimit - 1 ? " (Match Point)" : "")
-                /*Object.values(livematch.players).forEach(player => {embed.addField(
+                /*Object.values(livematch.players).forEach(player => embed.addField(
                     (leader.player == player ? "👑 " : "") + getUsername(player) + " - " + summary[player].wins,
                     '💠 ' + summary[player].forcepoints +
                     (liverules.match.repeattrack ? '\n🔁 ' + summary[player].runbacks : "") +
                     '\n⏱️ ' + tools.timefix(summary[player].time) + (summary[player].timetrue ? "" : "+") + " (total)" +
                     '\n💀 ' + summary[player].deaths + (summary[player].deathtrue ? "" : "+") + " (total)",
                     true
-            )})*/
+            ))*/
                 embed.addField("🎙️ Commentators/Trackers", ":orange_circle: Don't forget to update the score!", false)
                 return embed
             }
