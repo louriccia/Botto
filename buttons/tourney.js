@@ -5520,7 +5520,8 @@ module.exports = {
                 let races = Object.values(livematch.races)
                 let events = races[race].events
                 let eventstart = livematch.races[race].eventstart
-                let player = (events[eventstart].choice == "lastwinner" ? getWinner(race - 1) : getOpponent(getWinner(race - 1)))
+                let ruleevents = Object.values(liverules.race)
+                let player = (ruleevents[eventstart].choice == "lastwinner" ? getWinner(race - 1) : getOpponent(getWinner(race - 1)))
                 let actions = {
                     permaban: "🚫 perma-banned",
                     tempban: "❌ temp-banned",
