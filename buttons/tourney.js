@@ -5496,7 +5496,7 @@ module.exports = {
                         leader.player = "tie"
                     }
                 })
-                const embed = new Discord.Message.Embed()
+                const embed = new Discord.MessageEmbed()
                     .setAuthor('Match Summary')
                     .setColor("#FFFFFF")
                     .setTitle(leader.player == "tie" ? "Tied Match " + leader.wins + " to " + leader.wins : getUsername(leader.player) + " leads " + leader.wins + " to " + summary[getOpponent(leader.player)].wins) + (leader.wins == liverules.general.winlimit - 1 ? " (Match Point)" : "")
