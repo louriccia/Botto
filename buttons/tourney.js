@@ -578,7 +578,7 @@ module.exports = {
                     })
                     Object.values(race.runs).forEach(run => {
                         field += "**" + getUsername(run.player) + "** " + (run.player == winner.player ? ":crown:" : "") + "\n" +
-                            (run.pod ? racers[run.pod].flag : "") + " " + (String(run.time.toLowerCase()) == 'dnf' ? "DNF" : "`" + tools.timefix(run.time) + "`") + " " + (run.deaths > 0 ? ":skull:" + (run.deaths > 1 ? "×" + run.deaths : "") : "")
+                            (run.pod ? racers[run.pod].flag : "") + " " + (String(run.time).toLowerCase() == 'dnf' ? "DNF" : "`" + tools.timefix(run.time) + "`") + " " + (run.deaths > 0 ? ":skull:" + (run.deaths > 1 ? "×" + run.deaths : "") : "")
                         if (thematch.bracket !== "Qualifying") {
                             if (Number(run.time) - Number(best_times[thetrack].best[Object.values(conditions).join("")]) < 0 && run.player == winner.player) {
                                 field += "<a:newrecord:672640831882133524>"
