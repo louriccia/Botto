@@ -5500,7 +5500,7 @@ module.exports = {
                     .setAuthor('Match Summary')
                     .setColor("#FFFFFF")
                     .setTitle(leader.player == "tie" ? "Tied Match " + leader.wins + " to " + leader.wins : getUsername(leader.player) + " leads " + leader.wins + " to " + summary[getOpponent(leader.player)].wins) + (leader.wins == liverules.general.winlimit - 1 ? " (Match Point)" : "")
-                Object.values(livematch.players).map(player => {embed.addField(
+                Object.values(livematch.players).forEach(player => {embed.addField(
                     (leader.player == player ? "👑 " : "") + getUsername(player) + " - " + summary[player].wins,
                     '💠 ' + summary[player].forcepoints +
                     (liverules.match.repeattrack ? '\n🔁 ' + summary[player].runbacks : "") +
