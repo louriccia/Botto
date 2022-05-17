@@ -5066,14 +5066,6 @@ module.exports = {
                 return [tourneyReport, components]
             }).then((embed) => sendResponse(embed))
         } else if (args[0] == "play") {
-            function getPlayer(id) {
-                let tpd = Object.keys(tourney_participants_data)
-                tpd.forEach(key => {
-                    if (tourney_participants_data[key].id == id) {
-                        return key
-                    }
-                })
-            }
             let type = 7
             let livematch = tourney_live_data[interaction.channel_id]
             let liverules
@@ -6834,6 +6826,7 @@ module.exports = {
                                 postMessage('', [winEmbed], [])
                                 wincondition = true
                                 tourney_matches.push(tourney_live_data[interaction.channel_id])
+                                tourney_live.child([interaction.channel_id]).remove()
                                 return
                             }
                         })
