@@ -5549,7 +5549,9 @@ module.exports = {
                             }
                         })
                         Object.values(livematch.races).forEach((race, index) => {
-                            summary[getWinner(index)].wins++
+                            if(index  + 1 < Object.values(livematch.races).length){
+                                summary[getWinner(index)].wins++
+                            }
                         })
                 if(getForcePoints(player) > 0 && summary[getOpponent(player)].wins == liverules.general.winlimit -1){
                     embed.setFooter("Last chance to use forcepoints!")
