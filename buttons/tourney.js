@@ -5519,6 +5519,7 @@ module.exports = {
                 livematch = tourney_live_data[interaction.channel_id]
                 let races = Object.values(livematch.races)
                 let events = races[race].events
+                let eventstart = livematch.races[race].eventstart
                 let player = (events[eventstart].choice == "lastwinner" ? getWinner(race - 1) : getOpponent(getWinner(race - 1)))
                 let actions = {
                     permaban: "🚫 perma-banned",
