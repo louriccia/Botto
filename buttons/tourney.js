@@ -903,7 +903,7 @@ module.exports = {
                 }
             })
             //create embed
-            tourneyReport
+            tourneyReport 
                 .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
                 .setTitle(planets[tracks[track].planet].emoji + " " + tracks[track].name)
                 .setColor(planets[tracks[track].planet].color)
