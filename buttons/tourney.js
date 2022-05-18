@@ -907,6 +907,7 @@ module.exports = {
                     return Number(a.time) - Number(b.time);
                 }
             })
+            console.log(runs)
             //create embed
             tourneyReport 
                 .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
