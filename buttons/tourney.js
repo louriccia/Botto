@@ -300,48 +300,17 @@ module.exports = {
                     m_option.timediff = null
                     m_option.closest = null
                 }
-
                 match_options[key] = m_option
             })
 
             //sort options
             let sort_selections = [
-                {
-                    label: "Sort by Date (Ascending)",
-                    value: "date_ascend",
-                    description: "sort by date, oldest to newest",
-                    emoji: { name: "📆" }
-                },
-                {
-                    label: "Sort by Date (Descending)",
-                    value: "date_descend",
-                    description: "sort by date, newest to oldest",
-                    emoji: { name: "📆" }
-                },
-                {
-                    label: "Sort by Races",
-                    value: "races",
-                    description: "sort by number of races descending",
-                    emoji: { name: "🏁" }
-                },
-                {
-                    label: "Sort by Total Deaths",
-                    value: "deaths",
-                    description: "sort by total match deaths descending",
-                    emoji: { name: "💀" }
-                },
-                {
-                    label: "Sort by Avg. Time Difference",
-                    value: "time",
-                    description: "sort by average time difference ascending",
-                    emoji: { name: "⏱️" }
-                },
-                {
-                    label: "Sort by Closest Race",
-                    value: "closest",
-                    description: "sort by closest race difference ascending",
-                    emoji: { name: "🤏" }
-                }
+                { label: "Sort by Date (Ascending)", value: "date_ascend", description: "sort by date, oldest to newest", emoji: { name: "📆" } },
+                { label: "Sort by Date (Descending)", value: "date_descend", description: "sort by date, newest to oldest", emoji: { name: "📆" } },
+                { label: "Sort by Races", value: "races", description: "sort by number of races descending", emoji: { name: "🏁" } },
+                { label: "Sort by Total Deaths", value: "deaths", description: "sort by total match deaths descending", emoji: { name: "💀" } },
+                { label: "Sort by Avg. Time Difference", value: "time", description: "sort by average time difference ascending", emoji: { name: "⏱️" } },
+                { label: "Sort by Closest Race", value: "closest", description: "sort by closest race difference ascending", emoji: { name: "🤏" } }
             ]
             sort_selections.forEach(option => {
                 if (option.value == sort) {
@@ -419,11 +388,13 @@ module.exports = {
                 let r = {
                     label: title,
                     value: s,
-                    description: "📆 " + convertDate(match_options[s].date) + " 🏁 " + match_options[s].races + " 💀 " + match_options[s].deaths,
-                    emoji: { name: ruleset_emojis[tourney_rulesets_data.saved[matchoption.ruleset].type] }
-                }
-                if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[matchoption.ruleset].type)) {
-                    r.description += " ⏱️ ±" + (match_options[s].timediff == null ? "--" : match_options[s].timediff.toFixed(3)) + " 🤏 " + (match_options[s].closest == null ? "--" : match_options[s].closest.toFixed(3))
+                    description: "📆 " + convertDate(match_options[s].date) + 
+                    " 🏁 " + match_options[s].races + 
+                    " 💀 " + match_options[s].deaths + (["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[matchoption.ruleset].general.type ? 
+                        "": " ⏱️ ±" + (match_options[s].timediff == null ? "--" : match_options[s].timediff.toFixed(3)) + " 🤏 " + (match_options[s].closest == null ? "--" : match_options[s].closest.toFixed(3)))),
+                    emoji: { 
+                        name: ruleset_emojis[tourney_rulesets_data.saved[matchoption.ruleset].type] 
+                    }
                 }
                 if (interaction.data.hasOwnProperty("values") && !interaction.data.values[0].includes("offset")) {
                     if (r.value == interaction.data.values[0]) {
@@ -443,9 +414,8 @@ module.exports = {
                     )
                 }
             }
-
+            //get best times 
             if (match !== null) {
-                //get best times 
                 let best_times = {}
                 for (i = 0; i < 25; i++) {
                     best_times[i] = { best: {}, pb: {} }
@@ -500,7 +470,6 @@ module.exports = {
                         })
                     }
                 })
-                console.log(best_times)
 
                 //assemble embed
                 let thematch = tourney_matches_data[match]
@@ -551,7 +520,7 @@ module.exports = {
                                     conmap[event.selection] : ""),
                         [null, undefined, "", 0].includes(event.cost) ? "" : "(💠" + event.cost + ")",
                         [null, undefined, "", false].includes(event.repeat) ? "" : "(🔁)",
-                        event.player !== "" ? "(*" + getUsername(event.player).replace(" ", "").substring(0, 4) + "*)" : ""
+                        ![null, undefined, ""].includes(event.player) ? "(*" + getUsername(event.player).replace(" ", "").substring(0, 4) + "*)" : ""
                         ].join(" ") + "\n"
                         if (event.event == 'selection' && event.type == 'track') {
                             thetrack = event.selection
@@ -5492,9 +5461,9 @@ module.exports = {
                     .setAuthor('Match Summary')
                     .setColor("#FFFFFF")
                     .setTitle(
-                        leader.player == "tie" ? 
-                        "Tied Match " + leader.wins + " to " + leader.wins : 
-                        getUsername(leader.player) + " leads " + leader.wins + " to " + summary[getOpponent(leader.player)].wins + (leader.wins == liverules.general.winlimit - 1 ? " (Match Point)" : ""))
+                        leader.player == "tie" ?
+                            "Tied Match " + leader.wins + " to " + leader.wins :
+                            getUsername(leader.player) + " leads " + leader.wins + " to " + summary[getOpponent(leader.player)].wins + (leader.wins == liverules.general.winlimit - 1 ? " (Match Point)" : ""))
                 Object.values(livematch.players).forEach(player => embed.addField(
                     (leader.player == player ? "👑 " : "") + getUsername(player) + " - " + summary[player].wins,
                     '💠 ' + summary[player].forcepoints +
@@ -5502,7 +5471,7 @@ module.exports = {
                     '\n⏱️ ' + tools.timefix(summary[player].time) + (summary[player].timetrue ? "" : "+") + " (total)" +
                     '\n💀 ' + summary[player].deaths + (summary[player].deathtrue ? "" : "+") + " (total)",
                     true
-            ))
+                ))
                 embed.addField("🎙️ Commentators/Trackers", ":orange_circle: Don't forget to update the score!", false)
                 return embed
             }
@@ -5534,21 +5503,21 @@ module.exports = {
                                     condition_names[e.selection]) + "**" + ([null, undefined, "", 0].includes(e.cost) ? "" : " for " + e.cost + "💠 forcepoint(s)")
                         ).join("\n")))
 
-                        let summary = {}
-                        Object.values(livematch.players).forEach(player => {
-                            summary[player] = {
-                                wins: 0
-                            }
-                        })
-                        Object.values(livematch.races).forEach((race, index) => {
-                            if(index  + 1 < Object.values(livematch.races).length){
-                                summary[getWinner(index)].wins++
-                            }
-                        })
-                if(getForcePoints(player) > 0 && summary[getOpponent(player)].wins == liverules.general.winlimit -1){
+                let summary = {}
+                Object.values(livematch.players).forEach(player => {
+                    summary[player] = {
+                        wins: 0
+                    }
+                })
+                Object.values(livematch.races).forEach((race, index) => {
+                    if (index + 1 < Object.values(livematch.races).length) {
+                        summary[getWinner(index)].wins++
+                    }
+                })
+                if (getForcePoints(player) > 0 && summary[getOpponent(player)].wins == liverules.general.winlimit - 1) {
                     embed.setFooter("Last chance to use forcepoints!")
                 }
-                    
+
                 return embed
             }
 
@@ -5703,7 +5672,7 @@ module.exports = {
                             components: [
                                 {
                                     type: 2,
-                                    label: notrack ? "No Track Selected": (getForcePoints(player) - fptotal < 0) ? "Not enough forcepoints" : oddselect? "Invalid Selection" : "Submit" + (fptotal == 0 ? "" : " (" + fptotal + "💠)") + (repeat ? " (🔁)" : ""),
+                                    label: notrack ? "No Track Selected" : (getForcePoints(player) - fptotal < 0) ? "Not enough forcepoints" : oddselect ? "Invalid Selection" : "Submit" + (fptotal == 0 ? "" : " (" + fptotal + "💠)") + (repeat ? " (🔁)" : ""),
                                     style: 1,
                                     custom_id: "tourney_play_race" + race + "_event_submit",
                                     disabled: (getForcePoints(player) - fptotal < 0) || notrack || oddselect
