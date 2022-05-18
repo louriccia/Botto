@@ -940,6 +940,25 @@ module.exports = {
             }
             let pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>", "4th", "5th"]
             let already = []
+            let conditionmap = {
+                mu: "Upgrades Allowed",
+                nu: "No Upgrades",
+                ft: "Full Track",
+                sk: "Skips",
+                pb: "Pod Ban",
+                pc: "Pod Choice",
+                um: "Unmirrored",
+                mi: "Mirrored",
+                l1: "1 Lap",
+                l2: "2 Laps",
+                l3: "3 Laps",
+                l4: "4 Laps",
+                l5: "5 Laps",
+                fl: "Fast Lap",
+                tt: "Total Time",
+                ng: "New Game",
+                ngp: "New Game +"
+            }
             if (runs.length > 0) {
                 for (i = 0; i < runs.length; i++) {
                     if (runs[i].hasOwnProperty("time") && !already.includes(runs[i].player + runs[i].nu + runs[i].skips)) {
@@ -954,7 +973,7 @@ module.exports = {
                             .addField(pos[0] + " " + getUsername(runs[i].player),
                                 tourney_tournaments_data[runs[i].tourney].nickname + bracket +
                                 "\n[Race " + runs[i].num + (runs[i].opponents.length > 0 ? " vs " + runs[i].opponents.map(op => getUsername(op)).join(" ") : "") + "](" + runs[i].vod + ")", true)
-                            .addField(runs[i].time == "DNF" ? "DNF" : tools.timefix(Number(runs[i].time).toFixed(3)), " " + racers[runs[i].pod].flag + " | " + (runs[i].deaths > 1 ? " | :skull:×" + runs[i].deaths : " | :skull:") + "\n" + runs[i].conditions.map(con => con.toUpperCase()).join(" | ") + " | :x:" + runs[i].podbans.map(ban => racers[ban].flag).join(" "), true)
+                            .addField(runs[i].time == "DNF" ? "DNF" : tools.timefix(Number(runs[i].time).toFixed(3)), " " + racers[runs[i].pod].flag  + (runs[i].deaths > 0 ? runs[i].deaths > 1 ? " | :skull:×" + runs[i].deaths : " | :skull:": "") + "\n" + runs[i].conditions.filter(con => !['um', 'l3', 'tt'].includes(con)).map(con => "`" + conditionmap[con] + "`").join(" ") + (runs[i].podbans.length > 0 ? " | :x:" + runs[i].podbans.map(ban => racers[ban].flag).join(" "): ""), true)
                             .addField('\u200B', '\u200B', true)
                         if (showall == false) { already.push(runs[i].player + runs[i].nu + runs[i].skips) }
                         pos.splice(0, 1)
@@ -1122,7 +1141,7 @@ module.exports = {
             }
 
             function showRuleset(ruleset) {
-                var conditions = {
+                let conditions = {
                     mu: "Upgrades Allowed",
                     nu: "No Upgrades",
                     ft: "Full Track",
