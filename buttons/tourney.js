@@ -884,7 +884,7 @@ module.exports = {
             runs = runs.filter(run => {
                 let filter = true
                 run.conditions.forEach(con => {
-                    if (!conditions.includes(con) && !["pb", "de", "dl", "ng", "um", "tt"].includes(con)) { 
+                    if (!conditions.includes(con) && !["pb", "de", "dl", "ng", "um", "tt", "l3"].includes(con)) { 
                         filter = false 
                     }
                 })
