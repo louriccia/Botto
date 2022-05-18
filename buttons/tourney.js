@@ -954,7 +954,7 @@ module.exports = {
                             .addField(pos[0] + " " + getUsername(runs[i].player),
                                 tourney_tournaments_data[runs[i].tourney].nickname + bracket +
                                 "\n[Race " + runs[i].num + (runs[i].opponents.length > 0 ? " vs " + runs[i].opponents.map(op => getUsername(op)).join(" ") : "") + "](" + runs[i].vod + ")", true)
-                            .addField(time == "DNF" ? "DNF" : tools.timefix(Number(runs[i].time).toFixed(3)), " " + racers[runs[i].pod].flag + " | " + (runs[i].deaths > 1 ? " | :skull:×" + runs[i].deaths : " | :skull:") + "\n" + runs[i].conditions.map(con => con.toUpperCase()).join(" | ") + " | :x:" + runs[i].podbans.map(ban => racers[ban].flag).join(" "), true)
+                            .addField(runs[i].time == "DNF" ? "DNF" : tools.timefix(Number(runs[i].time).toFixed(3)), " " + racers[runs[i].pod].flag + " | " + (runs[i].deaths > 1 ? " | :skull:×" + runs[i].deaths : " | :skull:") + "\n" + runs[i].conditions.map(con => con.toUpperCase()).join(" | ") + " | :x:" + runs[i].podbans.map(ban => racers[ban].flag).join(" "), true)
                             .addField('\u200B', '\u200B', true)
                         if (showall == false) { already.push(runs[i].player + runs[i].nu + runs[i].skips) }
                         pos.splice(0, 1)
@@ -1136,7 +1136,10 @@ module.exports = {
                     l3: "3 Laps",
                     l4: "4 Laps",
                     l5: "5 Laps",
-                    fl: "Fast Lap"
+                    fl: "Fast Lap",
+                    tt: "Total Time",
+                    ng: "New Game",
+                    ngp: "New Game +"
                 }
 
                 var methods = {
