@@ -315,7 +315,7 @@ client.once('ready', () => {
                         })
                         client.api.channels("970994773517299712").messages.post({
                             data: {
-                                content: "**" + match.players.join(" vs. ") + "** is about to begin!",
+                                content: "**" + match.players.map(player => tourney_participants_data[player].name).join(" vs. ") + "** is about to begin!",
                                 components: [
                                     {
                                         type: 1,
