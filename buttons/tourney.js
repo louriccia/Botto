@@ -605,7 +605,7 @@ module.exports = {
                         if (![null, undefined, ""].includes(thematch.rta)) {
                             Object.values(thematch.rta).forEach(rta => {
                                 if (rta.player == player) {
-                                    totals += "`" + tools.timefix(rta.time) + " [RTA]`\n"
+                                    totals += "`" + tools.timefix(rta.total) + " [RTA]`\n"
                                 }
                             })
                         }
