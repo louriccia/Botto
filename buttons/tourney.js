@@ -882,8 +882,8 @@ module.exports = {
             })
             console.log(runs)
             runs = runs.filter(run => {
+                let filter = true
                 run.conditions.forEach(con => {
-                    let filter = true
                     if (!conditions.includes(con)) { 
                         filter = false 
                     }
