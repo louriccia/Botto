@@ -574,8 +574,8 @@ module.exports = {
                         .addField("Race " + (index + 1), field, true)
                 })
                 if (tourney_rulesets_data.saved[thematch.ruleset].general.type == "RTA") {
-                    var totals = ""
-                    var igt = {}
+                    let totals = ""
+                    let igt = {}
                     thematch.races.forEach(race => {
                         race.runs.forEach(run => {
                             if (igt[run.player] == undefined) {
@@ -588,11 +588,16 @@ module.exports = {
                         })
                     })
 
-                    var rta_players = Object.keys(igt)
+                    let winner = {player: null, time: null}
+                    Object.keys(igt).forEach(player => {
+                        if(winner.time == null || igt[player].time < winner.time){
+                            winner = {player: player, time: igt[player].time}
+                        }
+                    })
 
-                    rta_players.forEach(player => {
+                    Object.keys(igt).forEach(player => {
                         totals += "**" + getUsername(player) + "** "
-                        if (run.player == winner.player) {
+                        if (player == winner.player) {
                             totals += ":crown:"
                         }
                         totals += "\n"
