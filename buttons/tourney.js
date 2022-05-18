@@ -591,7 +591,7 @@ module.exports = {
                     var rta_players = Object.keys(igt)
 
                     rta_players.forEach(player => {
-                        totals += "**" + tourney_participants_data[player].name + "** "
+                        totals += "**" + getUsername(player) + "** "
                         if (run.player == winner.player) {
                             totals += ":crown:"
                         }
