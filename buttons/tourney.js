@@ -6635,7 +6635,7 @@ module.exports = {
                         if(!Object.values(livematch.commentators).includes(interaction.member.user.id)){
                             updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(comm => "<@" + comm + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
                         }
-                    } else {
+                    } else if (Object.values(livematch.players).includes(interaction.member.user.id)) {
                         ephemeralMessage("You have not selected a racer yet! <:WhyNobodyBuy:589481340957753363>", [], [])
                         return
                     }
