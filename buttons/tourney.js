@@ -390,11 +390,13 @@ module.exports = {
                     value: s,
                     description: "📆 " + convertDate(match_options[s].date) + 
                     " 🏁 " + match_options[s].races + 
-                    " 💀 " + match_options[s].deaths + (["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[matchoption.ruleset].general.type ? 
-                        "": " ⏱️ ±" + (match_options[s].timediff == null ? "--" : match_options[s].timediff.toFixed(3)) + " 🤏 " + (match_options[s].closest == null ? "--" : match_options[s].closest.toFixed(3)))),
+                    " 💀 " + match_options[s].deaths,
                     emoji: { 
                         name: ruleset_emojis[tourney_rulesets_data.saved[matchoption.ruleset].type] 
                     }
+                }
+                if((["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[matchoption.ruleset].general.type))){
+                    r.description += " ⏱️ ±" + (match_options[s].timediff == null ? "--" : match_options[s].timediff.toFixed(3)) + " 🤏 " + (match_options[s].closest == null ? "--" : match_options[s].closest.toFixed(3))
                 }
                 if (interaction.data.hasOwnProperty("values") && !interaction.data.values[0].includes("offset")) {
                     if (r.value == interaction.data.values[0]) {
@@ -571,7 +573,7 @@ module.exports = {
                     tourneyMatches
                         .addField("Race " + (index + 1), field, true)
                 })
-                if (tourney_rulesets_data.saved[thematch.ruleset].type == "RTA") {
+                if (tourney_rulesets_data.saved[thematch.ruleset].general.type == "RTA") {
                     var totals = ""
                     var igt = {}
                     thematch.races.forEach(race => {
