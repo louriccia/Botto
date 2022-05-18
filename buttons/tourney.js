@@ -800,7 +800,7 @@ module.exports = {
             let pod_counts = {}
             matches.forEach(match => {
                 match.races.forEach((race, num) => {
-                    let conditions = tourney_rulesets_data.saved[match.ruleset].general.default
+                    let thisconditions = tourney_rulesets_data.saved[match.ruleset].general.default
                     let thistrack = null
                     Object.values(race.events).forEach(event => {
                         if (event.event == 'selection' && event.type == 'track') {
@@ -811,24 +811,24 @@ module.exports = {
                         }
                         if (event.event == 'override' && event.type == 'condition') {
                             if (event.selection == 'nu') {
-                                conditions.upgr = 'nu'
+                                thisconditions.upgr = 'nu'
                             }
                             if (event.selection == 'sk') {
-                                conditions.trak = 'sk'
+                                thisconditions.trak = 'sk'
                             }
                             if (event.selection == 'fl') {
-                                conditions.time = 'fl'
+                                thisconditions.time = 'fl'
                             }
                         }
                     })
 
                     race.runs.forEach(run => {
                         counts.tracks[thistrack].total++
-                        if (conditions.upgr == 'nu' && conditions.trak == 'sk') {
+                        if (thisconditions.upgr == 'nu' && thisconditions.trak == 'sk') {
                             counts.tracks[thistrack].nuskips++
-                        } else if (conditions.trak == 'sk') {
+                        } else if (thisconditions.trak == 'sk') {
                             counts.tracks[thistrack].skips++
-                        } else if (conditions.upgr == 'nu') {
+                        } else if (thisconditions.upgr == 'nu') {
                             counts.tracks[thistrack].nu++
                         }
                     })
@@ -845,7 +845,7 @@ module.exports = {
                             run.round = match.round
                             run.podbans = Object.values(race.events).filter(event => event.event == 'tempban' && event.type == 'race').map(event => event.selection)
                             run.opponents = opponents.filter(op => op !== run.player)
-                            run.conditions = Object.values(conditions)
+                            run.conditions = Object.values(thisconditions)
                             if (run.conditions.includes('sk')) {
                                 counts.skips++
                             }
@@ -880,7 +880,6 @@ module.exports = {
                     }
                 })
             })
-            console.log(runs)
             runs = runs.filter(run => {
                 let filter = true
                 run.conditions.forEach(con => {
@@ -888,7 +887,6 @@ module.exports = {
                         filter = false 
                     }
                 })
-                console.log(conditions, run.conditions, filter)
                 return filter
             })
             /*if (!deaths.includes(true)) {
@@ -916,7 +914,6 @@ module.exports = {
                     return Number(a.time) - Number(b.time);
                 }
             })
-            console.log(runs)
             //create embed
             tourneyReport
                 .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
@@ -973,7 +970,7 @@ module.exports = {
                             .addField(pos[0] + " " + getUsername(runs[i].player),
                                 tourney_tournaments_data[runs[i].tourney].nickname + bracket +
                                 "\n[Race " + runs[i].num + (runs[i].opponents.length > 0 ? " vs " + runs[i].opponents.map(op => getUsername(op)).join(" ") : "") + "](" + runs[i].vod + ")", true)
-                            .addField(runs[i].time == "DNF" ? "DNF" : tools.timefix(Number(runs[i].time).toFixed(3)), " " + racers[runs[i].pod].flag  + (runs[i].deaths > 0 ? runs[i].deaths > 1 ? " | :skull:×" + runs[i].deaths : " | :skull:": "") + "\n" + runs[i].conditions.filter(con => !['um', 'l3', 'tt'].includes(con)).map(con => "`" + conditionmap[con] + "`").join(" ") + (runs[i].podbans.length > 0 ? " | :x:" + runs[i].podbans.map(ban => racers[ban].flag).join(" "): ""), true)
+                            .addField(runs[i].time == "DNF" ? "DNF" : tools.timefix(Number(runs[i].time).toFixed(3)), " " + racers[runs[i].pod].flag  + (runs[i].deaths > 0 ? runs[i].deaths > 1 ? " | :skull:×" + runs[i].deaths : " | :skull:": "") + "\n" + runs[i].conditions.filter(con => !['um', 'l3', 'tt', 'mu'].includes(con)).map(con => "`" + conditionmap[con] + "`").join(" ") + (runs[i].podbans.length > 0 ? " | :x:" + runs[i].podbans.map(ban => racers[ban].flag).join(" "): ""), true)
                             .addField('\u200B', '\u200B', true)
                         if (showall == false) { already.push(runs[i].player + runs[i].nu + runs[i].skips) }
                         pos.splice(0, 1)
