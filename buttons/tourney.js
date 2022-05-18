@@ -5389,7 +5389,7 @@ module.exports = {
                             (livematch.races[race].runs[player].time == "" ? ":red_circle: Awaiting submission" :
                                 Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length > 0 ? ":green_circle: Results Submitted" :
                                     racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name + "\n" +
-                                    "⏱️ " + (livematch.races[race].runs[player].time.toLowerCase() == 'dnf' ? 'DNF' : (livematch.races[race].runs[player].time === "" ? "--:--.---" : tools.timefix(livematch.races[race].runs[player].time))) + "\n" +
+                                    "⏱️ " + (String(livematch.races[race].runs[player]?.time).toLowerCase() == 'dnf' ? 'DNF' : (livematch.races[race].runs[player].time === "" ? "--:--.---" : tools.timefix(livematch.races[race].runs[player].time))) + "\n" +
                                     "💀 " + (livematch.races[race].runs[player].deaths === "" ? "--" : Number(livematch.races[race].runs[player].deaths)) + "\n" +
                                     (livematch.races[race].runs[player].notes == "" ? "" : "📝 " + livematch.races[race].runs[player].notes))
                             ,
@@ -6724,7 +6724,7 @@ module.exports = {
                             if (livematch.races[race].live) {
                                 tourney_live.child(interaction.channel_id).child("races").child(race).child("runs").child(interaction.member.user.id).update(
                                     {
-                                        time: (interaction.data.components[0].components[0].value.toLowerCase() == 'dnf' ? 'DNF' : tools.timetoSeconds(interaction.data.components[0].components[0].value.trim())),
+                                        time: (interaction.data.components[0].components[0].value.toLowerCase() == 'dnf' ? 'DNF' : tools.timetoSeconds(interaction.data.components[0].components[0].value.trim()) == null ? "DNF" : tools.timetoSeconds(interaction.data.components[0].components[0].value.trim())),
                                         deaths: interaction.data.components[1].components[0].value.trim(),
                                         notes: interaction.data.components[2].components[0].value.trim(),
                                         player: interaction.member.user.id
@@ -6754,7 +6754,7 @@ module.exports = {
                                                         max_length: 10,
                                                         required: true,
                                                         placeholder: "--:--.---",
-                                                        value: (livematch.races[race].runs[interaction.member.user.id].time.toLowerCase() == 'dnf' ? 'DNF' : (livematch.races[race].runs[interaction.member.user.id].time == "" ? "" : tools.timefix(livematch.races[race].runs[interaction.member.user.id].time)))
+                                                        value: (String(livematch.races[race].runs[interaction.member.user.id]?.time).toLowerCase() == 'dnf' ? 'DNF' : (livematch.races[race].runs[interaction.member.user.id].time == "" ? "" : tools.timefix(livematch.races[race].runs[interaction.member.user.id].time)))
                                                     }
                                                 ]
                                             },
