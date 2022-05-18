@@ -388,14 +388,14 @@ module.exports = {
                 let r = {
                     label: title,
                     value: s,
-                    description: "📆 " + convertDate(match_options[s].date) + 
-                    " 🏁 " + match_options[s].races + 
-                    " 💀 " + match_options[s].deaths,
-                    emoji: { 
-                        name: ruleset_emojis[tourney_rulesets_data.saved[matchoption.ruleset].type] 
+                    description: "📆 " + convertDate(match_options[s].date) +
+                        " 🏁 " + match_options[s].races +
+                        " 💀 " + match_options[s].deaths,
+                    emoji: {
+                        name: ruleset_emojis[tourney_rulesets_data.saved[matchoption.ruleset].type]
                     }
                 }
-                if((["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[matchoption.ruleset].general.type))){
+                if ((["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[matchoption.ruleset].general.type))) {
                     r.description += " ⏱️ ±" + (match_options[s].timediff == null ? "--" : match_options[s].timediff.toFixed(3)) + " 🤏 " + (match_options[s].closest == null ? "--" : match_options[s].closest.toFixed(3))
                 }
                 if (interaction.data.hasOwnProperty("values") && !interaction.data.values[0].includes("offset")) {
@@ -588,10 +588,10 @@ module.exports = {
                         })
                     })
 
-                    let winner = {player: null, time: null}
+                    let winner = { player: null, time: null }
                     Object.keys(igt).forEach(player => {
-                        if(winner.time == null || igt[player].time < winner.time){
-                            winner = {player: player, time: igt[player].time}
+                        if (winner.time == null || igt[player].time < winner.time) {
+                            winner = { player: player, time: igt[player].time }
                         }
                     })
 
@@ -881,7 +881,16 @@ module.exports = {
                 })
             })
             console.log(runs)
-            runs = runs.filter(run => run.conditions.forEach(con => { if (!conditions.includes(con)) { return false } }))
+            runs = runs.filter(run => {
+                run.conditions.forEach(con => {
+                    let filter = true
+                    if (!conditions.includes(con)) { 
+                        filter = false 
+                    }
+                })
+                console.log(conditions, run.conditions, filter)
+                return filter
+            })
             /*if (!deaths.includes(true)) {
                 runs = runs.filter(e => e.deaths == 0)
             } else if (!deaths.includes(false)) {
@@ -909,7 +918,7 @@ module.exports = {
             })
             console.log(runs)
             //create embed
-            tourneyReport 
+            tourneyReport
                 .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
                 .setTitle(planets[tracks[track].planet].emoji + " " + tracks[track].name)
                 .setColor(planets[tracks[track].planet].color)
