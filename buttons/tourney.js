@@ -602,8 +602,8 @@ module.exports = {
                         }
                         totals += "\n"
                         totals += "`" + tools.timefix(igt[player].time) + " [IGT]`\n"
-                        if (thematch.rta !== undefined) {
-                            thematch.rta.forEach(rta => {
+                        if (![null, undefined, ""].includes(thematch.rta)) {
+                            Object.values(thematch.rta).forEach(rta => {
                                 if (rta.player == player) {
                                     totals += "`" + tools.timefix(rta.time) + " [RTA]`\n"
                                 }
