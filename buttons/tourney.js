@@ -880,7 +880,7 @@ module.exports = {
                     }
                 })
             })
-
+            console.log(runs)
             runs = runs.filter(run => run.conditions.forEach(con => { if (!conditions.includes(con)) { return false } }))
             /*if (!deaths.includes(true)) {
                 runs = runs.filter(e => e.deaths == 0)
