@@ -5552,7 +5552,9 @@ module.exports = {
                     }
                 })
                 if (getForcePoints(player) > 0 && summary[getOpponent(player)].wins == liverules.general.winlimit - 1) {
-                    embed.setFooter("Last chance to use forcepoints!")
+                    embed.setFooter("Last chance to use 💠 forcepoints!")
+                } else {
+                    embed.setFooter("You have " + getForcePoints(player) + " 💠 forcepoint(s) and " + getRunbacks(player) + " runback(s) remaining")
                 }
 
                 return embed
@@ -5709,7 +5711,7 @@ module.exports = {
                             components: [
                                 {
                                     type: 2,
-                                    label: notrack ? "No Track Selected" : (getForcePoints(player) - fptotal < 0) ? "Not enough forcepoints" : oddselect ? "Invalid Selection" : "Submit" + (fptotal == 0 ? "" : " (" + fptotal + "💠)") + (repeat ? " (🔁)" : ""),
+                                    label: notrack ? "No Track Selected" : (getForcePoints(player) - fptotal < 0) ? "Not enough forcepoints" : oddselect ? "Too many or too few selections" : "Submit" + (fptotal == 0 ? "" : " (" + fptotal + "💠)") + (repeat ? " (🔁)" : ""),
                                     style: 1,
                                     custom_id: "tourney_play_race" + race + "_event_submit",
                                     disabled: (getForcePoints(player) - fptotal < 0) || notrack || oddselect
