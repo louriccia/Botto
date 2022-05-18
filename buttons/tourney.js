@@ -883,26 +883,27 @@ module.exports = {
             runs = runs.filter(run => {
                 let filter = true
                 run.conditions.forEach(con => {
-                    if (!conditions.includes(con) && !["pb", "de", "dl", "ng", "um", "tt", "l3"].includes(con)) { 
-                        filter = false 
+                    if (!conditions.includes(con) && !["pb", "de", "dl", "ng", "um", "tt", "l3"].includes(con)) {
+                        filter = false
+                    }
+                    if (pods.length > 0 && !pods.includes(String(run.pod))) {
+                        filter = false
+                    }
+                    if (user !== null && conditions.includes("user") && run.player !== user) {
+                        filter = false
+                    }
+                    if (qual === false && run.bracket !== "Qualifying") {
+                        filter = false
+                    }
+                    if (conditions.includes('dl') && run.deaths > 0) {
+                        filter = false
+                    } else if (conditions.includes('de') && run.deaths == 0) {
+                        filter = false
                     }
                 })
                 return filter
             })
-            /*if (!deaths.includes(true)) {
-                runs = runs.filter(e => e.deaths == 0)
-            } else if (!deaths.includes(false)) {
-                runs = runs.filter(e => e.deaths > 0)
-            }*/
-            if (pods.length > 0) {
-                runs = runs.filter(e => pods.includes(String(e.pod)))
-            }
-            if (user !== null && conditions.includes("user")) {
-                runs = runs.filter(e => tourney_participants_data[e.player].id == user)
-            }
-            /*if (qual === false) {
-                runs = runs.filter(e => e.bracket !== "Qualifying")
-            }*/
+
             runs.sort(function (a, b) {
                 if (a.time == "DNF" && b.time == "DNF") {
                     return 0
@@ -970,7 +971,7 @@ module.exports = {
                             .addField(pos[0] + " " + getUsername(runs[i].player),
                                 tourney_tournaments_data[runs[i].tourney].nickname + bracket +
                                 "\n[Race " + runs[i].num + (runs[i].opponents.length > 0 ? " vs " + runs[i].opponents.map(op => getUsername(op)).join(" ") : "") + "](" + runs[i].vod + ")", true)
-                            .addField(runs[i].time == "DNF" ? "DNF" : tools.timefix(Number(runs[i].time).toFixed(3)), " " + racers[runs[i].pod].flag  + (runs[i].deaths > 0 ? runs[i].deaths > 1 ? " | :skull:×" + runs[i].deaths : " | :skull:": "") + "\n" + runs[i].conditions.filter(con => !['um', 'l3', 'tt', 'mu'].includes(con)).map(con => "`" + conditionmap[con] + "`").join(" ") + (runs[i].podbans.length > 0 ? " | :x:" + runs[i].podbans.map(ban => racers[ban].flag).join(" "): ""), true)
+                            .addField(runs[i].time == "DNF" ? "DNF" : tools.timefix(Number(runs[i].time).toFixed(3)), " " + racers[runs[i].pod].flag + (runs[i].deaths > 0 ? runs[i].deaths > 1 ? " | :skull:×" + runs[i].deaths : " | :skull:" : "") + "\n" + runs[i].conditions.filter(con => !['um', 'l3', 'tt', 'mu'].includes(con)).map(con => "`" + conditionmap[con] + "`").join(" ") + (runs[i].podbans.length > 0 ? " | :x:" + runs[i].podbans.map(ban => racers[ban].flag).join(" ") : ""), true)
                             .addField('\u200B', '\u200B', true)
                         if (showall == false) { already.push(runs[i].player + runs[i].nu + runs[i].skips) }
                         pos.splice(0, 1)
@@ -6626,35 +6627,35 @@ module.exports = {
 
 
                 } else if (["ready", "unready"].includes(args[2])) {
-                    if (![undefined, null, ""].includes(livematch.races[race].runs) && ![undefined, null, ""].includes(livematch.races[race].runs[interaction.member.user.id]) && ![undefined, null, ""].includes(livematch.races[race].runs[interaction.member.user.id].pod)) {
-                        if (Object.values(livematch.players).includes(interaction.member.user.id)) {
-                            tourney_live.child(interaction.channel_id).child("races").child(race).child("ready").child(interaction.member.user.id).set((args[2] == "ready" ? true : false))
-                        }
-                        if (Object.values(livematch.commentators).includes(interaction.member.user.id)) {
-                            tourney_live.child(interaction.channel_id).child("races").child(race).child("ready").child("commentators").set((args[2] == "ready" ? true : false))
-                            livematch = tourney_live_data[interaction.channel_id]
-                            if (Object.values(livematch.races[race].ready).filter(r => r == false).length == 0) {
-                                updateMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + "\n<a:countdown:672640791369482251> Countdown incoming! Good luck <a:countdown:672640791369482251>", type, [], [])
-                                setTimeout(async function () {
-                                    client.channels.cache.get(interaction.channel_id).messages.fetch(interaction.message.id).then(message => message.delete())
-                                }, 10000)
-                                countDown()
-                                //initiate race
-                                tourney_live.child(interaction.channel_id).child("races").child(race).child("live").set(true)
-                                setTimeout(async function () {
-                                    postMessage("", [raceEmbed(race)], raceComponents(race))
-                                }, 10000)
-                                return
-                            } else {
-                                ephemeralMessage("Players are not ready yet! <:WhyNobodyBuy:589481340957753363>", [], [])
-                                return
-                            }
-                        }
+                    if (Object.values(livematch.players).includes(interaction.member.user.id) && ![undefined, null, ""].includes(livematch.races[race].runs) && ![undefined, null, ""].includes(livematch.races[race].runs[interaction.member.user.id]) && ![undefined, null, ""].includes(livematch.races[race].runs[interaction.member.user.id].pod)) {
+                        tourney_live.child(interaction.channel_id).child("races").child(race).child("ready").child(interaction.member.user.id).set((args[2] == "ready" ? true : false))
                         livematch = tourney_live_data[interaction.channel_id]
-                        updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(comm => "<@" + comm + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
+                        if(!Object.values(livematch.commentators).includes(interaction.member.user.id)){
+                            updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(comm => "<@" + comm + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
+                        }
                     } else {
                         ephemeralMessage("You have not selected a racer yet! <:WhyNobodyBuy:589481340957753363>", [], [])
+                        return
                     }
+                    if (Object.values(livematch.commentators).includes(interaction.member.user.id)) {
+                        livematch = tourney_live_data[interaction.channel_id]
+                        if (Object.values(livematch.races[race].ready).filter(r => r == false).length == 1 && !livematch.races[race].ready.commentators) {
+                            tourney_live.child(interaction.channel_id).child("races").child(race).child("ready").child("commentators").set((args[2] == "ready" ? true : false))
+                            updateMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + "\n<a:countdown:672640791369482251> Countdown incoming! Good luck <a:countdown:672640791369482251>", type, [], [])
+                            setTimeout(async function () {
+                                client.channels.cache.get(interaction.channel_id).messages.fetch(interaction.message.id).then(message => message.delete())
+                            }, 10000)
+                            countDown()
+                            //initiate race
+                            tourney_live.child(interaction.channel_id).child("races").child(race).child("live").set(true)
+                            setTimeout(async function () {
+                                postMessage("", [raceEmbed(race)], raceComponents(race))
+                            }, 10000)
+                        } else {
+                            ephemeralMessage("Players are not ready yet! <:WhyNobodyBuy:589481340957753363>", [], [])
+                        }
+                    }
+                    
                 } else if (args[2] == 'gents') {
                     if (Object.values(livematch.players).includes(interaction.member.user.id)) {
                         if (interaction.type == 5) {
