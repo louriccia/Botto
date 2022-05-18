@@ -577,7 +577,7 @@ module.exports = {
                     var totals = ""
                     var igt = {}
                     thematch.races.forEach(race => {
-                        race.forEach(run => {
+                        race.runs.forEach(run => {
                             if (igt[run.player] == undefined) {
                                 igt[run.player] = { time: 0, deaths: 0 }
                             }
