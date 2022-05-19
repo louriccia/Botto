@@ -890,9 +890,6 @@ module.exports = {
                     if (user !== null && conditions.includes("user") && run.player !== user) {
                         filter = false
                     }
-                    if (qual === false && run.bracket !== "Qualifying") {
-                        filter = false
-                    }
                     if (conditions.includes('dl') && run.deaths > 0) {
                         filter = false
                     } else if (conditions.includes('de') && run.deaths == 0) {
