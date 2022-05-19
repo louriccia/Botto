@@ -1018,7 +1018,7 @@ module.exports = {
                 track_selections.push(track_option)
                 if (i < condkeys.length) {
                     let cond_option = {
-                        label: cond[condkeys[i]] + (condkeys[i] !== 'pb' ? cond_option.label += " (" + counts[condkeys[i]] + ")": ""),
+                        label: cond[condkeys[i]] + (condkeys[i] !== 'pb' ? " (" + counts[condkeys[i]] + ")": ""),
                         value: condkeys[i],
                         default: conditions.includes(condkeys[i])
                     }
