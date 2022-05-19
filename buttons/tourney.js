@@ -884,21 +884,27 @@ module.exports = {
                 run.conditions.forEach(con => {
                     if (!conditions.includes(con) && !["pb", "de", "dl", "ng", "um", "tt", "l3", 'qual'].includes(con)) {
                         filter = false
+                        console.log('condition check failed')
                     }
                     if (pods.length > 0 && !pods.includes(String(run.pod))) {
                         filter = false
+                        console.log('pod check failed')
                     }
                     if (user !== null && conditions.includes("user") && run.player !== user) {
                         filter = false
+                        console.log('user check failed')
                     }
                     if (conditions.includes('dl') && run.deaths > 0) {
                         filter = false
+                        console.log('deathless failed')
                     } else if (conditions.includes('de') && run.deaths == 0) {
                         filter = false
+                        console.log('deaths failed')
                     }
                 })
                 if (!conditions.includes('qual') && run.conditions.includes('qual')) {
                     filter = false
+                    console.log('qual check failed')
                 }
                 console.log(run.conditions, conditions, filter)
                 return filter
