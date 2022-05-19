@@ -5871,7 +5871,7 @@ module.exports = {
                             },
                             style: 1,
                             custom_id: "tourney_play_setup_comm",
-                            disabled: !joinable_commentator
+                            //disabled: !joinable_commentator
                         }
                     ]
                 }, {
@@ -6834,7 +6834,7 @@ module.exports = {
                                 postMessage('', [winEmbed], [])
                                 wincondition = true
                                 tourney_matches.push(tourney_live_data[interaction.channel_id])
-                                tourney_live.child([interaction.channel_id]).remove()
+                                tourney_live.child(interaction.channel_id).remove()
                                 return
                             }
                         })

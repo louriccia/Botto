@@ -334,9 +334,8 @@ client.once('ready', () => {
                     }
                 })
             })
-        setTimeout(updater, 1000 * 60)
     }
-    updater()
+    setInterval(updater, 1000*60)
 })
 
 client.on("error", (e) => {
