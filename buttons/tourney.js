@@ -880,6 +880,7 @@ module.exports = {
             //filter runs
             runs = runs.filter(run => {
                 let filter = true
+
                 run.conditions.forEach(con => {
                     if (!conditions.includes(con) && !["pb", "de", "dl", "ng", "um", "tt", "l3", 'qual'].includes(con)) {
                         filter = false
@@ -896,9 +897,10 @@ module.exports = {
                         filter = false
                     }
                 })
-                if(!conditions.includes('qual') && run.conditions.includes('qual')){
+                if (!conditions.includes('qual') && run.conditions.includes('qual')) {
                     filter = false
                 }
+                console.log(run.conditions, conditions, filter)
                 return filter
             })
             //sort runs
@@ -986,68 +988,39 @@ module.exports = {
 
             //construct components
             let components = []
-            let cond = { mu: "Max Upgrades", nu: "No Upgrades", ft: "Full Track", sk: "Skips", de: "Deaths", dl: "Deathless", qu: "Include Qualifying Runs", pb: "Personal Bests Only", user: "My Runs Only" }
+            let cond = { mu: "Max Upgrades", nu: "No Upgrades", ft: "Full Track", sk: "Skips", de: "Deaths", dl: "Deathless", qu: "Qualifying", pb: "Personal Bests Only", user: "My Runs Only" }
             let track_selections = []
             let racer_selections = []
             let cond_selections = []
+            let condkeys = Object.keys(cond)
             for (let i = 0; i < 25; i++) {
                 let racer_option = {
                     label: racers[i].name,
                     value: i,
-                    description: racers[i].pod.substring(0, 50),
+                    description: pod_counts[i] !== undefined ? pod_counts[i] + " Runs" : "",
                     emoji: {
                         name: racers[i].flag.split(":")[1],
                         id: racers[i].flag.split(":")[2].replace(">", "")
-                    }
+                    },
+                    default: pods.includes(String(i))
                 }
-                if (pod_counts[i] !== undefined) {
-                    //racer_option.label += " (" + pod_counts[i] + ")"
-                    racer_option.description = pod_counts[i] + " Runs"
-                } else {
-                    racer_option.description = ""
-                }
-                if (pods.includes(String(i))) {
-                    racer_option.default = true
-                }
+                racer_selections.push(racer_option)
                 let track_option = {
                     label: tracks[i].name,
                     value: i,
-                    description: (circuits[tracks[i].circuit].name + " Circuit | Race " + tracks[i].cirnum + " | " + planets[tracks[i].planet].name).substring(0, 50),
+                    description: counts.tracks[i].total + " Runs " + [counts.tracks[i].nu, counts.tracks[i].skips, counts.tracks[i].fl].filter(f => ![null, undefined, "", 0].includes(f)).map(f => cond[f]).join(", "),
                     emoji: {
                         name: planets[tracks[i].planet].emoji.split(":")[1],
                         id: planets[tracks[i].planet].emoji.split(":")[2].replace(">", "")
-                    }
+                    },
+                    default: track == i
                 }
-                if (counts.tracks[i] !== undefined) {
-                    //track_option.label += " (" + counts.tracks[i] + ")"
-                    track_option.description = counts.tracks[i].total + " Runs"
-                }
-                if (counts.tracks[i].nu > 0 || counts.tracks[i].skips > 0 || counts.tracks[i].nuskips > 0) {
-                    let stuff = []
-                    if (counts.tracks[i].nu > 0) {
-                        stuff.push(counts.tracks[i].nu + " NU")
-                    }
-                    if (counts.tracks[i].skips > 0) {
-                        stuff.push(counts.tracks[i].sk + " Skips")
-                    }
-                    track_option.description += " (" + stuff.join(", ") + ")"
-                }
-                if (track == i) {
-                    track_option.default = true
-                }
-                racer_selections.push(racer_option)
                 track_selections.push(track_option)
-                let condkeys = Object.keys(cond)
                 if (i < condkeys.length) {
                     let cond_option = {
-                        label: cond[condkeys[i]],
+                        label: cond[condkeys[i]] + (condkeys[i] !== 'pb' ? cond_option.label += " (" + counts[condkeys[i]] + ")": ""),
                         value: condkeys[i],
-                    }
-                    if (condkeys[i] !== "pb") {
-                        cond_option.label += " (" + counts[condkeys[i]] + ")"
-                    }
-                    if (conditions.includes(condkeys[i])) {
-                        cond_option.default = true
+                        default: conditions.includes(condkeys[i])
                     }
                     cond_selections.push(cond_option)
                 }
