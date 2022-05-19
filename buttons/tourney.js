@@ -881,7 +881,7 @@ module.exports = {
             runs = runs.filter(run => {
                 let filter = true
                 run.conditions.forEach(con => {
-                    if (!conditions.includes(con) && !["pb", "de", "dl", "ng", "um", "tt", "l3"].includes(con)) {
+                    if (!conditions.includes(con) && !["pb", "de", "dl", "ng", "um", "tt", "l3", 'qual'].includes(con)) {
                         filter = false
                     }
                     if (pods.length > 0 && !pods.includes(String(run.pod))) {
@@ -896,6 +896,9 @@ module.exports = {
                         filter = false
                     }
                 })
+                if(!conditions.includes('qual') && run.conditions.includes('qual')){
+                    filter = false
+                }
                 return filter
             })
             //sort runs
