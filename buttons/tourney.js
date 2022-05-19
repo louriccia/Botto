@@ -235,7 +235,7 @@ module.exports = {
                         }
                         match.races.forEach(race => {
                             t_stuff.races++
-                            race.runs.forEach(run => {
+                            Object.values(race.runs).forEach(run => {
                                 if (!t_stuff.players.includes(run.player)) {
                                     t_stuff.players.push(run.player)
                                 }
@@ -276,9 +276,9 @@ module.exports = {
                     timediff: [],
                     closest: null
                 }
-                m.races.forEach(race => {
+                Object.values(m.races).forEach(race => {
                     let timediff = []
-                    race.runs.forEach(run => {
+                    Object.values(race.runs).forEach(run => {
                         if (run.time !== "DNF") {
                             timediff.push(run.time)
                         }
@@ -429,7 +429,7 @@ module.exports = {
                 mat.forEach(m => {
                     let current_match = tourney_matches_data[match]
                     if (m.datetime < current_match.datetime && m.bracket !== "Qualifying") {
-                        m.races.forEach(race => {
+                        Object.values(m.races).forEach(race => {
                             let conditions = tourney_rulesets_data.saved[current_match.ruleset].general.default
                             let thistrack = null
                             Object.values(race.events).forEach(event => {
@@ -448,7 +448,7 @@ module.exports = {
                                     thistrack = event.selection
                                 }
                             })
-                            race.runs.forEach(run => {
+                            Object.values(race.runs).forEach(run => {
                                 if (!best_times[thistrack].pb.hasOwnProperty(run.player)) {
                                     best_times[thistrack].pb[run.player] = {}
                                 }
@@ -506,7 +506,7 @@ module.exports = {
                     fl: "Fast Lap"
                 }
 
-                thematch.races.forEach((race, index) => {
+                Object.values(thematch.races).forEach((race, index) => {
                     let thetrack = null
                     let gents = false
                     let field = ""
@@ -576,8 +576,8 @@ module.exports = {
                 if (tourney_rulesets_data.saved[thematch.ruleset].general.type == "RTA") {
                     let totals = ""
                     let igt = {}
-                    thematch.races.forEach(race => {
-                        race.runs.forEach(run => {
+                    Object.values(thematch.races).forEach(race => {
+                        Object.values(race.runs).forEach(run => {
                             if (igt[run.player] == undefined) {
                                 igt[run.player] = { time: 0, deaths: 0 }
                             }
