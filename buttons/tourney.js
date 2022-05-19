@@ -894,13 +894,16 @@ module.exports = {
                         filter = false
                         console.log('user check failed')
                     }
-                    if (conditions.includes('dl') && run.deaths > 0) {
-                        filter = false
-                        console.log('deathless failed')
-                    } else if (conditions.includes('de') && run.deaths == 0) {
-                        filter = false
-                        console.log('deaths failed')
+                    if(!conditions.includes('dl') && !conditions.includes("de")){
+                        if (conditions.includes('dl') && run.deaths > 0) {
+                            filter = false
+                            console.log('deathless failed')
+                        } else if (conditions.includes('de') && run.deaths == 0) {
+                            filter = false
+                            console.log('deaths failed')
+                        }
                     }
+                    
                 })
                 if (!conditions.includes('qual') && run.conditions.includes('qual')) {
                     filter = false
@@ -994,7 +997,7 @@ module.exports = {
 
             //construct components
             let components = []
-            let cond = { mu: "Max Upgrades", nu: "No Upgrades", ft: "Full Track", sk: "Skips", de: "Deaths", dl: "Deathless", qu: "Qualifying", pb: "Personal Bests Only", user: "My Runs Only" }
+            let cond = { mu: "Max Upgrades", nu: "No Upgrades", ft: "Full Track", sk: "Skips", de: "Deaths", dl: "Deathless", qu: "Qualifying", ng: "New Game", pb: "Personal Bests Only", user: "My Runs Only" }
             let track_selections = []
             let racer_selections = []
             let cond_selections = []
