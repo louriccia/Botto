@@ -483,8 +483,7 @@ module.exports = {
                     description += ":trophy: " + tourney_tournaments_data[thematch.tourney].name + "\n"
                 }
                 description += ":calendar_spiral: <t:" + Math.round(thematch.datetime / 1000) +
-                    ":F>\n:scroll: " + tourney_rulesets_data.saved[thematch.ruleset].general.name + "\n:microphone2: " +
-                    Object.values(thematch.commentators).map(com => getUsername(com)).join(", ")
+                    ":F>\n:scroll: " + tourney_rulesets_data.saved[thematch.ruleset].general.name + ([null, undefined, ""].includes(thematch.commentators) ? "":"\n:microphone2: " + Object.values(thematch.commentators).map(com => getUsername(com)).join(", "))
 
                 tourneyMatches
                     .setTitle(title)
