@@ -386,7 +386,7 @@ module.exports = {
                     title = title.join(" ") + " - " + players
                 }
                 let r = {
-                    label: title,
+                    label: title.substring(0, 50),
                     value: s,
                     description: "📆 " + convertDate(match_options[s].date) +
                         " 🏁 " + match_options[s].races +
