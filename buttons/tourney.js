@@ -475,7 +475,7 @@ module.exports = {
 
                 //assemble embed
                 let thematch = tourney_matches_data[match]
-                var title = [(thematch.bracket ?? ""), (thematch.round ?? ""), Object.values(thematch.races[0].runs).map(run => getUsername(run.player)).join(" vs ")].join(" ")
+                var title = [(thematch.bracket ?? ""), (thematch.round ?? ""), Object.values(thematch.races[0].runs).map(run => getUsername(run.player)).join(" vs ")].join(" ").substring(0, 50)
                 let description = ""
                 if (tourney_tournaments_data[thematch.tourney]?.challonge) {
                     description += "[:trophy: " + tourney_tournaments_data[thematch.tourney].name + "](" + tourney_tournaments_data[thematch.tourney].challonge[0] + ")\n"
