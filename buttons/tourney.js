@@ -511,34 +511,39 @@ module.exports = {
                     let field = ""
                     let repeat = false
                     let conditions = tourney_rulesets_data.saved[thematch.ruleset].general.default
-                    Object.values(race.events).forEach(event => {
-                        field += [eventmap[event.event],
-                        (event.type == 'track' ?
-                            tracks[event.selection].nickname[0].toUpperCase() :
-                            event.type == 'racer' ?
-                                racers[event.selection].flag :
-                                event.type == "condition" ?
-                                    conmap[event.selection] : ""),
-                        [null, undefined, "", 0].includes(event.cost) ? "" : "(💠" + event.cost + ")",
-                        [null, undefined, "", false].includes(event.repeat) ? "" : "(🔁)",
-                        ![null, undefined, ""].includes(event.player) ? "(*" + getUsername(event.player).replace(" ", "").substring(0, 4) + "*)" : ""
-                        ].join(" ") + "\n"
-                        if (event.event == 'selection' && event.type == 'track') {
-                            thetrack = event.selection
-                            repeat = event.repeat ?? false
-                        }
-                        if (event.event == 'override') {
-                            if (event.selection == 'nu') {
-                                conditions.upgr = 'nu'
+                    if(race.events){
+                        Object.values(race.events).forEach(event => {
+                            field += [eventmap[event.event],
+                            (event.type == 'track' ?
+                                tracks[event.selection].nickname[0].toUpperCase() :
+                                event.type == 'racer' ?
+                                    racers[event.selection].flag :
+                                    event.type == "condition" ?
+                                        conmap[event.selection] : ""),
+                            [null, undefined, "", 0].includes(event.cost) ? "" : "(💠" + event.cost + ")",
+                            [null, undefined, "", false].includes(event.repeat) ? "" : "(🔁)",
+                            ![null, undefined, ""].includes(event.player) ? "(*" + getUsername(event.player).replace(" ", "").substring(0, 4) + "*)" : ""
+                            ].join(" ") + "\n"
+                            if (event.event == 'selection' && event.type == 'track') {
+                                thetrack = event.selection
+                                repeat = event.repeat ?? false
                             }
-                            if (event.selection == 'fl') {
-                                conditions.time = 'fl'
+                            if (event.event == 'override') {
+                                if (event.selection == 'nu') {
+                                    conditions.upgr = 'nu'
+                                }
+                                if (event.selection == 'fl') {
+                                    conditions.time = 'fl'
+                                }
+                                if (event.selection == 'sk') {
+                                    conditions.trak = 'sk'
+                                }
                             }
-                            if (event.selection == 'sk') {
-                                conditions.trak = 'sk'
-                            }
-                        }
-                    })
+                        })
+                    } else {
+                        field += planets[tracks[race.track].planet].emoji + " " + tracks[race.track].nickname[0].toUpperCase() + "\n" + Object.values(race.conditions).join(", ")
+                    }
+                    
                     let winner = {}
                     Object.values(race.runs).forEach(run => {
                         if ((winner.time == undefined || Number(run.time) < Number(winner.time)) && run.time !== "DNF") {
