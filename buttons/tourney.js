@@ -903,7 +903,6 @@ module.exports = {
                             runs.push(run)
                         })
                     }
-                    console.log(counts)
                 })
             })
             //filter runs
@@ -1032,7 +1031,7 @@ module.exports = {
                 let track_option = {
                     label: tracks[i].name,
                     value: i,
-                    description: counts.tracks[i].total + " Runs " + [counts.tracks[i].nu, counts.tracks[i].sk, counts.tracks[i].fl].filter(f => ![null, undefined, "", 0].includes(f)).map(f => cond[f]).join(", "),
+                    description: counts.tracks[i].total + " Runs " + ['nu', 'sk', 'fl'].filter(f => ![null, undefined, "", 0].includes(counts.tracks[i][f])).map(f => cond[f] + " " + counts.tracks[i][f]).join(", "),
                     emoji: {
                         name: planets[tracks[i].planet].emoji.split(":")[1],
                         id: planets[tracks[i].planet].emoji.split(":")[2].replace(">", "")
