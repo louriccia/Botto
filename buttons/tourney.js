@@ -803,20 +803,20 @@ module.exports = {
             if (!conditions.includes("sk") && !conditions.includes("ft")) {
                 conditions.push("sk", "ft")
             }
-            if(!conditions.includes('pb')){
+            if (!conditions.includes('pb')) {
                 showall = true
             }
             //get runs and apply filters
             let runs = []
             let matches = Object.values(tourney_matches_data)
-            let counts = { mu: 0, nu: 0, ft: 0, sk: 0, de: 0, dl: 0, ng: 0, qual: 0, user: 0, tracks: {} }
+            let counts = { mu: 0, nu: 0, ft: 0, sk: 0, de: 0, dl: 0, ng: 0, fl: 0, qual: 0, user: 0, tracks: {} }
             let pod_counts = {}
             matches.forEach(match => {
                 Object.values(match.races).forEach((race, num) => {
                     //figure out track and conditions
                     let thisconditions = { ...tourney_rulesets_data.saved[match.ruleset].general.default }
                     let thistrack = null
-                    if(race.events){
+                    if (race.events) {
                         Object.values(race.events).forEach(event => {
                             if (event.event == 'selection' && event.type == 'track') {
                                 if (counts.tracks[event.selection] == undefined) {
@@ -836,18 +836,22 @@ module.exports = {
                                 }
                             }
                         })
+                        thisconditions = Object.values(thisconditions)
                     } else {
                         thisconditions = Object.values(race.conditions)
                         thistrack = race.track
                     }
-                    
+
                     //update counts
                     Object.values(race.runs).forEach(run => {
                         counts.tracks[thistrack].total++
-                        counts.tracks[thistrack][thisconditions.upgr]++
-                        counts.tracks[thistrack][thisconditions.trak]++
-                        counts.tracks[thistrack][thisconditions.time]++
-                        counts.tracks[thistrack][thisconditions.game]++
+                        thisconditions.forEach(con => {
+                            if (counts.tracks[thistrack][con] == undefined) {
+                                counts.tracks[thistrack][con] = 1
+                            } else {
+                                counts.tracks[thistrack][con]++
+                            }
+                        })
                     })
                     //get runs if this is the selected track
                     if (thistrack == track) {
@@ -861,17 +865,20 @@ module.exports = {
                             run.tourney = match.tourney
                             run.bracket = match.bracket
                             run.round = match.round
-                            if(race.events){
+                            if (race.events) {
                                 run.podbans = Object.values(race.events).filter(event => event.event == 'tempban' && event.type == 'racer').map(event => event.selection)
                             } else {
                                 race.podbans = []
                             }
                             run.opponents = opponents.filter(op => op !== run.player)
-                            counts[thisconditions.upgr]++
-                            counts[thisconditions.trak]++
-                            counts[thisconditions.time]++
-                            counts[thisconditions.game]++
-                            run.conditions = Object.values(thisconditions)
+                            thisconditions.forEach(con => {
+                                if (counts[con] == undefined) {
+                                    counts[con] = 1
+                                } else {
+                                    counts[con]++
+                                }
+                            })
+                            run.conditions = thisconditions
                             if (run.deaths == 0) {
                                 counts.dl++
                                 run.conditions.push('dl')
@@ -882,7 +889,7 @@ module.exports = {
                             }
                             if (match.bracket == "Qualifying") {
                                 counts.qual++
-                                counts.tracks[thistrack].qual ++ 
+                                counts.tracks[thistrack].qual++
                                 run.conditions.push('qual')
                             }
                             if (run.player == String(user)) {
@@ -988,7 +995,7 @@ module.exports = {
                                 "\n[Race " + runs[i].num + (runs[i].opponents.length > 0 ? " vs " + runs[i].opponents.map(op => getUsername(op)).join(", ") : "") + "](" + runs[i].vod + ")", true)
                             .addField(runs[i].time == "DNF" ? "DNF" : tools.timefix(Number(runs[i].time).toFixed(3)),
                                 " " + racers[runs[i].pod].flag + " " + runs[i].platform.toUpperCase() + (runs[i].deaths > 0 ? runs[i].deaths > 1 ? " :skull:×" + runs[i].deaths : " :skull:" : "") + "\n" +
-                                [runs[i].conditions.filter(con => !['um', 'l3', 'tt', 'mu', 'ft', 'qual', 'de', 'dl'].includes(con)).map(con => "`" + conditionmap[con] + "`").join(" "),(runs[i].podbans.length > 0 ? ":x:" + runs[i].podbans.map(ban => racers[ban].flag).join(" ") : "")].filter(t => t !== "").join(" "), true)
+                                [runs[i].conditions.filter(con => !['um', 'l3', 'tt', 'mu', 'ft', 'qual', 'de', 'dl'].includes(con)).map(con => "`" + conditionmap[con] + "`").join(" "), (runs[i].podbans.length > 0 ? ":x:" + runs[i].podbans.map(ban => racers[ban].flag).join(" ") : "")].filter(t => t !== "").join(" "), true)
                             .addField('\u200B', '\u200B', true)
                         if (showall == false) { already.push(runs[i].player + runs[i].conditions.join("")) }
                         pos.splice(0, 1)
@@ -3602,7 +3609,7 @@ module.exports = {
                 if (getForcePoints(player) > 0 && summary[getOpponent(player)].wins == liverules.general.winlimit - 1) {
                     embed.setFooter("Last chance to use 💠 forcepoints!")
                 } else {
-                    embed.setFooter("You have " + getForcePoints(player) + " 💠 forcepoint"  + (getForcePoints(player) !== 1 ? "s" : "") + " and " + getRunbacks(player) + " 🔁 runback" + (getRunbacks(player) !== 1 ? "s" : "") + " remaining")
+                    embed.setFooter("You have " + getForcePoints(player) + " 💠 forcepoint" + (getForcePoints(player) !== 1 ? "s" : "") + " and " + getRunbacks(player) + " 🔁 runback" + (getRunbacks(player) !== 1 ? "s" : "") + " remaining")
                 }
 
                 return embed
@@ -4662,7 +4669,7 @@ module.exports = {
                                                 new_event.selection = option.replace("repeat", "")
                                                 new_event.repeat = true
                                             }
-                                            if (option.includes("ban")){
+                                            if (option.includes("ban")) {
                                                 ephemeralMessage("This track cannot be selected. <:WhyNobodyBuy:589481340957753363>", [], [])
                                                 newevents = []
                                                 responded = true
@@ -4695,7 +4702,7 @@ module.exports = {
                                     new_event.selection = selection.replace("repeat", "")
                                     new_event.repeat = true
                                 }
-                                if (selection.includes("ban")){
+                                if (selection.includes("ban")) {
                                     ephemeralMessage("This track cannot be selected. <:WhyNobodyBuy:589481340957753363>", [], [])
                                     responded = true
                                     return
