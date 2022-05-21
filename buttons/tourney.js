@@ -3697,7 +3697,7 @@ module.exports = {
                                     }
                                     option.label += " (Perma-banned)"
                                     option.value += "ban"
-                                    option.description = "This track cannot be selected for the remainder of the match"
+                                    option.description = "Cannot be selected for the remainder of the match"
                                     options.push(option)
                                 } else if (tempbanned_tracks.includes(i)) {//hasn't been tempbanned
                                     option.emoji = {
@@ -3705,7 +3705,7 @@ module.exports = {
                                     }
                                     option.label += " (Temp-banned)"
                                     option.value += "ban"
-                                    option.description = "This track cannot be selected for the current race"
+                                    option.description = "Cannot be selected for the current race"
                                     options.push(option)
                                 } else if (event.event !== 'selection' && already_played[i] && saltmap[liverules.match.repeattrack.condition] <= already_played[i].played && already_played[i].loser == getOpponent(player) && getRunbacks(getOpponent(player)) > 0) { //not selecting the track but opponent could still runback
                                     option.description = "This track was already played but your opponent could run it back"
@@ -3716,7 +3716,6 @@ module.exports = {
                                     }
                                     option.value += "repeat"
                                     option.label += " (Runback)"
-                                    option.description = "This track cannot be selected for the current race"
                                     if (option.default) {
                                         repeat = true
                                     }
@@ -4631,6 +4630,11 @@ module.exports = {
                                                 new_event.selection = option.replace("repeat", "")
                                                 new_event.repeat = true
                                             }
+                                            if (option.includes("ban")){
+                                                ephemeralMessage("This track cannot be selected. <:WhyNobodyBuy:589481340957753363>", [], [])
+                                                newevents = []
+                                                return
+                                            }
                                             newevents.push(new_event)
                                         }
                                     }
@@ -4657,6 +4661,10 @@ module.exports = {
                                 if (selection.includes("repeat")) {
                                     new_event.selection = selection.replace("repeat", "")
                                     new_event.repeat = true
+                                }
+                                if (selection.includes("ban")){
+                                    ephemeralMessage("This track cannot be selected. <:WhyNobodyBuy:589481340957753363>", [], [])
+                                    return
                                 }
                                 tourney_live.child(interaction.channel_id).child("races").child(race).child("events").push(new_event)
                             })
