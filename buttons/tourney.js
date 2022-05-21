@@ -910,15 +910,7 @@ module.exports = {
                     }
                     if (user !== null && conditions.includes("user") && run.player !== user) {
                         filter = false
-                    }/*
-                    if (!conditions.includes('dl') && !conditions.includes("de")) {
-                        if (conditions.includes('dl') && run.deaths > 0) {
-                            filter = false
-                        } else if (conditions.includes('de') && run.deaths == 0) {
-                            filter = false
-                        }
-                    }*/
-
+                    }
                 })
                 if (!conditions.includes('qual') && run.conditions.includes('qual')) {
                     filter = false
@@ -995,7 +987,7 @@ module.exports = {
                                 "\n[Race " + runs[i].num + (runs[i].opponents.length > 0 ? " vs " + runs[i].opponents.map(op => getUsername(op)).join(", ") : "") + "](" + runs[i].vod + ")", true)
                             .addField(runs[i].time == "DNF" ? "DNF" : tools.timefix(Number(runs[i].time).toFixed(3)),
                                 " " + racers[runs[i].pod].flag + " " + runs[i].platform.toUpperCase() + (runs[i].deaths > 0 ? runs[i].deaths > 1 ? " :skull:×" + runs[i].deaths : " :skull:" : "") + "\n" +
-                                [runs[i].conditions.filter(con => !['um', 'l3', 'tt', 'mu', 'ft', 'qual'].includes(con)).map(con => "`" + conditionmap[con] + "`").join(" "),(runs[i].podbans.length > 0 ? ":x:" + runs[i].podbans.map(ban => racers[ban].flag).join(" ") : "")].filter(t => t !== "").join(" "), true)
+                                [runs[i].conditions.filter(con => !['um', 'l3', 'tt', 'mu', 'ft', 'qual', 'de', 'dl'].includes(con)).map(con => "`" + conditionmap[con] + "`").join(" "),(runs[i].podbans.length > 0 ? ":x:" + runs[i].podbans.map(ban => racers[ban].flag).join(" ") : "")].filter(t => t !== "").join(" "), true)
                             .addField('\u200B', '\u200B', true)
                         if (showall == false) { already.push(runs[i].player + runs[i].conditions.join("")) }
                         pos.splice(0, 1)
@@ -1012,7 +1004,7 @@ module.exports = {
 
             //construct components
             let components = []
-            let cond = { mu: "Max Upgrades", nu: "No Upgrades", ft: "Full Track", sk: "Skips", de: "Deaths", dl: "Deathless", qual: "Qualifying", ng: "New Game", pb: "Personal Bests Only", user: "My Runs Only" }
+            let cond = { mu: "Max Upgrades", nu: "No Upgrades", ft: "Full Track", sk: "Skips", de: "Deaths", dl: "Deathless", qual: "Qualifying", ng: "New Game", fl: "Fast Lap", pb: "Personal Bests Only", user: "My Runs Only" }
             let track_selections = []
             let racer_selections = []
             let cond_selections = []
