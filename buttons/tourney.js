@@ -3665,15 +3665,15 @@ module.exports = {
                             }
                             options = options.sort(function (a, b) {
                                 let aspeed = tools.avgSpeed(
-                                    tools.upgradeTopSpeed(racers[Number(a.value)].max_speed, upg),
+                                    tools.upgradeTopSpeed(racers[Number(a.value.replace("ban", ""))].max_speed, upg),
                                     racers[Number(a.value)].boost_thrust,
                                     racers[Number(a.value)].heat_rate,
-                                    tools.upgradeCooling(racers[Number(a.value)].cool_rate, upg))
+                                    tools.upgradeCooling(racers[Number(a.value.replace("ban", ""))].cool_rate, upg))
                                 let bspeed = tools.avgSpeed(
-                                    tools.upgradeTopSpeed(racers[Number(b.value)].max_speed, upg),
+                                    tools.upgradeTopSpeed(racers[Number(b.value.replace("ban", ""))].max_speed, upg),
                                     racers[Number(b.value)].boost_thrust,
                                     racers[Number(b.value)].heat_rate,
-                                    tools.upgradeCooling(racers[Number(b.value)].cool_rate, upg))
+                                    tools.upgradeCooling(racers[Number(b.value.replace("ban", ""))].cool_rate, upg))
                                 return bspeed - aspeed
                             })
                         } else if (event.type == "track") {
