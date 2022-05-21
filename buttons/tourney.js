@@ -837,7 +837,7 @@ module.exports = {
                             }
                         })
                     } else {
-                        thisconditions = race.conditions
+                        thisconditions = Object.values(race.conditions)
                         thistrack = race.track
                     }
                     
@@ -874,9 +874,11 @@ module.exports = {
                             run.conditions = Object.values(thisconditions)
                             if (run.deaths == 0) {
                                 counts.dl++
+                                run.conditions.push('dl')
                             }
                             if (run.deaths > 0) {
                                 counts.de++
+                                run.conditions.push('de')
                             }
                             if (match.bracket == "Qualifying") {
                                 counts.qual++
@@ -900,7 +902,7 @@ module.exports = {
             runs = runs.filter(run => {
                 let filter = true
                 run.conditions.forEach(con => {
-                    if (!conditions.includes(con) && !["pb", "de", "dl", "um", "tt", "l3"].includes(con)) {
+                    if (!conditions.includes(con) && !["pb", "um", "tt", "l3"].includes(con)) {
                         filter = false
                     }
                     if (pods.length > 0 && !pods.includes(String(run.pod))) {
@@ -908,14 +910,14 @@ module.exports = {
                     }
                     if (user !== null && conditions.includes("user") && run.player !== user) {
                         filter = false
-                    }
+                    }/*
                     if (!conditions.includes('dl') && !conditions.includes("de")) {
                         if (conditions.includes('dl') && run.deaths > 0) {
                             filter = false
                         } else if (conditions.includes('de') && run.deaths == 0) {
                             filter = false
                         }
-                    }
+                    }*/
 
                 })
                 if (!conditions.includes('qual') && run.conditions.includes('qual')) {
@@ -990,10 +992,10 @@ module.exports = {
                         tourneyReport
                             .addField(pos[0] + " " + getUsername(runs[i].player),
                                 tourney_tournaments_data[runs[i].tourney].nickname + bracket +
-                                "\n[Race " + runs[i].num + (runs[i].opponents.length > 0 ? " vs " + runs[i].opponents.map(op => getUsername(op)).join(" ") : "") + "](" + runs[i].vod + ")", true)
+                                "\n[Race " + runs[i].num + (runs[i].opponents.length > 0 ? " vs " + runs[i].opponents.map(op => getUsername(op)).join(", ") : "") + "](" + runs[i].vod + ")", true)
                             .addField(runs[i].time == "DNF" ? "DNF" : tools.timefix(Number(runs[i].time).toFixed(3)),
                                 " " + racers[runs[i].pod].flag + " " + runs[i].platform.toUpperCase() + (runs[i].deaths > 0 ? runs[i].deaths > 1 ? " :skull:×" + runs[i].deaths : " :skull:" : "") + "\n" +
-                                runs[i].conditions.filter(con => !['um', 'l3', 'tt', 'mu', 'ft', 'qual'].includes(con)).map(con => "`" + conditionmap[con] + "`").join(" ") + (runs[i].podbans.length > 0 ? " | :x:" + runs[i].podbans.map(ban => racers[ban].flag).join(" ") : ""), true)
+                                [runs[i].conditions.filter(con => !['um', 'l3', 'tt', 'mu', 'ft', 'qual'].includes(con)).map(con => "`" + conditionmap[con] + "`").join(" "),(runs[i].podbans.length > 0 ? ":x:" + runs[i].podbans.map(ban => racers[ban].flag).join(" ") : "")].filter(t => t !== "").join(" "), true)
                             .addField('\u200B', '\u200B', true)
                         if (showall == false) { already.push(runs[i].player + runs[i].conditions.join("")) }
                         pos.splice(0, 1)
