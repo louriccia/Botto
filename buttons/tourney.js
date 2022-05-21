@@ -3595,7 +3595,7 @@ module.exports = {
                 if (getForcePoints(player) > 0 && summary[getOpponent(player)].wins == liverules.general.winlimit - 1) {
                     embed.setFooter("Last chance to use 💠 forcepoints!")
                 } else {
-                    embed.setFooter("You have " + getForcePoints(player) + " 💠 forcepoint(s) and " + getRunbacks(player) + " runback(s) remaining")
+                    embed.setFooter("You have " + getForcePoints(player) + " 💠 forcepoint"  + (getForcePoints(player) > 1 ? "s" : "") + " and " + getRunbacks(player) + " 🔁 runback" + (getRunbacks(player) > 1 ? "s" : "") + " remaining")
                 }
 
                 return embed
@@ -3721,7 +3721,7 @@ module.exports = {
                                         repeat = true
                                     }
                                     options.push(option)
-                                } else if (!already_played.includes(i)) {
+                                } else if (!already_played[i]) {
                                     options.push(option)
                                 }   
                             }
