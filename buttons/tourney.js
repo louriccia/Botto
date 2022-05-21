@@ -803,6 +803,9 @@ module.exports = {
             if (!conditions.includes("sk") && !conditions.includes("ft")) {
                 conditions.push("sk", "ft")
             }
+            if(conditions.includes('pb')){
+                showall = true
+            }
             //get runs and apply filters
             let runs = []
             let matches = Object.values(tourney_matches_data)
@@ -870,13 +873,14 @@ module.exports = {
                             counts[thisconditions.game]++
                             run.conditions = Object.values(thisconditions)
                             if (run.deaths == 0) {
-                                counts.deathless++
+                                counts.dl++
                             }
                             if (run.deaths > 0) {
-                                counts.deaths++
+                                counts.de++
                             }
                             if (match.bracket == "Qualifying") {
                                 counts.qual++
+                                counts.tracks[thistrack].qual ++ 
                             }
                             if (run.player == String(user)) {
                                 counts.user++
@@ -974,7 +978,7 @@ module.exports = {
             }
             if (runs.length > 0) {
                 for (i = 0; i < runs.length; i++) {
-                    if (runs[i].hasOwnProperty("time") && !already.includes(runs[i].player + runs[i].nu + runs[i].skips)) {
+                    if (runs[i].hasOwnProperty("time") && !already.includes(runs[i].player + runs[i].conditions.join(""))) {
                         let bracket = ""
                         if (![undefined, "", null].includes(runs[i].bracket)) {
                             bracket = " " + runs[i].bracket
@@ -990,7 +994,7 @@ module.exports = {
                                 " " + racers[runs[i].pod].flag + " " + runs[i].platform.toUpperCase() + (runs[i].deaths > 0 ? runs[i].deaths > 1 ? " :skull:×" + runs[i].deaths : " :skull:" : "") + "\n" +
                                 runs[i].conditions.filter(con => !['um', 'l3', 'tt', 'mu', 'ft'].includes(con)).map(con => "`" + conditionmap[con] + "`").join(" ") + (runs[i].podbans.length > 0 ? " | :x:" + runs[i].podbans.map(ban => racers[ban].flag).join(" ") : ""), true)
                             .addField('\u200B', '\u200B', true)
-                        if (showall == false) { already.push(runs[i].player + runs[i].nu + runs[i].skips) }
+                        if (showall == false) { already.push(runs[i].player + runs[i].conditions.join("")) }
                         pos.splice(0, 1)
                         if (pos.length == 0) {
                             i = runs.length
@@ -1005,7 +1009,7 @@ module.exports = {
 
             //construct components
             let components = []
-            let cond = { mu: "Max Upgrades", nu: "No Upgrades", ft: "Full Track", sk: "Skips", de: "Deaths", dl: "Deathless", qu: "Qualifying", ng: "New Game", pb: "Personal Bests Only", user: "My Runs Only" }
+            let cond = { mu: "Max Upgrades", nu: "No Upgrades", ft: "Full Track", sk: "Skips", de: "Deaths", dl: "Deathless", qual: "Qualifying", ng: "New Game", pb: "Personal Bests Only", user: "My Runs Only" }
             let track_selections = []
             let racer_selections = []
             let cond_selections = []
@@ -1025,7 +1029,7 @@ module.exports = {
                 let track_option = {
                     label: tracks[i].name,
                     value: i,
-                    description: counts.tracks[i].total + " Runs " + [counts.tracks[i].nu, counts.tracks[i].skips, counts.tracks[i].fl].filter(f => ![null, undefined, "", 0].includes(f)).map(f => cond[f]).join(", "),
+                    description: counts.tracks[i].total + " Runs " + [counts.tracks[i].nu, counts.tracks[i].sk, counts.tracks[i].fl].filter(f => ![null, undefined, "", 0].includes(f)).map(f => cond[f]).join(", "),
                     emoji: {
                         name: planets[tracks[i].planet].emoji.split(":")[1],
                         id: planets[tracks[i].planet].emoji.split(":")[2].replace(">", "")
