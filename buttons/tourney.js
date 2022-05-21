@@ -840,6 +840,7 @@ module.exports = {
                     } else {
                         thisconditions = Object.values(race.conditions)
                         thistrack = race.track
+                        
                     }
 
                     //update counts
@@ -868,7 +869,7 @@ module.exports = {
                             if (race.events) {
                                 run.podbans = Object.values(race.events).filter(event => event.event == 'tempban' && event.type == 'racer').map(event => event.selection)
                             } else {
-                                race.podbans = []
+                                run.podbans = []
                             }
                             run.opponents = opponents.filter(op => op !== run.player)
                             thisconditions.forEach(con => {
