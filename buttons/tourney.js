@@ -3664,16 +3664,19 @@ module.exports = {
                                 }
                             }
                             options = options.sort(function (a, b) {
+                                console.log(a, b)
+                                let a_racer = Number(a.value.replace("ban", ""))
+                                let b_racer = Number(b.value.replace("ban", ""))
                                 let aspeed = tools.avgSpeed(
-                                    tools.upgradeTopSpeed(racers[Number(a.value.replace("ban", ""))].max_speed, upg),
-                                    racers[Number(a.value)].boost_thrust,
-                                    racers[Number(a.value)].heat_rate,
-                                    tools.upgradeCooling(racers[Number(a.value.replace("ban", ""))].cool_rate, upg))
+                                    tools.upgradeTopSpeed(racers[a_racer].max_speed, upg),
+                                    racers[a_racer].boost_thrust,
+                                    racers[a_racer].heat_rate,
+                                    tools.upgradeCooling(racers[a_racer].cool_rate, upg))
                                 let bspeed = tools.avgSpeed(
-                                    tools.upgradeTopSpeed(racers[Number(b.value.replace("ban", ""))].max_speed, upg),
-                                    racers[Number(b.value)].boost_thrust,
-                                    racers[Number(b.value)].heat_rate,
-                                    tools.upgradeCooling(racers[Number(b.value.replace("ban", ""))].cool_rate, upg))
+                                    tools.upgradeTopSpeed(racers[b_racer].max_speed, upg),
+                                    racers[b_racer].boost_thrust,
+                                    racers[b_racer].heat_rate,
+                                    tools.upgradeCooling(racers[b_racer].cool_rate, upg))
                                 return bspeed - aspeed
                             })
                         } else if (event.type == "track") {
