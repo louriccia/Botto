@@ -979,7 +979,8 @@ module.exports = {
             }
             if (runs.length > 0) {
                 for (i = 0; i < runs.length; i++) {
-                    if (runs[i].hasOwnProperty("time") && !already.includes(runs[i].player + runs[i].conditions.join(""))) {
+                    let constring = runs[i].player + runs[i].pod + runs[i].platform + runs[i].conditions.filter(r => !["de", "dl"].includes(r)).join("")
+                    if (runs[i].hasOwnProperty("time") && !already.includes(constring)) {
                         let bracket = ""
                         if (![undefined, "", null].includes(runs[i].bracket)) {
                             bracket = " " + runs[i].bracket
@@ -999,7 +1000,7 @@ module.exports = {
                                 " " + racers[runs[i].pod].flag + " " + runs[i].platform.toUpperCase() + (runs[i].deaths > 0 ? runs[i].deaths > 1 ? " :skull:×" + runs[i].deaths : " :skull:" : "") + "\n" +
                                 [runs[i].conditions.filter(con => !['um', 'l3', 'tt', 'mu', 'ft', 'qual', 'de', 'dl'].includes(con)).map(con => "`" + conditionmap[con] + "`").join(" "), (runs[i].podbans.length > 0 ? ":x:" + runs[i].podbans.map(ban => racers[ban].flag).join(" ") : "")].filter(t => t !== "").join(" "), true)
                             .addField('\u200B', '\u200B', true)
-                        if (showall == false) { already.push(runs[i].player + runs[i].pod + runs[i].conditions.filter(r => !["de", "dl"].includes(r)).join("")) }
+                        if (showall == false) { already.push(constring) }
                         pos.splice(0, 1)
                         if (pos.length == 0) {
                             i = runs.length
