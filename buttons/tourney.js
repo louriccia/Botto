@@ -879,7 +879,7 @@ module.exports = {
                                     counts[con]++
                                 }
                             })
-                            run.conditions = thisconditions
+                            run.conditions = [...thisconditions]
                             if (run.deaths == 0) {
                                 counts.dl++
                                 run.conditions.push('dl')
