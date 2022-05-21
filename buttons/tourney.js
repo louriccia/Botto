@@ -3665,8 +3665,8 @@ module.exports = {
                             }
                             options = options.sort(function (a, b) {
                                 console.log(a, b)
-                                let a_racer = Number(a.value.replace("ban", ""))
-                                let b_racer = Number(b.value.replace("ban", ""))
+                                let a_racer = Number(String(a.value).replace("ban", ""))
+                                let b_racer = Number(String(b.value).replace("ban", ""))
                                 let aspeed = tools.avgSpeed(
                                     tools.upgradeTopSpeed(racers[a_racer].max_speed, upg),
                                     racers[a_racer].boost_thrust,
