@@ -785,7 +785,7 @@ module.exports = {
                 }
             }
             if (conditions.length == 0) {
-                conditions = ["mu", "nu", "ft", "sk", "de", "dl", "pb"]
+                conditions = ["mu", "nu", "ft", "sk", "de", "dl", "un"]
             }
             //prepare filters
             if (interaction.member) {
@@ -803,7 +803,7 @@ module.exports = {
             if (!conditions.includes("sk") && !conditions.includes("ft")) {
                 conditions.push("sk", "ft")
             }
-            if (!conditions.includes('pb')) {
+            if (!conditions.includes('un')) {
                 showall = true
             }
             //get runs and apply filters
@@ -910,7 +910,7 @@ module.exports = {
             runs = runs.filter(run => {
                 let filter = true
                 run.conditions.forEach(con => {
-                    if (!conditions.includes(con) && !["pb", "um", "tt", "l3"].includes(con)) {
+                    if (!conditions.includes(con) && !["un", "um", "tt", "l3"].includes(con)) {
                         filter = false
                     }
                     if (pods.length > 0 && !pods.includes(String(run.pod))) {
@@ -956,7 +956,7 @@ module.exports = {
                 showall = true
             }
             if (!showall) {
-                tourneyReport.setFooter(runs.length + "/" + counts.tracks[track].total + " Runs (PBs Only)")
+                tourneyReport.setFooter(runs.length + "/" + counts.tracks[track].total + " Runs (Unique Runs Only)")
             }
             let pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>", "4th", "5th"]
             let already = []
@@ -965,8 +965,6 @@ module.exports = {
                 nu: "No Upgrades",
                 ft: "Full Track",
                 sk: "Skips",
-                pb: "Pod Ban",
-                pc: "Pod Choice",
                 um: "Unmirrored",
                 mi: "Mirrored",
                 l1: "1 Lap",
@@ -1001,7 +999,7 @@ module.exports = {
                                 " " + racers[runs[i].pod].flag + " " + runs[i].platform.toUpperCase() + (runs[i].deaths > 0 ? runs[i].deaths > 1 ? " :skull:×" + runs[i].deaths : " :skull:" : "") + "\n" +
                                 [runs[i].conditions.filter(con => !['um', 'l3', 'tt', 'mu', 'ft', 'qual', 'de', 'dl'].includes(con)).map(con => "`" + conditionmap[con] + "`").join(" "), (runs[i].podbans.length > 0 ? ":x:" + runs[i].podbans.map(ban => racers[ban].flag).join(" ") : "")].filter(t => t !== "").join(" "), true)
                             .addField('\u200B', '\u200B', true)
-                        if (showall == false) { already.push(runs[i].player + runs[i].conditions.join("")) }
+                        if (showall == false) { already.push(runs[i].player + runs[i].pod + runs[i].conditions.filter(r => !["de", "dl"].includes(r)).join("")) }
                         pos.splice(0, 1)
                         if (pos.length == 0) {
                             i = runs.length
@@ -1017,7 +1015,7 @@ module.exports = {
 
             //construct components
             let components = []
-            let cond = { mu: "Max Upgrades", nu: "No Upgrades", ft: "Full Track", sk: "Skips", de: "Deaths", dl: "Deathless", qual: "Qualifying", ng: "New Game", fl: "Fast Lap", pb: "Personal Bests Only", user: "My Runs Only" }
+            let cond = { mu: "Max Upgrades", nu: "No Upgrades", ft: "Full Track", sk: "Skips", de: "Deaths", dl: "Deathless", qual: "Qualifying", ng: "New Game", fl: "Fast Lap", un: "Unique Runs Only", user: "My Runs Only" }
             let track_selections = []
             let racer_selections = []
             let cond_selections = []
@@ -1047,7 +1045,7 @@ module.exports = {
                 track_selections.push(track_option)
                 if (i < condkeys.length) {
                     let cond_option = {
-                        label: cond[condkeys[i]] + (condkeys[i] !== 'pb' ? " (" + counts[condkeys[i]] + ")" : ""),
+                        label: cond[condkeys[i]] + (condkeys[i] !== 'un' ? " (" + counts[condkeys[i]] + ")" : ""),
                         value: condkeys[i],
                         default: conditions.includes(condkeys[i])
                     }
