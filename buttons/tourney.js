@@ -3639,14 +3639,28 @@ module.exports = {
                             let permabanned_racers = Object.values(livematch.races[1].events).filter(event => event.event == "permaban" && event.type == "racer").map(event => Number(event.selection))
                             let tempbanned_racers = Object.values(livematch.races[race].events).filter(event => event.event == "tempban" && event.type == "racer").map(event => Number(event.selection))
                             for (let i = 0; i < 25; i++) {
-                                if (!tempbanned_racers.includes(i) && !permabanned_racers.includes(i)) {
-                                    if (i < 23 || (event.event == 'selection' && ((!tempbanned_racers.includes(8) && !permabanned_racers.includes(i) && i == 23) || (!tempbanned_racers.includes(22) && !permabanned_racers.includes(i) && i == 24)))) { //handle secret pods
-                                        let option = getRacerOption(i)
-                                        if (default_stuff.includes(String(i))) {
-                                            option.default = true
-                                        }
-                                        options.push(option)
+                                if (i < 23 || (event.event == 'selection' && ((!tempbanned_racers.includes(8) && !permabanned_racers.includes(i) && i == 23) || (!tempbanned_racers.includes(22) && !permabanned_racers.includes(i) && i == 24)))) { //handle secret pods
+                                    let option = getRacerOption(i)
+
+                                    if (default_stuff.includes(String(i))) {
+                                        option.default = true
                                     }
+                                    if (permabanned_racers.includes(i)) {
+                                        option.emoji = {
+                                            name: "🚫"
+                                        }
+                                        option.label += " (Perma-banned)"
+                                        option.value += "ban"
+                                        option.description = "Cannot be selected for the remainder of the match"
+                                    } else if (tempbanned_racers.includes(i)) {//hasn't been tempbanned
+                                        option.emoji = {
+                                            name: "❌"
+                                        }
+                                        option.label += " (Temp-banned)"
+                                        option.value += "ban"
+                                        option.description = "Cannot be selected for the current race"
+                                    }
+                                    options.push(option)
                                 }
                             }
                             options = options.sort(function (a, b) {
@@ -4635,6 +4649,7 @@ module.exports = {
                                             if (option.includes("ban")){
                                                 ephemeralMessage("This track cannot be selected. <:WhyNobodyBuy:589481340957753363>", [], [])
                                                 newevents = []
+                                                responded = true
                                                 return
                                             }
                                             newevents.push(new_event)
@@ -4666,6 +4681,7 @@ module.exports = {
                                 }
                                 if (selection.includes("ban")){
                                     ephemeralMessage("This track cannot be selected. <:WhyNobodyBuy:589481340957753363>", [], [])
+                                    responded = true
                                     return
                                 }
                                 tourney_live.child(interaction.channel_id).child("races").child(race).child("events").push(new_event)
