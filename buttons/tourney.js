@@ -3708,7 +3708,7 @@ module.exports = {
                                     option.description = "Cannot be selected for the current race"
                                     options.push(option)
                                 } else if (event.event !== 'selection' && already_played[i] && saltmap[liverules.match.repeattrack.condition] <= already_played[i].played && already_played[i].loser == getOpponent(player) && getRunbacks(getOpponent(player)) > 0) { //not selecting the track but opponent could still runback
-                                    option.description = "This track was already played but your opponent could run it back"
+                                    option.description = "Already played but your opponent could run it back"
                                     options.push(option)
                                 } else if (event.event == 'selection' && already_played[i] && saltmap[liverules.match.repeattrack.condition] <= already_played[i].played && already_played[i].loser == player && getRunbacks(player) > 0) { //selecting the track and it can be runback
                                     option.emoji = {
@@ -3720,9 +3720,11 @@ module.exports = {
                                         repeat = true
                                     }
                                     options.push(option)
-                                } else if (!already_played[i]) {
+                                } else if (already_played[i]) {
+                                    option.description = "Already played and cannot be run back"
+                                } else {
                                     options.push(option)
-                                }   
+                                }
                             }
                         } else if (event.type == "condition") {
                             let conditions = {
