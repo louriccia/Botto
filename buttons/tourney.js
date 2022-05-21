@@ -820,7 +820,7 @@ module.exports = {
                         Object.values(race.events).forEach(event => {
                             if (event.event == 'selection' && event.type == 'track') {
                                 if (counts.tracks[event.selection] == undefined) {
-                                    counts.tracks[event.selection] = { total: 0, skips: 0, nu: 0, nuskips: 0 }
+                                    counts.tracks[event.selection] = { total: 0, sk: 0, nu: 0, fl: 0, ft: 0, mu: 0, tt: 0, ng: 0 }
                                 }
                                 thistrack = event.selection
                             }
@@ -896,6 +896,7 @@ module.exports = {
                             runs.push(run)
                         })
                     }
+                    console.log(counts)
                 })
             })
             //filter runs
