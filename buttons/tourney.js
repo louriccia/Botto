@@ -803,7 +803,7 @@ module.exports = {
             if (!conditions.includes("sk") && !conditions.includes("ft")) {
                 conditions.push("sk", "ft")
             }
-            if(conditions.includes('pb')){
+            if(!conditions.includes('pb')){
                 showall = true
             }
             //get runs and apply filters
@@ -862,7 +862,7 @@ module.exports = {
                             run.bracket = match.bracket
                             run.round = match.round
                             if(race.events){
-                                run.podbans = Object.values(race.events).filter(event => event.event == 'tempban' && event.type == 'race').map(event => event.selection)
+                                run.podbans = Object.values(race.events).filter(event => event.event == 'tempban' && event.type == 'racer').map(event => event.selection)
                             } else {
                                 race.podbans = []
                             }
@@ -993,7 +993,7 @@ module.exports = {
                                 "\n[Race " + runs[i].num + (runs[i].opponents.length > 0 ? " vs " + runs[i].opponents.map(op => getUsername(op)).join(" ") : "") + "](" + runs[i].vod + ")", true)
                             .addField(runs[i].time == "DNF" ? "DNF" : tools.timefix(Number(runs[i].time).toFixed(3)),
                                 " " + racers[runs[i].pod].flag + " " + runs[i].platform.toUpperCase() + (runs[i].deaths > 0 ? runs[i].deaths > 1 ? " :skull:×" + runs[i].deaths : " :skull:" : "") + "\n" +
-                                runs[i].conditions.filter(con => !['um', 'l3', 'tt', 'mu', 'ft'].includes(con)).map(con => "`" + conditionmap[con] + "`").join(" ") + (runs[i].podbans.length > 0 ? " | :x:" + runs[i].podbans.map(ban => racers[ban].flag).join(" ") : ""), true)
+                                runs[i].conditions.filter(con => !['um', 'l3', 'tt', 'mu', 'ft', 'qual'].includes(con)).map(con => "`" + conditionmap[con] + "`").join(" ") + (runs[i].podbans.length > 0 ? " | :x:" + runs[i].podbans.map(ban => racers[ban].flag).join(" ") : ""), true)
                             .addField('\u200B', '\u200B', true)
                         if (showall == false) { already.push(runs[i].player + runs[i].conditions.join("")) }
                         pos.splice(0, 1)
