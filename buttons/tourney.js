@@ -995,7 +995,7 @@ module.exports = {
                                 "\n[Race " + runs[i].num + 
                                 (runs[i].opponents.length > 0 ? 
                                     (runs[i].opponents.length > 3 ? 
-                                        runs[i].opponents.length + " players" : 
+                                        " vs " + runs[i].opponents.length + " players" : 
                                         " vs " + runs[i].opponents.map(op => getUsername(op)).join(", ")):"") + "](" + runs[i].vod + ")", true)
                             .addField(runs[i].time == "DNF" ? "DNF" : tools.timefix(Number(runs[i].time).toFixed(3)),
                                 " " + racers[runs[i].pod].flag + " " + runs[i].platform.toUpperCase() + (runs[i].deaths > 0 ? runs[i].deaths > 1 ? " :skull:×" + runs[i].deaths : " :skull:" : "") + "\n" +
@@ -1008,6 +1008,7 @@ module.exports = {
                         }
                     }
                 }
+                console.log(already)
 
             } else {
                 tourneyReport
