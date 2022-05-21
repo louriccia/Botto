@@ -858,7 +858,11 @@ module.exports = {
                             run.tourney = match.tourney
                             run.bracket = match.bracket
                             run.round = match.round
-                            run.podbans = Object.values(race.events).filter(event => event.event == 'tempban' && event.type == 'race').map(event => event.selection)
+                            if(race.events){
+                                run.podbans = Object.values(race.events).filter(event => event.event == 'tempban' && event.type == 'race').map(event => event.selection)
+                            } else {
+                                race.podbans = []
+                            }
                             run.opponents = opponents.filter(op => op !== run.player)
                             counts[thisconditions.upgr]++
                             counts[thisconditions.trak]++
