@@ -812,28 +812,32 @@ module.exports = {
                 Object.values(match.races).forEach((race, num) => {
                     //figure out track and conditions
                     let thisconditions = { ...tourney_rulesets_data.saved[match.ruleset].general.default }
-                    console.log("initial conditions", thisconditions)
                     let thistrack = null
-                    Object.values(race.events).forEach(event => {
-                        if (event.event == 'selection' && event.type == 'track') {
-                            if (counts.tracks[event.selection] == undefined) {
-                                counts.tracks[event.selection] = { total: 0, skips: 0, nu: 0, nuskips: 0 }
+                    if(race.events){
+                        Object.values(race.events).forEach(event => {
+                            if (event.event == 'selection' && event.type == 'track') {
+                                if (counts.tracks[event.selection] == undefined) {
+                                    counts.tracks[event.selection] = { total: 0, skips: 0, nu: 0, nuskips: 0 }
+                                }
+                                thistrack = event.selection
                             }
-                            thistrack = event.selection
-                        }
-                        if (event.event == 'override' && event.type == 'condition') {
-                            if (event.selection == 'nu') {
-                                thisconditions.upgr = 'nu'
+                            if (event.event == 'override' && event.type == 'condition') {
+                                if (event.selection == 'nu') {
+                                    thisconditions.upgr = 'nu'
+                                }
+                                if (event.selection == 'sk') {
+                                    thisconditions.trak = 'sk'
+                                }
+                                if (event.selection == 'fl') {
+                                    thisconditions.time = 'fl'
+                                }
                             }
-                            if (event.selection == 'sk') {
-                                thisconditions.trak = 'sk'
-                            }
-                            if (event.selection == 'fl') {
-                                thisconditions.time = 'fl'
-                            }
-                        }
-                    })
-                    console.log("next conditions", thisconditions)
+                        })
+                    } else {
+                        thisconditions = race.conditions
+                        thistrack = race.track
+                    }
+                    
                     //update counts
                     Object.values(race.runs).forEach(run => {
                         counts.tracks[thistrack].total++
@@ -861,7 +865,6 @@ module.exports = {
                             counts[thisconditions.time]++
                             counts[thisconditions.game]++
                             run.conditions = Object.values(thisconditions)
-                            console.log("run conditions", run.conditions)
                             if (run.deaths == 0) {
                                 counts.deathless++
                             }
