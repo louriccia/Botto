@@ -881,6 +881,7 @@ module.exports = {
                             if (match.bracket == "Qualifying") {
                                 counts.qual++
                                 counts.tracks[thistrack].qual ++ 
+                                run.conditions.push('qual')
                             }
                             if (run.player == String(user)) {
                                 counts.user++
@@ -899,7 +900,7 @@ module.exports = {
             runs = runs.filter(run => {
                 let filter = true
                 run.conditions.forEach(con => {
-                    if (!conditions.includes(con) && !["pb", "de", "dl", "ng", "um", "tt", "l3", 'qual'].includes(con)) {
+                    if (!conditions.includes(con) && !["pb", "de", "dl", "um", "tt", "l3"].includes(con)) {
                         filter = false
                     }
                     if (pods.length > 0 && !pods.includes(String(run.pod))) {
