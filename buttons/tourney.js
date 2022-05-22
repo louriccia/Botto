@@ -1007,7 +1007,6 @@ module.exports = {
                         }
                     }
                 }
-                console.log(already)
 
             } else {
                 tourneyReport
@@ -3682,7 +3681,6 @@ module.exports = {
                                 }
                             }
                             options = options.sort(function (a, b) {
-                                console.log(a, b)
                                 let a_racer = Number(String(a.value).replace("ban", ""))
                                 let b_racer = Number(String(b.value).replace("ban", ""))
                                 let aspeed = tools.avgSpeed(

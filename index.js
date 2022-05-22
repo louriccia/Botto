@@ -315,7 +315,9 @@ client.once('ready', () => {
                         })
                         client.api.channels("970994773517299712").messages.post({
                             data: {
-                                content: Object.values(match.commentators).map(player => "<@" + player + ">").join(" ") + " " + Object.values(match.players).map(player => "<@" + player + ">").join(" ") + "\n**" + match.players.map(player => tourney_participants_data[player].name).join(" vs. ") + "** is about to begin!",
+                                content: Object.values(newmatch.commentators).map(player => "<@" + player + ">").join(" ") + " " + 
+                                Object.values(newmatch.players).map(player => "<@" + player + ">").join(" ") + "\n**" + 
+                                match.players.map(player => tourney_participants_data[player].name).join(" vs. ") + "** is about to begin!",
                                 components: [
                                     {
                                         type: 1,
