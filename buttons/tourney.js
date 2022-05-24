@@ -7,42 +7,42 @@ module.exports = {
     execute(client, interaction, args) {
         const Discord = require('discord.js');
         const myEmbed = new Discord.MessageEmbed()
-        var tools = require('./../tools.js');
-        var admin = require('firebase-admin');
-        var database = admin.database();
-        var firebase = require("firebase/app");
-        var tourney_rulesets = database.ref('tourney/rulesets');
-        var tourney_rulesets_data = {}, tourney_races_data = {}, tourney_matches_data = {}, tourney_participants_data = {}, tourney_tournaments_data = {}, tourney_live_data = {}
+        let tools = require('./../tools.js');
+        let admin = require('firebase-admin');
+        let database = admin.database();
+        let firebase = require("firebase/app");
+        let tourney_rulesets = database.ref('tourney/rulesets');
+        let tourney_rulesets_data = {}, tourney_races_data = {}, tourney_matches_data = {}, tourney_participants_data = {}, tourney_tournaments_data = {}, tourney_live_data = {}
         tourney_rulesets.on("value", function (snapshot) {
             tourney_rulesets_data = snapshot.val();
         }, function (errorObject) {
             console.log("The read failed: " + errorObject);
         });
-        var tourney_matches = database.ref('tourney/matches')
+        let tourney_matches = database.ref('tourney/matches')
         tourney_matches.on("value", function (snapshot) {
             tourney_matches_data = snapshot.val();
         }, function (errorObject) {
             console.log("The read failed: " + errorObject);
         });
-        var tourney_participants = database.ref('tourney/participants')
+        let tourney_participants = database.ref('tourney/participants')
         tourney_participants.on("value", function (snapshot) {
             tourney_participants_data = snapshot.val();
         }, function (errorObject) {
             console.log("The read failed: " + errorObject);
         });
-        var tourney_tournaments = database.ref('tourney/tournaments')
+        let tourney_tournaments = database.ref('tourney/tournaments')
         tourney_tournaments.on("value", function (snapshot) {
             tourney_tournaments_data = snapshot.val();
         }, function (errorObject) {
             console.log("The read failed: " + errorObject);
         });
-        var tourney_races = database.ref('tourney/races');
+        let tourney_races = database.ref('tourney/races');
         tourney_races.on("value", function (snapshot) {
             tourney_races_data = snapshot.val();
         }, function (errorObject) {
             console.log("The read failed: " + errorObject);
         });
-        var tourney_live = database.ref('tourney/live');
+        let tourney_live = database.ref('tourney/live');
         tourney_live.on("value", function (snapshot) {
             tourney_live_data = snapshot.val();
         }, function (errorObject) {
@@ -131,7 +131,7 @@ module.exports = {
                 .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
 
             let sort = "date_ascend", tourney = "0", match = null, type = 7, offset = 0
-            var ruleset_emojis = {
+            let ruleset_emojis = {
                 "1v1": "🆚",
                 "1vAll": "👑",
                 "Qualifier": "⏳",
@@ -475,7 +475,7 @@ module.exports = {
 
                 //assemble embed
                 let thematch = tourney_matches_data[match]
-                var title = [(thematch.bracket ?? ""), (thematch.round ?? ""), Object.values(thematch.races[0].runs).map(run => getUsername(run.player)).join(" vs ")].join(" ").substring(0, 50)
+                let title = [(thematch.bracket ?? ""), (thematch.round ?? ""), Object.values(thematch.races[0].runs).map(run => getUsername(run.player)).join(" vs ")].join(" ").substring(0, 50)
                 let description = ""
                 if (tourney_tournaments_data[thematch.tourney]?.challonge) {
                     description += "[:trophy: " + tourney_tournaments_data[thematch.tourney].name + "](" + tourney_tournaments_data[thematch.tourney].challonge[0] + ")\n"
@@ -670,7 +670,7 @@ module.exports = {
             })
 
         } else if (args[0] == "schedule") {
-            var type = 4
+            let type = 4
             if (args[1] == "refresh") {
                 type = 7
             }
@@ -840,7 +840,7 @@ module.exports = {
                     } else {
                         thisconditions = Object.values(race.conditions)
                         thistrack = race.track
-                        
+
                     }
 
                     //update counts
@@ -991,11 +991,11 @@ module.exports = {
                         tourneyReport
                             .addField(pos[0] + " " + getUsername(runs[i].player),
                                 tourney_tournaments_data[runs[i].tourney].nickname + bracket +
-                                "\n[Race " + runs[i].num + 
-                                (runs[i].opponents.length > 0 ? 
-                                    (runs[i].opponents.length > 3 ? 
-                                        " vs " + runs[i].opponents.length + " players" : 
-                                        " vs " + runs[i].opponents.map(op => getUsername(op)).join(", ")):"") + "](" + runs[i].vod + ")", true)
+                                "\n[Race " + runs[i].num +
+                                (runs[i].opponents.length > 0 ?
+                                    (runs[i].opponents.length > 3 ?
+                                        " vs " + runs[i].opponents.length + " players" :
+                                        " vs " + runs[i].opponents.map(op => getUsername(op)).join(", ")) : "") + "](" + runs[i].vod + ")", true)
                             .addField(runs[i].time == "DNF" ? "DNF" : tools.timefix(Number(runs[i].time).toFixed(3)),
                                 " " + racers[runs[i].pod].flag + " " + runs[i].platform.toUpperCase() + (runs[i].deaths > 0 ? runs[i].deaths > 1 ? " :skull:×" + runs[i].deaths : " :skull:" : "") + "\n" +
                                 [runs[i].conditions.filter(con => !['um', 'l3', 'tt', 'mu', 'ft', 'qual', 'de', 'dl'].includes(con)).map(con => "`" + conditionmap[con] + "`").join(" "), (runs[i].podbans.length > 0 ? ":x:" + runs[i].podbans.map(ban => racers[ban].flag).join(" ") : "")].filter(t => t !== "").join(" "), true)
@@ -1117,16 +1117,16 @@ module.exports = {
                 }
             })
         } else if (args[0] == "rulesets") {
-            var type = 7
+            let type = 7
             if (args.includes("initial")) {
                 type = 4
             }
-            var flags = 0
-            var components = []
+            let flags = 0
+            let components = []
             const rulesetEmbed = new Discord.MessageEmbed()
                 .setAuthor("Tournaments", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
 
-            var emojis = {
+            let emojis = {
                 "1v1": "🆚",
                 "1vAll": "👑",
                 "Qualifier": "⏳",
@@ -1154,7 +1154,7 @@ module.exports = {
                     ngp: "New Game +"
                 }
 
-                var methods = {
+                let methods = {
                     poe: "Process of Elimination",
                     chance_cube: "Chance Cube",
                     random: "Random",
@@ -1185,7 +1185,7 @@ module.exports = {
                     random_tier: "Random by Tier"
                 }
 
-                var permabans = [
+                let permabans = [
                     {
                         name: "Pod",
                         command: "permapodban",
@@ -1206,7 +1206,7 @@ module.exports = {
                     }
                 ]
 
-                var tempbans = [
+                let tempbans = [
                     {
                         name: "Pod",
                         command: "temppodban",
@@ -1230,13 +1230,13 @@ module.exports = {
                     }
                 ]
                 function podSelection(collection) {
-                    var result = ""
+                    let result = ""
                     if (collection.length == 23) {
                         result = "`Any Pod`"
                     } else {
-                        var pods = []
-                        var missing_pods = []
-                        for (var p = 0; p < 23; p++) {
+                        let pods = []
+                        let missing_pods = []
+                        for (let p = 0; p < 23; p++) {
                             if (collection.includes(String(p))) {
                                 pods.push(racers[p].flag)
                             } else {
@@ -1255,10 +1255,10 @@ module.exports = {
                 if (ruleset.type == "1v1") {
 
                     function trackSelection(collection) {
-                        var amc = 0, spc = 0, gal = 0, inv = 0
-                        var result = ""
-                        var first_nicks = []
-                        var missing = []
+                        let amc = 0, spc = 0, gal = 0, inv = 0
+                        let result = ""
+                        let first_nicks = []
+                        let missing = []
                         for (i = 0; i < 25; i++) {
                             if (collection.includes(String(i))) {
                                 if (collection[i] >= 0 && collection[i] < 7) {
@@ -1304,12 +1304,12 @@ module.exports = {
 
                     rulesetEmbed
                         .setDescription("Ruleset Type: 🆚 1v1" + "\n" + ruleset.description)
-                    var fields = []
+                    let fields = []
                     //wins
-                    var field = {}
+                    let field = {}
                     field.name = ":trophy: Win Condition"
-                    var winstuff = Object.values(ruleset.wins)
-                    var winstring = []
+                    let winstuff = Object.values(ruleset.wins)
+                    let winstring = []
                     for (i = 0; i < winstuff.length; i++) {
                         if (winstuff[i].includes("_max")) {
                             winstring.push("`" + winstuff[i].replace("_max", " Wins Max") + "`")
@@ -1327,8 +1327,8 @@ module.exports = {
                     //default
                     field = {}
                     field.name = ":eight_spoked_asterisk: Default Conditions"
-                    var cond = Object.values(ruleset.default)
-                    var cons = []
+                    let cond = Object.values(ruleset.default)
+                    let cons = []
                     cond.forEach(con => {
                         cons.push("`" + conditions[con] + "`")
                     })
@@ -1373,7 +1373,7 @@ module.exports = {
                             field.value += "`" + ruleset[tempbans[b].limit] + " Max Per Race`\n"
                             if (ruleset[tempbans[b].method] !== "random") {
                                 ml = Object.values(ruleset[tempbans[b].mlimit])
-                                var ms = []
+                                let ms = []
                                 for (i = 0; i < ml.length; i++) {
                                     if (ml[i] == "no_limit") {
                                         ms.push("`No Match Limit`")
@@ -1421,8 +1421,8 @@ module.exports = {
                         } else {
                             field.value += "`" + ruleset.conlimit + " Per Player Per Match`\n"
                         }
-                        var cond = Object.values(ruleset.conoptions)
-                        var cons = []
+                        let cond = Object.values(ruleset.conoptions)
+                        let cons = []
                         cond.forEach(con => {
                             cons.push("`" + conditions[con] + "`")
                         })
@@ -1439,12 +1439,12 @@ module.exports = {
                     } else if (ruleset.podmethod == "pod_pool") {
                         field.value += "`" + ruleset.poollimit + " Uses Per Pod`\n"
                     }
-                    var podpods = Object.values(ruleset.podpods)
+                    let podpods = Object.values(ruleset.podpods)
                     if (podpods.length == 23) {
                         field.value += "`Any Pod`"
                     } else {
-                        var pods = []
-                        var missing_pods = []
+                        let pods = []
+                        let missing_pods = []
                         for (i = 0; i < 23; i++) {
                             if (podpods.includes(String(i))) {
                                 pods.push(racers[i].flag)
@@ -1482,12 +1482,12 @@ module.exports = {
                     }
                     rulesetEmbed
                         .setDescription("Ruleset Type: " + emojis[ruleset.type] + " " + ruleset.type + "\n" + ruleset.description)
-                    var fields = []
+                    let fields = []
                     //default conditions
-                    var field = {}
+                    let field = {}
                     field.name = ":eight_spoked_asterisk: Conditions"
-                    var cond = Object.values(ruleset.conditions)
-                    var cons = []
+                    let cond = Object.values(ruleset.conditions)
+                    let cons = []
                     cond.forEach(con => {
                         cons.push("`" + conditions[con] + "`")
                     })
@@ -1525,12 +1525,12 @@ module.exports = {
                     return fields
                 }
             }
-            var modal = false
+            let modal = false
             //break if check here in case "refresh" changed to "browse"
             if (args[1] == "browse") { //browse ruleset list
                 rulesetEmbed.setTitle(":scroll: Rulesets")
                     .setDescription("This is the tournament ruleset manager. Browse existing rulesets using the dropdown below or make your own by pressing the New button.\n\n:grey_question: To learn more about making rulesets, watch [this video](https://youtu.be/fExzuOvn6iY)")
-                var buttons = [
+                let buttons = [
                     {
                         type: 2,
                         label: "",
@@ -1542,7 +1542,7 @@ module.exports = {
                         custom_id: "tourney_rulesets_refresh",
                     }
                 ]
-                var offset = 0
+                let offset = 0
                 if (args[2] !== undefined && args[2] !== "initial") {
                     offset = Number(args[2])
                 }
@@ -1550,8 +1550,8 @@ module.exports = {
                     offset = Number(interaction.data.values[0].replace("offset", ""))
                 }
                 if (![undefined, null].includes(tourney_rulesets_data.saved)) {
-                    var saved = Object.keys(tourney_rulesets_data.saved)
-                    var rulesets = []
+                    let saved = Object.keys(tourney_rulesets_data.saved)
+                    let rulesets = []
                     saved = saved.sort(function (a, b) {
                         if (tourney_rulesets_data.saved[a].name < tourney_rulesets_data.saved[b].name) { return -1; }
                         if (tourney_rulesets_data.saved[a].name > tourney_rulesets_data.saved[b].name) { return 1; }
@@ -1566,8 +1566,8 @@ module.exports = {
                                 }
                             )
                         }
-                        var s = saved[i]
-                        var r = {
+                        let s = saved[i]
+                        let r = {
                             label: tourney_rulesets_data.saved[s].name,
                             emoji: {
                                 name: emojis[tourney_rulesets_data.saved[s].type]
@@ -1594,7 +1594,7 @@ module.exports = {
                         }
                     }
                     if (interaction.data.hasOwnProperty("values") && !interaction.data.values[0].includes("offset")) {
-                        var ruleset = tourney_rulesets_data.saved[interaction.data.values[0]]
+                        let ruleset = tourney_rulesets_data.saved[interaction.data.values[0]]
                         rulesetEmbed.setTitle(":scroll: Rulesets: " + ruleset.name)
                             .setDescription("Type: " + emojis[ruleset.type] + " " + ruleset.type + "\n" + ruleset.description)
                             .addFields(showRuleset(ruleset))
@@ -1645,22 +1645,21 @@ module.exports = {
             }
 
         } else if (args[0] == "stats") {
-            var player = "global", type = 6, track = null, player_runs = []
-            var sort = "plays"
+            let player = "global", type = 6, track = null, player_runs = []
+            let sort = "plays"
             if (args.includes("initial")) {
                 type = 5
             } else {
-                for (var i = 0; i < interaction.message.components[0].components[0].options.length; i++) { //player
-                    var option = interaction.message.components[0].components[0].options[i]
+                interaction.message.components[0].components[0].options.forEach(option => { //player
                     if (option.hasOwnProperty("default")) {
                         if (option.default) {
                             player = option.value
                         }
                     }
-                }
+                })
                 if (interaction.message.embeds[0].title !== "Global Stats") {
-                    var tpd = Object.keys(tourney_participants_data)
-                    var name = interaction.message.embeds[0].title.replace("'s Stats", "")
+                    let tpd = Object.keys(tourney_participants_data)
+                    let name = interaction.message.embeds[0].title.replace("'s Stats", "")
                     for (i = 0; i < tpd.length; i++) {
                         if (tourney_participants_data[tpd[i]].name == name) {
                             player = tpd[i]
@@ -1668,25 +1667,19 @@ module.exports = {
                     }
                 }
                 if (interaction.message.components.length > 1) {
-                    for (var i = 0; i < interaction.message.components[1].components[0].options.length; i++) { //sort
-                        var option = interaction.message.components[1].components[0].options[i]
-                        if (option.hasOwnProperty("default")) {
-                            if (option.default) {
-                                sort = option.value
-                            }
+                    interaction.message.components[1].components[0].options.forEach(option => {//sort
+                        if (option.default) {
+                            sort = option.value
                         }
-                    }
-                    for (var i = 0; i < interaction.message.components[2].components[0].options.length; i++) { //tracks
-                        var option = interaction.message.components[2].components[0].options[i]
-                        if (option.hasOwnProperty("default")) {
-                            if (option.default) {
-                                track = Number(option.value)
-                            }
+                    })
+                    interaction.message.components[2].components[0].options.forEach(option => {
+                        if (option.default) {
+                            track = Number(option.value)
                         }
-                    }
+                    })
                 }
             }
-            var offset = 0
+            let offset = 0
             if (args[1] == "player") {
                 if (interaction.data.hasOwnProperty("values")) {
                     if (interaction.data.values[0].includes("offset")) {
@@ -1696,16 +1689,9 @@ module.exports = {
                     }
                 }
             } else if (args[1] == "sort") {
-                if (interaction.data.hasOwnProperty("values")) {
-                    sort = interaction.data.values[0]
-                }
+                sort = interaction.data?.values[0] ?? "plays"
             } else if (args[1] == "tracks") {
-                if (interaction.data.hasOwnProperty("values")) {
-                    track = null
-                    if (interaction.data.values.length > 0) {
-                        track = Number(interaction.data.values[0])
-                    }
-                }
+                track = Number(interaction.data?.values[0]) ?? null
             }
             const tourneyReport = new Discord.MessageEmbed()
             tourneyReport
@@ -1718,15 +1704,7 @@ module.exports = {
             }
 
             async function sendCallback() {
-                const wait = client.api.interactions(interaction.id, interaction.token).callback.post({
-                    data: {
-                        type: type,
-                        data: {
-                            content: "Coming right up..."
-                            //embeds: [racerEmbed]
-                        }
-                    }
-                })
+                const wait = client.api.interactions(interaction.id, interaction.token).callback.post({ data: { type: type, data: {} } })
                 return wait
             }
             async function sendResponse(data) {
@@ -1741,9 +1719,10 @@ module.exports = {
                 return response
             }
             sendCallback().then(() => {
-                var accomp = { win: { count: 0, streaks: [] }, deathless: { count: 0, streaks: [] }, comebacks: [] }
-                var accomplishments = []
-                var stats = {
+                //initialize stat structure
+                let accomp = { win: { count: 0, streaks: [] }, deathless: { count: 0, streaks: [] }, comebacks: [] }
+                let accomplishments = []
+                let stats = {
                     race_time: 0,
                     deaths: [],
                     matches: {
@@ -1771,27 +1750,27 @@ module.exports = {
                     players: {},
                     commentators: {}
                 }
-                var best_times = {}
+                let best_times = {}
                 for (i = 0; i < 25; i++) {
                     best_times[i] = {}
                 }
-                var tpd = Object.keys(tourney_participants_data)
+                let tpd = Object.keys(tourney_participants_data)
                 tpd.forEach(participant => {
                     stats.players[participant] = {
                         race_time: 0,
                         deaths: [],
                         matches: { total: 0, won: 0, lost: 0, qual: 0, winners: 0, losers: 0 },
-                        races: { total: 0, won: 0, lost: 0, runbacks: 0, dnf: 0, },
-                        tracks: {},
-                        pods: {},
+                        races: { total: 0, won: 0, lost: 0, runbacks: 0, dnf: 0 },
+                        track: {},
+                        racer: {},
                         opponents: {},
-                        forces: { no_upgrades: 0, skips: 0, pod_ban: 0 },
+                        overrides: { nu: 0, sk: 0, fl: 0 },
                         co_comm: {},
                     }
                 })
                 for (i = 0; i < 25; i++) {
-                    stats.tracks[i] = { plays: 0, picks: [], bans: [], wins: [], deaths: [], runbacks: 0, nu: 0, skips: 0 }
-                    stats.pods[i] = { plays: 0, picks: [], bans: [], wins: [], deaths: [], nu: 0, skips: 0 }
+                    stats.track[i] = { plays: 0, picks: [], bans: [], wins: [], deaths: [], runbacks: 0, nu: 0, skips: 0 }
+                    stats.racer[i] = { plays: 0, picks: [], bans: [], wins: [], deaths: [], nu: 0, skips: 0 }
                     tpd.forEach(participant => {
                         stats.players[participant].tracks[i] = { plays: 0, picks: [], bans: [], wins: [], deaths: [], runbacks: 0, nu: 0, skips: 0 }
                         stats.players[participant].pods[i] = { plays: 0, picks: [], bans: [], wins: [], deaths: [], nu: 0, skips: 0 }
@@ -1799,13 +1778,13 @@ module.exports = {
                 }
 
                 //get stats
-                var tmd = Object.values(tourney_matches_data)
-                tmd = tmd.sort(function (a, b) {
+                let matches = Object.values(tourney_matches_data).sort(function (a, b) {
                     return a.datetime - b.datetime
                 })
-                tmd.forEach(match => {
-                    var already_played = []
-                    var runback = {}
+                matches.forEach(match => {
+                    let already_played = []
+                    let runback = {}
+                    let players = Object.values(match.races[0].runs).map(run => run.player)
                     match.commentators.forEach(commentator => {
                         if (stats.commentators[commentator] == undefined) {
                             stats.commentators[commentator] = { count: 1, cocomm: {}, comfor: {} }
@@ -1821,147 +1800,142 @@ module.exports = {
                                 }
                             }
                         })
-                        match.races.forEach((race, num) => {
-                            if (num == 0) {
-                                race.runs.forEach(run => {
-                                    if (stats.commentators[commentator].comfor[run.player] == undefined) {
-                                        stats.commentators[commentator].comfor[run.player] = 1
-                                    } else {
-                                        stats.commentators[commentator].comfor[run.player]++
-                                    }
-
-                                })
+                        players.forEach(player => {
+                            if (stats.commentators[commentator].comfor[player] == undefined) {
+                                stats.commentators[commentator].comfor[player] = 1
+                            } else {
+                                stats.commentators[commentator].comfor[player]++
                             }
+
                         })
                     })
-                    match.races.forEach((race, num) => {
-                        if (num == 0) {
-                            race.runs.forEach(run => {
-                                if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type)) {
-                                    race.runs.forEach(opponent => {
-                                        if (opponent.player !== run.player) {
-                                            if (stats.players[run.player].opponents[opponent.player] == undefined) {
-                                                stats.players[run.player].opponents[opponent.player] = { matches: 0, races: 0, wins: [], times: [] }
-                                            }
-                                            stats.players[run.player].opponents[opponent.player].matches++
-                                        }
-                                    })
+                    if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type)) {
+                        players.forEach(player => {
+                            players.filter(op => op !== player).forEach(opponent => {
+                                if (stats.players[player].opponents[opponent] == undefined) {
+                                    stats.players[player].opponents[opponent] = { matches: 0, races: 0, wins: [], times: [] }
                                 }
+                                stats.players[player].opponents[opponent].matches++
                             })
-                        }
+                        })
+                    }
 
-                    })
                     if (match.bracket == "Qualifying") {
                         stats.matches.qual++
                     } else if (match.bracket == "Losers") {
-                        stats.matches.winners++
-                    } else if (match.bracket == "Winners") {
                         stats.matches.losers++
+                    } else if (match.bracket == "Winners") {
+                        stats.matches.winners++
                     }
                     stats.matches.total++
-                    var already_banned = []
-                    var score = {}, comeback = {}
-                    match.races.forEach((race, num) => {
-                        var temptrack = []
-                        var temppod = []
-                        var conditions = []
-                        if (race.tempbans !== undefined) {
-                            race.tempbans.forEach(ban => {
-                                if (ban.type == "pod") {
-                                    stats.pods[ban.selection].bans.push(1)
-                                    stats.players[ban.player].pods[ban.selection].bans.push(1)
-                                    temppod.push(Number(ban.selection))
-                                    for (var i = 0; i < 25; i++) {
-                                        if (!temppod.includes(i)) {
-                                            stats.pods[i].bans.push(0)
-                                            stats.players[ban.player].pods[i].bans.push(0)
-                                        }
-                                    }
-                                } else if (ban.type == "track") {
-                                    stats.tracks[ban.selection].bans.push(1)
-                                    stats.players[ban.player].tracks[ban.selection].bans.push(1)
-                                    temptrack.push(Number(ban.selection))
-                                    var opponent = null
-                                    race.runs.forEach(run => {
-                                        if (run.player !== ban.player) {
-                                            opponent = run.player
-                                        }
-                                    })
-                                    for (var i = 0; i < 25; i++) {
-                                        if (!temptrack.includes(i) && !already_banned.includes(i) && (!already_played.includes(i) || (already_played.includes(i) && runback[opponent] == undefined))) {
-                                            stats.tracks[i].bans.push(0)
-                                            stats.players[ban.player].tracks[i].bans.push(0)
-                                        }
-                                    }
-                                }
-                            })
-                        }
-                        if (race.conditions !== undefined) {
-                            race.conditions.forEach(condition => {
-                                stats.forces.total++
-                                stats.players[condition.player].forces[condition.type]++
-                                if (condition.type == "skips") {
-                                    stats.forces.skips++
-                                    conditions.push("skips")
-                                } else if (condition.type == "no_upgrades") {
-                                    stats.forces.no_upgrades++
-                                    conditions.push("nu")
-                                } else if (condition.type == "pod_ban") {
-                                    stats.forces.pod_ban++
-                                    temppod.push(condition.selection)
-                                }
-                            })
-                        }
+                    let already_banned = []
+                    let score = {}, comeback = {}
+                    let temppod = [], temptrack = []
 
-                        if (num == 0) {
-                            already_played.push(Number(race.track_selection.track))
-                            race.runs.forEach(run => {
-                                stats.players[run.player].matches.total++
-                                if (match.bracket == "Qualifying") {
-                                    stats.players[run.player].matches.qual++
-                                } else if (match.bracket == "Winners") {
-                                    stats.players[run.player].matches.winners++
-                                } else if (match.bracket == "Losers") {
-                                    stats.players[run.player].matches.losers++
-                                }
-                                score[run.player] = 0
-                            })
-                            if (match.permabans !== undefined) {
-                                match.permabans.forEach(ban => {
-                                    if (ban.type == "track") {
-                                        stats.tracks[ban.selection].bans.push(1)
-                                        stats.players[ban.player].tracks[ban.selection].bans.push(1)
-                                        already_banned.push(Number(ban.selection))
-                                        for (var i = 0; i < 25; i++) {
-                                            if (!already_banned.includes(i) && !already_played.includes(i)) {
-                                                stats.tracks[i].bans.push(0)
-                                                stats.players[ban.player].tracks[i].bans.push(0)
+                    players.forEach(p => {
+                        stats.players[p].matches.total++
+                        if (match.bracket == "Qualifying") {
+                            stats.players[p].matches.qual++
+                        } else if (match.bracket == "Winners") {
+                            stats.players[p].matches.winners++
+                        } else if (match.bracket == "Losers") {
+                            stats.players[p].matches.losers++
+                        }
+                        score[p] = 0
+                    })
+
+                    match.races.forEach((race, num) => {
+                        let conditions = tourney_rulesets_data.saved[match.ruleset].general.default
+                        let thistrack = null
+                        if (race.events) {
+                            Object.values(race.events).forEach(event => {
+                                if (event.event == 'tempban') {
+                                    if (event.type == 'racer') {
+                                        if (!event.selection.isArray()) {
+                                            event.selection = [event.selection]
+                                        }
+                                        event.selection.forEach(selection => {
+                                            stats.racer[selection].bans.push(1)
+                                            stats.players[event.player].pods[selection].bans.push(1)
+                                            temppod.push(Number(selection))
+                                            for (let i = 0; i < 25; i++) {
+                                                if (!temppod.includes(i)) {
+                                                    stats.racer[i].bans.push(0)
+                                                    stats.players[event.player].pods[i].bans.push(0)
+                                                }
+                                            }
+                                        })
+                                    } else if (event.type == 'track') {
+                                        stats.track[event.selection].bans.push(1)
+                                        stats.players[event.player].tracks[event.selection].bans.push(1)
+                                        temptrack.push(Number(event.selection))
+                                        let opponent = null
+                                        race.runs.forEach(run => {
+                                            if (run.player !== event.player) {
+                                                opponent = run.player
+                                            }
+                                        })
+                                        for (let i = 0; i < 25; i++) {
+                                            if (!temptrack.includes(i) && !already_banned.includes(i) && (!already_played.includes(i) || (already_played.includes(i) && runback[opponent] == undefined))) {
+                                                stats.track[i].bans.push(0)
+                                                stats.players[event.player].tracks[i].bans.push(0)
                                             }
                                         }
                                     }
-                                })
-                            }
+                                } else if (event.event == 'override' && event.type == 'condition') {
+                                    stats.overrides.total++
+                                    stats.players[event.player].overrides[event.selection]++
+                                    stats.overrides[event.selection]++
+                                    if (event.selection == 'nu') {
+                                        conditions.upgr = 'nu'
+                                    }
+                                    if (event.selection == 'sk') {
+                                        conditions.trak = 'sk'
+                                    }
+                                    if (event.selection == 'fl') {
+                                        conditions.time = 'fl'
+                                    }
+                                } else if (event.event == 'selection' && event.type == 'track') {
+                                    thistrack = event.selection
+                                    already_played.push(thistrack)
+                                    if (event.player !== undefined) {
+                                        if (event.repeat) {
+                                            runback[event.player] = true
+                                            stats.track[event.selection].runbacks++
+                                            stats.players[event.player].tracks[event.selection].runbacks++
+                                            stats.races.runbacks++
+                                            stats.players[event.player].races.runbacks++
+                                        }
+                                        stats.track[event.selection].picks.push(1)
+                                        stats.players[event.player].tracks[event.selection].picks.push(1)
+                                        already_played.push(Number(event.selection))
+                                        for (let i = 0; i < 25; i++) {
+                                            if (!temptrack.includes(i) && !already_banned.includes(i) && (!already_played.includes(i) || (already_played.includes(i) && (runback[race.track_selection.player] !== undefined)))) {
+                                                stats.track[i].picks.push(0)
+                                                stats.players[race.track_selection.player].tracks[i].picks.push(0)
+                                            }
+                                        }
+                                    }
+                                } else if (event.event == 'permaban') {
+                                    if (event.type == "track") {
+                                        stats.track[event.selection].bans.push(1)
+                                        stats.players[event.player].tracks[event.selection].bans.push(1)
+                                        already_banned.push(Number(event.selection))
+                                        for (let i = 0; i < 25; i++) {
+                                            if (!already_banned.includes(i) && !already_played.includes(i)) {
+                                                stats.track[i].bans.push(0)
+                                                stats.players[event.player].tracks[i].bans.push(0)
+                                            }
+                                        }
+                                    }
+                                }
+                            })
+                        } else {
 
                         }
-                        if (race.track_selection.player !== undefined) {
-                            if (already_played.includes(race.track_selection.track)) {
-                                runback[race.track_selection.player] = true
-                                stats.tracks[race.track_selection.track].runbacks++
-                                stats.players[race.track_selection.player].tracks[race.track_selection.track].runbacks++
-                                stats.races.runbacks++
-                                stats.players[race.track_selection.player].races.runbacks++
-                            }
-                            stats.tracks[race.track_selection.track].picks.push(1)
-                            stats.players[race.track_selection.player].tracks[race.track_selection.track].picks.push(1)
-                            already_played.push(Number(race.track_selection.track))
-                            for (var i = 0; i < 25; i++) {
-                                if (!temptrack.includes(i) && !already_banned.includes(i) && (!already_played.includes(i) || (already_played.includes(i) && (runback[race.track_selection.player] !== undefined)))) {
-                                    stats.tracks[i].picks.push(0)
-                                    stats.players[race.track_selection.player].tracks[i].picks.push(0)
-                                }
-                            }
-                        }
-                        var winner = { player: null, time: null, pod: null }
+
+
+                        let winner = { player: null, time: null, pod: null }
 
                         race.runs.forEach(run => {
                             if (run.time !== "DNF") {
@@ -1976,26 +1950,20 @@ module.exports = {
                             }
                             stats.players[run.player].races.total++
                             stats.races.total++
-                            if (conditions.includes("skips")) {
-                                stats.players[run.player].tracks[race.track_selection.track].skips++
-                                stats.players[run.player].pods[run.pod].skips++
-                                stats.pods[run.pod].skips++
-                                stats.tracks[race.track_selection.track].skips++
-                            }
-                            if (conditions.includes("nu")) {
-                                stats.players[run.player].tracks[race.track_selection.track].nu++
-                                stats.players[run.player].pods[run.pod].nu++
-                                stats.pods[run.pod].nu++
-                                stats.tracks[race.track_selection.track].nu++
-                            }
-                            if (run.deaths == undefined) {
+                            overrides.forEach(o => {
+                                stats.players[run.player].tracks[thistrack][o]++
+                                stats.players[run.player].pods[run.pod][o]++
+                                stats.racer[run.pod][o]++
+                                stats.track[thistrack][o]++
+                            })
+                            if ([null, undefined, ""].includes(run.deaths)) {
                                 run.deaths = 0
                             }
-
                             stats.deaths.push(run.deaths)
-                            stats.tracks[race.track_selection.track].deaths.push(run.deaths)
-                            stats.players[run.player].tracks[race.track_selection.track].deaths.push(run.deaths)
+                            stats.track[thistrack].deaths.push(run.deaths)
+                            stats.players[run.player].tracks[thistrack].deaths.push(run.deaths)
                             stats.players[run.player].deaths.push(run.deaths)
+                            //accomplishments for selected player
                             if (run.player == player && match.bracket !== "Qualifying") {
                                 if (run.deaths == 0) {
                                     accomp.deathless.count++
@@ -2004,111 +1972,61 @@ module.exports = {
                                     accomp.deathless.count = 0
                                 }
                             }
-
-                            stats.tracks[race.track_selection.track].plays++
-                            stats.players[run.player].tracks[race.track_selection.track].plays++
-
+                            stats.track[thistrack].plays++
+                            stats.players[run.player].tracks[thistrack].plays++
                             if (run.pod !== undefined) {
-                                stats.pods[run.pod].plays++
-                                stats.pods[run.pod].picks.push(1)
-                                stats.pods[run.pod].deaths.push(run.deaths)
+                                stats.racer[run.pod].plays++
+                                stats.racer[run.pod].picks.push(1)
+                                stats.racer[run.pod].deaths.push(run.deaths)
                                 stats.players[run.player].pods[run.pod].plays++
                                 stats.players[run.player].pods[run.pod].picks.push(1)
                                 stats.players[run.player].pods[run.pod].deaths.push(run.deaths)
-                                for (var i = 0; i < 25; i++) {
+                                for (let i = 0; i < 25; i++) {
                                     if (!temppod.includes(i) && i !== run.pod) {
-                                        stats.pods[i].picks.push(0)
+                                        stats.racer[i].picks.push(0)
                                         stats.players[run.player].pods[i].picks.push(0)
                                     }
                                 }
                             }
                             if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type)) {
-                                race.runs.forEach(opponent => {
-                                    if (opponent.player !== run.player) {
-                                        stats.players[run.player].opponents[opponent.player].races++
-                                        if (opponent.time !== "DNF" && run.time !== "DNF") {
-                                            stats.players[run.player].opponents[opponent.player].times.push(opponent.time - run.time)
-                                            if (run.time - opponent.time < 0 || run.time == "DNF") {
-                                                stats.players[run.player].opponents[opponent.player].wins.push(1)
-                                            } else if (opponent.time - run.time < 0 || opponent.time == "DNF") {
-                                                stats.players[run.player].opponents[opponent.player].wins.push(0)
-                                            }
+                                players.filter(p => p !== run.player).forEach(opponent => {
+                                    stats.players[run.player].opponents[opponent.player].races++
+                                    if (opponent.time !== "DNF" && run.time !== "DNF") {
+                                        stats.players[run.player].opponents[opponent.player].times.push(opponent.time - run.time)
+                                        if (run.time - opponent.time < 0 || run.time == "DNF") {
+                                            stats.players[run.player].opponents[opponent.player].wins.push(1)
+                                        } else if (opponent.time - run.time < 0 || opponent.time == "DNF") {
+                                            stats.players[run.player].opponents[opponent.player].wins.push(0)
                                         }
                                     }
                                 })
                             }
                             if (match.bracket !== "Qualifying") {
-                                if (conditions.includes("skips") && conditions.includes("nu")) {
-                                    if (best_times[race.track_selection.track].hasOwnProperty("nuskips")) {
-                                        if (Number(run.time) - Number(best_times[race.track_selection.track].nuskips.time) < 0) {
-                                            best_times[race.track_selection.track].nuskips = { time: run.time, player: run.player }
-                                        }
-                                    } else {
-                                        best_times[race.track_selection.track].nuskips = { time: run.time, player: run.player }
+                                if (best_times[thistrack][conditions.join("")]) {
+                                    if (Number(run.time) - Number(best_times[thistrack][conditions.join("")].time) < 0) {
+                                        best_times[thistrack][conditions.join("")] = { time: run.time, player: run.player }
                                     }
-                                } else if (conditions.includes("skips")) {
-                                    if (best_times[race.track_selection.track].hasOwnProperty("skips")) {
-                                        if (Number(run.time) - Number(best_times[race.track_selection.track].skips.time) < 0) {
-                                            best_times[race.track_selection.track].skips = { time: run.time, player: run.player }
-                                        }
-                                    } else {
-                                        best_times[race.track_selection.track].skips = { time: run.time, player: run.player }
-                                    }
-                                } else if (conditions.includes("nu")) {
-                                    if (best_times[race.track_selection.track].hasOwnProperty("nu")) {
-                                        if (Number(run.time) - Number(best_times[race.track_selection.track].nu.time) < 0) {
-                                            best_times[race.track_selection.track].nu = { time: run.time, player: run.player }
-                                        }
-                                    } else {
-                                        best_times[race.track_selection.track].nu = { time: run.time, player: run.player }
-                                    }
-                                } else if (conditions.length == 0) {
-                                    if (best_times[race.track_selection.track].hasOwnProperty("ft")) {
-                                        if (Number(run.time) - Number(best_times[race.track_selection.track].ft.time) < 0) {
-                                            best_times[race.track_selection.track].ft = { time: run.time, player: run.player }
-                                        }
-                                    } else {
-                                        best_times[race.track_selection.track].ft = { time: run.time, player: run.player }
-                                    }
+                                } else {
+                                    best_times[thistrack][conditions.join("")] = { time: run.time, player: run.player }
                                 }
                             }
                         })
                         race.runs.forEach(run => {
-                            var player_run = {}
-                            if ((run.player == player || player == "global") && race.track_selection.track == track) {
+                            let player_run = {}
+                            if ((run.player == player || player == "global") && thistrack == track) {
                                 player_run = {
-                                    match: tourney_tournaments_data[match.tourney].nickname + " " + match.bracket + " ",
+                                    match: tourney_tournaments_data[match.tourney].nickname + " " + match.bracket + " " + (match.round ? match.round : ""),
                                     time: run.time,
                                     pod: run.pod,
                                     race: num + 1,
                                     conditions: conditions,
                                     temppod: temppod,
                                     deaths: run.deaths,
-                                    pick: false,
-                                    winner: false,
-                                    opponents: [],
+                                    pick: Object.values(race.events).filter(e => e.event == 'selection' && e.type == 'track')[0].player == run.player,
+                                    winner: player_run.player == winner.player,
+                                    opponents: (["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type)) ? [] : players.filter(p => p !== run.player),
                                     player: run.player
                                 }
-                                if (match.round !== undefined) {
-                                    player_run.match += match.round
-                                }
-                                if (race.track_selection.hasOwnProperty("player")) {
-                                    if (race.track_selection.player == player_run.player) {
-                                        player_run.pick = true
-                                    }
-                                }
-                                if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type)) {
-                                    race.runs.forEach(opponent => {
-                                        if (opponent.player !== run.player) {
-                                            if (player_run.hasOwnProperty("opponents") && opponent.player !== player_run.player) {
-                                                player_run.opponents.push(opponent.player)
-                                            }
-                                        }
-                                    })
-                                }
-                            }
-                            if (player_run.player == winner.player) {
-                                player_run.winner = true
                             }
                             if (player_run.hasOwnProperty("time")) {
                                 player_runs.push(player_run)
@@ -2116,23 +2034,23 @@ module.exports = {
                         })
                         if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type) && winner.player !== null) {
                             stats.players[winner.player].races.won++
-                            stats.players[winner.player].tracks[race.track_selection.track].wins.push(1)
+                            stats.players[winner.player].tracks[thistrack].wins.push(1)
                             stats.players[winner.player].pods[winner.pod].wins.push(1)
-                            stats.pods[winner.pod].wins.push(1)
+                            stats.racer[winner.pod].wins.push(1)
                             if (winner.player == player) {
                                 accomp.win.count++
                             }
-                            if (winner.player == race.track_selection.player) {
-                                stats.tracks[race.track_selection.track].wins.push(1)
+                            if (winner.player == Object.values(race.events).filter(e => e.event == 'selection' && e.type == 'track')[0].player) {
+                                stats.track[thistrack].wins.push(1)
                             } else {
-                                stats.tracks[race.track_selection.track].wins.push(0)
+                                stats.track[thistrack].wins.push(0)
                             }
                             race.runs.forEach(loser => {
                                 if (loser.player !== winner.player) {
                                     stats.players[loser.player].races.lost++
-                                    stats.players[loser.player].tracks[race.track_selection.track].wins.push(0)
+                                    stats.players[loser.player].tracks[thistrack].wins.push(0)
                                     stats.players[loser.player].pods[loser.pod].wins.push(0)
-                                    stats.pods[loser.pod].wins.push(0)
+                                    stats.racer[loser.pod].wins.push(0)
                                     if (loser.player == player) {
                                         accomp.win.streaks.push(accomp.win.count)
                                         accomp.win.count = 0
@@ -2140,7 +2058,7 @@ module.exports = {
                                 }
                             })
                             score[winner.player]++
-                            var scores = Object.keys(score)
+                            let scores = Object.keys(score)
                             scores.forEach(p => {
                                 if (p == player) {
                                     if (comeback[p] == undefined) {
@@ -2151,7 +2069,7 @@ module.exports = {
                                     }
                                     scores.forEach(o => {
                                         if (o !== p) {
-                                            var dif = score[p] - score[o]
+                                            let dif = score[p] - score[o]
                                             comeback[p].op = o
                                             if (dif < 0 && (comeback[p].low == null || (dif <= comeback[p].low && num > comeback[p].lowrace))) {
                                                 comeback[p].low = dif
@@ -2171,8 +2089,8 @@ module.exports = {
 
                     })
                     if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type)) {
-                        var match_winner = { player: null, score: null }
-                        var scores = Object.keys(score)
+                        let match_winner = { player: null, score: null }
+                        let scores = Object.keys(score)
                         for (i = 0; i < scores.length; i++) {
                             if (match_winner.score == null || score[scores[i]] > match_winner.score) {
                                 match_winner = { player: scores[i], score: score[scores[i]] }
@@ -2186,7 +2104,6 @@ module.exports = {
                         }
                         if (comeback[player] !== undefined && ![comeback[player].high, comeback[player].low].includes(null) && comeback[player].high - comeback[player].low > 2 && comeback[player].op_high >= comeback[player].op_low) {
                             accomp.comebacks.push(comeback[player])
-
                         }
                     }
                 })
@@ -2198,11 +2115,11 @@ module.exports = {
                     }
                 })
                 //assemble embed
-                var ranks = tools.getRanks()
+                let ranks = tools.getRanks()
                 if (stats.matches.total > 0) {
                     if (player == "global") {
                         tourneyReport
-                            .setDescription("⏱️ Total Race Yime: `" + tools.timefix(stats.race_time) + "`\n💀 Average Deaths/Race: `" + (stats.deaths.reduce((a, b) => { return a + b }) / stats.races.total).toFixed(2) + "`")
+                            .setDescription("⏱️ Total Race Time: `" + tools.timefix(stats.race_time) + "`\n💀 Average Deaths/Race: `" + (stats.deaths.reduce((a, b) => { return a + b }) / stats.races.total).toFixed(2) + "`")
                             .addField(":crossed_swords: Matches", "total: `" + stats.matches.total + "`\n" +
                                 "qualifying: `" + stats.matches.qual + "`\n" +
                                 "winners: `" + stats.matches.winners + "`\n" +
@@ -2210,38 +2127,28 @@ module.exports = {
                             .addField(":checkered_flag: Races", "total: `" + stats.races.total + "`\n" +
                                 "runbacks: `" + stats.races.runbacks + "`\n" +
                                 "dnf: `" + stats.races.dnf + "`", true)
-                            .addField(":asterisk: Forces", "total: `" + (Number(stats.forces.skips) + Number(stats.forces.no_upgrades) + Number(stats.forces.pod_ban)) + "`\n" +
-                                "skips: `" + stats.forces.skips + "`\n" +
-                                "nu: `" + stats.forces.no_upgrades + "`\n" +
-                                "pod ban: `" + stats.forces.pod_ban + "`\n", true)
+                            .addField(":asterisk: Overrides", "total: `" + Object.values(stats.overrides).reduce((p, c) => p + c) + "`\n" + Object.keys(stats.overrides).map(o => o + ": `" + stats.overrides[0] + "`\n"), true)
                     } else {
-                        var description = ""
+                        let description = ""
                         if (ranks[player] !== undefined) {
-                            if (ranks[player].matches >= 4) {
-                                description += "⭐ Elo Rating: `" + (ranks[player].rank).toFixed(1) + " ("
-                                if (ranks[player].change >= 0) {
-                                    description += "🔺" + (ranks[player].change).toFixed(1) + ")`\n"
-                                } else {
-                                    description += "🔻" + Math.abs((ranks[player].change)).toFixed(1) + ")`\n"
-                                }
-
-                            } else if (ranks[player].matches > 0) {
-                                description += "⭐ Elo Rating: Unranked\n"
-                            }
+                            (ranks[player].matches >= 4) ? "⭐ Elo Rating: `" + (ranks[player].rank).toFixed(1) + " (" + ((ranks[player].change >= 0) ?
+                                "🔺" + (ranks[player].change).toFixed(1) + ")`\n" :
+                                description += "🔻" + Math.abs((ranks[player].change)).toFixed(1) + ")`\n") :
+                                ranks[player].matches > 0 ? "⭐ Elo Rating: Unranked\n" : ""
                         }
                         if (stats.players[player].matches.total > 0) {
-                            description += "⏱️ Total race time: `" + tools.timefix(stats.players[player].race_time) + "`\n💀 Average deaths/race: `" + (stats.players[player].deaths.reduce((a, b) => { return a + b }) / stats.players[player].races.total).toFixed(2) + "`"
+                            description += "⏱️ Total Race Time: `" + tools.timefix(stats.players[player].race_time) + "`\n💀 Average Deaths/Race: `" + (stats.players[player].deaths.reduce((a, b) => { return a + b }) / stats.players[player].races.total).toFixed(2) + "`"
                         }
                         if (stats.commentators[player] !== undefined) {
-                            description += "\n🎙️ Matches commentated: `" + stats.commentators[player].count + "`"
+                            description += "\n🎙️ Matches Commentated: `" + stats.commentators[player].count + "`"
                             if (stats.commentators[player].count > 30) {
                                 accomplishments.push("🎙️ Over 30 **Matches Commentated**")
                             }
                         }
-                        var ttd = Object.values(tourney_tournaments_data)
+                        let ttd = Object.values(tourney_tournaments_data)
                         ttd.forEach(tourney => {
                             if (tourney.standings) {
-                                var standings = Object.values(tourney.standings)
+                                let standings = Object.values(tourney.standings)
                                 for (i = 0; i < standings.length && i < 5; i++) {
                                     if (standings[i] == player) {
                                         if (i == 0) {
@@ -2258,7 +2165,7 @@ module.exports = {
                                 }
                             }
                             if (tourney.hasOwnProperty("predictions")) {
-                                var predictions = Object.values(tourney.predictions)
+                                let predictions = Object.values(tourney.predictions)
                                 if (predictions.includes(Number(player))) {
                                     accomplishments.push(":crystal_ball: **Best Prediction** for " + tourney.name)
                                 }
@@ -2266,42 +2173,40 @@ module.exports = {
                         })
                         accomp.win.streaks.push(accomp.win.count)
                         accomp.deathless.streaks.push(accomp.deathless.count)
-                        var win_streak = 0, deathless_streak = 0
+                        let win_streak = 0, deathless_streak = 0
                         for (i = 0; i < accomp.win.streaks.length; i++) {
-                            var streak = accomp.win.streaks[i]
+                            let streak = accomp.win.streaks[i]
                             if (streak > win_streak) {
                                 win_streak = streak
                             }
                         }
                         for (i = 0; i < accomp.deathless.streaks.length; i++) {
-                            var streak = accomp.deathless.streaks[i]
+                            let streak = accomp.deathless.streaks[i]
                             if (streak > deathless_streak) {
                                 deathless_streak = streak
                             }
                         }
                         //tourney record
-                        var player_records = {}
-                        var records = Object.keys(best_times)
-                        records.forEach(t => {
-                            var conditions = Object.keys(best_times[t])
-                            conditions.forEach(condition => {
-                                if (Number(best_times[t][condition].player) == Number(player)) {
-                                    if (player_records[condition] == undefined) {
-                                        player_records[condition] = []
+                        let player_records = {}
+                        Object.values(best_times).forEach(track => {
+                            Object.values(track).forEach(record => {
+                                if (Number(record.player) == Number(player)) {
+                                    if (player_records[record] == undefined) {
+                                        player_records[record] = []
                                     }
-                                    player_records[condition].push(t)
+                                    player_records[record].push(track)
                                 }
                             })
                         })
-                        var player_conditions = Object.keys(player_records)
-                        var record_conditions = {
-                            skips: "Skips", nuskips: "No Upgrades+Skips", nu: "No Upgrades", ft: "Full Track"
+                        let player_conditions = Object.keys(player_records)
+                        let record_conditions = {
+                            sk: "Skips", fl: "Fast Lap", nu: "No Upgrades", ft: "Full Track", tt: "Total Time", mu: "Max Upgrades"
                         }
                         player_conditions.forEach(condition => {
                             if (player_records[condition].length > 5) {
                                 accomplishments.push(":stopwatch: " + record_conditions[condition] + "** Record-Holder** on " + player_records[condition].length + " Tracks!")
                             } else {
-                                var player_tracks = []
+                                let player_tracks = []
                                 player_records[condition].forEach(t => {
                                     player_tracks.push(planets[tracks[Number(t)].planet].emoji + " " + tracks[Number(t)].nickname[0].toUpperCase())
                                 })
@@ -2311,21 +2216,21 @@ module.exports = {
 
                         //win/deathless streak
                         if (win_streak >= 5) {
-                            var winstring = ":crown: " + win_streak + "-Race **Win Streak**"
+                            let winstring = ":crown: " + win_streak + "-Race **Win Streak**"
                             if (accomp.win.count > 0) {
                                 winstring += " (Current streak: " + accomp.win.count + ")"
                             }
                             accomplishments.push(winstring)
                         }
                         if (deathless_streak >= 5) {
-                            var deathstring = ":skull: " + deathless_streak + "-Race **Deathless Streak**"
+                            let deathstring = ":skull: " + deathless_streak + "-Race **Deathless Streak**"
                             if (accomp.win.count > 0) {
                                 deathstring += " (Current streak: " + accomp.deathless.count + ")"
                             }
                             accomplishments.push(deathstring)
                         }
                         for (i = 0; i < accomp.comebacks.length; i++) {
-                            var comeback = accomp.comebacks[i]
+                            let comeback = accomp.comebacks[i]
                             accomplishments.push("↩️ " + comeback.p_low + "-" + comeback.op_low + " to " + comeback.p_high + "-" + comeback.op_high + " **Comeback** vs " + tourney_participants_data[comeback.op].name + " (" + comeback.match + ")")
                             if (i == 2 && accomp.comebacks.length > 3) {
                                 accomplishments.push("+" + (accomp.comebacks.length - i) + " More ↩️ **Comebacks**")
@@ -2360,42 +2265,31 @@ module.exports = {
                             }
                         }
                         function getTrackNicknames(array) {
-                            var stringy = []
+                            let stringy = []
                             array.forEach(item => {
                                 stringy.push(planets[tracks[item].planet].emoji + " " + tracks[item].nickname[0].toUpperCase())
                             })
                             return stringy.join(", ")
                         }
                         function getPodNicknames(array) {
-                            var stringy = []
+                            let stringy = []
                             array.forEach(item => {
                                 stringy.push(racers[item].flag)
                             })
                             return stringy.join(", ")
                         }
-                        if (accomp.win.tracks.length > 1) {
-                            accomplishments.push(":crown: **Never Lost** on " + getTrackNicknames(accomp.win.tracks))
-                        } else if (accomp.win.tracks.length == 1) {
-                            accomplishments.push(":crown: **Never Lost** on " + planets[tracks[accomp.win.tracks[0]].planet].emoji + " " + tracks[accomp.win.tracks[0]].name)
+                        if (accomp.win.tracks.length > 0) {
+                            accomplishments.push(":crown: **Never Lost** on " + (accomp.win.tracks.length == 1 ? planets[tracks[accomp.win.tracks[0]].planet].emoji + " " + tracks[accomp.win.tracks[0]].name : getTrackNicknames(accomp.win.tracks)))
                         }
-                        if (accomp.win.pods.length > 1) {
-                            accomplishments.push(":crown: **Never Lost** as " + getPodNicknames(accomp.win.pods))
-                        } else if (accomp.win.pods.length == 1) {
-                            accomplishments.push(":crown: **Never Lost** as " + racers[accomp.win.pods[0]].flag + " " + racers[accomp.win.pods[0]].name)
+                        if (accomp.win.pods.length > 0) {
+                            accomplishments.push(":crown: **Never Lost** as " + (accomp.win.pods.length == 1 ? racers[accomp.win.pods[0]].flag + " " + racers[accomp.win.pods[0]].name : getPodNicknames(accomp.win.pods)))
                         }
-                        if (accomp.deathless.tracks.length > 1) {
-                            accomplishments.push(":skull: **Never Died** on " + getTrackNicknames(accomp.deathless.tracks))
-                        } else if (accomp.deathless.tracks.length == 1) {
-                            accomplishments.push(":skull: **Never Died** on " + planets[tracks[accomp.deathless.tracks[0]].planet].emoji + " " + tracks[accomp.deathless.tracks[0]].name)
+                        if (accomp.deathless.tracks.length > 0) {
+                            accomplishments.push(":skull: **Never Died** on " + (accomp.deathless.tracks.length == 1 ? planets[tracks[accomp.deathless.tracks[0]].planet].emoji + " " + tracks[accomp.deathless.tracks[0]].name : getTrackNicknames(accomp.deathless.tracks)))
                         }
-                        if (accomp.deathless.pods.length > 1) {
-                            accomplishments.push(":skull: **Never Died** as " + getPodNicknames(accomp.deathless.pods))
-                        } else if (accomp.deathless.pods.length == 1) {
-                            accomplishments.push(":skull: **Never Died** as " + racers[accomp.deathless.pods[0]].flag + " " + racers[accomp.deathless.pods[0]].name)
+                        if (accomp.deathless.pods.length > 0) {
+                            accomplishments.push(":skull: **Never Died** as " + (accomp.deathless.pods.length == 1 ? racers[accomp.deathless.pods[0]].flag + " " + racers[accomp.deathless.pods[0]].name : getPodNicknames(accomp.deathless.pods)))
                         }
-
-
-
 
                         tourneyReport
                             .setDescription(description)
@@ -2418,9 +2312,9 @@ module.exports = {
                                     "pod ban: `" + stats.players[player].forces.pod_ban + "`", true)
                         }
                         if (accomplishments.length > 0) {
-                            var accompstring = ""
+                            let accompstring = ""
                             for (i = 0; i < accomplishments.length; i++) {
-                                var accomp = accomplishments[i]
+                                let accomp = accomplishments[i]
                                 if (accompstring.length + accomp.length > 1024) {
                                     accompstring += "+" + (accomplishments.length - i) + " More **🏅 Accomplishment(s)**"
                                     i = accomplishments.length
@@ -2436,13 +2330,12 @@ module.exports = {
                     }
 
                 }
-                var components = []
-                var track_selections = []
-                var racer_selections = []
-                var player_selections = []
+                let track_selections = []
+                let racer_selections = []
+                let player_selections = []
 
                 //sort player select
-                var players = Object.keys(tourney_participants_data)
+                let players = Object.keys(tourney_participants_data)
                 players = players.sort(function (a, b) {
                     if (ranks[a] !== undefined && ranks[a].matches >= 4 && ranks[b] !== undefined && ranks[b].matches >= 4) {
                         return Number(ranks[b].rank) - Number(ranks[a].rank)
@@ -2464,8 +2357,8 @@ module.exports = {
                 })
 
                 for (i = 0 + offset * 23; i < (offset + 1) * 23; i++) {
-                    var p = players[i]
-                    var option_default = false
+                    let p = players[i]
+                    let option_default = false
                     if (i == 0 + offset * 23 && offset > 0) {
                         player_selections.push(
                             {
@@ -2491,7 +2384,7 @@ module.exports = {
                         )
                         option_default = false
                     }
-                    var description = ""
+                    let description = ""
                     if (player == "global" || p == player) {
                         if (ranks[p] !== undefined && ranks[p].matches >= 4) {
                             description += "⭐ " + ranks[p].rank.toFixed(1) + " "
@@ -2499,7 +2392,7 @@ module.exports = {
                             description += "⭐ Unranked "
                         }
                         if (stats.players[p].matches.total > 0) {
-                            var deaths = stats.players[p].deaths.reduce((a, b) => { return a + b })
+                            let deaths = stats.players[p].deaths.reduce((a, b) => { return a + b })
                             deaths = (deaths / stats.players[p].races.total).toFixed(2)
                             description += "⚔️ " + stats.players[p].matches.total + " 🏁 " + stats.players[p].races.total
                             if (!isNaN((stats.players[p].races.won + stats.players[p].races.lost))) {
@@ -2515,12 +2408,12 @@ module.exports = {
                     } else {
                         if (ranks[player]) {
                             if (ranks[p] && ranks[p].matches >= 4) {
-                                var r1 = ranks[player].rank
-                                var r2 = ranks[p].rank
-                                var p1 = 1 / (1 + 10 ** ((r2 - r1) / 400))
-                                //var p2 = 1 - p1
+                                let r1 = ranks[player].rank
+                                let r2 = ranks[p].rank
+                                let p1 = 1 / (1 + 10 ** ((r2 - r1) / 400))
+                                //let p2 = 1 - p1
                                 function getK(matches) {
-                                    var k = 25
+                                    let k = 25
                                     if (matches < 26) {
                                         k = 32
                                     }
@@ -2532,17 +2425,17 @@ module.exports = {
                                     }
                                     return k
                                 }
-                                var k1 = getK(ranks[player].matches)
-                                //var k2 = getK(ranks[p].matches)
-                                var potential_win = k1 * (1 - p1)
-                                var potential_loss = k1 * (0 - p1)
+                                let k1 = getK(ranks[player].matches)
+                                //let k2 = getK(ranks[p].matches)
+                                let potential_win = k1 * (1 - p1)
+                                let potential_loss = k1 * (0 - p1)
                                 description += "⭐ " + Math.round(p1 * 100) + "% +" + potential_win.toFixed(1) + "/" + potential_loss.toFixed(1) + " "
                             }
                         }
                         if (stats.players[player].opponents[p]) {
                             if (stats.players[player].opponents[p].matches > 0) {
                                 description += "⚔️ " + stats.players[player].opponents[p].matches + " 🏁 " + stats.players[player].opponents[p].races + " 👑 " + Math.round(stats.players[player].opponents[p].wins.reduce((a, b) => { return a + b }) * 100 / stats.players[player].opponents[p].wins.length) + "% ⏱️ "
-                                var diff = stats.players[player].opponents[p].times.reduce((a, b) => { return a + b }) / stats.players[player].opponents[p].times.length
+                                let diff = stats.players[player].opponents[p].times.reduce((a, b) => { return a + b }) / stats.players[player].opponents[p].times.length
                                 if (diff >= 0) {
                                     //diff = tools.timefix(diff)
                                     description += "+" + Number(diff).toFixed(1) + " "
@@ -2572,10 +2465,10 @@ module.exports = {
                     if (p == player) {
                         option_default = true
                     }
-                    var prefix = ""
-                    var pos = ["1st", "2nd", "3rd"]
-                    var emojis = [{ name: "P1", id: "671601240228233216" }, { name: "P2", id: "671601321257992204" }, { name: "P3", id: "671601364794605570" }, { name: "4️⃣" }, { name: "5️⃣" }, { name: "6️⃣" }, { name: "7️⃣" }, { name: "8️⃣" }, { name: "9️⃣" }, { name: "🔟" }]
-                    var emoji = {}
+                    let prefix = ""
+                    let pos = ["1st", "2nd", "3rd"]
+                    let emojis = [{ name: "P1", id: "671601240228233216" }, { name: "P2", id: "671601321257992204" }, { name: "P3", id: "671601364794605570" }, { name: "4️⃣" }, { name: "5️⃣" }, { name: "6️⃣" }, { name: "7️⃣" }, { name: "8️⃣" }, { name: "9️⃣" }, { name: "🔟" }]
+                    let emoji = {}
                     if (i < 10) {
                         if (i < 3) {
                             prefix = pos[i] + " - "
@@ -2608,7 +2501,7 @@ module.exports = {
                         )
                     }
                 }
-                var sort_selections = [
+                let sort_selections = [
                     {
                         label: "Sort by Plays",
                         value: "plays",
@@ -2669,68 +2562,30 @@ module.exports = {
                         option.default = true
                     }
                 })
-                for (var i = 0; i < 25; i++) {
-                    var description = ""
+                for (let i = 0; i < 25; i++) {
+                    description = ""
                     if (player == "global") {
-                        description += "▶️ " + stats.pods[i].plays +
-                            " (" + Math.round((stats.pods[i].plays / stats.races.total) * 100) + "%)"
-                        if (stats.pods[i].picks.length > 0) {
-                            description += " 👆 " + Math.round((stats.pods[i].picks.reduce((a, b) => { return a + b }) / stats.pods[i].picks.length) * 100) + "%"
-                        } else {
-                            description += " 👆 --%"
-                        }
-                        if (stats.pods[i].bans.length > 0) {
-                            description += " ❌ " + Math.round((stats.pods[i].bans.reduce((a, b) => { return a + b }) / stats.pods[i].bans.length) * 100) + "%"
-                        } else {
-                            description += " ❌ --%"
-                        }
-                        if (stats.pods[i].wins.length > 0) {
-                            description += " 👑 " + Math.round((stats.pods[i].wins.reduce((a, b) => { return a + b }) / stats.pods[i].wins.length) * 100) + "%"
-                        } else {
-                            description += " 👑 --%"
-                        }
-                        if (stats.pods[i].deaths.length > 0) {
-                            description += " 💀 " + (stats.pods[i].deaths.reduce((a, b) => { return a + b }) / stats.pods[i].deaths.length).toFixed(2)
-                        } else {
-                            description += " 💀 --"
-                        }
-                        if (stats.pods[i].nu > 0) {
-                            description += " 🐢  " + stats.pods[i].nu
-                        }
-                        if (stats.pods[i].skips > 0) {
-                            description += " ⏩  " + stats.pods[i].skips
-                        }
+                        description = [
+                            ("▶️ " + stats.racer[i].plays) + (" (" + Math.round((stats.racer[i].plays / stats.races.total) * 100) + "%)"),
+                            (stats.racer[i].picks.length > 0 ? description += "👆 " + Math.round((stats.racer[i].picks.reduce((a, b) => { return a + b }) / stats.racer[i].picks.length) * 100) + "%" : "👆 --%"),
+                            (stats.racer[i].bans.length > 0 ? "❌ " + Math.round((stats.racer[i].bans.reduce((a, b) => { return a + b }) / stats.racer[i].bans.length) * 100) + "%" : "❌ --%"),
+                            (stats.racer[i].wins.length > 0 ? "👑 " + Math.round((stats.racer[i].wins.reduce((a, b) => { return a + b }) / stats.racer[i].wins.length) * 100) + "%" : "👑 --%"),
+                            (stats.racer[i].deaths.length > 0 ? "💀 " + (stats.racer[i].deaths.reduce((a, b) => { return a + b }) / stats.racer[i].deaths.length).toFixed(2) : "💀 --"),
+                            (stats.racer[i].nu > 0 ? "🐢 " + stats.racer[i].nu : ""),
+                            (stats.racer[i].skips > 0 ? "⏩ " + stats.racer[i].skips : "")
+                        ].join(" ")
                     } else {
-                        description += "▶️ " + stats.players[player].pods[i].plays +
-                            " (" + Math.round((stats.players[player].pods[i].plays / stats.players[player].races.total) * 100) + "%)"
-                        if (stats.players[player].pods[i].picks.length > 0) {
-                            description += " 👆 " + Math.round((stats.players[player].pods[i].picks.reduce((a, b) => { return a + b }) / stats.players[player].pods[i].picks.length) * 100) + "%"
-                        } else {
-                            description += " 👆 --%"
-                        }
-                        if (stats.players[player].pods[i].bans.length > 0) {
-                            description += " ❌ " + Math.round((stats.players[player].pods[i].bans.reduce((a, b) => { return a + b }) / stats.players[player].pods[i].bans.length) * 100) + "%"
-                        } else {
-                            description += " ❌ --%"
-                        }
-                        if (stats.players[player].pods[i].wins.length > 0) {
-                            description += " 👑 " + Math.round((stats.players[player].pods[i].wins.reduce((a, b) => { return a + b }) / stats.players[player].pods[i].wins.length) * 100) + "%"
-                        } else {
-                            description += " 👑 --%"
-                        }
-                        if (stats.players[player].pods[i].deaths.length > 0) {
-                            description += " 💀 " + (stats.players[player].pods[i].deaths.reduce((a, b) => { return a + b }) / stats.players[player].pods[i].deaths.length).toFixed(2)
-                        } else {
-                            description += " 💀 --"
-                        }
-                        if (stats.players[player].pods[i].nu > 0) {
-                            description += " 🐢  " + stats.players[player].pods[i].nu
-                        }
-                        if (stats.players[player].pods[i].skips > 0) {
-                            description += " ⏩  " + stats.players[player].pods[i].skips
-                        }
+                        description = [
+                            ("▶️ " + stats.players[player].pods[i].plays + " (" + Math.round((stats.players[player].pods[i].plays / stats.players[player].races.total) * 100) + "%)"),
+                            (stats.players[player].pods[i].picks.length > 0 ? "👆 " + Math.round((stats.players[player].pods[i].picks.reduce((a, b) => { return a + b }) / stats.players[player].pods[i].picks.length) * 100) + "%" : "👆 --%"),
+                            (stats.players[player].pods[i].bans.length > 0 ? "❌ " + Math.round((stats.players[player].pods[i].bans.reduce((a, b) => { return a + b }) / stats.players[player].pods[i].bans.length) * 100) + "%" : "❌ --%"),
+                            (stats.players[player].pods[i].wins.length > 0 ? "👑 " + Math.round((stats.players[player].pods[i].wins.reduce((a, b) => { return a + b }) / stats.players[player].pods[i].wins.length) * 100) + "%" : "👑 --%"),
+                            (stats.players[player].pods[i].deaths.length > 0 ? "💀 " + (stats.players[player].pods[i].deaths.reduce((a, b) => { return a + b }) / stats.players[player].pods[i].deaths.length).toFixed(2) : "💀 --"),
+                            (stats.players[player].pods[i].nu > 0 ? "🐢  " + stats.players[player].pods[i].nu : ""),
+                            (stats.players[player].pods[i].skips > 0 ? "⏩  " + stats.players[player].pods[i].skips : "")
+                        ].join(" ")
                     }
-                    var racer_option = {
+                    let racer_option = {
                         label: racers[i].name,
                         value: i,
                         description: description,
@@ -2739,75 +2594,31 @@ module.exports = {
                             id: racers[i].flag.split(":")[2].replace(">", "")
                         }
                     }
-                    var description = ""
+                    let description = ""
                     if (player == "global") {
-                        description += "▶️ " + stats.tracks[i].plays +
-                            " (" + Math.round((stats.tracks[i].plays / stats.races.total) * 100) + "%)"
-                        if (stats.tracks[i].picks.length > 0) {
-                            description += " 👆 " + Math.round((stats.tracks[i].picks.reduce((a, b) => { return a + b }) / stats.tracks[i].picks.length) * 100) + "%"
-                        } else {
-                            description += " 👆 --%"
-                        }
-                        if (stats.tracks[i].bans.length > 0) {
-                            description += " ❌ " + Math.round((stats.tracks[i].bans.reduce((a, b) => { return a + b }) / stats.tracks[i].bans.length) * 100) + "%"
-                        } else {
-                            description += " ❌ --%"
-                        }
-                        if (stats.tracks[i].wins.length > 0) {
-                            description += " 👑 " + Math.round((stats.tracks[i].wins.reduce((a, b) => { return a + b }) / stats.tracks[i].wins.length) * 100) + "%"
-                        } else {
-                            description += " 👑 --%"
-                        }
-                        if (stats.tracks[i].deaths.length > 0) {
-                            description += " 💀 " + (stats.tracks[i].deaths.reduce((a, b) => { return a + b }) / stats.tracks[i].deaths.length).toFixed(2)
-                        } else {
-                            description += " 💀 --"
-                        }
-
-                        if (stats.tracks[i].nu > 0) {
-                            description += " 🐢  " + stats.tracks[i].nu
-                        }
-                        if (stats.tracks[i].skips > 0) {
-                            description += " ⏩  " + stats.tracks[i].skips
-                        }
-                        if (stats.tracks[i].runbacks > 0) {
-                            description += " 🔁  " + stats.tracks[i].runbacks
-                        }
+                        description = [
+                            ("▶️ " + stats.track[i].plays + " (" + Math.round((stats.track[i].plays / stats.races.total) * 100) + "%)"),
+                            (stats.track[i].picks.length > 0 ? "👆 " + Math.round((stats.track[i].picks.reduce((a, b) => { return a + b }) / stats.track[i].picks.length) * 100) + "%" : "👆 --%"),
+                            (stats.track[i].bans.length > 0 ? "❌ " + Math.round((stats.track[i].bans.reduce((a, b) => { return a + b }) / stats.track[i].bans.length) * 100) + "%" : "❌ --%"),
+                            (stats.track[i].wins.length > 0 ? "👑 " + Math.round((stats.track[i].wins.reduce((a, b) => { return a + b }) / stats.track[i].wins.length) * 100) + "%": "👑 --%"),
+                            (stats.track[i].deaths.length > 0 ? "💀 " + (stats.track[i].deaths.reduce((a, b) => { return a + b }) / stats.track[i].deaths.length).toFixed(2) : "💀 --"), 
+                            (stats.track[i].nu > 0 ? "🐢  " + stats.track[i].nu : ""),
+                            (stats.track[i].skips > 0 ? "⏩  " + stats.track[i].skips : ""),
+                            (stats.track[i].runbacks > 0 ? "🔁  " + stats.track[i].runbacks :"")
+                        ].join(" ")
                     } else {
-                        description += "▶️ " + stats.players[player].tracks[i].plays +
-                            " (" + Math.round((stats.players[player].tracks[i].plays / stats.players[player].races.total) * 100) + "%)"
-                        if (stats.players[player].tracks[i].picks.length > 0) {
-                            description += " 👆 " + Math.round((stats.players[player].tracks[i].picks.reduce((a, b) => { return a + b }) / stats.players[player].tracks[i].picks.length) * 100) + "%"
-                        } else {
-                            description += " 👆 --%"
-                        }
-                        if (stats.players[player].tracks[i].bans.length > 0) {
-                            description += " ❌ " + Math.round((stats.players[player].tracks[i].bans.reduce((a, b) => { return a + b }) / stats.players[player].tracks[i].bans.length) * 100) + "%"
-                        } else {
-                            description += " ❌ --%"
-                        }
-                        if (stats.players[player].tracks[i].wins.length > 0) {
-                            description += " 👑 " + Math.round((stats.players[player].tracks[i].wins.reduce((a, b) => { return a + b }) / stats.players[player].tracks[i].wins.length) * 100) + "%"
-                        } else {
-                            description += " 👑 --%"
-                        }
-                        if (stats.players[player].tracks[i].deaths.length > 0) {
-                            description += " 💀 " + (stats.players[player].tracks[i].deaths.reduce((a, b) => { return a + b }) / stats.players[player].tracks[i].deaths.length).toFixed(2)
-                        } else {
-                            description += " 💀 --"
-                        }
-
-                        if (stats.players[player].tracks[i].nu > 0) {
-                            description += " 🐢  " + stats.players[player].tracks[i].nu
-                        }
-                        if (stats.players[player].tracks[i].skips > 0) {
-                            description += " ⏩  " + stats.players[player].tracks[i].skips
-                        }
-                        if (stats.players[player].tracks[i].runbacks > 0) {
-                            description += " 🔁  " + stats.players[player].tracks[i].runbacks
-                        }
+                        description = [
+                            ("▶️ " + stats.players[player].tracks[i].plays + " (" + Math.round((stats.players[player].tracks[i].plays / stats.players[player].races.total) * 100) + "%)"),
+                            (stats.players[player].tracks[i].picks.length > 0 ? "👆 " + Math.round((stats.players[player].tracks[i].picks.reduce((a, b) => { return a + b }) / stats.players[player].tracks[i].picks.length) * 100) + "%" : "👆 --%"),
+                            (stats.players[player].tracks[i].bans.length > 0 ? "❌ " + Math.round((stats.players[player].tracks[i].bans.reduce((a, b) => { return a + b }) / stats.players[player].tracks[i].bans.length) * 100) + "%" : "❌ --%"),
+                            (stats.players[player].tracks[i].wins.length > 0 ? "👑 " + Math.round((stats.players[player].tracks[i].wins.reduce((a, b) => { return a + b }) / stats.players[player].tracks[i].wins.length) * 100) + "%" : "👑 --%"),
+                            (stats.players[player].tracks[i].deaths.length > 0 ? "💀 " + (stats.players[player].tracks[i].deaths.reduce((a, b) => { return a + b }) / stats.players[player].tracks[i].deaths.length).toFixed(2) : "💀 --"),
+                            (stats.players[player].tracks[i].nu > 0 ? "🐢  " + stats.players[player].tracks[i].nu : ""),
+                            (stats.players[player].tracks[i].skips > 0 ? " ⏩  " + stats.players[player].tracks[i].skips : ""),
+                            (stats.players[player].tracks[i].runbacks > 0 ? " 🔁  " + stats.players[player].tracks[i].runbacks : "")
+                        ]
                     }
-                    var track_option = {
+                    let track_option = {
                         label: tracks[i].name,
                         value: i,
                         description: description,
@@ -2834,60 +2645,60 @@ module.exports = {
                     }
                 }
                 racer_selections = racer_selections.sort(function (a, b) {
-                    return stats.pods[b.value].plays - stats.pods[a.value].plays
+                    return stats.racer[b.value].plays - stats.racer[a.value].plays
                 })
                 track_selections = track_selections.sort(function (a, b) {
-                    return stats.tracks[b.value].plays - stats.tracks[a.value].plays
+                    return stats.track[b.value].plays - stats.track[a.value].plays
                 })
                 if (player == "global") {
                     if (sort == "plays") {
                         racer_selections = racer_selections.sort(function (a, b) {
-                            return stats.pods[b.value].plays - stats.pods[a.value].plays
+                            return stats.racer[b.value].plays - stats.racer[a.value].plays
                         })
                         track_selections = track_selections.sort(function (a, b) {
-                            return stats.tracks[b.value].plays - stats.tracks[a.value].plays
+                            return stats.track[b.value].plays - stats.track[a.value].plays
                         })
                     } else if (sort == "picks") {
                         racer_selections = racer_selections.sort(function (a, b) {
-                            return getSort(stats.pods[a.value].picks, stats.pods[b.value].picks)
+                            return getSort(stats.racer[a.value].picks, stats.racer[b.value].picks)
                         })
                         track_selections = track_selections.sort(function (a, b) {
-                            return getSort(stats.tracks[a.value].picks, stats.tracks[b.value].picks)
+                            return getSort(stats.track[a.value].picks, stats.track[b.value].picks)
                         })
                     } else if (sort == "bans") {
                         racer_selections = racer_selections.sort(function (a, b) {
-                            return getSort(stats.pods[a.value].bans, stats.pods[b.value].bans)
+                            return getSort(stats.racer[a.value].bans, stats.racer[b.value].bans)
                         })
                         track_selections = track_selections.sort(function (a, b) {
-                            return getSort(stats.tracks[a.value].bans, stats.tracks[b.value].bans)
+                            return getSort(stats.track[a.value].bans, stats.track[b.value].bans)
                         })
                     } else if (sort == "wins") {
                         racer_selections = racer_selections.sort(function (a, b) {
-                            return getSort(stats.pods[a.value].wins, stats.pods[b.value].wins)
+                            return getSort(stats.racer[a.value].wins, stats.racer[b.value].wins)
                         })
                         track_selections = track_selections.sort(function (a, b) {
-                            return getSort(stats.tracks[a.value].wins, stats.tracks[b.value].wins)
+                            return getSort(stats.track[a.value].wins, stats.track[b.value].wins)
                         })
                     } else if (sort == "deaths") {
                         racer_selections = racer_selections.sort(function (a, b) {
-                            return getSort(stats.pods[a.value].deaths, stats.pods[b.value].deaths)
+                            return getSort(stats.racer[a.value].deaths, stats.racer[b.value].deaths)
                         })
                         track_selections = track_selections.sort(function (a, b) {
-                            return getSort(stats.tracks[a.value].deaths, stats.tracks[b.value].deaths)
+                            return getSort(stats.track[a.value].deaths, stats.track[b.value].deaths)
                         })
                     } else if (sort == "nu") {
                         racer_selections = racer_selections.sort(function (a, b) {
-                            return stats.pods[b.value].nu - stats.pods[a.value].nu
+                            return stats.racer[b.value].nu - stats.racer[a.value].nu
                         })
                         track_selections = track_selections.sort(function (a, b) {
-                            return stats.tracks[b.value].nu - stats.tracks[a.value].nu
+                            return stats.track[b.value].nu - stats.track[a.value].nu
                         })
                     } else if (sort == "skips") {
                         racer_selections = racer_selections.sort(function (a, b) {
-                            return stats.pods[b.value].skips - stats.pods[a.value].skips
+                            return stats.racer[b.value].skips - stats.racer[a.value].skips
                         })
                         track_selections = track_selections.sort(function (a, b) {
-                            return stats.tracks[b.value].skips - stats.tracks[a.value].skips
+                            return stats.track[b.value].skips - stats.track[a.value].skips
                         })
                     } else if (sort == "game") {
                         racer_selections = racer_selections.sort(function (a, b) {
@@ -2898,15 +2709,15 @@ module.exports = {
                         })
                     } else if (sort == "alpha") {
                         racer_selections = racer_selections.sort(function (a, b) {
-                            var a_stuff = racers[Number(a.value)].name.replace("'", "").replace("The ", "").toLowerCase()
-                            var b_stuff = racers[Number(b.value)].name.replace("'", "").replace("The ", "").toLowerCase()
+                            let a_stuff = racers[Number(a.value)].name.replace("'", "").replace("The ", "").toLowerCase()
+                            let b_stuff = racers[Number(b.value)].name.replace("'", "").replace("The ", "").toLowerCase()
                             if (a_stuff < b_stuff) { return -1; }
                             if (a_stuff > b_stuff) { return 1; }
                             return 0;
                         })
                         track_selections = track_selections.sort(function (a, b) {
-                            var a_stuff = tracks[Number(a.value)].name.replace("'", "").replace("The ", "").toLowerCase()
-                            var b_stuff = tracks[Number(b.value)].name.replace("'", "").replace("The ", "").toLowerCase()
+                            let a_stuff = tracks[Number(a.value)].name.replace("'", "").replace("The ", "").toLowerCase()
+                            let b_stuff = tracks[Number(b.value)].name.replace("'", "").replace("The ", "").toLowerCase()
                             if (a_stuff < b_stuff) { return -1; }
                             if (a_stuff > b_stuff) { return 1; }
                             return 0;
@@ -2971,22 +2782,22 @@ module.exports = {
                         })
                     } else if (sort == "alpha") {
                         racer_selections = racer_selections.sort(function (a, b) {
-                            var a_stuff = racers[Number(a.value)].name.replace("'", "").replace("The ", "").toLowerCase()
-                            var b_stuff = racers[Number(b.value)].name.replace("'", "").replace("The ", "").toLowerCase()
+                            let a_stuff = racers[Number(a.value)].name.replace("'", "").replace("The ", "").toLowerCase()
+                            let b_stuff = racers[Number(b.value)].name.replace("'", "").replace("The ", "").toLowerCase()
                             if (a_stuff < b_stuff) { return -1; }
                             if (a_stuff > b_stuff) { return 1; }
                             return 0;
                         })
                         track_selections = track_selections.sort(function (a, b) {
-                            var a_stuff = tracks[Number(a.value)].name.replace("'", "").replace("The ", "").toLowerCase()
-                            var b_stuff = tracks[Number(b.value)].name.replace("'", "").replace("The ", "").toLowerCase()
+                            let a_stuff = tracks[Number(a.value)].name.replace("'", "").replace("The ", "").toLowerCase()
+                            let b_stuff = tracks[Number(b.value)].name.replace("'", "").replace("The ", "").toLowerCase()
                             if (a_stuff < b_stuff) { return -1; }
                             if (a_stuff > b_stuff) { return 1; }
                             return 0;
                         })
                     }
                 }
-                var components = []
+                let components = []
                 components.push(
                     {
                         type: 1,
@@ -3047,7 +2858,7 @@ module.exports = {
                         ]
                     })
                 } else {
-                    var run_list = []
+                    let run_list = []
                     player_runs = player_runs.sort(function (a, b) {
                         if (a.time == "DNF" && b.time == "DNF") {
                             return 0
@@ -3060,7 +2871,7 @@ module.exports = {
                         }
                     })
                     for (i = 0; i < player_runs.length && i < 25; i++) {
-                        var run_option = {
+                        let run_option = {
                             label: tools.timefix(player_runs[i].time) + " ",
                             value: i,
                             description: player_runs[i].match + " Race " + player_runs[i].race
@@ -3071,7 +2882,7 @@ module.exports = {
                         if (player_runs[i].pick) {
                             run_option.label += "👆"
                         }
-                        var condemojis = { skips: "⏩", nu: "🐢" }
+                        let condemojis = { skips: "⏩", nu: "🐢" }
                         player_runs[i].conditions.forEach(condition => {
                             run_option.label += condemojis[condition]
                         })
@@ -3086,7 +2897,7 @@ module.exports = {
                         }
                         if (player_runs[i].temppod.length > 0) {
                             run_option.label += " ❌"
-                            var tempstring = []
+                            let tempstring = []
                             player_runs[i].temppod.forEach(ban => {
                                 tempstring.push(racers[ban].nickname[1])
                             })
@@ -3094,7 +2905,7 @@ module.exports = {
                         }
                         if (player_runs[i].opponents.length > 0) {
                             run_option.description += " vs "
-                            var opponents = []
+                            let opponents = []
                             player_runs[i].opponents.forEach(opponent => {
                                 if (Number(opponent) !== Number(player)) {
                                     opponents.push(tourney_participants_data[opponent].name)
@@ -3937,7 +3748,7 @@ module.exports = {
                         ]
                     })
                 }
-                var playable = false, joinable_player = false, joinable_commentator = false
+                let playable = false, joinable_player = false, joinable_commentator = false
                 if (livematch.ruleset !== "" && livematch.players && livematch.commentators && Object.values(livematch.players).length == 2) {
                     playable = true
                 }
@@ -4353,7 +4164,7 @@ module.exports = {
                     }
                 } else if (args[2] == "leave") {
                     if (livematch.commentators) {
-                        var comms = Object.keys(livematch.commentators)
+                        let comms = Object.keys(livematch.commentators)
                         comms.forEach(key => {
                             if (livematch.commentators[key] == interaction.member.user.id) {
                                 tourney_live.child(interaction.channel_id).child("commentators").child(key).remove()
@@ -4361,7 +4172,7 @@ module.exports = {
                         })
                     }
                     if (livematch.players) {
-                        var players = Object.keys(livematch.players)
+                        let players = Object.keys(livematch.players)
                         players.forEach(key => {
                             if (livematch.players[key] == interaction.member.user.id) {
                                 tourney_live.child(interaction.channel_id).child("players").child(key).remove()
@@ -4649,7 +4460,7 @@ module.exports = {
                                         if ([null, undefined, ""].includes(e.count)) {
                                             e.count = 1
                                         }
-                                        let loops = options.length //this value needs to be stored in a variable otherwise you'll be a dumbass and have the loop be cut short as the array shrinks
+                                        let loops = options.length //this value needs to be stored in a letiable otherwise you'll be a dumbass and have the loop be cut short as the array shrinks
                                         for (let i = 0; i < loops / e.count; i++) {
                                             let option = options.slice(0, e.count)
                                             options = options.slice(e.count)
