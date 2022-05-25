@@ -4750,8 +4750,9 @@ module.exports = {
                                     .addField(":microphone2: Commentators/Trackers", ":orange_circle: Don't forget to click 'Episode Finished' after the interviews")
                                 postMessage('', [winEmbed], [])
                                 wincondition = true
-                                tourney_matches.push(tourney_live_data[interaction.channel_id])
-                                livematchref.remove()
+                                tourney_matches.push(livematch).then(() => {
+                                    livematchref.remove()
+                                })
                                 return
                             }
                         })
