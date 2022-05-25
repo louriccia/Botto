@@ -4267,7 +4267,7 @@ module.exports = {
                 } else if (args[2] == "vote") {
                     if (Object.values(livematch.players).includes(interaction.member.user.id)) {
                         livematchref.child("firstvote").child(interaction.member.user.id).set(interaction.data.values[0])
-                        let votes = Object.values(tourney_live_data[interaction.channel_id].firstvote)
+                        let votes = Object.values(livematch.firstvote)
                         if (votes.length = 2) {
                             if (votes[0] == votes[1]) {
                                 livematchref.child("firstmethod").set(votes[0])
