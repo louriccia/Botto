@@ -3404,7 +3404,7 @@ module.exports = {
                                     Array.isArray(e.selection) ?
                                         e.selection.map(racer => racers[racer].flag + " " + racers[racer].name).join(", ") :
                                         racers[e.selection].flag + " " + racers[e.selection].name :
-                                    condition_names[e.selection]) + "**" + ([null, undefined, "", 0].includes(e.cost) ? "" : " for " + e.cost + "💠 forcepoint(s)")
+                                    condition_names[e.selection]) + "**" + ([null, undefined, "", 0].includes(e.cost) ? "" : " for " + e.cost + "💠 forcepoint" + (e.cost == 1 ? "" : "s"))
                         ).join("\n")))
 
                 let summary = {}
@@ -3419,7 +3419,7 @@ module.exports = {
                     }
                 })
                 if (getForcePoints(player) > 0 && summary[getOpponent(player)].wins == liverules.general.winlimit - 1) {
-                    embed.setFooter("Last chance to use 💠 forcepoints!")
+                    embed.setFooter("Last chance to use " + getForcePoints(player) + " 💠 forcepoint" + (getForcePoints(player) !== 1 ? "s" : "") + " and " + getRunbacks(player) + " 🔁 runback" + (getRunbacks(player) !== 1 ? "s" : ""))
                 } else {
                     embed.setFooter("You have " + getForcePoints(player) + " 💠 forcepoint" + (getForcePoints(player) !== 1 ? "s" : "") + " and " + getRunbacks(player) + " 🔁 runback" + (getRunbacks(player) !== 1 ? "s" : "") + " remaining")
                 }
@@ -4725,8 +4725,8 @@ module.exports = {
                             })
                         }
                         livematchref.child("races").child(race).child("live").set(false)
-                        //livematch = tourney_live_data[interaction.channel_id]
-                        updateMessage("", type, [raceEmbed(race), matchSummaryEmbed()], [])
+                        updateMessage("", type, [raceEmbed(race)], [])
+                        postMessage("", [matchSummaryEmbed()], [])
                         //check win condition
                         let scoreboard = {}
                         Object.keys(livematch.races).forEach(race => {
