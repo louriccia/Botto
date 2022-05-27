@@ -2934,7 +2934,7 @@ module.exports = {
             let type = 7
             let livematch = {}
             let liverules
-            
+
             let livematchref = database.ref('tourney/live/' + interaction.channel_id)
             livematchref.on('value', (snapshot) => {
                 livematch = snapshot.val()
@@ -4746,13 +4746,25 @@ module.exports = {
                                 const winEmbed = new Discord.MessageEmbed()
                                     .setAuthor("Match Concluded")
                                     .setTitle(getUsername(player) + " Wins!")
-                                    .setDescription("GGs, racers! The match has been saved.")
+                                    .setDescription("GGs, racers! The match has been saved.\nLive role will be automatically removed in 15 minutes")
                                     .addField(":microphone2: Commentators/Trackers", ":orange_circle: Don't forget to click 'Episode Finished' after the interviews")
                                 postMessage('', [winEmbed], [])
                                 wincondition = true
+                                let everybody = Object.values(livematch.players).concat(Object.values(livematch.commentators))
                                 tourney_matches.push(livematch).then(() => {
                                     livematchref.remove()
                                 })
+                                const Guild = client.guilds.cache.get(interaction.guild_id)
+                                if(interaction.guild_id == '441839750555369474'){
+                                    setTimeout(async function () {
+                                        everybody.forEach(async function(p) {
+                                            const Member = Guild.members.cache.get(p);
+                                            if (Member.roles.cache.some(r => r.id == '970995237952569404')) {
+                                                member.roles.remove('970995237952569404').catch(console.error)
+                                            }
+                                        })
+                                    }, 15 * 60 * 1000)
+                                }
                                 return
                             }
                         })
