@@ -39,6 +39,7 @@ module.exports = {
             console.log("The read failed: " + errorObject);
         });
         const Guild = client.guilds.cache.get(interaction.guild_id)
+
         function rulesetOverview(ruleset) {
             let conditions = {
                 mu: "Upgrades Allowed",
@@ -4715,6 +4716,7 @@ module.exports = {
                         ephemeralMessage("You're not a player! <:WhyNobodyBuy:589481340957753363>", [], [])
                     }
                 } else if (args[2] == "verify") {
+                    const Member = Guild.members.cache.get(interaction.member.user.id);
                     if (interaction.type == 5) {
                         if (Object.values(livematch.commentators).includes(interaction.member.user.id) || (interaction.guild_id == '441839750555369474' && (Member.roles.cache.some(r => r.id == '862810190072381471')))) {
                             interaction.data.components.map(field => {
@@ -4759,8 +4761,8 @@ module.exports = {
                                 if (interaction.guild_id == '441839750555369474') {
                                     setTimeout(async function () {
                                         everybody.forEach(async function (p) {
-                                            const Member = Guild.members.cache.get(p);
-                                            if (Member.roles.cache.some(r => r.id == '970995237952569404')) {
+                                            const thisMember = Guild.members.cache.get(p);
+                                            if (thisMember.roles.cache.some(r => r.id == '970995237952569404')) {
                                                 member.roles.remove('970995237952569404').catch(console.error)
                                             }
                                         })
