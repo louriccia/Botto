@@ -4806,7 +4806,7 @@ module.exports = {
                         }
 
                     } else {
-                        if (Object.values(livematch.commentators).includes(interaction.member.user.id)) {
+                        if (Object.values(livematch.commentators).includes(interaction.member.user.id)  || (interaction.guild_id == '441839750555369474' && Member.roles.cache.some(r => r.id == '862810190072381471') && !Object.values(livematch.players).includes(interaction.member.user.id))) {
                             let modal = {
                                 data: {
                                     type: 9,
