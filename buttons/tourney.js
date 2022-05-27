@@ -4718,148 +4718,148 @@ module.exports = {
                 } else if (args[2] == "verify") {
                     async function verify() {
                         const Member = await Guild.members.fetch(interaction.member.user.id)
-                    if (interaction.type == 5) {
-                        if (Object.values(livematch.commentators).includes(interaction.member.user.id) || (interaction.guild_id == '441839750555369474' && Member.roles.cache.some(r => r.id == '862810190072381471') && !Object.values(livematch.players).includes(interaction.member.user.id))) {
-                            interaction.data.components.map(field => {
-                                if (field.components[0].custom_id.includes("time")) {
-                                    livematchref.child("races").child(race).child("runs").child(field.components[0].custom_id.replace("time", "")).update({ time: (field.components[0].value.toLowerCase() == 'dnf' ? 'DNF' : tools.timetoSeconds(field.components[0].value)) })
-                                } else if (field.components[0].custom_id.includes("deaths")) {
-                                    livematchref.child("races").child(race).child("runs").child(field.components[0].custom_id.replace("deaths", "")).update({ deaths: (field.components[0].value == "" ? "" : Number(field.components[0].value)) })
-                                }
-                            })
-                        }
-                        livematchref.child("races").child(race).child("live").set(false)
-                        updateMessage("", type, [raceEmbed(race)], [])
-                        postMessage("", [matchSummaryEmbed()], [])
-                        //check win condition
-                        let scoreboard = {}
-                        Object.keys(livematch.races).forEach(race => {
-                            let winner = getWinner(race)
-                            if (winner) {
-                                if ([null, undefined, ""].includes(scoreboard[winner])) {
-                                    scoreboard[winner] = 1
-                                } else {
-                                    scoreboard[winner]++
-                                }
-                            }
-                        })
-                        let wincondition = false
-                        Object.keys(scoreboard).forEach(player => {
-                            if (scoreboard[player] == liverules.general.winlimit) {
-                                //win condition
-                                const winEmbed = new Discord.MessageEmbed()
-                                    .setAuthor("Match Concluded")
-                                    .setTitle(getUsername(player) + " Wins!")
-                                    .setDescription("GGs, racers! The match has been saved.\nLive role will be automatically removed in 15 minutes")
-                                    .addField(":microphone2: Commentators/Trackers", ":orange_circle: Don't forget to click 'Episode Finished' after the interviews")
-                                postMessage('', [winEmbed], [])
-                                wincondition = true
-                                let everybody = Object.values(livematch.players).concat(Object.values(livematch.commentators))
-                                tourney_matches.push(livematch).then(() => {
-                                    livematchref.remove()
+                        if (interaction.type == 5) {
+                            if (Object.values(livematch.commentators).includes(interaction.member.user.id) || (interaction.guild_id == '441839750555369474' && Member.roles.cache.some(r => r.id == '862810190072381471') && !Object.values(livematch.players).includes(interaction.member.user.id))) {
+                                interaction.data.components.map(field => {
+                                    if (field.components[0].custom_id.includes("time")) {
+                                        livematchref.child("races").child(race).child("runs").child(field.components[0].custom_id.replace("time", "")).update({ time: (field.components[0].value.toLowerCase() == 'dnf' ? 'DNF' : tools.timetoSeconds(field.components[0].value)) })
+                                    } else if (field.components[0].custom_id.includes("deaths")) {
+                                        livematchref.child("races").child(race).child("runs").child(field.components[0].custom_id.replace("deaths", "")).update({ deaths: (field.components[0].value == "" ? "" : Number(field.components[0].value)) })
+                                    }
                                 })
-
-                                if (interaction.guild_id == '441839750555369474') {
-                                    setTimeout(async function () {
-                                        everybody.forEach(async function (p) {
-                                            const thisMember = Guild.members.cache.get(p);
-                                            if (thisMember.roles.cache.some(r => r.id == '970995237952569404')) {
-                                                member.roles.remove('970995237952569404').catch(console.error)
-                                            }
-                                        })
-                                    }, 15 * 60 * 1000)
-                                }
-                                return
                             }
-                        })
-                        if (!wincondition) {
-                            let nextrace = livematch.current_race + 1
-                            livematchref.child("current_race").set(nextrace)
-                            let race_object = {
-                                ready: { commentators: false },
-                                reveal: {},
-                                runs: {},
-                                live: false,
-                                events: "",
-                                eventstart: 0,
-                                eventend: 0
-                            }
-                            Object.values(livematch.players).map(player => {
-                                race_object.ready[player] = false
-                                race_object.reveal[player] = false
-                                race_object.runs[player] = {
-                                    deaths: "",
-                                    notes: "",
-                                    platform: "pc",
-                                    player: "",
-                                    pod: "",
-                                    time: ""
-                                }
-                            }
-                            )
-                            livematchref.child('races').child(nextrace).update(race_object)
-                            //start permabans
-                            if (race == 0 && Object.values(liverules.match.permabans).length > 0) {
-                                postMessage("<@" + (liverules.match.permabans[0].choice == "firstloser" ? getOpponent(getWinner(0)) : getWinner(0)) + "> please select a permanent ban", [permabanEmbed(0)], permabanComponents(0))
-                            } else { //restart event loop for next race
-                                postMessage("<@" + (events[0].choice == "lastwinner" ? getWinner(race) : getOpponent(getWinner(race))) + "> please make a selection", [raceEventEmbed(nextrace)], raceEventComponents(nextrace))
-                            }
-                        }
-
-                    } else {
-                        if (Object.values(livematch.commentators).includes(interaction.member.user.id)  || (interaction.guild_id == '441839750555369474' && Member.roles.cache.some(r => r.id == '862810190072381471') && !Object.values(livematch.players).includes(interaction.member.user.id))) {
-                            let modal = {
-                                data: {
-                                    type: 9,
-                                    data: {
-                                        custom_id: "tourney_play_race" + race + "_verify",
-                                        title: "Verify Race " + (race + 1) + " Results",
-                                        components: []
+                            livematchref.child("races").child(race).child("live").set(false)
+                            updateMessage("", type, [raceEmbed(race)], [])
+                            postMessage("", [matchSummaryEmbed()], [])
+                            //check win condition
+                            let scoreboard = {}
+                            Object.keys(livematch.races).forEach(race => {
+                                let winner = getWinner(race)
+                                if (winner) {
+                                    if ([null, undefined, ""].includes(scoreboard[winner])) {
+                                        scoreboard[winner] = 1
+                                    } else {
+                                        scoreboard[winner]++
                                     }
                                 }
-                            }
-                            Object.keys(livematch.races[race].runs).map(key => {
-                                modal.data.data.components.push(
-                                    {
-                                        type: 1,
-                                        components: [
-                                            {
-                                                type: 4,
-                                                custom_id: "time" + key,
-                                                label: ("⏱️ " + getUsername(key) + "'s Time").substring(0, 45),
-                                                style: 1,
-                                                min_length: 1,
-                                                max_length: 10,
-                                                required: true,
-                                                placeholder: "--:--.---",
-                                                value: (livematch.races[race].runs[key].time.toLowerCase() == "dnf" ? "DNF" : tools.timefix(livematch.races[race].runs[key].time))
-                                            }
-                                        ]
-                                    }
-                                )
-                                modal.data.data.components.push(
-                                    {
-                                        type: 1,
-                                        components: [
-                                            {
-                                                type: 4,
-                                                custom_id: "deaths" + key,
-                                                label: ("💀 " + getUsername(key) + "'s Deaths").substring(0, 45),
-                                                style: 1,
-                                                min_length: 0,
-                                                max_length: 2,
-                                                required: false,
-                                                value: livematch.races[race].runs[key].deaths
-                                            }
-                                        ]
-                                    }
-                                )
                             })
-                            client.api.interactions(interaction.id, interaction.token).callback.post(modal)
+                            let wincondition = false
+                            Object.keys(scoreboard).forEach(player => {
+                                if (scoreboard[player] == liverules.general.winlimit) {
+                                    //win condition
+                                    const winEmbed = new Discord.MessageEmbed()
+                                        .setAuthor("Match Concluded")
+                                        .setTitle(getUsername(player) + " Wins!")
+                                        .setDescription("GGs, racers! The match has been saved.\nLive role will be automatically removed in 15 minutes")
+                                        .addField(":microphone2: Commentators/Trackers", ":orange_circle: Don't forget to click 'Episode Finished' after the interviews")
+                                    postMessage('', [winEmbed], [])
+                                    wincondition = true
+                                    let everybody = Object.values(livematch.players).concat(Object.values(livematch.commentators))
+                                    tourney_matches.push(livematch).then(() => {
+                                        livematchref.remove()
+                                    })
+
+                                    if (interaction.guild_id == '441839750555369474') {
+                                        setTimeout(async function () {
+                                            everybody.forEach(async function (p) {
+                                                const thisMember = await Guild.members.fetch(p)
+                                                if (thisMember.roles.cache.some(r => r.id == '970995237952569404')) {
+                                                    member.roles.remove('970995237952569404').catch(console.error)
+                                                }
+                                            })
+                                        }, 15 * 60 * 1000)
+                                    }
+                                    return
+                                }
+                            })
+                            if (!wincondition) {
+                                let nextrace = livematch.current_race + 1
+                                livematchref.child("current_race").set(nextrace)
+                                let race_object = {
+                                    ready: { commentators: false },
+                                    reveal: {},
+                                    runs: {},
+                                    live: false,
+                                    events: "",
+                                    eventstart: 0,
+                                    eventend: 0
+                                }
+                                Object.values(livematch.players).map(player => {
+                                    race_object.ready[player] = false
+                                    race_object.reveal[player] = false
+                                    race_object.runs[player] = {
+                                        deaths: "",
+                                        notes: "",
+                                        platform: "pc",
+                                        player: "",
+                                        pod: "",
+                                        time: ""
+                                    }
+                                }
+                                )
+                                livematchref.child('races').child(nextrace).update(race_object)
+                                //start permabans
+                                if (race == 0 && Object.values(liverules.match.permabans).length > 0) {
+                                    postMessage("<@" + (liverules.match.permabans[0].choice == "firstloser" ? getOpponent(getWinner(0)) : getWinner(0)) + "> please select a permanent ban", [permabanEmbed(0)], permabanComponents(0))
+                                } else { //restart event loop for next race
+                                    postMessage("<@" + (events[0].choice == "lastwinner" ? getWinner(race) : getOpponent(getWinner(race))) + "> please make a selection", [raceEventEmbed(nextrace)], raceEventComponents(nextrace))
+                                }
+                            }
+
                         } else {
-                            ephemeralMessage("Only commentators/trackers can verify match times. <:WhyNobodyBuy:589481340957753363>", [], [])
+                            if (Object.values(livematch.commentators).includes(interaction.member.user.id) || (interaction.guild_id == '441839750555369474' && Member.roles.cache.some(r => r.id == '862810190072381471') && !Object.values(livematch.players).includes(interaction.member.user.id))) {
+                                let modal = {
+                                    data: {
+                                        type: 9,
+                                        data: {
+                                            custom_id: "tourney_play_race" + race + "_verify",
+                                            title: "Verify Race " + (race + 1) + " Results",
+                                            components: []
+                                        }
+                                    }
+                                }
+                                Object.keys(livematch.races[race].runs).map(key => {
+                                    modal.data.data.components.push(
+                                        {
+                                            type: 1,
+                                            components: [
+                                                {
+                                                    type: 4,
+                                                    custom_id: "time" + key,
+                                                    label: ("⏱️ " + getUsername(key) + "'s Time").substring(0, 45),
+                                                    style: 1,
+                                                    min_length: 1,
+                                                    max_length: 10,
+                                                    required: true,
+                                                    placeholder: "--:--.---",
+                                                    value: (livematch.races[race].runs[key].time.toLowerCase() == "dnf" ? "DNF" : tools.timefix(livematch.races[race].runs[key].time))
+                                                }
+                                            ]
+                                        }
+                                    )
+                                    modal.data.data.components.push(
+                                        {
+                                            type: 1,
+                                            components: [
+                                                {
+                                                    type: 4,
+                                                    custom_id: "deaths" + key,
+                                                    label: ("💀 " + getUsername(key) + "'s Deaths").substring(0, 45),
+                                                    style: 1,
+                                                    min_length: 0,
+                                                    max_length: 2,
+                                                    required: false,
+                                                    value: livematch.races[race].runs[key].deaths
+                                                }
+                                            ]
+                                        }
+                                    )
+                                })
+                                client.api.interactions(interaction.id, interaction.token).callback.post(modal)
+                            } else {
+                                ephemeralMessage("Only commentators/trackers can verify match times. <:WhyNobodyBuy:589481340957753363>", [], [])
+                            }
                         }
-                    }
                     }
                     verify()
                 } else if (args[2] == "restart") {
