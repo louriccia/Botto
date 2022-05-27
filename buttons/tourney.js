@@ -4716,7 +4716,8 @@ module.exports = {
                         ephemeralMessage("You're not a player! <:WhyNobodyBuy:589481340957753363>", [], [])
                     }
                 } else if (args[2] == "verify") {
-                    const Member = await Guild.members.fetch(interaction.member.user.id)
+                    async function verify() {
+                        const Member = await Guild.members.fetch(interaction.member.user.id)
                     if (interaction.type == 5) {
                         if (Object.values(livematch.commentators).includes(interaction.member.user.id) || (interaction.guild_id == '441839750555369474' && Member.roles.cache.some(r => r.id == '862810190072381471') && !Object.values(livematch.players).includes(interaction.member.user.id))) {
                             interaction.data.components.map(field => {
@@ -4859,6 +4860,8 @@ module.exports = {
                             ephemeralMessage("Only commentators/trackers can verify match times. <:WhyNobodyBuy:589481340957753363>", [], [])
                         }
                     }
+                    }
+                    verify()
                 } else if (args[2] == "restart") {
                     if (Object.values(livematch.commentators).includes(interaction.member.user.id)) {
                         livematchref.child("races").child(race).child("live").set(false)
