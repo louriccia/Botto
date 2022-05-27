@@ -4558,7 +4558,7 @@ module.exports = {
                         ephemeralMessage("You have not selected a racer yet! <:WhyNobodyBuy:589481340957753363>", [], [])
                         return
                     }
-                    if (Object.values(livematch.commentators).includes(interaction.member.user.id) || (interaction.guild_id == '441839750555369474' && (Member.roles.cache.some(r => r.id == '862810190072381471')))) {
+                    if (Object.values(livematch.commentators).includes(interaction.member.user.id) || (interaction.guild_id == '441839750555369474' && (Member.roles.cache.some(r => r.id == '862810190072381471')) && !Object.values(livematch.players).includes(interaction.member.user.id))) {
                         //livematch = tourney_live_data[interaction.channel_id]
                         if (Object.values(livematch.races[race].ready).filter(r => r == false).length == 1 && !livematch.races[race].ready.commentators) {
                             livematchref.child("races").child(race).child("ready").child("commentators").set((args[2] == "ready" ? true : false))
@@ -4718,7 +4718,7 @@ module.exports = {
                 } else if (args[2] == "verify") {
                     const Member = Guild.members.cache.get(interaction.member.user.id);
                     if (interaction.type == 5) {
-                        if (Object.values(livematch.commentators).includes(interaction.member.user.id) || (interaction.guild_id == '441839750555369474' && (Member.roles.cache.some(r => r.id == '862810190072381471')))) {
+                        if (Object.values(livematch.commentators).includes(interaction.member.user.id) || (interaction.guild_id == '441839750555369474' && Member.roles.cache.some(r => r.id == '862810190072381471') && !Object.values(livematch.players).includes(interaction.member.user.id))) {
                             interaction.data.components.map(field => {
                                 if (field.components[0].custom_id.includes("time")) {
                                     livematchref.child("races").child(race).child("runs").child(field.components[0].custom_id.replace("time", "")).update({ time: (field.components[0].value.toLowerCase() == 'dnf' ? 'DNF' : tools.timetoSeconds(field.components[0].value)) })
