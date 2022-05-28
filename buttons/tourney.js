@@ -3324,31 +3324,33 @@ module.exports = {
                     }
                 })
                 Object.values(livematch.races).forEach((race, index) => {
-                    summary[getWinner(index)].wins++
-                    if (![null, undefined, ""].includes(race.events)) {
-                        Object.values(race.events).forEach(event => {
-                            if (![null, undefined, ""].includes(event.player)) {
-                                if (![null, undefined, ""].includes(event.cost)) {
-                                    summary[event.player].forcepoints -= Number(event.cost)
+                    if (!race.live) {
+                        summary[getWinner(index)].wins++
+                        if (![null, undefined, ""].includes(race.events)) {
+                            Object.values(race.events).forEach(event => {
+                                if (![null, undefined, ""].includes(event.player)) {
+                                    if (![null, undefined, ""].includes(event.cost)) {
+                                        summary[event.player].forcepoints -= Number(event.cost)
+                                    }
+                                    if (event.event == 'selection' && event.type == 'track' && event.repeat == true) {
+                                        summary[event.player].runbacks--
+                                    }
                                 }
-                                if (event.event == 'selection' && event.type == 'track' && event.repeat == true) {
-                                    summary[event.player].runbacks--
+                            })
+                            Object.values(race.runs).forEach(run => {
+                                if (![null, undefined, ""].includes(run.deaths)) {
+                                    summary[run.player].deaths += Number(run.deaths)
+                                } else {
+                                    summary[run.player].deathtrue = false
                                 }
-                            }
-                        })
-                        Object.values(race.runs).forEach(run => {
-                            if (![null, undefined, ""].includes(run.deaths)) {
-                                summary[run.player].deaths += Number(run.deaths)
-                            } else {
-                                summary[run.player].deathtrue = false
-                            }
-                            if (![null, undefined, "", 'DNF'].includes(run.time)) {
-                                summary[run.player].time += Number(run.time)
-                            } else {
-                                summary[run.player].timetrue = false
-                            }
+                                if (![null, undefined, "", 'DNF'].includes(run.time)) {
+                                    summary[run.player].time += Number(run.time)
+                                } else {
+                                    summary[run.player].timetrue = false
+                                }
 
-                        })
+                            })
+                        }
                     }
                 }
                 )
