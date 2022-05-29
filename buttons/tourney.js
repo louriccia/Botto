@@ -4766,7 +4766,7 @@ module.exports = {
                                             everybody.forEach(async function (p) {
                                                 const thisMember = await Guild.members.fetch(p)
                                                 if (thisMember.roles.cache.some(r => r.id == '970995237952569404')) {
-                                                    member.roles.remove('970995237952569404').catch(console.error)
+                                                    thisMember.roles.remove('970995237952569404').catch(console.error)
                                                 }
                                             })
                                         }, 15 * 60 * 1000)
