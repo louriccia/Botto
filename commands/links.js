@@ -76,7 +76,7 @@ module.exports = {
             .setTitle(title)
             .setDescription(desc)
         var components = []
-        if(args[0].name !== "speedrunning"){
+        if(link !== ""){
             components = [
                 {
                     type: 1,
