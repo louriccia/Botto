@@ -3327,7 +3327,9 @@ module.exports = {
                 })
                 Object.values(livematch.races).forEach((race, index) => {
                     if (!race.live) {
-                        summary[getWinner(index)].wins++
+                        if(getWinner(index)){
+                            summary[getWinner(index)].wins++
+                        }
                         if (![null, undefined, ""].includes(race.events)) {
                             Object.values(race.events).forEach(event => {
                                 if (![null, undefined, ""].includes(event.player)) {
