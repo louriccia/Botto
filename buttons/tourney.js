@@ -1747,7 +1747,7 @@ module.exports = {
                 }
                 let tpd = Object.keys(tourney_participants_data)
                 tpd.forEach(participant => {
-                    stats.players[participant] = {
+                    stats.players[participant.id] = {
                         race_time: 0,
                         deaths: [],
                         matches: { total: 0, won: 0, lost: 0, qual: 0, winners: 0, losers: 0 },
@@ -1763,8 +1763,10 @@ module.exports = {
                     stats.track[i] = { plays: 0, picks: [], bans: [], wins: [], deaths: [], runbacks: 0, nu: 0, skips: 0 }
                     stats.racer[i] = { plays: 0, picks: [], bans: [], wins: [], deaths: [], nu: 0, skips: 0 }
                     tpd.forEach(participant => {
-                        stats.players[participant.id].track[i] = { plays: 0, picks: [], bans: [], wins: [], deaths: [], runbacks: 0, nu: 0, skips: 0 }
-                        stats.players[participant.id].racer[i] = { plays: 0, picks: [], bans: [], wins: [], deaths: [], nu: 0, skips: 0 }
+                        if (participant.id) {
+                            stats.players[participant.id].track[i] = { plays: 0, picks: [], bans: [], wins: [], deaths: [], runbacks: 0, nu: 0, skips: 0 }
+                            stats.players[participant.id].racer[i] = { plays: 0, picks: [], bans: [], wins: [], deaths: [], nu: 0, skips: 0 }
+                        }
                     })
                 }
 
