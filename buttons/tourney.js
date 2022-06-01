@@ -1736,8 +1736,8 @@ module.exports = {
                         skips: 0,
                         pod_ban: 0
                     },
-                    tracks: {},
-                    pods: {},
+                    track: {},
+                    racer: {},
                     players: {},
                     commentators: {}
                 }
@@ -1763,8 +1763,8 @@ module.exports = {
                     stats.track[i] = { plays: 0, picks: [], bans: [], wins: [], deaths: [], runbacks: 0, nu: 0, skips: 0 }
                     stats.racer[i] = { plays: 0, picks: [], bans: [], wins: [], deaths: [], nu: 0, skips: 0 }
                     tpd.forEach(participant => {
-                        stats.players[participant].tracks[i] = { plays: 0, picks: [], bans: [], wins: [], deaths: [], runbacks: 0, nu: 0, skips: 0 }
-                        stats.players[participant].pods[i] = { plays: 0, picks: [], bans: [], wins: [], deaths: [], nu: 0, skips: 0 }
+                        stats.players[participant].track[i] = { plays: 0, picks: [], bans: [], wins: [], deaths: [], runbacks: 0, nu: 0, skips: 0 }
+                        stats.players[participant].racer[i] = { plays: 0, picks: [], bans: [], wins: [], deaths: [], nu: 0, skips: 0 }
                     })
                 }
 
@@ -4730,9 +4730,11 @@ module.exports = {
                                     }
                                 })
                             }
-                            livematchref.child("races").child(race).child("live").set(false)
-                            updateMessage("", type, [raceEmbed(race)], [])
-                            postMessage("", [matchSummaryEmbed()], [])
+                            livematchref.child("races").child(race).child("live").set(false).then(() => {
+                                updateMessage("", type, [raceEmbed(race)], [])
+                                postMessage("", [matchSummaryEmbed()], [])
+                            })
+
                             //check win condition
                             let scoreboard = {}
                             Object.keys(livematch.races).forEach(race => {
