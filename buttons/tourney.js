@@ -2008,7 +2008,7 @@ module.exports = {
                                 }
                             }
                             if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type)) {
-                                race.runs.filter(p => p.player !== run.player).forEach(opponent => {
+                                Object.values(race.runs).filter(p => p.player !== run.player).forEach(opponent => {
                                     stats.players[run.player].opponents[opponent.player].races++
                                     if (opponent.time !== "DNF" && run.time !== "DNF") {
                                         stats.players[run.player].opponents[opponent.player].times.push(opponent.time - run.time)
@@ -2030,7 +2030,7 @@ module.exports = {
                                 }
                             }
                         })
-                        race.runs.forEach(run => {
+                        Object.values(race.runs).forEach(run => {
                             let player_run = {}
                             if ((run.player == player || player == "global") && thistrack == track) {
                                 player_run = {
@@ -2065,7 +2065,7 @@ module.exports = {
                             } else {
                                 stats.track[thistrack].wins.push(0)
                             }
-                            race.runs.forEach(loser => {
+                            Object.values(race.runs).forEach(loser => {
                                 if (loser.player !== winner.player) {
                                     stats.players[loser.player].races.lost++
                                     stats.players[loser.player].track[thistrack].wins.push(0)
