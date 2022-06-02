@@ -1837,7 +1837,6 @@ module.exports = {
                         }
                         score[p] = 0
                     })
-                    console.log(stats)
                     match.races.forEach((race, num) => {
                         let conditions = tourney_rulesets_data.saved[match.ruleset].general.default
                         let thistrack = null
@@ -1901,7 +1900,6 @@ module.exports = {
                                             stats.players[event.player].races.runbacks++
                                         }
                                         stats.track[event.selection].picks.push(1)
-                                        console.log(event.player)
                                         stats.players[event.player].track[event.selection].picks.push(1)
                                         already_played.push(Number(event.selection))
                                         for (let i = 0; i < 25; i++) {
@@ -1945,7 +1943,7 @@ module.exports = {
                             }
                             stats.players[run.player].races.total++
                             stats.races.total++
-                            overrides.forEach(o => {
+                            Object.values(conditions).forEach(o => {
                                 stats.players[run.player].track[thistrack][o]++
                                 stats.players[run.player].racer[run.pod][o]++
                                 stats.racer[run.pod][o]++
