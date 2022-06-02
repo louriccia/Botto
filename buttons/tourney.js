@@ -1892,7 +1892,7 @@ module.exports = {
                                 } else if (event.event == 'selection' && event.type == 'track') {
                                     thistrack = event.selection
                                     already_played.push(thistrack)
-                                    if (event.player !== undefined) {
+                                    if (![null, undefined, ""].includes(event.player)) {
                                         if (event.repeat) {
                                             runback[event.player] = true
                                             stats.track[event.selection].runbacks++
@@ -1901,6 +1901,7 @@ module.exports = {
                                             stats.players[event.player].races.runbacks++
                                         }
                                         stats.track[event.selection].picks.push(1)
+                                        console.log(event.player)
                                         stats.players[event.player].track[event.selection].picks.push(1)
                                         already_played.push(Number(event.selection))
                                         for (let i = 0; i < 25; i++) {
