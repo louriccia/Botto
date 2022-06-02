@@ -1982,7 +1982,7 @@ module.exports = {
                                 }
                             }
                             if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type)) {
-                                players.filter(p => p !== run.player).forEach(opponent => {
+                                race.runs.filter(p => p.player !== run.player).forEach(opponent => {
                                     stats.players[run.player].opponents[opponent.player].races++
                                     if (opponent.time !== "DNF" && run.time !== "DNF") {
                                         stats.players[run.player].opponents[opponent.player].times.push(opponent.time - run.time)
