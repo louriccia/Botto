@@ -225,7 +225,7 @@ module.exports = {
                 var players = {}
                 match.races.forEach(race => {
                     var winner = {player: null, time: null}
-                    race.runs.forEach(run => {
+                    Object.values(race.runs).forEach(run => {
                         if(players[run.player] == undefined){
                             players[run.player] = {player: run.player, score: 0}
                         }
