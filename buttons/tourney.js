@@ -1874,7 +1874,7 @@ module.exports = {
                                         stats.players[event.player].track[event.selection].bans.push(1)
                                         temptrack.push(Number(event.selection))
                                         let opponent = null
-                                        race.runs.forEach(run => {
+                                        Object.values(race.runs).forEach(run => {
                                             if (run.player !== event.player) {
                                                 opponent = run.player
                                             }
