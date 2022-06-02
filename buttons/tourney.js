@@ -1844,7 +1844,7 @@ module.exports = {
                             Object.values(race.events).forEach(event => {
                                 if (event.event == 'tempban') {
                                     if (event.type == 'racer') {
-                                        if (!event.selection.isArray()) {
+                                        if (!Array.isArray(event.selection)) {
                                             event.selection = [event.selection]
                                         }
                                         event.selection.forEach(selection => {
