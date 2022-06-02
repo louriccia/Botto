@@ -1818,7 +1818,7 @@ module.exports = {
                                     }
                                     stats.players[player].opponents[opponent].matches++
                                 } else {
-                                    console.log(player)
+                                    console.log(player) 
                                 }
                                 
                             })
