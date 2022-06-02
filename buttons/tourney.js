@@ -2358,22 +2358,22 @@ module.exports = {
                 let player_selections = []
 
                 //sort player select
-                let players = Object.values(tourney_participants_data).map(player => player.id).filter(p => p!== undefined)
+                let players = Object.values(tourney_participants_data).filter(p => p.id !== undefined)
                 players = players.sort(function (a, b) {
                     if (ranks[a] !== undefined && ranks[a].matches >= 4 && ranks[b] !== undefined && ranks[b].matches >= 4) {
                         return Number(ranks[b].rank) - Number(ranks[a].rank)
-                    } else if (ranks[a] !== undefined && ranks[a].matches >= 4) {
+                    } else if (ranks[a.id] !== undefined && ranks[a.id].matches >= 4) {
                         return -1
-                    } else if (ranks[b] !== undefined && ranks[b].matches >= 4) {
+                    } else if (ranks[b.id] !== undefined && ranks[b.id].matches >= 4) {
                         return 1
-                    } else if ((ranks[a] !== undefined || stats.players[a].matches.total > 0) && (ranks[b] !== undefined || stats.players[b].matches.total > 0)) {
-                        return Number(stats.players[b].matches.total) - Number(stats.players[a].matches.total)
-                    } else if ((ranks[a] !== undefined || stats.players[a].matches.total > 0)) {
+                    } else if ((ranks[a.id] !== undefined || stats.players[a.id].matches.total > 0) && (ranks[b.id] !== undefined || stats.players[b.id].matches.total > 0)) {
+                        return Number(stats.players[b.id].matches.total) - Number(stats.players[a.id].matches.total)
+                    } else if ((ranks[a.id] !== undefined || stats.players[a.id].matches.total > 0)) {
                         return -1
-                    } else if ((ranks[b] !== undefined || stats.players[b].matches.total > 0)) {
+                    } else if ((ranks[b.id] !== undefined || stats.players[b.id].matches.total > 0)) {
                         return 1
-                    } else if ((ranks[a] == undefined && stats.commentators[a] !== undefined) && (ranks[b] == undefined && stats.commentators[b] !== undefined)) {
-                        return Number(stats.commentators[b].count) - Number(stats.commentators[a].count)
+                    } else if ((ranks[a.id] == undefined && stats.commentators[a.id] !== undefined) && (ranks[b.id] == undefined && stats.commentators[b.id] !== undefined)) {
+                        return Number(stats.commentators[b.id].count) - Number(stats.commentators[a.id].count)
                     } else {
                         return 0
                     }
@@ -2408,31 +2408,31 @@ module.exports = {
                         option_default = false
                     }
                     let description = ""
-                    if (player == "global" || p == player) {
-                        if (ranks[p] !== undefined && ranks[p].matches >= 4) {
-                            description += "⭐ " + ranks[p].rank.toFixed(1) + " "
-                        } else if (stats.players[p].matches.total > 0) {
+                    if (player == "global" || p.id == player) {
+                        if (ranks[p] !== undefined && ranks[p.id].matches >= 4) {
+                            description += "⭐ " + ranks[p.id].rank.toFixed(1) + " "
+                        } else if (stats.players[p.id].matches.total > 0) {
                             description += "⭐ Unranked "
                         }
-                        if (stats.players[p].matches.total > 0) {
-                            let deaths = stats.players[p].deaths.reduce((a, b) => { return a + b })
-                            deaths = (deaths / stats.players[p].races.total).toFixed(2)
-                            description += "⚔️ " + stats.players[p].matches.total + " 🏁 " + stats.players[p].races.total
-                            if (!isNaN((stats.players[p].races.won + stats.players[p].races.lost))) {
-                                description += " 👑 " + Math.round((stats.players[p].races.won / (stats.players[p].races.won + stats.players[p].races.lost)) * 100)
+                        if (stats.players[p.id].matches.total > 0) {
+                            let deaths = stats.players[p.id].deaths.reduce((a, b) => { return a + b })
+                            deaths = (deaths / stats.players[p.id].races.total).toFixed(2)
+                            description += "⚔️ " + stats.players[p.id].matches.total + " 🏁 " + stats.players[p.id].races.total
+                            if (!isNaN((stats.players[p.id].races.won + stats.players[p.id].races.lost))) {
+                                description += " 👑 " + Math.round((stats.players[p.id].races.won / (stats.players[p.id].races.won + stats.players[p.id].races.lost)) * 100)
                             } else {
                                 description += " 👑 --"
                             }
                             description += "% 💀 " + deaths + " "
                         }
-                        if (stats.commentators[p] !== undefined) {
-                            description += "🎙️ " + stats.commentators[p].count
+                        if (stats.commentators[p.id] !== undefined) {
+                            description += "🎙️ " + stats.commentators[p.id].count
                         }
                     } else {
                         if (ranks[player]) {
-                            if (ranks[p] && ranks[p].matches >= 4) {
+                            if (ranks[p.id] && ranks[p.id].matches >= 4) {
                                 let r1 = ranks[player].rank
-                                let r2 = ranks[p].rank
+                                let r2 = ranks[p.id].rank
                                 let p1 = 1 / (1 + 10 ** ((r2 - r1) / 400))
                                 //let p2 = 1 - p1
                                 function getK(matches) {
@@ -2455,10 +2455,10 @@ module.exports = {
                                 description += "⭐ " + Math.round(p1 * 100) + "% +" + potential_win.toFixed(1) + "/" + potential_loss.toFixed(1) + " "
                             }
                         }
-                        if (stats.players[player].opponents[p]) {
-                            if (stats.players[player].opponents[p].matches > 0) {
-                                description += "⚔️ " + stats.players[player].opponents[p].matches + " 🏁 " + stats.players[player].opponents[p].races + " 👑 " + Math.round(stats.players[player].opponents[p].wins.reduce((a, b) => { return a + b }) * 100 / stats.players[player].opponents[p].wins.length) + "% ⏱️ "
-                                let diff = stats.players[player].opponents[p].times.reduce((a, b) => { return a + b }) / stats.players[player].opponents[p].times.length
+                        if (stats.players[player].opponents[p.id]) {
+                            if (stats.players[player].opponents[p.id].matches > 0) {
+                                description += "⚔️ " + stats.players[player].opponents[p.id].matches + " 🏁 " + stats.players[player].opponents[p.id].races + " 👑 " + Math.round(stats.players[player].opponents[p.id].wins.reduce((a, b) => { return a + b }) * 100 / stats.players[player].opponents[p.id].wins.length) + "% ⏱️ "
+                                let diff = stats.players[player].opponents[p.id].times.reduce((a, b) => { return a + b }) / stats.players[player].opponents[p.id].times.length
                                 if (diff >= 0) {
                                     //diff = tools.timefix(diff)
                                     description += "+" + Number(diff).toFixed(1) + " "
@@ -2469,23 +2469,23 @@ module.exports = {
                             }
                         }
                         if (stats.commentators[player] !== undefined) {
-                            if (stats.commentators[player].cocomm[p] || stats.commentators[player].comfor[p]) {
+                            if (stats.commentators[player].cocomm[p.id] || stats.commentators[player].comfor[p.id]) {
                                 description += "🎙️ "
-                                if (stats.commentators[player].cocomm[p]) {
-                                    description += stats.commentators[player].cocomm[p]
+                                if (stats.commentators[player].cocomm[p.id]) {
+                                    description += stats.commentators[player].cocomm[p.id]
                                 } else {
                                     description += "0"
                                 }
                                 description += "/"
-                                if (stats.commentators[player].comfor[p]) {
-                                    description += stats.commentators[player].comfor[p]
+                                if (stats.commentators[player].comfor[p.id]) {
+                                    description += stats.commentators[player].comfor[p.id]
                                 } else {
                                     description += "0"
                                 }
                             }
                         }
                     }
-                    if (p == player) {
+                    if (p.id == player) {
                         option_default = true
                     }
                     let prefix = ""
@@ -2499,13 +2499,13 @@ module.exports = {
                             prefix = tools.ordinalSuffix(i) + " - "
                         }
                         emoji = emojis[i]
-                    } else if (ranks[p] !== undefined && ranks[p].matches >= 4) {
+                    } else if (ranks[p.id] !== undefined && ranks[p.id].matches >= 4) {
                         prefix = tools.ordinalSuffix(i) + " - "
                     }
                     player_selections.push(
                         {
-                            label: prefix + tourney_participants_data[p].name,
-                            value: p,
+                            label: prefix + p.name,
+                            value: p.id,
                             description: description,
                             default: option_default,
                             emoji: emoji
