@@ -2586,7 +2586,7 @@ module.exports = {
                     }
                 })
                 for (let i = 0; i < 25; i++) {
-                    description = ""
+                    let description = ""
                     if (player == "global") {
                         description = [
                             ("▶️ " + stats.racer[i].plays) + (" (" + Math.round((stats.racer[i].plays / stats.races.total) * 100) + "%)"),
@@ -2617,7 +2617,7 @@ module.exports = {
                             id: racers[i].flag.split(":")[2].replace(">", "")
                         }
                     }
-                    let description = ""
+                    description = ""
                     if (player == "global") {
                         description = [
                             ("▶️ " + stats.track[i].plays + " (" + Math.round((stats.track[i].plays / stats.races.total) * 100) + "%)"),
