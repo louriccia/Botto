@@ -1691,7 +1691,7 @@ module.exports = {
             if (player == "global") {
                 tourneyReport.setTitle("Global Stats")
             } else {
-                tourneyReport.setTitle(tourney_participants_data[player].name + "'s Stats")
+                tourneyReport.setTitle(getUsername(player) + "'s Stats")
             }
 
             async function sendCallback() {
