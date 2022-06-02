@@ -2213,7 +2213,7 @@ module.exports = {
                         let player_records = {}
                         Object.keys(best_times).forEach(trackkey => {
                             let track = best_times[trackkey]
-                            Object.values(track).forEach(recordkey => {
+                            Object.keys(track).forEach(recordkey => {
                                 let record = best_times[trackkey][recordkey]
                                 if (Number(record.player) == Number(player)) {
                                     if (player_records[recordkey] == undefined) {
