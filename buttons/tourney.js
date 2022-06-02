@@ -1938,7 +1938,7 @@ module.exports = {
                                 }
                             })
                         } else {
-
+                            thistrack = race.track
                         }
 
 
