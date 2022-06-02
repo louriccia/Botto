@@ -1782,7 +1782,7 @@ module.exports = {
                     let already_played = []
                     let runback = {}
                     let players = Object.values(match.races[0].runs).map(run => run.player)
-                    if(match.commentators){
+                    if (match.commentators) {
                         match.commentators.forEach(commentator => {
                             if (stats.commentators[commentator] == undefined) {
                                 stats.commentators[commentator] = { count: 1, cocomm: {}, comfor: {} }
@@ -1804,23 +1804,23 @@ module.exports = {
                                 } else {
                                     stats.commentators[commentator].comfor[player]++
                                 }
-    
+
                             })
                         })
                     }
-                    
+
                     if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type)) {
                         players.forEach(player => {
                             players.filter(op => op !== player).forEach(opponent => {
-                                if(stats.players[player]){
+                                if (stats.players[player]) {
                                     if (stats.players[player].opponents[opponent] == undefined) {
                                         stats.players[player].opponents[opponent] = { matches: 0, races: 0, wins: [], times: [] }
                                     }
                                     stats.players[player].opponents[opponent].matches++
                                 } else {
-                                    console.log(player) 
+                                    console.log(player)
                                 }
-                                
+
                             })
                         })
                     }
@@ -1943,108 +1943,104 @@ module.exports = {
 
 
                         let winner = { player: null, time: null, pod: null }
-                        if(race.runs){
-                            race.runs.forEach(run => {
-                                if (run.time !== "DNF") {
-                                    stats.race_time += Number(run.time)
-                                    stats.players[run.player].race_time += Number(run.time)
-                                    if (winner.time == null || Number(run.time) - Number(winner.time) < 0) {
-                                        winner = { player: run.player, time: run.time, pod: run.pod }
-                                    }
-                                } else {
-                                    stats.races.dnf++
-                                    stats.players[run.player].races.dnf++
+                        Object.values(race.runs).forEach(run => {
+                            if (run.time !== "DNF") {
+                                stats.race_time += Number(run.time)
+                                stats.players[run.player].race_time += Number(run.time)
+                                if (winner.time == null || Number(run.time) - Number(winner.time) < 0) {
+                                    winner = { player: run.player, time: run.time, pod: run.pod }
                                 }
-                                stats.players[run.player].races.total++
-                                stats.races.total++
-                                Object.values(conditions).forEach(o => {
-                                    stats.players[run.player].track[thistrack][o]++
-                                    stats.track[thistrack][o]++
-                                    if (![null, undefined, ""].includes(run.pod)) {
-                                        stats.players[run.player].racer[run.pod][o]++
-                                        stats.racer[run.pod][o]++
+                            } else {
+                                stats.races.dnf++
+                                stats.players[run.player].races.dnf++
+                            }
+                            stats.players[run.player].races.total++
+                            stats.races.total++
+                            Object.values(conditions).forEach(o => {
+                                stats.players[run.player].track[thistrack][o]++
+                                stats.track[thistrack][o]++
+                                if (![null, undefined, ""].includes(run.pod)) {
+                                    stats.players[run.player].racer[run.pod][o]++
+                                    stats.racer[run.pod][o]++
+                                }
+                            })
+                            if ([null, undefined, ""].includes(run.deaths)) {
+                                run.deaths = 0
+                            }
+                            stats.deaths.push(run.deaths)
+                            stats.track[thistrack].deaths.push(run.deaths)
+                            stats.players[run.player].track[thistrack].deaths.push(run.deaths)
+                            stats.players[run.player].deaths.push(run.deaths)
+                            //accomplishments for selected player
+                            if (run.player == player && match.bracket !== "Qualifying") {
+                                if (run.deaths == 0) {
+                                    accomp.deathless.count++
+                                } else {
+                                    accomp.deathless.streaks.push(accomp.deathless.count)
+                                    accomp.deathless.count = 0
+                                }
+                            }
+                            stats.track[thistrack].plays++
+                            stats.players[run.player].track[thistrack].plays++
+                            if (run.pod !== undefined) {
+                                stats.racer[run.pod].plays++
+                                stats.racer[run.pod].picks.push(1)
+                                stats.racer[run.pod].deaths.push(run.deaths)
+                                stats.players[run.player].racer[run.pod].plays++
+                                stats.players[run.player].racer[run.pod].picks.push(1)
+                                stats.players[run.player].racer[run.pod].deaths.push(run.deaths)
+                                for (let i = 0; i < 25; i++) {
+                                    if (!temppod.includes(i) && i !== run.pod) {
+                                        stats.racer[i].picks.push(0)
+                                        stats.players[run.player].racer[i].picks.push(0)
+                                    }
+                                }
+                            }
+                            if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type)) {
+                                race.runs.filter(p => p.player !== run.player).forEach(opponent => {
+                                    stats.players[run.player].opponents[opponent.player].races++
+                                    if (opponent.time !== "DNF" && run.time !== "DNF") {
+                                        stats.players[run.player].opponents[opponent.player].times.push(opponent.time - run.time)
+                                        if (run.time - opponent.time < 0 || run.time == "DNF") {
+                                            stats.players[run.player].opponents[opponent.player].wins.push(1)
+                                        } else if (opponent.time - run.time < 0 || opponent.time == "DNF") {
+                                            stats.players[run.player].opponents[opponent.player].wins.push(0)
+                                        }
                                     }
                                 })
-                                if ([null, undefined, ""].includes(run.deaths)) {
-                                    run.deaths = 0
-                                }
-                                stats.deaths.push(run.deaths)
-                                stats.track[thistrack].deaths.push(run.deaths)
-                                stats.players[run.player].track[thistrack].deaths.push(run.deaths)
-                                stats.players[run.player].deaths.push(run.deaths)
-                                //accomplishments for selected player
-                                if (run.player == player && match.bracket !== "Qualifying") {
-                                    if (run.deaths == 0) {
-                                        accomp.deathless.count++
-                                    } else {
-                                        accomp.deathless.streaks.push(accomp.deathless.count)
-                                        accomp.deathless.count = 0
-                                    }
-                                }
-                                stats.track[thistrack].plays++
-                                stats.players[run.player].track[thistrack].plays++
-                                if (run.pod !== undefined) {
-                                    stats.racer[run.pod].plays++
-                                    stats.racer[run.pod].picks.push(1)
-                                    stats.racer[run.pod].deaths.push(run.deaths)
-                                    stats.players[run.player].racer[run.pod].plays++
-                                    stats.players[run.player].racer[run.pod].picks.push(1)
-                                    stats.players[run.player].racer[run.pod].deaths.push(run.deaths)
-                                    for (let i = 0; i < 25; i++) {
-                                        if (!temppod.includes(i) && i !== run.pod) {
-                                            stats.racer[i].picks.push(0)
-                                            stats.players[run.player].racer[i].picks.push(0)
-                                        }
-                                    }
-                                }
-                                if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type)) {
-                                    race.runs.filter(p => p.player !== run.player).forEach(opponent => {
-                                        stats.players[run.player].opponents[opponent.player].races++
-                                        if (opponent.time !== "DNF" && run.time !== "DNF") {
-                                            stats.players[run.player].opponents[opponent.player].times.push(opponent.time - run.time)
-                                            if (run.time - opponent.time < 0 || run.time == "DNF") {
-                                                stats.players[run.player].opponents[opponent.player].wins.push(1)
-                                            } else if (opponent.time - run.time < 0 || opponent.time == "DNF") {
-                                                stats.players[run.player].opponents[opponent.player].wins.push(0)
-                                            }
-                                        }
-                                    })
-                                }
-                                if (match.bracket !== "Qualifying") {
-                                    if (best_times[thistrack][Object.values(conditions).join("")]) {
-                                        if (Number(run.time) - Number(best_times[thistrack][Object.values(conditions).join("")].time) < 0) {
-                                            best_times[thistrack][Object.values(conditions).join("")] = { time: run.time, player: run.player }
-                                        }
-                                    } else {
+                            }
+                            if (match.bracket !== "Qualifying") {
+                                if (best_times[thistrack][Object.values(conditions).join("")]) {
+                                    if (Number(run.time) - Number(best_times[thistrack][Object.values(conditions).join("")].time) < 0) {
                                         best_times[thistrack][Object.values(conditions).join("")] = { time: run.time, player: run.player }
                                     }
+                                } else {
+                                    best_times[thistrack][Object.values(conditions).join("")] = { time: run.time, player: run.player }
                                 }
-                            })
-                            race.runs.forEach(run => {
-                                let player_run = {}
-                                if ((run.player == player || player == "global") && thistrack == track) {
-                                    player_run = {
-                                        match: tourney_tournaments_data[match.tourney].nickname + " " + match.bracket + " " + (match.round ? match.round : ""),
-                                        time: run.time,
-                                        pod: run.pod,
-                                        race: num + 1,
-                                        conditions: conditions,
-                                        temppod: temppod,
-                                        deaths: run.deaths,
-                                        pick: Object.values(race.events).filter(e => e.event == 'selection' && e.type == 'track')[0].player == run.player,
-                                        winner: player_run.player == winner.player,
-                                        opponents: (["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type)) ? [] : players.filter(p => p !== run.player),
-                                        player: run.player
-                                    }
+                            }
+                        })
+                        race.runs.forEach(run => {
+                            let player_run = {}
+                            if ((run.player == player || player == "global") && thistrack == track) {
+                                player_run = {
+                                    match: tourney_tournaments_data[match.tourney].nickname + " " + match.bracket + " " + (match.round ? match.round : ""),
+                                    time: run.time,
+                                    pod: run.pod,
+                                    race: num + 1,
+                                    conditions: conditions,
+                                    temppod: temppod,
+                                    deaths: run.deaths,
+                                    pick: Object.values(race.events).filter(e => e.event == 'selection' && e.type == 'track')[0].player == run.player,
+                                    winner: player_run.player == winner.player,
+                                    opponents: (["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type)) ? [] : players.filter(p => p !== run.player),
+                                    player: run.player
                                 }
-                                if (player_run.hasOwnProperty("time")) {
-                                    player_runs.push(player_run)
-                                }
-                            })
-                        } else {
-                            console.log(match)
-                        }
-                        
+                            }
+                            if (player_run.hasOwnProperty("time")) {
+                                player_runs.push(player_run)
+                            }
+                        })
+
                         if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type) && winner.player !== null) {
                             stats.players[winner.player].races.won++
                             stats.players[winner.player].track[thistrack].wins.push(1)
