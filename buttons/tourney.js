@@ -1745,24 +1745,25 @@ module.exports = {
                 for (i = 0; i < 25; i++) {
                     best_times[i] = {}
                 }
-                let tpd = Object.keys(tourney_participants_data)
-                tpd.forEach(participant => {
-                    stats.players[participant.id] = {
-                        race_time: 0,
-                        deaths: [],
-                        matches: { total: 0, won: 0, lost: 0, qual: 0, winners: 0, losers: 0 },
-                        races: { total: 0, won: 0, lost: 0, runbacks: 0, dnf: 0 },
-                        track: {},
-                        racer: {},
-                        opponents: {},
-                        overrides: { nu: 0, sk: 0, fl: 0 },
-                        co_comm: {},
+                Object.values(tourney_participants_data).forEach(participant => {
+                    if(participant.id){
+                        stats.players[participant.id] = {
+                            race_time: 0,
+                            deaths: [],
+                            matches: { total: 0, won: 0, lost: 0, qual: 0, winners: 0, losers: 0 },
+                            races: { total: 0, won: 0, lost: 0, runbacks: 0, dnf: 0 },
+                            track: {},
+                            racer: {},
+                            opponents: {},
+                            overrides: { nu: 0, sk: 0, fl: 0 },
+                            co_comm: {},
+                        }
                     }
                 })
                 for (i = 0; i < 25; i++) {
                     stats.track[i] = { plays: 0, picks: [], bans: [], wins: [], deaths: [], runbacks: 0, nu: 0, skips: 0 }
                     stats.racer[i] = { plays: 0, picks: [], bans: [], wins: [], deaths: [], nu: 0, skips: 0 }
-                    tpd.forEach(participant => {
+                    Object.values(tourney_participants_data).forEach(participant => {
                         if (participant.id) {
                             stats.players[participant.id].track[i] = { plays: 0, picks: [], bans: [], wins: [], deaths: [], runbacks: 0, nu: 0, skips: 0 }
                             stats.players[participant.id].racer[i] = { plays: 0, picks: [], bans: [], wins: [], deaths: [], nu: 0, skips: 0 }
