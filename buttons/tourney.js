@@ -1995,12 +1995,12 @@ module.exports = {
                                 })
                             }
                             if (match.bracket !== "Qualifying") {
-                                if (best_times[thistrack][conditions.join("")]) {
+                                if (best_times[thistrack][Object.values(conditions).join("")]) {
                                     if (Number(run.time) - Number(best_times[thistrack][conditions.join("")].time) < 0) {
                                         best_times[thistrack][conditions.join("")] = { time: run.time, player: run.player }
                                     }
                                 } else {
-                                    best_times[thistrack][conditions.join("")] = { time: run.time, player: run.player }
+                                    best_times[thistrack][Object.values(conditions).join("")] = { time: run.time, player: run.player }
                                 }
                             }
                         })
