@@ -1736,6 +1736,9 @@ module.exports = {
                         skips: 0,
                         pod_ban: 0
                     },
+                    overrides: {
+                        total: 0
+                    },
                     track: {},
                     racer: {},
                     players: {},
@@ -1878,6 +1881,9 @@ module.exports = {
                                 } else if (event.event == 'override' && event.type == 'condition') {
                                     stats.overrides.total++
                                     stats.players[event.player].overrides[event.selection]++
+                                    if(stats.overrides[event.selection] == undefined){
+                                        stats.overrides[event.selection] = 1
+                                    }
                                     stats.overrides[event.selection]++
                                     if (event.selection == 'nu') {
                                         conditions.upgr = 'nu'
