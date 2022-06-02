@@ -1993,7 +1993,7 @@ module.exports = {
                             }
                             stats.track[thistrack].plays++
                             stats.players[run.player].track[thistrack].plays++
-                            if (run.pod !== undefined) {
+                            if (![null, undefined, ""].includes(run.pod)) {
                                 stats.racer[run.pod].plays++
                                 stats.racer[run.pod].picks.push(1)
                                 stats.racer[run.pod].deaths.push(run.deaths)
