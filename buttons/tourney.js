@@ -1903,9 +1903,9 @@ module.exports = {
                                         stats.players[event.player].track[event.selection].picks.push(1)
                                         already_played.push(Number(event.selection))
                                         for (let i = 0; i < 25; i++) {
-                                            if (!temptrack.includes(i) && !already_banned.includes(i) && (!already_played.includes(i) || (already_played.includes(i) && (runback[race.events.filter(e => e.type == 'track' && e.event == 'selection')[0].player] !== undefined)))) {
+                                            if (!temptrack.includes(i) && !already_banned.includes(i) && (!already_played.includes(i) || (already_played.includes(i) && (runback[event.player] !== undefined)))) {
                                                 stats.track[i].picks.push(0)
-                                                stats.players[race.track_selection.player].track[i].picks.push(0)
+                                                stats.players[event.player].track[i].picks.push(0)
                                             }
                                         }
                                     }
