@@ -1749,7 +1749,7 @@ module.exports = {
                     best_times[i] = {}
                 }
                 Object.values(tourney_participants_data).forEach(participant => {
-                    if(participant.id){
+                    if (participant.id) {
                         stats.players[participant.id] = {
                             race_time: 0,
                             deaths: [],
@@ -1881,7 +1881,7 @@ module.exports = {
                                 } else if (event.event == 'override' && event.type == 'condition') {
                                     stats.overrides.total++
                                     stats.players[event.player].overrides[event.selection]++
-                                    if(stats.overrides[event.selection] == undefined){
+                                    if (stats.overrides[event.selection] == undefined) {
                                         stats.overrides[event.selection] = 1
                                     }
                                     stats.overrides[event.selection]++
@@ -1952,7 +1952,7 @@ module.exports = {
                             Object.values(conditions).forEach(o => {
                                 stats.players[run.player].track[thistrack][o]++
                                 stats.track[thistrack][o]++
-                                if(![null, undefined, ""].includes(run.pod)){
+                                if (![null, undefined, ""].includes(run.pod)) {
                                     stats.players[run.player].racer[run.pod][o]++
                                     stats.racer[run.pod][o]++
                                 }
@@ -2050,10 +2050,10 @@ module.exports = {
                                 if (loser.player !== winner.player) {
                                     stats.players[loser.player].races.lost++
                                     stats.players[loser.player].track[thistrack].wins.push(0)
-                                    if(![null, undefined, ""].includes(loser.pod)){
+                                    if (![null, undefined, ""].includes(loser.pod)) {
                                         stats.players[loser.player].racer[loser.pod].wins.push(0)
+                                        stats.racer[loser.pod].wins.push(0)
                                     }
-                                    stats.racer[loser.pod].wins.push(0)
                                     if (loser.player == player) {
                                         accomp.win.streaks.push(accomp.win.count)
                                         accomp.win.count = 0
@@ -3337,7 +3337,7 @@ module.exports = {
                 })
                 Object.values(livematch.races).forEach((race, index) => {
                     if (!race.live) {
-                        if(getWinner(index)){
+                        if (getWinner(index)) {
                             summary[getWinner(index)].wins++
                         }
                         if (![null, undefined, ""].includes(race.events)) {
