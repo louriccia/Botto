@@ -2254,7 +2254,7 @@ module.exports = {
                         }
                         for (i = 0; i < accomp.comebacks.length; i++) {
                             let comeback = accomp.comebacks[i]
-                            accomplishments.push("↩️ " + comeback.p_low + "-" + comeback.op_low + " to " + comeback.p_high + "-" + comeback.op_high + " **Comeback** vs " + tourney_participants_data[comeback.op].name + " (" + comeback.match + ")")
+                            accomplishments.push("↩️ " + comeback.p_low + "-" + comeback.op_low + " to " + comeback.p_high + "-" + comeback.op_high + " **Comeback** vs " + getUsername(comeback.op) + " (" + comeback.match + ")")
                             if (i == 2 && accomp.comebacks.length > 3) {
                                 accomplishments.push("+" + (accomp.comebacks.length - i) + " More ↩️ **Comebacks**")
                                 i = accomp.comebacks.length
