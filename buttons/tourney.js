@@ -2050,7 +2050,9 @@ module.exports = {
                                 if (loser.player !== winner.player) {
                                     stats.players[loser.player].races.lost++
                                     stats.players[loser.player].track[thistrack].wins.push(0)
-                                    stats.players[loser.player].racer[loser.pod].wins.push(0)
+                                    if(![null, undefined, ""].includes(loser.pod)){
+                                        stats.players[loser.player].racer[loser.pod].wins.push(0)
+                                    }
                                     stats.racer[loser.pod].wins.push(0)
                                     if (loser.player == player) {
                                         accomp.win.streaks.push(accomp.win.count)
