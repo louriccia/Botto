@@ -1817,6 +1817,8 @@ module.exports = {
                                         stats.players[player].opponents[opponent] = { matches: 0, races: 0, wins: [], times: [] }
                                     }
                                     stats.players[player].opponents[opponent].matches++
+                                } else {
+                                    console.log(player)
                                 }
                                 
                             })
