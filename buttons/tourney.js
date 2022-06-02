@@ -1951,9 +1951,11 @@ module.exports = {
                             stats.races.total++
                             Object.values(conditions).forEach(o => {
                                 stats.players[run.player].track[thistrack][o]++
-                                stats.players[run.player].racer[run.pod][o]++
-                                stats.racer[run.pod][o]++
                                 stats.track[thistrack][o]++
+                                if(![null, undefined, ""].includes(run.pod)){
+                                    stats.players[run.player].racer[run.pod][o]++
+                                    stats.racer[run.pod][o]++
+                                }
                             })
                             if ([null, undefined, ""].includes(run.deaths)) {
                                 run.deaths = 0
