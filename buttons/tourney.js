@@ -2150,7 +2150,7 @@ module.exports = {
                             .addField(":checkered_flag: Races", "total: `" + stats.races.total + "`\n" +
                                 "runbacks: `" + stats.races.runbacks + "`\n" +
                                 "dnf: `" + stats.races.dnf + "`", true)
-                            .addField(":asterisk: Overrides", "total: `" + Object.values(stats.overrides).reduce((p, c) => p + c) + "`\n" + Object.keys(stats.overrides).map(o => o + ": `" + stats.overrides[0] + "`\n"), true)
+                            .addField(":asterisk: Overrides", "total: `" + Object.values(stats.overrides).reduce((p, c) => p + c) + "`\n" + Object.keys(stats.overrides).map(o => o + ": `" + stats.overrides[o] + "`").join("\n"), true)
                     } else {
                         let description = ""
                         if (ranks[player] !== undefined) {
@@ -2209,15 +2209,17 @@ module.exports = {
                                 deathless_streak = streak
                             }
                         }
-                        //tourney record
+                        //tourney records
                         let player_records = {}
-                        Object.values(best_times).forEach(track => {
-                            Object.values(track).forEach(record => {
+                        Object.keys(best_times).forEach(trackkey => {
+                            let track = best_times[trackkey]
+                            Object.values(track).forEach(recordkey => {
+                                let record = best_times[trackkey][recordkey]
                                 if (Number(record.player) == Number(player)) {
-                                    if (player_records[record] == undefined) {
-                                        player_records[record] = []
+                                    if (player_records[recordkey] == undefined) {
+                                        player_records[recordkey] = []
                                     }
-                                    player_records[record].push(track)
+                                    player_records[recordkey].push(trackkey)
                                 }
                             })
                         })
