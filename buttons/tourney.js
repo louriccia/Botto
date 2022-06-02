@@ -2239,7 +2239,7 @@ module.exports = {
                             }
                         })
 
-                        //win/deathless streak
+                        //win/deathless streak 
                         if (win_streak >= 5) {
                             let winstring = ":crown: " + win_streak + "-Race **Win Streak**"
                             if (accomp.win.count > 0) {
