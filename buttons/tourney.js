@@ -1782,30 +1782,33 @@ module.exports = {
                     let already_played = []
                     let runback = {}
                     let players = Object.values(match.races[0].runs).map(run => run.player)
-                    match.commentators.forEach(commentator => {
-                        if (stats.commentators[commentator] == undefined) {
-                            stats.commentators[commentator] = { count: 1, cocomm: {}, comfor: {} }
-                        } else {
-                            stats.commentators[commentator].count++
-                        }
-                        match.commentators.forEach(cocomm => {
-                            if (cocomm !== commentator) {
-                                if (stats.commentators[commentator].cocomm[cocomm] == undefined) {
-                                    stats.commentators[commentator].cocomm[cocomm] = 1
-                                } else {
-                                    stats.commentators[commentator].cocomm[cocomm]++
-                                }
-                            }
-                        })
-                        players.forEach(player => {
-                            if (stats.commentators[commentator].comfor[player] == undefined) {
-                                stats.commentators[commentator].comfor[player] = 1
+                    if(match.commentators){
+                        match.commentators.forEach(commentator => {
+                            if (stats.commentators[commentator] == undefined) {
+                                stats.commentators[commentator] = { count: 1, cocomm: {}, comfor: {} }
                             } else {
-                                stats.commentators[commentator].comfor[player]++
+                                stats.commentators[commentator].count++
                             }
-
+                            match.commentators.forEach(cocomm => {
+                                if (cocomm !== commentator) {
+                                    if (stats.commentators[commentator].cocomm[cocomm] == undefined) {
+                                        stats.commentators[commentator].cocomm[cocomm] = 1
+                                    } else {
+                                        stats.commentators[commentator].cocomm[cocomm]++
+                                    }
+                                }
+                            })
+                            players.forEach(player => {
+                                if (stats.commentators[commentator].comfor[player] == undefined) {
+                                    stats.commentators[commentator].comfor[player] = 1
+                                } else {
+                                    stats.commentators[commentator].comfor[player]++
+                                }
+    
+                            })
                         })
-                    })
+                    }
+                    
                     if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type)) {
                         players.forEach(player => {
                             players.filter(op => op !== player).forEach(opponent => {
