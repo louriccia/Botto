@@ -2060,7 +2060,8 @@ module.exports = {
                             if (winner.player == player) {
                                 accomp.win.count++
                             }
-                            if (winner.player == Object.values(race.events).filter(e => e.event == 'selection' && e.type == 'track')[0].player) {
+
+                            if (race.events && winner.player == Object.values(race.events).filter(e => e.event == 'selection' && e.type == 'track')[0].player) {
                                 stats.track[thistrack].wins.push(1)
                             } else {
                                 stats.track[thistrack].wins.push(0)
