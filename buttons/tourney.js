@@ -1957,9 +1957,15 @@ module.exports = {
                             stats.players[run.player].races.total++
                             stats.races.total++
                             Object.values(conditions).forEach(o => {
+                                if(stats.players[run.player].track[thistrack][o] == undefined){
+                                    stats.players[run.player].track[thistrack][o] = 1
+                                }
                                 stats.players[run.player].track[thistrack][o]++
                                 stats.track[thistrack][o]++
                                 if (![null, undefined, ""].includes(run.pod)) {
+                                    if(stats.players[run.player].racer[run.pod][o] == undefined){
+                                        stats.players[run.player].racer[run.pod][o] = 1
+                                    }
                                     stats.players[run.player].racer[run.pod][o]++
                                     stats.racer[run.pod][o]++
                                 }
