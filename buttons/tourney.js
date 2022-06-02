@@ -1837,7 +1837,7 @@ module.exports = {
                         }
                         score[p] = 0
                     })
-
+                    console.log(stats)
                     match.races.forEach((race, num) => {
                         let conditions = tourney_rulesets_data.saved[match.ruleset].general.default
                         let thistrack = null
