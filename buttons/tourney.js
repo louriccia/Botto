@@ -2358,7 +2358,7 @@ module.exports = {
                 let player_selections = []
 
                 //sort player select
-                let players = Object.keys(tourney_participants_data)
+                let players = Object.values(tourney_participants_data).map(player => player.id).filter(p => p!== undefined)
                 players = players.sort(function (a, b) {
                     if (ranks[a] !== undefined && ranks[a].matches >= 4 && ranks[b] !== undefined && ranks[b].matches >= 4) {
                         return Number(ranks[b].rank) - Number(ranks[a].rank)
