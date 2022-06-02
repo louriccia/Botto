@@ -1812,10 +1812,13 @@ module.exports = {
                     if (!["Qualifier", "1vAll"].includes(tourney_rulesets_data.saved[match.ruleset].type)) {
                         players.forEach(player => {
                             players.filter(op => op !== player).forEach(opponent => {
-                                if (stats.players[player].opponents[opponent] == undefined) {
-                                    stats.players[player].opponents[opponent] = { matches: 0, races: 0, wins: [], times: [] }
+                                if(stats.players[player]){
+                                    if (stats.players[player].opponents[opponent] == undefined) {
+                                        stats.players[player].opponents[opponent] = { matches: 0, races: 0, wins: [], times: [] }
+                                    }
+                                    stats.players[player].opponents[opponent].matches++
                                 }
-                                stats.players[player].opponents[opponent].matches++
+                                
                             })
                         })
                     }
