@@ -2331,10 +2331,10 @@ module.exports = {
                                     "lost: `" + stats.players[player].races.lost + "`\n" +
                                     "runbacks: `" + stats.players[player].races.runbacks + "`\n" +
                                     "dnf: `" + stats.players[player].races.dnf + "`", true)
-                                .addField(":asterisk: Forces", "total: `" + (Number(stats.players[player].forces.skips) + Number(stats.players[player].forces.no_upgrades) + Number(stats.players[player].forces.pod_ban)) + "`\n" +
-                                    "skips: `" + stats.players[player].forces.skips + "`\n" +
-                                    "nu: `" + stats.players[player].forces.no_upgrades + "`\n" +
-                                    "pod ban: `" + stats.players[player].forces.pod_ban + "`", true)
+                                .addField(":asterisk: Forcepoints", "total: `" + (Number(stats.players[player].overrides.sk) + Number(stats.players[player].overrides.nu) + Number(stats.players[player].overrides.fl)) + "`\n" +
+                                    "skips: `" + stats.players[player].overrides.sk + "`\n" +
+                                    "nu: `" + stats.players[player].overrides.nu + "`\n" +
+                                    "pod ban: `" + stats.players[player].overrides.fl + "`", true)
                         }
                         if (accomplishments.length > 0) {
                             let accompstring = ""
