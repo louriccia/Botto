@@ -2606,8 +2606,8 @@ module.exports = {
                             (stats.players[player].racer[i].bans.length > 0 ? "❌ " + Math.round((stats.players[player].racer[i].bans.reduce((a, b) => { return a + b }) / stats.players[player].racer[i].bans.length) * 100) + "%" : "❌ --%"),
                             (stats.players[player].racer[i].wins.length > 0 ? "👑 " + Math.round((stats.players[player].racer[i].wins.reduce((a, b) => { return a + b }) / stats.players[player].racer[i].wins.length) * 100) + "%" : "👑 --%"),
                             (stats.players[player].racer[i].deaths.length > 0 ? "💀 " + (stats.players[player].racer[i].deaths.reduce((a, b) => { return a + b }) / stats.players[player].racer[i].deaths.length).toFixed(2) : "💀 --"),
-                            (stats.players[player].racer[i].nu > 0 ? "🐢  " + stats.players[player].racer[i].nu : ""),
-                            (stats.players[player].racer[i].skips > 0 ? "⏩  " + stats.players[player].racer[i].skips : "")
+                            (stats.players[player].racer[i].nu > 0 ? "🐢 " + stats.players[player].racer[i].nu : ""),
+                            (stats.players[player].racer[i].skips > 0 ? "⏩ " + stats.players[player].racer[i].skips : "")
                         ].join(" ")
                     }
                     let racer_option = {
@@ -2641,7 +2641,7 @@ module.exports = {
                             (stats.players[player].track[i].nu > 0 ? "🐢  " + stats.players[player].track[i].nu : ""),
                             (stats.players[player].track[i].skips > 0 ? " ⏩  " + stats.players[player].track[i].skips : ""),
                             (stats.players[player].track[i].runbacks > 0 ? " 🔁  " + stats.players[player].track[i].runbacks : "")
-                        ]
+                        ].join(" ")
                     }
                     let track_option = {
                         label: tracks[i].name,
