@@ -4088,7 +4088,7 @@ module.exports = {
                 ]
             }
 
-
+            console.log(interaction.type)
             if ([null, undefined, ""].includes(livematch)) {
                 args[1] = "setup"
                 type = 4
@@ -4104,7 +4104,7 @@ module.exports = {
                     firstvote: ""
                 }
                 livematchref.set(match)
-            } else {
+            } else if (interaction.type == 2){
                 args[1] = 'admin'
             }
 
