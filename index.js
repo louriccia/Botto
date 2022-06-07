@@ -160,7 +160,6 @@ client.once('ready', () => {
 
     //set bot activity
     client.user.setActivity("/help");
-    //client.users.cache.get("256236315144749059").send("Ready!")
     client.channels.cache.get("444208252541075476").messages.fetch({ limit: 1 }).then(messages => {
         let lastMessage = messages.first();
 
@@ -182,7 +181,6 @@ client.once('ready', () => {
         const url = 'http://speedgaming.org/swe1racer/';
         const fs = require('fs');
         const livechannel = "515311630100463656"
-
         function getParticipantbyName(name) {
             let ptc = Object.keys(tourney_participants_data)
             for (k = 0; k < ptc.length; k++) {
@@ -200,11 +198,9 @@ client.once('ready', () => {
                 const Guild = client.guilds.cache.get("441839750555369474")
                 let events = Guild.scheduledEvents.cache.toJSON()
                 let values = []
-
                 Object.keys(tourney_scheduled_data).forEach(key => {
                     tourney_scheduled.child(key).update({ current: false })
                 })
-
                 cheerio('tr', table).each((i, elem) => { //for each row
                     let match = {}
                     cheerio('td', elem).each((j, cell) => { //for each cell, populate match
@@ -266,8 +262,6 @@ client.once('ready', () => {
                                     console.log("failed to edit scheduled event")
                                 }
                             }
-
-
                         }
                     })
                     if (!eventdup && match.current && match.datetime > Date.now()) {

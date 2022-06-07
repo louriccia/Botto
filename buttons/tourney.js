@@ -4183,6 +4183,13 @@ module.exports = {
                 let status = interaction.data.values[0]
                 if (Object.values(livematch.commentators).includes(interaction.member.user.id) || (interaction.guild_id == '441839750555369474' && (Member.roles.cache.some(r => r.id == '862810190072381471')) && !Object.values(livematch.players).includes(interaction.member.user.id))) {
                     let race = livematch.current_race
+                    client.channels.cache.get(interaction.channel_id).messages.fetch({ limit: 5 }).then(messages => {
+                        console.log(messages.filter(m => m.author.bot))
+                        let lastMessage = messages.filter(m => m.author.bot).first();
+                        if (lastMessage) {
+                            lastMessage.delete().catch(err => console.log(err));
+                        }
+                    })
                     if (status == 'first') {
                         livematchref.update({ races: "", firstbans: "", firstvote: "", eventstart: 0, eventend: 0, runs: "", firstcolors: "" })
                         livematchref.child('races').child(livematch.current_race).child('ready').child('commentators').set(false)
