@@ -4177,7 +4177,7 @@ module.exports = {
                 if (Object.values(livematch.commentators).includes(interaction.member.user.id) || (interaction.guild_id == '441839750555369474' && (Member.roles.cache.some(r => r.id == '862810190072381471')) && !Object.values(livematch.players).includes(interaction.member.user.id))) {
                     let race = livematch.current_race
                     if (status == 'first') {
-                        livematchref.update({ races: "", firstbans: "", firstmethod: "", firstvote: "", eventstart: 0, eventend: 0, runs: "" })
+                        livematchref.update({ races: "", firstbans: "", firstvote: "", eventstart: 0, eventend: 0, runs: "" })
                         updateMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(", "), type, [firstEmbed()], firstComponents())
                         livematchref.child("status").set("first")
                     } else if (status == 'permaban') {
