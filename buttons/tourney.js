@@ -4226,7 +4226,11 @@ module.exports = {
                                 time: ""
                             })
                         })
-                        updateMessage("<@" + (events[0].choice == "lastwinner" ? getWinner(race - 1) : getOpponent(getWinner(race - 1))) + "> please make a selection", type, [raceEventEmbed(race)], raceEventComponents(race))
+                        if(livematch.current_race == 1 && Object.values(liverules.match.permabans).length > 0){
+                            updateMessage("<@" + (liverules.match.permabans[0].choice == "firstloser" ? getOpponent(getWinner(0)) : getWinner(0)) + "> please select a permanent ban", type, [permabanEmbed(0)], permabanComponents(0))
+                        } else {
+                            updateMessage("<@" + (events[0].choice == "lastwinner" ? getWinner(race - 1) : getOpponent(getWinner(race - 1))) + "> please make a selection", type, [raceEventEmbed(race)], raceEventComponents(race))
+                        }
                     } else if (status == 'prerace') {
                         livematchref.child('races').child(livematch.current_race).update({ live: false })
                         livematchref.child('races').child(livematch.current_race).child('ready').child('commentators').set(false)
