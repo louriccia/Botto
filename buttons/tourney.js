@@ -4184,82 +4184,81 @@ module.exports = {
                 if (Object.values(livematch.commentators).includes(interaction.member.user.id) || (interaction.guild_id == '441839750555369474' && (Member.roles.cache.some(r => r.id == '862810190072381471')) && !Object.values(livematch.players).includes(interaction.member.user.id))) {
                     let race = livematch.current_race
                     client.channels.cache.get(interaction.channel_id).messages.fetch({ limit: 5 }).then(messages => {
-                        console.log(messages.filter(m => m.author.bot))
-                        let lastMessage = messages.filter(m => m.author.bot).first();
+                        let lastMessage = messages.filter(m => m.author.bot && m.id !== interaction.message.id).first();
                         if (lastMessage) {
                             lastMessage.delete().catch(err => console.log(err));
                         }
-                    }).then( () => {
-                        if (status == 'first') {
-                            livematchref.update({ races: "", firstbans: "", firstvote: "", eventstart: 0, eventend: 0, runs: "", firstcolors: "" })
-                            livematchref.child('races').child(livematch.current_race).child('ready').child('commentators').set(false)
-                            updateMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(", "), type, [firstEmbed()], firstComponents())
-                            livematchref.child("status").set("first")
-                        } else if (status == 'permaban') {
-                            livematchref.child('races').child('1').update({ events: "", eventstart: 0, eventend: 0, live: false })
-                            livematchref.child('races').child(livematch.current_race).child('ready').child('commentators').set(false)
-                            Object.values(livematch.players).map(player => {
-                                livematchref.child('races').child(livematch.current_race).child('ready').child(player).set(false)
-                                livematchref.child('races').child(livematch.current_race).child('reveal').child(player).set(false)
-                                livematchref.child('races').child(livematch.current_race).child('runs').child(player).set({
-                                    deaths: "",
-                                    notes: "",
-                                    platform: "pc",
-                                    player: "",
-                                    pod: "",
-                                    time: ""
-                                })
-                            })
-                            updateMessage("<@" + (liverules.match.permabans[0].choice == "firstloser" ? getOpponent(getWinner(0)) : getWinner(0)) + "> please select a permanent ban", type, [permabanEmbed(0)], permabanComponents(0))
-                        } else if (status == 'prevrace') {
-                            let current_race = livematch.current_race
-                            livematchref.child('races').child(livematch.current_race).remove()
-                            livematchref.child('current_race').set(current_race - 1)
-                            livematchref.child('races').child(current_race - 1).child('live').set(true)
-                            updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(comm => "<@" + comm + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
-                        } else if (status == 'events') {
-                            let events = Object.values(liverules.race)
-                            livematchref.child('races').child(livematch.current_race).update({ events: "", eventstart: 0, eventend: 0, live: false })
-                            livematchref.child('races').child(livematch.current_race).child('ready').child('commentators').set(false)
-                            Object.values(livematch.players).map(player => {
-                                livematchref.child('races').child(livematch.current_race).child('ready').child(player).set(false)
-                                livematchref.child('races').child(livematch.current_race).child('reveal').child(player).set(false)
-                                livematchref.child('races').child(livematch.current_race).child('runs').child(player).set({
-                                    deaths: "",
-                                    notes: "",
-                                    platform: "pc",
-                                    player: "",
-                                    pod: "",
-                                    time: ""
-                                })
-                            })
-                            if(livematch.current_race == 1 && Object.values(liverules.match.permabans).length > 0){
-                                updateMessage("<@" + (liverules.match.permabans[0].choice == "firstloser" ? getOpponent(getWinner(0)) : getWinner(0)) + "> please select a permanent ban", type, [permabanEmbed(0)], permabanComponents(0))
-                            } else {
-                                updateMessage("<@" + (events[0].choice == "lastwinner" ? getWinner(race - 1) : getOpponent(getWinner(race - 1))) + "> please make a selection", type, [raceEventEmbed(race)], raceEventComponents(race))
-                            }
-                        } else if (status == 'prerace') {
-                            livematchref.child('races').child(livematch.current_race).update({ live: false })
-                            livematchref.child('races').child(livematch.current_race).child('ready').child('commentators').set(false)
-                            Object.values(livematch.players).map(player => {
-                                livematchref.child('races').child(livematch.current_race).child('ready').child(player).set(false)
-                                livematchref.child('races').child(livematch.current_race).child('reveal').child(player).set(false)
-                                livematchref.child('races').child(livematch.current_race).child('runs').child(player).set({
-                                    deaths: "",
-                                    notes: "",
-                                    platform: "pc",
-                                    player: "",
-                                    pod: "",
-                                    time: ""
-                                })
-                            })
-                            updateMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
-                        } else if (status == 'delete') {
-                            livematchref.remove()
-                            updateMessage("Match was cancelled", type, [], [])
-                        }
                     })
-                    
+                    if (status == 'first') {
+                        livematchref.update({ races: "", firstbans: "", firstvote: "", eventstart: 0, eventend: 0, runs: "", firstcolors: "" })
+                        livematchref.child('races').child(livematch.current_race).child('ready').child('commentators').set(false)
+                        updateMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(", "), type, [firstEmbed()], firstComponents())
+                        livematchref.child("status").set("first")
+                    } else if (status == 'permaban') {
+                        livematchref.child('races').child('1').update({ events: "", eventstart: 0, eventend: 0, live: false })
+                        livematchref.child('races').child(livematch.current_race).child('ready').child('commentators').set(false)
+                        Object.values(livematch.players).map(player => {
+                            livematchref.child('races').child(livematch.current_race).child('ready').child(player).set(false)
+                            livematchref.child('races').child(livematch.current_race).child('reveal').child(player).set(false)
+                            livematchref.child('races').child(livematch.current_race).child('runs').child(player).set({
+                                deaths: "",
+                                notes: "",
+                                platform: "pc",
+                                player: "",
+                                pod: "",
+                                time: ""
+                            })
+                        })
+                        updateMessage("<@" + (liverules.match.permabans[0].choice == "firstloser" ? getOpponent(getWinner(0)) : getWinner(0)) + "> please select a permanent ban", type, [permabanEmbed(0)], permabanComponents(0))
+                    } else if (status == 'prevrace') {
+                        let current_race = livematch.current_race
+                        livematchref.child('races').child(livematch.current_race).remove()
+                        livematchref.child('current_race').set(current_race - 1)
+                        livematchref.child('races').child(current_race - 1).child('live').set(true)
+                        updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(comm => "<@" + comm + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
+                    } else if (status == 'events') {
+                        let events = Object.values(liverules.race)
+                        livematchref.child('races').child(livematch.current_race).update({ events: "", eventstart: 0, eventend: 0, live: false })
+                        livematchref.child('races').child(livematch.current_race).child('ready').child('commentators').set(false)
+                        Object.values(livematch.players).map(player => {
+                            livematchref.child('races').child(livematch.current_race).child('ready').child(player).set(false)
+                            livematchref.child('races').child(livematch.current_race).child('reveal').child(player).set(false)
+                            livematchref.child('races').child(livematch.current_race).child('runs').child(player).set({
+                                deaths: "",
+                                notes: "",
+                                platform: "pc",
+                                player: "",
+                                pod: "",
+                                time: ""
+                            })
+                        })
+                        if (livematch.current_race == 1 && Object.values(liverules.match.permabans).length > 0) {
+                            updateMessage("<@" + (liverules.match.permabans[0].choice == "firstloser" ? getOpponent(getWinner(0)) : getWinner(0)) + "> please select a permanent ban", type, [permabanEmbed(0)], permabanComponents(0))
+                        } else {
+                            updateMessage("<@" + (events[0].choice == "lastwinner" ? getWinner(race - 1) : getOpponent(getWinner(race - 1))) + "> please make a selection", type, [raceEventEmbed(race)], raceEventComponents(race))
+                        }
+                    } else if (status == 'prerace') {
+                        livematchref.child('races').child(livematch.current_race).update({ live: false })
+                        livematchref.child('races').child(livematch.current_race).child('ready').child('commentators').set(false)
+                        Object.values(livematch.players).map(player => {
+                            livematchref.child('races').child(livematch.current_race).child('ready').child(player).set(false)
+                            livematchref.child('races').child(livematch.current_race).child('reveal').child(player).set(false)
+                            livematchref.child('races').child(livematch.current_race).child('runs').child(player).set({
+                                deaths: "",
+                                notes: "",
+                                platform: "pc",
+                                player: "",
+                                pod: "",
+                                time: ""
+                            })
+                        })
+                        updateMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
+                    } else if (status == 'delete') {
+                        livematchref.remove()
+                        updateMessage("Match was cancelled", type, [], [])
+                    }
+
+
                 } else {
                     ephemeralMessage("Only trackers/tourney staff have permission to use this. <:WhyNobodyBuy:589481340957753363>", [], [])
                 }
