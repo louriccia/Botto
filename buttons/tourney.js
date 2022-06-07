@@ -4182,10 +4182,12 @@ module.exports = {
                     let race = livematch.current_race
                     if (status == 'first') {
                         livematchref.update({ races: "", firstbans: "", firstvote: "", eventstart: 0, eventend: 0, runs: "", firstcolors: "" })
+                        livematchref.child('races').child(livematch.current_race).child('ready').child('commentators').set(false)
                         updateMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(", "), type, [firstEmbed()], firstComponents())
                         livematchref.child("status").set("first")
                     } else if (status == 'permaban') {
                         livematchref.child('races').child('1').update({ events: "", eventstart: 0, eventend: 0, live: false })
+                        livematchref.child('races').child(livematch.current_race).child('ready').child('commentators').set(false)
                         Object.values(livematch.players).map(player => {
                             livematchref.child('races').child(livematch.current_race).child('ready').child(player).set(false)
                             livematchref.child('races').child(livematch.current_race).child('reveal').child(player).set(false)
@@ -4207,6 +4209,7 @@ module.exports = {
                         updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(comm => "<@" + comm + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
                     } else if (status == 'events') {
                         livematchref.child('races').child(livematch.current_race).update({ events: "", eventstart: 0, eventend: 0, live: false })
+                        livematchref.child('races').child(livematch.current_race).child('ready').child('commentators').set(false)
                         Object.values(livematch.players).map(player => {
                             livematchref.child('races').child(livematch.current_race).child('ready').child(player).set(false)
                             livematchref.child('races').child(livematch.current_race).child('reveal').child(player).set(false)
@@ -4222,6 +4225,7 @@ module.exports = {
                         updateMessage("<@" + (events[0].choice == "lastwinner" ? getWinner(race - 1) : getOpponent(getWinner(race - 1))) + "> please make a selection", type, [raceEventEmbed(race)], raceEventComponents(race))
                     } else if (status == 'prerace') {
                         livematchref.child('races').child(livematch.current_race).update({ live: false })
+                        livematchref.child('races').child(livematch.current_race).child('ready').child('commentators').set(false)
                         Object.values(livematch.players).map(player => {
                             livematchref.child('races').child(livematch.current_race).child('ready').child(player).set(false)
                             livematchref.child('races').child(livematch.current_race).child('reveal').child(player).set(false)
