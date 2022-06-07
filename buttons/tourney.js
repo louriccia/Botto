@@ -4215,7 +4215,7 @@ module.exports = {
                         livematchref.child('races').child(livematch.current_race).remove()
                         livematchref.child('current_race').set(current_race - 1)
                         livematchref.child('races').child(current_race - 1).child('live').set(true)
-                        updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(comm => "<@" + comm + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
+                        updateMessage(Object.values(livematch.players).filter(player => !livematch.races[current_race].ready[player]).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(comm => "<@" + comm + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
                     } else if (status == 'events') {
                         let events = Object.values(liverules.race)
                         livematchref.child('races').child(livematch.current_race).update({ events: "", eventstart: 0, eventend: 0, live: false })
