@@ -3403,11 +3403,71 @@ module.exports = {
             }
 
             function adminEmbed() {
-
+                const embed = new Discord.MessageEmbed()
+                    .setTitle('Match Manager')
+                    .setDescription("This menu is for resetting the match to a previous point in the event of an error. Please make a selection.")
+                return embed
             }
 
             function adminComponents() {
+                let options = []
+                if (livematch.current_race == 0) {
+                    options.push(
+                        {
+                            label: "Reset to First Options",
+                            value: "first",
+                            description: "Completely reset the match to determining the first track"
+                        }
+                    )
+                }
+                if (livematch.current_race == 1 && Object.values(liverules.match.permabans).length > 0) {
+                    options.push(
+                        {
+                            label: "Reset to Permabans",
+                            value: "permaban",
+                            description: "Reset to determining permanent bans"
+                        }
+                    )
+                }
+                if (livematch.current_race !== 0) {
+                    options.push(
+                        {
+                            label: "Reset to Previous Race Submission",
+                            value: "prevrace",
+                            description: "Reset to submission of previous race results"
+                        },
+                        {
+                            label: "Reset to Ban Phase",
+                            value: "events",
+                            description: "Reset current race to the start of the ban phase"
+                        }
+                    )
+                }
+                if (['prerace', 'midrace'].includes(livematch.status)) {
+                    options.push(
+                        {
+                            label: "Reset to Race Setup",
+                            value: "prerace",
+                            description: "Reset current race to racer selection and setup phase"
+                        }
+                    )
+                }
 
+                return [
+                    {
+                        type: 1,
+                        components: [
+                            {
+                                type: 3,
+                                custom_id: "tourney_play_admin",
+                                options: options,
+                                placeholder: "Select Option",
+                                min_values: 1,
+                                max_values: 1
+                            }
+                        ]
+                    }
+                ]
             }
 
             function raceEventComponents(race) {
@@ -3664,7 +3724,7 @@ module.exports = {
                             let bracket = tourney_tournaments_data[livematch.tourney].stages[key]
                             bracket_options.push(
                                 {
-                                    label: bracket.bracket + " " + (bracket.round ?? "") + " [" + tourney_rulesets_data.saved[bracket.ruleset].general.name + "]",
+                                    label: bracket.bracket + " " + (bracket.round ?? "") + " - " + tourney_rulesets_data.saved[bracket.ruleset].general.name,
                                     value: key,
                                 }
                             )
@@ -4104,12 +4164,39 @@ module.exports = {
                     firstvote: ""
                 }
                 livematchref.set(match)
-            } else if (interaction.type == 2){
+            } else if (interaction.type == 2) {
                 args[1] = 'admin'
+                type = 4
+                updateMessage("", type, [adminEmbed()], adminComponents())
+                return
             }
 
             if (args[1] == 'admin') {
-
+                const Member = Guild.members.cache.get(interaction.member.user.id);
+                let status = interaction.data.values[0]
+                if (Object.values(livematch.commentators).includes(interaction.member.user.id) || (interaction.guild_id == '441839750555369474' && (Member.roles.cache.some(r => r.id == '862810190072381471')) && !Object.values(livematch.players).includes(interaction.member.user.id))) {
+                    let race = livematch.current_race
+                    if (status == 'first') {
+                        livematchref.update({ races: "", firstbans: "", firstmethod: "", firstvote: "", eventstart: 0, eventend: 0, runs: "" })
+                        updateMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(", "), type, [firstEmbed()], firstComponents())
+                        livematchref.child("status").set("first")
+                    } else if (status == 'permaban') {
+                        livematchref.child('races').child('1').update({ events: "", runs: "", eventstart: 0, eventend: 0 })
+                        updateMessage("<@" + (liverules.match.permabans[0].choice == "firstloser" ? getOpponent(getWinner(0)) : getWinner(0)) + "> please select a permanent ban", type, [permabanEmbed(0)], permabanComponents(0))
+                    } else if (status == 'prevrace') {
+                        livematchref.child('races').child(livematch.current_race).set("")
+                        livematchref.child('current_race').set(livematch.current_race - 1)
+                        updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(comm => "<@" + comm + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
+                    } else if (status == 'events') {
+                        livematchref.child('races').child(livematch.current_race).update({ events: "", runs: "", eventstart: 0, eventend: 0 })
+                        updateMessage("<@" + (events[0].choice == "lastwinner" ? getWinner(race - 1) : getOpponent(getWinner(race - 1))) + "> please make a selection", type, [raceEventEmbed(race)], raceEventComponents(race))
+                    } else if (status == 'prerace') {
+                        livematchref.child('races').child(livematch.current_race).update({ runs: ""})
+                        updateMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
+                    }
+                } else {
+                    ephemeralMessage("Only trackers/tourney staff have permission to use this. <:WhyNobodyBuy:589481340957753363>", [], [])
+                }
             } else if (args[1] == "setup") {
                 livematchref.child("status").set("setup")
                 if (args[2] == "tournament") {
@@ -4204,7 +4291,6 @@ module.exports = {
                         repeat: false,
                         cost: 0
                     }
-                    livematchref.child("races").child("0").child("events").push(event)
                     let race_object = {
                         events: [event],
                         ready: { commentators: false },
