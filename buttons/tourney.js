@@ -3452,7 +3452,13 @@ module.exports = {
                         }
                     )
                 }
-
+                options.push(
+                    {
+                        label: "Delete Match",
+                        value: "delete",
+                        description: "Completely abandon match and delete any stored data"
+                    }
+                )
                 return [
                     {
                         type: 1,
@@ -4191,8 +4197,11 @@ module.exports = {
                         livematchref.child('races').child(livematch.current_race).update({ events: "", runs: "", eventstart: 0, eventend: 0 })
                         updateMessage("<@" + (events[0].choice == "lastwinner" ? getWinner(race - 1) : getOpponent(getWinner(race - 1))) + "> please make a selection", type, [raceEventEmbed(race)], raceEventComponents(race))
                     } else if (status == 'prerace') {
-                        livematchref.child('races').child(livematch.current_race).update({ runs: ""})
+                        livematchref.child('races').child(livematch.current_race).update({ runs: "" })
                         updateMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
+                    } else if (status == 'delete') {
+                        livematchref.remove()
+                        updateMessage("Match was cancelled", type, [], [])
                     }
                 } else {
                     ephemeralMessage("Only trackers/tourney staff have permission to use this. <:WhyNobodyBuy:589481340957753363>", [], [])
