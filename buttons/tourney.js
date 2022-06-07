@@ -3404,8 +3404,9 @@ module.exports = {
 
             function adminEmbed() {
                 const embed = new Discord.MessageEmbed()
-                    .setTitle('Match Manager')
-                    .setDescription("This menu is for resetting the match to a previous point in the event of an error. Please make a selection.")
+                    .setAuthor('Match Manager')
+                    .setTitle((livematch.tourney == "practice" ? "`Practice Mode`" : tourney_tournaments_data[livematch.tourney].nickname) + ": " + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].bracket + " " + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].round + " - " + livematch.players.map(p => getUsername(p)).join(" vs "))
+                    .setDescription("This menu is for resetting the match to a previous point in the event of an error. Please make a selection.\nCurrent Race: " + livematch.current_race + "\nCurrent Stage: " + livematch.status)
                 return embed
             }
 
@@ -3805,9 +3806,6 @@ module.exports = {
                 if (!livematch.players || Object.values(livematch.players).length < 2) {
                     joinable_player = true
                 }
-                if (!livematch.commentators || Object.values(livematch.commentators).length < 2) {
-                    joinable_commentator = true
-                }
                 components.push({
                     type: 1,
                     components: [
@@ -3828,8 +3826,7 @@ module.exports = {
                                 name: "🎙️"
                             },
                             style: 1,
-                            custom_id: "tourney_play_setup_comm",
-                            //disabled: !joinable_commentator
+                            custom_id: "tourney_play_setup_comm"
                         }
                     ]
                 }, {
