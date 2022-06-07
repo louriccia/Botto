@@ -3405,7 +3405,7 @@ module.exports = {
             function adminEmbed() {
                 const embed = new Discord.MessageEmbed()
                     .setAuthor('Match Manager')
-                    .setTitle((livematch.tourney == "practice" ? "`Practice Mode`" : tourney_tournaments_data[livematch.tourney].nickname) + ": " + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].bracket + " " + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].round + " - " + livematch.players.map(p => getUsername(p)).join(" vs "))
+                    .setTitle((livematch.tourney == "practice" ? "`Practice Mode`" : tourney_tournaments_data[livematch.tourney].nickname) + ": " + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].bracket + " " + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].round + " - " + Object.values(livematch.players).map(p => getUsername(p)).join(" vs "))
                     .setDescription("This menu is for resetting the match to a previous point in the event of an error. Please make a selection.\nCurrent Race: " + livematch.current_race + "\nCurrent Stage: " + livematch.status)
                 return embed
             }
