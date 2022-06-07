@@ -3477,7 +3477,6 @@ module.exports = {
             }
 
             function raceEventComponents(race) {
-                //livematch = tourney_live_data[interaction.channel_id]
                 let components = []
                 let eventstart = livematch.races[race].eventstart
                 let eventend = livematch.races[race].eventend
@@ -3495,8 +3494,10 @@ module.exports = {
                     //get defaults
                     interaction.message.components.forEach(component => {
                         let this_args = component.components[0].custom_id.split("_")
-                        if (Number(this_args[3].replace("event", "")) == i) {
-                            default_stuff = component.components[0].options.filter(option => option.default).map(option => String(option.value).replace("repeat", ""))
+                        if(this_args.length > 3) {
+                            if (Number(this_args[3].replace("event", "")) == i) {
+                                default_stuff = component.components[0].options.filter(option => option.default).map(option => String(option.value).replace("repeat", ""))
+                            }
                         }
                     })
                     let this_args = interaction.data.custom_id.split("_")
