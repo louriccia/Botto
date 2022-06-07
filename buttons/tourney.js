@@ -3494,15 +3494,17 @@ module.exports = {
                     //get defaults
                     interaction.message.components.forEach(component => {
                         let this_args = component.components[0].custom_id.split("_")
-                        if(this_args.length > 3) {
+                        if (this_args.length > 3) {
                             if (Number(this_args[3].replace("event", "")) == i) {
                                 default_stuff = component.components[0].options.filter(option => option.default).map(option => String(option.value).replace("repeat", ""))
                             }
                         }
                     })
                     let this_args = interaction.data.custom_id.split("_")
-                    if (interaction.data.hasOwnProperty("values") && Number(this_args[3].replace("event", "")) == i) {
-                        default_stuff = interaction.data.values.map(value => String(value).replace("repeat", ""))
+                    if (this_args.length > 3) {
+                        if (interaction.data.hasOwnProperty("values") && Number(this_args[3].replace("event", "")) == i) {
+                            default_stuff = interaction.data.values.map(value => String(value).replace("repeat", ""))
+                        }
                     }
                     if (![null, undefined, ""].includes(event.count) && default_stuff.length % event.count !== 0) {
                         oddselect = true
@@ -4206,7 +4208,7 @@ module.exports = {
                         let current_race = livematch.current_race
                         livematchref.child('races').child(livematch.current_race).remove()
                         livematchref.child('current_race').set(current_race - 1)
-                        livematchref.child('races').child(current_race-1).child('live').set(true)
+                        livematchref.child('races').child(current_race - 1).child('live').set(true)
                         updateMessage(Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(comm => "<@" + comm + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
                     } else if (status == 'events') {
                         let events = Object.values(liverules.race)
