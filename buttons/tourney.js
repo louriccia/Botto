@@ -4232,7 +4232,6 @@ module.exports = {
                                 time: ""
                             })
                         })
-                        livematchref.child("races").child("0").update(race_object)
                         updateMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), type, [raceEmbed(race)], raceComponents(race))
                     } else if (status == 'delete') {
                         livematchref.remove()
