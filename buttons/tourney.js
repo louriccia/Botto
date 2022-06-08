@@ -2227,15 +2227,22 @@ module.exports = {
                         let record_conditions = {
                             sk: "Skips", fl: "Fast Lap", nu: "No Upgrades", ft: "Full Track", tt: "Total Time", mu: "Max Upgrades"
                         }
+                        function parseConditions(constring) {
+                            let conarray = []
+                            for(let i = 0; i < constring.length; i+=2){
+                                conarray.push(record_conditions[constring.substring(i, i+2)])
+                            }
+                            return conarray
+                        }
                         player_conditions.forEach(condition => {
                             if (player_records[condition].length > 5) {
-                                accomplishments.push(":stopwatch: " + record_conditions[condition] + "** Record-Holder** on " + player_records[condition].length + " Tracks!")
+                                accomplishments.push(":stopwatch: " + parseConditions(condition).join("/") + "** Record-Holder** on " + player_records[condition].length + " Tracks!")
                             } else {
                                 let player_tracks = []
                                 player_records[condition].forEach(t => {
                                     player_tracks.push(planets[tracks[Number(t)].planet].emoji + " " + tracks[Number(t)].nickname[0].toUpperCase())
                                 })
-                                accomplishments.push(":stopwatch: " + record_conditions[condition] + "** Record-Holder** on " + player_tracks.join(", "))
+                                accomplishments.push(":stopwatch: " + parseConditions(condition).join("/") + "** Record-Holder** on " + player_tracks.join(", "))
                             }
                         })
 
