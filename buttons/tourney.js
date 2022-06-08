@@ -2349,7 +2349,7 @@ module.exports = {
                                     "lost: `" + stats.players[player].races.lost + "`\n" +
                                     "runbacks: `" + stats.players[player].races.runbacks + "`\n" +
                                     "dnf: `" + stats.players[player].races.dnf + "`", true)
-                                .addField(":diamond_shape_with_a_dot_inside: Forcepoints", "total: `" + (Number(stats.players[player].overrides.sk) + Number(stats.players[player].overrides.nu) + Number(stats.players[player].overrides.fl  + Number(stats.players[player].overrides.podban)) + "`\n" +
+                                .addField(":diamond_shape_with_a_dot_inside: Forcepoints", "total: `" + (Number(stats.players[player].overrides.sk) + Number(stats.players[player].overrides.nu) + Number(stats.players[player].overrides.fl)  + Number(stats.players[player].overrides.podban)) + "`\n" +
                                     "skips: `" + stats.players[player].overrides.sk + "`\n" +
                                     "nu: `" + stats.players[player].overrides.nu + "`\n" +
                                     "flap: `" + stats.players[player].overrides.fl + "`\n" + 
