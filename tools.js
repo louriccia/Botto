@@ -205,26 +205,16 @@ module.exports = {
             return i + "th";
         }
     },
-    getRanks: function () {
-        var admin = require('firebase-admin');
-        var database = admin.database();
-        var firebase = require("firebase/app");
-        var tourney_matches = database.ref('tourney/matches')
-        tourney_matches.on("value", function (snapshot) {
-            tourney_matches_data = snapshot.val();
-        }, function (errorObject) {
-            console.log("The read failed: " + errorObject);
-        });
-        var matches = Object.values(tourney_matches_data)
+    getRanks: function (matches) {
         matches.sort(function (a, b) {
             return a.datetime - b.datetime;
         })
-        var ranks = {}
+        let ranks = {}
         matches.forEach(match => {
             if (![undefined, "", "Qualifying"].includes(match.bracket)) {
-                var players = {}
-                match.races.forEach(race => {
-                    var winner = {player: null, time: null}
+                let players = {}
+                Object.values(match.races).forEach(race => {
+                    let winner = {player: null, time: null}
                     Object.values(race.runs).forEach(run => {
                         if(players[run.player] == undefined){
                             players[run.player] = {player: run.player, score: 0}
@@ -238,32 +228,32 @@ module.exports = {
                 })
                 players = Object.values(players)
                 if (players.length == 2) {
-                    for (var j = 0; j < players.length; j++) {
+                    for (let j = 0; j < players.length; j++) {
                         //initialize player
                         if (ranks[players[j].player] == undefined) {
                             ranks[players[j].player] = { rank: 1000, matches: 0, change: 0 }
                         }
                     }
-                    var r1 = ranks[players[0].player].rank
-                    var r2 = ranks[players[1].player].rank
-                    var p1 = 1 / (1 + 10 ** ((r2 - r1) / 400))
-                    var p2 = 1 - p1
-                    function getK(matches) {
-                        var k = 25
-                        if (matches < 26) {
+                    let r1 = ranks[players[0].player].rank
+                    let r2 = ranks[players[1].player].rank
+                    let p1 = 1 / (1 + 10 ** ((r2 - r1) / 400))
+                    let p2 = 1 - p1
+                    function getK(m) {
+                        let k = 25
+                        if (m < 26) {
                             k = 32
                         }
-                        if (matches < 11) {
+                        if (m < 11) {
                             k = 40
                         }
-                        if (matches < 6) {
+                        if (m < 6) {
                             k = 50
                         }
                         return k
                     }
-                    var k1 = getK(ranks[players[0].player].matches)
-                    var k2 = getK(ranks[players[1].player].matches)
-                    var s1 = null, s2 = null
+                    let k1 = getK(ranks[players[0].player].matches)
+                    let k2 = getK(ranks[players[1].player].matches)
+                    let s1 = null, s2 = null
                     if (!["", null, undefined].includes(players[0].score) && !["", null, undefined].includes(players[1].score)) {
                         if (players[0].score > players[1].score) {
                             s1 = 1
@@ -282,13 +272,6 @@ module.exports = {
                 }
             }
         })
-        /*
-        var rnks = Object.keys(ranks)
-        for (i = 0; i < rnks.length; i++) {
-            if (ranks[rnks[i]].matches < 4) {
-                delete ranks[rnks[i]]
-            }
-        }*/
         return ranks
     },
     getGoalTime: function (track, racer, acceleration, top_speed, cooling, laps, length_mod, uh_mod, us_mod, deaths) {

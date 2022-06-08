@@ -2138,7 +2138,7 @@ module.exports = {
                     }
                 })
                 //assemble embed
-                let ranks = tools.getRanks()
+                let ranks = tools.getRanks(Object.values(tourney_matches_data))
                 if (stats.matches.total > 0) {
                     if (player == "global") {
                         tourneyReport
@@ -2362,8 +2362,8 @@ module.exports = {
                 //sort player select
                 let players = Object.values(tourney_participants_data).filter(p => p.id !== undefined)
                 players = players.sort(function (a, b) {
-                    if (ranks[a] !== undefined && ranks[a].matches >= 4 && ranks[b] !== undefined && ranks[b].matches >= 4) {
-                        return Number(ranks[b].rank) - Number(ranks[a].rank)
+                    if (ranks[a.id] !== undefined && ranks[a.id].matches >= 4 && ranks[b.id] !== undefined && ranks[b.id].matches >= 4) {
+                        return Number(ranks[b.id].rank) - Number(ranks[a.id].rank)
                     } else if (ranks[a.id] !== undefined && ranks[a.id].matches >= 4) {
                         return -1
                     } else if (ranks[b.id] !== undefined && ranks[b.id].matches >= 4) {
@@ -3406,7 +3406,7 @@ module.exports = {
                 const embed = new Discord.MessageEmbed()
                     .setAuthor('Match Manager')
                     .setTitle((livematch.tourney == "practice" ? "`Practice Mode`" : tourney_tournaments_data[livematch.tourney].nickname) + ": " + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].bracket + " " + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].round + " - " + Object.values(livematch.players).map(p => getUsername(p)).join(" vs "))
-                    .setDescription("This menu is for resetting the match to a previous point in the event of an error. Please make a selection.\nCurrent Race: " + livematch.current_race + "\nCurrent Stage: " + livematch.status)
+                    .setDescription("This menu is for resetting the match to a previous point in the event of an error. Please make a selection.\nCurrent Race: `" + livematch.current_race + "`\nCurrent Stage: `" + livematch.status + "`")
                 return embed
             }
 
