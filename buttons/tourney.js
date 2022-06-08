@@ -2411,7 +2411,7 @@ module.exports = {
                     }
                     let description = ""
                     if (player == "global" || p.id == player) {
-                        if (ranks[p] !== undefined && ranks[p.id].matches >= 4) {
+                        if (ranks[p.id] !== undefined && ranks[p.id].matches >= 4) {
                             description += "⭐ " + ranks[p.id].rank.toFixed(1) + " "
                         } else if (stats.players[p.id].matches.total > 0) {
                             description += "⭐ Unranked "
