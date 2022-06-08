@@ -2352,7 +2352,7 @@ module.exports = {
                                 .addField(":diamond_shape_with_a_dot_inside: Forcepoints", "total: `" + (Number(stats.players[player].overrides.sk) + Number(stats.players[player].overrides.nu) + Number(stats.players[player].overrides.fl)) + "`\n" +
                                     "skips: `" + stats.players[player].overrides.sk + "`\n" +
                                     "nu: `" + stats.players[player].overrides.nu + "`\n" +
-                                    "flap: `" + stats.players[player].overrides.fl + "`\n",
+                                    "flap: `" + stats.players[player].overrides.fl + "`\n" + 
                                     "podban: `" + stats.players[player].overrides.podban + "`", true)
                         }
                         if (accomplishments.length > 0) {
