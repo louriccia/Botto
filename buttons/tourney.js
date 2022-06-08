@@ -2225,12 +2225,14 @@ module.exports = {
                         })
                         let player_conditions = Object.keys(player_records)
                         let record_conditions = {
-                            sk: "Skips", fl: "Fast Lap", nu: "No Upgrades", ft: "Full Track", tt: "Total Time", mu: "Max Upgrades"
+                            sk: "SKIPS", fl: "FLAP", nu: "NU", ft: "FT", mu: "MU", ng: "NG"
                         }
                         function parseConditions(constring) {
                             let conarray = []
                             for(let i = 0; i < constring.length; i+=2){
-                                conarray.push(record_conditions[constring.substring(i, i+2)])
+                                if(record_conditions[constring.substring(i, i+2)]){
+                                    conarray.push(record_conditions[constring.substring(i, i+2)])
+                                }
                             }
                             return conarray
                         }
