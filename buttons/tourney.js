@@ -2155,7 +2155,7 @@ module.exports = {
                         let description = ""
                         if (ranks[player] !== undefined) {
                             if(ranks[player].matches >= 4){
-                                description += "⭐ Elo Rating: `" + (ranks[player].rank).toFixed(1) + " (" + ((ranks[player].change >= 0) ? "🔺" + (ranks[player].change).toFixed(1) + ")`\n" : "🔻" + Math.abs((ranks[player].change)).toFixed(1) + ")`\n")
+                                description += "⭐ Elo Rating: `" + (ranks[player].rank).toFixed(1) + " (" + (ranks[player].change >= 0 ? "🔺" : "🔻") + Math.abs((ranks[player].change)).toFixed(1) + ")`\n"
                             } else if(ranks[player].matches > 0) {
                                 description += "⭐ Elo Rating: Unranked\n"
                             }
