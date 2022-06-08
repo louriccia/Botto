@@ -1672,7 +1672,7 @@ module.exports = {
             }
             let offset = 0
             if (args[1] == "player") {
-                if (interaction.data.hasOwnProperty("values")) {
+                if (interaction.data?.values) {
                     if (interaction.data.values[0].includes("offset")) {
                         offset = Number(interaction.data.values[0].replace("offset", ""))
                     } else {
@@ -1710,9 +1710,10 @@ module.exports = {
                 return response
             }
             sendCallback().then(() => {
-                //initialize stat structure
+                //step 1: initialize stat structure
                 let accomp = { win: { count: 0, streaks: [] }, deathless: { count: 0, streaks: [] }, comebacks: [] }
                 let accomplishments = []
+                //initialize stats
                 let stats = {
                     race_time: 0,
                     deaths: [],
@@ -1748,6 +1749,7 @@ module.exports = {
                 for (i = 0; i < 25; i++) {
                     best_times[i] = {}
                 }
+                //initialize players
                 Object.values(tourney_participants_data).forEach(participant => {
                     if (participant.id) {
                         stats.players[participant.id] = {
@@ -1774,14 +1776,12 @@ module.exports = {
                     })
                 }
 
-                //get stats
-                let matches = Object.values(tourney_matches_data).sort(function (a, b) {
-                    return a.datetime - b.datetime
-                })
-                matches.forEach(match => {
+                //step 2: iterate through all matches and get stats
+                Object.values(tourney_matches_data).sort(function (a, b) {return a.datetime - b.datetime}).forEach(match => {
                     let already_played = []
                     let runback = {}
                     let players = Object.values(match.races[0].runs).map(run => run.player)
+                    //commentator stats
                     if (match.commentators) {
                         match.commentators.forEach(commentator => {
                             if (stats.commentators[commentator] == undefined) {
@@ -1836,7 +1836,6 @@ module.exports = {
                     let already_banned = []
                     let score = {}, comeback = {}
                     let temppod = [], temptrack = []
-
                     players.forEach(p => {
                         stats.players[p].matches.total++
                         if (match.bracket == "Qualifying") {
@@ -1848,9 +1847,12 @@ module.exports = {
                         }
                         score[p] = 0
                     })
+
+                    //for each race
                     match.races.forEach((race, num) => {
                         let conditions = { ...tourney_rulesets_data.saved[match.ruleset].general.default }
                         let thistrack = null
+                        //for each event
                         if (race.events) {
                             Object.values(race.events).forEach(event => {
                                 if (event.event == 'tempban') {
@@ -1949,8 +1951,8 @@ module.exports = {
                             thistrack = race.track
                         }
 
-
                         let winner = { player: null, time: null, pod: null }
+                        //for each run
                         Object.values(race.runs).forEach(run => {
                             if (run.time !== "DNF") {
                                 stats.race_time += Number(run.time)
@@ -2145,7 +2147,7 @@ module.exports = {
                         return a.low - b.low
                     }
                 })
-                //assemble embed
+                //step 3: assemble embed
                 let ranks = tools.getRanks(Object.values(tourney_matches_data))
                 if (stats.matches.total > 0) {
                     if (player == "global") {
@@ -3147,7 +3149,7 @@ module.exports = {
                         client.api.channels(interaction.channel_id).messages.post({
                             data: {
                                 content: (i == 5 ? "*GO!*" : (5 - i)),
-                                tts: i == 5
+                                tts: false//i == 5
                             }
                         })
                     }, 3000 + i * 1000)
