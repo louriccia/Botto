@@ -1758,7 +1758,7 @@ module.exports = {
                             track: {},
                             racer: {},
                             opponents: {},
-                            overrides: { nu: 0, sk: 0, fl: 0 },
+                            overrides: { nu: 0, sk: 0, fl: 0, podban: 0},
                             co_comm: {},
                         }
                     }
@@ -1855,6 +1855,14 @@ module.exports = {
                             Object.values(race.events).forEach(event => {
                                 if (event.event == 'tempban') {
                                     if (event.type == 'racer') {
+                                        if (event.cost > 0) {
+                                            stats.overrides.total++
+                                            stats.players[event.player].overrides['podban']++
+                                            if (stats.overrides['podban'] == undefined) {
+                                                stats.overrides['podban'] = 1
+                                            }
+                                            stats.overrides['podban']++
+                                        }
                                         if (!Array.isArray(event.selection)) {
                                             event.selection = [event.selection]
                                         }
@@ -2150,13 +2158,13 @@ module.exports = {
                             .addField(":checkered_flag: Races", "total: `" + stats.races.total + "`\n" +
                                 "runbacks: `" + stats.races.runbacks + "`\n" +
                                 "dnf: `" + stats.races.dnf + "`", true)
-                            .addField(":asterisk: Overrides", "total: `" + Object.values(stats.overrides).reduce((p, c) => p + c) + "`\n" + Object.keys(stats.overrides).map(o => o + ": `" + stats.overrides[o] + "`").join("\n"), true)
+                            .addField(":diamond_shape_with_a_dot_inside: Forcepoints", Object.keys(stats.overrides).map(o => o + ": `" + stats.overrides[o] + "`").join("\n"), true)
                     } else {
                         let description = ""
                         if (ranks[player]) {
-                            if(ranks[player].matches >= 4){
+                            if (ranks[player].matches >= 4) {
                                 description += "⭐ Elo Rating: `" + (ranks[player].rank).toFixed(1) + " (" + (ranks[player].change >= 0 ? "🔺" : "🔻") + Math.abs((ranks[player].change)).toFixed(1) + ")`\n"
-                            } else if(ranks[player].matches > 0) {
+                            } else if (ranks[player].matches > 0) {
                                 description += "⭐ Elo Rating: Unranked\n"
                             }
                         }
