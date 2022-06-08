@@ -3148,8 +3148,8 @@ module.exports = {
                     setTimeout(async function () {
                         client.api.channels(interaction.channel_id).messages.post({
                             data: {
-                                content: (i == 5 ? "*GO!*" : (5 - i)),
-                                tts: false//i == 5
+                                content: (i == 5 ? "GO!" : (5 - i)),
+                                tts: i == 5
                             }
                         })
                     }, 3000 + i * 1000)
@@ -4201,7 +4201,7 @@ module.exports = {
                 let status = interaction.data.values[0]
                 if (Object.values(livematch.commentators).includes(interaction.member.user.id) || (interaction.guild_id == '441839750555369474' && (Member.roles.cache.some(r => r.id == '862810190072381471')) && !Object.values(livematch.players).includes(interaction.member.user.id))) {
                     let race = livematch.current_race
-                    client.channels.cache.get(interaction.channel_id).messages.fetch({ limit: 5 }).then(messages => {
+                    client.channels.cache.get(interaction.channel_id).messages.fetch({ limit: 20 }).then(messages => {
                         let lastMessage = messages.filter(m => m.author.bot && m.id !== interaction.message.id).first();
                         if (lastMessage) {
                             lastMessage.delete().catch(err => console.log(err));
