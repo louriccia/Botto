@@ -1653,7 +1653,7 @@ module.exports = {
                     let name = interaction.message.embeds[0].title.replace("'s Stats", "")
                     for (i = 0; i < tpd.length; i++) {
                         if (tourney_participants_data[tpd[i]].name == name) {
-                            player = tpd[i]
+                            player = tpd[i].id
                         }
                     }
                 }
@@ -2153,7 +2153,7 @@ module.exports = {
                             .addField(":asterisk: Overrides", "total: `" + Object.values(stats.overrides).reduce((p, c) => p + c) + "`\n" + Object.keys(stats.overrides).map(o => o + ": `" + stats.overrides[o] + "`").join("\n"), true)
                     } else {
                         let description = ""
-                        if (ranks[player] !== undefined) {
+                        if (ranks[player]) {
                             if(ranks[player].matches >= 4){
                                 description += "⭐ Elo Rating: `" + (ranks[player].rank).toFixed(1) + " (" + (ranks[player].change >= 0 ? "🔺" : "🔻") + Math.abs((ranks[player].change)).toFixed(1) + ")`\n"
                             } else if(ranks[player].matches > 0) {
