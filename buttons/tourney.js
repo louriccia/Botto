@@ -3684,7 +3684,7 @@ module.exports = {
                         components.push(component)
                     }
                 }
-                if (components.length > 1 || true) {
+                if (components.length > 1) {
                     components.push(
                         {
                             type: 1,
