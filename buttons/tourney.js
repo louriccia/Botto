@@ -1653,7 +1653,7 @@ module.exports = {
                     let name = interaction.message.embeds[0].title.replace("'s Stats", "")
                     for (i = 0; i < tpd.length; i++) {
                         if (tourney_participants_data[tpd[i]].name == name) {
-                            player = tpd[i].id
+                            player = tourney_participants_data[tpd[i]].id
                         }
                     }
                 }
