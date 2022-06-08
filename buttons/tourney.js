@@ -3683,7 +3683,7 @@ module.exports = {
                         }
                         components.push(component)
                     }
-                }
+                } 
                 if (components.length > 1) {
                     components.push(
                         {
