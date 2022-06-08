@@ -1849,7 +1849,7 @@ module.exports = {
                         score[p] = 0
                     })
                     match.races.forEach((race, num) => {
-                        let conditions = {...tourney_rulesets_data.saved[match.ruleset].general.default}
+                        let conditions = { ...tourney_rulesets_data.saved[match.ruleset].general.default }
                         let thistrack = null
                         if (race.events) {
                             Object.values(race.events).forEach(event => {
@@ -2154,10 +2154,11 @@ module.exports = {
                     } else {
                         let description = ""
                         if (ranks[player] !== undefined) {
-                            (ranks[player].matches >= 4) ? "⭐ Elo Rating: `" + (ranks[player].rank).toFixed(1) + " (" + ((ranks[player].change >= 0) ?
-                                "🔺" + (ranks[player].change).toFixed(1) + ")`\n" :
-                                description += "🔻" + Math.abs((ranks[player].change)).toFixed(1) + ")`\n") :
-                                ranks[player].matches > 0 ? "⭐ Elo Rating: Unranked\n" : ""
+                            if(ranks[player].matches >= 4){
+                                description += "⭐ Elo Rating: `" + (ranks[player].rank).toFixed(1) + " (" + ((ranks[player].change >= 0) ? "🔺" + (ranks[player].change).toFixed(1) + ")`\n" : "🔻" + Math.abs((ranks[player].change)).toFixed(1) + ")`\n")
+                            } else if(ranks[player].matches > 0) {
+                                description += "⭐ Elo Rating: Unranked\n"
+                            }
                         }
                         if (stats.players[player].matches.total > 0) {
                             description += "⏱️ Total Race Time: `" + tools.timefix(stats.players[player].race_time) + "`\n💀 Average Deaths/Race: `" + (stats.players[player].deaths.reduce((a, b) => { return a + b }) / stats.players[player].races.total).toFixed(2) + "`"
@@ -2229,9 +2230,9 @@ module.exports = {
                         }
                         function parseConditions(constring) {
                             let conarray = []
-                            for(let i = 0; i < constring.length; i+=2){
-                                if(record_conditions[constring.substring(i, i+2)]){
-                                    conarray.push(record_conditions[constring.substring(i, i+2)])
+                            for (let i = 0; i < constring.length; i += 2) {
+                                if (record_conditions[constring.substring(i, i + 2)]) {
+                                    conarray.push(record_conditions[constring.substring(i, i + 2)])
                                 }
                             }
                             return conarray
@@ -4221,7 +4222,7 @@ module.exports = {
                         livematchref.child('races').child(livematch.current_race).remove()
                         livematchref.child('current_race').set(current_race - 1)
                         livematchref.child('races').child(current_race - 1).child('live').set(true)
-                        updateMessage(Object.values(livematch.players).filter(player => !livematch.races[current_race-1].ready[player]).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(comm => "<@" + comm + ">").join(" "), type, [raceEmbed(current_race - 1)], raceComponents(current_race - 1))
+                        updateMessage(Object.values(livematch.players).filter(player => !livematch.races[current_race - 1].ready[player]).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(comm => "<@" + comm + ">").join(" "), type, [raceEmbed(current_race - 1)], raceComponents(current_race - 1))
                     } else if (status == 'events') {
                         let events = Object.values(liverules.race)
                         livematchref.child('races').child(livematch.current_race).update({ events: "", eventstart: 0, eventend: 0, live: false })
