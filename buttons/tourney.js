@@ -3272,7 +3272,7 @@ module.exports = {
                                 true))
                             embed.setTitle(planets[tracks[track].planet].emoji + " " + tracks[track].name + (forces.length > 0 ? " (" + forces.join(", ") + ")" : "") + " \n" + (getUsername(winner)) + " Wins!")
                         }
-                    }
+                    } 
                 } else {
                     embed
                         .setAuthor("Race " + (race + 1) + " - Setup")
