@@ -189,7 +189,7 @@ client.once('ready', () => {
                     return p
                 }
             }
-            return name
+            return null
         }
 
         rp(url)
@@ -215,11 +215,11 @@ client.once('ready', () => {
                                     match.url = ""
                                 }
                             } else if (values[j].includes("comm")) {
-                                match.commentary = content.split(",").map(comm => getParticipantbyName(comm))
+                                match.commentary = content.split(",").map(comm => getParticipantbyName(comm)).filter(c => c !== null)
                             } else if (values[j].includes("date")) {
                                 match.datetime = Date.parse(content.replace(", ", " " + new Date().getFullYear() + " ").replace(" ", " ") + " EDT")
                             } else if (values[j].includes("players")) {
-                                match.players = content.split("vs").map(play => getParticipantbyName(play))
+                                match.players = content.split("vs").map(play => getParticipantbyName(play)).filter(p => p !== null)
                             } else {
                                 match[values[j]] = content
                             }
