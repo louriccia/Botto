@@ -254,7 +254,7 @@ client.once('ready', () => {
                                 try {
                                     Guild.scheduledEvents.edit(Guild.scheduledEvents.resolve(event.id), {
                                         name: match.players.map(id => tourney_participants_data[id].name).join(" vs "),
-                                        description: "Commentary: " + Object.values(match.commentary).length > 0 ? Object.values(match.commentary).map(id => tourney_participants_data[id].name).join(", ") : "",
+                                        description: "Commentary: " + (Object.values(match.commentary).length > 0 ? Object.values(match.commentary).map(id => tourney_participants_data[id].name).join(", ") : ""),
                                         entityType: 'EXTERNAL',
                                         entityMetadata: { location: (match.url == "" ? "https://twitch.tv/SpeedGaming" : match.url) }
                                     })
@@ -270,7 +270,7 @@ client.once('ready', () => {
                             scheduledStartTime: match.datetime,
                             scheduledEndTime: match.datetime + 1000 * 60 * 60,
                             entityType: "EXTERNAL",
-                            description: "Commentary: " + Object.values(match.commentary).length > 0 ? Object.values(match.commentary).map(id => tourney_participants_data[id].name).join(", ") : "",
+                            description: "Commentary: " + (Object.values(match.commentary).length > 0 ? Object.values(match.commentary).map(id => tourney_participants_data[id].name).join(", ") : ""),
                             entityMetadata: { location: (match.url == "" ? "https://twitch.tv/SpeedGaming" : match.url) },
                             privacyLevel: 'GUILD_ONLY'
                         })
