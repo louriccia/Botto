@@ -198,8 +198,13 @@ client.once('ready', () => {
         Object.keys(tourney_participants_data).forEach(async function (key) {
             let participant = tourney_participants_data[key]
             if (participant?.id) {
-                const thismember = await Guild.members.fetch(participant.id)
+                try{
+                    const thismember = await Guild.members.fetch(participant.id)
                 tourney_participants.child(key).child('avatar').set(thismember.user.avatarURL())
+                    } catch {
+                        console.log("couldn't get avatar")
+                    }
+                
             }
         })
 
