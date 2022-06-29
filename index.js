@@ -174,6 +174,13 @@ client.once('ready', () => {
     } catch {
         console.error(error);
     }
+
+    Object.keys(tourney_participants_data).forEach(async function (key) {
+        let participant = tourney_participants_data[key]
+        const thismember = await Guild.members.fetch(participant.id)
+        tourney_participants.child(key).child('avatar').set(thismember.user.avatarURL())
+    })
+
     const updater = async () => {
         const rp = require('request-promise');
         const cheerio = require('cheerio');
@@ -254,7 +261,7 @@ client.once('ready', () => {
                                 try {
                                     Guild.scheduledEvents.edit(Guild.scheduledEvents.resolve(event.id), {
                                         name: match.players.map(id => tourney_participants_data[id].name).join(" vs "),
-                                        description: "Commentary: " + (match.commentary &&  Object.values(match.commentary).length > 0 ? Object.values(match.commentary).map(id => tourney_participants_data[id].name).join(", ") : ""),
+                                        description: "Commentary: " + (match.commentary && Object.values(match.commentary).length > 0 ? Object.values(match.commentary).map(id => tourney_participants_data[id].name).join(", ") : ""),
                                         entityType: 'EXTERNAL',
                                         entityMetadata: { location: (match.url == "" ? "https://twitch.tv/SpeedGaming" : match.url) }
                                     })
@@ -283,7 +290,7 @@ client.once('ready', () => {
                         tourney_scheduled.child(key).child("notification").set(true)
                         //add roles
                         let everybody = Object.values(match.players).concat(Object.values(match.commentary))
-                        everybody.forEach(async function(player) {
+                        everybody.forEach(async function (player) {
                             const thismember = await Guild.members.fetch(tourney_participants_data[player].id)
                             thismember.roles.add('970995237952569404').catch(error => console.log(error))
                         }
@@ -309,9 +316,9 @@ client.once('ready', () => {
                         })
                         client.api.channels("970994773517299712").messages.post({
                             data: {
-                                content: Object.values(newmatch.commentators).map(player => "<@" + player + ">").join(" ") + " " + 
-                                Object.values(newmatch.players).map(player => "<@" + player + ">").join(" ") + "\n**" + 
-                                match.players.map(player => tourney_participants_data[player].name).join(" vs. ") + "** is about to begin!",
+                                content: Object.values(newmatch.commentators).map(player => "<@" + player + ">").join(" ") + " " +
+                                    Object.values(newmatch.players).map(player => "<@" + player + ">").join(" ") + "\n**" +
+                                    match.players.map(player => tourney_participants_data[player].name).join(" vs. ") + "** is about to begin!",
                                 components: [
                                     {
                                         type: 1,
@@ -331,7 +338,7 @@ client.once('ready', () => {
                 })
             })
     }
-    setInterval(updater, 1000*60)
+    setInterval(updater, 1000 * 60)
 })
 
 client.on("error", (e) => {
