@@ -194,7 +194,7 @@ client.once('ready', () => {
             }
             return null
         }
-
+        const Guild = client.guilds.cache.get("441839750555369474")
         Object.keys(tourney_participants_data).forEach(async function (key) {
             let participant = tourney_participants_data[key]
             if (participant?.id) {
@@ -206,7 +206,6 @@ client.once('ready', () => {
         rp(url)
             .then(function (html) {
                 let table = cheerio('tbody', html)
-                const Guild = client.guilds.cache.get("441839750555369474")
                 let events = Guild.scheduledEvents.cache.toJSON()
                 let values = []
                 Object.keys(tourney_scheduled_data).forEach(key => {
