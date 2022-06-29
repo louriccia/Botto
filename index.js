@@ -175,11 +175,7 @@ client.once('ready', () => {
         console.error(error);
     }
 
-    Object.keys(tourney_participants_data).forEach(async function (key) {
-        let participant = tourney_participants_data[key]
-        const thismember = await Guild.members.fetch(participant.id)
-        tourney_participants.child(key).child('avatar').set(thismember.user.avatarURL())
-    })
+    
 
     const updater = async () => {
         const rp = require('request-promise');
@@ -198,6 +194,14 @@ client.once('ready', () => {
             }
             return null
         }
+
+        Object.keys(tourney_participants_data).forEach(async function (key) {
+            let participant = tourney_participants_data[key]
+            if (participant?.id) {
+                const thismember = await Guild.members.fetch(participant.id)
+                tourney_participants.child(key).child('avatar').set(thismember.user.avatarURL())
+            }
+        })
 
         rp(url)
             .then(function (html) {
