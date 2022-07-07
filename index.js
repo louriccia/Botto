@@ -201,7 +201,7 @@ client.once('ready', () => {
                 try {
                     if (Guild.members.cache.some(m => m == participant.id)) {
                         const thismember = await Guild.members.fetch(participant.id)
-                        tourney_participants.child(key).child('avatar').set(thismember.user.avatarURL())
+                        tourney_participants.child(key).child('avatar').set(thismember.displayAvatarURL())
                     }
                 } catch {
                 }
