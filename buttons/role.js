@@ -15,7 +15,7 @@ module.exports = {
         } else {
             member.roles.add(role).catch(console.error);
             content = "You now have the <@&" + args[0] + "> role"
-        }
+        } 
         client.api.interactions(interaction.id, interaction.token).callback.post({
             data: {
                 type: 4,
