@@ -1,0 +1,1704 @@
+{
+  "new": {
+    "167721054956027904": {
+      "author": "167721054956027904",
+      "conlimit": "lossess",
+      "conmax": "1",
+      "conmethod": "losers_pick",
+      "conoptions": [
+        "sk",
+        "nu",
+        "pb"
+      ],
+      "default": [
+        "mu",
+        "ft",
+        null,
+        "l3"
+      ],
+      "description": "",
+      "dupecondition": "disabled",
+      "dupelimit": 1,
+      "dupestyle": "soft_repeat",
+      "edit": "-MiwjLAaFekbLdNuqjgK",
+      "firstmethod": "poe",
+      "firsttrack": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "15",
+        "14",
+        "16",
+        "17",
+        "18",
+        "19",
+        "20",
+        "21",
+        "22",
+        "23",
+        "24"
+      ],
+      "gents": "disallowed",
+      "name": "Bo3 Ruleset",
+      "pconlimit": 1,
+      "pconmethod": "disabled",
+      "podmethod": "player_pick",
+      "podpods": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19",
+        "20",
+        "21",
+        "22"
+      ],
+      "poollimit": 1,
+      "ppodlimit": 1,
+      "ppodmethod": "disabled",
+      "ptracklimit": "1",
+      "ptrackmethod": "win",
+      "rndlimited": 2,
+      "tconlimit": 1,
+      "tconmethod": "disabled",
+      "tconmlimit": "no_limit",
+      "tpodlimit": "2",
+      "tpodmethod": "disabled",
+      "tpodmlimit": [
+        "no_limit"
+      ],
+      "trackmethod": "losers_pick",
+      "tracktracks": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19",
+        "20",
+        "21",
+        "22",
+        "23",
+        "24"
+      ],
+      "ttracklimit": 1,
+      "ttrackmethod": "disabled",
+      "ttrackmlimit": [
+        "no_limit"
+      ],
+      "type": "1v1",
+      "wins": [
+        "2_max"
+      ]
+    },
+    "256236315144749059": {
+      "author": "256236315144749059",
+      "conlimit": 1,
+      "conmax": 1,
+      "conmethod": "disabled",
+      "conoptions": [
+        "sk"
+      ],
+      "default": [
+        "mu",
+        "ft",
+        "l3"
+      ],
+      "description": "",
+      "dupecondition": "disabled",
+      "dupelimit": 1,
+      "dupestyle": "default_repeat",
+      "firstmethod": "poe",
+      "firsttrack": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19",
+        "20",
+        "21",
+        "22",
+        "23",
+        "24"
+      ],
+      "gents": "disallowed",
+      "name": "LightningPirate's Unnamed 1v1 Ruleset",
+      "pconlimit": 1,
+      "pconmethod": "disabled",
+      "podmethod": "player_pick",
+      "podpods": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19",
+        "20",
+        "21",
+        "22"
+      ],
+      "poollimit": 1,
+      "ppodlimit": 1,
+      "ppodmethod": "disabled",
+      "ptracklimit": 1,
+      "ptrackmethod": "disabled",
+      "rndlimited": 2,
+      "tconlimit": 1,
+      "tconmethod": "disabled",
+      "tconmlimit": [
+        "no_limit"
+      ],
+      "tpodlimit": 1,
+      "tpodmethod": "disabled",
+      "tpodmlimit": [
+        "no_limit"
+      ],
+      "trackmethod": "losers_pick",
+      "tracktracks": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19",
+        "20",
+        "21",
+        "22",
+        "23",
+        "24"
+      ],
+      "ttracklimit": 1,
+      "ttrackmethod": "disabled",
+      "ttrackmlimit": [
+        "no_limit"
+      ],
+      "type": "1v1",
+      "wins": [
+        "5_max"
+      ]
+    },
+    "536004444341403658": {
+      "author": "536004444341403658",
+      "circuits": [
+        "0"
+      ],
+      "description": "",
+      "name": "Gamedraco's Unnamed Real-Time Attack Ruleset",
+      "podmethod": "player_pick",
+      "poollimit": 1,
+      "racenum": 7,
+      "type": "Real-Time Attack"
+    },
+    "559991363333128213": {
+      "author": "559991363333128213",
+      "conlimit": 1,
+      "conmax": 1,
+      "conmethod": "disabled",
+      "conoptions": [
+        "sk"
+      ],
+      "default": [
+        "mu",
+        "ft",
+        "l3"
+      ],
+      "description": "",
+      "dupecondition": "disabled",
+      "dupelimit": 1,
+      "dupestyle": "default_repeat",
+      "firstmethod": "poe",
+      "firsttrack": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19",
+        "20",
+        "21",
+        "22",
+        "23",
+        "24"
+      ],
+      "gents": "allowed",
+      "name": "kingbeandip's Unnamed 1v1 Ruleset",
+      "pconlimit": "3",
+      "pconmethod": "loss",
+      "podmethod": "player_pick",
+      "podpods": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19",
+        "20",
+        "21",
+        "22"
+      ],
+      "poollimit": 1,
+      "ppodlimit": 1,
+      "ppodmethod": "disabled",
+      "ptracklimit": 1,
+      "ptrackmethod": "disabled",
+      "rndlimited": 2,
+      "tconlimit": 1,
+      "tconmethod": "disabled",
+      "tconmlimit": [
+        "no_limit"
+      ],
+      "tpodlimit": 1,
+      "tpodmethod": "disabled",
+      "tpodmlimit": [
+        "no_limit"
+      ],
+      "trackmethod": "losers_pick",
+      "tracktracks": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19",
+        "20",
+        "21",
+        "22",
+        "23",
+        "24"
+      ],
+      "ttracklimit": 1,
+      "ttrackmethod": "disabled",
+      "ttrackmlimit": [
+        "no_limit"
+      ],
+      "type": "1v1",
+      "wins": [
+        "5_max"
+      ]
+    }
+  },
+  "saved": {
+    "-MhovNjMjQiPxUPRp9nT": {
+      "general": {
+        "author": "545798436105224203",
+        "default": [
+          "mu",
+          "ft",
+          "um",
+          "l3",
+          "tt"
+        ],
+        "description": "no forces, 2 perma track bans, amc first track",
+        "firsttrack": {
+          "options": [
+            "amc"
+          ],
+          "primary": "poe_t"
+        },
+        "gents": true,
+        "name": "Best of 9 (2019)",
+        "ranked": true,
+        "revealracer": false,
+        "type": "1v1",
+        "winlimit": 5
+      },
+      "match": {
+        "forcepoints": {
+          "max": 0,
+          "start": 0
+        },
+        "permabans": [
+          {
+            "choice": "firstloser",
+            "cost": 0,
+            "count": 1,
+            "limit": 1,
+            "type": "track"
+          },
+          {
+            "choice": "firstwinner",
+            "cost": 0,
+            "count": 1,
+            "limit": 1,
+            "type": "track"
+          },
+          {
+            "choice": "firstloser",
+            "cost": 0,
+            "count": 1,
+            "limit": 1,
+            "type": "track"
+          },
+          {
+            "choice": "firstwinner",
+            "cost": 0,
+            "count": 1,
+            "limit": 1,
+            "type": "track"
+          }
+        ],
+        "repeattrack": 
+          {
+            "condition": "salty",
+            "cost": 0,
+            "count": 1,
+            "limit": 1,
+            "style": "soft"
+          }
+        
+      },
+      "race": [
+        {
+          "choice": "lastloser",
+          "cost": 0,
+          "count": 1,
+          "event": "tempban",
+          "limit": 1,
+          "type": "racer"
+        },
+        {
+          "choice": "lastwinner",
+          "cost": 0,
+          "count": 1,
+          "event": "tempban",
+          "limit": 1,
+          "type": "track"
+        },
+        {
+          "choice": "lastloser",
+          "event": "selection",
+          "type": "track"
+        },
+        {
+          "choice": "player",
+          "event": "selection",
+          "type": "racer"
+        }
+      ]
+    },
+    "-MhzxG-pBoc3rtFxomqg": {
+      "general": {
+        "author": "545798436105224203",
+        "default": [
+          "mu",
+          "ft",
+          "um",
+          "l3",
+          "tt"
+        ],
+        "description": "no forces, 2 perma track bans, amc first track",
+        "firsttrack": {
+          "options": [
+            "amc"
+          ],
+          "primary": "poe_c"
+        },
+        "gents": true,
+        "name": "Best of 13 (2019)",
+        "ranked": true,
+        "revealracer": false,
+        "type": "1v1",
+        "winlimit": 7
+      },
+      "match": {
+        "forcepoints": {
+          "max": 0,
+          "start": 0
+        },
+        "permabans": [
+          {
+            "choice": "firstloser",
+            "cost": 0,
+            "count": 1,
+            "limit": 1,
+            "type": "track"
+          },
+          {
+            "choice": "firstwinner",
+            "cost": 0,
+            "count": 1,
+            "limit": 1,
+            "type": "track"
+          },
+          {
+            "choice": "firstloser",
+            "cost": 0,
+            "count": 1,
+            "limit": 1,
+            "type": "track"
+          },
+          {
+            "choice": "firstwinner",
+            "cost": 0,
+            "count": 1,
+            "limit": 1,
+            "type": "track"
+          }
+        ],
+        "repeattrack": 
+          {
+            "condition": "salty",
+            "cost": 0,
+            "count": 1,
+            "limit": 1,
+            "style": "soft"
+          }
+        
+      },
+      "race": [
+        {
+          "choice": "lastloser",
+          "cost": 0,
+          "count": 1,
+          "event": "tempban",
+          "limit": 1,
+          "type": "racer"
+        },
+        {
+          "choice": "lastwinner",
+          "cost": 0,
+          "count": 1,
+          "event": "tempban",
+          "limit": 1,
+          "type": "track"
+        },
+        {
+          "choice": "lastloser",
+          "event": "selection",
+          "type": "track"
+        },
+        {
+          "choice": "player",
+          "event": "selection",
+          "type": "racer"
+        }
+      ]
+    },
+    "-Mi0lCDS80tmGzafNMWo": {
+      "author": "545798436105224203",
+      "conditions": [
+        "ft",
+        "l3",
+        "mu"
+      ],
+      "description": "",
+      "name": "David Stubbs Tribute (2021)",
+      "podmethod": "player_pick",
+      "podpods": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        4,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22
+      ],
+      "poollimit": 1,
+      "racenum": 7,
+      "races": [
+        {
+          "track": "0"
+        },
+        {
+          "track": "1"
+        },
+        {
+          "track": "2"
+        },
+        {
+          "track": "3"
+        },
+        {
+          "track": "4"
+        },
+        {
+          "track": "5"
+        },
+        {
+          "track": "6"
+        }
+      ],
+      "type": "1vAll"
+    },
+    "-Mi11xpJHdEBo4AL62_l": {
+      "author": "545798436105224203",
+      "conditions": [
+        "ft",
+        "mu",
+        "l3"
+      ],
+      "description": "",
+      "name": "2020 Qualifier",
+      "podmethod": "player_pick",
+      "podpods": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22
+      ],
+      "poollimit": 1,
+      "racenum": "4",
+      "races": [
+        {
+          "penalty": "270.000",
+          "time": "900.000",
+          "track": "2"
+        },
+        {
+          "penalty": "330.000",
+          "time": "1200.000",
+          "track": "7"
+        },
+        {
+          "penalty": "510.000",
+          "time": "1500.000",
+          "track": "20"
+        },
+        {
+          "penalty": "240.000",
+          "time": "900.000",
+          "track": "22"
+        },
+        {
+          "penalty": 300,
+          "time": 600,
+          "track": "4"
+        },
+        {
+          "penalty": 300,
+          "time": 600,
+          "track": "5"
+        },
+        {
+          "penalty": 300,
+          "time": 600,
+          "track": "6"
+        }
+      ],
+      "type": "Qualifier"
+    },
+    "-Mi3Hs3s9cY_TBDV7-ok": {
+      "author": "545798436105224203",
+      "conditions": [
+        "ft",
+        "l3",
+        "mu"
+      ],
+      "description": "",
+      "name": "2021 Qualifier",
+      "podmethod": "player_pick",
+      "podpods": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22
+      ],
+      "poollimit": 1,
+      "racenum": "4",
+      "races": [
+        {
+          "penalty": "90.000",
+          "time": "480.000",
+          "track": "1"
+        },
+        {
+          "penalty": "150.000",
+          "time": "900.000",
+          "track": "9"
+        },
+        {
+          "penalty": "450.000",
+          "time": "1800.000",
+          "track": "16"
+        },
+        {
+          "penalty": "450.000",
+          "time": "1800.000",
+          "track": "23"
+        },
+        {
+          "penalty": 300,
+          "time": 600,
+          "track": "4"
+        },
+        {
+          "penalty": 300,
+          "time": 600,
+          "track": "5"
+        },
+        {
+          "penalty": 300,
+          "time": 600,
+          "track": "6"
+        }
+      ],
+      "type": "Qualifier"
+    },
+    "-Mi3UJq_1tQW6vgYPgBK": {
+      "general": {
+        "author": "545798436105224203",
+        "default": [
+          "mu",
+          "ft",
+          "um",
+          "l3",
+          "tt"
+        ],
+        "description": "2 forcepoints, 2 perma track bans, saltier runback",
+        "firsttrack": {
+          "options": [
+            "amc",
+            "spc",
+            "gal",
+            "inv"
+          ],
+          "primary": "poe_c"
+        },
+        "gents": true,
+        "name": "Best of 9 (2020)",
+        "ranked": true,
+        "revealracer": false,
+        "type": "1v1",
+        "winlimit": 5
+      },
+      "match": {
+        "forcepoints": {
+          "max": 2,
+          "start": 2
+        },
+        "permabans": [
+          {
+            "choice": "firstloser",
+            "cost": 0,
+            "count": 1,
+            "limit": 1,
+            "type": "track"
+          },
+          {
+            "choice": "firstwinner",
+            "cost": 0,
+            "count": 1,
+            "limit": 1,
+            "type": "track"
+          },
+          {
+            "choice": "firstloser",
+            "cost": 0,
+            "count": 1,
+            "limit": 1,
+            "type": "track"
+          },
+          {
+            "choice": "firstwinner",
+            "cost": 0,
+            "count": 1,
+            "limit": 1,
+            "type": "track"
+          }
+        ],
+        "repeattrack": 
+          {
+            "condition": "saltier",
+            "cost": 0,
+            "count": 1,
+            "limit": 1,
+            "style": "soft"
+          }
+        
+      },
+      "race": [
+        {
+          "choice": "lastloser",
+          "cost": 0,
+          "count": 1,
+          "event": "tempban",
+          "limit": 1,
+          "type": "racer"
+        },
+        {
+          "choice": "lastwinner",
+          "cost": 0,
+          "count": 1,
+          "event": "tempban",
+          "limit": 1,
+          "type": "track"
+        },
+        {
+          "choice": "lastloser",
+          "event": "selection",
+          "type": "track"
+        },
+        {
+          "choice": "lastloser",
+          "cost": 1,
+          "count": 1,
+          "event": "override",
+          "limit": 2,
+          "options": [
+            "sk",
+            "nu"
+          ],
+          "type": "condition"
+        },
+        {
+          "choice": "player",
+          "event": "selection",
+          "type": "racer"
+        }
+      ]
+    },
+    "-Mi3UuQfRUajQUPZ_p-M": {
+      "general": {
+        "author": "545798436105224203",
+        "default": [
+          "mu",
+          "ft",
+          "um",
+          "l3",
+          "tt"
+        ],
+        "description": "3 forcepoints, 2 perma track bans, saltier runback",
+        "firsttrack": {
+          "options": [
+            "amc",
+            "spc",
+            "gal",
+            "inv"
+          ],
+          "primary": "poe_c"
+        },
+        "gents": true,
+        "name": "Best of 13 (2020)",
+        "ranked": true,
+        "revealracer": false,
+        "type": "1v1",
+        "winlimit": 7
+      },
+      "match": {
+        "forcepoints": {
+          "max": 3,
+          "start": 3
+        },
+        "permabans": [
+          {
+            "choice": "firstloser",
+            "cost": 0,
+            "count": 1,
+            "limit": 1,
+            "type": "track"
+          },
+          {
+            "choice": "firstwinner",
+            "cost": 0,
+            "count": 1,
+            "limit": 1,
+            "type": "track"
+          },
+          {
+            "choice": "firstloser",
+            "cost": 0,
+            "count": 1,
+            "limit": 1,
+            "type": "track"
+          },
+          {
+            "choice": "firstwinner",
+            "cost": 0,
+            "count": 1,
+            "limit": 1,
+            "type": "track"
+          }
+        ],
+        "repeattrack": 
+          {
+            "condition": "saltier",
+            "cost": 0,
+            "count": 1,
+            "limit": 1,
+            "style": "soft"
+          }
+        
+      },
+      "race": [
+        {
+          "choice": "lastloser",
+          "cost": 0,
+          "count": 1,
+          "event": "tempban",
+          "limit": 1,
+          "type": "racer"
+        },
+        {
+          "choice": "lastwinner",
+          "cost": 0,
+          "count": 1,
+          "event": "tempban",
+          "limit": 1,
+          "type": "track"
+        },
+        {
+          "choice": "lastloser",
+          "event": "selection",
+          "type": "track"
+        },
+        {
+          "choice": "lastloser",
+          "cost": 1,
+          "count": 1,
+          "event": "override",
+          "limit": 1,
+          "options": [
+            "sk",
+            "nu"
+          ],
+          "type": "condition"
+        },
+        {
+          "choice": "player",
+          "event": "selection",
+          "type": "racer"
+        }
+      ]
+    },
+    "-Mi3VZL8YSYCV2J_e-RI": {
+      "general": {
+        "author": "545798436105224203",
+        "default": [
+          "mu",
+          "ft",
+          "um",
+          "l3",
+          "tt"
+        ],
+        "description": "3 forcepoints, 2 perma track bans, extra pod ban",
+        "firsttrack": {
+          "options": [
+            "amc",
+            "spc",
+            "gal",
+            "inv"
+          ],
+          "primary": "poe_c"
+        },
+        "gents": true,
+        "name": "Best of 9 (2021)",
+        "ranked": true,
+        "revealracer": false,
+        "type": "1v1",
+        "winlimit": 5
+      },
+      "match": {
+        "forcepoints": {
+          "max": 3,
+          "start": 3
+        },
+        "permabans": [
+          {
+            "choice": "firstloser",
+            "cost": 0,
+            "count": 1,
+            "limit": 1,
+            "type": "track"
+          },
+          {
+            "choice": "firstwinner",
+            "cost": 0,
+            "count": 1,
+            "limit": 1,
+            "type": "track"
+          },
+          {
+            "choice": "firstloser",
+            "cost": 0,
+            "count": 1,
+            "limit": 1,
+            "type": "track"
+          },
+          {
+            "choice": "firstwinner",
+            "cost": 0,
+            "count": 1,
+            "limit": 1,
+            "type": "track"
+          }
+        ],
+        "repeattrack": 
+          {
+            "condition": "salty",
+            "cost": 0,
+            "count": 1,
+            "limit": 1,
+            "style": "soft"
+          }
+        
+      },
+      "race": [
+        {
+          "choice": "lastloser",
+          "cost": 0,
+          "count": 1,
+          "event": "tempban",
+          "limit": 1,
+          "type": "racer"
+        },
+        {
+          "choice": "lastwinner",
+          "cost": 0,
+          "count": 1,
+          "event": "tempban",
+          "limit": 1,
+          "type": "track"
+        },
+        {
+          "choice": "lastloser",
+          "event": "selection",
+          "type": "track"
+        },
+        {
+          "choice": "lastloser",
+          "cost": 1,
+          "count": 1,
+          "event": "override",
+          "limit": 0,
+          "options": [
+            "sk",
+            "nu"
+          ],
+          "type": "condition"
+        },
+        {
+          "choice": "lastloser",
+          "cost": 1,
+          "count": 1,
+          "event": "tempban",
+          "limit": 0,
+          "type": "racer"
+        },
+        {
+          "choice": "player",
+          "event": "selection",
+          "type": "racer"
+        }
+      ]
+    },
+    "-Mi3W-aPTn1ybjH7xYC5": {
+      "general": {
+        "author": "545798436105224203",
+        "default": [
+          "mu",
+          "ft",
+          "um",
+          "l3",
+          "tt"
+        ],
+        "description": "3 forcepoints, 2 perma track bans, extra pod ban",
+        "firsttrack": {
+          "options": [
+            "amc",
+            "spc",
+            "gal",
+            "inv"
+          ],
+          "primary": "poe_c"
+        },
+        "gents": true,
+        "name": "Best of 13 (2021)",
+        "ranked": true,
+        "revealracer": false,
+        "type": "1v1",
+        "winlimit": 7
+      },
+      "match": {
+        "forcepoints": {
+          "max": 4,
+          "start": 4
+        },
+        "permabans": [
+          {
+            "choice": "firstloser",
+            "cost": 0,
+            "count": 1,
+            "limit": 1,
+            "type": "track"
+          },
+          {
+            "choice": "firstwinner",
+            "cost": 0,
+            "count": 1,
+            "limit": 1,
+            "type": "track"
+          },
+          {
+            "choice": "firstloser",
+            "cost": 0,
+            "count": 1,
+            "limit": 1,
+            "type": "track"
+          },
+          {
+            "choice": "firstwinner",
+            "cost": 0,
+            "count": 1,
+            "limit": 1,
+            "type": "track"
+          }
+        ],
+        "repeattrack": 
+          {
+            "condition": "salty",
+            "cost": 0,
+            "count": 1,
+            "limit": 1,
+            "style": "soft"
+          }
+        
+      },
+      "race": [
+        {
+          "choice": "lastloser",
+          "cost": 0,
+          "count": 1,
+          "event": "tempban",
+          "limit": 1,
+          "type": "racer"
+        },
+        {
+          "choice": "lastwinner",
+          "cost": 0,
+          "count": 1,
+          "event": "tempban",
+          "limit": 1,
+          "type": "track"
+        },
+        {
+          "choice": "lastloser",
+          "event": "selection",
+          "type": "track"
+        },
+        {
+          "choice": "lastloser",
+          "cost": 1,
+          "count": 1,
+          "event": "override",
+          "limit": 0,
+          "options": [
+            "sk",
+            "nu"
+          ],
+          "type": "condition"
+        },
+        {
+          "choice": "lastloser",
+          "cost": 1,
+          "count": 1,
+          "event": "tempban",
+          "limit": 0,
+          "type": "racer"
+        },
+        {
+          "choice": "player",
+          "event": "selection",
+          "type": "racer"
+        }
+      ]
+    },
+    "-MiwjLAaFekbLdNuqjgK": {
+      "author": "167721054956027904",
+      "conlimit": "lossess",
+      "conmax": "1",
+      "conmethod": "losers_pick",
+      "conoptions": [
+        "sk",
+        "nu",
+        "pb"
+      ],
+      "default": [
+        "mu",
+        "ft",
+        null,
+        "l3"
+      ],
+      "description": "",
+      "dupecondition": "disabled",
+      "dupelimit": 1,
+      "dupestyle": "soft_repeat",
+      "firstmethod": "poe",
+      "firsttrack": [
+        "amc",
+        "spc",
+        "gal",
+        "inv"
+      ],
+      "gents": "disallowed",
+      "name": "Bo3 Ruleset",
+      "pconlimit": 1,
+      "pconmethod": "disabled",
+      "podmethod": "player_pick",
+      "podpods": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19",
+        "20",
+        "21",
+        "22"
+      ],
+      "poollimit": 1,
+      "ppodlimit": 1,
+      "ppodmethod": "disabled",
+      "ptracklimit": "1",
+      "ptrackmethod": "win",
+      "rndlimited": 2,
+      "tconlimit": 1,
+      "tconmethod": "disabled",
+      "tconmlimit": "no_limit",
+      "tpodlimit": "2",
+      "tpodmethod": "disabled",
+      "tpodmlimit": [
+        "no_limit"
+      ],
+      "trackmethod": "losers_pick",
+      "tracktracks": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19",
+        "20",
+        "21",
+        "22",
+        "23",
+        "24"
+      ],
+      "ttracklimit": 1,
+      "ttrackmethod": "disabled",
+      "ttrackmlimit": [
+        "no_limit"
+      ],
+      "type": "1v1",
+      "wins": [
+        "2_max"
+      ]
+    },
+    "-MjgA3DO5RRugTvKsw0g": {
+      "author": "115279484567027721",
+      "conlimit": "3",
+      "conmax": "3",
+      "conmethod": "losers_pick",
+      "conoptions": [
+        "sk",
+        "nu",
+        "pb"
+      ],
+      "default": [
+        "mu",
+        "ft",
+        "l3"
+      ],
+      "description": "",
+      "dupecondition": "salty_runback",
+      "dupelimit": 1,
+      "dupestyle": "soft_repeat",
+      "firstmethod": "chance_cube",
+      "firsttrack": [
+        "amc",
+        "spc",
+        "gal",
+        "inv"
+      ],
+      "gents": "allowed",
+      "name": "Nacho's Proposed 2022 Ruleset",
+      "pconlimit": 1,
+      "pconmethod": "disabled",
+      "podmethod": "player_pick",
+      "podpods": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19",
+        "20",
+        "21",
+        "22"
+      ],
+      "poollimit": 1,
+      "ppodlimit": 1,
+      "ppodmethod": "disabled",
+      "ptracklimit": "2",
+      "ptrackmethod": "player_pick",
+      "rndlimited": 2,
+      "tconlimit": "3",
+      "tconmethod": "losers_pick",
+      "tconmlimit": [
+        "3"
+      ],
+      "tpodlimit": 1,
+      "tpodmethod": "losers_pick",
+      "tpodmlimit": [
+        "no_limit"
+      ],
+      "trackmethod": "losers_pick",
+      "tracktracks": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19",
+        "20",
+        "21",
+        "22",
+        "23",
+        "24"
+      ],
+      "ttracklimit": 1,
+      "ttrackmethod": "winners_pick",
+      "ttrackmlimit": [
+        "no_limit"
+      ],
+      "type": "1v1",
+      "wins": [
+        "5_max"
+      ]
+    },
+    "-MvuFOZ7t8fAXCDB3hHT": {
+      "author": "545798436105224203",
+      "conditions": [
+        "ft",
+        "l3",
+        "ng",
+        "nu"
+      ],
+      "description": "Basic RTA format for Amateur Circuit - No Upgrades",
+      "name": "Winter 2021",
+      "podmethod": "player_pick",
+      "podpods": [
+        "0",
+        "1",
+        "2",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19",
+        "20",
+        "21",
+        "22",
+        "3",
+        "4"
+      ],
+      "poollimit": "1",
+      "racenum": "7",
+      "races": [
+        {
+          "penalty": 300,
+          "time": 600,
+          "track": "0"
+        },
+        {
+          "penalty": 300,
+          "time": 600,
+          "track": "1"
+        },
+        {
+          "penalty": 300,
+          "time": 600,
+          "track": "2"
+        },
+        {
+          "penalty": 300,
+          "time": 600,
+          "track": "3"
+        },
+        {
+          "penalty": 300,
+          "time": 600,
+          "track": "4"
+        },
+        {
+          "penalty": 300,
+          "time": 600,
+          "track": "5"
+        },
+        {
+          "penalty": 300,
+          "time": 600,
+          "track": "6"
+        }
+      ],
+      "type": "RTA"
+    },
+    "-Mi3VZL8YSYCV2J_e-RI2": {
+      "general": {
+        "author": "545798436105224203",
+        "default": [
+          "mu",
+          "ft",
+          "um",
+          "l3",
+          "tt"
+        ],
+        "description": "3 forcepoints, 2 perma track bans, extra pod ban",
+        "firsttrack": {
+          "options": [
+            "amc",
+            "spc",
+            "gal",
+            "inv"
+          ],
+          "primary": "poe_c",
+          "secondary": ["poe_p", "poe_t", "random"]
+        },
+        "gents": true,
+        "name": "Best of 7 (2022)",
+        "ranked": true,
+        "revealracer": false,
+        "type": "1v1",
+        "winlimit": 4
+      },
+      "match": {
+        "forcepoints": {
+          "max": 2,
+          "start": 2
+        },
+        "permabans": [
+          {
+            "choice": "firstloser",
+            "cost": 0,
+            "count": 1,
+            "limit": 1,
+            "type": "track"
+          },
+          {
+            "choice": "firstwinner",
+            "cost": 0,
+            "count": 1,
+            "limit": 1,
+            "type": "track"
+          },
+          {
+            "choice": "firstloser",
+            "cost": 0,
+            "count": 1,
+            "limit": 1,
+            "type": "track"
+          },
+          {
+            "choice": "firstwinner",
+            "cost": 0,
+            "count": 1,
+            "limit": 1,
+            "type": "track"
+          }
+        ],
+        "repeattrack": 
+          {
+            "condition": "salty",
+            "cost": 0,
+            "count": 1,
+            "limit": 1,
+            "style": "soft"
+          }
+        
+      },
+      "race": [
+        {
+          "choice": "lastloser",
+          "cost": 0,
+          "count": 1,
+          "event": "tempban",
+          "limit": 1,
+          "type": "racer"
+        },
+        {
+          "choice": "lastwinner",
+          "cost": 0,
+          "count": 1,
+          "event": "tempban",
+          "limit": 1,
+          "type": "track"
+        },
+        {
+          "choice": "lastloser",
+          "event": "selection",
+          "type": "track"
+        },
+        {
+          "choice": "lastloser",
+          "cost": 1,
+          "count": 1,
+          "event": "override",
+          "limit": 0,
+          "options": [
+            "sk",
+            "nu",
+            "fl"
+          ],
+          "type": "condition"
+        },
+        {
+          "choice": "lastloser",
+          "cost": 1,
+          "count": 2,
+          "event": "tempban",
+          "limit": 0,
+          "type": "racer"
+        },
+        {
+          "choice": "player",
+          "event": "selection",
+          "type": "racer"
+        }
+      ]
+    }
+  }
+}

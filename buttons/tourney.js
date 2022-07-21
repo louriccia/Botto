@@ -1760,7 +1760,7 @@ module.exports = {
                             track: {},
                             racer: {},
                             opponents: {},
-                            overrides: { nu: 0, sk: 0, fl: 0, podban: 0},
+                            overrides: { nu: 0, sk: 0, fl: 0, podban: 0 },
                             co_comm: {},
                         }
                     }
@@ -1777,7 +1777,7 @@ module.exports = {
                 }
 
                 //step 2: iterate through all matches and get stats
-                Object.values(tourney_matches_data).sort(function (a, b) {return a.datetime - b.datetime}).forEach(match => {
+                Object.values(tourney_matches_data).sort(function (a, b) { return a.datetime - b.datetime }).forEach(match => {
                     let already_played = []
                     let runback = {}
                     let players = Object.values(match.races[0].runs).map(run => run.player)
@@ -2351,10 +2351,10 @@ module.exports = {
                                     "lost: `" + stats.players[player].races.lost + "`\n" +
                                     "runbacks: `" + stats.players[player].races.runbacks + "`\n" +
                                     "dnf: `" + stats.players[player].races.dnf + "`", true)
-                                .addField(":diamond_shape_with_a_dot_inside: Forcepoints", "total: `" + (Number(stats.players[player].overrides.sk) + Number(stats.players[player].overrides.nu) + Number(stats.players[player].overrides.fl)  + Number(stats.players[player].overrides.podban)) + "`\n" +
+                                .addField(":diamond_shape_with_a_dot_inside: Forcepoints", "total: `" + (Number(stats.players[player].overrides.sk) + Number(stats.players[player].overrides.nu) + Number(stats.players[player].overrides.fl) + Number(stats.players[player].overrides.podban)) + "`\n" +
                                     "skips: `" + stats.players[player].overrides.sk + "`\n" +
                                     "nu: `" + stats.players[player].overrides.nu + "`\n" +
-                                    "flap: `" + stats.players[player].overrides.fl + "`\n" + 
+                                    "flap: `" + stats.players[player].overrides.fl + "`\n" +
                                     "podban: `" + stats.players[player].overrides.podban + "`", true)
                         }
                         if (accomplishments.length > 0) {
@@ -3272,7 +3272,7 @@ module.exports = {
                                 true))
                             embed.setTitle(planets[tracks[track].planet].emoji + " " + tracks[track].name + (forces.length > 0 ? " (" + forces.join(", ") + ")" : "") + " \n" + (getUsername(winner)) + " Wins!")
                         }
-                    } 
+                    }
                 } else {
                     embed
                         .setAuthor("Race " + (race + 1) + " - Setup")
@@ -3683,7 +3683,7 @@ module.exports = {
                         }
                         components.push(component)
                     }
-                } 
+                }
                 if (components.length > 1) {
                     components.push(
                         {
@@ -4874,9 +4874,10 @@ module.exports = {
                         ephemeralMessage("You're not a player! <:WhyNobodyBuy:589481340957753363>", [], [])
                     }
                 } else if (args[2] == "verify") {
-                    async function verify() {
-                        const Member = await Guild.members.fetch(interaction.member.user.id)
-                        if (interaction.type == 5) {
+
+                    if (interaction.type == 5) {
+                        async function verify() {
+                            const Member = await Guild.members.fetch(interaction.member.user.id)
                             if (Object.values(livematch.commentators).includes(interaction.member.user.id) || (interaction.guild_id == '441839750555369474' && Member.roles.cache.some(r => r.id == '862810190072381471') && !Object.values(livematch.players).includes(interaction.member.user.id))) {
                                 interaction.data.components.map(field => {
                                     if (field.components[0].custom_id.includes("time")) {
@@ -4886,6 +4887,9 @@ module.exports = {
                                     }
                                 })
                             }
+                            return
+                        }
+                        verify().then(() => {
                             livematchref.child("races").child(race).child("live").set(false)
                             updateMessage("", type, [raceEmbed(race)], [])
                             postMessage("", [matchSummaryEmbed()], [])
@@ -4965,8 +4969,12 @@ module.exports = {
                                     postMessage("<@" + (events[0].choice == "lastwinner" ? getWinner(race) : getOpponent(getWinner(race))) + "> please make a selection", [raceEventEmbed(nextrace)], raceEventComponents(nextrace))
                                 }
                             }
+                        })
 
-                        } else {
+
+                    } else {
+                        async function verify() {
+                            const Member = await Guild.members.fetch(interaction.member.user.id)
                             if (Object.values(livematch.commentators).includes(interaction.member.user.id) || (interaction.guild_id == '441839750555369474' && Member.roles.cache.some(r => r.id == '862810190072381471') && !Object.values(livematch.players).includes(interaction.member.user.id))) {
                                 let modal = {
                                     data: {
@@ -5020,8 +5028,9 @@ module.exports = {
                                 ephemeralMessage("Only commentators/trackers can verify match times. <:WhyNobodyBuy:589481340957753363>", [], [])
                             }
                         }
+                        verify()
                     }
-                    verify()
+
                 } else if (args[2] == "restart") {
                     if (Object.values(livematch.commentators).includes(interaction.member.user.id)) {
                         livematchref.child("races").child(race).child("live").set(false)
