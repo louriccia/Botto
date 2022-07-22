@@ -680,7 +680,7 @@ module.exports = {
                         .addField(":crossed_swords: " + match.players.map(
                             player => tourney_participants_data[player].name
                         ).join(" vs "),
-                            ":microphone2: " + (match.commentary.length > 0 && match.commentary.filter(player => player !== "").length > 0 ? (match.commentary.filter(player => player !== "").map(player => tourney_participants_data[player].name).join(", ")) : "Sign up for commentary!"), true
+                            ":microphone2: " + (match.commentary && match.commentary.length > 0 && match.commentary.filter(player => player !== "").length > 0 ? (match.commentary.filter(player => player !== "").map(player => tourney_participants_data[player].name).join(", ")) : "Sign up for commentary!"), true
                         )
                         .addField('\u200B', '\u200B', true)
                 })
