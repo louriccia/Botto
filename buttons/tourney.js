@@ -680,7 +680,7 @@ module.exports = {
                         .addField(":crossed_swords: " + match.players.map(
                             player => tourney_participants_data[player].name
                         ).join(" vs "),
-                            ":microphone2: " + (match.commentary.filter(player => player !== "").length > 0 ? (match.commentary.filter(player => player !== "").map(player => tourney_participants_data[player].name).join(", ")) : "Sign up for commentary!"), true
+                            ":microphone2: " + (match.commentary.length > 0 && match.commentary.filter(player => player !== "").length > 0 ? (match.commentary.filter(player => player !== "").map(player => tourney_participants_data[player].name).join(", ")) : "Sign up for commentary!"), true
                         )
                         .addField('\u200B', '\u200B', true)
                 })
@@ -804,99 +804,102 @@ module.exports = {
             let counts = { mu: 0, nu: 0, ft: 0, sk: 0, de: 0, dl: 0, ng: 0, fl: 0, qual: 0, user: 0, tracks: {} }
             let pod_counts = {}
             matches.forEach(match => {
-                Object.values(match.races).forEach((race, num) => {
-                    //figure out track and conditions
-                    let thisconditions = { ...tourney_rulesets_data.saved[match.ruleset].general.default }
-                    let thistrack = null
-                    if (race.events) {
-                        Object.values(race.events).forEach(event => {
-                            if (event.event == 'selection' && event.type == 'track') {
-                                if (counts.tracks[event.selection] == undefined) {
-                                    counts.tracks[event.selection] = { total: 0, sk: 0, nu: 0, fl: 0, ft: 0, mu: 0, tt: 0, ng: 0 }
+                if (match.races) {
+                    Object.values(match.races).forEach((race, num) => {
+                        //figure out track and conditions
+                        let thisconditions = { ...tourney_rulesets_data.saved[match.ruleset].general.default }
+                        let thistrack = null
+                        if (race.events) {
+                            Object.values(race.events).forEach(event => {
+                                if (event.event == 'selection' && event.type == 'track') {
+                                    if (counts.tracks[event.selection] == undefined) {
+                                        counts.tracks[event.selection] = { total: 0, sk: 0, nu: 0, fl: 0, ft: 0, mu: 0, tt: 0, ng: 0 }
+                                    }
+                                    thistrack = event.selection
                                 }
-                                thistrack = event.selection
-                            }
-                            if (event.event == 'override' && event.type == 'condition') {
-                                if (event.selection == 'nu') {
-                                    thisconditions.upgr = 'nu'
-                                }
-                                if (event.selection == 'sk') {
-                                    thisconditions.trak = 'sk'
-                                }
-                                if (event.selection == 'fl') {
-                                    thisconditions.time = 'fl'
-                                }
-                            }
-                        })
-                        thisconditions = Object.values(thisconditions)
-                    } else {
-                        thisconditions = Object.values(race.conditions)
-                        thistrack = race.track
-
-                    }
-
-                    //update counts
-                    Object.values(race.runs).forEach(run => {
-                        counts.tracks[thistrack].total++
-                        thisconditions.forEach(con => {
-                            if (counts.tracks[thistrack][con] == undefined) {
-                                counts.tracks[thistrack][con] = 1
-                            } else {
-                                counts.tracks[thistrack][con]++
-                            }
-                        })
-                    })
-                    //get runs if this is the selected track
-                    if (thistrack == track) {
-                        let opponents = []
-                        Object.values(race.runs).forEach(run => {
-                            opponents.push(run.player)
-                        })
-                        Object.values(race.runs).forEach(run => {
-                            run.num = num + 1
-                            run.vod = match.vod
-                            run.tourney = match.tourney
-                            run.bracket = match.bracket
-                            run.round = match.round
-                            if (race.events) {
-                                run.podbans = Object.values(race.events).filter(event => event.event == 'tempban' && event.type == 'racer').map(event => event.selection)
-                            } else {
-                                run.podbans = []
-                            }
-                            run.opponents = opponents.filter(op => op !== run.player)
-                            thisconditions.forEach(con => {
-                                if (counts[con] == undefined) {
-                                    counts[con] = 1
-                                } else {
-                                    counts[con]++
+                                if (event.event == 'override' && event.type == 'condition') {
+                                    if (event.selection == 'nu') {
+                                        thisconditions.upgr = 'nu'
+                                    }
+                                    if (event.selection == 'sk') {
+                                        thisconditions.trak = 'sk'
+                                    }
+                                    if (event.selection == 'fl') {
+                                        thisconditions.time = 'fl'
+                                    }
                                 }
                             })
-                            run.conditions = [...thisconditions]
-                            if (run.deaths == 0) {
-                                counts.dl++
-                                run.conditions.push('dl')
-                            }
-                            if (run.deaths > 0) {
-                                counts.de++
-                                run.conditions.push('de')
-                            }
-                            if (match.bracket == "Qualifying") {
-                                counts.qual++
-                                counts.tracks[thistrack].qual++
-                                run.conditions.push('qual')
-                            }
-                            if (run.player == String(user)) {
-                                counts.user++
-                            }
-                            if (pod_counts[run.pod] == undefined) {
-                                pod_counts[run.pod] = 1
-                            } else {
-                                pod_counts[run.pod]++
-                            }
-                            runs.push(run)
+                            thisconditions = Object.values(thisconditions)
+                        } else {
+                            thisconditions = Object.values(race.conditions)
+                            thistrack = race.track
+
+                        }
+
+                        //update counts
+                        Object.values(race.runs).forEach(run => {
+                            counts.tracks[thistrack].total++
+                            thisconditions.forEach(con => {
+                                if (counts.tracks[thistrack][con] == undefined) {
+                                    counts.tracks[thistrack][con] = 1
+                                } else {
+                                    counts.tracks[thistrack][con]++
+                                }
+                            })
                         })
-                    }
-                })
+                        //get runs if this is the selected track
+                        if (thistrack == track) {
+                            let opponents = []
+                            Object.values(race.runs).forEach(run => {
+                                opponents.push(run.player)
+                            })
+                            Object.values(race.runs).forEach(run => {
+                                run.num = num + 1
+                                run.vod = match.vod
+                                run.tourney = match.tourney
+                                run.bracket = match.bracket
+                                run.round = match.round
+                                if (race.events) {
+                                    run.podbans = Object.values(race.events).filter(event => event.event == 'tempban' && event.type == 'racer').map(event => event.selection)
+                                } else {
+                                    run.podbans = []
+                                }
+                                run.opponents = opponents.filter(op => op !== run.player)
+                                thisconditions.forEach(con => {
+                                    if (counts[con] == undefined) {
+                                        counts[con] = 1
+                                    } else {
+                                        counts[con]++
+                                    }
+                                })
+                                run.conditions = [...thisconditions]
+                                if (run.deaths == 0) {
+                                    counts.dl++
+                                    run.conditions.push('dl')
+                                }
+                                if (run.deaths > 0) {
+                                    counts.de++
+                                    run.conditions.push('de')
+                                }
+                                if (match.bracket == "Qualifying") {
+                                    counts.qual++
+                                    counts.tracks[thistrack].qual++
+                                    run.conditions.push('qual')
+                                }
+                                if (run.player == String(user)) {
+                                    counts.user++
+                                }
+                                if (pod_counts[run.pod] == undefined) {
+                                    pod_counts[run.pod] = 1
+                                } else {
+                                    pod_counts[run.pod]++
+                                }
+                                runs.push(run)
+                            })
+                        }
+                    })
+                }
+
             })
             //filter runs
             runs = runs.filter(run => {
