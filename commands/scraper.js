@@ -64,12 +64,12 @@ module.exports = {
             })
 
             for (let i = 0; i < src.length; i++) {
-                let runner = src.players.data[0]
+                let runner = src[i].players.data[0]
                 let name = null
                 if(runner?.names?.international){
                     name = runner.names.international
                 }
-                let foundrunner = false
+                let foundrunner = null
                 Object.keys(users_data).forEach(key => {
                     let user = users[key]
                     if(user.src?.id == runner.id || (user.src?.name == name && name !== null)){
