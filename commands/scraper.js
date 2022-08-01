@@ -12,10 +12,19 @@ module.exports = {
         require('firebase/auth');
         require('firebase/database');
         var database = firebase.database();
+
         var speedruns = database.ref('speedruns');
         var speedruns_data = {}
         speedruns.on("value", function (snapshot) {
             speedruns_data = snapshot.val();
+        }, function (errorObject) {
+            console.log("The read failed: " + errorObject.code);
+        });
+
+        var users = database.ref('users');
+        var users_data = {}
+        users.on("value", function (snapshot) {
+            users_data = snapshot.val();
         }, function (errorObject) {
             console.log("The read failed: " + errorObject.code);
         });
@@ -42,7 +51,7 @@ module.exports = {
         async function getsrcData(game, offset) {
             //try {
             let variables = await getStuff(game.variables)
-            let categories = await getSttuff(game.categories)
+            let categories = await getStuff(game.categories)
             let src = await getStuff(game.runs + "&offset=" + offset)
             let runs = []
             let already = {}
@@ -55,6 +64,26 @@ module.exports = {
             })
 
             for (let i = 0; i < src.length; i++) {
+                let runner = src.players.data[0]
+                let name = null
+                if(runner?.names?.international){
+                    name = runner.names.international
+                }
+                let foundrunner = false
+                Object.keys(users_data).forEach(key => {
+                    let user = users[key]
+                    if(user.src?.id == runner.id || (user.src?.name == name && name !== null)){
+                        users.child(key).child('src').update(runner)
+                        foundrunner = true
+                    }
+                })
+                if(!foundrunner){
+                    users.push(
+                        {
+                            src: runner
+                        }
+                    )
+                }
                 if (already[src[i].id]) { //if it already exists, update it
                     speedruns.child(already[src[i].id]).child('src').update(src[i])
                 } else { //otherwise, make a new record
@@ -64,7 +93,6 @@ module.exports = {
                         }
                     )
                 }
-
             }
             return runs
         }
