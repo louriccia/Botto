@@ -261,7 +261,7 @@ module.exports = {
             const tierEmbed = new Discord.MessageEmbed()
             var mu = true
             if (args[0].hasOwnProperty("options")){
-                if (args[0].options[0].value == "nu") {
+                if (args[0]?.options[0]?.value == "nu") {
                     mu = false
                 }
             }

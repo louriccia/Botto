@@ -170,7 +170,7 @@ client.once('ready', () => {
         .catch(console.error);
     client.channels.cache.get("444208252541075476").send("Deployed <t:" + Math.round(Date.now() / 1000) + ":R>");
     try {
-        //client.commands.get("scrape").execute();
+        client.commands.get("scrape").execute();
     } catch {
         console.error(error);
     }
