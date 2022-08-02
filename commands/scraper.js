@@ -44,6 +44,7 @@ module.exports = {
 
         let already = {}
 
+        console.log(Object.values(speedruns_data).length)
         Object.keys(speedruns_data).forEach(key => {
             let run = speedruns_data[key]
             if (run?.records?.src) {
@@ -52,7 +53,7 @@ module.exports = {
         })
 
         let alreadyplayers = {}
-
+        console.log(Object.values(users_data).length)
         Object.keys(users_data).forEach(key => {
             let user = users_data[key]
             if (user.src.user) {
@@ -76,7 +77,6 @@ module.exports = {
             const response = await fetch(game.runs + "&offset=" + offset);
             const data = await response.json();
             let src = data.data
-            console.log(src)
             let runs = []
 
             for (let i = 0; i < src.length; i++) {
