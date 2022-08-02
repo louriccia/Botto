@@ -28,12 +28,14 @@ module.exports = {
                 let game = {
                     variables: 'https://www.speedrun.com/api/v1/games/m1mmex12/variables',
                     categories: 'https://www.speedrun.com/api/v1/games/m1mmex12/categories',
-                    runs: 'https://www.speedrun.com/api/v1/runs?game=m1mmex12&embed=players&max=200'
+                    runs: 'https://www.speedrun.com/api/v1/runs?game=m1mmex12&embed=players&max=200',
+                    levels: 'https://www.speedrun.com/api/v1/games/m1mmex12/levels'
                 }
                 let extension = {
                     variables: 'https://www.speedrun.com/api/v1/games/m1mnnrxd/variables',
                     categories: 'https://www.speedrun.com/api/v1/games/m1mnnrxd/categories',
-                    runs: 'https://www.speedrun.com/api/v1/runs?game=m1mnnrxd&embed=players&max=200'
+                    runs: 'https://www.speedrun.com/api/v1/runs?game=m1mnnrxd&embed=players&max=200',
+                    levels: 'https://www.speedrun.com/api/v1/games/m1mnnrxd/levels'
                 }
 
                 let already = {}
@@ -67,6 +69,10 @@ module.exports = {
                 }
                 async function getsrcData(game, offset) {
                     //try {
+                    const response3 = await fetch(game.levels);
+                    const data3 = await response3.json();
+                    let levels = data3.data
+
                     const response2 = await fetch(game.variables);
                     const data2 = await response2.json();
                     let variables = data2.data
@@ -85,7 +91,7 @@ module.exports = {
                         let name = null
                         if (runner?.names?.international) {
                             name = runner.names.international
-                        } else if (runner?.name){
+                        } else if (runner?.name) {
                             name = runner.name
                         }
 
@@ -101,24 +107,33 @@ module.exports = {
                                     src: runner
                                 }
                             )
-                            if(runner.id){
+                            if (runner.id) {
                                 alreadyplayers[runner.id] = newpush.key
                             } else {
                                 alreadyplayers[name] = newpush.key
                             }
                         }
-                        src[i].category = Object.values(categories).filter(c => c.id == src[i].category)[0].name
+                        if(src[i].category && Object.values(categories).filter(c => c.id == src[i].category).length > 0){
+                            src[i].category = Object.values(categories).filter(c => c.id == src[i].category)[0].name
+                        }   
+                        if (src[i].level) {
+                            if (Object.values(levels).filter(l => l.id == src[i].level).length > 0) {
+                                src[i].level = Object.values(levels).filter(l => l.id == src[i].level)[0].name
+                            }
+                        }
                         let newvariables = {}
                         if (src[i].values) {
                             Object.keys(src[i].values).forEach(key => {
-                                let newvar = Object.values(variables).filter(v => v.id == key)[0]
-                                let newkey = newvar.name
-                                let newval = newvar.values.values[src[i].values[key]].label
-                                newvariables[newkey] = newval
+                                if (Object.values(variables).filter(v => v.id == key).length > 0) {
+                                    let newvar = Object.values(variables).filter(v => v.id == key)[0]
+                                    let newkey = newvar.name
+                                    let newval = newvar.values.values[src[i].values[key]].label
+                                    newvariables[newkey] = newval
+                                }
                             })
                         }
                         src[i].values = newvariables
-                        if (src[i]?.system?.platform) {
+                        if (src[i]?.system?.platform && platforms[src[i].system.platform]) {
                             src[i].system.platform = platforms[src[i].system.platform]
                         }
                         if (already[src[i].id]) { //if it already exists, update it
