@@ -82,7 +82,7 @@ module.exports = {
                     name = runner.names.international
                 }
                 
-                if(alreadyplayers[runner.id]){
+                if(runner.id && alreadyplayers[runner.id]){
                     users.child(alreadyplayers[runner.id]).child('src').update(runner)
                 } else if(false){
                     users.push(

@@ -112,6 +112,21 @@ tourney_live.on("value", function (snapshot) {
 }, function (errorObject) {
     console.log("The read failed: " + errorObject);
 });
+var speedruns = database.ref('speedruns');
+var speedruns_data = {}
+speedruns.on("value", function (snapshot) {
+    speedruns_data = snapshot.val();
+}, function (errorObject) {
+    console.log("The read failed: " + errorObject.code);
+});
+
+var users = database.ref('users');
+var users_data = {}
+users.on("value", function (snapshot) {
+    users_data = snapshot.val();
+}, function (errorObject) {
+    console.log("The read failed: " + errorObject.code);
+});
 client.ws.on('INTERACTION_CREATE', async interaction => {
     if (interaction.data.hasOwnProperty("name")) {
         const command = interaction.data.name.toLowerCase();
