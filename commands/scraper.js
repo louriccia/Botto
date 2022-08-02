@@ -8,116 +8,124 @@ module.exports = {
         const all = [];
         var tools = require('./../tools.js');
 
+        var firebase = require("firebase/app");
+        require('firebase/auth');
         require('firebase/database');
-        let database = admin.database();
-        let firebase = require("firebase/app");
+        var database = firebase.database();
 
         var speedruns = database.ref('speedruns');
-        var speedruns_data = {},  users_data = {}
+        var speedruns_data = {}
         speedruns.on("value", function (snapshot) {
             speedruns_data = snapshot.val();
+            var users = database.ref('users');
+            var users_data = {}
+            users.on("value", function (snapshot) {
+                users_data = snapshot.val();
+
+
+                //src scraper
+                const platforms = { "8gej2n93": "PC", "w89rwelk": "N64", "v06d394z": "DC", "7m6ylw9p": "Switch", "nzelkr6q": "PlayStation", "o7e2mx6w": "Xbox" }
+                let game = {
+                    variables: 'https://www.speedrun.com/api/v1/games/m1mmex12/variables',
+                    categories: 'https://www.speedrun.com/api/v1/games/m1mmex12/categories',
+                    runs: 'https://www.speedrun.com/api/v1/runs?game=m1mmex12&embed=players&max=200'
+                }
+                let extension = {
+                    variables: 'https://www.speedrun.com/api/v1/games/m1mnnrxd/variables',
+                    categories: 'https://www.speedrun.com/api/v1/games/m1mnnrxd/categories',
+                    runs: 'https://www.speedrun.com/api/v1/runs?game=m1mnnrxd&embed=players&max=200'
+                }
+
+                let already = {}
+
+                console.log(Object.values(speedruns_data).length)
+                Object.keys(speedruns_data).forEach(key => {
+                    let run = speedruns_data[key]
+                    if (run?.records?.src) {
+                        already[run.records.src.replace("https://www.speedrun.com/swe1r/run/", "")] = key
+                    }
+                })
+
+                let alreadyplayers = {}
+                console.log(Object.values(users_data).length)
+                Object.keys(users_data).forEach(key => {
+                    let user = users_data[key]
+                    if (user.src.user) {
+                        alreadyplayers[user.src.user.replace("https://www.speedrun.com/user/", "")] = key
+                    }
+                })
+                console.log(already)
+                console.log(alreadyplayers)
+                let settings = { method: "Get" }
+                var src_count = 0
+                async function getStuff(url) {
+                    const response = await fetch(url);
+                    const data = await response.json();
+                    return data.data
+                }
+                async function getsrcData(game, offset) {
+                    //try {
+                    let variables = await getStuff(game.variables)
+                    let categories = await getStuff(game.categories)
+                    //let src = await getStuff(game.runs + "&offset=" + offset)
+                    const response = await fetch(game.runs + "&offset=" + offset);
+                    const data = await response.json();
+                    let src = data.data
+                    let runs = []
+
+                    for (let i = 0; i < src.length; i++) {
+                        let runner = src[i].players.data[0]
+                        let name = null
+                        if (runner?.names?.international) {
+                            name = runner.names.international
+                        }
+
+                        if (runner?.id && alreadyplayers[runner.id]) {
+                            users.child(alreadyplayers[runner.id]).child('src').update(runner)
+                        } else if (false) {
+                            users.push(
+                                {
+                                    src: runner
+                                }
+                            )
+                        }
+                        if (already[src[i].id]) { //if it already exists, update it
+                            speedruns.child(already[src[i].id]).child('src').update(src[i])
+                        } else if (false) { //otherwise, make a new record
+                            speedruns.push(
+                                {
+                                    src: src[i]
+                                }
+                            )
+                        }
+                    }
+                    return runs
+                }
+
+                const forLoop = async _ => {
+                    for (let index = 0; index < 40; index++) {
+                        const offset = 100 * index
+
+                        const get1 = await getsrcData(game, offset)
+                        console.log('offset ' + offset)
+                        const get2 = await getsrcData(extension, offset)
+                        console.log('offset ' + offset)
+                    }
+                    console.log('finished getting records from src')
+                }
+                forLoop()
+
+
+
+            }, function (errorObject) {
+                console.log("The read failed: " + errorObject.code);
+            });
         }, function (errorObject) {
             console.log("The read failed: " + errorObject.code);
         });
 
-        var users = database.ref('users');
-        users.on("value", function (snapshot) {
-            users_data = snapshot.val();
-        }, function (errorObject) {
-            console.log("The read failed: " + errorObject.code);
-        });
 
-        //src scraper
-        const platforms = { "8gej2n93": "PC", "w89rwelk": "N64", "v06d394z": "DC", "7m6ylw9p": "Switch", "nzelkr6q": "PlayStation", "o7e2mx6w": "Xbox" }
-        let game = {
-            variables: 'https://www.speedrun.com/api/v1/games/m1mmex12/variables',
-            categories: 'https://www.speedrun.com/api/v1/games/m1mmex12/categories',
-            runs: 'https://www.speedrun.com/api/v1/runs?game=m1mmex12&embed=players&max=200'
-        }
-        let extension = {
-            variables: 'https://www.speedrun.com/api/v1/games/m1mnnrxd/variables',
-            categories: 'https://www.speedrun.com/api/v1/games/m1mnnrxd/categories',
-            runs: 'https://www.speedrun.com/api/v1/runs?game=m1mnnrxd&embed=players&max=200'
-        }
 
-        let already = {}
-
-        console.log(Object.values(speedruns_data).length)
-        Object.keys(speedruns_data).forEach(key => {
-            let run = speedruns_data[key]
-            if (run?.records?.src) {
-                already[run.records.src.replace("https://www.speedrun.com/swe1r/run/", "")] = key
-            }
-        })
-
-        let alreadyplayers = {}
-        console.log(Object.values(users_data).length)
-        Object.keys(users_data).forEach(key => {
-            let user = users_data[key]
-            if (user.src.user) {
-                alreadyplayers[user.src.user.replace("https://www.speedrun.com/user/", "")] = key
-            }
-        })
-        console.log(already)
-        console.log(alreadyplayers)
-        let settings = { method: "Get" }
-        var src_count = 0
-        async function getStuff(url) {
-            const response = await fetch(url);
-            const data = await response.json();
-            return data.data
-        }
-        async function getsrcData(game, offset) {
-            //try {
-            let variables = await getStuff(game.variables)
-            let categories = await getStuff(game.categories)
-            //let src = await getStuff(game.runs + "&offset=" + offset)
-            const response = await fetch(game.runs + "&offset=" + offset);
-            const data = await response.json();
-            let src = data.data
-            let runs = []
-
-            for (let i = 0; i < src.length; i++) {
-                let runner = src[i].players.data[0]
-                let name = null
-                if (runner?.names?.international) {
-                    name = runner.names.international
-                }
-                
-                if(runner?.id && alreadyplayers[runner.id]){
-                    users.child(alreadyplayers[runner.id]).child('src').update(runner)
-                } else if(false){
-                    users.push(
-                        {
-                            src: runner
-                        }
-                    )
-                }
-                if (already[src[i].id]) { //if it already exists, update it
-                    speedruns.child(already[src[i].id]).child('src').update(src[i])
-                } else if(false){ //otherwise, make a new record
-                    speedruns.push(
-                        {
-                            src: src[i]
-                        }
-                    )
-                }
-            }
-            return runs
-        }
-
-        const forLoop = async _ => {
-            for (let index = 0; index < 40; index++) {
-                const offset = 100 * index
-
-                const get1 = await getsrcData(game, offset)
-                console.log('offset ' + offset )
-                const get2 = await getsrcData(extension, offset)
-                console.log('offset ' + offset )
-            }
-            console.log('finished getting records from src')
-        }
-        forLoop()
 
         /*
         //cyberscore scraper
