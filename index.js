@@ -217,11 +217,11 @@ client.once('ready', () => {
                 console.log(user.discordID)
                 try {
                     client.guilds.fetch("441839750555369474").then(guild => {
-                        guild.members.fetch(user.discordID).then(member => {
+                        guild.members.fetch({ user: user.discordID, force: true }).then(member => {
                             users.child(key).child('avatar').set(member.displayAvatarURL())
                             users.child(key).child('discord').update(member)
                         })
-                    }
+                    })
 
                 } catch {
                     console.log("couldn't fetch user")
