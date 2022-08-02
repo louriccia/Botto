@@ -15,11 +15,11 @@ module.exports = {
 
         var speedruns = database.ref('speedruns');
         var speedruns_data = {}
-        speedruns.on("value", function (snapshot) {
+        speedruns.once("value", function (snapshot) {
             speedruns_data = snapshot.val();
             var users = database.ref('users');
             var users_data = {}
-            users.on("value", function (snapshot) {
+            users.once("value", function (snapshot) {
                 users_data = snapshot.val();
 
 
@@ -80,8 +80,8 @@ module.exports = {
                             name = runner.names.international
                         }
 
-                        if (runner?.id && alreadyplayers[runner.id]) {
-                            users.child(alreadyplayers[runner.id]).child('src').update(runner)
+                        if (runner?.names?.international && alreadyplayers[runner.id]) {
+                            users.child(alreadyplayers[runner?.names?.international]).child('src').update(runner)
                         } else if (false) {
                             users.push(
                                 {
