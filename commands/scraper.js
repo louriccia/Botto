@@ -58,6 +58,8 @@ module.exports = {
                         alreadyplayers[user.src.id] = key
                     } else if (user?.src?.user) {
                         alreadyplayers[user.src.user.replace("https://www.speedrun.com/user/", "")] = key
+                    } else if (user?.src?.name) {
+                        alreadyplayers[user.src.name] = key
                     }
                 })
                 let settings = { method: "Get" }
