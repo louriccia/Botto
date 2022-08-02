@@ -41,7 +41,7 @@ module.exports = {
                 console.log(Object.values(speedruns_data).length)
                 Object.keys(speedruns_data).forEach(key => {
                     let run = speedruns_data[key]
-                    if(run.src?.id){
+                    if (run.src?.id) {
                         already[run.src.id] = key
                     } else if (run?.records?.src) {
                         already[run.records.src.replace("https://www.speedrun.com/swe1r/run/", "")] = key
@@ -52,7 +52,7 @@ module.exports = {
                 console.log(Object.values(users_data).length)
                 Object.keys(users_data).forEach(key => {
                     let user = users_data[key]
-                    if(user?.src?.id){
+                    if (user?.src?.id) {
                         alreadyplayers[user.src.id] = key
                     } else if (user?.src?.user) {
                         alreadyplayers[user.src.user.replace("https://www.speedrun.com/user/", "")] = key
@@ -88,7 +88,7 @@ module.exports = {
                         }
 
                         if ((runner.id && alreadyplayers[runner.id]) || (runner?.names?.international && alreadyplayers[runner.names.international])) {
-                            if(alreadyplayers[runner.id]){
+                            if (alreadyplayers[runner.id]) {
                                 users.child(alreadyplayers[runner.id]).child('src').update(runner)
                             } else {
                                 users.child(alreadyplayers[runner?.names?.international]).child('src').update(runner)
@@ -102,18 +102,20 @@ module.exports = {
                         }
                         src[i].category = Object.values(categories).filter(c => c.id == src[i].category)[0].name
                         let newvariables = {}
-                        Object.keys(src[i].variables).forEach(key => {
-                            let newvar = Object.values(variables).filter(v => v.id == key)[0]
-                            let newkey = newvar.name
-                            let newval = newvar.values[src[i].variables[key]].label
-                            newvariables[newkey] = newval
-                        })
+                        if (src[i].values) {
+                            Object.keys(src[i].values).forEach(key => {
+                                let newvar = Object.values(variables).filter(v => v.id == key)[0]
+                                let newkey = newvar.name
+                                let newval = newvar.values[src[i].variables[key]].label
+                                newvariables[newkey] = newval
+                            })
+                        }
                         src[i].values = newvariables
-                        if(src[i]?.system?.platform){
+                        if (src[i]?.system?.platform) {
                             src[i].system.platform = platforms[src[i].system.platform]
                         }
                         if (already[src[i].id]) { //if it already exists, update it
-                            
+
 
                             speedruns.child(already[src[i].id]).child('src').update(src[i])
                         } else { //otherwise, make a new record
