@@ -215,8 +215,9 @@ client.once('ready', () => {
             let user = users_data[key]
             if (user.discordID) {
                 console.log(user.discordID)
-                try {
-                    client.guilds.fetch("441839750555369474").then(guild => {
+
+                client.guilds.fetch("441839750555369474").then(guild => {
+                    try {
                         guild.members.fetch({ user: user.discordID, force: true }).then(member => {
                             users.child(key).child('avatar').set(member.displayAvatarURL())
                             users.child(key).child('discord').update({
@@ -228,11 +229,12 @@ client.once('ready', () => {
                         }).catch((err) => {
                             throw err;
                         });
-                    })
+                    } catch (e) {
+                        console.log(e)
+                    }
+                })
 
-                } catch (e) {
-                    console.log(e)
-                }
+
             }
         })
 
