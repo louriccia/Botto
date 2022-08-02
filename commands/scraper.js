@@ -89,7 +89,7 @@ module.exports = {
                             name = runner.name
                         }
 
-                        if ((runner?.id && alreadyplayers[runner?.id]) || (runner?.names?.international && alreadyplayers[runner.names.international])) {
+                        if ((runner?.id && alreadyplayers[runner?.id]) || (name && alreadyplayers[name])) {
                             if (alreadyplayers[runner.id]) {
                                 users.child(alreadyplayers[runner.id]).child('src').update(runner)
                             } else if (alreadyplayers[name]) {
