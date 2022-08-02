@@ -30,13 +30,13 @@ module.exports = {
                 let game = {
                     variables: 'https://www.speedrun.com/api/v1/games/m1mmex12/variables',
                     categories: 'https://www.speedrun.com/api/v1/games/m1mmex12/categories',
-                    runs: 'https://www.speedrun.com/api/v1/runs?game=m1mmex12&embed=players&max=200',
+                    runs: 'https://www.speedrun.com/api/v1/runs?game=m1mmex12&embed=players&max=100',
                     levels: 'https://www.speedrun.com/api/v1/games/m1mmex12/levels'
                 }
                 let extension = {
                     variables: 'https://www.speedrun.com/api/v1/games/m1mnnrxd/variables',
                     categories: 'https://www.speedrun.com/api/v1/games/m1mnnrxd/categories',
-                    runs: 'https://www.speedrun.com/api/v1/runs?game=m1mnnrxd&embed=players&max=200',
+                    runs: 'https://www.speedrun.com/api/v1/runs?game=m1mnnrxd&embed=players&max=100',
                     levels: 'https://www.speedrun.com/api/v1/games/m1mnnrxd/levels'
                 }
 
