@@ -40,9 +40,7 @@ module.exports = {
                                         })
                                     })
                                 }
-                            }).catch((err) => {
-                                throw err;
-                            });
+                            })
                         })
                     } catch (e) {
                         console.log(e)
