@@ -22,42 +22,30 @@ module.exports = {
             users.once("value", function (snapshot) {
                 users_data = snapshot.val();
 
-
-                Object.keys(users_data).forEach(async function (key) {
-                    let user = users_data[key]
-                    if (user.discordID) {
-                        console.log(user.discordID)
-                        client.guilds.fetch("441839750555369474").then(guild => {
-                            try {
-                                guild.members.fetch({ force: true }).then(members => {
-                                    console.log(members[0])
-                                    if(Object.keys(members).includes(user.discordID)){
-                                        console.log('idk')
-                                    }
-                                    if(Object.values(members).includes(user.discordID)){
-                                        console.log('idk2')
-                                    }
-                                    if (members[user.discordID]) {
-                                        console.log('its an object')
-                                        guild.members.fetch({ user: user.discordID, force: true }).then(member => {
-                                            users.child(key).child('avatar').set(member.displayAvatarURL())
-                                            users.child(key).child('discord').update({
-                                                displayName: member.displayName,
-                                                joinedTimestamp: member.joinedTimestamp,
-                                                nickname: member.nickname,
-                                                tag: member.user.tag
-                                            })
+                client.guilds.fetch("441839750555369474").then(guild => {
+                    try {
+                        guild.members.fetch({ force: true }).then(members => {
+                            console.log(members)
+                            Object.keys(users_data).forEach(async function (key) {
+                                let user = users_data[key]
+                                if (user.discordID) {
+                                    console.log(user.discordID)
+                                    guild.members.fetch({ user: user.discordID, force: true }).then(member => {
+                                        users.child(key).child('avatar').set(member.displayAvatarURL())
+                                        users.child(key).child('discord').update({
+                                            displayName: member.displayName,
+                                            joinedTimestamp: member.joinedTimestamp,
+                                            nickname: member.nickname,
+                                            tag: member.user.tag
                                         })
-                                    }
-                                }).catch((err) => {
-                                    throw err;
-                                });
-                            } catch (e) {
-                                console.log(e)
-                            }
+                                    })
+                                }
+                            }).catch((err) => {
+                                throw err;
+                            });
                         })
-
-
+                    } catch (e) {
+                        console.log(e)
                     }
                 })
 
