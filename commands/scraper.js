@@ -94,11 +94,13 @@ module.exports = {
                                 users.child(alreadyplayers[runner?.names?.international]).child('src').update(runner)
                             }
                         } else if (runner) {
-                            users.push(
+                            const newpush = users.push(
                                 {
                                     src: runner
                                 }
                             )
+                            alreadyplayers[runner.id] = newpush.key
+                            
                         }
                         src[i].category = Object.values(categories).filter(c => c.id == src[i].category)[0].name
                         let newvariables = {}
