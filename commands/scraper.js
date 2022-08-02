@@ -119,11 +119,12 @@ module.exports = {
                         if (already[src[i].id]) { //if it already exists, update it
                             speedruns.child(already[src[i].id]).child('src').update(src[i])
                         } else { //otherwise, make a new record
-                            speedruns.push(
+                            const newrun = speedruns.push(
                                 {
                                     src: src[i]
                                 }
                             )
+                            already[src[i].id] = newrun.key
                         }
                     }
                     return runs
