@@ -209,20 +209,7 @@ client.once('ready', () => {
             }
             return null
         }
-        const Guild = client.guilds.cache.get("441839750555369474")
-        Object.keys(users_data).forEach(async function (key) {
-            let user = users_data[key]
-            if(user.discordID){
-                try {
-                    if (Guild.members.cache.some(m => m == user.discordID)) {
-                        const thismember = await Guild.members.fetch(user.discordID)
-                        users.child(key).child('avatar').set(thismember.displayAvatarURL())
-                        users.child(key).child('discord').update(thismember)
-                    }
-                } catch {
-                }
-            }
-        })
+        
 
         rp(url)
             .then(function (html) {
