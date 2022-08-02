@@ -22,25 +22,7 @@ module.exports = {
             users.once("value", function (snapshot) {
                 users_data = snapshot.val();
 
-                const Guild = client.guilds.cache.get("441839750555369474")
-                const members = Guild.members.fetch.then(members => {
-                    console.log(members)
-                    Object.keys(users_data).forEach(async function (key) {
-                        let user = users_data[key]
-                        if(user.discordID){ 
-                            console.log(user.discordID)
-                            try {
-                               /*if () {
-                                    const thismember = await Guild.members.fetch(user.discordID)
-                                    users.child(key).child('avatar').set(thismember.displayAvatarURL())
-                                    users.child(key).child('discord').update(thismember)
-                                }*/
-                            } catch {
-                                console.log("couldn't fetch user")
-                            }
-                        }
-                    })
-                })
+                
                 
 
                 //src scraper
