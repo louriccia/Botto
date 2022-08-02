@@ -105,6 +105,8 @@ module.exports = {
                         if (src[i].values) {
                             Object.keys(src[i].values).forEach(key => {
                                 let newvar = Object.values(variables).filter(v => v.id == key)[0]
+                                console.log(newvar)
+                                console.log(src[i].values)
                                 let newkey = newvar.name
                                 let newval = newvar.values[src[i].values[key]].label
                                 newvariables[newkey] = newval
