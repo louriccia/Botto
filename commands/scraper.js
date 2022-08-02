@@ -23,21 +23,25 @@ module.exports = {
                 users_data = snapshot.val();
 
                 const Guild = client.guilds.cache.get("441839750555369474")
-                Object.keys(users_data).forEach(async function (key) {
-                    let user = users_data[key]
-                    if(user.discordID){ 
-                        console.log(user.discordID)
-                        try {
-                            if (Guild.members.cache.some(m => m == user.discordID)) {
-                                const thismember = await Guild.members.fetch(user.discordID)
-                                users.child(key).child('avatar').set(thismember.displayAvatarURL())
-                                users.child(key).child('discord').update(thismember)
+                const members = Guild.members.fetch.then(members => {
+                    console.log(members)
+                    Object.keys(users_data).forEach(async function (key) {
+                        let user = users_data[key]
+                        if(user.discordID){ 
+                            console.log(user.discordID)
+                            try {
+                               /*if () {
+                                    const thismember = await Guild.members.fetch(user.discordID)
+                                    users.child(key).child('avatar').set(thismember.displayAvatarURL())
+                                    users.child(key).child('discord').update(thismember)
+                                }*/
+                            } catch {
+                                console.log("couldn't fetch user")
                             }
-                        } catch {
-                            console.log("couldn't fetch user")
                         }
-                    }
+                    })
                 })
+                
 
                 //src scraper
                 const platforms = { "8gej2n93": "PC", "w89rwelk": "N64", "v06d394z": "DC", "7m6ylw9p": "Switch", "nzelkr6q": "PlayStation", "o7e2mx6w": "Xbox" }
