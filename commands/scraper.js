@@ -22,8 +22,36 @@ module.exports = {
             users.once("value", function (snapshot) {
                 users_data = snapshot.val();
 
-                
-                
+
+                Object.keys(users_data).forEach(async function (key) {
+                    let user = users_data[key]
+                    if (user.discordID) {
+                        console.log(user.discordID)
+                        client.guilds.fetch("441839750555369474").then(guild => {
+                            try {
+                                guild.members.fetch({ force: true }).then(members => {
+                                    if (members.includes(user.discordID)) {
+                                        guild.members.fetch({ user: user.discordID, force: true }).then(member => {
+                                            users.child(key).child('avatar').set(member.displayAvatarURL())
+                                            users.child(key).child('discord').update({
+                                                displayName: member.displayName,
+                                                joinedTimestamp: member.joinedTimestamp,
+                                                nickname: member.nickname,
+                                                tag: member.user.tag
+                                            })
+                                        })
+                                    }
+                                }).catch((err) => {
+                                    throw err;
+                                });
+                            } catch (e) {
+                                console.log(e)
+                            }
+                        })
+
+
+                    }
+                })
 
                 //src scraper
                 const platforms = { "8gej2n93": "PC", "w89rwelk": "N64", "v06d394z": "DC", "7m6ylw9p": "Switch", "nzelkr6q": "PlayStation", "o7e2mx6w": "Xbox" }
@@ -117,9 +145,9 @@ module.exports = {
                                 alreadyplayers[name] = newpush.key
                             }
                         }
-                        if(src[i].category && Object.values(categories).filter(c => c.id == src[i].category).length > 0){
+                        if (src[i].category && Object.values(categories).filter(c => c.id == src[i].category).length > 0) {
                             src[i].category = Object.values(categories).filter(c => c.id == src[i].category)[0].name
-                        }   
+                        }
                         if (src[i].level) {
                             if (Object.values(levels).filter(l => l.id == src[i].level).length > 0) {
                                 src[i].level = Object.values(levels).filter(l => l.id == src[i].level)[0].name

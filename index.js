@@ -211,36 +211,7 @@ client.once('ready', () => {
         }
 
 
-        Object.keys(users_data).forEach(async function (key) {
-            let user = users_data[key]
-            if (user.discordID) {
-                console.log(user.discordID)
-
-                client.guilds.fetch("441839750555369474").then(guild => {
-                    try {
-                        guild.members.fetch({ force: true }).then(members => {
-                            if (members.includes(user.discordID)) {
-                                guild.members.fetch({ force: true }).then(member => {
-                                    users.child(key).child('avatar').set(member.displayAvatarURL())
-                                    users.child(key).child('discord').update({
-                                        displayName: member.displayName,
-                                        joinedTimestamp: member.joinedTimestamp,
-                                        nickname: member.nickname,
-                                        tag: member.user.tag
-                                    })
-                                })
-                            }
-                        }).catch((err) => {
-                            throw err;
-                        });
-                    } catch (e) {
-                        console.log(e)
-                    }
-                })
-
-
-            }
-        })
+        
 
 
         rp(url)
