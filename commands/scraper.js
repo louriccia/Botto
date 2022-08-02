@@ -72,7 +72,11 @@ module.exports = {
             //try {
             let variables = await getStuff(game.variables)
             let categories = await getStuff(game.categories)
-            let src = await getStuff(game.runs + "&offset=" + offset)
+            //let src = await getStuff(game.runs + "&offset=" + offset)
+            const response = await fetch(game.runs + "&offset=" + offset);
+            const data = await response.json();
+            let src = data.data
+            console.log(src)
             let runs = []
 
             for (let i = 0; i < src.length; i++) {
@@ -82,7 +86,7 @@ module.exports = {
                     name = runner.names.international
                 }
                 
-                if(runner.id && alreadyplayers[runner.id]){
+                if(runner?.id && alreadyplayers[runner.id]){
                     users.child(alreadyplayers[runner.id]).child('src').update(runner)
                 } else if(false){
                     users.push(
