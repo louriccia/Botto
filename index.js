@@ -218,14 +218,17 @@ client.once('ready', () => {
 
                 client.guilds.fetch("441839750555369474").then(guild => {
                     try {
-                        guild.members.fetch({ user: user.discordID, force: true }).then(member => {
-                            users.child(key).child('avatar').set(member.displayAvatarURL())
-                            users.child(key).child('discord').update({
-                                displayName: member.displayName,
-                                joinedTimestamp: member.joinedTimestamp,
-                                nickname: member.nickname,
-                                tag: member.user.tag
-                            })
+                        guild.members.fetch({ force: true }).then(members => {
+                            if (members.filter(m => m.id == user.discordID).length > 0) {
+                                let member = members.filter(m => m.id == user.discordID)[0]
+                                users.child(key).child('avatar').set(member.displayAvatarURL())
+                                users.child(key).child('discord').update({
+                                    displayName: member.displayName,
+                                    joinedTimestamp: member.joinedTimestamp,
+                                    nickname: member.nickname,
+                                    tag: member.user.tag
+                                })
+                            }
                         }).catch((err) => {
                             throw err;
                         });
