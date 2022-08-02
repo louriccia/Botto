@@ -21,11 +21,11 @@ module.exports = {
             var users_data = {}
             users.once("value", function (snapshot) {
                 users_data = snapshot.val();
-                
+
                 const Guild = client.guilds.cache.get("441839750555369474")
                 Object.keys(users_data).forEach(async function (key) {
                     let user = users_data[key]
-                    if(user.discordID){
+                    if(user.discordID){ 
                         console.log(user.discordID)
                         try {
                             if (Guild.members.cache.some(m => m == user.discordID)) {
