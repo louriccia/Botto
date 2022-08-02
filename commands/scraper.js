@@ -54,8 +54,6 @@ module.exports = {
                         alreadyplayers[user.src.user.replace("https://www.speedrun.com/user/", "")] = key
                     }
                 })
-                console.log(already)
-                console.log(alreadyplayers)
                 let settings = { method: "Get" }
                 var src_count = 0
                 async function getStuff(url) {
@@ -65,9 +63,14 @@ module.exports = {
                 }
                 async function getsrcData(game, offset) {
                     //try {
-                    let variables = await getStuff(game.variables)
-                    let categories = await getStuff(game.categories)
-                    //let src = await getStuff(game.runs + "&offset=" + offset)
+                    const response2 = await fetch(game.variables);
+                    const data2 = await response2.json();
+                    let variables = data2.data
+
+                    const response1 = await fetch(game.categories);
+                    const data1 = await response1.json();
+                    let categories = data1.data
+
                     const response = await fetch(game.runs + "&offset=" + offset);
                     const data = await response.json();
                     let src = data.data
@@ -80,7 +83,7 @@ module.exports = {
                             name = runner.names.international
                         }
 
-                        if (runner?.names?.international && alreadyplayers[runner.id]) {
+                        if (runner?.names?.international && alreadyplayers[runner.names.international]) {
                             users.child(alreadyplayers[runner?.names?.international]).child('src').update(runner)
                         } else if (false) {
                             users.push(
@@ -90,6 +93,7 @@ module.exports = {
                             )
                         }
                         if (already[src[i].id]) { //if it already exists, update it
+                            src[i].category = Object.values(categories).filter(c => c.id == src[i].category)[0].name
                             speedruns.child(already[src[i].id]).child('src').update(src[i])
                         } else if (false) { //otherwise, make a new record
                             speedruns.push(
