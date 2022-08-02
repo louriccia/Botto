@@ -84,19 +84,16 @@ module.exports = {
                 
                 if(alreadyplayers[runner.id]){
                     users.child(alreadyplayers[runner.id]).child('src').update(runner)
-                } else {
+                } else if(false){
                     users.push(
                         {
                             src: runner
                         }
                     )
                 }
-                if (!foundrunner) {
-                    
-                }
                 if (already[src[i].id]) { //if it already exists, update it
                     speedruns.child(already[src[i].id]).child('src').update(src[i])
-                } else { //otherwise, make a new record
+                } else if(false){ //otherwise, make a new record
                     speedruns.push(
                         {
                             src: src[i]
