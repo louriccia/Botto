@@ -216,9 +216,11 @@ client.once('ready', () => {
             if (user.discordID) {
                 console.log(user.discordID)
                 try {
-                    const thismember = await Guild.members.fetch(user.discordID)
-                    users.child(key).child('avatar').set(thismember.displayAvatarURL())
-                    users.child(key).child('discord').update(thismember)
+                    const thismember = await Guild.members.fetch(user.discordID).then(member => {
+                        users.child(key).child('avatar').set(member.displayAvatarURL())
+                        users.child(key).child('discord').update(member)
+                    })
+                    
                 } catch {
                     console.log("couldn't fetch user")
                 }
