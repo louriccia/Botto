@@ -25,10 +25,9 @@ module.exports = {
                 client.guilds.fetch("441839750555369474").then(guild => {
                     try {
                         guild.members.fetch({ force: true }).then(members => {
-                            console.log(members)
                             Object.keys(users_data).forEach(async function (key) {
                                 let user = users_data[key]
-                                if (user.discordID) {
+                                if (user.discordID && guild.members.cache.some(m => m == user.discordID)) {
                                     console.log(user.discordID)
                                     guild.members.fetch({ user: user.discordID, force: true }).then(member => {
                                         users.child(key).child('avatar').set(member.displayAvatarURL())
