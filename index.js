@@ -225,11 +225,13 @@ client.once('ready', () => {
                                 nickname: member.nickname,
                                 tag: member.user.tag
                             })
-                        })
+                        }).catch((err) => {
+                            throw err;
+                        });
                     })
 
-                } catch {
-                    console.log("couldn't fetch user")
+                } catch (e) {
+                    console.log(e)
                 }
             }
         })
