@@ -8,13 +8,12 @@ module.exports = {
         const all = [];
         var tools = require('./../tools.js');
 
-        var firebase = require("firebase/app");
-        require('firebase/auth');
         require('firebase/database');
-        var database = firebase.database();
+        let database = admin.database();
+        let firebase = require("firebase/app");
 
         var speedruns = database.ref('speedruns');
-        var speedruns_data = {}
+        var speedruns_data = {},  users_data = {}
         speedruns.on("value", function (snapshot) {
             speedruns_data = snapshot.val();
         }, function (errorObject) {
@@ -22,7 +21,6 @@ module.exports = {
         });
 
         var users = database.ref('users');
-        var users_data = {}
         users.on("value", function (snapshot) {
             users_data = snapshot.val();
         }, function (errorObject) {
