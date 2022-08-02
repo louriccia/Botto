@@ -50,7 +50,7 @@ module.exports = {
                 console.log(Object.values(users_data).length)
                 Object.keys(users_data).forEach(key => {
                     let user = users_data[key]
-                    if (user.src.user) {
+                    if (user?.src?.user) {
                         alreadyplayers[user.src.user.replace("https://www.speedrun.com/user/", "")] = key
                     }
                 })
