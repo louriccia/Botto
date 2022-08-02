@@ -41,6 +41,26 @@ module.exports = {
             categories: 'https://www.speedrun.com/api/v1/games/m1mnnrxd/categories',
             runs: 'https://www.speedrun.com/api/v1/runs?game=m1mnnrxd&embed=players&max=200'
         }
+
+        let already = {}
+
+        Object.keys(speedruns_data).forEach(key => {
+            let run = speedruns_data[key]
+            if (run?.records?.src) {
+                already[run.records.src.replace("https://www.speedrun.com/swe1r/run/", "")] = key
+            }
+        })
+
+        let alreadyplayers = {}
+
+        Object.keys(users_data).forEach(key => {
+            let user = users_data[key]
+            if (user.src.user) {
+                alreadyplayers[user.src.user.replace("https://www.speedrun.com/user/", "")] = key
+            }
+        })
+        console.log(already)
+        console.log(alreadyplayers)
         let settings = { method: "Get" }
         var src_count = 0
         async function getStuff(url) {
@@ -54,35 +74,25 @@ module.exports = {
             let categories = await getStuff(game.categories)
             let src = await getStuff(game.runs + "&offset=" + offset)
             let runs = []
-            let already = {}
-
-            Object.keys(speedruns_data).forEach(key => {
-                let run = speedruns_data[key]
-                if (run?.records?.src) {
-                    already[run.records.src.replace("https://www.speedrun.com/swe1r/run/", "")] = key
-                }
-            })
 
             for (let i = 0; i < src.length; i++) {
                 let runner = src[i].players.data[0]
                 let name = null
-                if(runner?.names?.international){
+                if (runner?.names?.international) {
                     name = runner.names.international
                 }
-                let foundrunner = null
-                Object.keys(users_data).forEach(key => {
-                    let user = users_data[key]
-                    if(user.src?.id == runner.id || (user.src?.name == name && name !== null)){
-                        users.child(key).child('src').update(runner)
-                        foundrunner = true
-                    }
-                })
-                if(!foundrunner){
+                
+                if(alreadyplayers[runner.id]){
+                    users.child(alreadyplayers[runner.id]).child('src').update(runner)
+                } else {
                     users.push(
                         {
                             src: runner
                         }
                     )
+                }
+                if (!foundrunner) {
+                    
                 }
                 if (already[src[i].id]) { //if it already exists, update it
                     speedruns.child(already[src[i].id]).child('src').update(src[i])
@@ -98,13 +108,13 @@ module.exports = {
         }
 
         const forLoop = async _ => {
-            for (let index = 0; index < 20; index++) {
-                const offset = 200 * index
-                
+            for (let index = 0; index < 40; index++) {
+                const offset = 100 * index
+
                 const get1 = await getsrcData(game, offset)
-                console.log('offset ' + offset + " - " + get1.length)
+                console.log('offset ' + offset )
                 const get2 = await getsrcData(extension, offset)
-                console.log('offset ' + offset + " - " + get2.length)
+                console.log('offset ' + offset )
             }
             console.log('finished getting records from src')
         }
