@@ -30,9 +30,7 @@ module.exports = {
                         client.guilds.fetch("441839750555369474").then(guild => {
                             try {
                                 guild.members.fetch({ force: true }).then(members => {
-                                    members.forEach(member => {
-                                        console.log(member)
-                                    })
+                                    console.log(members[0])
                                     if(Object.keys(members).includes(user.discordID)){
                                         console.log('idk')
                                     }
