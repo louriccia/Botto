@@ -106,7 +106,7 @@ module.exports = {
                             Object.keys(src[i].values).forEach(key => {
                                 let newvar = Object.values(variables).filter(v => v.id == key)[0]
                                 let newkey = newvar.name
-                                let newval = newvar.values[src[i].values.values[key]].label
+                                let newval = newvar.values.values[src[i].values[key]].label
                                 newvariables[newkey] = newval
                             })
                         }
