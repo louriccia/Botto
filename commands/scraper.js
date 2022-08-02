@@ -93,7 +93,7 @@ module.exports = {
                             } else {
                                 users.child(alreadyplayers[runner?.names?.international]).child('src').update(runner)
                             }
-                        } else {
+                        } else if (runner) {
                             users.push(
                                 {
                                     src: runner
