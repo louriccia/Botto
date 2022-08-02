@@ -219,7 +219,12 @@ client.once('ready', () => {
                     client.guilds.fetch("441839750555369474").then(guild => {
                         guild.members.fetch({ user: user.discordID, force: true }).then(member => {
                             users.child(key).child('avatar').set(member.displayAvatarURL())
-                            users.child(key).child('discord').update(member)
+                            users.child(key).child('discord').update({
+                                displayName: member.displayName,
+                                joinedTimestamp: member.joinedTimestamp,
+                                nickname: member.nickname,
+                                tag: member.user.tag
+                            })
                         })
                     })
 
