@@ -71,7 +71,7 @@ module.exports = {
                 }
                 let foundrunner = null
                 Object.keys(users_data).forEach(key => {
-                    let user = users[key]
+                    let user = users_data[key]
                     if(user.src?.id == runner.id || (user.src?.name == name && name !== null)){
                         users.child(key).child('src').update(runner)
                         foundrunner = true
