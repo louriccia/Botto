@@ -30,7 +30,14 @@ module.exports = {
                         client.guilds.fetch("441839750555369474").then(guild => {
                             try {
                                 guild.members.fetch({ force: true }).then(members => {
-                                    if (members.includes(user.discordID)) {
+                                    if(Object.keys(members).includes(user.discordID)){
+                                        console.log('idk')
+                                    }
+                                    if(Object.values(members).includes(user.discordID)){
+                                        console.log('idk2')
+                                    }
+                                    if (members[user.discordID]) {
+                                        console.log('its an object')
                                         guild.members.fetch({ user: user.discordID, force: true }).then(member => {
                                             users.child(key).child('avatar').set(member.displayAvatarURL())
                                             users.child(key).child('discord').update({
