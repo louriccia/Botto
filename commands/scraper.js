@@ -105,10 +105,8 @@ module.exports = {
                         if (src[i].values) {
                             Object.keys(src[i].values).forEach(key => {
                                 let newvar = Object.values(variables).filter(v => v.id == key)[0]
-                                console.log(newvar)
-                                console.log(src[i].values)
                                 let newkey = newvar.name
-                                let newval = newvar.values[src[i].values[key]].label
+                                let newval = newvar.values[src[i].values.values[key]].label
                                 newvariables[newkey] = newval
                             })
                         }
@@ -117,8 +115,6 @@ module.exports = {
                             src[i].system.platform = platforms[src[i].system.platform]
                         }
                         if (already[src[i].id]) { //if it already exists, update it
-
-
                             speedruns.child(already[src[i].id]).child('src').update(src[i])
                         } else { //otherwise, make a new record
                             speedruns.push(
