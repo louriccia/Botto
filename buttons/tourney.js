@@ -3748,7 +3748,7 @@ module.exports = {
                                 {
                                     label: ruleset.general?.name ?? ruleset.name,
                                     value: key,
-                                    description: ruleset.general?.description ?? ruleset.description
+                                    description: (ruleset.general?.description ?? ruleset.description).slice(0, 100)
                                 }
                             )
                         })
