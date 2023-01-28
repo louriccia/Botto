@@ -127,8 +127,8 @@ users.on("value", function (snapshot) {
 }, function (errorObject) {
     console.log("The read failed: " + errorObject.code);
 });
-client.ws.on('INTERACTION_CREATE', async interaction => {
-    if (interaction.data.hasOwnProperty("name")) {
+client.on(Events.InteractionCreate, async interaction => {
+    if (interaction.isChatInputCommand()) {
         const command = interaction.data.name.toLowerCase();
         const args = interaction.data.options;
         //command handler
@@ -137,14 +137,7 @@ client.ws.on('INTERACTION_CREATE', async interaction => {
             client.commands.get(command).execute(client, interaction, args);
         } catch (error) {
             console.error(error);
-            client.api.interactions(interaction.id, interaction.token).callback.post({
-                data: {
-                    type: 4,
-                    data: {
-                        content: "`Error: Command failed to execute `\n" + errorMessage[Math.floor(Math.random() * errorMessage.length)]
-                    }
-                }
-            })
+            await interaction.reply({ content: "`Error: Command failed to execute `\n" + errorMessage[Math.floor(Math.random() * errorMessage.length)] })
         }
     } else if (interaction.data.hasOwnProperty("custom_id")) {
         var split = interaction.data.custom_id.split("_")
@@ -211,7 +204,7 @@ client.once('ready', () => {
         }
 
 
-        
+
 
 
         rp(url)

@@ -216,7 +216,9 @@ module.exports = movieQuotes = [
     "*Outlanders. They come here, how do they find me? They come here, they mess up my store-- Hey!*",
     "*They come here. They look around. They no buy. Why nobody buy? Eyyyyyyyy*",
     "*There's always a bigger fish.*",
-    "*This is tense!*"
+    "*This is tense!*",
+    "*I beg your pardon .... what do you mean, naked?*",
+    "*It's a trick. Send no reply... Send no transmission of any kind.*"
 ]
 
 module.exports = mpQuotes = [
@@ -272,8 +274,10 @@ module.exports = playerPicks = [
     `*Come on, let's go and play ball. Keep racing, ${a}. You're gonna be bug squash!*`,
     `*I don't want you to race ${a}, it's awful. I die every time Botto makes you do it.*`,
     `*I believe ${a} may have been conceived by the midichlorians.*`,
-    `*I sense much fear in you, ${a}.*`
-
+    `*I sense much fear in you, ${a}.*`,
+    `*I have great faith in you, ${a}. You're a credit to your race.*`,
+    `*Don't center on your anxieties, ${a}. Keep your concentration here and now where it belongs.*`
+    `*This is so wizard ${a}! I'm sure you'll do it this time.*`
 ]
 
 module.exports = welcomeMessages = [
