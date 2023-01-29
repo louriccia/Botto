@@ -136,7 +136,7 @@ users.on("value", function (snapshot) {
 });
 client.on(Events.InteractionCreate, async interaction => {
     if (interaction.isChatInputCommand()) {
-        const command = interaction.data.name.toLowerCase();
+        const command = interaction.commandName.toLowerCase();
         const args = interaction.data.options;
         //command handler
         if (!client.commands.has(command)) return;
