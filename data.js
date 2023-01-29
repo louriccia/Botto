@@ -276,7 +276,7 @@ module.exports = playerPicks = [
     `*I believe ${a} may have been conceived by the midichlorians.*`,
     `*I sense much fear in you, ${a}.*`,
     `*I have great faith in you, ${a}. You're a credit to your race.*`,
-    `*Don't center on your anxieties, ${a}. Keep your concentration here and now where it belongs.*`
+    `*Don't center on your anxieties, ${a}. Keep your concentration here and now where it belongs.*`,
     `*This is so wizard ${a}! I'm sure you'll do it this time.*`
 ]
 
