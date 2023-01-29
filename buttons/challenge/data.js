@@ -1,4 +1,4 @@
-const tools = require('../../tools')
+const tools = require('../../tools.js')
 
 exports.achievement_data = {
     galaxy_famous: { name: "Galaxy Famous", description: "Race on every track", role: "819514261289828362", limit: 25, count: 0, collection: {}, array: [], missing: [] },
