@@ -1,8 +1,8 @@
 const fs = require('fs');
 const Discord = require('discord.js');
-const { Client, Intents, GatewayIntentBits } = require('discord.js')
+const { Client, Events, GatewayIntentBits } = require('discord.js')
 const { prefix, token } = require('./config.json');
-const client = new Discord.Client({
+const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
@@ -170,7 +170,7 @@ async function getCommands() {
 //getCommands()
 //client.api.applications("545798436105224203").guilds('441839750555369474').commands("").delete()
 
-client.once('ready', () => {
+client.once(Events.ClientReady, () => {
     console.log('Ready!')
 
     //set bot activity
