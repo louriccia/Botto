@@ -1,12 +1,8 @@
-client.api.applications("545798436105224203").commands.post({
-    data: {
+exports.commands = [
+    {
         name: 'botto',
         description: 'introduces botto and provides an invite link'
-    }
-})
-
-client.api.applications("545798436105224203").commands.post({
-    data: {
+    }, {
         name: 'challenge',
         description: 'randomly generated challenges',
         options: [
@@ -21,18 +17,13 @@ client.api.applications("545798436105224203").commands.post({
                 type: 1
             }
         ]
-    }
-})
-
-client.api.applications("545798436105224203").commands.post({
-    data: {
+    }, {
         name: 'chancecube',
         description: "Blue—it's the boy. Red—his mother"
-    }
-})
-
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({
-    data: {
+    }, {
+        name: 'crawl',
+        description: "A long time ago in a galaxy far far away..."
+    }, {
         name: 'simulate',
         description: "Average speed testing",
         type: 1,
@@ -174,26 +165,8 @@ client.api.applications("545798436105224203").guilds('441839750555369474').comma
                 ]
             }
         ]
-    }
-})
-
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({
-    data: { //this stays as a guild command
-        name: 'cleanup',
-        description: 'deletes bot spam within the past # messages (defaults to 30)',
-        options: [
-            {
-                name: "messages",
-                description: "the number of messages to scan through for bot spam",
-                type: 4,
-                required: false
-            }
-        ]
-    }
-})
-
-client.api.applications("545798436105224203").commands.post({
-    data: {
+    },
+    {
         name: 'convert',
         description: 'convert seconds to --:--.--- format and vice versa; supports basic arithmetic (+-*/)',
         options: [
@@ -204,11 +177,7 @@ client.api.applications("545798436105224203").commands.post({
                 required: true
             }
         ]
-    }
-})
-
-client.api.applications("545798436105224203").commands.post({
-    data: {
+    }, {
         name: 'help',
         description: 'helpful information about botto commands and other stuff',
         options: [
@@ -223,11 +192,7 @@ client.api.applications("545798436105224203").commands.post({
                 type: 1
             }
         ]
-    }
-})
-
-client.api.applications("545798436105224203").commands.post({
-    data: {
+    }, {
         name: 'links',
         description: 'quickly get the most commonly shared links on the SWE1R Discord',
         options: [
@@ -289,11 +254,7 @@ client.api.applications("545798436105224203").commands.post({
                 type: 1
             }
         ]
-    }
-})
-
-client.api.applications("545798436105224203").commands.post({
-    data: {
+    }, {
         name: 'lookup',
         description: 'get information for racers, tracks, and more',
         options: [
@@ -1231,11 +1192,7 @@ client.api.applications("545798436105224203").commands.post({
                 ]
             }
         ]
-    }
-})
-
-client.api.applications("545798436105224203").commands.post({
-    data: {
+    }, {
         name: 'random',
         description: 'get a random racer, track, etc.',
         options: [
@@ -1467,122 +1424,7 @@ client.api.applications("545798436105224203").commands.post({
                 ]
             }
         ]
-    }
-})
-
-client.api.applications("545798436105224203").guilds('441839750555369474').commands.post({
-    data: {
-        name: 'role',
-        description: "add or remove roles",
-        options: [
-            {
-                name: "add",
-                description: "add a role",
-                type: 1,
-                options: [
-                    {
-                        name: "role",
-                        description: "select a role to add",
-                        type: 3,
-                        required: true,
-                        choices: [
-                            {
-                                name: "Multiplayer",
-                                value: "474920988790751232"
-                            },
-                            {
-                                name: "Tournament",
-                                value: "841059665474617353"
-                            },
-                            {
-                                name: "Speedrunning",
-                                value: "535973118578130954"
-                            },
-                            {
-                                name: "PC Player",
-                                value: "841404897018380388"
-                            },
-                            {
-                                name: "Switch Player",
-                                value: "841405226282909716"
-                            },
-                            {
-                                name: "PlayStation Player",
-                                value: "841405077470445669"
-                            },
-                            {
-                                name: "Xbox Player",
-                                value: "841404991784091690"
-                            },
-                            {
-                                name: "Dreamcast Player",
-                                value: "841405394441338890"
-                            },
-                            {
-                                name: "N64 Player",
-                                value: "602246101323612181"
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                name: "remove",
-                description: "remove a role",
-                type: 1,
-                options: [
-                    {
-                        name: "role",
-                        description: "select a role to remove",
-                        type: 3,
-                        required: true,
-                        choices: [
-                            {
-                                name: "Multiplayer",
-                                value: "474920988790751232"
-                            },
-                            {
-                                name: "Tournament",
-                                value: "841059665474617353"
-                            },
-                            {
-                                name: "Speedrunning",
-                                value: "535973118578130954"
-                            },
-                            {
-                                name: "PC Player",
-                                value: "841404897018380388"
-                            },
-                            {
-                                name: "Switch Player",
-                                value: "841405226282909716"
-                            },
-                            {
-                                name: "PlayStation Player",
-                                value: "841405077470445669"
-                            },
-                            {
-                                name: "Xbox Player",
-                                value: "841404991784091690"
-                            },
-                            {
-                                name: "Dreamcast Player",
-                                value: "841405394441338890"
-                            },
-                            {
-                                name: "N64 Player",
-                                value: "602246101323612181"
-                            }
-                        ]
-                    }
-                ]
-            }
-        ]
-    }
-})
-
-client.api.applications("545798436105224203").commands.post({
-    data: {
+    }, {
         name: 'src',
         description: 'get top-5 leaderboards from speedrun.com',
         options: [
@@ -1903,11 +1745,7 @@ client.api.applications("545798436105224203").commands.post({
 
 
         ]
-    }
-})
-
-client.api.applications("545798436105224203").commands.post({
-    data: {
+    }, {
         name: "tourney",
         description: "get tourney stuff",
         type: 1,
@@ -1953,309 +1791,4 @@ client.api.applications("545798436105224203").commands.post({
         ]
 
     }
-})
-/*
-client.api.applications("545798436105224203").commands.post({data: {
-    name: 'weekly',
-    description: 'view leaderboards and create submissions for the weekly challenge',
-    options: [
-        {
-            name: "leaderboard",
-            description: "get leaderboard for current weekly challenge",
-            type: 1
-        },
-        {
-            name: "challenge",
-            description: "view the current weekly challenge or post a new one",
-            type: 2,
-            options: [
-                {
-                    name: "view",
-                    description: "show the current weekly challenge",
-                    type: 1
-                },
-                {
-                    name: "post",
-                    description: "post a new weekly challenge",
-                    type: 1,
-                    options: [
-                        {
-                            name: "author",
-                            description: "the user who created the challenge",
-                            type: 6,
-                            required: true
-                        },
-                        {
-                            name: "title",
-                            description: "the name of the challenge",
-                            type: 3,
-                            required: true
-                        },
-                        {
-                            name: "blurb",
-                            description: "a creative description to contextualize the challenge in the lore",
-                            type: 3,
-                            required: true
-                        },
-                        {
-                            name: "pod",
-                            description: "the pod that must be used in the challenge",
-                            type: 3,
-                            required: true
-                        },
-                        {
-                            name: "upgrades",
-                            description: "the upgrades that must be used in this challenge",
-                            type: 3,
-                            required: true,
-                            choices: [
-                                {
-                                    name: "full upgrades",
-                                    value: "mu"
-                                },
-                                {
-                                    name: "no upgrades",
-                                    value: "nu"
-                                },
-                                {
-                                    name: "any",
-                                    value: "any"
-                                },
-                                {
-                                    name: "custom",
-                                    value: "custom"
-                                }
-                            ]
-                        },
-                        {
-                            name: "track",
-                            description: "the challenge track",
-                            type: 3,
-                            required: true,
-                            choices: [
-                                {
-                                    name: "The Boonta Training Course",
-                                    value: "0"
-                                },
-                                {
-                                    name: "Mon Gazza Speedway",
-                                    value: "1"
-                                },
-                                {
-                                    name: "Beedo's Wild Ride",
-                                    value: "2"
-                                },
-                                {
-                                    name: "Aquilaris Classic",
-                                    value: "3"
-                                },
-                                {
-                                    name: "Malastare 100",
-                                    value: "4"
-                                },
-                                {
-                                    name: "Vengeance",
-                                    value: "5"
-                                },
-                                {
-                                    name: "Spice Mine Run",
-                                    value: "6"
-                                },
-                                {
-                                    name: "Sunken City",
-                                    value: "7"
-                                },
-                                {
-                                    name: "Howler Gorge",
-                                    value: "8"
-                                },
-                                {
-                                    name: "Dug Derby",
-                                    value: "9"
-                                },
-                                {
-                                    name: "Scrapper's Run",
-                                    value: "10"
-                                },
-                                {
-                                    name: "Zugga Challenge",
-                                    value: "11"
-                                },
-                                {
-                                    name: "Baroo Coast",
-                                    value: "12"
-                                },
-                                {
-                                    name: "Bumpy's Breakers",
-                                    value: "13"
-                                },
-                                {
-                                    name: "Executioner",
-                                    value: "14"
-                                },
-                                {
-                                    name: "Sebulba's Legacy",
-                                    value: "15"
-                                },
-                                {
-                                    name: "Grabvine Gateway",
-                                    value: "16"
-                                },
-                                {
-                                    name: "Andobi Mountain Run",
-                                    value: "17"
-                                },
-                                {
-                                    name: "Dethro's Revenge",
-                                    value: "18"
-                                },
-                                {
-                                    name: "Fire Mountain Rally",
-                                    value: "19"
-                                },
-                                {
-                                    name: "The Boonta Classic",
-                                    value: "20"
-                                },
-                                {
-                                    name: "Ando Prime Centrum",
-                                    value: "21"
-                                },
-                                {
-                                    name: "Abyss",
-                                    value: "22"
-                                },
-                                {
-                                    name: "The Gauntlet",
-                                    value: "23"
-                                },
-                                {
-                                    name: "Inferno",
-                                    value: "24"
-                                }
-                            ]
-                        },
-                        {
-                            name: "laps",
-                            description: "the number of laps for the challenge",
-                            type: 3,
-                            required: true,
-                            choices: [
-                                {
-                                    name: "1",
-                                    value: "1"
-                                },
-                                {
-                                    name: "2",
-                                    value: "2"
-                                },
-                                {
-                                    name: "3",
-                                    value: "3"
-                                },
-                                {
-                                    name: "4",
-                                    value: "4"
-                                },
-                                {
-                                    name: "5",
-                                    value: "5"
-                                },
-                                {
-                                    name: "flap",
-                                    value: "flap"
-                                }
-                            ]
-                        },
-                        {
-                            name: "skips",
-                            description: "the allowed route for this challenge",
-                            type: 3,
-                            required: true,
-                            choices: [
-                                {
-                                    name: "skips",
-                                    value: "skips"
-                                },
-                                {
-                                    name: "full track",
-                                    value: "ft"
-                                },
-                                {
-                                    name: "custom",
-                                    value: "custom"
-                                }
-                            ]
-                        },
-                        {
-                            name: "conditions",
-                            description: "any additional challenge conditions such as mirror mode, ai, specific routes and custom upgrades",
-                            type: 3,
-                            required: true,
-                        },
-                        {
-                            name: "duedate",
-                            description: "the last day of the challenge (ends at midnight ET), please use MM/DD/YYYY",
-                            type: 3,
-                            required: true
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            name: "submission",
-            description: "create a submission for the weekly challenge",
-            type: 1,
-            options: [
-                {
-                    name: "time",
-                    description: "the time achieved for this submission",
-                    type: 3,
-                    required: true
-                },
-                {
-                    name: "platform",
-                    description: "the platform used to complete the challenge",
-                    type: 3,
-                    required: true,
-                    choices: [
-                        {
-                            name: "PC",
-                            value: "pc"
-                        },
-                        {
-                            name: "Nintendo 64",
-                            value: "n64"
-                        },
-                        {
-                            name: "Dreamcast",
-                            value: "dc"
-                        },
-                        {
-                            name: "Nintendo Switch",
-                            value: "switch"
-                        },
-                        {
-                            name: "PlayStation 4",
-                            value: "ps4"
-                        }
-                    ]
-                },
-                {
-                    name: "proof",
-                    description: "the link to the video or image proof",
-                    type: 3,
-                    required: true
-                },
-                {
-                    name: "user",
-                    description: "the user who performed the run (if not yourself)",
-                    type: 6,
-                    required: false
-                }
-            ]
-        }
-    ]
-}})
-*/
+]
