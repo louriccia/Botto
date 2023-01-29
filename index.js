@@ -1,8 +1,15 @@
 const fs = require('fs');
 const Discord = require('discord.js');
-const { Client, Intents } = require('discord.js')
+const { Client, Intents, GatewayIntentBits } = require('discord.js')
 const { prefix, token } = require('./config.json');
-const client = new Discord.Client({ intents: ["GUILDS", "GUILD_MESSAGES", "GUILD_PRESENCES", "GUILD_MEMBERS"] });
+const client = new Discord.Client({
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.GuildPresences,
+        GatewayIntentBits.GuildMembers
+    ]
+});
 var lookup = require("./data.js");
 var tourneylookup = require("./tourneydata.js");
 var tools = require('./tools.js');
