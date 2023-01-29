@@ -1,6 +1,6 @@
-import { tips, winnings_map, achievements, racers, tracks, planets, playerPicks } from '../..data'
-import tools from '../../tools'
-import { truguts, swe1r_guild } from './data'
+const { tips, winnings_map, achievements, racers, tracks, planets, playerPicks } = require('../..data')
+const tools = require('../../tools')
+const { truguts, swe1r_guild } = require('./data')
 
 exports.getGoalTimes = function (track, racer, skips, nu, laps, backwards) {
     let upg = nu ? 0 : 5

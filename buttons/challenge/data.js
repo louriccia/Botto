@@ -1,3 +1,5 @@
+const tools = require('../../tools')
+
 exports.achievement_data = {
     galaxy_famous: { name: "Galaxy Famous", description: "Race on every track", role: "819514261289828362", limit: 25, count: 0, collection: {}, array: [], missing: [] },
     pod_champ: { name: "Pod Champ", description: "Race as every pod", role: "819514029218463774", limit: 23, count: 0, collection: {}, array: [], missing: [] },
@@ -34,9 +36,9 @@ exports.truguts = {
 }
 
 exports.hints = [
-    { name: "Basic Hint", price: truguts.hint_basic, bonus: truguts.bonus_basic, description: "Single-part hint", hunt: "Force-Intuitive" },
-    { name: "Standard Hint", price: truguts.hint_standard, bonus: truguts.bonus_standard, description: "Two-part hint", hunt: "Force-Attuned" },
-    { name: "Deluxe Hint", price: truguts.hint_deluxe, bonus: truguts.bonus_deluxe, description: "Three-part hint", hunt: "Force-Sensitive" }
+    { name: "Basic Hint", price: exports.truguts.hint_basic, bonus: exports.truguts.bonus_basic, description: "Single-part hint", hunt: "Force-Intuitive" },
+    { name: "Standard Hint", price: exports.truguts.hint_standard, bonus: exports.truguts.bonus_standard, description: "Two-part hint", hunt: "Force-Attuned" },
+    { name: "Deluxe Hint", price: exports.truguts.hint_deluxe, bonus: exports.truguts.bonus_deluxe, description: "Three-part hint", hunt: "Force-Sensitive" }
 ]
 
 exports.tips = [
@@ -51,11 +53,11 @@ exports.tips = [
     "Rerolls are discounted if you've already played a challenge",
     "Bribes are refunded when used to successfully find a :dart: Challenge Hunt",
     "The default conditions are max upgrades, 3-lap, full track",
-    "Get a 📀" + truguts.beat_opponent + " bonus for beating another player's best time",
-    "Get a 📀" + truguts.personal_best + " bonus for beating your own best time",
-    "Get a 📀" + truguts.first + " bonus for being the first to complete a challenge",
-    "You could win up to 📀" + tools.numberWithCommas(truguts.bonus_basic) + " bonus for completing a :dart: Challenge Hunt",
-    "Earn a 📀" + truguts.non_standard + " bonus for completing non-standard challenges",
+    "Get a 📀" + exports.truguts.beat_opponent + " bonus for beating another player's best time",
+    "Get a 📀" + exports.truguts.personal_best + " bonus for beating your own best time",
+    "Get a 📀" + exports.truguts.first + " bonus for being the first to complete a challenge",
+    "You could win up to 📀" + tools.numberWithCommas(exports.truguts.bonus_basic) + " bonus for completing a :dart: Challenge Hunt",
+    "Earn a 📀" + exports.truguts.non_standard + " bonus for completing non-standard challenges",
     "After rolling a challenge, you can bribe Botto for a specific track or racer",
     ":dart: Challenge Hunts give you one hour to find a trugut bonus on a random challenge",
     "Check out your random challenge :bust_in_silhouette: Profile to check your career stats and achievements",
