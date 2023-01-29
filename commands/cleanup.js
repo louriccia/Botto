@@ -1,3 +1,5 @@
+const { SlashCommandBuilder } = require('discord.js');
+
 module.exports = {
     name: 'cleanup',
     execute(client, interaction, args) {

@@ -1,3 +1,5 @@
+const { SlashCommandBuilder } = require('discord.js');
+
 module.exports = {
     name: 'src',
     execute(client, interaction, args) {

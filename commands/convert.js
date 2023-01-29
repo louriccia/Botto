@@ -1,3 +1,5 @@
+const { SlashCommandBuilder } = require('discord.js');
+
 module.exports = {
     name: 'convert',
     execute(client, interaction, args) {
