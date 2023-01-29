@@ -1,9 +1,7 @@
-const e = require('express');
-const { get } = require('request');
-
-import { achievements, truguts, hints, tips, settings_default, winnings_map } from './challenge/data.js';
-import { getGoalTimes, initializeChallenge, initializePlayer, updateChallenge, bribeComponents, menuEmbed, menuComponents, playButton, notYoursEmbed, hintEmbed, settingsEmbed, initializeUser } from './challenge/functions.js';
-import { modalMessage } from '../discord_message.js';
+const { achievement_data, truguts, hints, tips, settings_default, winnings_map } = require('./challenge/data.js');
+const { getGoalTimes, initializeChallenge, initializePlayer, updateChallenge, bribeComponents, menuEmbed, menuComponents, playButton, notYoursEmbed, hintEmbed, settingsEmbed, initializeUser } = require('./challenge/functions.js');
+const { modalMessage } = require('../discord_message.js');
+const { EmbedBuilder } = require('discord.js');
 
 module.exports = {
     name: 'challenge',
@@ -64,6 +62,7 @@ module.exports = {
         let profileref = userref.child(player).child('random')
         let current_challenge = challengedata[profile.current] ?? null
         let current_challengeref = challengeref.child(profile.current)
+        let achievements = achievement_data
 
         if (args[0] == "random") {
             switch (args[1]) {
@@ -71,7 +70,7 @@ module.exports = {
                     let challengestart = Date.now()
                     //check if challenge already in progress FIXME change to reposting challenge
                     if (current_challenge && current_challenge.completed == false && current_challenge.start > challengestart - 900000) {
-                        let challengeinProgress = new Discord.MessageEmbed()
+                        let challengeinProgress = new EmbedBuilder()
                             .setTitle("<:WhyNobodyBuy:589481340957753363> Challenge in Progress")
                             .setDescription("You already have a challenge in progress in the <#" + current_challenge.channel + "> channel.\nIf you have enough truguts, you can reroll the challenge by clicking the :game_die: **Reroll** button on your challenge, otherwise you will need to wait until the challenge expires to roll a new one.")
                         interaction.reply({ embed: challengeinProgress, ephemeral: true })
@@ -116,7 +115,7 @@ module.exports = {
                             interaction.editReply({ embeds: [data.message] })
                             client.buttons.get("challenge").execute(client, interaction, ["random", "play"])
                         } else {
-                            let noMoney = new Discord.MessageEmbed()
+                            let noMoney = new EmbedBuilder()
                                 .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
                                 .setDescription("*'No money, no challenge, no reroll!'*\nYou do not have enough truguts to reroll this challenge.\n\nReroll cost: `📀" + tools.numberWithCommas(truguts.reroll) + "`")
                             interaction.reply({ embeds: [noMoney], ephemeral: true })
@@ -146,7 +145,7 @@ module.exports = {
                             }
                             if (profile.truguts_earned - profile.truguts_spent < bribe_cost) {
                                 //player doesn't have enough money
-                                let noMoney = new Discord.MessageEmbed()
+                                let noMoney = new EmbedBuilder()
                                     .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
                                     .setDescription("*'No money, no bribe!'*\nYou do not have enough truguts to make this bribe.\n\nBribe cost: `" + tools.numberWithCommas(bribe_cost) + "`")
                                 interaction.reply({ embeds: [noMoney], ephemeral: true })
@@ -270,7 +269,7 @@ module.exports = {
                     if (!args.includes("initial")) {
                         if (args[args.length - 1].startsWith("uid")) {
                             if (args[args.length - 1].replace("uid", "") !== member) {
-                                const hintMessage = new Discord.MessageEmbed()
+                                const hintMessage = new EmbedBuilder()
                                     .setTitle("<:WhyNobodyBuy:589481340957753363> Get Your Own Hints!")
                                     .setDescription("This is someone else's hint menu. Get your own by clicking the button below.")
                                 interaction.reply({
@@ -431,7 +430,7 @@ module.exports = {
                         })
                     }
                     if (args[2] == "purchase") {
-                        const hintBuy = new Discord.MessageEmbed()
+                        const hintBuy = new EmbedBuilder()
                             .setColor("#ED4245")
                         if (profile.truguts_earned - profile.truguts_spent < hints[selection].price) {
                             hintBuy
@@ -530,7 +529,7 @@ module.exports = {
 
                     break
                 case 'hunt':
-                    const huntEmbed = new Discord.MessageEmbed()
+                    const huntEmbed = new EmbedBuilder()
                         .setTitle(":dart: Challenge Hunt")
                         .setAuthor("Random Challenge", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/game-die_1f3b2.png")
                         .setDescription("Challenge Hunt is a way to earn big truguts fast. Based on your hint selection, Botto hides a large trugut bonus on a random challenge. You have one hour to find and complete this challenge to claim your bonus.")
@@ -539,7 +538,7 @@ module.exports = {
                     if (!args.includes("initial")) {
                         if (args[args.length - 1].startsWith("uid")) {
                             if (args[args.length - 1].replace("uid", "") !== member) {
-                                const huntMessage = new Discord.MessageEmbed()
+                                const huntMessage = new EmbedBuilder()
                                     .setTitle("<:WhyNobodyBuy:589481340957753363> Get Your Own Hunt!")
                                     .setDescription("This is someone else's hunt menu. Get your own by clicking the button below.")
                                 interaction.reply({
@@ -663,7 +662,7 @@ module.exports = {
                                     completed: false
                                 }
                             })
-                            const huntBuy = new Discord.MessageEmbed()
+                            const huntBuy = new EmbedBuilder()
                                 .setTitle(":dart: " + hints[selection].hunt)
                                 .setColor("#ED4245")
                                 .setAuthor(interaction.member.user.username + "'s Random Challenge Hunt", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
@@ -696,7 +695,7 @@ module.exports = {
                     if (!args.includes("initial")) {
                         if (args[args.length - 1].startsWith("uid")) {
                             if (args[args.length - 1].replace("uid", "") !== member) {
-                                const holdUp = new Discord.MessageEmbed()
+                                const holdUp = new EmbedBuilder()
                                     .setTitle("<:WhyNobodyBuy:589481340957753363> Get Your Own Settings!")
                                     .setDescription("This is someone else's settings menu. Get your own by clicking the button below.")
                                 interaction.reply({
@@ -777,7 +776,7 @@ module.exports = {
                 case 'profile':
                     if (args[args.length - 1].startsWith("uid")) {
                         if (args[args.length - 1].replace("uid", "") !== member) {
-                            const holdUp = new Discord.MessageEmbed()
+                            const holdUp = new EmbedBuilder()
                                 .setTitle("<:WhyNobodyBuy:589481340957753363> Get Your Own Profile!")
                                 .setDescription("This is someone else's profile. Get your own by clicking the button below.")
                             client.api.interactions(interaction.id, interaction.token).callback.post({
@@ -884,7 +883,7 @@ module.exports = {
                         return response
                     }
                     sendCallback().then(() => {
-                        const profileEmbed = new Discord.MessageEmbed()
+                        const profileEmbed = new EmbedBuilder()
                         profileEmbed
                             .setAuthor(client.guilds.resolve(interaction.guild_id).members.resolve(member).user.username + "'s Random Challenge Profile", client.guilds.resolve(interaction.guild_id).members.resolve(member).user.avatarURL())
                         if (args[2] == "stats") {
@@ -1154,7 +1153,7 @@ module.exports = {
                                     }
                                     if (achievements[a].count >= achievements[a].limit && profile.achievements[a] == false) {
                                         profileref.child("achievements").child(a).set(true)
-                                        const congratsEmbed = new Discord.MessageEmbed()
+                                        const congratsEmbed = new EmbedBuilder()
                                             .setAuthor(interaction.member.user.username + " got an achievement!", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
                                             .setDescription(achievements[a].description) //+ " `" + String(Object.keys(achievements[a].collection).length) + "/" + String(achievements[a].limit)) + "`"
                                             .setColor("FFB900")
@@ -1194,7 +1193,7 @@ module.exports = {
                     break
 
                 case 'about':
-                    const challengeHelpEmbed = new Discord.MessageEmbed()
+                    const challengeHelpEmbed = new EmbedBuilder()
                         .setAuthor("Random Challenge", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/game-die_1f3b2.png")
                         .setTitle(":grey_question: About")
                         .setColor("#ED4245")
@@ -1207,7 +1206,7 @@ module.exports = {
                     break
 
                 case 'leaderboards':
-                    const challengeLeaderboard = new Discord.MessageEmbed()
+                    const challengeLeaderboard = new EmbedBuilder()
                     var track = Math.floor(Math.random() * 25)
                     var conditions = []
                     var pods = []
@@ -1486,7 +1485,7 @@ module.exports = {
                             await interaction.showModal(submissionModal)
                         } else {
                             profileref.child("current").update({ completed: true })
-                            const holdUp = new Discord.MessageEmbed()
+                            const holdUp = new EmbedBuilder()
                                 .setTitle("<:WhyNobodyBuy:589481340957753363> Expired Challenge")
                                 .setDescription("This challenge is no longer available.")
                             interaction.reply({
@@ -1500,7 +1499,7 @@ module.exports = {
                             })
                         }
                     } else {
-                        const holdUp = new Discord.MessageEmbed()
+                        const holdUp = new EmbedBuilder()
                             .setTitle("<:WhyNobodyBuy:589481340957753363> Can't Submit")
                             .setDescription("This is not your active challenge.")
                         interaction.reply({ embeds: [holdUp], ephemeral: true })
@@ -1518,7 +1517,7 @@ module.exports = {
                             profileref.child("current").update({ completed: true, title: ":negative_squared_cross_mark: Closed: ", funny_business: true })
                             let data = updateChallenge({ challengedata, profile, current_challenge, current_challengeref, profileref })
                             client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({ data: { embeds: [data.message], components: [] } })
-                            const holdUp = new Discord.MessageEmbed()
+                            const holdUp = new EmbedBuilder()
                                 .setTitle("<:WhyNobodyBuy:589481340957753363> I warn you. No funny business.")
                                 .setDescription("You submitted a time that was impossible to achieve in the given timeframe.")
                             interaction.reply({ embeds: [holdUp], ephemeral: true })
@@ -1555,7 +1554,7 @@ module.exports = {
                             interaction.editReply({ embeds: [data.message], componenets: [data.componenets] })
                         }
                     } else {
-                        const holdUp = new Discord.MessageEmbed()
+                        const holdUp = new EmbedBuilder()
                             .setTitle("<:WhyNobodyBuy:589481340957753363> Time Does Not Compute")
                             .setDescription("Your time was submitted in an incorrect format.")
                         interactionm.reply({ embeds: [holdUp], ephemeral: true })
