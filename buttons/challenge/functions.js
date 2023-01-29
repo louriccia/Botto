@@ -1,6 +1,7 @@
 const { tips, winnings_map, achievements, racers, tracks, planets, playerPicks } = require('../../data.js')
 const tools = require('../../tools.js')
 const { truguts, swe1r_guild } = require('./data.js')
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, Events, EmbedBuilder } = require('discord.js');
 
 exports.getGoalTimes = function (track, racer, skips, nu, laps, backwards) {
     let upg = nu ? 0 : 5
@@ -416,7 +417,7 @@ exports.awardAchievements = function ({ client, interaction, achievements, Membe
             }
             if (profile.achievements[key] == false) { //send congrats
                 profileref.child("achievements").child(key).set(true)
-                const congratsEmbed = new Discord.MessageEmbed()
+                const congratsEmbed = new EmbedBuilder()
                     .setAuthor(interaction.member.nick + " got an achievement!", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).displayAvatarURL())
                     .setDescription(achievements[key].description)
                     .setColor("FFB900")
@@ -591,7 +592,7 @@ exports.rerollReceipt = function (current_challenge) {
 }
 
 exports.challengeEmbed = function ({ current_challenge, profile, feedbackdata, best, name, submitted_time, member } = {}) {
-    const challengeEmbed = new Discord.MessageEmbed()
+    const challengeEmbed = new EmbedBuilder()
         .setTitle(exports.generateChallengeTitle(current_challenge))
         .setColor(exports.challengeColor(current_challenge))
         .setFooter("Truguts: 📀" + tools.numberWithCommas(profile.truguts_earned - profile.truguts_spent))
@@ -615,29 +616,62 @@ exports.challengeEmbed = function ({ current_challenge, profile, feedbackdata, b
 
 exports.challengeComponents = function (current_challenge, profile) {
     //components
-    let components = []
+    const row = new ActionRowBuilder()
     let reroll = exports.rerollReceipt(current_challenge)
     let current_truguts = profile.truguts_earned - profile.truguts_spent
     if (!current_challenge.completed) {
-        components.push({ type: 2, style: 2, custom_id: "challenge_random_modal", label: "Submit Time", emoji: { name: "⏱️" } })
+        row.addComponents(
+            new ButtonBuilder()
+                .setCustomId("challenge_random_modal")
+                .setLabel("Submit Time")
+                .setStyle(ButtonStyle.Secondary)
+                .setEmoji("⏱️")
+        )
         if (current_challenge.type == "private") {
             if (current_truguts >= reroll.cost) {
-                components.push({ type: 2, style: 2, custom_id: "challenge_random_reroll", label: "Reroll (" + reroll.cost == 0 ? 'free' : "📀" + tools.numberWithCommas(reroll.cost) + ")", emoji: { name: "🎲" } })
+                row.addComponents(
+                    new ButtonBuilder()
+                        .setCustomId("challenge_random_reroll")
+                        .setLabel("Reroll (" + reroll.cost == 0 ? 'free' : "📀" + tools.numberWithCommas(reroll.cost) + ")")
+                        .setStyle(ButtonStyle.Danger)
+                        .setEmoji("🎲")
+                )
             }
             if (current_truguts >= truguts.bribe_track || current_truguts >= truguts.bribe_racer) {
-                components.push({ type: 2, style: 2, custom_id: "challenge_random_bribe", label: "Bribe", emoji: { name: "💰" } })
+                row.addComponents(
+                    new ButtonBuilder()
+                        .setCustomId("challenge_random_bribe")
+                        .setLabel("Bribe")
+                        .setStyle(ButtonStyle.Secondary)
+                        .setEmoji("💰")
+                )
             }
         }
     } else {
-        components.push({ type: 2, style: 4, custom_id: "challenge_random_play", emoji: { name: "🎲" } }, { type: 2, style: 2, custom_id: "challenge_random_undo", emoji: { name: "↩️" } })
-        if (!current_challenge.rated) {
-            components.push({ type: 2, style: 2, custom_id: "challenge_random_like", emoji: { name: "👍" } }, { type: 2, style: 2, custom_id: "challenge_random_dislike", emoji: { name: "👎" } })
-        }
-        components.push({
-            type: 2, style: 2, custom_id: "challenge_random_menu", emoji: { name: "menu", id: "862620287735955487" }
-        })
+        row.addComponents(
+            new ButtonBuilder()
+                .setCustomId("challenge_random_play")
+                .setStyle(ButtonStyle.Danger)
+                .setEmoji("🎲"),
+            new ButtonBuilder()
+                .setCustomId("challenge_random_undo")
+                .setStyle(ButtonStyle.Secondary)
+                .setEmoji("↩️"),
+            new ButtonBuilder()
+                .setCustomId("challenge_random_like")
+                .setStyle(ButtonStyle.Secondary)
+                .setEmoji("👍"),
+            new ButtonBuilder()
+                .setCustomId("challenge_random_dislike")
+                .setStyle(ButtonStyle.Secondary)
+                .setEmoji("👎"),
+            new ButtonBuilder()
+                .setCustomId("challenge_random_menu")
+                .setStyle(ButtonStyle.Secondary)
+                .setEmoji("862620287735955487")
+        )
     }
-    return components
+    return [row]
 }
 
 exports.bribeComponents = function (profile) {
@@ -667,7 +701,7 @@ exports.bribeComponents = function (profile) {
         }
         track_selections.push(track_option)
     }
-    let components = []
+    const components = []
     if (profile.current.track_bribe == false) {
         components.push(
             {
@@ -706,7 +740,7 @@ exports.bribeComponents = function (profile) {
 }
 
 exports.menuEmbed = function () {
-    const myEmbed = new Discord.MessageEmbed()
+    const myEmbed = new EmbedBuilder()
         .setAuthor("Random Challenge", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/game-die_1f3b2.png")
         .setTitle("<:menu:862620287735955487> Menu")
         .setColor("#ED4245")
@@ -716,106 +750,77 @@ exports.menuEmbed = function () {
 }
 
 exports.menuComponents = function () {
-    return [
-        {
-            type: 1,
-            components: [
-                {
-                    type: 2,
-                    custom_id: "challenge_random_play",
-                    style: 4,
-                    label: "Play",
-                    emoji: {
-                        name: "🎲"
-                    }
-                },
-
-                {
-                    type: 2,
-                    custom_id: "challenge_random_hint_initial",
-                    style: 2,
-                    label: "Hints",
-                    emoji: {
-                        name: "💡"
-                    }
-                },
-                {
-                    type: 2,
-                    custom_id: "challenge_random_hunt_initial",
-                    style: 2,
-                    label: "Challenge Hunt",
-                    emoji: {
-                        name: "🎯"
-                    }
-                },
-                {
-                    type: 2,
-                    custom_id: "challenge_random_settings_initial",
-                    style: 2,
-                    label: "Settings",
-                    emoji: {
-                        name: "⚙️"
-                    }
-                }
-            ]
-        },
-        {
-            type: 1,
-            components: [
-                {
-                    type: 2,
-                    custom_id: "challenge_random_profile_stats",
-                    style: 2,
-                    label: "Profile",
-                    emoji: {
-                        name: "👤"
-                    }
-                },
-                {
-                    type: 2,
-                    custom_id: "challenge_random_leaderboards_initial",
-                    style: 2,
-                    label: "Leaderboards",
-                    emoji: {
-                        name: "🏆"
-                    }
-                },
-                {
-                    type: 2,
-                    custom_id: "challenge_random_about",
-                    style: 2,
-                    emoji: {
-                        name: "❔"
-                    }
-                }
-            ]
-
-        }
-
-    ]
+    const row1 = new ActionRowBuilder()
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId("challenge_random_play")
+                .setLabel("Play")
+                .setStyle(ButtonStyle.Danger)
+                .setEmoji('🎲')
+        )
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId("challenge_random_hint_initial")
+                .setLabel("Hints")
+                .setStyle(ButtonStyle.Secondary)
+                .setEmoji('💡')
+        )
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId("challenge_random_hunt_initial")
+                .setLabel("Hints")
+                .setStyle(ButtonStyle.Secondary)
+                .setEmoji('🎯')
+        )
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId("challenge_random_settings_initial")
+                .setLabel("Settings")
+                .setStyle(ButtonStyle.Secondary)
+                .setEmoji('⚙️')
+        )
+    const row2 = new ActionRowBuilder()
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId("challenge_random_profile_stats")
+                .setLabel("Profile")
+                .setStyle(ButtonStyle.Secondary)
+                .setEmoji('👤')
+        )
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId("challenge_random_leaderboards_initial")
+                .setLabel("Leaderboards")
+                .setStyle(ButtonStyle.Secondary)
+                .setEmoji('🏆')
+        )
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId("challenge_random_about")
+                .setLabel("Leaderboards")
+                .setStyle(ButtonStyle.Secondary)
+                .setEmoji('❔')
+        )
+    return [row1, row2]
 }
 
 exports.playButton = function () {
-    return {
-        type: 2,
-        style: 4,
-        custom_id: "challenge_random_play",
-        label: "New Challenge",
-        emoji: {
-            name: "🎲"
-        }
-    }
+    return new ButtonBuilder()
+        .setCustomId("challenge_random_play")
+        .setLabel("New Challenge")
+        .setStyle(ButtonStyle.Danger)
+        .setEmoji('🎲')
 }
 
 exports.notYoursEmbed = function () {
-    let noMoney = new Discord.MessageEmbed()
+    const noMoney = new EmbedBuilder()
         .setTitle("<:WhyNobodyBuy:589481340957753363> Get Your Own Challenge!")
         .setDescription("This is someone else's challenge or the option to bribe has expired. Roll a challenge with the button below.")
     return noMoney
 }
 
 exports.hintEmbed = function (player) {
-    const hintEmbed = new Discord.MessageEmbed()
+    const hintEmbed = new EmbedBuilder()
         .setTitle(":bulb: Hints")
         .setAuthor("Random Challenge", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/game-die_1f3b2.png")
         .setColor("#ED4245")
@@ -825,7 +830,7 @@ exports.hintEmbed = function (player) {
 }
 
 exports.settingsEmbed = function (interaction, profile) {
-    const settingsEmbed = new Discord.MessageEmbed()
+    const settingsEmbed = new EmbedBuilder()
         .setTitle(":gear: Settings")
         .setAuthor("Random Challenge", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/game-die_1f3b2.png")
         .setDescription("Customize the odds for your random challenge conditions and select a winnings pattern.")

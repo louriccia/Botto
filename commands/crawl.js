@@ -1,5 +1,7 @@
 module.exports = {
-    name: 'crawl',
+    data: new SlashCommandBuilder()
+        .setName('crawl')
+        .setDescription('A long time ago in a galaxy far far away...'),
     execute(client, interaction, args) {
         const Discord = require('discord.js');
         const myEmbed = new Discord.MessageEmbed()

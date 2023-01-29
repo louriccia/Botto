@@ -1,25 +1,8 @@
 module.exports = {
-    name: 'chancecube',
+    data: new SlashCommandBuilder()
+        .setName('chancecube')
+        .setDescription("Blue—it's the boy. Red—his mother"),
     execute(client, interaction, args) {
-        const Discord = require('discord.js');
-        const myEmbed = new Discord.MessageEmbed()
-        var numb = Math.floor(Math.random()*2)
-        var cube = ""
-        if(numb == 0){
-            cube = ":blue_square:"
-        }
-        else{
-            cube = ":red_square:"
-        }
-        client.api.interactions(interaction.id, interaction.token).callback.post({
-            data: {
-                type: 4,
-                data: {
-                    content: cube,
-                    //embeds: [myEmbed]
-                }
-            }
-        })
+        interaction.reply(Math.floor(Math.random()*2) == 0 ? ":blue_square:" : ":red_square:")
     }
-    
 }

@@ -1,10 +1,34 @@
+const { tracks } = require('../data.js')
+
 module.exports = {
-    name: 'simulate',
+    data: new SlashCommandBuilder()
+        .setName('simulate')
+        .setDescription('returns a simulated time for all racers given track and conditions')
+        .addStringOption(option =>
+            option.setName('track')
+                .setDescription('name or abbreviation of the track')
+                .setRequired(true)
+                .addChoices(
+                    tracks.map((track, index) => { return { name: track.name, value: String(index) } })
+                ))
+        .addIntegerOption(option =>
+            option.setName('laps')
+                .setDescription('number of laps to simulate'))
+        .addIntegerOption(option =>
+            option.setName('fps')
+                .setDescription('framerate for the simulation (between 24 and 60fps)'))
+        .addStringOption(option => 
+            option.setName('upgrades')
+            .setDescription('pod upgrades')
+            .addChoices(
+                {name: 'Max Upgrades', value: "5"},
+                {name: "No Upgrades", value: "0"}
+            )),
     execute(client, interaction, args) {
         const Discord = require('discord.js');
         var tools = require('./../tools.js');
         const myEmbed = new Discord.MessageEmbed()
-        
+
         var track = null
         var upgrades = 5
         var fps = 60
@@ -18,9 +42,9 @@ module.exports = {
                 fps = args[i].value
             } else if (args[i].name == "laps") {
                 laps = args[i].value
-            } 
+            }
         }
-        
+
         client.buttons.get("simulate").execute(client, interaction, [track, upgrades, fps, laps, "initial"]);
         /*
         var upgradeName = {0: "No Upgrades", 5: "Max Upgrades"}
@@ -56,5 +80,5 @@ module.exports = {
         })
         */
     }
-    
+
 }

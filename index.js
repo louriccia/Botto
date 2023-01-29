@@ -137,22 +137,21 @@ users.on("value", function (snapshot) {
 client.on(Events.InteractionCreate, async interaction => {
     if (interaction.isChatInputCommand()) {
         const command = interaction.commandName.toLowerCase();
-        const args = interaction.data.options;
         //command handler
         if (!client.commands.has(command)) return;
         try {
-            client.commands.get(command).execute(client, interaction, args);
+            client.commands.get(command).execute(interaction);
         } catch (error) {
             console.error(error);
             await interaction.reply({ content: "`Error: Command failed to execute `\n" + errorMessage[Math.floor(Math.random() * errorMessage.length)] })
         }
-    } else if (interaction.data.hasOwnProperty("custom_id")) {
-        var split = interaction.data.custom_id.split("_")
+    } else {
+        let split = interaction.customId.split("_")
         const name = split[0]
         const args = split.slice(1)
 
         try {
-            client.buttons.get(name).execute(client, interaction, args);
+            client.buttons.get(name).execute(interaction, args);
         } catch (error) {
             console.error(error);
         }
