@@ -1,25 +1,78 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 
 module.exports = {
-    name: 'links',
+    data: new SlashCommandBuilder()
+        .setName('links')
+        .setDescription('quickly get the most commonly shared links on the SWE1R Discord')
+        .addSubcommandGroup(group =>
+            group
+                .setName('botto')
+                .setDescription('Botto related links')
+                .addSubcommand(subcommand =>
+                    subcommand
+                        .setName('github')
+                        .setDescription("posts a link to Botto's github page")
+                )
+                .addSubcommand(subcommand =>
+                    subcommand
+                        .setName('graphics')
+                        .setDescription("posts imgur links to the graphics that Botto uses")
+                )
+                .addSubcommand(subcommand =>
+                    subcommand
+                        .setName('invite')
+                        .setDescription("posts a link to invite Botto to your Discord")
+                )
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('drive')
+                .setDescription("posts a link to the community Google Drive")
+        ).addSubcommand(subcommand =>
+            subcommand
+                .setName('speedrunning')
+                .setDescription("posts a collection of links to various leaderboards across the web")
+        ).addSubcommand(subcommand =>
+            subcommand
+                .setName('mp_guide')
+                .setDescription("posts a link to the online multiplayer guide")
+        ).addSubcommand(subcommand =>
+            subcommand
+                .setName('stats')
+                .setDescription("posts a link to the pod and track statistics sheet")
+        ).addSubcommand(subcommand =>
+            subcommand
+                .setName('src_resources')
+                .setDescription("posts a link to the SWE1R speedrun.com resources page")
+        ).addSubcommand(subcommand =>
+            subcommand
+                .setName('rtss')
+                .setDescription("posts a link to download rivatuner for limiting the game's framerate")
+        ).addSubcommand(subcommand =>
+            subcommand
+                .setName('dgvoodoo')
+                .setDescription("posts a link to download dgvoodoo for running the game in windowed mode")
+        )
+        ,
     execute(interaction) {
         var link = ""
         var title = ""
         var desc = ""
         const Discord = require('discord.js');
         const subcommand = interaction.options.getSubcommand()
+        const subcommand_group = interaction.options.getSubcommandGroup()
         const myEmbed = new EmbedBuilder()
             .setColor("00A4C4")
         //.setThumbnail("https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/259/link_1f517.png")
-        if (subcommand == "botto") {
-            if (args[0].options[0].name == "github") {
+        if (subcommand_group == "botto") {
+            if (subcommand == "github") {
                 title = "Botto Github"
                 link = "https://github.com/louriccia/Botto"
                 desc = "Botto’s github repository. View this bot's code and follow its development."
-            } else if (args[0].options[0].name == "graphics") {
+            } else if (subcommand == "graphics") {
                 title = "Botto Graphics"
                 desc = "Botto's image resources are available at the following links:\n[Racer stat graphics](https://imgur.com/a/uqTaaIl)\n[Track graphics](https://imgur.com/a/im0C1Tx)\n[Planet thumbnails](https://imgur.com/a/G5yhapp)"
-            } else if (args[0].options[0].name == "invite") {
+            } else if (subcommand == "invite") {
                 title = "Botto Invite"
                 desc = "Use this link to add Botto to your own server"
                 link = "https://discord.com/api/oauth2/authorize?client_id=545798436105224203&permissions=0&scope=bot%20applications.commands"
@@ -28,7 +81,7 @@ module.exports = {
             title = "Community Google Drive"
             desc = "Official guides, track maps, stat sheets, and more!"
             link = "https://drive.google.com/drive/folders/1ScgPE1i1EpSYXT16a1ocxQiouMCcE9z1?usp=sharing"
-        } else if (subcommand == "speedrunning"){
+        } else if (subcommand == "speedrunning") {
             title = "Speedrunning Leaderboards"
             myEmbed
                 .addField("speedrun.com", "[speedrun.com](https://www.speedrun.com/swe1r)\n The main site for SWE1R speedruns including RTA and IL leaderboards filterable by skips, upgrades, and more.", false)
@@ -79,7 +132,7 @@ module.exports = {
             .setTitle(title)
             .setDescription(desc)
         var components = []
-        if(link !== ""){
+        if (link !== "") {
             components = [
                 {
                     type: 1,

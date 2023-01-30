@@ -1,6 +1,6 @@
 const { tracks } = require('../data.js')
 const { SlashCommandBuilder } = require('discord.js');
-
+const trackoptions = tracks.map((track, index) => { return { name: track.name, value: String(index) } })
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('simulate')
@@ -10,7 +10,7 @@ module.exports = {
                 .setDescription('name or abbreviation of the track')
                 .setRequired(true)
                 .addChoices(
-                    tracks.map((track, index) => { return { name: track.name, value: String(index) } })
+                    trackoptions
                 ))
         .addIntegerOption(option =>
             option.setName('laps')
@@ -18,13 +18,13 @@ module.exports = {
         .addIntegerOption(option =>
             option.setName('fps')
                 .setDescription('framerate for the simulation (between 24 and 60fps)'))
-        .addStringOption(option => 
+        .addStringOption(option =>
             option.setName('upgrades')
-            .setDescription('pod upgrades')
-            .addChoices(
-                {name: 'Max Upgrades', value: "5"},
-                {name: "No Upgrades", value: "0"}
-            )),
+                .setDescription('pod upgrades')
+                .addChoices(
+                    { name: 'Max Upgrades', value: "5" },
+                    { name: "No Upgrades", value: "0" }
+                )),
     execute(client, interaction, args) {
         const Discord = require('discord.js');
         var tools = require('./../tools.js');
