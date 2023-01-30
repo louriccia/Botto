@@ -1,17 +1,17 @@
 let { tracks } = require('./../data.js')
 const { SlashCommandBuilder } = require('discord.js');
-const trackoptions = tracks.map((track, index) => { return { name: track.name, value: String(index) } })
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('simulate')
         .setDescription('returns a simulated time for all racers given track and conditions')
-        .addStringOption(option =>
+        .addStringOption(option => {
             option.setName('track')
                 .setDescription('name or abbreviation of the track')
                 .setRequired(true)
-                .addChoices(
-                    trackoptions
-                ))
+            tracks.forEach((track, index) => {
+                option.addChoices({ name: track.name, value: String(index) })
+            })
+        })
         .addIntegerOption(option =>
             option.setName('laps')
                 .setDescription('number of laps to simulate'))
