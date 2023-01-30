@@ -1,4 +1,4 @@
-let { tracks } = require('../data.js')
+import { tracks } from '../data.js';
 const { SlashCommandBuilder } = require('discord.js');
 module.exports = {
     data: new SlashCommandBuilder()
