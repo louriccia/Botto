@@ -1,4 +1,4 @@
-const { tracks } = require('../data.js')
+let { tracks } = require('./../data.js')
 const { SlashCommandBuilder } = require('discord.js');
 const trackoptions = tracks.map((track, index) => { return { name: track.name, value: String(index) } })
 module.exports = {
