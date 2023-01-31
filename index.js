@@ -1,7 +1,7 @@
 const fs = require('fs');
 const Discord = require('discord.js');
 const { Client, Events, GatewayIntentBits } = require('discord.js')
-const { prefix, token } = require('./config.json');
+const { prefix, token, firebaseCon } = require('./config.json');
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -19,9 +19,17 @@ client.selects = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 const buttonFiles = fs.readdirSync('./buttons').filter(file => file.endsWith('.js'));
 
+let testing = true
+
+let discord_token = testing ? token : process.env.token
+
 for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
-    client.commands.set(command.name, command);
+    if ('data' in command && 'execute' in command) {
+		client.commands.set(command.data.name, command);
+	} else {
+		console.log(`[WARNING] The command at ${file} is missing a required "data" or "execute" property.`);
+	}
 }
 for (const file of buttonFiles) {
     const button = require(`./buttons/${file}`);
@@ -35,14 +43,14 @@ var admin = require('firebase-admin');
 
 admin.initializeApp({
     credential: admin.credential.cert({
-        "projectId": process.env.FIREBASE_PROJECT_ID,
-        "privateKey": process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-        "clientEmail": process.env.FIREBASE_CLIENT_EMAIL
+        "projectId": testing ? firebaseCon.projectId : process.env.FIREBASE_PROJECT_ID,
+        "privateKey": (testing ? firebaseCon.privateKey : process.env.FIREBASE_PRIVATE_KEY).replace(/\\n/g, '\n'),
+        "clientEmail": testing ? firebaseCon.clientEmail : process.env.FIREBASE_CLIENT_EMAIL
     }),
     databaseURL: "https://botto-efbfd.firebaseio.com"
 })
 
-var firebaseConfig = {
+var firebaseConfig = testing ? firebaseCon : {
     apiKey: process.env.FIREBASE_API_KEY,
     authDomain: process.env.FIREBASE_AUTH_DOMAIN,
     databaseURL: process.env.FIREBASE_DATABASE_URL,
@@ -137,6 +145,7 @@ users.on("value", function (snapshot) {
 client.on(Events.InteractionCreate, async interaction => {
     if (interaction.isChatInputCommand()) {
         const command = interaction.commandName.toLowerCase();
+        console.log(command)
         //command handler
         if (!client.commands.has(command)) return;
         try {
@@ -151,7 +160,7 @@ client.on(Events.InteractionCreate, async interaction => {
         const args = split.slice(1)
 
         try {
-            client.buttons.get(name).execute(interaction, args);
+            client.buttons.get(name).execute(client, interaction, args);
         } catch (error) {
             console.error(error);
         }
@@ -184,9 +193,9 @@ client.once(Events.ClientReady, () => {
         .catch(console.error);
     client.channels.cache.get("444208252541075476").send("Deployed <t:" + Math.round(Date.now() / 1000) + ":R>");
     try {
-        client.commands.get("scrape").execute(client);
+        client.commands.get("scraper").execute(client);
     } catch {
-        console.error(error);
+        console.error("scrape failed");
     }
 
     const Guild = client.guilds.cache.get("441839750555369474")
@@ -362,32 +371,25 @@ client.on("error", (e) => {
     }
     errorlogref.push(data)
 });
-//client.on("warn", (e) => console.warn(e));
-//client.on("debug", (e) => console.info(e));
 
-client.on('guildMemberAdd', (guildMember) => { //join log
+client.on(Events.GuildMemberAdd, (guildMember) => { //join log
     if (guildMember.guild.id == "441839750555369474") {
-        var random = Math.floor(Math.random() * welcomeMessages.length)
-        var join = welcomeMessages[random]
-        client.channels.cache.get("441839751235108875").send(join.replace("replaceme", "<@" + guildMember.user + ">"));
+        let random = Math.floor(Math.random() * welcomeMessages.length)
+        let join = welcomeMessages[random]
+        client.channels.cache.get("441839751235108875").send(join.replaceAll("replaceme", "<@" + guildMember.user + ">"));
         const guild = client.guilds.cache.get("441839750555369474");
         const role = guild.roles.cache.get("442316203835392001");
         let member = guildMember
         member.roles.add(role).catch(console.error);
     }
 })
-/*
-client.on('guildMemberRemove', (guildMember) => { //join log
+client.on(Events.GuildBanAdd, (guildMember) => { //ban log
     if (guildMember.guild.id == "441839750555369474") {
-        const memberLeft = new Discord.MessageEmbed()
-        memberLeft
-            .setTitle("Member Left")
-            .setDescription(guildMember.user.username + " has left the server")
-        client.channels.cache.get("892664227553243157").send(memberLeft);
+        client.channels.cache.get("892664227553243157").send(`*${guildMember.username} was banished because they were clumsy.*`);
     }
 })
-*/
-client.on("messageDelete", async messageDelete => {
+
+client.on(Events.MessageDelete, async messageDelete => {
     if (!messageDelete.guild) return;
 
     if (messageDelete.author.bot == false && messageDelete.channel.type == "text" && messageDelete.guild.id == "441839750555369474" && messageDelete.channelId !== "444208252541075476") {
@@ -433,7 +435,7 @@ client.on("messageDelete", async messageDelete => {
     }
 });
 
-client.on('messageUpdate', (oldMessage, newMessage) => {
+client.on(Events.MessageUpdate, (oldMessage, newMessage) => {
     if (oldMessage.author.bot == false && oldMessage.channel.type == "text" && oldMessage !== newMessage && oldMessage.guild.id == "441839750555369474") {
         var channelname = ""
         for (var i = 0; i < discordchannels.length; i++) {
@@ -553,4 +555,4 @@ client.on('message', message => {
 })
 
 
-client.login(process.env.token);
+client.login(discord_token);

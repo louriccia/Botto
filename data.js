@@ -1,4 +1,4 @@
-module.exports = planets = [
+exports.planets = [
     { "name": "Ando Prime", "img": "https://imgur.com/tBIBKS5.png", "emoji": "<:andoprime:862053955880878140> ", "color": "#EC6423", "host": "Ten-Abu Donba" }, //0
     { "name": "Aquilaris", "img": "https://imgur.com/gZxTAqX.png", "emoji": "<:aquilaris:862053955727130674> ", "color": "#279843", "host": "Nave Vengaris" },  //1
     { "name": "Baroonda", "img": "https://imgur.com/2aQfuVQ.png", "emoji": "<:baroonda:862053955701702686> ", "color": "#683062", "host": "Maja Fey'ja" },   //2
@@ -9,14 +9,14 @@ module.exports = planets = [
     { "name": "Tatooine", "img": "https://imgur.com/U3ScWA5.png", "emoji": "<:tatooine:862053955860168734> ", "color": "#4292B0", "host": "Jabba the Hutt" }    //7
 ]
 
-module.exports = circuits = [
+exports.circuits = [
     { "name": "Amateur", "winnings": [[800, 700, 600, 100], [1200, 600, 300, 100], [2200, 0, 0, 0]], "abbreviation": "AMC", "races": 7 },
     { "name": "Semi-Pro", "winnings": [[1200, 1050, 900, 150], [1800, 900, 450, 150], [3300, 0, 0, 0]], "abbreviation": "SPC", "races": 7 },
     { "name": "Galactic", "winnings": [[1600, 1400, 1200, 200], [2400, 1200, 600, 200], [4400, 0, 0, 0]], "abbreviation": "GAL", "races": 7 },
     { "name": "Invitational", "winnings": [[2000, 1750, 1500, 250], [3000, 1500, 750, 250], [5500, 0, 0, 0]], "abbreviation": "INV", "races": 4 }
 ]
 
-module.exports = parts = [
+exports.parts = [
     {
         "names": [
             { "antiskid": "R-20", "turn_response": "Linkage", "acceleration": "Dual 20 PCX", "max_speed": "Plug 2", "air_brake_interval": "Mark II", "cool_rate": "Coolant", "repair_rate": "Single" },
@@ -37,7 +37,7 @@ module.exports = parts = [
     }
 ]
 
-module.exports = difficulties = [
+exports.difficulties = [
     { "name": "Beginner" },
     { "name": "Easy" },
     { "name": "Average" },
@@ -45,7 +45,7 @@ module.exports = difficulties = [
     { "name": "Brutal" }
 ]
 
-module.exports = srcmap = {
+exports.srcmap = {
     "game": "m1mnnrxd",
     "levels": [
 
@@ -106,7 +106,7 @@ exports.tracks = [
     { "name": "Inferno", "nickname": ["inf"], "id": "z984orwl", "planet": 2, "circuit": 3, "cirnum": 4, "tracknum": 25, "favorite": 19, "img": "https://i.imgur.com/gnzanST.png", "preview": "https://imgur.com/mvSI1Dd.png", "skips": true, "lap": { "length": 39064.930, "fast": [0], "slow": [0], "underheat": 7, "underspeed": 1 }, "first_lap": { "length": 39064.930, "fast": [0], "slow": [0], "underheat": 7, "underspeed": 1 }, "lengthclass": "Medium", "difficulty": 3, "avgspeedmod": 1, "partimes": ["2:24.590", "2:28.179", "2:35.359", "2:42.538", "2:49.717"], "parlaptimes": ["0:47.664", "0:48.829", "0:51.157", "0:53.486", "0:55.814"], "parskiptimes": ["0:19.999", "0:24.000", "0:27.688", "0:36.489", "0:59.999"] }
 ]
 
-module.exports = racers = [
+exports.racers = [
     { "name": "Anakin Skywalker", "nickname": ["as", "anakin"], "flag": "<:anakin:671598858983178251>", "id": "5le459p1", "img": "https://i.imgur.com/r0f3AZx.png", "stats": "https://i.imgur.com/odMyOQz.png", "canon": true, "favorite": 16, "mu_tier": 2, "nu_tier": 2, "antiskid": 0.5, "turn_response": 300, "acceleration": 3, "max_speed": 490, "air_brake_interval": 30, "cool_rate": 9, "repair_rate": 0.4, "max_turn_rate": 110, "deceleration_interval": 60, "boost_thrust": 200, "heat_rate": 13.0, "hover_height": 4.99, "bump_mass": 50, "damage_immunity": 0.60, "isect_radius": 5.0, "voice": "Jake Lloyd", "announce": "F:/botto/sfx/racer/anakinskywalker.mp3", "racernum": 1, "intro": "It's the little human boy; born on Tatooine, uh... **Anakin Skywalker**. Well, let's hope he can just finish the race.", "species": "Human", "homeworld": "Tatooine", "pod": "Modified Radon-Ulzer 620C Racing Engines" },
     { "name": "Teemto Pagalies", "nickname": ["tp", "teemto"], "flag": "<:teemto:820381702332612638>", "id": "5lm4pyyl", "img": "https://i.imgur.com/cY9al2j.png", "stats": "https://i.imgur.com/iolB417.png", "canon": true, "favorite": 1, "mu_tier": 3, "nu_tier": 3, "antiskid": 0.5, "turn_response": 260, "acceleration": 1.7, "max_speed": 479, "air_brake_interval": 30, "cool_rate": 6, "repair_rate": 0.43, "max_turn_rate": 90, "deceleration_interval": 80, "boost_thrust": 195, "heat_rate": 14.0, "hover_height": 4.99, "bump_mass": 50, "damage_immunity": 0.50, "isect_radius": 8.0, "voice": "Michael Sorich", "announce": "F:/botto/sfx/racer/teemtopagalies.mp3", "racernum": 2, "intro": "My money's on **Teemto Pagalies** for this race. Just look at the size of those engines!", "species": "Veknoid", "homeworld": "Moonus Mandel", "pod": "Irdani Performance Group-The IPG-X1131 LongTail" },
     { "name": "Sebulba", "nickname": ["seb", "sebulba"], "flag": "<:sebulba:671598997802319873>", "id": "9qj49r0q", "img": "https://i.imgur.com/ksFXGVY.png", "stats": "https://i.imgur.com/b25R330.png", "canon": true, "favorite": 20, "mu_tier": 3, "nu_tier": 0, "antiskid": 0.38, "turn_response": 228, "acceleration": 3.2, "max_speed": 600, "air_brake_interval": 38, "cool_rate": 2, "repair_rate": 0.19, "max_turn_rate": 95, "deceleration_interval": 50, "boost_thrust": 185, "heat_rate": 9.0, "hover_height": 4.99, "bump_mass": 80, "damage_immunity": 0.30, "isect_radius": 7.0, "voice": "Lewis Macleod", "announce": "F:/botto/sfx/racer/sebulba.mp3", "racernum": 3, "intro": "There he is: the reigning champion of the Boonta Classic and the crowd favorite, **Sebulba**! \n *I'm betting heavily on Sebulba. He always wins!*", "species": "Dug", "homeworld": "Malastare", "pod": "Collor Pondrat Plug-F Mammoth, Split-X Configured" },
@@ -134,7 +134,7 @@ module.exports = racers = [
     { "name": "Cy Yunga", "nickname": ["cy", "cy"], "flag": "<:JabbaSleep:850463205611667487> ", "id": "p12wpnv1", "img": "", "stats": "", "canon": false, "favorite": 7, "mu_tier": 0, "nu_tier": 1, "antiskid": 0.7, "turn_response": 322, "acceleration": 1.8, "max_speed": 480, "air_brake_interval": 25, "cool_rate": 11, "repair_rate": 0.55, "max_turn_rate": 120, "deceleration_interval": 70, "boost_thrust": 300, "heat_rate": 15.0, "hover_height": 4.99, "bump_mass": 45, "damage_immunity": 0.77, "isect_radius": 7.0, "voice": "Gregg Berger (unused)", "announce": "", "racernum": 9, "intro": "Cy Yunga is a secret pod which replaces 'Bullseye' Navior, unlockable by using the `RRCYYUN` cheat code on console or `LCTRL + C + Y` hotkey in the pod selection menu on PC.", "species": "Unknown", "homeworld": "Unknown", "pod": "Secret Pod" }
 ]
 
-module.exports = multipliers = [
+exports.multipliers = [
     { "goal": "Elite", "ft_multiplier": 1.05, "skips_multiplier": 1.10 },
     { "goal": "Pro", "ft_multiplier": 1.10, "skips_multiplier": 1.20 },
     { "goal": "Rookie", "ft_multiplier": 1.15, "skips_multiplier": 1.30 },
@@ -142,7 +142,7 @@ module.exports = multipliers = [
     { "goal": "Youngling", "ft_multiplier": 1.5, "skips_multiplier": 1.50 }
 ]
 
-module.exports = movieQuotes = [
+exports.movieQuotes = [
     "*Remember: Your focus determines your reality.*",
     "*Remember, concentrate on the moment. Feel, don't think. Trust your instincts.*",
     "*May the force be with you.*",
@@ -221,7 +221,7 @@ module.exports = movieQuotes = [
     "*It's a trick. Send no reply... Send no transmission of any kind.*"
 ]
 
-module.exports = mpQuotes = [
+exports.mpQuotes = [
     "*Lag. Laaaaaaag. LAAAAAAAAAAAAAG.*",
     "*Really? You died to THAT!?*",
     "*I don't see the lobby...*",
@@ -258,130 +258,130 @@ module.exports = mpQuotes = [
     "*Really? You're playing as THAT podracer?*"
 ]
 
-module.exports = a = "replaceme";
+exports.a = "replaceme";
 
-module.exports = playerPicks = [
-    `*May the force be with you, ${a}*`,
-    `*And you, young ${a}. We will watch your career with great interest.*`,
-    `*The chosen one ${a} may be.*`,
-    `*I'm betting heavily on ${a}.*`,
-    `*You have been well trained, ${a}. They will be no match for you.*`,
-    `*That's a nice pod you have there, ${a}. I hope you didn't kill anyone I know for it.*`,
-    `*The force is unusually strong with you, ${a}. That much is clear.*`,
-    `*${a}'s midi-chlorian count is off the chart. Over 20,000!*`,
-    `*I warn you, ${a}. No funny business.*`,
-    `*You won't walk away from this one, ${a}, you slave scum.*`,
-    `*Come on, let's go and play ball. Keep racing, ${a}. You're gonna be bug squash!*`,
-    `*I don't want you to race ${a}, it's awful. I die every time Botto makes you do it.*`,
-    `*I believe ${a} may have been conceived by the midichlorians.*`,
-    `*I sense much fear in you, ${a}.*`,
-    `*I have great faith in you, ${a}. You're a credit to your race.*`,
-    `*Don't center on your anxieties, ${a}. Keep your concentration here and now where it belongs.*`,
-    `*This is so wizard ${a}! I'm sure you'll do it this time.*`
+exports.playerPicks = [
+    `*May the force be with you, ${exports.a}*`,
+    `*And you, young ${exports.a}. We will watch your career with great interest.*`,
+    `*The chosen one ${exports.a} may be.*`,
+    `*I'm betting heavily on ${exports.a}.*`,
+    `*You have been well trained, ${exports.a}. They will be no match for you.*`,
+    `*That's a nice pod you have there, ${exports.a}. I hope you didn't kill anyone I know for it.*`,
+    `*The force is unusually strong with you, ${exports.a}. That much is clear.*`,
+    `*${exports.a}'s midi-chlorian count is off the chart. Over 20,000!*`,
+    `*I warn you, ${exports.a}. No funny business.*`,
+    `*You won't walk away from this one, ${exports.a}, you slave scum.*`,
+    `*Come on, let's go and play ball. Keep racing, ${exports.a}. You're gonna be bug squash!*`,
+    `*I don't want you to race ${exports.a}, it's awful. I die every time Botto makes you do it.*`,
+    `*I believe ${exports.a} may have been conceived by the midichlorians.*`,
+    `*I sense much fear in you, ${exports.a}.*`,
+    `*I have great faith in you, ${exports.a}. You're a credit to your race.*`,
+    `*Don't center on your anxieties, ${exports.a}. Keep your concentration here and now where it belongs.*`,
+    `*This is so wizard ${exports.a}! I'm sure you'll do it this time.*`
 ]
 
-module.exports = welcomeMessages = [
+exports.welcomeMessages = [
     //first
-    `*Welcome, ${a}. I see the contestants are making their way out onto the starting grid.*`,
-    `*It's ${a}! A surprise, I'm sure, but a welcome one.*`,
+    `*Welcome, ${exports.a}. I see the contestants are making their way out onto the starting grid.*`,
+    `*It's ${exports.a}! A surprise, I'm sure, but a welcome one.*`,
     //2
-    `*This is getting out of hand, ${a}. Now there are two of them!*`,
-    `*Hello there, ${a}*`,
-    `*${a}! You are a bold one.*`,
-    `*Hello boyos! It's ${a}!*`,
+    `*This is getting out of hand, ${exports.a}. Now there are two of them!*`,
+    `*Hello there, ${exports.a}*`,
+    `*${exports.a}! You are a bold one.*`,
+    `*Hello boyos! It's ${exports.a}!*`,
     //3-4
-    `*${a}! I see the flags are moving onto the track.*`,
-    `*Hey it looks like they're clearing the grid, ${a}*`,
-    `*Start your engines! ${a} is here!*`,
-    `*A harty hello to ${a}!*`,
-    `*And back again it's the mighty ${a}!*`,
-    `*And hoping for a big win today, ${a}, with their record-setting pit droid team.*`,
-    `*And in the front row, nearside pole position, ${a}!*`,
-    `*This cocky little guy does not know the meaning of the word 'fear'. It's ${a}!*`,
-    //`${a}'s whole family's here today to cheer him on. We understand Mrs. ${a} just got out of the hospital so we wish her and her family the best of luck today. `,
-    `*They're not good-looking, but they're not shy. ${a}!*`,
-    `*Lookie there. It's ${a}, always a threat on this course.*`,
+    `*${exports.a}! I see the flags are moving onto the track.*`,
+    `*Hey it looks like they're clearing the grid, ${exports.a}*`,
+    `*Start your engines! ${exports.a} is here!*`,
+    `*A harty hello to ${exports.a}!*`,
+    `*And back again it's the mighty ${exports.a}!*`,
+    `*And hoping for a big win today, ${exports.a}, with their record-setting pit droid team.*`,
+    `*And in the front row, nearside pole position, ${exports.a}!*`,
+    `*This cocky little guy does not know the meaning of the word 'fear'. It's ${exports.a}!*`,
+    //`${exports.a}'s whole family's here today to cheer them on. We understand Mrs. ${exports.a} just got out of the hospital so we wish her and her family the best of luck today. `,
+    `*They're not good-looking, but they're not shy. ${exports.a}!*`,
+    `*Lookie there. It's ${exports.a}, always a threat on this course.*`,
     //5-7
-    `*${a}? Why do I get the feeling that we've picked up another pathetic life form?*`,
-    `*And a late entry, young ${a}, a local boy.*`,
-    `*And there goes ${a}! They will be hard-pressed to catch up with the leaders.*`,
-    `*Look. Here they come. It's ${a}!*`,
+    `*${exports.a}? Why do I get the feeling that we've picked up another pathetic life form?*`,
+    `*And a late entry, young ${exports.a}, a local boy.*`,
+    `*And there goes ${exports.a}! They will be hard-pressed to catch up with the leaders.*`,
+    `*Look. Here they come. It's ${exports.a}!*`,
     //>8
-    `*And you, young ${a}. We will watch your career with great interest.*`,
-    `*The chosen one ${a} may be.*`,
-    `*I'm betting heavily on ${a}.*`,
-    `*You have been well trained, ${a}. They will be no match for you.*`,
-    `*That's a nice pod you have there, ${a}. I hope you didn't kill anyone I know for it.*`,
-    `*The force is unusually strong with you, ${a}. That much is clear.*`,
-    `*${a}'s midi-chlorian count is off the chart. Over 20,000!*`,
-    `*I warn you, ${a}. No funny business.*`,
-    `*Are you an angel, ${a}?*`,
-    `*A big turnout here, from all corners of the Outer Rim territories. It's ${a}!*`,
-    `*Welcome, ${a}. Take a look around! I've got everything you need*`,
-    `*Welcome, ${a}. Take a look around! I've gotta lots of junk*`,
-    `*${a}. They come here, how do they find me? They come here, they mess up my discord-- Hey!*`,
-    `*${a}. They come here. They look around. They no buy. Why nobody buy? Eyyyyyyyy*`,
-    `*${a}. Just who is this mysterious podracer? They sure impressed us with their qualifying laps, whoever they are.*`,
-    `*${a} is down there! Well I thought they were serving four life sentences here at Oovo IV.*`,
-    `*${a} has joined the pack in their black and white Turca Special. Hooo! They look fast!*`,
-    `*It's ${a} in their modified Pizer-Errol Stinger. Very sharp!*`,
-    `*I see ${a} is just taking their place on the grid. That's a quick podracer they've got there!*`,
-    `*It's the little human; born on Tatooine, uh... ${a}. Well, let's hope they can just finish the race.*`,
-    `*There they are: the reigning champion of the Boonta Classic and the crowd favorite, ${a}!*`,
-    `*The famous write of Podracer Quarterly themself, ${a} is gonna give the real thing a try today. Hmm hmm, hope they can finish the race!*`,
-    `*The Vulptereen racer ${a} is on the track today. Whoah, they are gonna be tough to beat.*`,
-    `*Wow! Look at that! It's the galaxy famous ${a} in their custom Ord Pedrovia.*`,
-    `*The track favorite is ${a}, a.k.a. "The Hitman". Boy, they sure look tough in that big Manta RamAir MARK IV podracer of theirs!*`,
-    `*Well I've got my money on that little scrapper ${a}. They may be small in stature, but they've got a couple of the biggest racing engines I've ever seen.*`,
-    `*I see three-time winner ${a} is back for another try*`,
-    `*The current record holder for this track is... ${a}!*`,
-    `*I see that the dashing ${a} has joined the group for today's race. They've been podracing since they were two!*`,
-    `*${a} is piloting their new super experimental podracer. This may be the future of podracer racing folks so take a good look: NO CABLES!*`,
-    `*Would you check out the size of those engines ${a} is reigning? UNBELIEVABLE!*`,
-    `*${a} has come out of nowhere to challenge the best podracers today. This confident Triffian bosts three semi-pro titles on Malastare!*`,
-    `*Ahh they're reckless but a real crowd-pleaser. The Tatooine native ${a} is on the starting grid.*`,
-    `*My money's on ${a} for this race. Just look at the size of those engines!*`,
-    `*It's two-time winner ${a}. This Sneevel's got money to burn and they've put it all into their podracer!*`,
-    `*I think ${a} is the one to watch today. They really want to win!*`,
-    `*I'm betting on that tall drink of water from the Toong system, ${a}. They've got four-- COUNT 'EM... FOUR ENGINES!*`
+    `*And you, young ${exports.a}. We will watch your career with great interest.*`,
+    `*The chosen one ${exports.a} may be.*`,
+    `*I'm betting heavily on ${exports.a}.*`,
+    `*You have been well trained, ${exports.a}. They will be no match for you.*`,
+    `*That's a nice pod you have there, ${exports.a}. I hope you didn't kill anyone I know for it.*`,
+    `*The force is unusually strong with you, ${exports.a}. That much is clear.*`,
+    `*${exports.a}'s midi-chlorian count is off the chart. Over 20,000!*`,
+    `*I warn you, ${exports.a}. No funny business.*`,
+    `*Are you an angel, ${exports.a}?*`,
+    `*A big turnout here, from all corners of the Outer Rim territories. It's ${exports.a}!*`,
+    `*Welcome, ${exports.a}. Take a look around! I've got everything you need*`,
+    `*Welcome, ${exports.a}. Take a look around! I've gotta lots of junk*`,
+    `*${exports.a}. They come here, how do they find me? They come here, they mess up my discord-- Hey!*`,
+    `*${exports.a}. They come here. They look around. They no buy. Why nobody buy? Eyyyyyyyy*`,
+    `*${exports.a}. Just who is this mysterious podracer? They sure impressed us with their qualifying laps, whoever they are.*`,
+    `*${exports.a} is down there! Well I thought they were serving four life sentences here at Oovo IV.*`,
+    `*${exports.a} has joined the pack in their black and white Turca Special. Hooo! They look fast!*`,
+    `*It's ${exports.a} in their modified Pizer-Errol Stinger. Very sharp!*`,
+    `*I see ${exports.a} is just taking their place on the grid. That's a quick podracer they've got there!*`,
+    `*It's the little human; born on Tatooine, uh... ${exports.a}. Well, let's hope they can just finish the race.*`,
+    `*There they are: the reigning champion of the Boonta Classic and the crowd favorite, ${exports.a}!*`,
+    `*The famous write of Podracer Quarterly themself, ${exports.a} is gonna give the real thing a try today. Hmm hmm, hope they can finish the race!*`,
+    `*The Vulptereen racer ${exports.a} is on the track today. Whoah, they are gonna be tough to beat.*`,
+    `*Wow! Look at that! It's the galaxy famous ${exports.a} in their custom Ord Pedrovia.*`,
+    `*The track favorite is ${exports.a}, a.k.a. "The Hitman". Boy, they sure look tough in that big Manta RamAir MARK IV podracer of theirs!*`,
+    `*Well I've got my money on that little scrapper ${exports.a}. They may be small in stature, but they've got a couple of the biggest racing engines I've ever seen.*`,
+    `*I see three-time winner ${exports.a} is back for another try*`,
+    `*The current record holder for this track is... ${exports.a}!*`,
+    `*I see that the dashing ${exports.a} has joined the group for today's race. They've been podracing since they were two!*`,
+    `*${exports.a} is piloting their new super experimental podracer. This may be the future of podracer racing folks so take a good look: NO CABLES!*`,
+    `*Would you check out the size of those engines ${exports.a} is reigning? UNBELIEVABLE!*`,
+    `*${exports.a} has come out of nowhere to challenge the best podracers today. This confident Triffian bosts three semi-pro titles on Malastare!*`,
+    `*Ahh they're reckless but a real crowd-pleaser. The Tatooine native ${exports.a} is on the starting grid.*`,
+    `*My money's on ${exports.a} for this race. Just look at the size of those engines!*`,
+    `*It's two-time winner ${exports.a}. This Sneevel's got money to burn and they've put it all into their podracer!*`,
+    `*I think ${exports.a} is the one to watch today. They really want to win!*`,
+    `*I'm betting on that tall drink of water from the Toong system, ${exports.a}. They've got four-- COUNT 'EM... FOUR ENGINES!*`
 ]
 
-module.exports = goodbyeMessages = [
-    `*I sense a disturbance in the force. Clouded ${a}'s future is.*`,
-    `*${a}? What's happening? A communications disruption can mean only one thing: invasion.*`,
-    `*Maybe next time you win, huh ${a}?*`,
-    `*Get lost ${a}! Come back when you got some money!*`,
-    `*You were the chosen one, ${a}!*`,
-    `*You're going down a path I can't follow, ${a}!*`,
-    `*${a} was banished because he was clumsy.*`,
-    `*Suit yourself, ${a}!*`,
-    `*You have a big day tomorrow. Sleep well, ${a}.*`
+exports.goodbyeMessages = [
+    `*I sense a disturbance in the force. Clouded ${exports.a}'s future is.*`,
+    `*${exports.a}? What's happening? A communications disruption can mean only one thing: invasion.*`,
+    `*Maybe next time you win, huh ${exports.a}?*`,
+    `*Get lost ${exports.a}! Come back when you got some money!*`,
+    `*You were the chosen one, ${exports.a}!*`,
+    `*You're going down a path I can't follow, ${exports.a}!*`,
+    `*${exports.a} was banished because he was clumsy.*`,
+    `*Suit yourself, ${exports.a}!*`,
+    `*You have a big day tomorrow. Sleep well, ${exports.a}.*`
 ]
 
-module.exports = troubleShooting = [
-    `*Wait. Little ${a} has stalled.*`,
-    `*${a}'s been forced onto the service ramp!*`,
-    `*Looks like ${a} needs a pitstop.*`,
-    `*${a}'s in trouble! Sebulba takes the lead!*`,
-    `*Well it looks like ${a} is having engine trouble also.*`,
-    `*Ooh, there goes ${a}'s power coupling*!`,
-    `*${a}'s spinning out of control!*`,
-    `*Count ${a} outta dis one.*`,
-    `*${a}'s hyperdrive generator's gone. He'll need a new one.*`,
-    `*Are you sure about this, ${a}? Trusting your fate to a boy you hardly know?*`,
-    `*${a} got his hand caught in an energy beam.*`,
-    `*${a} has some unfinished business. He won't be long.*`,
-    `*${a}'s losing power. There seems to be a problem with the main reactor.*`
+exports.troubleShooting = [
+    `*Wait. Little ${exports.a} has stalled.*`,
+    `*${exports.a}'s been forced onto the service ramp!*`,
+    `*Looks like ${exports.a} needs a pitstop.*`,
+    `*${exports.a}'s in trouble! Sebulba takes the lead!*`,
+    `*Well it looks like ${exports.a} is having engine trouble also.*`,
+    `*Ooh, there goes ${exports.a}'s power coupling*!`,
+    `*${exports.a}'s spinning out of control!*`,
+    `*Count ${exports.a} outta dis one.*`,
+    `*${exports.a}'s hyperdrive generator's gone. He'll need a new one.*`,
+    `*Are you sure about this, ${exports.a}? Trusting your fate to a boy you hardly know?*`,
+    `*${exports.a} got his hand caught in an energy beam.*`,
+    `*${exports.a} has some unfinished business. He won't be long.*`,
+    `*${exports.a}'s losing power. There seems to be a problem with the main reactor.*`
 ]
 
-module.exports = fixed = [
-    `*Amazing! A quick control thrust and ${a} is back on course!*`,
-    `*Power's back! ${a} did it! He bypassed the main power drive!*`,
-    `*You come back, huh, ${a}?*`,
-    `*${a} was about to be turned into orange goo.*`
+exports.fixed = [
+    `*Amazing! A quick control thrust and ${exports.a} is back on course!*`,
+    `*Power's back! ${exports.a} did it! He bypassed the main power drive!*`,
+    `*You come back, huh, ${exports.a}?*`,
+    `*${exports.a} was about to be turned into orange goo.*`
 ]
 
-module.exports = errorMessage = [
+exports.errorMessage = [
     `*Uhhhh, that doesn't compute, uhh wait, uhh-- You're under arrest!*`,
     "*Mind tricks don't work on me! Only money.*",
     "*What, you think you're some kind of jedi waving your hand around like that?*",
@@ -393,12 +393,12 @@ module.exports = errorMessage = [
     "*Republic credits are no good out here, I need something more real.*"
 ]
 
-module.exports = voiceJoin = [
+exports.voiceJoin = [
     "F:/botto/sfx/join/join01.mp3",
     "F:/botto/sfx/join/join02.mp3"
 ]
 
-module.exports = voiceWelcome = [
+exports.voiceWelcome = [
     "F:/botto/sfx/welcome/welcome01.mp3",
     "F:/botto/sfx/welcome/welcome02.mp3",
     "F:/botto/sfx/welcome/welcome03.mp3",
@@ -423,7 +423,7 @@ module.exports = voiceWelcome = [
     "F:/botto/sfx/welcome/welcome22.mp3"
 ]
 
-module.exports = voiceFarewell = [
+exports.voiceFarewell = [
     "F:/botto/sfx/farewell/farewell01.mp3",
     "F:/botto/sfx/farewell/farewell02.mp3",
     "F:/botto/sfx/farewell/farewell03.mp3",
@@ -444,7 +444,7 @@ module.exports = voiceFarewell = [
 
 ]
 
-module.exports = voiceGeneral = [
+exports.voiceGeneral = [
     "F:/botto/sfx/general/01.mp3",
     "F:/botto/sfx/general/02.mp3",
     "F:/botto/sfx/general/03.mp3",
@@ -513,14 +513,14 @@ module.exports = voiceGeneral = [
     "F:/botto/sfx/general/66.mp3",
 ]
 
-module.exports = voiceError = [
+exports.voiceError = [
     "F:/botto/sfx/error/error01.mp3",
     "F:/botto/sfx/error/error02.mp3",
     "F:/botto/sfx/error/error03.mp3",
     "F:/botto/sfx/error/error04.mp3",
 ]
 
-module.exports = voiceTrouble = [
+exports.voiceTrouble = [
     "F:/botto/sfx/troubleshooting/ts01.mp3",
     "F:/botto/sfx/troubleshooting/ts02.mp3",
     "F:/botto/sfx/troubleshooting/ts03.mp3",
@@ -534,16 +534,16 @@ module.exports = voiceTrouble = [
     "F:/botto/sfx/troubleshooting/ts11.mp3",
 ]
 
-module.exports = voiceFixed = [
+exports.voiceFixed = [
     "F:/botto/sfx/troubleshooting/fixed/fixed01.mp3",
     "F:/botto/sfx/troubleshooting/fixed/fixed02.mp3",
 ]
 
-module.exports = voiceChallenge = [
+exports.voiceChallenge = [
 
 ]
 
-module.exports = discordchannels = [
+exports.discordchannels = [
     { "name": "welcome-rules", "id": "442116200147714049" },
     { "name": "discord-affiliates", "id": "593235685914312708" },
     { "name": "join-logs", "id": "441839751235108875" },
@@ -571,7 +571,7 @@ module.exports = discordchannels = [
     { "name": "minecraft", "id": "699297214257823850" }
 ]
 
-module.exports = racer_hints = [
+exports.racer_hints = [
     [
         "pilots a Modified Radon-Ulzer 620C Racing Engines",
         "voiced by Jake Lloyd",
@@ -903,7 +903,7 @@ module.exports = racer_hints = [
     ]
 ]
 
-module.exports = track_hints = [
+exports.track_hints = [
     [
         "Sebulba is the track favorite",
         "the track favorite has orange on their flag",

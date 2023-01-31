@@ -6,10 +6,11 @@ const { EmbedBuilder } = require('discord.js');
 module.exports = {
     name: 'challenge',
     async execute(client, interaction, args) {
-        let member = interaction.member.user.id
+        console.log(interaction)
+        let member = interaction.user.id
         const Discord = require('discord.js');
         const Guild = client.guilds.cache.get(interaction.guild_id)
-        const Member = Guild.members.cache.get(member)
+        const Member = interaction.member
         const name = interaction.member.nick
         var tools = require('./../tools.js');
         var admin = require('firebase-admin');
@@ -52,7 +53,7 @@ module.exports = {
         if (!player) {
             player = initializeUser(userref, member)
         }
-
+        console.log(player)
         //initialize player if they don't exist
         let profile = userdata[player]?.random
         if (!profile) {
@@ -61,7 +62,10 @@ module.exports = {
 
         let profileref = userref.child(player).child('random')
         let current_challenge = challengedata[profile.current] ?? null
-        let current_challengeref = challengeref.child(profile.current)
+        let current_challengeref = null
+        if(!interaction.isChatInputCommand()){
+            current_challengeref = challengeref.child(interaction.message.id)
+        }
         let achievements = achievement_data
 
         if (args[0] == "random") {
@@ -78,7 +82,7 @@ module.exports = {
                     }
 
                     current_challenge = initializeChallenge({ profile, member, challengeref, profileref, interaction })
-                    let data = updateChallenge({ challengedata, profile, current_challenge, current_challengeref, profileref })
+                    let data = updateChallenge({ challengedata, profile, current_challenge, current_challengeref, profileref, member, achievements, name })
                     let message = await interaction.reply({ embeds: [data.message], components: [data.components], fetchReply: true })
                     challengeref.child(message.id).set(challenge)
 
@@ -90,7 +94,7 @@ module.exports = {
                             ]
                             if (!current_challenge.completed) {
                                 profileref.child("current").update({ completed: true })
-                                let data = updateChallenge({ challengedata, profile, current_challenge, current_challengeref, profileref })
+                                let data = updateChallenge({ challengedata, profile, current_challenge, current_challengeref, profileref, member, achievements, name })
                                 interaction.editReply({ embeds: [data.message], components: [main_components] })
                             } else {
                                 interaction.editReply({ components: [main_components] })
@@ -111,7 +115,7 @@ module.exports = {
                                 profileref.update({ truguts_spent: profile.truguts_spent + current_challenge.reroll_cost })
                             }
                             profileref.child("current").update({ completed: true, rerolled: true, title: ":arrows_counterclockwise: Rerolled: " })
-                            let data = updateChallenge({ challengedata, profile, current_challenge, current_challengeref, profileref })
+                            let data = updateChallenge({ challengedata, profile, current_challenge, current_challengeref, profileref, member, achievements, name })
                             interaction.editReply({ embeds: [data.message] })
                             client.buttons.get("challenge").execute(client, interaction, ["random", "play"])
                         } else {
@@ -170,7 +174,7 @@ module.exports = {
                             }
                         }
                         //populate options
-                        let data = updateChallenge({ challengedata, profile, current_challenge, current_challengeref, profileref })
+                        let data = updateChallenge({ challengedata, profile, current_challenge, current_challengeref, profileref, member, achievements, name })
                         interaction.editReply({ embeds: [data.message], components: [bribeComponents(profile)] })
                     } else {
                         interaction.reply({ embeds: [notYoursEmbed()], components: [{ type: 1, components: [playButton()] }] })
@@ -182,7 +186,7 @@ module.exports = {
                         profileref.child("current").update({ truguts_earned: 0, title: "", completed: false, undone: true })
                         timeref.child(current_challenge.submission).remove()
 
-                        let data = updateChallenge({ challengedata, profile, current_challenge, current_challengeref, profileref })
+                        let data = updateChallenge({ challengedata, profile, current_challenge, current_challengeref, profileref, member, achievements, name })
                         interaction.editReply({ embeds: [data.message], components: [data.components] })
                     } else {
                         interaction.reply({
@@ -214,7 +218,7 @@ module.exports = {
                                 backwards: profile.current.conditions.backwards
                             }
                         });
-                        let data = updateChallenge({ challengedata, profile, current_challenge, current_challengeref, profileref })
+                        let data = updateChallenge({ challengedata, profile, current_challenge, current_challengeref, profileref, member, achievements, name })
                         interaction.editReply({ embeds: [data.message], components: [data.componenets] })
                     } else {
                         interaction.reply(
@@ -229,7 +233,7 @@ module.exports = {
                     }
                     break
                 case 'menu':
-                    interaction.reply({ embeds: [menuEmbed()], components: [menuComponents()] })
+                    interaction.reply({ embeds: [menuEmbed()], components: menuComponents() })
                     break
                 case 'hint':
                     //get achievement progress
@@ -1515,7 +1519,7 @@ module.exports = {
                         let time = tools.timetoSeconds(subtime)
                         if ((challengeend - challengestart) < time * 1000) {
                             profileref.child("current").update({ completed: true, title: ":negative_squared_cross_mark: Closed: ", funny_business: true })
-                            let data = updateChallenge({ challengedata, profile, current_challenge, current_challengeref, profileref })
+                            let data = updateChallenge({ challengedata, profile, current_challenge, current_challengeref, profileref, member, achievements, name })
                             client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({ data: { embeds: [data.message], components: [] } })
                             const holdUp = new EmbedBuilder()
                                 .setTitle("<:WhyNobodyBuy:589481340957753363> I warn you. No funny business.")
@@ -1550,7 +1554,7 @@ module.exports = {
                             }
                             var newPostRef = timeref.push(submissiondata);
                             profileref.child("current").update({ submission: newPostRef.key, completed: true })
-                            let data = updateChallenge({ challengedata, profile, current_challenge, current_challengeref, profileref })
+                            let data = updateChallenge({ challengedata, profile, current_challenge, current_challengeref, profileref, member, achievements, name })
                             interaction.editReply({ embeds: [data.message], componenets: [data.componenets] })
                         }
                     } else {

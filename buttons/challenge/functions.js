@@ -1,7 +1,7 @@
-const { tips, winnings_map, achievements, racers, tracks, planets, playerPicks } = require('../../data.js')
+const { winnings_map, achievements, racers, tracks, planets, playerPicks } = require('../../data.js')
 const tools = require('../../tools.js')
-const { truguts, swe1r_guild } = require('./data.js')
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle, Events, EmbedBuilder } = require('discord.js');
+const { truguts, swe1r_guild, tips } = require('./data.js')
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
 
 exports.getGoalTimes = function (track, racer, skips, nu, laps, backwards) {
     let upg = nu ? 0 : 5
@@ -192,7 +192,7 @@ exports.initializeChallenge = function ({ profile, player, challengeref, profile
     //initialize challenge
     let challenge = {
         type: type,
-        created: challengestart,
+        created: Date.now(),
         channel: interaction.channel_id,
         players: type == "private" ? [player] : [],
         completed: false,
@@ -418,7 +418,7 @@ exports.awardAchievements = function ({ client, interaction, achievements, Membe
             if (profile.achievements[key] == false) { //send congrats
                 profileref.child("achievements").child(key).set(true)
                 const congratsEmbed = new EmbedBuilder()
-                    .setAuthor(interaction.member.nick + " got an achievement!", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).displayAvatarURL())
+                    .setAuthor({ name: interaction.member.nick + " got an achievement!", iconURL: client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).displayAvatarURL() })
                     .setDescription(achievements[key].description)
                     .setColor("FFB900")
                     .setTitle("**:trophy: " + achievements[key].name + "**")
@@ -511,7 +511,7 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, best,
     return { earnings: earnings_total, receipt: earnings }
 }
 
-exports.updateChallenge = function ({ challengedata, profile, current_challenge, current_challengeref, profileref } = {}) {
+exports.updateChallenge = function ({ challengedata, profile, current_challenge, current_challengeref, profileref, member, achievements, name } = {}) {
     let best = [], played = false, record_holder = false
     Object.keys(challengedata).forEach(key => {
         if (challengedata[key].user == member) { //get achievement progress
@@ -576,6 +576,9 @@ exports.updateChallenge = function ({ challengedata, profile, current_challenge,
         current_challengeref.update({ reroll_cost: record_holder ? "free" : played ? "discount" : "full price" })
     }
 
+    //get submitted time
+    let submitted_time = {}
+
     let data = {
         message: exports.challengeEmbed({ current_challenge, profile, feedbackdata, best, name, submitted_time, member }),
         components: exports.challengeComponents()
@@ -595,8 +598,8 @@ exports.challengeEmbed = function ({ current_challenge, profile, feedbackdata, b
     const challengeEmbed = new EmbedBuilder()
         .setTitle(exports.generateChallengeTitle(current_challenge))
         .setColor(exports.challengeColor(current_challenge))
-        .setFooter("Truguts: 📀" + tools.numberWithCommas(profile.truguts_earned - profile.truguts_spent))
-        .setAuthor(interaction.member.nick + "'s Random Challenge", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).displayAvatarURL())
+        .setFooter({text: "Truguts: 📀" + tools.numberWithCommas(profile.truguts_earned - profile.truguts_spent)})
+        .setAuthor(name + "'s Random Challenge", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).displayAvatarURL())
         .setDescription(exports.getFeedbackTally(feedbackdata, current_challenge) + exports.generateChallengeDescription(current_challenge, best, profile, name) + "\n" + exports.achievementProgress(achievements))
     if (!current_challenge.rerolled && Date.now() - 15 * 60 * 1000 < current_challenge.created) {
         if (current_challenge.completed) {
@@ -606,7 +609,7 @@ exports.challengeEmbed = function ({ current_challenge, profile, feedbackdata, b
         }
         challengeEmbed.addField("Best Times", exports.generateLeaderboard(best, member), true)
     } else {
-        if (current_challenge.rerolled) { //FIX ME: make reroll function
+        if (current_challenge.rerolled) {
             let reroll = exports.rerollReceipt(current_challenge)
             challengeEmbed.setDescription(reroll.receipt)
         }
@@ -741,11 +744,11 @@ exports.bribeComponents = function (profile) {
 
 exports.menuEmbed = function () {
     const myEmbed = new EmbedBuilder()
-        .setAuthor("Random Challenge", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/game-die_1f3b2.png")
+        .setAuthor({ name: "Random Challenge", iconURL: "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/game-die_1f3b2.png" })
         .setTitle("<:menu:862620287735955487> Menu")
         .setColor("#ED4245")
         .setDescription("This is the Random Challenge menu. From here, you can access all options related to random challenges. Press the **Play** button to get rollin'.\n\n*" + tips[Math.floor(Math.random() * tips.length)] + "*")
-        .setFooter("/challenge random")
+        .setFooter({text:"/challenge random"})
     return myEmbed
 }
 
@@ -768,7 +771,7 @@ exports.menuComponents = function () {
         .addComponents(
             new ButtonBuilder()
                 .setCustomId("challenge_random_hunt_initial")
-                .setLabel("Hints")
+                .setLabel("Hunt")
                 .setStyle(ButtonStyle.Secondary)
                 .setEmoji('🎯')
         )
@@ -822,19 +825,19 @@ exports.notYoursEmbed = function () {
 exports.hintEmbed = function (player) {
     const hintEmbed = new EmbedBuilder()
         .setTitle(":bulb: Hints")
-        .setAuthor("Random Challenge", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/game-die_1f3b2.png")
+        .setAuthor({ name: "Random Challenge", iconURL: "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/game-die_1f3b2.png" })
         .setColor("#ED4245")
         .setDescription("Hints help you narrow down what challenges you need to complete for :trophy: **Achievements**. The more you pay, the better the hint.")
-        .setFooter(player.user.username + " | Truguts: 📀" + tools.numberWithCommas(profile.truguts_earned - profile.truguts_spent), client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
+        .setFooter({text: player.user.username + " | Truguts: 📀" + tools.numberWithCommas(profile.truguts_earned - profile.truguts_spent), iconURL: client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL()})
     return hintEmbed
 }
 
 exports.settingsEmbed = function (interaction, profile) {
     const settingsEmbed = new EmbedBuilder()
         .setTitle(":gear: Settings")
-        .setAuthor("Random Challenge", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/game-die_1f3b2.png")
+        .setAuthor({ name: "Random Challenge", iconURL: "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/game-die_1f3b2.png" })
         .setDescription("Customize the odds for your random challenge conditions and select a winnings pattern.")
-        .setFooter(interaction.member.user.username, client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
+        .setFooter({text: interaction.member.user.username, iconURL: client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL()})
         .setColor("#ED4245")
     let winnings = profile.winnings
     let odds = {

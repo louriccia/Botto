@@ -1,6 +1,7 @@
 module.exports = {
     name: 'lookup',
     execute(client, interaction, args) {
+
         const Discord = require('discord.js');
         var myEmbed = new Discord.MessageEmbed()
         var tools = require('../tools.js');

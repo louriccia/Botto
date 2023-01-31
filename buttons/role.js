@@ -1,6 +1,8 @@
 module.exports = {
     name: 'role',
     execute(client, interaction, args) {
+        
+
         var tools = require('./../tools.js');
         const Discord = require('discord.js');
         const Guild = client.guilds.cache.get(interaction.guild_id); // Getting the guild.
