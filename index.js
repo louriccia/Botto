@@ -67,15 +67,21 @@ var database = admin.database();
 var logref = database.ref('log');
 var errorlogref = database.ref('log/error');
 
-var ref = database.ref('challenge/times');
-ref.on("value", function (snapshot) {
-    challengedata = snapshot.val();
+var challengetimeref = database.ref('challenge/times');
+challengetimeref.on("value", function (snapshot) {
+    challengetimedata = snapshot.val();
 }, function (errorObject) {
     console.log("The read failed: " + errorObject);
 });
 var profileref = database.ref('challenge/profiles');
 profileref.on("value", function (snapshot) {
     profiledata = snapshot.val();
+}, function (errorObject) {
+    console.log("The read failed: " + errorObject.code);
+});
+var challengesref = database.ref('challenge/challenges');
+challengesref.on("value", function (snapshot) {
+    challengesdata = snapshot.val();
 }, function (errorObject) {
     console.log("The read failed: " + errorObject.code);
 });

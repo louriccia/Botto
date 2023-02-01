@@ -6,20 +6,20 @@ const { EmbedBuilder } = require('discord.js');
 module.exports = {
     name: 'challenge',
     async execute(client, interaction, args) {
-        console.log(interaction)
         let member = interaction.user.id
         const Discord = require('discord.js');
         const Guild = client.guilds.cache.get(interaction.guild_id)
         const Member = interaction.member
-        const name = interaction.member.nick
+        const name = interaction.member.displayName
+        const avatar = await interaction.member.displayAvatarURL()
         var tools = require('./../tools.js');
         var admin = require('firebase-admin');
         var database = admin.database();
         var firebase = require("firebase/app");
 
-        var timeref = database.ref('challenge/times');
-        timeref.on("value", function (snapshot) {
-            timedata = snapshot.val();
+        var challengetimeref = database.ref('challenge/times');
+        challengetimeref.on("value", function (snapshot) {
+            challengetimedata = snapshot.val();
         }, function (errorObject) {
             console.log("The read failed: " + errorObject);
         });
@@ -29,9 +29,9 @@ module.exports = {
         }, function (errorObject) {
             console.log("The read failed: " + errorObject.code);
         });
-        var challengeref = database.ref('challenge/challenges');
-        challengeref.on("value", function (snapshot) {
-            challengedata = snapshot.val();
+        var challengesref = database.ref('challenge/challenges');
+        challengesref.on("value", function (snapshot) {
+            challengesdata = snapshot.val();
         }, function (errorObject) {
             console.log("The read failed: " + errorObject.code);
         });
@@ -53,7 +53,6 @@ module.exports = {
         if (!player) {
             player = initializeUser(userref, member)
         }
-        console.log(player)
         //initialize player if they don't exist
         let profile = userdata[player]?.random
         if (!profile) {
@@ -61,11 +60,13 @@ module.exports = {
         }
 
         let profileref = userref.child(player).child('random')
-        let current_challenge = challengedata[profile.current] ?? null
+        let current_challenge = null
         let current_challengeref = null
-        if(!interaction.isChatInputCommand()){
-            current_challengeref = challengeref.child(interaction.message.id)
+        if (!interaction.isChatInputCommand() && args[1] !== 'play') {
+            current_challengeref = challengesref.child(interaction.message.id)
+            current_challenge = challengesdata[interaction.message.id]
         }
+        console.log(current_challenge)
         let achievements = achievement_data
 
         if (args[0] == "random") {
@@ -76,35 +77,42 @@ module.exports = {
                     if (current_challenge && current_challenge.completed == false && current_challenge.start > challengestart - 900000) {
                         let challengeinProgress = new EmbedBuilder()
                             .setTitle("<:WhyNobodyBuy:589481340957753363> Challenge in Progress")
-                            .setDescription("You already have a challenge in progress in the <#" + current_challenge.channel + "> channel.\nIf you have enough truguts, you can reroll the challenge by clicking the :game_die: **Reroll** button on your challenge, otherwise you will need to wait until the challenge expires to roll a new one.")
+                            .setDescription("You already have a challenge in progress in <#" + current_challenge.channel + ">.\nIf you have enough truguts, you can reroll the challenge by clicking the :game_die: **Reroll** button on your challenge, otherwise you will need to wait until the challenge expires to roll a new one.")
                         interaction.reply({ embed: challengeinProgress, ephemeral: true })
                         return
                     }
+                    let type = 'private'
+                    current_challenge = initializeChallenge({ profile, member, interaction, type })
+                    let data = updateChallenge({ challengetimedata, profile, current_challenge, current_challengeref, profileref, member, achievements, name, avatar, achievements, interaction })
+                    let message = null
+                    if (args[2] == 'reroll') {
+                        message = await interaction.followUp({ embeds: [data.message], components: [data.components], fetchReply: true })
+                    } else {
+                        message = await interaction.reply({ embeds: [data.message], components: [data.components], fetchReply: true })
+                    }
 
-                    current_challenge = initializeChallenge({ profile, member, challengeref, profileref, interaction })
-                    let data = updateChallenge({ challengedata, profile, current_challenge, current_challengeref, profileref, member, achievements, name })
-                    let message = await interaction.reply({ embeds: [data.message], components: [data.components], fetchReply: true })
-                    challengeref.child(message.id).set(challenge)
 
+                    challengesref.child(message.id).set(current_challenge)
                     if (current_challenge.type == 'private') {
                         setTimeout(async function () { //mark challenge abandoned
                             let main_components = [
-                                playButton(),
-                                { type: 2, style: 2, custom_id: "challenge_random_menu", emoji: { name: "menu", id: "862620287735955487" } }
+                                playButton()
                             ]
+                            console.log('abandoned')
                             if (!current_challenge.completed) {
                                 profileref.child("current").update({ completed: true })
-                                let data = updateChallenge({ challengedata, profile, current_challenge, current_challengeref, profileref, member, achievements, name })
-                                interaction.editReply({ embeds: [data.message], components: [main_components] })
+                                let data = updateChallenge({ challengetimedata, profile, current_challenge, current_challengeref, profileref, member, achievements, name, avatar, achievements, interaction })
+                                interaction.update({ embeds: [data.message], components: [main_components] })
                             } else {
-                                interaction.editReply({ components: [main_components] })
+                                interaction.update({ components: [main_components] })
                             }
                         }, 895000)
                     }
                     break
                 case 'reroll':
-                    if (interaction.message.id == current_challenge.message) {
-                        if (profile.truguts_earned - profile.truguts_spent >= current_challenge.reroll_cost) {
+                    let cost = (current_challenge.reroll_cost == "full price" ? truguts.reroll : current_challenge.reroll_cost == "discount" ? truguts.reroll_discout : 0)
+                    if (current_challenge.players.includes(interaction.user.id) && current_challenge.created > Date.now() - 900000 && !current_challenge.completed && !current_challenge.rerolled) {
+                        if (profile.truguts_earned - profile.truguts_spent >= cost) {
                             //process purchase
                             if (current_challenge.reroll_cost > 0) {
                                 profileref.child("purchases").push({
@@ -112,12 +120,13 @@ module.exports = {
                                     purchased_item: "reroll",
                                     selection: current_challenge.reroll_cost == truguts.reroll ? "full price" : "discount"
                                 })
-                                profileref.update({ truguts_spent: profile.truguts_spent + current_challenge.reroll_cost })
+                                profileref.update({ truguts_spent: profile.truguts_spent + cost })
                             }
-                            profileref.child("current").update({ completed: true, rerolled: true, title: ":arrows_counterclockwise: Rerolled: " })
-                            let data = updateChallenge({ challengedata, profile, current_challenge, current_challengeref, profileref, member, achievements, name })
-                            interaction.editReply({ embeds: [data.message] })
-                            client.buttons.get("challenge").execute(client, interaction, ["random", "play"])
+                            challengesref.child(interaction.message.id).update({completed: true, rerolled: true})
+                            current_challenge = challengesdata[interaction.message.id]
+                            let data = updateChallenge({ challengetimedata, profile, current_challenge, current_challengeref, profileref, member, achievements, name, avatar, achievements, interaction })
+                            interaction.update({ embeds: [data.message], components: [] })
+                            //client.buttons.get("challenge").execute(client, interaction, ["random", "play", "reroll"])
                         } else {
                             let noMoney = new EmbedBuilder()
                                 .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
@@ -174,7 +183,7 @@ module.exports = {
                             }
                         }
                         //populate options
-                        let data = updateChallenge({ challengedata, profile, current_challenge, current_challengeref, profileref, member, achievements, name })
+                        let data = updateChallenge({ challengetimedata, profile, current_challenge, current_challengeref, profileref, member, achievements, name, avatar, achievements, interaction })
                         interaction.editReply({ embeds: [data.message], components: [bribeComponents(profile)] })
                     } else {
                         interaction.reply({ embeds: [notYoursEmbed()], components: [{ type: 1, components: [playButton()] }] })
@@ -186,7 +195,7 @@ module.exports = {
                         profileref.child("current").update({ truguts_earned: 0, title: "", completed: false, undone: true })
                         timeref.child(current_challenge.submission).remove()
 
-                        let data = updateChallenge({ challengedata, profile, current_challenge, current_challengeref, profileref, member, achievements, name })
+                        let data = updateChallenge({ challengetimedata, profile, current_challenge, current_challengeref, profileref, member, achievements, name, avatar, achievements, interaction })
                         interaction.editReply({ embeds: [data.message], components: [data.components] })
                     } else {
                         interaction.reply({
@@ -218,7 +227,7 @@ module.exports = {
                                 backwards: profile.current.conditions.backwards
                             }
                         });
-                        let data = updateChallenge({ challengedata, profile, current_challenge, current_challengeref, profileref, member, achievements, name })
+                        let data = updateChallenge({ challengetimedata, profile, current_challenge, current_challengeref, profileref, member, achievements, name, avatar, achievements, interaction })
                         interaction.editReply({ embeds: [data.message], components: [data.componenets] })
                     } else {
                         interaction.reply(
@@ -237,33 +246,33 @@ module.exports = {
                     break
                 case 'hint':
                     //get achievement progress
-                    let keys = Object.keys(challengedata)
+                    let keys = Object.keys(challengesdata)
                     for (let i = 0; i < keys.length; i++) {
                         let k = keys[i];
-                        if (challengedata[k].user == member) {
-                            if (!achievements.galaxy_famous.array.includes(challengedata[k].track)) {
-                                achievements.galaxy_famous.array.push(challengedata[k].track)
+                        if (challengesdata[k].user == member) {
+                            if (!achievements.galaxy_famous.array.includes(challengesdata[k].track)) {
+                                achievements.galaxy_famous.array.push(challengesdata[k].track)
                             }
-                            if (!achievements.pod_champ.array.includes(challengedata[k].racer)) {
-                                achievements.pod_champ.array.push(challengedata[k].racer)
+                            if (!achievements.pod_champ.array.includes(challengesdata[k].racer)) {
+                                achievements.pod_champ.array.push(challengesdata[k].racer)
                             }
-                            if (challengedata[k].skips && !achievements.light_skipper.array.includes(challengedata[k].track)) {
-                                achievements.light_skipper.array.push(challengedata[k].track)
+                            if (challengesdata[k].skips && !achievements.light_skipper.array.includes(challengesdata[k].track)) {
+                                achievements.light_skipper.array.push(challengesdata[k].track)
                             }
-                            if (challengedata[k].nu && !achievements.slow_steady.array.includes(challengedata[k].racer)) {
-                                achievements.slow_steady.array.push(challengedata[k].racer)
+                            if (challengesdata[k].nu && !achievements.slow_steady.array.includes(challengesdata[k].racer)) {
+                                achievements.slow_steady.array.push(challengesdata[k].racer)
                             }
-                            if (challengedata[k].mirror && !achievements.mirror_dimension.array.includes(challengedata[k].track)) {
-                                achievements.mirror_dimension.array.push(challengedata[k].track)
+                            if (challengesdata[k].mirror && !achievements.mirror_dimension.array.includes(challengesdata[k].track)) {
+                                achievements.mirror_dimension.array.push(challengesdata[k].track)
                             }
-                            if (challengedata[k].backwards && !achievements.backwards_compatible.array.includes(challengedata[k].track)) {
-                                achievements.backwards_compatible.array.push(challengedata[k].track)
+                            if (challengesdata[k].backwards && !achievements.backwards_compatible.array.includes(challengesdata[k].track)) {
+                                achievements.backwards_compatible.array.push(challengesdata[k].track)
                             }
-                            if (challengedata[k].racer == tracks[challengedata[k].track].favorite && !achievements.crowd_favorite.array.includes(challengedata[k].track)) {
-                                achievements.crowd_favorite.array.push(challengedata[k].track)
+                            if (challengesdata[k].racer == tracks[challengesdata[k].track].favorite && !achievements.crowd_favorite.array.includes(challengesdata[k].track)) {
+                                achievements.crowd_favorite.array.push(challengesdata[k].track)
                             }
-                            if (!achievements.true_jedi.array.includes(challengedata[k].track + "," + challengedata[k].racer)) {
-                                achievements.true_jedi.array.push(challengedata[k].track + "," + challengedata[k].racer)
+                            if (!achievements.true_jedi.array.includes(challengesdata[k].track + "," + challengesdata[k].racer)) {
+                                achievements.true_jedi.array.push(challengesdata[k].track + "," + challengesdata[k].racer)
                             }
                         }
                     }
@@ -893,7 +902,7 @@ module.exports = {
                         if (args[2] == "stats") {
 
                             //console.log(trugutsEarned(member))
-                            var keys = Object.keys(challengedata)
+                            var keys = Object.keys(challengesdata)
                             var stats = {
                                 total: 0,
                                 standard: 0,
@@ -976,15 +985,15 @@ module.exports = {
                             var hasraced = false
                             for (var i = 0; i < keys.length; i++) {
                                 var k = keys[i];
-                                if (challengedata[k].user == member) {
+                                if (challengesdata[k].user == member) {
                                     stats.total++
                                     //time stats
-                                    times.total += Number(challengedata[k].time)
-                                    var goals = getGoalTimes(challengedata[k].track, challengedata[k].racer, challengedata[k].skips, challengedata[k].nu, challengedata[k].laps)
+                                    times.total += Number(challengesdata[k].time)
+                                    var goals = getGoalTimes(challengesdata[k].track, challengesdata[k].racer, challengesdata[k].skips, challengesdata[k].nu, challengesdata[k].laps)
                                     var goal_array = ["elite", "pro", "rookie", "amateur", "youngling"]
                                     var goal_time = null
                                     for (var j = goals.length - 1; j > -1; j--) {
-                                        if (challengedata[k].time < goals[j]) {
+                                        if (challengesdata[k].time < goals[j]) {
                                             goal_time = j
                                         }
                                     }
@@ -992,48 +1001,48 @@ module.exports = {
                                         times[goal_array[goal_time]]++
                                     }
                                     //stats
-                                    if (!challengedata[k].mirror && !challengedata[k].nu && !challengedata[k].skips && challengedata[k].laps == 3) {
+                                    if (!challengesdata[k].mirror && !challengesdata[k].nu && !challengesdata[k].skips && challengesdata[k].laps == 3) {
                                         stats.standard++
                                     } else {
-                                        if (challengedata[k].skips) {
+                                        if (challengesdata[k].skips) {
                                             stats.skips++
                                             bonuses.non_standard++
                                         }
-                                        if (challengedata[k].nu) {
+                                        if (challengesdata[k].nu) {
                                             stats.no_upgrades++
                                             bonuses.non_standard++
                                         }
-                                        if (challengedata[k].laps !== 3) {
+                                        if (challengesdata[k].laps !== 3) {
                                             stats.non_3_lap++
                                             bonuses.non_standard++
                                         }
-                                        if (challengedata[k].mirror) {
+                                        if (challengesdata[k].mirror) {
                                             stats.mirrored++
                                             bonuses.non_standard++
                                         }
                                     }
                                     hasraced = true
-                                    getMost(mostPod, challengedata[k].racer)
-                                    getMost(mostTrack, challengedata[k].track)
-                                    getMost(mostPlanet, tracks[challengedata[k].track].planet)
-                                    getMost(mostCircuit, tracks[challengedata[k].track].circuit)
+                                    getMost(mostPod, challengesdata[k].racer)
+                                    getMost(mostTrack, challengesdata[k].track)
+                                    getMost(mostPlanet, tracks[challengesdata[k].track].planet)
+                                    getMost(mostCircuit, tracks[challengesdata[k].track].circuit)
                                     var first = true
                                     var pb = false
                                     var beat = []
                                     for (var p = 0; p < keys.length; p++) {
                                         var n = keys[p]
-                                        if (challengedata[n].track == challengedata[k].track && challengedata[n].racer == challengedata[k].racer && challengedata[n].skips == challengedata[k].skips && challengedata[n].nu == challengedata[k].nu && challengedata[n].laps == challengedata[k].laps && challengedata[n].mirror == challengedata[k].mirror) {
-                                            if (challengedata[n].date < challengedata[k].date) {
+                                        if (challengesdata[n].track == challengesdata[k].track && challengesdata[n].racer == challengesdata[k].racer && challengesdata[n].skips == challengesdata[k].skips && challengesdata[n].nu == challengesdata[k].nu && challengesdata[n].laps == challengesdata[k].laps && challengesdata[n].mirror == challengesdata[k].mirror) {
+                                            if (challengesdata[n].date < challengesdata[k].date) {
                                                 first = false
-                                                if (challengedata[n].user == member) {
+                                                if (challengesdata[n].user == member) {
                                                     pb = true
-                                                    if (challengedata[n].time < challengedata[k].time) {
+                                                    if (challengesdata[n].time < challengesdata[k].time) {
                                                         pb = false
                                                     }
                                                 }
                                             }
-                                            if (challengedata[n].user !== member && challengedata[n].time > challengedata[k].time && challengedata[n].date < challengedata[k].date && !beat.includes(challengedata[n].user)) {
-                                                beat.push(challengedata[n].user)
+                                            if (challengesdata[n].user !== member && challengesdata[n].time > challengesdata[k].time && challengesdata[n].date < challengesdata[k].date && !beat.includes(challengesdata[n].user)) {
+                                                beat.push(challengesdata[n].user)
                                             }
                                         }
                                     }
@@ -1112,25 +1121,25 @@ module.exports = {
                                     "Total Spending: `📀" + tools.numberWithCommas(purchases.total_spending) + "`", true)
                         } else if (args[2] == "achievements") {
                             //console.log(trugutsEarned(member))
-                            var keys = Object.keys(challengedata)
+                            var keys = Object.keys(challengesdata)
                             for (var i = 0; i < keys.length; i++) {
                                 var k = keys[i];
-                                if (challengedata[k].user == member) {
-                                    achievements.galaxy_famous.collection[String(challengedata[k].track)] = 1
-                                    achievements.pod_champ.collection[String(challengedata[k].racer)] = 1
-                                    if (challengedata[k].skips) {
-                                        achievements.light_skipper.collection[String(challengedata[k].track)] = 1
+                                if (challengesdata[k].user == member) {
+                                    achievements.galaxy_famous.collection[String(challengesdata[k].track)] = 1
+                                    achievements.pod_champ.collection[String(challengesdata[k].racer)] = 1
+                                    if (challengesdata[k].skips) {
+                                        achievements.light_skipper.collection[String(challengesdata[k].track)] = 1
                                     }
-                                    if (challengedata[k].nu) {
-                                        achievements.slow_steady.collection[String(challengedata[k].racer)] = 1
+                                    if (challengesdata[k].nu) {
+                                        achievements.slow_steady.collection[String(challengesdata[k].racer)] = 1
                                     }
-                                    if (challengedata[k].mirror) {
-                                        achievements.mirror_dimension.collection[String(challengedata[k].track)] = 1
+                                    if (challengesdata[k].mirror) {
+                                        achievements.mirror_dimension.collection[String(challengesdata[k].track)] = 1
                                     }
-                                    if (challengedata[k].racer == tracks[String(challengedata[k].track)].favorite) {
-                                        achievements.crowd_favorite.collection[String(challengedata[k].track)] = 1
+                                    if (challengesdata[k].racer == tracks[String(challengesdata[k].track)].favorite) {
+                                        achievements.crowd_favorite.collection[String(challengesdata[k].track)] = 1
                                     }
-                                    achievements.true_jedi.collection[String(challengedata[k].track + " " + challengedata[k].racer)] = 1
+                                    achievements.true_jedi.collection[String(challengesdata[k].track + " " + challengesdata[k].racer)] = 1
                                 }
                             }
                             if (member == interaction.member.user.id) {
@@ -1303,7 +1312,7 @@ module.exports = {
                     if (mirrored.length == 0) { mirrored.push(true, false), conditions.push("unmirr", "mirr") }
                     if (laps.length == 0) { laps.push(1, 2, 3, 4, 5), conditions.push("lap1", "lap2", "lap3", "lap4", "lap5") }
                     //filter
-                    var challenge = Object.values(challengedata)
+                    var challenge = Object.values(challengesdata)
                     var challengefiltered = challenge.filter(element => element.track == track)
                     challengefiltered = challengefiltered.filter(element => skips.includes(element.skips))
                     challengefiltered = challengefiltered.filter(element => nu.includes(element.nu))
@@ -1471,6 +1480,7 @@ module.exports = {
                     break
 
                 case 'modal':
+                    //FIXME: update to check active challenges if current player has prior engagements
                     if (profile.current == undefined || interaction.message.id == profile.current.message) {
                         if (profile.current.completed == false) {
                             const submissionModal = new ModalBuilder()
@@ -1519,7 +1529,7 @@ module.exports = {
                         let time = tools.timetoSeconds(subtime)
                         if ((challengeend - challengestart) < time * 1000) {
                             profileref.child("current").update({ completed: true, title: ":negative_squared_cross_mark: Closed: ", funny_business: true })
-                            let data = updateChallenge({ challengedata, profile, current_challenge, current_challengeref, profileref, member, achievements, name })
+                            let data = updateChallenge({ challengetimedata, profile, current_challenge, current_challengeref, profileref, member, achievements, name, avatar, achievements, interaction })
                             client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({ data: { embeds: [data.message], components: [] } })
                             const holdUp = new EmbedBuilder()
                                 .setTitle("<:WhyNobodyBuy:589481340957753363> I warn you. No funny business.")
@@ -1554,7 +1564,7 @@ module.exports = {
                             }
                             var newPostRef = timeref.push(submissiondata);
                             profileref.child("current").update({ submission: newPostRef.key, completed: true })
-                            let data = updateChallenge({ challengedata, profile, current_challenge, current_challengeref, profileref, member, achievements, name })
+                            let data = updateChallenge({ challengetimedata, profile, current_challenge, current_challengeref, profileref, member, achievements, name, avatar, achievements, interaction })
                             interaction.editReply({ embeds: [data.message], componenets: [data.componenets] })
                         }
                     } else {

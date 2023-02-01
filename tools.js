@@ -1,3 +1,5 @@
+const { winnings_map, racers, tracks, planets, playerPicks, movieQuotes } = require('./data.js')
+
 module.exports = {
     numberWithCommas: function (x) {
         return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -274,7 +276,7 @@ module.exports = {
         })
         return ranks
     },
-    getGoalTime: function (track, racer, acceleration, top_speed, cooling, laps, length_mod, uh_mod, us_mod, deaths) {
+    getGoalTime: function ({track, racer, acceleration, top_speed, cooling, laps, length_mod, uh_mod, us_mod, deaths} = {}) {
         //0. get required values
         var accel = this.upgradeAcceleration(racers[racer].acceleration, acceleration)
         var topspeed = this.upgradeTopSpeed(racers[racer].max_speed, top_speed)
