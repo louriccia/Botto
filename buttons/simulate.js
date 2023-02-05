@@ -1,66 +1,56 @@
+const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, StringSelectMenuBuilder } = require('discord.js');
+const tools = require('./../tools.js');
+const { racers, tracks, planets, circuits } = require('./../data.js');
+
 module.exports = {
     name: 'simulate',
     execute(client, interaction, args) {
-        
-        const Discord = require('discord.js');
-        var tools = require('./../tools.js');
-        const myEmbed = new Discord.MessageEmbed()
-
+        const myEmbed = new EmbedBuilder()
         //set defaults
-        var track = null
-        var upgrades = 5
-        var fps = 60
-        var type = 7
-        var laps = 3
-
+        let track = null
+        let upgrades = 5
+        let fps = 60
+        let laps = 3
         //get input
-        if (args.includes("initial")) {
-            track = Number(args[0])
-            upgrades = Number(args[1])
-            fps = Number(args[2])
-            laps = Number(args[3])
-            type = 4
+        if (interaction.isChatInputCommand()) {
+            track = interaction.options.getString('track')
+            upgrades = interaction.options.getInteger('upgrades') ?? 5
+            fps = interaction.options.getInteger('fps') ?? 60
+            laps = interaction.options.getInteger('laps') ?? 3
         } else {
-            for (var i = 0; i < interaction.message.components[0].components[0].options.length; i++) { //track
-                var option = interaction.message.components[0].components[0].options[i]
-                if (option.hasOwnProperty("default")) {
-                    if (option.default) {
-                        track = i
-                    }
+            interaction.message.components[0].components[0].options.forEach(option => { //track
+                if (option.default) {
+                    track = Number(option.value)
                 }
-            }
-            for (var i = 0; i < interaction.message.components[1].components[0].options.length; i++) { //laps
-                var option = interaction.message.components[1].components[0].options[i]
-                if (option.hasOwnProperty("default")) {
-                    if (option.default) {
-                        laps = Number(option.value)
-                    }
+            })
+            interaction.message.components[1].components[0].options.forEach(option => { //laps
+                if (option.default) {
+                    laps = Number(option.value)
                 }
-            }
-            for (var i = 0; i < interaction.message.components[2].components[0].options.length; i++) { //upgrades
-                var option = interaction.message.components[2].components[0].options[i]
-                if (option.hasOwnProperty("default")) {
-                    if (option.default) {
-                        upgrades = Number(option.value)
-                    }
+            })
+            interaction.message.components[2].components[0].options.forEach(option => { //upgrades
+                if (option.default) {
+                    upgrades = Number(option.value)
                 }
-            }
-            for (var i = 0; i < interaction.message.components[3].components[0].options.length; i++) { //fps
-                var option = interaction.message.components[3].components[0].options[i]
-                if (option.hasOwnProperty("default")) {
-                    if (option.default) {
-                        fps = Number(option.value)
-                    }
+            })
+            interaction.message.components[3].components[0].options.forEach(option => { //fps
+                if (option.default) {
+                    fps = Number(option.value)
                 }
-            }
-            if (args[0] == "track") {
-                track = Number(interaction.data.values[0])
-            } else if (args[0] == "upgrades") {
-                upgrades = Number(interaction.data.values[0])
-            } else if (args[0] == "fps") {
-                fps = Number(interaction.data.values[0])
-            } else if (args[0] == "laps") {
-                laps = Number(interaction.data.values[0])
+            })
+            switch (args[0]) {
+                case 'laps':
+                    laps = Number(interaction.values[0])
+                    break
+                case 'fps':
+                    fps = Number(interaction.values[0])
+                    break
+                case 'track':
+                    track = Number(interaction.values[0])
+                    break
+                case 'upgrades':
+                    upgrades = Number(interaction.values[0])
+                    break
             }
         }
 
@@ -78,161 +68,117 @@ module.exports = {
         myEmbed
             .setTitle(planets[tracks[track].planet].emoji + " " + tracks[track].name) //track
             .setColor(planets[tracks[track].planet].color)
-            .setAuthor("Simulate")
+            .setAuthor({ name: "Simulate" })
             .setDescription("Simulation using " + upgradeName[upgrades] + " at " + fps + "fps for " + laps + " laps") //upgrades & fps //"Max Upgrades, 60fps"
-            .addField("Racer", postColumn1, true)
-            .addField("Speed", postColumn2, true)
-            .addField("Est. Time", postColumn3, true)
-            .addField("Note:", "*This simulation assumes the track is a straight line, and ignores hills and fast/slow terrain. The estimated times might also be off by as much as 0.1s from pod to pod due to boost timing error.*", false)
-
+            .addFields(
+                { name: "Racer", value: postColumn1, inline: true },
+                { name: "Speed", value: postColumn2, inline: true },
+                { name: "Est. Time", value: postColumn3, inline: true },
+                { name: "Note:", value: "*This simulation assumes the track is a straight line, and ignores hills and fast/slow terrain. The estimated times might also be off by as much as 0.1s from pod to pod due to boost timing error.*", inline: false },
+            )
         //construct components
-        var components = []
-        var track_selections = []
-        var upg_selections = []
-        var fps_selections = []
-        for (var i = 0; i < 25; i++) {
-            var track_option = {
-                label: tracks[i].name.replace("The Boonta Training Course", "Boonta Training Course"),
-                value: i,
+        const row1 = new ActionRowBuilder()
+        const row2 = new ActionRowBuilder()
+        const row3 = new ActionRowBuilder()
+        const row4 = new ActionRowBuilder()
+        const track_selector = new StringSelectMenuBuilder()
+            .setCustomId('simulate_track')
+            .setPlaceholder('Select Track')
+            .setMinValues(1)
+            .setMaxValues(1)
+        for (let i = 0; i < 25; i++) {
+            track_selector.addOptions({
+                label: tracks[i].name,
+                value: String(i),
                 description: (circuits[tracks[i].circuit].name + " Circuit | Race " + tracks[i].cirnum + " | " + planets[tracks[i].planet].name).substring(0, 50),
                 emoji: {
                     name: planets[tracks[i].planet].emoji.split(":")[1],
                     id: planets[tracks[i].planet].emoji.split(":")[2].replace(">", "")
-                }
-            }
-            if (track == i) {
-                track_option.default = true
-            }
-            track_selections.push(track_option)
+                },
+                default: track == i
+            })
         }
-        for(i = 0; i < 2; i ++){
-            var upg_selection = {}
-            if(i == 0){
-                upg_selection = {
+        const laps_selector = new StringSelectMenuBuilder()
+            .setCustomId('simulate_laps')
+            .setPlaceholder('Select Laps')
+            .setMinValues(1)
+            .setMaxValues(1)
+
+        const upg_selector = new StringSelectMenuBuilder()
+            .setCustomId('simulate_upgrades')
+            .setPlaceholder('Select Upgrades')
+            .setMinValues(1)
+            .setMaxValues(1)
+            .addOptions(
+                {
                     label: "No Upgrades",
-                    value: 0
-                }
-                if(upgrades == 0){
-                    upg_selection.default = true
-                }
-            } else {
-                upg_selection = {
+                    value: "0",
+                    default: upgrades == 0
+                },
+                {
                     label: "Max Upgrades",
-                    value: 5
+                    value: "5",
+                    default: upgrades == 5
                 }
-                if(upgrades == 5){
-                    upg_selection.default = true
-                }
-            }
-            upg_selections.push(upg_selection)
-        }
+            )
+        const fps_selector = new StringSelectMenuBuilder()
+            .setCustomId('simulate_fps')
+            .setPlaceholder('Select FPS')
+            .setMinValues(1)
+            .setMaxValues(1)
+
+        row1.addComponents(track_selector)
+        row2.addComponents(laps_selector)
+        row3.addComponents(upg_selector)
+        row4.addComponents(fps_selector)
 
         for (i = 24; i < 61; i += 4) {
-            var fps_selection = {
+            fps_selector.addOptions({
                 label: i + " FPS",
-                value: i
-            }
-            if(fps == i){
-                fps_selection.default = true
-            }
-            fps_selections.push(
-                fps_selection
-            )
+                value: String(i),
+                default: fps == i
+            })
         }
-        var lap_selections = [
+        laps_selector.addOptions(
             {
                 label: "1 Lap",
-                value: 1
+                value: "1",
+                default: laps == 1
             },
             {
                 label: "2 Laps",
-                value: 2
+                value: "2",
+                default: laps == 2
             },
             {
                 label: "3 Laps",
-                value: 3
+                value: "3",
+                default: laps == 3
             },
             {
                 label: "4 Laps",
-                value: 4
+                value: "4",
+                default: laps == 4
             },
             {
                 label: "5 Laps",
-                value: 5
-            }
-        ]
-        lap_selections.forEach(selection => {
-            if(selection.value == laps){
-                selection.default = true
-            }
-        })
-
-        components.push(
-            {
-                type: 1,
-                components: [
-                    {
-                        type: 3,
-                        custom_id: "simulate_track",
-                        options: track_selections,
-                        placeholder: "Select Track",
-                        min_values: 1,
-                        max_values: 1
-                    },
-                ]
-            },
-            {
-                type: 1,
-                components: [
-                    {
-                        type: 3,
-                        custom_id: "simulate_laps",
-                        options: lap_selections,
-                        placeholder: "Select Laps",
-                        min_values: 1,
-                        max_values: 1
-                    },
-                ]
-            },
-            {
-                type: 1,
-                components: [
-                    {
-                        type: 3,
-                        custom_id: "simulate_upgrades",
-                        options: upg_selections,
-                        placeholder: "Select Upgrades",
-                        min_values: 1,
-                        max_values: 1
-                    },
-                ]
-            },
-            {
-                type: 1,
-                components: [
-                    {
-                        type: 3,
-                        custom_id: "simulate_fps",
-                        options: fps_selections,
-                        placeholder: "Select FPS",
-                        min_values: 1,
-                        max_values: 1
-                    }
-                ]
+                value: "5",
+                default: laps == 5
             }
         )
 
         //interaction response
-        client.api.interactions(interaction.id, interaction.token).callback.post({
-            data: {
-                type: type,
-                data: {
-                    //content: "",
-                    embeds: [myEmbed],
-                    components: components
-                }
-            }
-        })
+        if (interaction.isChatInputCommand()) {
+            interaction.reply({
+                embeds: [myEmbed],
+                components: [row1, row2, row3, row4]
+            })
+        } else {
+            interaction.update({
+                embeds: [myEmbed],
+                components: [row1, row2, row3, row4]
+            })
+        }
     }
 
 }

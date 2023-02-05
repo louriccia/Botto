@@ -1,12 +1,12 @@
 exports.planets = [
-    { "name": "Ando Prime", "img": "https://imgur.com/tBIBKS5.png", "emoji": "<:andoprime:862053955880878140> ", "color": "#EC6423", "host": "Ten-Abu Donba" }, //0
-    { "name": "Aquilaris", "img": "https://imgur.com/gZxTAqX.png", "emoji": "<:aquilaris:862053955727130674> ", "color": "#279843", "host": "Nave Vengaris" },  //1
-    { "name": "Baroonda", "img": "https://imgur.com/2aQfuVQ.png", "emoji": "<:baroonda:862053955701702686> ", "color": "#683062", "host": "Maja Fey'ja" },   //2
-    { "name": "Malastare", "img": "https://imgur.com/gy5Vj7u.png", "emoji": "<:malastare:862053956111695892> ", "color": "#9D1F3C", "host": "Nugtosh" },  //3
-    { "name": "Mon Gazza", "img": "https://imgur.com/k3LGJXR.png", "emoji": "<:mongazza:862053955428810753> ", "color": "#F09813", "host": "Groff Zugga" },  //4
-    { "name": "Oovo IV", "img": "https://imgur.com/UjObB8T.png", "emoji": "<:oovoiv:862054435163996200> ", "color": "#2BB79B", "host": "Fenn Booda" },    //5
-    { "name": "Ord Ibanna", "img": "https://imgur.com/CPlmJ7X.png", "emoji": "<:ordibanna:862053955348463647> ", "color": "#E62121", "host": "Dethro Glok" }, //6
-    { "name": "Tatooine", "img": "https://imgur.com/U3ScWA5.png", "emoji": "<:tatooine:862053955860168734> ", "color": "#4292B0", "host": "Jabba the Hutt" }    //7
+    { "name": "Ando Prime", "img": "https://imgur.com/tBIBKS5.png", "emoji": "<:andoprime:862053955880878140>", "color": "#EC6423", "host": "Ten-Abu Donba" }, //0
+    { "name": "Aquilaris", "img": "https://imgur.com/gZxTAqX.png", "emoji": "<:aquilaris:862053955727130674>", "color": "#279843", "host": "Nave Vengaris" },  //1
+    { "name": "Baroonda", "img": "https://imgur.com/2aQfuVQ.png", "emoji": "<:baroonda:862053955701702686>", "color": "#683062", "host": "Maja Fey'ja" },   //2
+    { "name": "Malastare", "img": "https://imgur.com/gy5Vj7u.png", "emoji": "<:malastare:862053956111695892>", "color": "#9D1F3C", "host": "Nugtosh" },  //3
+    { "name": "Mon Gazza", "img": "https://imgur.com/k3LGJXR.png", "emoji": "<:mongazza:862053955428810753>", "color": "#F09813", "host": "Groff Zugga" },  //4
+    { "name": "Oovo IV", "img": "https://imgur.com/UjObB8T.png", "emoji": "<:oovoiv:862054435163996200>", "color": "#2BB79B", "host": "Fenn Booda" },    //5
+    { "name": "Ord Ibanna", "img": "https://imgur.com/CPlmJ7X.png", "emoji": "<:ordibanna:862053955348463647>", "color": "#E62121", "host": "Dethro Glok" }, //6
+    { "name": "Tatooine", "img": "https://imgur.com/U3ScWA5.png", "emoji": "<:tatooine:862053955860168734>", "color": "#4292B0", "host": "Jabba the Hutt" }    //7
 ]
 
 exports.circuits = [
@@ -71,9 +71,9 @@ exports.srcmap = {
                 "gq7peyvq": "No Skips"
             }
         },
-        "wlewmm4l":{
+        "wlewmm4l": {
             "name": "Skips",
-            
+
         }
     }
 }
@@ -543,31 +543,47 @@ exports.voiceChallenge = [
 
 ]
 
-exports.discordchannels = [
+exports.discordChannels = [
     { "name": "welcome-rules", "id": "442116200147714049" },
-    { "name": "discord-affiliates", "id": "593235685914312708" },
+    { "name": "self-roles", "id": "850131066365804564" },
+    { "name": "links", "id": "593235685914312708" },
     { "name": "join-logs", "id": "441839751235108875" },
-    { "name": "bot-commands", "id": "444208252541075476" },
+    { "name": "announcements", "id": "441855741918445568" },
+
     { "name": "administration", "id": "443136283838251019" },
+    { "name": "droid-logs", "id": "892664227553243157" },
+    { "name": "droid-testing", "id": "444208252541075476" },
+    { "name": "Admin", "id": "596699722819829760" },
+
     { "name": "general-chat", "id": "442087812007985174" },
     { "name": "support", "id": "441863426998796308" },
     { "name": "modding", "id": "441842584592056320" },
     { "name": "swe1r-data", "id": "444853518424080395" },
+    { "name": "creative", "id": "602412114363154432" },
+    { "name": "archives", "id": "778759239379582976" },
+    { "name": "General Chat", "id": "579799371600625675" },
+    { "name": "AFK", "id": "741185637146951761" },
+
+    { "name": "community-challenge", "id": "775134898633048084" },
     { "name": "streams", "id": "515311630100463656" },
     { "name": "tournaments", "id": "536455290091077652" },
     { "name": "tournament-scheduling", "id": "716053382548160644" },
-    { "name": "weekly-challenge", "id": "775134898633048084" },
-    { "name": "creative", "id": "602412114363154432" },
+    { "name": "tournament-live", "id": "970994773517299712" },
+    { "name": "bottos-junkyard", "id": "551786988861128714" },
+    { "name": "multiplayer", "id": "444627151858171934" },
+    { "name": "Multiplayer Lobby", "id": "441840193754890250" },
+    { "name": "Troubleshooting", "id": "441840753111597086" },
+
     { "name": "speedrun", "id": "449375461886132235" },
     { "name": "speedrun-pc", "id": "449375389081403413" },
     { "name": "speedrun-n64", "id": "449375331208658965" },
     { "name": "speedrun-dreamcast", "id": "449375302502711297" },
-    { "name": "speedrun-switch-ps4", "id": "725066951185137776" },
+    { "name": "speedrun-switch-ps4-xbox", "id": "725066951185137776" },
     { "name": "src-mods", "id": "585800660226801682" },
-    { "name": "multiplayer", "id": "444627151858171934" },
-    { "name": "bottos-junkyard", "id": "551786988861128714" },
-    { "name": "1-on-1-tourney-practice", "id": "706428880323477504" },
+    { "name": "Speedrun", "id": "449375192045715456" },
+
     { "name": "off-topic", "id": "441858905014927361" },
+    { "name": "game-dev", "id": "848941048218779668" },
     { "name": "minecraft", "id": "699297214257823850" }
 ]
 

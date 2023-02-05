@@ -29,14 +29,13 @@ exports.followupMessage = function (client, interaction, content, embeds, compon
     })
 }
 
-exports.postMessage = function (client, interaction, content, embeds, components) {
-    client.api.channels(interaction.channel_id).messages.post({
-        data: {
-            content: content,
-            embeds: embeds,
-            components: components
-        }
-    })
+exports.postMessage = async function (client, channel, message) {
+    const messagefetch = await client.channels.cache.get(channel).send(message)
+    return messagefetch
+}
+
+exports.editMessage = function (client, channel, message, new_message) {
+    client.channels.cache.get(channel).messages.fetch(message).then(msg => msg.edit(new_message))
 }
 
 exports.ephemeralMessage = function (client, interaction, content, embeds, components) {

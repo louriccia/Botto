@@ -2,6 +2,7 @@ const fs = require('fs');
 const Discord = require('discord.js');
 const { Client, Events, GatewayIntentBits } = require('discord.js')
 const { prefix, token, firebaseCon } = require('./config.json');
+const { welcomeMessages } = require('./data.js')
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -26,10 +27,10 @@ let discord_token = testing ? token : process.env.token
 for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
     if ('data' in command && 'execute' in command) {
-		client.commands.set(command.data.name, command);
-	} else {
-		console.log(`[WARNING] The command at ${file} is missing a required "data" or "execute" property.`);
-	}
+        client.commands.set(command.data.name, command);
+    } else {
+        console.log(`[WARNING] The command at ${file} is missing a required "data" or "execute" property.`);
+    }
 }
 for (const file of buttonFiles) {
     const button = require(`./buttons/${file}`);
@@ -153,7 +154,10 @@ client.on(Events.InteractionCreate, async interaction => {
         const command = interaction.commandName.toLowerCase();
         console.log(command)
         //command handler
-        if (!client.commands.has(command)) return;
+        if (!client.commands.has(command)) {
+            console.log('command does not exist')
+            return;
+        }
         try {
             client.commands.get(command).execute(interaction);
         } catch (error) {
@@ -380,8 +384,8 @@ client.on("error", (e) => {
 
 client.on(Events.GuildMemberAdd, (guildMember) => { //join log
     if (guildMember.guild.id == "441839750555369474") {
-        let random = Math.floor(Math.random() * welcomeMessages.length)
-        let join = welcomeMessages[random]
+        console.log('new join')
+        let join = welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)]
         client.channels.cache.get("441839751235108875").send(join.replaceAll("replaceme", "<@" + guildMember.user + ">"));
         const guild = client.guilds.cache.get("441839750555369474");
         const role = guild.roles.cache.get("442316203835392001");

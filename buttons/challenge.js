@@ -1,7 +1,8 @@
-const { achievement_data, truguts, hints, tips, settings_default, winnings_map } = require('./challenge/data.js');
-const { getGoalTimes, initializeChallenge, initializePlayer, updateChallenge, bribeComponents, menuEmbed, menuComponents, playButton, notYoursEmbed, hintEmbed, settingsEmbed, initializeUser } = require('./challenge/functions.js');
-const { modalMessage } = require('../discord_message.js');
-const { EmbedBuilder } = require('discord.js');
+const { truguts, hints, tips, settings_default, winnings_map } = require('./challenge/data.js');
+const { getGoalTimes, initializeChallenge, initializePlayer, updateChallenge, bribeComponents, menuEmbed, menuComponents, playButton, notYoursEmbed, hintEmbed, settingsEmbed, initializeUser, isActive, checkActive, expiredEmbed, challengeWinnings, getBest, goalTimeList } = require('./challenge/functions.js');
+const { modalMessage, postMessage, editMessage } = require('../discord_message.js');
+const { tracks } = require('../data.js')
+const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ButtonBuilder, ButtonStyle } = require('discord.js');
 
 module.exports = {
     name: 'challenge',
@@ -56,7 +57,7 @@ module.exports = {
         //initialize player if they don't exist
         let profile = userdata[player]?.random
         if (!profile) {
-            profile = initializePlayer(userdata.child(player))
+            profile = initializePlayer(userref.child(player).child('random'), name)
         }
 
         let profileref = userref.child(player).child('random')
@@ -66,24 +67,19 @@ module.exports = {
             current_challengeref = challengesref.child(interaction.message.id)
             current_challenge = challengesdata[interaction.message.id]
         }
-        console.log(current_challenge)
-        let achievements = achievement_data
-
         if (args[0] == "random") {
             switch (args[1]) {
                 case 'play':
-                    let challengestart = Date.now()
+
                     //check if challenge already in progress FIXME change to reposting challenge
-                    if (current_challenge && current_challenge.completed == false && current_challenge.start > challengestart - 900000) {
-                        let challengeinProgress = new EmbedBuilder()
-                            .setTitle("<:WhyNobodyBuy:589481340957753363> Challenge in Progress")
-                            .setDescription("You already have a challenge in progress in <#" + current_challenge.channel + ">.\nIf you have enough truguts, you can reroll the challenge by clicking the :game_die: **Reroll** button on your challenge, otherwise you will need to wait until the challenge expires to roll a new one.")
-                        interaction.reply({ embed: challengeinProgress, ephemeral: true })
+                    let activechallenge = checkActive(challengesdata, member, current_challenge)
+                    if (activechallenge) {
+                        interaction.reply({ embeds: [activechallenge], ephemeral: true })
                         return
                     }
                     let type = 'private'
-                    current_challenge = initializeChallenge({ profile, member, interaction, type })
-                    let data = updateChallenge({ challengetimedata, profile, current_challenge, current_challengeref, profileref, member, achievements, name, avatar, achievements, interaction })
+                    current_challenge = initializeChallenge({ profile, member, interaction, type, name, avatar, user: player })
+                    let data = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction })
                     let message = null
                     if (args[2] == 'reroll') {
                         message = await interaction.followUp({ embeds: [data.message], components: [data.components], fetchReply: true })
@@ -91,111 +87,198 @@ module.exports = {
                         message = await interaction.reply({ embeds: [data.message], components: [data.components], fetchReply: true })
                     }
 
-
+                    current_challenge.message = message.id
                     challengesref.child(message.id).set(current_challenge)
-                    if (current_challenge.type == 'private') {
-                        setTimeout(async function () { //mark challenge abandoned
-                            let main_components = [
-                                playButton()
-                            ]
-                            console.log('abandoned')
-                            if (!current_challenge.completed) {
-                                profileref.child("current").update({ completed: true })
-                                let data = updateChallenge({ challengetimedata, profile, current_challenge, current_challengeref, profileref, member, achievements, name, avatar, achievements, interaction })
-                                interaction.update({ embeds: [data.message], components: [main_components] })
+                    current_challenge = challengesdata[message.id]
+                    current_challengeref = challengesref.child(message.id)
+
+                    setTimeout(async function () { //mark challenge abandoned
+                        current_challenge = challengesdata[message.id]
+                        if (current_challenge.type == 'private' && isActive(current_challenge) && !current_challenge.track_bribe && !current_challenge.racer_bribe) {
+                            const row = new ActionRowBuilder()
+                            row.addComponents(
+                                new ButtonBuilder()
+                                    .setCustomId("challenge_random_modal")
+                                    .setLabel("Submit")
+                                    .setStyle(ButtonStyle.Primary)
+                                    .setEmoji("⏱️")
+                            )
+                            if (!current_challenge.completed && !current_challenge.rerolled) {
+                                current_challengeref.update({ type: 'abandoned', players: [], predictions: [] })
+                                current_challenge = challengesdata[message.id]
+                                let data = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction })
+                                interaction.editReply({ embeds: [data.message], components: [row] })
                             } else {
-                                interaction.update({ components: [main_components] })
+                                interaction.editReply({ components: main_components })
                             }
-                        }, 895000)
-                    }
+                        }
+                    }, 1000 * 60 * 15 - 50000)
+
                     break
                 case 'reroll':
                     let cost = (current_challenge.reroll_cost == "full price" ? truguts.reroll : current_challenge.reroll_cost == "discount" ? truguts.reroll_discout : 0)
-                    if (current_challenge.players.includes(interaction.user.id) && current_challenge.created > Date.now() - 900000 && !current_challenge.completed && !current_challenge.rerolled) {
-                        if (profile.truguts_earned - profile.truguts_spent >= cost) {
-                            //process purchase
-                            if (current_challenge.reroll_cost > 0) {
-                                profileref.child("purchases").push({
-                                    date: Date.now(),
-                                    purchased_item: "reroll",
-                                    selection: current_challenge.reroll_cost == truguts.reroll ? "full price" : "discount"
-                                })
-                                profileref.update({ truguts_spent: profile.truguts_spent + cost })
-                            }
-                            challengesref.child(interaction.message.id).update({completed: true, rerolled: true})
-                            current_challenge = challengesdata[interaction.message.id]
-                            let data = updateChallenge({ challengetimedata, profile, current_challenge, current_challengeref, profileref, member, achievements, name, avatar, achievements, interaction })
-                            interaction.update({ embeds: [data.message], components: [] })
-                            //client.buttons.get("challenge").execute(client, interaction, ["random", "play", "reroll"])
-                        } else {
-                            let noMoney = new EmbedBuilder()
-                                .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
-                                .setDescription("*'No money, no challenge, no reroll!'*\nYou do not have enough truguts to reroll this challenge.\n\nReroll cost: `📀" + tools.numberWithCommas(truguts.reroll) + "`")
-                            interaction.reply({ embeds: [noMoney], ephemeral: true })
-                        }
-                    } else {
+                    if (!(current_challenge.player?.member == interaction.user.id && current_challenge.type == 'private' && isActive(current_challenge))) { //not the right player or not active
                         interaction.reply({
                             embeds: [notYoursEmbed()],
                             components: [{ type: 1, components: [playButton()] }],
                             ephemeral: true
                         })
+                        return
                     }
+                    if (profile.truguts_earned - profile.truguts_spent < cost) { //player doesn't have enough truguts to reroll
+                        let noMoney = new EmbedBuilder()
+                            .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
+                            .setDescription("*'No money, no challenge, no reroll!'*\nYou do not have enough truguts to reroll this challenge.\n\nReroll cost: `📀" + tools.numberWithCommas(truguts.reroll) + "`")
+                        interaction.reply({ embeds: [noMoney], ephemeral: true })
+                        return
+                    }
+                    //process purchase
+                    if (cost) {
+                        profileref.child("purchases").push({
+                            date: Date.now(),
+                            purchased_item: "reroll",
+                            selection: cost == truguts.reroll ? "full price" : "discount"
+                        })
+                        profileref.update({ truguts_spent: profile.truguts_spent + cost })
+                    }
+                    profile = userdata[current_challenge.player.user].random
+
+                    //clean up old challenge
+                    challengesref.child(interaction.message.id).update({ completed: true, rerolled: true })
+                    current_challenge = challengesdata[interaction.message.id]
+                    let olddata = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction })
+                    editMessage(client, interaction.channel.id, interaction.message.id, { embeds: [olddata.message], components: [] })
+
+                    //prepare new challenge
+                    let rerolltype = 'private'
+                    current_challenge = initializeChallenge({ profile, member, interaction, type: rerolltype, name, avatar, user: player })
+                    let rerolldata = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction })
+                    let rerollmessage = null
+                    rerollmessage = await interaction.reply({ embeds: [rerolldata.message], components: [rerolldata.components], fetchReply: true })
+                    current_challenge.message = rerollmessage.id
+                    challengesref.child(rerollmessage.id).set(current_challenge)
                     break
                 case 'bribe':
-                    if (interaction.message.id == current_challenge.message) {
-                        if (interaction.data.values) {
-                            let purchase = {
-                                date: Date.now(),
-                                selection: Number(interaction.data.values[0])
-                            }
-                            let bribe_cost = 0
-                            if (args[2] == "track") {
-                                bribe_cost = truguts.bribe_track
-                                purchase.purchased_item = "track bribe"
-                            } else if (args[2] == "racer") {
-                                bribe_cost = truguts.bribe_racer
-                                purchase.purchased_item = "racer bribe"
-                            }
-                            if (profile.truguts_earned - profile.truguts_spent < bribe_cost) {
-                                //player doesn't have enough money
-                                let noMoney = new EmbedBuilder()
-                                    .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
-                                    .setDescription("*'No money, no bribe!'*\nYou do not have enough truguts to make this bribe.\n\nBribe cost: `" + tools.numberWithCommas(bribe_cost) + "`")
-                                interaction.reply({ embeds: [noMoney], ephemeral: true })
-                                return
-                            } else {
-                                //process purchase
-                                let bribed = false
-                                if (args[2] == "track" && selection !== current_challenge.track) {
-                                    profileref.child("current").update({ track_bribe: true, track: selection })
-                                    bribed = true
-                                    if (!tracks[selection].parskiptimes) {
-                                        profileref.child("current").update({ skips: false })
-                                    }
-                                } else if (args[2] == "racer" && selection !== current_challenge.racer) {
-                                    profileref.child("current").update({ racer_bribe: true, racer: selection })
-                                    bribed = true
-                                }
-                                if (bribed) {
-                                    profileref.child("purchases").push(purchase)
-                                    profileref.update({ truguts_spent: profile.truguts_spent + bribe_cost })
-                                }
-                            }
+                    if (interaction.user.id !== current_challenge.player.member) { //not your challenge
+                        interaction.reply({ embeds: [notYoursEmbed()], components: [{ type: 1, components: [playButton()] }], ephemeral: true })
+                        return
+                    }
+                    let bribed = false
+                    if (interaction.isStringSelectMenu()) {
+                        let selection = Number(interaction.values[0])
+                        let purchase = {
+                            date: Date.now(),
+                            selection: selection
                         }
-                        //populate options
-                        let data = updateChallenge({ challengetimedata, profile, current_challenge, current_challengeref, profileref, member, achievements, name, avatar, achievements, interaction })
-                        interaction.editReply({ embeds: [data.message], components: [bribeComponents(profile)] })
+                        let bribe_cost = 0
+                        if (args[2] == "track") {
+                            bribe_cost = truguts.bribe_track
+                            purchase.purchased_item = "track bribe"
+                        } else if (args[2] == "racer") {
+                            bribe_cost = truguts.bribe_racer
+                            purchase.purchased_item = "racer bribe"
+                        }
+
+                        if (profile.truguts_earned - profile.truguts_spent < bribe_cost) { //can't afford bribe
+                            let noMoney = new EmbedBuilder()
+                                .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
+                                .setDescription("*'No money, no bribe!'*\nYou do not have enough truguts to make this bribe.\n\nBribe cost: `" + tools.numberWithCommas(bribe_cost) + "`")
+                            interaction.reply({ embeds: [noMoney], ephemeral: true })
+                            return
+                        }
+
+                        //process purchase
+
+                        if (args[2] == "track" && selection !== current_challenge.track) {
+                            current_challengeref.update({ track_bribe: true, track: selection, predictions: {}, created: Date.now() })
+                            bribed = true
+                            if (!tracks[selection].parskiptimes) {
+                                current_challengeref.update({ skips: false })
+                            }
+                        } else if (args[2] == "racer" && selection !== current_challenge.racer) {
+                            current_challengeref.update({ racer_bribe: true, racer: selection, predictions: {}, created: Date.now() })
+                            bribed = true
+                        }
+                        if (bribed) {
+                            profileref.child("purchases").push(purchase)
+                            profileref.update({ truguts_spent: profile.truguts_spent + bribe_cost })
+                        }
+                    }
+
+                    current_challenge = challengesdata[current_challenge.message]
+                    //populate options
+                    let adata = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction })
+                    interaction.update({ embeds: [adata.message], components: [adata.components, (!bribed ? bribeComponents(current_challenge) : [])].flat().flat() })
+
+                    break
+                case 'predict':
+                    if (interaction.isModalSubmit()) {
+                        if (!isActive(current_challenge)) { //no longer active
+                            const holdUp = new EmbedBuilder()
+                                .setTitle("<:WhyNobodyBuy:589481340957753363> Bet you didn't predict that!")
+                                .setDescription("Predictions are no longer available for this challenge.")
+                            interaction.reply({ embeds: [holdUp], ephemeral: true })
+                            return
+                        }
+                        let predictiontime = interaction.fields.getTextInputValue('predictionTime')
+                        if (isNaN(Number(predictiontime.replace(":", ""))) || tools.timetoSeconds(predictiontime) == null) { //incorrect time format
+                            const holdUp = new EmbedBuilder()
+                                .setTitle("<:WhyNobodyBuy:589481340957753363> Time Does Not Compute")
+                                .setDescription("Your time was submitted in an incorrect format.")
+                            interaction.reply({ embeds: [holdUp], ephemeral: true })
+                            return
+                        }
+                        let time = tools.timetoSeconds(predictiontime)
+                        //log time 
+                        let predictiondata = {
+                            member: member,
+                            name: name,
+                            time: time,
+                            user: player
+                        }
+                        var newPostRef = current_challengeref.child("predictions").child(member).set(predictiondata);
+                        current_challenge = challengesdata[interaction.message.id]
+                        let playeruser = current_challenge.player.user
+                        let data = updateChallenge({ client, challengetimedata, profile: userdata?.[playeruser]?.random, current_challenge, current_challengeref, profileref: userref.child(playeruser).child('random'), member, name, avatar, interaction })
+                        interaction.update({ embeds: [data.message], components: [data.components] })
                     } else {
-                        interaction.reply({ embeds: [notYoursEmbed()], components: [{ type: 1, components: [playButton()] }] })
+                        if (current_challenge.player && current_challenge.player.member == member) { //trying to predict own challenge
+                            const holdUp = new EmbedBuilder()
+                                .setTitle("<:WhyNobodyBuy:589481340957753363> The dark side of the force clouds your ability to see the future.")
+                                .setDescription("You cannot make a prediction on your own challenge.")
+                            interaction.reply({ embeds: [holdUp], ephemeral: true })
+                            return
+                        }
+                        if (current_challenge.predictions && current_challenge.predictions[member]) { //already made a prediction
+                            const holdUp = new EmbedBuilder()
+                                .setTitle("<:WhyNobodyBuy:589481340957753363> Prediction Failed")
+                                .setDescription("You cannot make more than one prediction on a challenge.")
+                            interaction.reply({ embeds: [holdUp], ephemeral: true })
+                            return
+                        }
+                        const predictionModal = new ModalBuilder()
+                            .setCustomId('challenge_random_predict')
+                            .setTitle('Submit Prediction')
+                        const submissionTime = new TextInputBuilder()
+                            .setCustomId('predictionTime')
+                            .setLabel('Prediction')
+                            .setStyle(TextInputStyle.Short)
+                            .setMaxLength(9)
+                            .setMinLength(6)
+                            .setPlaceholder("--:--.---")
+                            .setRequired(true)
+                        const ActionRow1 = new ActionRowBuilder().addComponents(submissionTime)
+                        predictionModal.addComponents(ActionRow1)
+                        await interaction.showModal(predictionModal)
                     }
                     break
                 case 'undo':
                     if (interaction.message.id == current_challenge.message && current_challenge.completed) {
                         profileref.update({ truguts_earned: profile.truguts_earned - current_challenge.truguts_earned })
-                        profileref.child("current").update({ truguts_earned: 0, title: "", completed: false, undone: true })
-                        timeref.child(current_challenge.submission).remove()
+                        current_challengeref.update({ truguts_earned: 0, title: "", completed: false, undone: true })
+                        challengetimeref.child(current_challenge.submission).remove()
 
-                        let data = updateChallenge({ challengetimedata, profile, current_challenge, current_challengeref, profileref, member, achievements, name, avatar, achievements, interaction })
+                        let data = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction })
                         interaction.editReply({ embeds: [data.message], components: [data.components] })
                     } else {
                         interaction.reply({
@@ -211,7 +294,7 @@ module.exports = {
                 case 'like':
                 case 'dislike':
                     if (interaction.message.id == current_challenge.message && current_challenge.rated == false) {
-                        profileref.child("current").update({ rated: true })
+                        current_challengeref.update({ rated: true })
                         profileref.update({ truguts_earned: profile.truguts_earned + truguts.rated })
                         feedbackref.push({
                             user: member,
@@ -227,8 +310,8 @@ module.exports = {
                                 backwards: profile.current.conditions.backwards
                             }
                         });
-                        let data = updateChallenge({ challengetimedata, profile, current_challenge, current_challengeref, profileref, member, achievements, name, avatar, achievements, interaction })
-                        interaction.editReply({ embeds: [data.message], components: [data.componenets] })
+                        let data = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction })
+                        interaction.editReply({ embeds: [data.message], components: [data.components] })
                     } else {
                         interaction.reply(
                             {
@@ -417,14 +500,14 @@ module.exports = {
                             .setDescription("Hints help you narrow down what challenges you need to complete for :trophy: **Achievements**. The more you pay, the better the hint.")
                             .setFooter(interaction.member.user.username + " | Truguts: 📀" + tools.numberWithCommas(profile.truguts_earned - profile.truguts_spent), client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
                     } else {
-                        hintEmbed.setDescription("Wow! You've already earned all the achievements! This means you have no use for hints, but you can still earn a large Trugut bonus from a :dart: **Challenge Hunt**.")
+                        hintEmbed.setDescription("Wow! You've already earned all the achievements! This means you have no use for hints, but you can still earn a large Trugut bonus from a :dart: **Challenge Bounty**.")
                         components.push({
                             type: 1,
                             components: [
                                 {
                                     type: 2,
                                     custom_id: "challenge_random_hunt_initial",
-                                    label: "Challenge Hunt",
+                                    label: "Challenge Bounty",
                                     style: 4,
                                     emoji: {
                                         name: "🎯"
@@ -501,7 +584,7 @@ module.exports = {
                             }
                             if ((["galaxy_famous", "light_skipper", "mirror_dimension", "crowd_favorite", "true_jedi", 'backwards_compatible'].includes(achievement) && track == null) || (["pod_champ", "slow_steady", "true_jedi"].includes(selection) && racer == null)) {
                                 //player already has achievement
-                                hintBuy.setDescription("You already have this achievement and do not require a hint. You have not been charged. \n\nAlready have all the achievements? Try the Challenge Hunt!")
+                                hintBuy.setDescription("You already have this achievement and do not require a hint. You have not been charged. \n\nAlready have all the achievements? Try a Challenge Bounty!")
                             } else {
                                 //prepare hint
                                 let track_hint_text = "", racer_hint_text = ""
@@ -543,7 +626,7 @@ module.exports = {
                     break
                 case 'hunt':
                     const huntEmbed = new EmbedBuilder()
-                        .setTitle(":dart: Challenge Hunt")
+                        .setTitle(":dart: Challenge Bounty")
                         .setAuthor("Random Challenge", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/game-die_1f3b2.png")
                         .setDescription("Challenge Hunt is a way to earn big truguts fast. Based on your hint selection, Botto hides a large trugut bonus on a random challenge. You have one hour to find and complete this challenge to claim your bonus.")
                         .setFooter(interaction.member.user.username + " | Truguts: 📀" + tools.numberWithCommas(profile.truguts_earned - profile.truguts_spent), client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
@@ -552,7 +635,7 @@ module.exports = {
                         if (args[args.length - 1].startsWith("uid")) {
                             if (args[args.length - 1].replace("uid", "") !== member) {
                                 const huntMessage = new EmbedBuilder()
-                                    .setTitle("<:WhyNobodyBuy:589481340957753363> Get Your Own Hunt!")
+                                    .setTitle("<:WhyNobodyBuy:589481340957753363> Get Your Own Bounty!")
                                     .setDescription("This is someone else's hunt menu. Get your own by clicking the button below.")
                                 interaction.reply({
                                     embeds: [huntMessage], components: [{
@@ -562,7 +645,7 @@ module.exports = {
                                                 type: 2,
                                                 custom_id: "challenge_random_hunt_initial_new",
                                                 style: 4,
-                                                label: "Challenge Hunt",
+                                                label: "Challenge Bounty",
                                                 emoji: {
                                                     name: "🎯"
                                                 }
@@ -594,7 +677,7 @@ module.exports = {
                     }
                     if (profile.hunt !== undefined) {
                         if (profile.hunt.date > Date.now() - 1000 * 60 * 60 && profile.hunt.completed == false) {
-                            huntEmbed.addField(":exclamation: Hunt Already in Progress", "Your current hunt expires <t:" + Math.round((profile.hunt.date + 1000 * 60 * 60) / 1000) + ":R>. Starting a new one will overwrite the hunt in progress.")
+                            huntEmbed.addField(":exclamation: Bounty Already in Progress", "Your current bounty expires <t:" + Math.round((profile.hunt.date + 1000 * 60 * 60) / 1000) + ":R>. Starting a new one will overwrite the bounty in progress.")
                         }
                     }
                     //draw components
@@ -622,7 +705,7 @@ module.exports = {
                                     type: 3,
                                     custom_id: "challenge_random_hunt_selection_uid" + member,
                                     options: selection_options,
-                                    placeholder: "Select Hunt Type",
+                                    placeholder: "Select Bounty Type",
                                     min_values: 1,
                                     max_values: 1
                                 }
@@ -634,7 +717,7 @@ module.exports = {
                                 {
                                     type: 2,
                                     custom_id: "challenge_random_hunt_start_uid" + member,
-                                    label: "Start Hunt",
+                                    label: "Start Bounty",
                                     style: 4,
                                     disabled: selection == null
                                 },
@@ -653,7 +736,7 @@ module.exports = {
                         if (profile.truguts_earned - profile.truguts_spent < hints[selection].price) {
                             hintBuy
                                 .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
-                                .setDescription("*'No money, no hunt!'*\nYou do not have enough truguts to buy the selected hunt.\n\nHunt cost: `" + hints[selection].price + "`")
+                                .setDescription("*'No money, no bounty!'*\nYou do not have enough truguts to buy the selected bounty.\n\nBounty cost: `" + hints[selection].price + "`")
                             interaction.reply({ embeds: [hintBuy], ephemeral: true })
                         } else {
                             //process purchase
@@ -678,7 +761,7 @@ module.exports = {
                             const huntBuy = new EmbedBuilder()
                                 .setTitle(":dart: " + hints[selection].hunt)
                                 .setColor("#ED4245")
-                                .setAuthor(interaction.member.user.username + "'s Random Challenge Hunt", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
+                                .setAuthor(interaction.member.user.username + "'s Random Challenge Bounty", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
                             let track_hint = track_hints[track]
                             let track_hint_text = "", racer_hint_text = ""
                             for (let i = 0; i < selection + 1; i++) {
@@ -696,7 +779,7 @@ module.exports = {
                             }
                             huntBuy
                                 .addField("Racer Hint", racer_hint_text)
-                                .setDescription("`-📀" + tools.numberWithCommas(hints[selection].price) + "`\nBotto has hid a large trugut bonus on a random challenge. You have one hour to find and complete the challenge and claim your bonus! \nHunt expires: <t:" + Math.round((Date.now() + 1000 * 60 * 60) / 1000) + ":t>\n\nIf you use a bribe to successfully find the challenge, you will not be charged.\n" +
+                                .setDescription("`-📀" + tools.numberWithCommas(hints[selection].price) + "`\nBotto has hid a large trugut bonus on a random challenge. You have one hour to find and complete the challenge and claim your bonus! \nBounty expires: <t:" + Math.round((Date.now() + 1000 * 60 * 60) / 1000) + ":t>\n\nIf you use a bribe to successfully find the challenge, you will not be charged.\n" +
                                     "Potential bonus: `📀" + tools.numberWithCommas(hints[selection].bonus) + "`")
                                 .setFooter("Truguts: 📀" + tools.numberWithCommas(profile.truguts_earned - profile.truguts_spent))
                             interaction.reply({ embeds: [huntBuy] })
@@ -712,7 +795,7 @@ module.exports = {
                                     .setTitle("<:WhyNobodyBuy:589481340957753363> Get Your Own Settings!")
                                     .setDescription("This is someone else's settings menu. Get your own by clicking the button below.")
                                 interaction.reply({
-                                    embeds: [holdUp], componenets: [{
+                                    embeds: [holdUp], components: [{
                                         type: 1,
                                         components: [
                                             {
@@ -744,7 +827,7 @@ module.exports = {
                         if (interaction.data.values) {
                             profileref.update({ winnings: Number(interaction.data.values[0]) })
                         }
-                        interaction.editReply({ embeds: [settingsEmbed()], componenets: [settingsComponents()] })
+                        interaction.editReply({ embeds: [settingsEmbed()], components: [settingsComponents()] })
                     } else if (args[2] == "odds") {
                         if (args[3] == 'submit') {
                             profileref.update({
@@ -754,7 +837,7 @@ module.exports = {
                                 mirror_mode: Number(interaction.data.components[3].components[0].value),
                                 backwards: Number(interaction.data.components[4].components[0].value),
                             })
-                            interaction.editReply({ embeds: [settingsEmbed()], componenets: [settingsComponents()] })
+                            interaction.editReply({ embeds: [settingsEmbed()], components: [settingsComponents()] })
                         } else {
                             let modal_options = [{ id: 'skips', label: 'Skips' }, { id: 'no_upgrades', label: 'No Upgrades' }, { id: 'non_3_lap', title: 'Non 3-Lap' }, { id: 'mirror_mode', title: 'Mirrored' }, { id: 'backwards', title: 'Backwards' }].map(option => {
                                 return {
@@ -782,7 +865,7 @@ module.exports = {
                             mirror_mode: settings_default.mirrored,
                             backwards: settings_default.backwards
                         })
-                        interaction.editReply({ embeds: [settingsEmbed()], componenets: [settingsComponents()] })
+                        interaction.editReply({ embeds: [settingsEmbed()], components: [settingsComponents()] })
                     }
                     break
 
@@ -1207,14 +1290,16 @@ module.exports = {
 
                 case 'about':
                     const challengeHelpEmbed = new EmbedBuilder()
-                        .setAuthor("Random Challenge", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/game-die_1f3b2.png")
+                        .setAuthor({ name: "Random Challenge", value: "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/game-die_1f3b2.png" })
                         .setTitle(":grey_question: About")
                         .setColor("#ED4245")
                         .setDescription("When you roll a random challenge, Botto will challenge you to race a random pod on a random track with random conditions. The default conditions are max upgrades, 3-lap, full track. You have 15 minutes to submit a time for the challenge which you may do by entering it in the same text channel as the challenge.")
-                        .addField(":gear: Settings", "You can customize your challenge settings and modify the chances that Botto will roll a No Upgrades, Skips, Non 3-lap, or Mirrored challenge. You can also select a winnings pattern which determines the share of truguts your submitted time will earn.", false)
-                        .addField(":dvd: Earning Truguts", "Truguts are awarded depending on how fast your submitted time is compared to the given goal times and how your winnings are set up. Bonuses are available for beating other players' best times, beating your own time, rating challenges, and completing non-standard challenges (odds must be equal to or below 25%).", false)
-                        .addField(":dvd: Spending Truguts", "You can spend truguts on 'rerolling' challenges that you wish to skip. Truguts can also be used on :moneybag: **Bribes** for a specific track or racer. You can use :bulb: **Hints** to figure out what to bribe for your achievement progress.", false)
-                        .addField(":dart: Challenge Hunt", "Challenge Hunt is a way to earn big truguts fast and can be accessed via the **Random Challenge** menu. Based on your hint selection, Botto hides a large trugut bonus on a random challenge. You have one hour to find this challenge and complete it to claim your bonus.", false)
+                        .addFields(
+                            { name: ":gear: Settings", value: "You can customize your challenge settings and modify the chances that Botto will roll a No Upgrades, Skips, Non 3-lap, or Mirrored challenge. You can also select a winnings pattern which determines the share of truguts your submitted time will earn.", inline: false },
+                            { name: ":dvd: Earning Truguts", value: "Truguts are awarded depending on how fast your submitted time is compared to the given goal times and how your winnings are set up. Bonuses are available for beating other players' best times, beating your own time, rating challenges, and completing non-standard challenges (odds must be equal to or below 25%).", inline: false },
+                            { name: ":dvd: Spending Truguts", value: "You can spend truguts on 'rerolling' challenges that you wish to skip. Truguts can also be used on :moneybag: **Bribes** for a specific track or racer. You can use :bulb: **Hints** to figure out what to bribe for your achievement progress.", inline: false },
+                            { name: ":dart: Challenge Bounty", value: "Challenge Bounty is a way to earn big truguts fast and can be accessed via the **Random Challenge** menu. Based on your hint selection, Botto sets a bounty on a random challenge. You have one hour to find this challenge and complete it to claim your bonus.", inline: false },
+                        )
                     interaction.reply({ embeds: [challengeHelpEmbed], ephemeral: true })
                     break
 
@@ -1267,7 +1352,6 @@ module.exports = {
                     if (conditions.length == 0) {
                         conditions = ["mu", "nu", "ft", "skips", "unmirr", "mirr", "lap3"]
                     }
-                    console.log(pods)
                     //prepare filters
                     var nu = [], skips = [], mirrored = [], laps = [], user = null
                     if (conditions.includes("mu")) {
@@ -1480,99 +1564,141 @@ module.exports = {
                     break
 
                 case 'modal':
-                    //FIXME: update to check active challenges if current player has prior engagements
-                    if (profile.current == undefined || interaction.message.id == profile.current.message) {
-                        if (profile.current.completed == false) {
-                            const submissionModal = new ModalBuilder()
-                                .setCustomId('challenge_random_submit')
-                                .setTitle('Submit Results')
-                            const submissionInput = new TextInputBuilder()
-                                .setCustomId('challenge_random_submit_0')
-                                .setLabel('Total Time')
-                                .setStyle(TextInputStyle.Short)
-                                .setMaxLength(9)
-                                .setMinLength(6)
-                                .setPlaceholder("--:--.---")
-                                .setRequired(true)
-                            const ActionRow = new ActionRowBuilder().addComponents(submissionInput)
-                            submissionModal.addComponents(ActionRow)
-                            await interaction.showModal(submissionModal)
-                        } else {
-                            profileref.child("current").update({ completed: true })
-                            const holdUp = new EmbedBuilder()
-                                .setTitle("<:WhyNobodyBuy:589481340957753363> Expired Challenge")
-                                .setDescription("This challenge is no longer available.")
-                            interaction.reply({
-                                embeds: [holdUp], components: [
-                                    {
-                                        type: 1,
-                                        components: [playButton()]
-                                    }
-
-                                ], ephemeral: true
-                            })
-                        }
-                    } else {
+                    if (current_challenge.type == 'private' && member !== current_challenge.player?.member) { //not your challenge
                         const holdUp = new EmbedBuilder()
-                            .setTitle("<:WhyNobodyBuy:589481340957753363> Can't Submit")
-                            .setDescription("This is not your active challenge.")
-                        interaction.reply({ embeds: [holdUp], ephemeral: true })
+                            .setTitle("<:WhyNobodyBuy:589481340957753363> Get Lost!")
+                            .setDescription("This is a private challenge. Only the player who started this challenge can complete it.")
+                        interaction.reply({
+                            embeds: [holdUp], components: [
+                                {
+                                    type: 1,
+                                    components: [playButton()]
+                                }
+                            ], ephemeral: true
+                        })
+                        return
                     }
-                    break
+                    let active = checkActive(challengesdata, member, current_challenge)
+                    if (active) { //already has active challenge
+                        interaction.reply({ embeds: [active], ephemeral: true })
+                        return
+                    }
+                    if (!isActive(current_challenge)) { //expired challeneg
+                        current_challengeref.update({ completed: true })
+                        interaction.reply({
+                            embeds: [expiredEmbed()], components: [
+                                {
+                                    type: 1,
+                                    components: [playButton()]
+                                }
 
+                            ], ephemeral: true
+                        })
+                        return
+                    }
+                    const submissionModal = new ModalBuilder()
+                        .setCustomId('challenge_random_submit')
+                        .setTitle('Submit Results')
+                    const submissionTime = new TextInputBuilder()
+                        .setCustomId('challengeTime')
+                        .setLabel('Total Time')
+                        .setStyle(TextInputStyle.Short)
+                        .setMaxLength(9)
+                        .setMinLength(6)
+                        .setPlaceholder("--:--.---")
+                        .setRequired(true)
+                    const submissionNotes = new TextInputBuilder()
+                        .setCustomId('challengeNotes')
+                        .setLabel('Notes')
+                        .setStyle(TextInputStyle.Short)
+                        .setMaxLength(25)
+                        .setMinLength(0)
+                        .setPlaceholder("")
+                        .setRequired(false)
+                    const ActionRow1 = new ActionRowBuilder().addComponents(submissionTime)
+                    const ActionRow2 = new ActionRowBuilder().addComponents(submissionNotes)
+                    submissionModal.addComponents(ActionRow1, ActionRow2)
+                    await interaction.showModal(submissionModal)
+                    break
                 case 'submit':
-                    console.log(interaction.data.components[0].components[0])
-                    let subtime = interaction.data.components[0].components[0].value
-                    challengestart = profile.current.start
-                    if (!isNaN(Number(subtime.replace(":", ""))) && tools.timetoSeconds(subtime) !== null) {
-                        let challengeend = Date.now()
-                        let time = tools.timetoSeconds(subtime)
-                        if ((challengeend - challengestart) < time * 1000) {
-                            profileref.child("current").update({ completed: true, title: ":negative_squared_cross_mark: Closed: ", funny_business: true })
-                            let data = updateChallenge({ challengetimedata, profile, current_challenge, current_challengeref, profileref, member, achievements, name, avatar, achievements, interaction })
-                            client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({ data: { embeds: [data.message], components: [] } })
-                            const holdUp = new EmbedBuilder()
-                                .setTitle("<:WhyNobodyBuy:589481340957753363> I warn you. No funny business.")
-                                .setDescription("You submitted a time that was impossible to achieve in the given timeframe.")
-                            interaction.reply({ embeds: [holdUp], ephemeral: true })
-                        } else {
-                            //log time
-                            let submissiondata = {
-                                user: interaction.member.user.id,
-                                time: time,
-                                date: profile.current.start,
-                                racer: profile.current.racer,
-                                track: profile.current.track,
-                                conditions: {
-                                    laps: profile.current.laps,
-                                    nu: profile.current.nu,
-                                    skips: profile.current.skips,
-                                    mirror: profile.current.mirror,
-                                    backwards: profile.current.backwards,
-                                },
-                                settings: {
-                                    winnings: profile.winnings,
-                                    no_upgrades: profile.no_upgrades,
-                                    non_3_lap: profile.non_3_lap,
-                                    skips: profile.skips,
-                                    mirror_mode: profile.mirror_mode,
-                                    backwards: profile.backwards ?? 5
-                                },
-                            }
-                            if (current_challenge.hunt) {
-                                submissiondata.hunt = profile.hunt.bonus
-                            }
-                            var newPostRef = timeref.push(submissiondata);
-                            profileref.child("current").update({ submission: newPostRef.key, completed: true })
-                            let data = updateChallenge({ challengetimedata, profile, current_challenge, current_challengeref, profileref, member, achievements, name, avatar, achievements, interaction })
-                            interaction.editReply({ embeds: [data.message], componenets: [data.componenets] })
-                        }
-                    } else {
+                    let subtime = interaction.fields.getTextInputValue('challengeTime')
+                    let subnotes = interaction.fields.getTextInputValue('challengeNotes')
+
+                    if (!isActive(current_challenge)) { //challenge no longer active
+                        interaction.reply({
+                            embeds: [expiredEmbed()], components: [
+                                {
+                                    type: 1,
+                                    components: [playButton()]
+                                }
+                            ], ephemeral: true
+                        })
+                        return
+                    }
+                    if (isNaN(Number(subtime.replace(":", ""))) || tools.timetoSeconds(subtime) == null) { //time doesn't make sense
                         const holdUp = new EmbedBuilder()
                             .setTitle("<:WhyNobodyBuy:589481340957753363> Time Does Not Compute")
                             .setDescription("Your time was submitted in an incorrect format.")
-                        interactionm.reply({ embeds: [holdUp], ephemeral: true })
+                        interaction.reply({ embeds: [holdUp], ephemeral: true })
+                        return
                     }
+                    let challengeend = Date.now()
+                    let time = tools.timetoSeconds(subtime)
+                    if ((challengeend - current_challenge.created) < time * 1000) { //submitted time is impossible
+                        current_challengeref.update({ completed: true, funny_business: true })
+                        profileref.update({ funny_business: (profile.funny_business ?? 0) + 1 })
+                        const holdUp = new EmbedBuilder()
+                            .setTitle("<:WhyNobodyBuy:589481340957753363> I warn you. No funny business.")
+                            .setDescription("You submitted a time that was impossible to achieve in the given timeframe.")
+                        interaction.followUp({ embeds: [holdUp], ephemeral: true })
+                        return
+                    }
+                    //log time
+                    let submissiondata = {
+                        user: member,
+                        name: name,
+                        time: time,
+                        date: current_challenge.created,
+                        racer: current_challenge.racer,
+                        track: current_challenge.track,
+                        notes: subnotes,
+                        conditions: {
+                            laps: current_challenge.conditions.laps,
+                            nu: current_challenge.conditions.nu,
+                            skips: current_challenge.conditions.skips,
+                            mirror: current_challenge.conditions.mirror,
+                            backwards: current_challenge.conditions.backwards,
+                        },
+                        settings: {
+                            winnings: profile.settings.winnings,
+                            no_upgrades: profile.settings.no_upgrades,
+                            non_3_lap: profile.settings.non_3_lap,
+                            skips: profile.settings.skips,
+                            mirror_mode: profile.settings.mirror_mode,
+                            backwards: profile.settings.backwards ?? 5,
+                            predictions: profile.settings.predictions ?? true
+                        },
+                    }
+                    if (current_challenge.hunt) {
+                        submissiondata.hunt = profile.hunt.bonus
+                    }
+                    var newPostRef = challengetimeref.push(submissiondata);
+                    await current_challengeref.child("submissions").child(member).set({ id: newPostRef.key, player: member, time })
+                    await current_challengeref.update({ completed: true })
+                    let winnings = challengeWinnings({ current_challenge, submitted_time: submissiondata, profile, best: getBest(challengetimedata, current_challenge), goals: goalTimeList(current_challenge, profile), member })
+                    profileref.update({ truguts_earned: profile.truguts_earned + winnings.earnings })
+                    current_challengeref.child("earnings").child(member).update({ truguts_earned: profile.truguts_earned + winnings.earnings, player: member })
+                    current_challenge = challengesdata[interaction.message.id]
+                    let newdata = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction })
+                    interaction.update({ embeds: [newdata.message], components: [newdata.components] })
+                    if (current_challenge.predictions) {
+                        Object.values(current_challenge.predictions).forEach(p => {
+                            let take = predictionScore(p.time, time)
+                            userref.child(p.user).child("random").update({ truguts_earned: userdata[p.user].random.truguts_earned + take })
+                        })
+                    }
+
+
                     break
             }
         } else if (args[0] == "community") {
