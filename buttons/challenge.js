@@ -1,7 +1,7 @@
 const { truguts, hints, tips, settings_default, winnings_map } = require('./challenge/data.js');
-const { getGoalTimes, initializeChallenge, initializePlayer, updateChallenge, bribeComponents, menuEmbed, menuComponents, playButton, notYoursEmbed, hintEmbed, settingsEmbed, initializeUser, isActive, checkActive, expiredEmbed, challengeWinnings, getBest, goalTimeList } = require('./challenge/functions.js');
+const { getGoalTimes, initializeChallenge, initializePlayer, updateChallenge, bribeComponents, menuEmbed, menuComponents, playButton, notYoursEmbed, hintEmbed, settingsEmbed, initializeUser, isActive, checkActive, expiredEmbed, challengeWinnings, getBest, goalTimeList, predictionScore, settingsComponents, achievementProgress, hintComponents, huntEmbed, huntComponents, racerHint, trackHint, sponsorComponents, sponsorEmbed, validateTime } = require('./challenge/functions.js');
 const { modalMessage, postMessage, editMessage } = require('../discord_message.js');
-const { tracks } = require('../data.js')
+const { tracks, circuits } = require('../data.js')
 const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ButtonBuilder, ButtonStyle } = require('discord.js');
 
 module.exports = {
@@ -43,6 +43,20 @@ module.exports = {
             console.log("The read failed: " + errorObject.code);
         });
 
+        var sponsorref = database.ref('challenge/sponsorships');
+        sponsorref.on("value", function (snapshot) {
+            sponsordata = snapshot.val();
+        }, function (errorObject) {
+            console.log("The read failed: " + errorObject.code);
+        });
+
+        var bountyref = database.ref('challenge/bounties');
+        bountyref.on("value", function (snapshot) {
+            bountydata = snapshot.val();
+        }, function (errorObject) {
+            console.log("The read failed: " + errorObject.code);
+        });
+
         //find player in userbase
         let player = null
         Object.keys(userdata).forEach(key => {
@@ -67,6 +81,7 @@ module.exports = {
             current_challengeref = challengesref.child(interaction.message.id)
             current_challenge = challengesdata[interaction.message.id]
         }
+
         if (args[0] == "random") {
             switch (args[1]) {
                 case 'play':
@@ -77,7 +92,7 @@ module.exports = {
                         interaction.reply({ embeds: [activechallenge], ephemeral: true })
                         return
                     }
-                    let type = 'private'
+                    let type = interaction.member.voice?.channel?.id == '441840193754890250' ? 'multiplayer' : 'private'
                     current_challenge = initializeChallenge({ profile, member, interaction, type, name, avatar, user: player })
                     let data = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction })
                     let message = null
@@ -273,602 +288,438 @@ module.exports = {
                     }
                     break
                 case 'undo':
-                    if (interaction.message.id == current_challenge.message && current_challenge.completed) {
-                        profileref.update({ truguts_earned: profile.truguts_earned - current_challenge.truguts_earned })
-                        current_challengeref.update({ truguts_earned: 0, title: "", completed: false, undone: true })
-                        challengetimeref.child(current_challenge.submission).remove()
+                    let newactive = checkActive(challengesdata, member, current_challenge)
+                    if (newactive) { //already has active challenge
+                        interaction.reply({ embeds: [newactive], ephemeral: true })
+                        return
+                    }
+                    if (current_challenge?.submissions?.[interaction.user.id]) {
+                        profileref.update({ truguts_earned: profile.truguts_earned - current_challenge.earnings[interaction.user.id].truguts_earned })
+                        current_challengeref.update({ completed: false })
+                        challengetimeref.child(current_challenge.submissions[interaction.user.id].id).remove() //remove submissions
+                        current_challengeref.child('earnings').child(interaction.user.id).remove()
+                        current_challengeref.child('submissions').child(interaction.user.id).remove()
 
+                        current_challenge = challengesdata[interaction.message.id]
                         let data = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction })
-                        interaction.editReply({ embeds: [data.message], components: [data.components] })
+                        interaction.update({ embeds: [data.message], components: [data.components] })
                     } else {
+                        const noMoney = new EmbedBuilder()
+                            .setTitle("<:WhyNobodyBuy:589481340957753363> You must unsubmit what you have submitted.")
+                            .setDescription("You cannot undo a submission if you have not submitted a time.")
                         interaction.reply({
-                            embeds: [notYoursEmbed()],
-                            components: [{
-                                type: 1,
-                                components: [playButton()]
-                            }],
+                            embeds: [noMoney],
                             ephemeral: true
                         })
                     }
                     break
                 case 'like':
                 case 'dislike':
-                    if (interaction.message.id == current_challenge.message && current_challenge.rated == false) {
-                        current_challengeref.update({ rated: true })
-                        profileref.update({ truguts_earned: profile.truguts_earned + truguts.rated })
-                        feedbackref.push({
-                            user: member,
-                            feedback: args[1] == "dislike" ? "👎" : '👍',
-                            date: current_challenge.start,
-                            racer: current_challenge.racer,
-                            track: current_challenge.track,
-                            conditions: {
-                                laps: current_challenge.conditions.laps,
-                                nu: profile.current.conditions.nu,
-                                skips: profile.current.conditions.skips,
-                                mirror: profile.current.conditions.mirror,
-                                backwards: profile.current.conditions.backwards
-                            }
-                        });
-                        let data = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction })
-                        interaction.editReply({ embeds: [data.message], components: [data.components] })
-                    } else {
-                        interaction.reply(
-                            {
-                                embeds: [notYoursEmbed()],
-                                components: [{
-                                    type: 1,
-                                    components: [playButton()]
-                                }],
-                                ephemeral: true
-                            })
+                    if (!Object.keys(current_challenge.submissions).includes(interaction.user.id)) {
+                        const noMoney = new EmbedBuilder()
+                            .setTitle("<:WhyNobodyBuy:589481340957753363> How can you do this??")
+                            .setDescription("You cannot rate a challenge you haven't done.")
+                        interaction.reply({
+                            embeds: [noMoney],
+                            ephemeral: true
+                        })
+                        return
                     }
+                    if (current_challenge.ratings && Object.keys(current_challenge.ratings).includes(interaction.user.id)) {
+                        const noMoney = new EmbedBuilder()
+                            .setTitle("<:WhyNobodyBuy:589481340957753363> Back again, huh?")
+                            .setDescription("You already rated this challenge.")
+                        interaction.reply({
+                            embeds: [noMoney],
+                            ephemeral: true
+                        })
+                        return
+                    }
+                    current_challengeref.child('ratings').child(interaction.user.id).set({ user: player })
+                    current_challengeref.child('winnings').child(interaction.user.id).update({ truguts_earned: current_challenge.earnings[interaction.user.id].truguts_earned + truguts.rated })
+                    profileref.update({ truguts_earned: profile.truguts_earned + truguts.rated })
+                    feedbackref.push({
+                        user: member,
+                        feedback: args[1] == "dislike" ? "👎" : '👍',
+                        date: current_challenge.created,
+                        racer: current_challenge.racer,
+                        track: current_challenge.track,
+                        conditions: {
+                            laps: current_challenge.conditions.laps,
+                            nu: current_challenge.conditions.nu,
+                            skips: current_challenge.conditions.skips,
+                            mirror: current_challenge.conditions.mirror,
+                            backwards: current_challenge.conditions.backwards
+                        }
+                    });
+                    current_challenge = challengesdata[interaction.message.id]
+                    let fdata = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction })
+                    interaction.reply({ embeds: [fdata.message], components: [fdata.components] })
+
                     break
                 case 'menu':
                     interaction.reply({ embeds: [menuEmbed()], components: menuComponents() })
                     break
                 case 'hint':
                     //get achievement progress
-                    let keys = Object.keys(challengesdata)
-                    for (let i = 0; i < keys.length; i++) {
-                        let k = keys[i];
-                        if (challengesdata[k].user == member) {
-                            if (!achievements.galaxy_famous.array.includes(challengesdata[k].track)) {
-                                achievements.galaxy_famous.array.push(challengesdata[k].track)
-                            }
-                            if (!achievements.pod_champ.array.includes(challengesdata[k].racer)) {
-                                achievements.pod_champ.array.push(challengesdata[k].racer)
-                            }
-                            if (challengesdata[k].skips && !achievements.light_skipper.array.includes(challengesdata[k].track)) {
-                                achievements.light_skipper.array.push(challengesdata[k].track)
-                            }
-                            if (challengesdata[k].nu && !achievements.slow_steady.array.includes(challengesdata[k].racer)) {
-                                achievements.slow_steady.array.push(challengesdata[k].racer)
-                            }
-                            if (challengesdata[k].mirror && !achievements.mirror_dimension.array.includes(challengesdata[k].track)) {
-                                achievements.mirror_dimension.array.push(challengesdata[k].track)
-                            }
-                            if (challengesdata[k].backwards && !achievements.backwards_compatible.array.includes(challengesdata[k].track)) {
-                                achievements.backwards_compatible.array.push(challengesdata[k].track)
-                            }
-                            if (challengesdata[k].racer == tracks[challengesdata[k].track].favorite && !achievements.crowd_favorite.array.includes(challengesdata[k].track)) {
-                                achievements.crowd_favorite.array.push(challengesdata[k].track)
-                            }
-                            if (!achievements.true_jedi.array.includes(challengesdata[k].track + "," + challengesdata[k].racer)) {
-                                achievements.true_jedi.array.push(challengesdata[k].track + "," + challengesdata[k].racer)
-                            }
-                        }
-                    }
+                    let achievements = achievementProgress({ challengetimedata, player: member })
+                    const hEmbed = hintEmbed({ profile, name, avatar })
+                    let achievement = null
+                    let selection = null
 
-                    let achievement = null, selection = null
+                    let achievement_keys = Object.keys(achievements).filter(a => !profile?.achievements?.[a] && !['big_time_swindler', 'bounty_hunter', 'bankroller_clan', 'force_sight', 'lap_god'].includes(a))
 
-                    if (!args.includes("initial")) {
-                        if (args[args.length - 1].startsWith("uid")) {
-                            if (args[args.length - 1].replace("uid", "") !== member) {
-                                const hintMessage = new EmbedBuilder()
-                                    .setTitle("<:WhyNobodyBuy:589481340957753363> Get Your Own Hints!")
-                                    .setDescription("This is someone else's hint menu. Get your own by clicking the button below.")
-                                interaction.reply({
-                                    embeds: [hintMessage], components: [
-                                        {
-                                            type: 1,
-                                            components: [
-                                                {
-                                                    type: 2,
-                                                    custom_id: "challenge_random_hint_initial_new",
-                                                    style: 4,
-                                                    label: "Hints",
-                                                    emoji: {
-                                                        name: "💡"
-                                                    }
-                                                },
-                                                {
-                                                    type: 2,
-                                                    style: 2,
-                                                    custom_id: "challenge_random_menu_new",
-                                                    emoji: {
-                                                        name: "menu",
-                                                        id: "862620287735955487"
-                                                    }
-                                                }
-                                            ]
-                                        }
-                                    ],
-                                    ephemeral: true
-                                })
-                                return
-                            }
-                        }
-                        for (let i = 0; i < interaction.message.components[0].components[0].options.length; i++) {
-                            if (interaction.message.components[0].components[0].options[i].default) {
-                                achievement = option.value
-                            }
-                        }
-                        for (let i = 0; i < interaction.message.components[1].components[0].options.length; i++) {
-                            if (interaction.message.components[1].components[0].options[i].default) {
-                                selection = i
-                            }
-                        }
-                    }
-                    if (args[2] == "achievement") {
-                        achievement = interaction.data.values[0]
-                    } else if (args[2] == "selection") {
-                        selection = Number(interaction.data.values[0])
-                    }
-                    const hintEmbed = hintEmbed()
-                    //get options for components
-                    let components = [], achievement_options = [], selection_options = [], disabled = false
-                    let ach = Object.keys(achievements)
-                    for (i = 0; i < ach.length; i++) {
-                        if (profile.achievements[ach[i]] == false && ach[i] !== "big_time_swindler") {
-                            let option = {
-                                label: achievements[ach[i]].name,
-                                value: ach[i],
-                                description: achievements[ach[i]].description + ": " + achievements[ach[i]].array.length + "/" + achievements[ach[i]].limit,
-                                emoji: {
-                                    name: "🏆"
-                                }
-                            }
-                            option.default = achievement == ach[i]
-                            achievement_options.push(option)
-                        }
-                    }
-                    for (i = 0; i < hints.length; i++) {
-                        let option = {
-                            label: hints[i].name,
-                            value: i,
-                            description: "📀" + tools.numberWithCommas(hints[i].price) + " | " + hints[i].description,
-                            emoji: {
-                                name: "💡"
-                            }
-                        }
-                        option.default = selection == i
-                        if (profile.truguts_earned - profile.truguts_spent >= hints[i].price) {
-                            selection_options.push(option)
-                        }
-                    }
-                    //if a hint can be purchased
-                    if (achievement_options.length > 0) {
-                        components.push({
-                            type: 1,
-                            components: [
-                                {
-                                    type: 3,
-                                    custom_id: "challenge_random_hint_achievement_uid" + member,
-                                    options: achievement_options,
-                                    placeholder: "Select Achievement",
-                                    min_values: 1,
-                                    max_values: 1
-                                }
-                            ]
-                        },
-                            {
-                                type: 1,
-                                components: [
-                                    {
-                                        type: 3,
-                                        custom_id: "challenge_random_hint_selection_uid" + member,
-                                        options: selection_options,
-                                        placeholder: "Select Hint Type",
-                                        min_values: 1,
-                                        max_values: 1
-                                    }
-                                ]
-                            },
-                            {
-                                type: 1,
-                                components: [
-                                    {
-                                        type: 2,
-                                        custom_id: "challenge_random_hint_purchase_uid" + member,
-                                        label: "Buy Hint",
-                                        style: 4,
-                                        disabled: [achievement, selection].includes(null)
-                                    },
-                                    {
-                                        type: 2,
-                                        style: 2,
-                                        custom_id: "challenge_random_menu_uid" + member,
-                                        emoji: {
-                                            name: "menu",
-                                            id: "862620287735955487"
-                                        }
-                                    }
-                                ]
-                            })
-                        hintEmbed
-                            .setDescription("Hints help you narrow down what challenges you need to complete for :trophy: **Achievements**. The more you pay, the better the hint.")
-                            .setFooter(interaction.member.user.username + " | Truguts: 📀" + tools.numberWithCommas(profile.truguts_earned - profile.truguts_spent), client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
-                    } else {
-                        hintEmbed.setDescription("Wow! You've already earned all the achievements! This means you have no use for hints, but you can still earn a large Trugut bonus from a :dart: **Challenge Bounty**.")
-                        components.push({
-                            type: 1,
-                            components: [
-                                {
-                                    type: 2,
-                                    custom_id: "challenge_random_hunt_initial",
-                                    label: "Challenge Bounty",
-                                    style: 4,
-                                    emoji: {
-                                        name: "🎯"
-                                    }
-                                },
-                                {
-                                    type: 2,
-                                    style: 2,
-                                    custom_id: "challenge_random_menu_initial",
-                                    emoji: {
-                                        name: "menu",
-                                        id: "862620287735955487"
-                                    }
-                                }
-                            ]
+                    if (!achievement_keys.length) {
+                        hEmbed.setDescription("Wow! You've already earned all the achievements! This means you have no use for hints, but you can still earn a large Trugut bonus from a :dart: **Challenge Bounty**.")
+
+                        interaction.reply({
+                            embeds: [hEmbed], components: [{
+                                type: 1, components: [new ButtonBuilder()
+                                    .setCustomId("challenge_random_hunt")
+                                    .setLabel("Challenge Bounty")
+                                    .setStyle(ButtonStyle.Secondary)
+                                    .setEmoji("🎯")]
+                            }], ephemeral: true
                         })
+                        return
                     }
-                    if (args[2] == "purchase") {
+
+                    if (args[2] == "achievement") {
+                        achievement = interaction.values[0]
+                        interaction.update({ embeds: [hEmbed], components: hintComponents(achievements, profile, achievement_keys, achievement, selection), ephemeral: true })
+                    } else if (args[2] == "selection") {
+                        let split = interaction.values[0].split(":")
+                        console.log(split)
+                        achievement = split[0]
+                        selection = Number(split[1])
+                        interaction.update({ embeds: [hEmbed], components: hintComponents(achievements, profile, achievement_keys, achievement, selection), ephemeral: true })
+                    } else if (args[2] == "purchase") {
+                        console.log(args[3])
+                        let split = args[3].split(":")
+                        console.log(split)
+                        achievement = split[0].replace("-", "_")
+                        selection = Number(split[1])
                         const hintBuy = new EmbedBuilder()
                             .setColor("#ED4245")
                         if (profile.truguts_earned - profile.truguts_spent < hints[selection].price) {
                             hintBuy
                                 .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
                                 .setDescription("*'No money, no hint!'*\nYou do not have enough truguts to buy the selected hint.\n\nHint cost: `" + hints[selection].price + "`")
-                                .setFooter("Truguts: 📀" + tools.numberWithCommas(profile.truguts_earned - profile.truguts_spent))
+                                .setFooter({ text: "Truguts: 📀" + tools.numberWithCommas(profile.truguts_earned - profile.truguts_spent) })
                             interaction.reply({ embeds: [hintBuy], ephemeral: true })
-                        } else {
-                            //figure out missing
-                            for (let j = 0; j < 25; j++) {
-                                if (!achievements.galaxy_famous.array.includes(j)) {
-                                    achievements.galaxy_famous.missing.push(j)
-                                }
-                                if (!achievements.pod_champ.array.includes(j) && j < 23) {
+                            return
+                        }
+                        //figure out missing
+                        for (let j = 0; j < 25; j++) {
+                            if (j < 23) {
+                                if (!Object.keys(achievements.pod_champ.collection).map(c => Number(c)).includes(j) && j < 23) {
                                     achievements.pod_champ.missing.push(j)
                                 }
-                                if (!achievements.light_skipper.array.includes(j) && tracks[j].hasOwnProperty("parskiptimes")) {
-                                    achievements.light_skipper.missing.push(j)
-                                }
-                                if (!achievements.slow_steady.array.includes(j) && j < 23) {
+                                if (!Object.keys(achievements.slow_steady.collection).map(c => Number(c)).includes(j) && j < 23) {
                                     achievements.slow_steady.missing.push(j)
                                 }
-                                if (!achievements.mirror_dimension.array.includes(j)) {
-                                    achievements.mirror_dimension.missing.push(j)
-                                }
-                                if (!achievements.crowd_favorite.array.includes(j)) {
-                                    achievements.crowd_favorite.missing.push(j)
-                                }
-                                if (!achievements.backwards_compatible.array.includes(j)) {
-                                    achievements.backwards_compatible.missing.push(j)
-                                }
-                                for (let l = 0; l < 23; l++) {
-                                    if (!achievements.true_jedi.array.includes(j + "," + l)) {
-                                        achievements.true_jedi.missing.push(j + "," + l)
-                                    }
-                                }
                             }
-                            //get random missing challenge
-                            let racer = null, track = null, achievement_name = ""
-                            achievement_name = achievements[achievement].name
-                            if (["galaxy_famous", "light_skipper", "mirror_dimension", "crowd_favorite", 'backwards_compatible'].includes(achievement)) {
-                                track = achievements[achievement].missing[Math.floor(Math.random() * achievements[achievement].missing.length)]
-                                if (achievement == "crowd_favorite") {
-                                    racer = tracks[track].favorite
+                            if (!Object.keys(achievements.galaxy_famous.collection).map(c => Number(c)).includes(j)) {
+                                achievements.galaxy_famous.missing.push(j)
+                            }
+                            if (!Object.keys(achievements.light_skipper.collection).map(c => Number(c)).includes(j) && tracks[j].hasOwnProperty("parskiptimes")) {
+                                achievements.light_skipper.missing.push(j)
+                            }
+                            if (!Object.keys(achievements.mirror_dimension.collection).map(c => Number(c)).includes(j)) {
+                                achievements.mirror_dimension.missing.push(j)
+                            }
+                            if (!Object.keys(achievements.crowd_favorite.collection).map(c => Number(c)).includes(j)) {
+                                achievements.crowd_favorite.missing.push(j)
+                            }
+                            if (!Object.keys(achievements.backwards_compatible.collection).map(c => Number(c)).includes(j)) {
+                                achievements.backwards_compatible.missing.push(j)
+                            }
+                            for (let l = 0; l < 23; l++) {
+                                if (!Object.keys(achievements.true_jedi.collection).includes(j + "," + l)) {
+                                    achievements.true_jedi.missing.push(j + "," + l)
                                 }
-                            }
-                            if (["pod_champ", "slow_steady"].includes(achievement)) {
-                                racer = achievements[achievement].missing[Math.floor(Math.random() * achievements[achievement].missing.length)]
-                            }
-                            if (achievement == "true_jedi") {
-                                let random = achievements.true_jedi.missing[Math.floor(Math.random() * achievements.true_jedi.missing.length)]
-                                random = random.split(",")
-                                track = random[0]
-                                racer = random[1]
-                            }
-                            if ((["galaxy_famous", "light_skipper", "mirror_dimension", "crowd_favorite", "true_jedi", 'backwards_compatible'].includes(achievement) && track == null) || (["pod_champ", "slow_steady", "true_jedi"].includes(selection) && racer == null)) {
-                                //player already has achievement
-                                hintBuy.setDescription("You already have this achievement and do not require a hint. You have not been charged. \n\nAlready have all the achievements? Try a Challenge Bounty!")
-                            } else {
-                                //prepare hint
-                                let track_hint_text = "", racer_hint_text = ""
-                                if (track !== null) {
-                                    let track_hint = track_hints[track]
-                                    for (let i = 0; i < selection + 1; i++) {
-                                        let random_hint = Math.floor(Math.random() * track_hint.length)
-                                        track_hint_text += "○ *" + track_hint[random_hint] + "*\n"
-                                        track_hint.splice(random_hint, 1)
-                                    }
-                                    hintBuy.addField("Track Hint", track_hint_text)
-                                }
-                                if (racer !== null) {
-                                    let racer_hint = racer_hints[racer]
-                                    for (let i = 0; i < selection + 1; i++) {
-                                        let random_hint = Math.floor(Math.random() * racer_hint.length)
-                                        racer_hint_text += "○ *" + racer_hint[random_hint] + "*\n"
-                                        racer_hint.splice(random_hint, 1)
-                                    }
-                                    hintBuy.addField("Racer Hint", racer_hint_text)
-                                }
-                                // process purchase
-                                profileref.update({ truguts_spent: profile.truguts_spent + hints[selection].price })
-                                profileref.child("purchases").push({
-                                    date: Date.now(),
-                                    purchased_item: hints[selection].name,
-                                    selection: achievement
-                                })
-                                hintBuy.setDescription("`-📀" + tools.numberWithCommas(hints[selection].price) + "`")
-                            }
-                            hintBuy
-                                .setAuthor(interaction.member.user.username + "'s Random Challenge Hint", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
-                                .setTitle(":bulb: " + hints[selection].name + ": " + achievement_name)
-                                .setFooter("Truguts: 📀" + tools.numberWithCommas(profile.truguts_earned - profile.truguts_spent))
-                            interaction.editReply({ embeds: [hintBuy] })
-                        }
-                    }
-
-                    break
-                case 'hunt':
-                    const huntEmbed = new EmbedBuilder()
-                        .setTitle(":dart: Challenge Bounty")
-                        .setAuthor("Random Challenge", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/game-die_1f3b2.png")
-                        .setDescription("Challenge Hunt is a way to earn big truguts fast. Based on your hint selection, Botto hides a large trugut bonus on a random challenge. You have one hour to find and complete this challenge to claim your bonus.")
-                        .setFooter(interaction.member.user.username + " | Truguts: 📀" + tools.numberWithCommas(profile.truguts_earned - profile.truguts_spent), client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
-                        .setColor("#ED4245")
-                    if (!args.includes("initial")) {
-                        if (args[args.length - 1].startsWith("uid")) {
-                            if (args[args.length - 1].replace("uid", "") !== member) {
-                                const huntMessage = new EmbedBuilder()
-                                    .setTitle("<:WhyNobodyBuy:589481340957753363> Get Your Own Bounty!")
-                                    .setDescription("This is someone else's hunt menu. Get your own by clicking the button below.")
-                                interaction.reply({
-                                    embeds: [huntMessage], components: [{
-                                        type: 1,
-                                        components: [
-                                            {
-                                                type: 2,
-                                                custom_id: "challenge_random_hunt_initial_new",
-                                                style: 4,
-                                                label: "Challenge Bounty",
-                                                emoji: {
-                                                    name: "🎯"
-                                                }
-                                            },
-                                            {
-                                                type: 2,
-                                                style: 2,
-                                                custom_id: "challenge_random_menu_new",
-                                                emoji: {
-                                                    name: "menu",
-                                                    id: "862620287735955487"
-                                                }
-                                            }
-                                        ]
-                                    }], ephemeral: true
-                                })
-                                return
                             }
                         }
-                        for (let i = 0; i < interaction.message.components[0].components[0].options.length; i++) {
-                            let option = interaction.message.components[0].components[0].options[i]
-                            if (option.default) {
-                                selection = i
+                        console.log(achievements)
+                        //get random missing challenge
+                        let racer = null, track = null
+                        if (["galaxy_famous", "light_skipper", "mirror_dimension", "crowd_favorite", 'backwards_compatible'].includes(achievement)) {
+                            track = achievements[achievement].missing[Math.floor(Math.random() * achievements[achievement].missing.length)]
+                            if (achievement == "crowd_favorite") {
+                                racer = tracks[track].favorite
                             }
                         }
-                    }
-                    if (args[2] == "selection") {
-                        selection = Number(interaction.data.values[0])
-                    }
-                    if (profile.hunt !== undefined) {
-                        if (profile.hunt.date > Date.now() - 1000 * 60 * 60 && profile.hunt.completed == false) {
-                            huntEmbed.addField(":exclamation: Bounty Already in Progress", "Your current bounty expires <t:" + Math.round((profile.hunt.date + 1000 * 60 * 60) / 1000) + ":R>. Starting a new one will overwrite the bounty in progress.")
+                        if (["pod_champ", "slow_steady"].includes(achievement)) {
+                            racer = achievements[achievement].missing[Math.floor(Math.random() * achievements[achievement].missing.length)]
                         }
-                    }
-                    //draw components
-                    for (i = 0; i < hints.length; i++) {
-                        let option = {
-                            label: hints[i].hunt,
-                            value: i,
-                            description: "Price: 📀" + tools.numberWithCommas(hints[i].price) + " | " + hints[i].description + " | Bonus: 📀" + tools.numberWithCommas(hints[i].bonus),
-                            emoji: {
-                                name: "🎯"
-                            }
+                        if (achievement == "true_jedi") {
+                            let random = achievements.true_jedi.missing[Math.floor(Math.random() * achievements.true_jedi.missing.length)]
+                            random = random.split(",")
+                            track = random[0]
+                            racer = random[1]
                         }
-                        if (selection == i) {
-                            option.default = true
-                        }
-                        if (profile.truguts_earned - profile.truguts_spent >= hints[i].price) {
-                            selection_options.push(option)
-                        }
-                    }
-                    components.push(
-                        {
-                            type: 1,
-                            components: [
-                                {
-                                    type: 3,
-                                    custom_id: "challenge_random_hunt_selection_uid" + member,
-                                    options: selection_options,
-                                    placeholder: "Select Bounty Type",
-                                    min_values: 1,
-                                    max_values: 1
-                                }
-                            ]
-                        },
-                        {
-                            type: 1,
-                            components: [
-                                {
-                                    type: 2,
-                                    custom_id: "challenge_random_hunt_start_uid" + member,
-                                    label: "Start Bounty",
-                                    style: 4,
-                                    disabled: selection == null
-                                },
-                                {
-                                    type: 2,
-                                    style: 2,
-                                    custom_id: "challenge_random_menu_uid" + member,
-                                    emoji: {
-                                        name: "menu",
-                                        id: "862620287735955487"
-                                    }
-                                }
-                            ]
-                        })
-                    if (args[2] == "start") {
-                        if (profile.truguts_earned - profile.truguts_spent < hints[selection].price) {
-                            hintBuy
-                                .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
-                                .setDescription("*'No money, no bounty!'*\nYou do not have enough truguts to buy the selected bounty.\n\nBounty cost: `" + hints[selection].price + "`")
-                            interaction.reply({ embeds: [hintBuy], ephemeral: true })
+                        console.log(achievement, track, racer)
+                        if ((["galaxy_famous", "light_skipper", "mirror_dimension", "crowd_favorite", "true_jedi", 'backwards_compatible'].includes(achievement) && track == null) || (["pod_champ", "slow_steady", "true_jedi"].includes(achievement) && racer == null)) {
+                            //player already has achievement
+                            hintBuy.setDescription("You already have this achievement and do not require a hint. You have not been charged. \n\nAlready have all the achievements? Try a Challenge Bounty!")
                         } else {
-                            //process purchase
+                            //prepare hint
+                            if (track) {
+                                hintBuy.addFields({ name: "Track Hint", value: trackHint(track, selection).map(h => "○ *" + h + "*").join("\n") })
+                            }
+                            if (racer) {
+                                hintBuy.addFields({ name: "Racer Hint", value: racerHint(racer, selection).map(h => "○ *" + h + "*").join("\n") })
+                            }
+                            // process purchase
                             profileref.update({ truguts_spent: profile.truguts_spent + hints[selection].price })
                             profileref.child("purchases").push({
                                 date: Date.now(),
                                 purchased_item: hints[selection].name,
-                                selection: "challenge_hunt"
+                                selection: achievement
                             })
+                            hintBuy.setDescription("`-📀" + tools.numberWithCommas(hints[selection].price) + "`")
+                        }
+                        profile = userdata[player].random
+                        hintBuy
+                            .setAuthor({ name: name + "'s Random Challenge Hint", iconURL: avatar })
+                            .setTitle(":bulb: " + hints[selection].name + ": " + achievements[achievement].name)
+                            .setFooter({ text: "Truguts: 📀" + tools.numberWithCommas(profile.truguts_earned - profile.truguts_spent) })
 
-                            let track = Math.floor(Math.random() * 25)
-                            let racer = Math.floor(Math.random() * 23)
-                            profileref.update({
-                                hunt: {
-                                    track: track,
-                                    racer: racer,
-                                    date: Date.now(),
-                                    bonus: hints[selection].bonus,
-                                    completed: false
-                                }
-                            })
-                            const huntBuy = new EmbedBuilder()
-                                .setTitle(":dart: " + hints[selection].hunt)
-                                .setColor("#ED4245")
-                                .setAuthor(interaction.member.user.username + "'s Random Challenge Bounty", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
-                            let track_hint = track_hints[track]
-                            let track_hint_text = "", racer_hint_text = ""
-                            for (let i = 0; i < selection + 1; i++) {
-                                let random_hint = Math.floor(Math.random() * track_hint.length)
-                                track_hint_text += "○ *" + track_hint[random_hint] + "*\n"
-                                track_hint.splice(random_hint, 1)
-                            }
-                            huntBuy.addField("Track Hint", track_hint_text)
+                        interaction.reply({ embeds: [hintBuy] })
+                    } else {
+                        interaction.reply({ embeds: [hEmbed], components: hintComponents(achievements, profile, achievement_keys, achievement, selection), ephemeral: true })
+                    }
 
-                            let racer_hint = racer_hints[racer]
-                            for (let i = 0; i < selection + 1; i++) {
-                                let random_hint = Math.floor(Math.random() * racer_hint.length)
-                                racer_hint_text += "○ *" + racer_hint[random_hint] + "*\n"
-                                racer_hint.splice(random_hint, 1)
-                            }
-                            huntBuy
-                                .addField("Racer Hint", racer_hint_text)
-                                .setDescription("`-📀" + tools.numberWithCommas(hints[selection].price) + "`\nBotto has hid a large trugut bonus on a random challenge. You have one hour to find and complete the challenge and claim your bonus! \nBounty expires: <t:" + Math.round((Date.now() + 1000 * 60 * 60) / 1000) + ":t>\n\nIf you use a bribe to successfully find the challenge, you will not be charged.\n" +
-                                    "Potential bonus: `📀" + tools.numberWithCommas(hints[selection].bonus) + "`")
-                                .setFooter("Truguts: 📀" + tools.numberWithCommas(profile.truguts_earned - profile.truguts_spent))
-                            interaction.reply({ embeds: [huntBuy] })
+                    break
+                case 'hunt':
+                    let hselection = null
+                    if (args[2] == "selection") {
+                        hselection = Number(interaction.values[0])
+                        interaction.update({ embeds: [huntEmbed(profile)], components: huntComponents(profile, hselection) })
+                    } else if (args[2] == "start") {
+                        console.log(args[3])
+                        hselection = Number(args[3])
+                        if (profile.truguts_earned - profile.truguts_spent < hints[hselection].price) {
+                            const hintBuy = new EmbedBuilder()
+                                .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
+                                .setDescription("*'No money, no bounty!'*\nYou do not have enough truguts to buy the selected bounty.\n\nBounty cost: `" + hints[hselection].price + "`")
+                            interaction.reply({ embeds: [hintBuy], ephemeral: true })
                             return
                         }
+                        //process purchase
+                        profileref.update({ truguts_spent: profile.truguts_spent + hints[hselection].price })
+                        profileref.child("purchases").push({
+                            date: Date.now(),
+                            purchased_item: hints[hselection].name,
+                            selection: "challenge_hunt"
+                        })
+
+                        let track = Math.floor(Math.random() * 25)
+                        let racer = Math.floor(Math.random() * 23)
+                        profile = userdata[player].random
+                        const huntBuy = new EmbedBuilder()
+                            .setTitle(":dart: " + hints[hselection].hunt)
+                            .setColor("#ED4245")
+                            .setAuthor({ name: name + "'s Random Challenge Bounty", iconURL: avatar })
+                            .setDescription("`-📀" + tools.numberWithCommas(hints[hselection].price) + "`\nBounty expires: <t:" + Math.round((Date.now() + 1000 * 60 * 60) / 1000) + ":R>\n" +
+                                "Potential bonus: `📀" + tools.numberWithCommas(hints[hselection].bonus) + "`")
+                            .addFields(
+                                { name: "Track Hint", value: trackHint(track, hselection).map(h => "○ *" + h + "*").join("\n") },
+                                { name: "Racer Hint", value: racerHint(racer, hselection).map(h => "○ *" + h + "*").join("\n") }
+                            )
+                            .setFooter({ text: "Truguts: 📀" + tools.numberWithCommas(profile.truguts_earned - profile.truguts_spent) })
+                        let message = await interaction.reply({ embeds: [huntBuy], fetchReply: true })
+                        bountyref.push({
+                            track: track,
+                            racer: racer,
+                            created: Date.now(),
+                            type: 'private',
+                            player: player,
+                            member: member,
+                            bonus: hints[hselection].bonus,
+                            completed: false,
+                            message: message.url
+                        })
+                        return
+
+                    } else {
+                        interaction.reply({ embeds: [huntEmbed(profile)], components: huntComponents(profile, hselection), ephemeral: true })
+                    }
+                    break
+                case 'sponsor':
+                    let cselection = null
+                    if (profile.truguts_earned - profile.truguts_spent < circuits[0].sponsor) {
+                        const cantSponsor = new EmbedBuilder()
+                            .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
+                            .setDescription("*'No money, no sponsor!'*\nYou do not have enough truguts to sponsor a challenge.")
+                            .setFooter({ text: "Truguts: 📀" + tools.numberWithCommas(profile.truguts_earned - profile.truguts_spent) })
+                        interaction.reply({ embeds: [cantSponsor], ephemeral: true })
+                        return
+                    }
+                    if (args[2] == 'circuit') {
+                        cselection = Number(interaction.values[0])
+                        interaction.update({ embeds: [sponsorEmbed(null, profile, 0)], components: sponsorComponents(profile, cselection, 0) })
+                    } else if (args[2] == 'submit') { //sponsorship is paid
+                        //process purchase
+                        cselection = Number(args[3])
+                        profileref.update({ truguts_spent: profile.truguts_spent + circuits[cselection].sponsor })
+                        profileref.child("purchases").push({
+                            date: Date.now(),
+                            purchased_item: 'sponsor',
+                            selection: cselection
+                        })
+
+                        //initialize challenge
+                        let sponsorchallenge = initializeChallenge({ profile, member, interaction, type: "private", name, avatar, user: player, circuit: cselection })
+                        sponsorchallenge.type = 'open'
+                        sponsorchallenge.sponsor = sponsorchallenge.player
+                        delete sponsorchallenge.player
+                        sponsorref.child(interaction.message.id).set(sponsorchallenge)
+
+                        //reveal challenge
+                        profile = userdata[player].random
+                        interaction.update({ embeds: [sponsorEmbed(sponsorchallenge, profile, 1)], components: sponsorComponents(profile, cselection, 1) })
+                    } else if (args[2] == 'details') { //set title / time
+                        sponsorchallenge = sponsordata[interaction.message.id]
+                        if (interaction.isModalSubmit()) {
+                            let title = interaction.fields.getTextInputValue('customTitle')
+                            let time = interaction.fields.getTextInputValue('customTime')
+                            time = validateTime(time)
+
+                            sponsorref.child(interaction.message.id).update({ title, time })
+
+                            profile = userdata[player].random
+                            sponsorchallenge = sponsordata[interaction.message.id]
+                            interaction.update({ embeds: [sponsorEmbed(sponsorchallenge, profile, 1)], components: sponsorComponents(profile, cselection, 1) })
+                        } else {
+                            const oddsModal = new ModalBuilder()
+                                .setCustomId('challenge_random_sponsor_details')
+                                .setTitle('Sponsor Customization')
+                            const customTitle = new TextInputBuilder()
+                                .setCustomId('customTitle')
+                                .setLabel('Custom Title')
+                                .setStyle(TextInputStyle.Short)
+                                .setMaxLength(70)
+                                .setValue(sponsorchallenge.title ?? "")
+                                .setRequired(false)
+                            const customTime = new TextInputBuilder()
+                                .setCustomId('customTime')
+                                .setLabel('Custom Time')
+                                .setStyle(TextInputStyle.Short)
+                                .setMaxLength(9)
+                                .setPlaceholder("--:--.---")
+                                .setValue(sponsorchallenge.time ?? "")
+                                .setRequired(false)
+                            const ActionRow1 = new ActionRowBuilder().addComponents(customTitle)
+                            const ActionRow2 = new ActionRowBuilder().addComponents(customTime)
+                            oddsModal.addComponents(ActionRow1, ActionRow2)
+                            await interaction.showModal(oddsModal)
+                        }
+
+                    } else if (args[2] == 'publish') { //post challenge
+
+                    } else {
+                        interaction.reply({ embeds: [sponsorEmbed(null, profile, 0)], components: sponsorComponents(profile, cselection, 0), ephemeral: true })
                     }
                     break
                 case 'settings':
-                    if (!args.includes("initial")) {
-                        if (args[args.length - 1].startsWith("uid")) {
-                            if (args[args.length - 1].replace("uid", "") !== member) {
-                                const holdUp = new EmbedBuilder()
-                                    .setTitle("<:WhyNobodyBuy:589481340957753363> Get Your Own Settings!")
-                                    .setDescription("This is someone else's settings menu. Get your own by clicking the button below.")
-                                interaction.reply({
-                                    embeds: [holdUp], components: [{
-                                        type: 1,
-                                        components: [
-                                            {
-                                                type: 2,
-                                                custom_id: "challenge_random_settings_initial_new",
-                                                style: 4,
-                                                label: "Settings",
-                                                emoji: {
-                                                    name: "⚙️"
-                                                }
-                                            },
-                                            {
-                                                type: 2,
-                                                style: 2,
-                                                custom_id: "challenge_random_menu_new",
-                                                emoji: {
-                                                    name: "menu",
-                                                    id: "862620287735955487"
-                                                }
-                                            }
-                                        ]
-                                    }], ephemeral: true
-                                })
-                                return
-                            }
-                        }
-                    }
                     if (args[2] == "winnings") {
-                        if (interaction.data.values) {
-                            profileref.update({ winnings: Number(interaction.data.values[0]) })
-                        }
-                        interaction.editReply({ embeds: [settingsEmbed()], components: [settingsComponents()] })
+                        profileref.child("settings").update({ winnings: Number(interaction.values[0]) })
+                        profile = userdata[player].random
+                        interaction.update({ embeds: [settingsEmbed({ profile, name, avatar })], components: settingsComponents(profile) })
+                    } else if (args[2] == "predictions") {
+                        profileref.child("settings").update({ predictions: !profile.settings.predictions })
+                        profile = userdata[player].random
+                        interaction.update({ embeds: [settingsEmbed({ profile, name, avatar })], components: settingsComponents(profile) })
                     } else if (args[2] == "odds") {
-                        if (args[3] == 'submit') {
-                            profileref.update({
-                                skips: Number(interaction.data.components[0].components[0].value),
-                                no_upgrades: Number(interaction.data.components[1].components[0].value),
-                                non_3_lap: Number(interaction.data.components[2].components[0].value),
-                                mirror_mode: Number(interaction.data.components[3].components[0].value),
-                                backwards: Number(interaction.data.components[4].components[0].value),
-                            })
-                            interaction.editReply({ embeds: [settingsEmbed()], components: [settingsComponents()] })
-                        } else {
-                            let modal_options = [{ id: 'skips', label: 'Skips' }, { id: 'no_upgrades', label: 'No Upgrades' }, { id: 'non_3_lap', title: 'Non 3-Lap' }, { id: 'mirror_mode', title: 'Mirrored' }, { id: 'backwards', title: 'Backwards' }].map(option => {
-                                return {
-                                    type: 1,
-                                    components: [{
-                                        type: 4,
-                                        custom_id: option.id,
-                                        label: option.label,
-                                        style: 1,
-                                        min_length: 1,
-                                        max_length: 3,
-                                        required: true,
-                                        value: profile[option.id]
-                                    }]
+                        if (interaction.isModalSubmit()) {
+                            let odds = {
+                                skips: interaction.fields.getTextInputValue('skipsOdds'),
+                                no_upgrades: interaction.fields.getTextInputValue('nuOdds'),
+                                non_3_lap: interaction.fields.getTextInputValue('n3lOdds'),
+                                mirror_mode: interaction.fields.getTextInputValue('mirrorOdds'),
+                                backwards: interaction.fields.getTextInputValue('backwardsOdds'),
+                            }
+                            Object.keys(odds).forEach(key => {
+                                if (isNaN(Number(odds[key]))) {
+                                    odds[key] = settings_default[key]
+                                } else {
+                                    odds[key] = Math.round(Number(odds[key]))
                                 }
                             })
-                            modalMessage(client, interaction, 'challenge_random_settings_odds_submit', 'Set Your Random Challenge Odds (0-100)', modal_options)
+                            profileref.child('settings').update(odds)
+                            profile = userdata[player].random
+                            interaction.update({ embeds: [settingsEmbed({ profile, name, avatar })], components: settingsComponents(profile) })
+                        } else {
+                            const oddsModal = new ModalBuilder()
+                                .setCustomId('challenge_random_settings_odds')
+                                .setTitle('Customize Odds')
+                            const skipsOdds = new TextInputBuilder()
+                                .setCustomId('skipsOdds')
+                                .setLabel('Skips')
+                                .setStyle(TextInputStyle.Short)
+                                .setMaxLength(2)
+                                .setMinLength(1)
+                                .setValue(String(profile.settings.skips))
+                                .setRequired(true)
+                            const nuOdds = new TextInputBuilder()
+                                .setCustomId('nuOdds')
+                                .setLabel('No Upgrades')
+                                .setStyle(TextInputStyle.Short)
+                                .setMaxLength(2)
+                                .setMinLength(1)
+                                .setValue(String(profile.settings.no_upgrades))
+                                .setRequired(true)
+                            const n3lOdds = new TextInputBuilder()
+                                .setCustomId('n3lOdds')
+                                .setLabel('Non 3-Lap')
+                                .setStyle(TextInputStyle.Short)
+                                .setMaxLength(2)
+                                .setMinLength(1)
+                                .setValue(String(profile.settings.non_3_lap))
+                                .setRequired(true)
+                            const mirrorOdds = new TextInputBuilder()
+                                .setCustomId('mirrorOdds')
+                                .setLabel('Mirror Mode')
+                                .setStyle(TextInputStyle.Short)
+                                .setMaxLength(2)
+                                .setMinLength(1)
+                                .setValue(String(profile.settings.mirror_mode))
+                                .setRequired(true)
+                            const backwardsOdds = new TextInputBuilder()
+                                .setCustomId('backwardsOdds')
+                                .setLabel('Backwards')
+                                .setStyle(TextInputStyle.Short)
+                                .setMaxLength(2)
+                                .setMinLength(1)
+                                .setValue(String(profile.settings.backwards))
+                                .setRequired(true)
+                            const ActionRow1 = new ActionRowBuilder().addComponents(skipsOdds)
+                            const ActionRow2 = new ActionRowBuilder().addComponents(nuOdds)
+                            const ActionRow3 = new ActionRowBuilder().addComponents(n3lOdds)
+                            const ActionRow4 = new ActionRowBuilder().addComponents(mirrorOdds)
+                            const ActionRow5 = new ActionRowBuilder().addComponents(backwardsOdds)
+                            oddsModal.addComponents(ActionRow1, ActionRow2, ActionRow3, ActionRow4, ActionRow5)
+
+                            await interaction.showModal(oddsModal)
                         }
                     } else if (args[2] == "default") {
-                        profileref.update({
+                        profileref.child("settings").update({
                             winnings: settings_default.winnings,
                             skips: settings_default.skips,
                             no_upgrades: settings_default.no_upgrades,
                             non_3_lap: settings_default.non_3_lap,
-                            mirror_mode: settings_default.mirrored,
-                            backwards: settings_default.backwards
+                            mirror_mode: settings_default.mirror_mode,
+                            backwards: settings_default.backwards,
+                            predictions: settings_default.predictions
                         })
-                        interaction.editReply({ embeds: [settingsEmbed()], components: [settingsComponents()] })
+                        profile = userdata[player].random
+                        interaction.update({ embeds: [settingsEmbed({ profile, name, avatar })], components: settingsComponents(profile) })
+                    } else {
+                        profile = userdata[player].random
+                        interaction.reply({ embeds: [settingsEmbed({ profile, name, avatar })], components: settingsComponents(profile), ephemeral: true })
                     }
                     break
-
                 case 'profile':
                     if (args[args.length - 1].startsWith("uid")) {
                         if (args[args.length - 1].replace("uid", "") !== member) {
@@ -1287,7 +1138,6 @@ module.exports = {
                         return profileEmbed
                     }).then((embed) => sendResponse(embed))
                     break
-
                 case 'about':
                     const challengeHelpEmbed = new EmbedBuilder()
                         .setAuthor({ name: "Random Challenge", value: "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/game-die_1f3b2.png" })
@@ -1302,7 +1152,6 @@ module.exports = {
                         )
                     interaction.reply({ embeds: [challengeHelpEmbed], ephemeral: true })
                     break
-
                 case 'leaderboards':
                     const challengeLeaderboard = new EmbedBuilder()
                     var track = Math.floor(Math.random() * 25)
@@ -1417,7 +1266,7 @@ module.exports = {
                         .setTitle(planets[tracks[track].planet].emoji + " " + tracks[track].name)
                         .setColor(planets[tracks[track].planet].color)
                         .setDescription(circuits[tracks[track].circuit].name + " Circuit | Race " + tracks[track].cirnum + " | " + planets[tracks[track].planet].name)
-                        .setFooter(challengefiltered.length + " Total Runs")
+                        .setFooter({ text: challengefiltered.length + " Total Runs" })
                     if (user !== null) {
                         challengeLeaderboard.setAuthor(Member.user.username + "'s Best", client.guilds.resolve(interaction.guild_id).members.resolve(user).user.avatarURL())
                         showall = true
@@ -1562,7 +1411,6 @@ module.exports = {
                     )
                     interaction.editReply({ embeds: [challengeLeaderboard], components: components })
                     break
-
                 case 'modal':
                     if (current_challenge.type == 'private' && member !== current_challenge.player?.member) { //not your challenge
                         const holdUp = new EmbedBuilder()
@@ -1587,6 +1435,21 @@ module.exports = {
                         current_challengeref.update({ completed: true })
                         interaction.reply({
                             embeds: [expiredEmbed()], components: [
+                                {
+                                    type: 1,
+                                    components: [playButton()]
+                                }
+
+                            ], ephemeral: true
+                        })
+                        return
+                    }
+                    if (current_challenge.submissions?.[member]) { //already submitted
+                        const holdUp = new EmbedBuilder()
+                            .setTitle("<:WhyNobodyBuy:589481340957753363> You seem familiar...")
+                            .setDescription("You already submitted a time for this challenge. Why not try a new one?")
+                        interaction.reply({
+                            embeds: [holdUp], components: [
                                 {
                                     type: 1,
                                     components: [playButton()]
@@ -1650,7 +1513,7 @@ module.exports = {
                         const holdUp = new EmbedBuilder()
                             .setTitle("<:WhyNobodyBuy:589481340957753363> I warn you. No funny business.")
                             .setDescription("You submitted a time that was impossible to achieve in the given timeframe.")
-                        interaction.followUp({ embeds: [holdUp], ephemeral: true })
+                        interaction.reply({ embeds: [holdUp], ephemeral: true })
                         return
                     }
                     //log time
@@ -1684,10 +1547,23 @@ module.exports = {
                     }
                     var newPostRef = challengetimeref.push(submissiondata);
                     await current_challengeref.child("submissions").child(member).set({ id: newPostRef.key, player: member, time })
-                    await current_challengeref.update({ completed: true })
+                    if (['abandoned', 'private'].includes(current_challenge.type)) {
+                        await current_challengeref.update({ completed: true })
+                    }
                     let winnings = challengeWinnings({ current_challenge, submitted_time: submissiondata, profile, best: getBest(challengetimedata, current_challenge), goals: goalTimeList(current_challenge, profile), member })
                     profileref.update({ truguts_earned: profile.truguts_earned + winnings.earnings })
-                    current_challengeref.child("earnings").child(member).update({ truguts_earned: profile.truguts_earned + winnings.earnings, player: member })
+                    if (!profile.streak_start) { //no streak started
+                        profileref.update({ streak_start: submissiondata.date, streak_end: submissiondata.date })
+                    } else {
+                        if (submissiondata.date - (1000 * 60 * 60 * 24) < profile.streak_end) { //streak continues
+                            profileref.update({ streak_end: submissiondata.date })
+                        } else { //streak broken
+                            profileref.child("streaks").push(profile.streak_end - profile.streak_start)
+                            profileref.update({ streak_start: submissiondata.date, streak_end: submissiondata.date })
+                        }
+                    }
+                    profile = userdata[player].random
+                    current_challengeref.child("earnings").child(member).set({ truguts_earned: winnings.earnings, player: member })
                     current_challenge = challengesdata[interaction.message.id]
                     let newdata = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction })
                     interaction.update({ embeds: [newdata.message], components: [newdata.components] })
@@ -1701,28 +1577,6 @@ module.exports = {
 
                     break
             }
-        } else if (args[0] == "community") {
-            if (args[1] == "submit") {
-
-            } else if (args[1] == "browse") {
-
-            } else if (args[1] == "create") {
-
-            } else if (args[1] == "profile") {
-
-            } else if (args[1] == "leaderboards") {
-
-            }
-            client.api.interactions(interaction.id, interaction.token).callback.post({
-                data: {
-                    type: 4,
-                    data: {
-                        content: "<:WhyNobodyBuy:589481340957753363> This feature isn't available yet ",
-                        flags: 64
-                    }
-                }
-            })
         }
-
     }
 }

@@ -8,7 +8,8 @@ const client = new Client({
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.GuildPresences,
-        GatewayIntentBits.GuildMembers
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.GuildVoiceStates
     ]
 });
 var lookup = require("./data.js");
@@ -92,6 +93,20 @@ feedbackref.on("value", function (snapshot) {
 }, function (errorObject) {
     console.log("The read failed: " + errorObject.code);
 });
+
+var bountyref = database.ref('challenge/bounties');
+bountyref.on("value", function (snapshot) {
+    bountydata = snapshot.val();
+}, function (errorObject) {
+    console.log("The read failed: " + errorObject.code);
+});
+var sponsorref = database.ref('challenge/sponsorships');
+sponsorref.on("value", function (snapshot) {
+    sponsordata = snapshot.val();
+}, function (errorObject) {
+    console.log("The read failed: " + errorObject.code);
+});
+
 var tourney_races = database.ref('tourney/races');
 tourney_races.on("value", function (snapshot) {
     tourney_races_data = snapshot.val();

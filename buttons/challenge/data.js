@@ -40,7 +40,9 @@ exports.truguts = {
     bonus_deluxe: 10000,
     long: 200,
     extra_long: 400,
-    prediction_max: 500
+    prediction_max: 500,
+    streak: 50,
+    beat_sponsor: 1000
 }
 
 exports.hints = [
@@ -81,8 +83,9 @@ exports.settings_default = {
     skips: 25,
     no_upgrades: 15,
     non_3_lap: 5,
-    mirrored: 5,
-    backwards: 5
+    mirror_mode: 5,
+    backwards: 5,
+    predictions: true
 }
 exports.winnings_map = [
     { name: "Fair", text: ":gem: 36%\n:first_place: 32%\n:second_place: 27%\n:third_place: 5%\n<:bumpythumb:703107780860575875> 0%" },
