@@ -169,7 +169,7 @@ exports.initializeUser = function (ref, id) {
     return push.key
 }
 
-exports.initializeChallenge = function ({ profile, member, interaction, type, name, avatar, user, circuit, sponsordata } = {}) {
+exports.initializeChallenge = function ({ profile, member, type, name, avatar, user, circuit, sponsordata } = {}) {
     //get values
     console.log(circuit)
     let random_racer = Math.floor(Math.random() * 23)
@@ -203,8 +203,7 @@ exports.initializeChallenge = function ({ profile, member, interaction, type, na
     let challenge = {
         type: type,
         created: Date.now(),
-        channel: interaction.message.channelId,
-        guild: interaction.guildId,
+
         // completed: false,
         // rerolled: false,
         // rated: false,
@@ -237,7 +236,12 @@ exports.getSponsor = function (challenge, sponsordata) {
         challenge.sponsor_title = ''
         challenge.sponsor_time = ''
         if (exports.matchingChallenge(sponsordata[key], challenge)) {
-            challenge.sponsors.push(sponsordata[key].sponsor)
+            if (!challenge.sponsors[sponsordata[key].sponsor.member]) {
+                challenge.sponsors[sponsordata[key].sponsor.member] = sponsordata[key].sponsor
+                challenge.sponsors[sponsordata[key].sponsor.member].multiplier = 1
+            } else {
+                challenge.sponsors[sponsordata[key].sponsor.member].multiplier++
+            }
             challenge.sponsor_title = sponsordata[key].title
             challenge.sponsor_time = sponsordata[key].time
         }
@@ -479,68 +483,68 @@ exports.achievementProgress = function ({ challengetimedata, player } = {}) {
     return achievements
 }
 
-exports.challengeAchievementProgress = function ({ client, current_challenge, interaction, profile, profileref, achievements } = {}) {
+exports.challengeAchievementProgress = function ({ client, current_challenge, profile, profileref, achievements, name, avatar } = {}) {
 
     let achievement_message_array = []
     if (Object.keys(achievements.galaxy_famous.collection).length < achievements.galaxy_famous.limit && !achievements.galaxy_famous.collection[current_challenge.track]) {
         achievement_message_array.push({
-            name: interaction.guildId == swe1r_guild ? "<@&" + achievements.galaxy_famous.role + ">" : achievements.galaxy_famous.name,
+            name: current_challenge.guild == swe1r_guild ? "<@&" + achievements.galaxy_famous.role + ">" : achievements.galaxy_famous.name,
             count: Object.keys(achievements.galaxy_famous.collection).length,
             limit: achievements.galaxy_famous.limit
         })
     }
     if (Object.keys(achievements.pod_champ.collection).length < achievements.pod_champ.limit && !achievements.pod_champ.collection[current_challenge.racer]) {
         achievement_message_array.push({
-            name: interaction.guildId == swe1r_guild ? "<@&" + achievements.pod_champ.role + ">" : achievements.pod_champ.name,
+            name: current_challenge.guild == swe1r_guild ? "<@&" + achievements.pod_champ.role + ">" : achievements.pod_champ.name,
             count: Object.keys(achievements.pod_champ.collection).length,
             limit: achievements.pod_champ.limit
         })
     }
     if (Object.keys(achievements.light_skipper.collection).length < achievements.light_skipper.limit && current_challenge.conditions.skips && !achievements.light_skipper.collection[current_challenge.track]) {
         achievement_message_array.push({
-            name: interaction.guildId == swe1r_guild ? "<@&" + achievements.light_skipper.role + ">" : achievements.light_skipper.name,
+            name: current_challenge.guild == swe1r_guild ? "<@&" + achievements.light_skipper.role + ">" : achievements.light_skipper.name,
             count: Object.keys(achievements.light_skipper.collection).length,
             limit: achievements.light_skipper.limit
         })
     }
     if (Object.keys(achievements.slow_steady.collection).length < achievements.slow_steady.limit && current_challenge.conditions.nu && !achievements.slow_steady.collection[current_challenge.racer]) {
         achievement_message_array.push({
-            name: interaction.guildId == swe1r_guild ? "<@&" + achievements.slow_steady.role + ">" : achievements.slow_steady.name,
+            name: current_challenge.guild == swe1r_guild ? "<@&" + achievements.slow_steady.role + ">" : achievements.slow_steady.name,
             count: Object.keys(achievements.slow_steady.collection).length,
             limit: achievements.slow_steady.limit
         })
     }
     if (Object.keys(achievements.mirror_dimension.collection).length < achievements.mirror_dimension.limit && current_challenge.conditions.mirror && !achievements.mirror_dimension.collection[current_challenge.track]) {
         achievement_message_array.push({
-            name: interaction.guildId == swe1r_guild ? "<@&" + achievements.mirror_dimension.role + ">" : achievements.mirror_dimension.name,
+            name: current_challenge.guild == swe1r_guild ? "<@&" + achievements.mirror_dimension.role + ">" : achievements.mirror_dimension.name,
             count: Object.keys(achievements.mirror_dimension.collection).length,
             limit: achievements.mirror_dimension.limit
         })
     }
     if (achievements.lap_god.count < achievements.lap_god.limit && current_challenge.conditions.laps !== 3) {
         achievement_message_array.push({
-            name: interaction.guildId == swe1r_guild ? "<@&" + achievements.lap_god.role + ">" : achievements.lap_god.name,
+            name: current_challenge.guild == swe1r_guild ? "<@&" + achievements.lap_god.role + ">" : achievements.lap_god.name,
             count: achievements.lap_god.count,
             limit: achievements.lap_god.limit
         })
     }
     if (Object.keys(achievements.backwards_compatible.collection).length < achievements.backwards_compatible.limit && current_challenge.conditions.backwards && !achievements.backwards_compatible.collection[current_challenge.track]) {
         achievement_message_array.push({
-            name: interaction.guildId == swe1r_guild ? "<@&" + achievements.backwards_compatible.role + ">" : achievements.backwards_compatible.name,
+            name: current_challenge.guild == swe1r_guild ? "<@&" + achievements.backwards_compatible.role + ">" : achievements.backwards_compatible.name,
             count: Object.keys(achievements.backwards_compatible.collection).length,
             limit: achievements.backwards_compatible.limit
         })
     }
     if (Object.keys(achievements.crowd_favorite.collection).length < achievements.crowd_favorite.limit && current_challenge.racer == tracks[current_challenge.track].favorite && !achievements.crowd_favorite.collection[current_challenge.track]) {
         achievement_message_array.push({
-            name: interaction.guildId == swe1r_guild ? "<@&" + achievements.crowd_favorite.role + ">" : achievements.crowd_favorite.name,
+            name: current_challenge.guild == swe1r_guild ? "<@&" + achievements.crowd_favorite.role + ">" : achievements.crowd_favorite.name,
             count: Object.keys(achievements.crowd_favorite.collection).length,
             limit: achievements.crowd_favorite.limit
         })
     }
     if (Object.keys(achievements.true_jedi.collection).length < achievements.true_jedi.limit && !achievements.true_jedi.collection[current_challenge.track + " " + current_challenge.racer]) {
         achievement_message_array.push({
-            name: interaction.guildId == swe1r_guild ? "<@&" + achievements.true_jedi.role + ">" : achievements.true_jedi.name,
+            name: current_challenge.guild == swe1r_guild ? "<@&" + achievements.true_jedi.role + ">" : achievements.true_jedi.name,
             count: Object.keys(achievements.true_jedi.collection).length,
             limit: achievements.true_jedi.limit
         })
@@ -549,7 +553,7 @@ exports.challengeAchievementProgress = function ({ client, current_challenge, in
     achievement_message_array.forEach((ach, index) => {
         achievement_progress += "**" + ach.name + "** `" + ach.count + "/" + ach.limit + "` " + (index !== achievement_message_array.length - 1 ? "○ " : "")
     })
-    exports.awardAchievements({ client, interaction, achievements, profile, profileref })
+    exports.awardAchievements({ current_challenge, client, achievements, profile, profileref, name, avatar })
     return achievement_progress
 }
 
@@ -567,10 +571,10 @@ exports.challengeColor = function (current_challenge) {
     return color
 }
 
-exports.awardAchievements = function ({ client, interaction, achievements, profile, profileref } = {}) {
+exports.awardAchievements = function ({ client, achievements, profile, profileref, name, avatar } = {}) {
     Object.keys(achievements).forEach(key => {
         if (Object.keys(achievements[key].collection).length >= achievements[key].limit || achievements[key].count >= achievements[key].limit) { //if player has met condition for achievement
-            if (interaction.guildId == swe1r_guild) {
+            if (current_challenge.guild == swe1r_guild) {
                 if (client.member.roles.cache.some(r => r.id === achievements[key].role)) { //award role
                     client.member.roles.add(achievements[key].role).catch(error => console.log(error))
                 }
@@ -578,14 +582,14 @@ exports.awardAchievements = function ({ client, interaction, achievements, profi
             if (!profile.achievements[key]) { //send congrats
                 profileref.child("achievements").child(key).set(true)
                 const congratsEmbed = new EmbedBuilder()
-                    .setAuthor({ name: interaction.member.displayName + " got an achievement!", iconURL: client.guilds.resolve(interaction.guildId).members.resolve(interaction.member.user.id).displayAvatarURL() })
+                    .setAuthor({ name: name + " got an achievement!", iconURL: avatar })
                     .setDescription(achievements[key].description)
                     .setColor("FFB900")
                     .setTitle("**:trophy: " + achievements[key].name + "**")
-                if (interaction.guildId == swe1r_guild) {
+                if (current_challenge.guild == swe1r_guild) {
                     congratsEmbed.setDescription("**<@&" + achievements[key].role + ">** - " + achievements[key].description)
                 }
-                postMessage(client, interaction.channel.id, { embeds: [congratsEmbed] })
+                postMessage(client, current_challenge.channel, { embeds: [congratsEmbed] })
             }
         }
     })
@@ -601,18 +605,31 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, profi
             winnings_text = i
         }
     }
+    if (goals.earnings[winnings_text] > 0) {
+        earnings += goal_symbols[winnings_text] + " `+📀" + tools.numberWithCommas(goals.earnings[winnings_text]) + "`\n"
+        earnings_total += goals.earnings[winnings_text]
+    }
+
     if (current_challenge.hunt) {
-        earnings += "Bounty Bonus `+📀" + tools.numberWithCommas(profile.hunt.bonus) + "`\n"
+        earnings += ":dart: `+📀" + tools.numberWithCommas(profile.hunt.bonus) + "`\n"
         earnings_total += profile.hunt.bonus
     }
     if (current_challenge.sponsor_time && Number(submitted_time.time) - Number(current_challenge.sponsor_time) < 0) {
         earnings += "📢 `+📀" + tools.numberWithCommas(truguts.beat_sponsor) + "`\n"
         earnings_total += truguts.beat_sponsor
     }
-    if (goals.earnings[winnings_text] > 0) {
-        earnings += goal_symbols[winnings_text] + " `+📀" + tools.numberWithCommas(goals.earnings[winnings_text]) + "`\n"
-        earnings_total += goals.earnings[winnings_text]
+    if (profile.streak_start) {
+        let streak = Math.floor((profile.streak_end - profile.streak_start) / (1000 * 60 * 60 * 24))
+        if (streak > 0) {
+            earnings += streak + "-Day Streak `+📀" + tools.numberWithCommas(truguts.streak * streak) + "`\n"
+            earnings_total += truguts.streak * streak
+        }
     }
+    if (first) {
+        earnings += ":snowflake: `+📀" + tools.numberWithCommas(truguts.first) + "`\n"
+        earnings_total += truguts.first
+    }
+
     let winnings_non_standard = 0
     if (submitted_time.conditions.skips && submitted_time.settings.skips <= 25) {
         winnings_non_standard++
@@ -662,20 +679,9 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, profi
         earnings_total += truguts.personal_best
     }
 
-    if (first) {
-        earnings += ":snowflake: `+📀" + tools.numberWithCommas(truguts.first) + "`\n"
-        earnings_total += truguts.first
-    }
     if (current_challenge?.ratings?.[member]) {
         earnings += "Rated `+📀" + tools.numberWithCommas(truguts.rated) + "`\n"
         earnings_total += truguts.rated
-    }
-    if (profile.streak_start) {
-        let streak = Math.floor((profile.streak_end - profile.streak_start) / (1000 * 60 * 60 * 24))
-        if (streak > 0) {
-            earnings += streak + "-Day Streak `+📀" + tools.numberWithCommas(truguts.streak * streak) + "`\n"
-            earnings_total += truguts.streak * streak
-        }
     }
     earnings += "\n**Total: **`+📀" + tools.numberWithCommas(earnings_total) + "`"
     let winnings = { earnings: earnings_total, receipt: earnings }
@@ -782,14 +788,14 @@ exports.checkActive = function (challengesdata, member, current_challenge) {
     return result
 }
 
-exports.challengeEmbed = function ({ current_challenge, profile, current_challengeref, profileref, feedbackdata, best, name, member, avatar, interaction, challengetimedata, client } = {}) {
+exports.challengeEmbed = function ({ current_challenge, profile, current_challengeref, profileref, feedbackdata, best, name, member, avatar, challengetimedata, client } = {}) {
     let submitted_time = challengetimedata[current_challenge?.submissions?.[member]?.id] ?? {}
     let achs = exports.achievementProgress({ challengetimedata, player: member })
 
     const challengeEmbed = new EmbedBuilder()
         .setTitle(exports.generateChallengeTitle(current_challenge))
         .setColor(exports.challengeColor(current_challenge))
-        .setDescription(exports.generateChallengeDescription(current_challenge, best, profile, name, feedbackdata) + (current_challenge.type == 'private' ? "\n" + exports.challengeAchievementProgress({ client, current_challenge, interaction, profile, profileref, achievements: achs }) : ''))
+        .setDescription(exports.generateChallengeDescription(current_challenge, best, profile, name, feedbackdata) + (current_challenge.type == 'private' ? "\n" + exports.challengeAchievementProgress({ client, current_challenge, profile, profileref, achievements: achs, name, avatar }) : ''))
 
     if (current_challenge.type == 'multiplayer') {
         challengeEmbed
@@ -1301,4 +1307,63 @@ exports.validateTime = function (time) {
     } else {
         return tools.timetoSeconds(time)
     }
+}
+
+exports.dailyChallenge = async function ({ client, sponsordata, challengetimedata } = {}) {
+    current_challenge = exports.initializeChallenge({ profile, member, type: "cotd", name, avatar, user: player, sponsordata })
+    let cotddata = exports.updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, sponsordata })
+    let cotdmessage = null
+    cotdmessage = await postMessage(client, '551786988861128714', { embeds: [cotddata.message], components: [cotddata.components] })
+    current_challenge.message = cotdmessage.id
+    current_challenge.guild = cotdmessage.guildId
+    current_challenge.channel = cotdmessage.channelId
+    current_challenge.url = cotdmessage.url
+    challengesref.child(cotdmessage.id).set(current_challenge)
+}
+
+exports.dailyBounty = async function ({ client, sponsordata, challengetimedata } = {}) {
+    current_challenge = exports.initializeChallenge({ profile, member, type: "cotd", name, avatar, user: player, sponsordata })
+    let cotddata = exports.updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, sponsordata })
+    let cotdmessage = null
+    cotdmessage = await postMessage(client, '551786988861128714', { embeds: [cotddata.message], components: [cotddata.components] })
+    current_challenge.message = cotdmessage.id
+    current_challenge.guild = cotdmessage.guildId
+    current_challenge.channel = cotdmessage.channelId
+    current_challenge.url = cotdmessage.url
+    challengesref.child(cotdmessage.id).set(current_challenge)
+}
+
+exports.bountyEmbed = function () {
+    const bounty = new EmbedBuilder()
+        .setTitle(":dart: " + hints[hselection].hunt)
+        .setColor("#ED4245")
+        .setAuthor({ name: name + "'s Random Challenge Bounty", iconURL: avatar })
+        .setDescription("`-📀" + tools.numberWithCommas(hints[hselection].price) + "`\nBounty expires: <t:" + Math.round((Date.now() + 1000 * 60 * 60) / 1000) + ":R>\n" +
+            "Potential bonus: `📀" + tools.numberWithCommas(hints[hselection].bonus) + "`")
+        .addFields(
+            { name: "Track Hint", value: trackHint(track, hselection).map(h => "○ *" + h + "*").join("\n") },
+            { name: "Racer Hint", value: racerHint(racer, hselection).map(h => "○ *" + h + "*").join("\n") }
+        )
+        .setFooter({ text: "Truguts: 📀" + tools.numberWithCommas(profile.truguts_earned - profile.truguts_spent) })
+    return bounty
+}
+
+exports.initializeBounty = function () {
+    let track = Math.floor(Math.random() * 25)
+    let racer = Math.floor(Math.random() * 23)
+    profile = userdata[player].random
+
+    let message = interaction.reply({ embeds: [huntBuy], fetchReply: true })
+    let bounty = {
+        track: track,
+        racer: racer,
+        created: Date.now(),
+        type: 'private',
+        player: player,
+        member: member,
+        bonus: hints[hselection].bonus,
+        completed: false,
+        message: message.url
+    }
+    bountyref.push(bounty)
 }

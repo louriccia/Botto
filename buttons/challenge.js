@@ -101,7 +101,7 @@ module.exports = {
                         return
                     }
                     let type = interaction.member.voice?.channel?.id == '441840193754890250' ? 'multiplayer' : 'private'
-                    current_challenge = initializeChallenge({ profile, member, interaction, type, name, avatar, user: player, sponsordata })
+                    current_challenge = initializeChallenge({ profile, member, type, name, avatar, user: player, sponsordata })
                     let data = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata })
                     let message = null
                     if (args[2] == 'reroll') {
@@ -111,6 +111,9 @@ module.exports = {
                     }
 
                     current_challenge.message = message.id
+                    current_challenge.channel = interaction.message.channelId
+                    current_challenge.guild = interaction.guildId
+                    current_challenge.url = message.url
                     challengesref.child(message.id).set(current_challenge)
                     current_challenge = challengesdata[message.id]
                     current_challengeref = challengesref.child(message.id)
@@ -174,11 +177,14 @@ module.exports = {
 
                     //prepare new challenge
                     let rerolltype = 'private'
-                    current_challenge = initializeChallenge({ profile, member, interaction, type: rerolltype, name, avatar, user: player, sponsordata })
+                    current_challenge = initializeChallenge({ profile, member, type: rerolltype, name, avatar, user: player, sponsordata })
                     let rerolldata = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata })
                     let rerollmessage = null
                     rerollmessage = await interaction.reply({ embeds: [rerolldata.message], components: [rerolldata.components], fetchReply: true })
                     current_challenge.message = rerollmessage.id
+                    current_challenge.channel = interaction.message.channelId
+                    current_challenge.guild = interaction.guildId
+                    current_challenge.url = rerollmessage.url
                     challengesref.child(rerollmessage.id).set(current_challenge)
                     break
                 case 'bribe':
@@ -344,7 +350,8 @@ module.exports = {
                         return
                     }
                     current_challengeref.child('ratings').child(interaction.user.id).set({ user: player })
-                    current_challengeref.child('winnings').child(interaction.user.id).update({ truguts_earned: current_challenge.earnings[interaction.user.id].truguts_earned + truguts.rated })
+                    current_challengeref.child('earnings').child(interaction.user.id).update({ truguts_earned: current_challenge.earnings[interaction.user.id].truguts_earned + truguts.rated })
+
                     profileref.update({ truguts_earned: profile.truguts_earned + truguts.rated })
                     feedbackref.push({
                         user: member,
@@ -522,32 +529,8 @@ module.exports = {
                             selection: "challenge_hunt"
                         })
 
-                        let track = Math.floor(Math.random() * 25)
-                        let racer = Math.floor(Math.random() * 23)
-                        profile = userdata[player].random
-                        const huntBuy = new EmbedBuilder()
-                            .setTitle(":dart: " + hints[hselection].hunt)
-                            .setColor("#ED4245")
-                            .setAuthor({ name: name + "'s Random Challenge Bounty", iconURL: avatar })
-                            .setDescription("`-📀" + tools.numberWithCommas(hints[hselection].price) + "`\nBounty expires: <t:" + Math.round((Date.now() + 1000 * 60 * 60) / 1000) + ":R>\n" +
-                                "Potential bonus: `📀" + tools.numberWithCommas(hints[hselection].bonus) + "`")
-                            .addFields(
-                                { name: "Track Hint", value: trackHint(track, hselection).map(h => "○ *" + h + "*").join("\n") },
-                                { name: "Racer Hint", value: racerHint(racer, hselection).map(h => "○ *" + h + "*").join("\n") }
-                            )
-                            .setFooter({ text: "Truguts: 📀" + tools.numberWithCommas(profile.truguts_earned - profile.truguts_spent) })
-                        let message = await interaction.reply({ embeds: [huntBuy], fetchReply: true })
-                        bountyref.push({
-                            track: track,
-                            racer: racer,
-                            created: Date.now(),
-                            type: 'private',
-                            player: player,
-                            member: member,
-                            bonus: hints[hselection].bonus,
-                            completed: false,
-                            message: message.url
-                        })
+
+                        
                         return
 
                     } else {
@@ -595,7 +578,7 @@ module.exports = {
 
                         //initialize challenge
                         console.log(cselection)
-                        let sponsorchallenge = initializeChallenge({ profile, member, interaction, type: "private", name, avatar, user: player, circuit: cselection, sponsordata })
+                        let sponsorchallenge = initializeChallenge({ profile, member, type: "private", name, avatar, user: player, circuit: cselection, sponsordata })
                         sponsorchallenge.type = 'open'
                         sponsorchallenge.sponsor = sponsorchallenge.player
                         delete sponsorchallenge.player
@@ -1607,6 +1590,7 @@ module.exports = {
                             backwards: profile.settings.backwards ?? 5,
                             predictions: profile.settings.predictions ?? true
                         },
+                        challenge: interaction.message.id
                     }
                     if (current_challenge.hunt) {
                         submissiondata.hunt = profile.hunt.bonus
@@ -1616,8 +1600,9 @@ module.exports = {
                     if (['abandoned', 'private'].includes(current_challenge.type)) {
                         await current_challengeref.update({ completed: true })
                     }
-                    let winnings = challengeWinnings({ current_challenge, submitted_time: submissiondata, profile, best: getBest(challengetimedata, current_challenge), goals: goalTimeList(current_challenge, profile), member })
-                    profileref.update({ truguts_earned: profile.truguts_earned + winnings.earnings })
+
+
+                    //handle streak
                     if (!profile.streak_start) { //no streak started
                         profileref.update({ streak_start: submissiondata.date, streak_end: submissiondata.date })
                     } else {
@@ -1628,17 +1613,43 @@ module.exports = {
                             profileref.update({ streak_start: submissiondata.date, streak_end: submissiondata.date })
                         }
                     }
-                    profile = userdata[player].random
+
+
+                    let total_revenue = 0
+
+                    //award winnings for this submission
+                    let winnings = challengeWinnings({ current_challenge, submitted_time: submissiondata, profile, best: getBest(challengetimedata, current_challenge), goals: goalTimeList(current_challenge, profile), member })
+                    profileref.update({ truguts_earned: profile.truguts_earned + winnings.earnings })
                     current_challengeref.child("earnings").child(member).set({ truguts_earned: winnings.earnings, player: member })
-                    current_challenge = challengesdata[interaction.message.id]
-                    let newdata = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata })
-                    interaction.update({ embeds: [newdata.message], components: [newdata.components] })
+                    total_revenue += winnings.earnings
+
+                    //award prediction winnings for this submission
                     if (current_challenge.predictions) {
                         Object.values(current_challenge.predictions).forEach(p => {
                             let take = predictionScore(p.time, time)
+                            total_revenue += take
                             userref.child(p.user).child("random").update({ truguts_earned: userdata[p.user].random.truguts_earned + take })
                         })
                     }
+
+                    //award sponsorship cut
+                    if (current_challenge.sponsors) {
+                        Object.values(current_challenge.sponsors).forEach(sponsor => {
+                            let sponsor_earnings = Math.round(total_revenue * truguts.sponsor_cut * sponsor.multiplier)
+                            userref.child(sponsor.user).child("random").update({ truguts_earned: userdata[sponsor.user].random.truguts_earned + sponsor_earnings })
+                            current_challengeref.child('sponsors').child(sponsor.member).child('earnings').update((current_challenge.sponsors?.[sponsor.member]?.earnings ?? 0) + sponsor_earnings)
+                        })
+                    }
+
+                    //update objects
+                    current_challenge = challengesdata[interaction.message.id]
+                    profile = userdata[player].random //update profile
+
+                    //update challenge
+                    let newdata = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata })
+                    interaction.update({ embeds: [newdata.message], components: [newdata.components] })
+
+
 
 
                     break

@@ -30,19 +30,20 @@ exports.truguts = {
     rated: 50,
     bribe_track: 5000,
     bribe_racer: 5000,
-    hint_basic: 200,
-    hint_standard: 1000,
-    hint_deluxe: 5000,
+    hint_basic: 100,
+    hint_standard: 500,
+    hint_deluxe: 1200,
     reroll: 1200,
     reroll_discount: 600,
-    bonus_basic: 50000,
-    bonus_standard: 20000,
-    bonus_deluxe: 10000,
+    bonus_basic: 20000,
+    bonus_standard: 10000,
+    bonus_deluxe: 5000,
     long: 200,
     extra_long: 400,
     prediction_max: 500,
     streak: 25,
-    beat_sponsor: 1000
+    beat_sponsor: 1200,
+    sponsor_cut: 0.20
 }
 
 exports.hints = [
