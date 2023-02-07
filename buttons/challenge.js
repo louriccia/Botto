@@ -1,8 +1,8 @@
-const { truguts, hints, tips, settings_default, winnings_map } = require('./challenge/data.js');
+const { truguts, hints, settings_default, about } = require('./challenge/data.js');
 const { getGoalTimes, initializeChallenge, initializePlayer, updateChallenge, bribeComponents, menuEmbed, menuComponents, playButton, notYoursEmbed, hintEmbed, settingsEmbed, initializeUser, isActive, checkActive, expiredEmbed, challengeWinnings, getBest, goalTimeList, predictionScore, settingsComponents, achievementProgress, hintComponents, huntEmbed, huntComponents, racerHint, trackHint, sponsorComponents, sponsorEmbed, validateTime } = require('./challenge/functions.js');
-const { modalMessage, postMessage, editMessage } = require('../discord_message.js');
+const { postMessage, editMessage } = require('../discord_message.js');
 const { tracks, circuits } = require('../data.js')
-const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } = require('discord.js');
 
 module.exports = {
     name: 'challenge',
@@ -82,6 +82,14 @@ module.exports = {
             current_challenge = challengesdata[interaction.message.id]
         }
 
+        if (!current_challenge && ["submit", "modal", "like", "dislike", "reroll", "bribe", "predict", "undo"].includes(args[1])) {
+            const holdUp = new EmbedBuilder()
+                .setTitle("<:WhyNobodyBuy:589481340957753363> I have a bad feeling about this")
+                .setDescription(" There was an error when retrieving this challenge. It may be a duplicate or a failed post.")
+            interaction.reply({ embeds: [holdUp], ephemeral: true })
+            return
+        }
+
         if (args[0] == "random") {
             switch (args[1]) {
                 case 'play':
@@ -93,8 +101,8 @@ module.exports = {
                         return
                     }
                     let type = interaction.member.voice?.channel?.id == '441840193754890250' ? 'multiplayer' : 'private'
-                    current_challenge = initializeChallenge({ profile, member, interaction, type, name, avatar, user: player })
-                    let data = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction })
+                    current_challenge = initializeChallenge({ profile, member, interaction, type, name, avatar, user: player, sponsordata })
+                    let data = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata })
                     let message = null
                     if (args[2] == 'reroll') {
                         message = await interaction.followUp({ embeds: [data.message], components: [data.components], fetchReply: true })
@@ -121,7 +129,7 @@ module.exports = {
                             if (!current_challenge.completed && !current_challenge.rerolled) {
                                 current_challengeref.update({ type: 'abandoned', players: [], predictions: [] })
                                 current_challenge = challengesdata[message.id]
-                                let data = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction })
+                                let data = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata })
                                 interaction.editReply({ embeds: [data.message], components: [row] })
                             } else {
                                 interaction.editReply({ components: main_components })
@@ -161,13 +169,13 @@ module.exports = {
                     //clean up old challenge
                     challengesref.child(interaction.message.id).update({ completed: true, rerolled: true })
                     current_challenge = challengesdata[interaction.message.id]
-                    let olddata = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction })
+                    let olddata = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata })
                     editMessage(client, interaction.channel.id, interaction.message.id, { embeds: [olddata.message], components: [] })
 
                     //prepare new challenge
                     let rerolltype = 'private'
-                    current_challenge = initializeChallenge({ profile, member, interaction, type: rerolltype, name, avatar, user: player })
-                    let rerolldata = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction })
+                    current_challenge = initializeChallenge({ profile, member, interaction, type: rerolltype, name, avatar, user: player, sponsordata })
+                    let rerolldata = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata })
                     let rerollmessage = null
                     rerollmessage = await interaction.reply({ embeds: [rerolldata.message], components: [rerolldata.components], fetchReply: true })
                     current_challenge.message = rerollmessage.id
@@ -222,7 +230,7 @@ module.exports = {
 
                     current_challenge = challengesdata[current_challenge.message]
                     //populate options
-                    let adata = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction })
+                    let adata = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata })
                     interaction.update({ embeds: [adata.message], components: [adata.components, (!bribed ? bribeComponents(current_challenge) : [])].flat().flat() })
 
                     break
@@ -254,7 +262,7 @@ module.exports = {
                         var newPostRef = current_challengeref.child("predictions").child(member).set(predictiondata);
                         current_challenge = challengesdata[interaction.message.id]
                         let playeruser = current_challenge.player.user
-                        let data = updateChallenge({ client, challengetimedata, profile: userdata?.[playeruser]?.random, current_challenge, current_challengeref, profileref: userref.child(playeruser).child('random'), member, name, avatar, interaction })
+                        let data = updateChallenge({ client, challengetimedata, profile: userdata?.[playeruser]?.random, current_challenge, current_challengeref, profileref: userref.child(playeruser).child('random'), member, name, avatar, interaction, sponsordata })
                         interaction.update({ embeds: [data.message], components: [data.components] })
                     } else {
                         if (current_challenge.player && current_challenge.player.member == member) { //trying to predict own challenge
@@ -301,7 +309,7 @@ module.exports = {
                         current_challengeref.child('submissions').child(interaction.user.id).remove()
 
                         current_challenge = challengesdata[interaction.message.id]
-                        let data = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction })
+                        let data = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata })
                         interaction.update({ embeds: [data.message], components: [data.components] })
                     } else {
                         const noMoney = new EmbedBuilder()
@@ -353,8 +361,8 @@ module.exports = {
                         }
                     });
                     current_challenge = challengesdata[interaction.message.id]
-                    let fdata = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction })
-                    interaction.reply({ embeds: [fdata.message], components: [fdata.components] })
+                    let fdata = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata })
+                    interaction.update({ embeds: [fdata.message], components: [fdata.components] })
 
                     break
                 case 'menu':
@@ -556,6 +564,22 @@ module.exports = {
                         interaction.reply({ embeds: [cantSponsor], ephemeral: true })
                         return
                     }
+                    let recent = null
+                    Object.keys(sponsordata).forEach(key => {
+                        console.log(recent, sponsordata[key].created)
+                        if (sponsordata[key].sponsor?.member == interaction.user.id && (!recent || sponsordata[key].created > recent.date)) {
+                            recent = { date: sponsordata[key].created, key }
+                        }
+                    })
+                    console.log(recent)
+                    if (recent && Date.now() - 1000 * 60 * 60 * 23 < recent.date && interaction.message.id !== recent.key) {
+                        const cantSponsor = new EmbedBuilder()
+                            .setTitle("<:WhyNobodyBuy:589481340957753363> Patience Viceroy, patience.")
+                            .setDescription("Sorry, you can only sponsor one challenge per day. You can sponsor your next challenge <t:" + Math.round((recent.date + 1000 * 60 * 60 * 23) / 1000) + ":R>")
+                            .setFooter({ text: "Truguts: 📀" + tools.numberWithCommas(profile.truguts_earned - profile.truguts_spent) })
+                        interaction.reply({ embeds: [cantSponsor], ephemeral: true })
+                        return
+                    }
                     if (args[2] == 'circuit') {
                         cselection = Number(interaction.values[0])
                         interaction.update({ embeds: [sponsorEmbed(null, profile, 0)], components: sponsorComponents(profile, cselection, 0) })
@@ -570,7 +594,8 @@ module.exports = {
                         })
 
                         //initialize challenge
-                        let sponsorchallenge = initializeChallenge({ profile, member, interaction, type: "private", name, avatar, user: player, circuit: cselection })
+                        console.log(cselection)
+                        let sponsorchallenge = initializeChallenge({ profile, member, interaction, type: "private", name, avatar, user: player, circuit: cselection, sponsordata })
                         sponsorchallenge.type = 'open'
                         sponsorchallenge.sponsor = sponsorchallenge.player
                         delete sponsorchallenge.player
@@ -592,7 +617,7 @@ module.exports = {
                             sponsorchallenge = sponsordata[interaction.message.id]
                             interaction.update({ embeds: [sponsorEmbed(sponsorchallenge, profile, 1)], components: sponsorComponents(profile, cselection, 1) })
                         } else {
-                            const oddsModal = new ModalBuilder()
+                            const sponsorModal = new ModalBuilder()
                                 .setCustomId('challenge_random_sponsor_details')
                                 .setTitle('Sponsor Customization')
                             const customTitle = new TextInputBuilder()
@@ -612,12 +637,25 @@ module.exports = {
                                 .setRequired(false)
                             const ActionRow1 = new ActionRowBuilder().addComponents(customTitle)
                             const ActionRow2 = new ActionRowBuilder().addComponents(customTime)
-                            oddsModal.addComponents(ActionRow1, ActionRow2)
-                            await interaction.showModal(oddsModal)
+                            sponsorModal.addComponents(ActionRow1, ActionRow2)
+                            await interaction.showModal(sponsorModal)
                         }
 
                     } else if (args[2] == 'publish') { //post challenge
-
+                        let sponsorchallenge = sponsordata[interaction.message.id]
+                        if (sponsorchallenge.published) {
+                            const cantSponsor = new EmbedBuilder()
+                                .setTitle("<:WhyNobodyBuy:589481340957753363> You what?")
+                                .setDescription("This sponsorship was already published at " + sponsorchallenge.url)
+                            interaction.reply({ embeds: [cantSponsor], ephemeral: true })
+                            return
+                        }
+                        let publishdata = updateChallenge({ client, challengetimedata, profile, current_challenge: sponsorchallenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata })
+                        let publishmessage = await interaction.reply({ embeds: [publishdata.message], components: [publishdata.components], fetchReply: true })
+                        sponsorchallenge.message = publishmessage.id
+                        sponsorchallenge.url = publishmessage.url
+                        sponsorref.child(interaction.message.id).update({ published: true, url: publishmessage.url })
+                        challengesref.child(publishmessage.id).set(sponsorchallenge)
                     } else {
                         interaction.reply({ embeds: [sponsorEmbed(null, profile, 0)], components: sponsorComponents(profile, cselection, 0), ephemeral: true })
                     }
@@ -721,6 +759,12 @@ module.exports = {
                     }
                     break
                 case 'profile':
+                    const notAvailable = new EmbedBuilder()
+                        .setTitle("<:WhyNobodyBuy:589481340957753363> I have great faith in the boy")
+                        .setDescription("Profiles are currently unavailable. Please harass LightningPirate to get this feature updated.")
+                    interaction.reply({ embeds: [notAvailable], ephemeral: true })
+                    return
+
                     if (args[args.length - 1].startsWith("uid")) {
                         if (args[args.length - 1].replace("uid", "") !== member) {
                             const holdUp = new EmbedBuilder()
@@ -1139,20 +1183,42 @@ module.exports = {
                     }).then((embed) => sendResponse(embed))
                     break
                 case 'about':
+                    let aselection = interaction.values?.[0] ?? 'rchallenge'
                     const challengeHelpEmbed = new EmbedBuilder()
                         .setAuthor({ name: "Random Challenge", value: "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/game-die_1f3b2.png" })
                         .setTitle(":grey_question: About")
                         .setColor("#ED4245")
-                        .setDescription("When you roll a random challenge, Botto will challenge you to race a random pod on a random track with random conditions. The default conditions are max upgrades, 3-lap, full track. You have 15 minutes to submit a time for the challenge which you may do by entering it in the same text channel as the challenge.")
-                        .addFields(
-                            { name: ":gear: Settings", value: "You can customize your challenge settings and modify the chances that Botto will roll a No Upgrades, Skips, Non 3-lap, or Mirrored challenge. You can also select a winnings pattern which determines the share of truguts your submitted time will earn.", inline: false },
-                            { name: ":dvd: Earning Truguts", value: "Truguts are awarded depending on how fast your submitted time is compared to the given goal times and how your winnings are set up. Bonuses are available for beating other players' best times, beating your own time, rating challenges, and completing non-standard challenges (odds must be equal to or below 25%).", inline: false },
-                            { name: ":dvd: Spending Truguts", value: "You can spend truguts on 'rerolling' challenges that you wish to skip. Truguts can also be used on :moneybag: **Bribes** for a specific track or racer. You can use :bulb: **Hints** to figure out what to bribe for your achievement progress.", inline: false },
-                            { name: ":dart: Challenge Bounty", value: "Challenge Bounty is a way to earn big truguts fast and can be accessed via the **Random Challenge** menu. Based on your hint selection, Botto sets a bounty on a random challenge. You have one hour to find this challenge and complete it to claim your bonus.", inline: false },
+                        .setDescription(`**${about[aselection].emoji} ${about[aselection].name}**\n` + about[aselection].desc)
+
+                    const row1 = new ActionRowBuilder()
+                    const about_selector = new StringSelectMenuBuilder()
+                        .setCustomId('challenge_random_about')
+                        .setPlaceholder("Select A Circuit")
+                        .setMinValues(1)
+                        .setMaxValues(1)
+                    Object.keys(about).forEach(key => {
+                        about_selector.addOptions(
+                            {
+                                label: about[key].name,
+                                value: key,
+                                emoji: about[key].emoji,
+                                default: aselection == key
+                            }
                         )
-                    interaction.reply({ embeds: [challengeHelpEmbed], ephemeral: true })
+                    })
+                    row1.addComponents(about_selector)
+                    if (interaction.isStringSelectMenu()) {
+                        interaction.update({ embeds: [challengeHelpEmbed], components: [row1], ephemeral: true })
+                    } else {
+                        interaction.reply({ embeds: [challengeHelpEmbed], components: [row1], ephemeral: true })
+                    }
                     break
                 case 'leaderboards':
+                    const unAvailable = new EmbedBuilder()
+                        .setTitle("<:WhyNobodyBuy:589481340957753363> I have great faith in the boy")
+                        .setDescription("Leaderboards are currently unavailable. Please harass LightningPirate to get this feature updated.")
+                    interaction.reply({ embeds: [unAvailable], ephemeral: true })
+                    return
                     const challengeLeaderboard = new EmbedBuilder()
                     var track = Math.floor(Math.random() * 25)
                     var conditions = []
@@ -1555,7 +1621,7 @@ module.exports = {
                     if (!profile.streak_start) { //no streak started
                         profileref.update({ streak_start: submissiondata.date, streak_end: submissiondata.date })
                     } else {
-                        if (submissiondata.date - (1000 * 60 * 60 * 24) < profile.streak_end) { //streak continues
+                        if (submissiondata.date - (1000 * 60 * 60 * 25) < profile.streak_end) { //streak continues
                             profileref.update({ streak_end: submissiondata.date })
                         } else { //streak broken
                             profileref.child("streaks").push(profile.streak_end - profile.streak_start)
@@ -1565,7 +1631,7 @@ module.exports = {
                     profile = userdata[player].random
                     current_challengeref.child("earnings").child(member).set({ truguts_earned: winnings.earnings, player: member })
                     current_challenge = challengesdata[interaction.message.id]
-                    let newdata = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction })
+                    let newdata = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata })
                     interaction.update({ embeds: [newdata.message], components: [newdata.components] })
                     if (current_challenge.predictions) {
                         Object.values(current_challenge.predictions).forEach(p => {
