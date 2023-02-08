@@ -1,6 +1,7 @@
 const fs = require('fs');
 const Discord = require('discord.js');
 const { Client, Events, GatewayIntentBits } = require('discord.js')
+var moment = require('moment');
 const { prefix, token, firebaseCon } = require('./config.json');
 const { welcomeMessages } = require('./data.js')
 const client = new Client({
@@ -15,6 +16,7 @@ const client = new Client({
 var lookup = require("./data.js");
 var tourneylookup = require("./tourneydata.js");
 var tools = require('./tools.js');
+const { dailyChallenge } = require("./buttons/challenge/functions")
 client.commands = new Discord.Collection();
 client.buttons = new Discord.Collection();
 client.selects = new Discord.Collection();
@@ -226,6 +228,9 @@ client.once(Events.ClientReady, () => {
     const Guild = client.guilds.cache.get("441839750555369474")
 
     const updater = async () => {
+
+        dailyChallenge({ client, sponsordata, challengetimedata, challengesref, challengesdata })
+
         const rp = require('request-promise');
         const cheerio = require('cheerio');
         //var cheerio = require('cheerio').default
@@ -242,6 +247,7 @@ client.once(Events.ClientReady, () => {
             }
             return null
         }
+
 
 
 

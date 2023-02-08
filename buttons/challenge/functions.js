@@ -1,8 +1,9 @@
-const { racers, tracks, planets, playerPicks, movieQuotes, circuits, multipliers, racer_hints, track_hints } = require('../../data.js')
+const { racers, tracks, planets, playerPicks, movieQuotes, circuits, multipliers, racer_hints, track_hints, mpQuotes } = require('../../data.js')
 const tools = require('../../tools.js')
 const { truguts, swe1r_guild, tips, goal_symbols, settings_default, achievement_data, winnings_map, hints } = require('./data.js')
 const { postMessage } = require('../../discord_message.js')
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder } = require('discord.js');
+var moment = require('moment');
 
 exports.getGoalTimes = function ({ track, racer, skips, nu, laps, backwards } = {}) {
     let upg = nu ? 0 : 5
@@ -171,7 +172,6 @@ exports.initializeUser = function (ref, id) {
 
 exports.initializeChallenge = function ({ profile, member, type, name, avatar, user, circuit, sponsordata } = {}) {
     //get values
-    console.log(circuit)
     let random_racer = Math.floor(Math.random() * 23)
     let trackpool = []
     for (let i = 0; i < 25; i++) {
@@ -223,6 +223,8 @@ exports.initializeChallenge = function ({ profile, member, type, name, avatar, u
     }
     if (type == 'private') {
         challenge.player = { member: member, name: name, avatar: avatar, user: user }
+    } else if (type == 'cotd') {
+        challenge.day = moment().utc().format('DDD')
     }
 
     challenge = exports.getSponsor(challenge, sponsordata)
@@ -252,7 +254,7 @@ exports.getSponsor = function (challenge, sponsordata) {
 exports.expiredEmbed = function () {
     const holdUp = new EmbedBuilder()
         .setTitle("<:WhyNobodyBuy:589481340957753363> Expired Challenge")
-        .setDescription("Sorry, this challenge is no longer available for submissions.")
+        .setDescription("Sorry, this challenge is no longer available.")
     return holdUp
 }
 
@@ -293,19 +295,9 @@ exports.generateChallengeDescription = function (current_challenge, best, profil
         expiration = "Expires <t:" + Math.round((current_challenge.created + duration) / 1000) + ":R>"
     }
 
-    let flavor_text = ''
-    if (Math.random() < 0.20 && best.length > 0) {
-        flavor_text = "*The current record-holder for this challenge is... " + best[0].name + "!*"
-    } else if (Math.random() < 0.50 && current_challenge.player) {
-        flavor_text = playerPicks[Math.floor(Math.random() * playerPicks.length)].replace("replaceme", current_challenge.player.name)
-    } else {
-        flavor_text = movieQuotes[Math.floor(Math.random() * movieQuotes.length)]
-    }
-
-    desc = [exports.getFeedbackTally(feedbackdata, current_challenge), expiration, (current_challenge.sponsors ? exports.getSponsors(current_challenge) : ''), (current_challenge.predictions && !current_challenge.completed ? exports.getPredictors(current_challenge) : "")].filter(d => ![null, undefined, ''].includes(d)).join(" | ")
-    desc += "\n" + flavor_text
+    desc = [exports.getFeedbackTally(feedbackdata, current_challenge), expiration, (current_challenge.sponsors.length ? exports.getSponsors(current_challenge) : ''), (current_challenge.predictions && !current_challenge.completed ? exports.getPredictors(current_challenge) : "")].filter(d => ![null, undefined, ''].includes(d)).join(" | ")
     if (current_challenge.conditions.backwards) {
-        desc += '\n [Click here to download the patch for backwards tracks.](https://www.speedrun.com/resourceasset/1aada)'
+        desc += '\n [Backwards tracks mod](https://www.speedrun.com/resourceasset/1aada)'
     }
 
     let crossout = ''
@@ -314,10 +306,10 @@ exports.generateChallengeDescription = function (current_challenge, best, profil
         crossout = '~~'
     }
     if (current_challenge.racer_bribe) {
-        desc += crossout + "\nBribed racer `-📀" + tools.numberWithCommas(truguts.bribe_racer) + "`" + crossout
+        desc += crossout + "\n💰 (Racer) `-📀" + tools.numberWithCommas(truguts.bribe_racer) + "`" + crossout
     }
     if (current_challenge.track_bribe) {
-        desc += crossout + "\nBribed track `-📀" + tools.numberWithCommas(truguts.bribe_track) + "`" + crossout
+        desc += crossout + "\n💰 (Track) `-📀" + tools.numberWithCommas(truguts.bribe_track) + "`" + crossout
     }
     return desc
 }
@@ -390,7 +382,7 @@ exports.goalTimeList = function (current_challenge, profile) {
 }
 
 exports.generateLeaderboard = function (best, member, current_challenge) {
-    let besttimes = "Be the first to submit a time for this challenge! \n `+📀" + tools.numberWithCommas(truguts.first) + "`"
+    let besttimes = ":snowflake: `+📀" + tools.numberWithCommas(truguts.first) + "`"
     let pos = ["<:P1:671601240228233216> ", "<:P2:671601321257992204> ", "<:P3:671601364794605570> ", "4th ", "5th ", "6th ", "7th ", "8th ", "9th ", "10th "]
 
     if (best.length > 0) {
@@ -551,7 +543,7 @@ exports.challengeAchievementProgress = function ({ client, current_challenge, pr
     }
     let achievement_progress = ''
     achievement_message_array.forEach((ach, index) => {
-        achievement_progress += "**" + ach.name + "** `" + ach.count + "/" + ach.limit + "` " + (index !== achievement_message_array.length - 1 ? "○ " : "")
+        achievement_progress += "**" + (current_challenge.guild == swe1r_guild ? "" : "🏆 ") + ach.name + "** `" + ach.count + "/" + ach.limit + "` " + (index !== achievement_message_array.length - 1 ? "○ " : "")
     })
     exports.awardAchievements({ current_challenge, client, achievements, profile, profileref, name, avatar })
     return achievement_progress
@@ -571,7 +563,7 @@ exports.challengeColor = function (current_challenge) {
     return color
 }
 
-exports.awardAchievements = function ({ client, achievements, profile, profileref, name, avatar } = {}) {
+exports.awardAchievements = function ({ client, achievements, current_challenge, profile, profileref, name, avatar } = {}) {
     Object.keys(achievements).forEach(key => {
         if (Object.keys(achievements[key].collection).length >= achievements[key].limit || achievements[key].count >= achievements[key].limit) { //if player has met condition for achievement
             if (current_challenge.guild == swe1r_guild) {
@@ -625,6 +617,18 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, profi
             earnings_total += truguts.streak * streak
         }
     }
+    let first = true, pb = false, beat = []
+    for (let i = 0; i < best.length; i++) {
+        if (best[i].date < submitted_time.date) {
+            first = false
+            if (best[i].user == member && best[i].date !== submitted_time.date && submitted_time.time < best[i].time) {
+                pb = true
+            }
+        }
+        if (best[i].user !== member && submitted_time.time - best[i].time < 0 && !beat.includes(best[i].user)) {
+            beat.push(best[i].user)
+        }
+    }
     if (first) {
         earnings += ":snowflake: `+📀" + tools.numberWithCommas(truguts.first) + "`\n"
         earnings_total += truguts.first
@@ -650,18 +654,7 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, profi
         earnings += "Non-Standard `+📀" + tools.numberWithCommas(truguts.non_standard) + " × " + winnings_non_standard + "`\n"
         earnings_total += truguts.non_standard * winnings_non_standard
     }
-    let first = true, pb = false, beat = []
-    for (let i = 0; i < best.length; i++) {
-        if (best[i].date < submitted_time.date) {
-            first = false
-            if (best[i].user == member && best[i].date !== submitted_time.date && submitted_time.time < best[i].time) {
-                pb = true
-            }
-        }
-        if (best[i].user !== member && submitted_time.time - best[i].time < 0 && !beat.includes(best[i].user)) {
-            beat.push(best[i].user)
-        }
-    }
+
     if (tracks[current_challenge.track].lengthclass == 'Long' && !current_challenge.conditions.skips) {
         earnings += "Long `+📀" + tools.numberWithCommas(truguts.long) + "`\n"
         earnings_total += truguts.long
@@ -685,7 +678,6 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, profi
     }
     earnings += "\n**Total: **`+📀" + tools.numberWithCommas(earnings_total) + "`"
     let winnings = { earnings: earnings_total, receipt: earnings }
-    console.log(winnings)
     return winnings
 }
 
@@ -748,15 +740,28 @@ exports.updateChallenge = function ({ client, challengetimedata, profile, curren
     }
 
     //get sponsor
-    current_challengeref.update(exports.getSponsor(current_challenge, sponsordata))
+    if (current_challengeref) {
+        current_challengeref.update(exports.getSponsor(current_challenge, sponsordata))
+    }
 
-    if (!current_challenge.reroll_cost) { //set reroll cost
+    if (!current_challenge.reroll_cost && current_challenge.type == 'private') { //set reroll cost
         current_challenge.reroll_cost = record_holder ? "free" : played ? "discount" : "full price"
     }
 
+    let flavor_text = ''
+    if (Math.random() < 0.20 && best.length > 0) {
+        flavor_text = "The current record-holder for this challenge is... " + best[0].name + "!"
+    } else if (Math.random() < 0.50 && current_challenge.player) {
+        flavor_text = playerPicks[Math.floor(Math.random() * playerPicks.length)].replace("replaceme", current_challenge.player.name)
+    } else {
+        flavor_text = current_challenge.type == 'multiplayer' ? mpQuotes[Math.floor(Math.random() * mpQuotes.length)] : movieQuotes[Math.floor(Math.random() * movieQuotes.length)]
+    }
+
     let data = {
-        message: exports.challengeEmbed({ client, current_challenge, current_challengeref, profile: player_profile, profileref, feedbackdata, best, name: player_name, member: player, avatar: player_avatar, interaction, challengetimedata }),
-        components: exports.challengeComponents(current_challenge, profile)
+        content: "*" + flavor_text + "*",
+        embeds: [exports.challengeEmbed({ client, current_challenge, current_challengeref, profile: player_profile, profileref, feedbackdata, best, name: player_name, member: player, avatar: player_avatar, interaction, challengetimedata })],
+        components: [exports.challengeComponents(current_challenge, profile)],
+        fetchReply: true
     }
     return data
 }
@@ -781,8 +786,8 @@ exports.checkActive = function (challengesdata, member, current_challenge) {
     })
     if (occupied && Object.keys(occupied).length) {
         const holdUp = new EmbedBuilder()
-            .setTitle("<:WhyNobodyBuy:589481340957753363> Forgetting something?")
-            .setDescription(`You have an incomplete active challenge in <#${occupied.channel}>.\n[Click this link](https://discord.com/channels/${occupied.guild}/${occupied.channel}/${occupied.message}) to return to your challenge or wait for it to expire <t:${Math.round(occupied.created / 1000) + 15 * 60}:R>`)
+            .setTitle("<:WhyNobodyBuy:589481340957753363> A challenge, you have. Impossible, to take on a second.")
+            .setDescription(`You have an incomplete active challenge in <#${occupied.channel}>.\n[Click this link](${occupied.url}) to return to your challenge or wait for it to expire <t:${Math.round(occupied.created / 1000) + 15 * 60}:R>`)
         result = holdUp
     }
     return result
@@ -809,6 +814,9 @@ exports.challengeEmbed = function ({ current_challenge, profile, current_challen
             .setAuthor({ name: name + "'s Random Challenge", iconURL: avatar })
     } else if (current_challenge.type == 'open') {
         challengeEmbed.setAuthor({ name: "Open Challenge", iconURL: "https://em-content.zobj.net/thumbs/120/twitter/322/game-die_1f3b2.png" })
+    } else if (current_challenge.type == 'cotd') {
+        challengeEmbed.setAuthor({ name: "Random Challenge of the Day", iconURL: "https://em-content.zobj.net/thumbs/120/twitter/322/game-die_1f3b2.png" })
+            .setTimestamp()
     }
     let goals = exports.goalTimeList(current_challenge, profile)
     if (current_challenge.rerolled) {
@@ -833,8 +841,8 @@ exports.challengeComponents = function (current_challenge, profile) {
     //components
     const row = new ActionRowBuilder()
     let reroll = exports.rerollReceipt(current_challenge)
-    let current_truguts = profile.truguts_earned - profile.truguts_spent
-    if (!current_challenge.submissions || !['abandoned', 'private'].includes(current_challenge.type)) {
+
+    if ((!current_challenge.submissions || !['abandoned', 'private'].includes(current_challenge.type)) && exports.isActive(current_challenge)) {
         row.addComponents(
             new ButtonBuilder()
                 .setCustomId("challenge_random_modal")
@@ -844,6 +852,7 @@ exports.challengeComponents = function (current_challenge, profile) {
         )
     }
     if (current_challenge.type == "private" && !current_challenge.completed) {
+        let current_truguts = profile.truguts_earned - profile.truguts_spent
         if (current_truguts >= reroll.cost) {
             row.addComponents(
                 new ButtonBuilder()
@@ -1037,7 +1046,7 @@ exports.playButton = function () {
 exports.notYoursEmbed = function () {
     const noMoney = new EmbedBuilder()
         .setTitle("<:WhyNobodyBuy:589481340957753363> Get Your Own Challenge!")
-        .setDescription("This is a private challenge. The option you selected is only available to the player who rolled this challenge. You may roll your own with the button below.")
+        .setDescription("This is not your challenge. The option you selected is only available to the player who rolled this challenge. You may roll your own with the button below.")
     return noMoney
 }
 
@@ -1238,7 +1247,6 @@ exports.sponsorEmbed = function (sponsorchallenge, profile, page) {
         .setColor("#ED4245")
     let title = sponsorchallenge?.title ?? "No title set"
     let time = exports.validateTime(sponsorchallenge?.time) ?? "No time set"
-    console.log(title, time)
     if (page) {
         sponsorEmbed.addFields(
             { name: ":game_die: Challenge: ", value: exports.generateChallengeTitle(sponsorchallenge) },
@@ -1309,23 +1317,36 @@ exports.validateTime = function (time) {
     }
 }
 
-exports.dailyChallenge = async function ({ client, sponsordata, challengetimedata } = {}) {
-    current_challenge = exports.initializeChallenge({ profile, member, type: "cotd", name, avatar, user: player, sponsordata })
-    let cotddata = exports.updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, sponsordata })
-    let cotdmessage = null
-    cotdmessage = await postMessage(client, '551786988861128714', { embeds: [cotddata.message], components: [cotddata.components] })
-    current_challenge.message = cotdmessage.id
-    current_challenge.guild = cotdmessage.guildId
-    current_challenge.channel = cotdmessage.channelId
-    current_challenge.url = cotdmessage.url
-    challengesref.child(cotdmessage.id).set(current_challenge)
+exports.dailyChallenge = async function ({ client, sponsordata, challengetimedata, challengesref, challengesdata } = {}) {
+    let recent = null
+    Object.values(challengesdata).filter(c => c.type == 'cotd').forEach(challenge => {
+        if (!recent || recent.created - challenge.created < 0) {
+            recent = challenge
+            console.log(recent)
+        }
+    })
+    let hour = moment().utc().format("H") - 5
+    if (hour < 0){
+        hour += 24
+    }
+    console.log(hour, moment().utc().format("DDD"), recent.day)
+    if (moment().utc().format("H") == 0 && moment().utc().format("DDD") !== recent.day) {
+        current_challenge = exports.initializeChallenge({ type: "cotd", sponsordata })
+        let cotdmessage = await postMessage(client, '841824106676224041', exports.updateChallenge({ client, challengetimedata, current_challenge, sponsordata })) //551786988861128714
+        current_challenge.message = cotdmessage.id
+        current_challenge.guild = cotdmessage.guildId
+        current_challenge.channel = cotdmessage.channelId
+        current_challenge.url = cotdmessage.url
+        challengesref.child(cotdmessage.id).set(current_challenge)
+    }
+
 }
 
 exports.dailyBounty = async function ({ client, sponsordata, challengetimedata } = {}) {
-    current_challenge = exports.initializeChallenge({ profile, member, type: "cotd", name, avatar, user: player, sponsordata })
+    current_challenge = exports.initializeChallenge({ type: "cotd", sponsordata })
     let cotddata = exports.updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, sponsordata })
     let cotdmessage = null
-    cotdmessage = await postMessage(client, '551786988861128714', { embeds: [cotddata.message], components: [cotddata.components] })
+    cotdmessage = await postMessage(client, '841824106676224041', { embeds: [cotddata.message], components: [cotddata.components] }) //551786988861128714
     current_challenge.message = cotdmessage.id
     current_challenge.guild = cotdmessage.guildId
     current_challenge.channel = cotdmessage.channelId

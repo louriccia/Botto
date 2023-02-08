@@ -79,6 +79,38 @@ exports.tips = [
     "You can return to the Random Challenge menu from anywhere by clicking <:menu:862620287735955487>"
 ]
 
+exports.emoji = {
+    goal: ["💎", "🥇", "🥈", "🥉", "<:BumpyThumb:703107780860575875>"],
+    trugut: "📀",
+    submit: "⏱️",
+    reroll: "🔄",
+    bribe: "💰",
+    predict: "🔮",
+    first: "❄️",
+    bounty: "🎯",
+    completed: "✅",
+    sponsor: "📢",
+    play: "🎲",
+    settings: "⚙️",
+    abandoned: "💨",
+    achievement: "🏆",
+    multiplayer: "🏁",
+    feedback_positive: "👍",
+    feedback_negative: "👎",
+    menu: "<:menu:862620287735955487>",
+    profile: "👤",
+    help: "❔",
+    hint: "💡",
+    details: "🏷️",
+    conditions: {
+        mirrored: "",
+        backwards: "",
+        no_upgrades: "",
+        skips: "",
+        laps: ""
+    }
+}
+
 exports.settings_default = {
     winnings: 1,
     skips: 25,

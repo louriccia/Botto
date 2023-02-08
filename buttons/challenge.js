@@ -84,7 +84,7 @@ module.exports = {
 
         if (!current_challenge && ["submit", "modal", "like", "dislike", "reroll", "bribe", "predict", "undo"].includes(args[1])) {
             const holdUp = new EmbedBuilder()
-                .setTitle("<:WhyNobodyBuy:589481340957753363> I have a bad feeling about this")
+                .setTitle("<:WhyNobodyBuy:589481340957753363> If a challenge is not in our records, then it doesn't exist.")
                 .setDescription(" There was an error when retrieving this challenge. It may be a duplicate or a failed post.")
             interaction.reply({ embeds: [holdUp], ephemeral: true })
             return
@@ -102,14 +102,7 @@ module.exports = {
                     }
                     let type = interaction.member.voice?.channel?.id == '441840193754890250' ? 'multiplayer' : 'private'
                     current_challenge = initializeChallenge({ profile, member, type, name, avatar, user: player, sponsordata })
-                    let data = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata })
-                    let message = null
-                    if (args[2] == 'reroll') {
-                        message = await interaction.followUp({ embeds: [data.message], components: [data.components], fetchReply: true })
-                    } else {
-                        message = await interaction.reply({ embeds: [data.message], components: [data.components], fetchReply: true })
-                    }
-
+                    let message = await interaction.reply(updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata }))
                     current_challenge.message = message.id
                     current_challenge.channel = interaction.message.channelId
                     current_challenge.guild = interaction.guildId
@@ -132,25 +125,23 @@ module.exports = {
                             if (!current_challenge.completed && !current_challenge.rerolled) {
                                 current_challengeref.update({ type: 'abandoned', players: [], predictions: [] })
                                 current_challenge = challengesdata[message.id]
-                                let data = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata })
-                                interaction.editReply({ embeds: [data.message], components: [row] })
-                            } else {
-                                interaction.editReply({ components: main_components })
                             }
+                            interaction.editReply(updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata }))
+
                         }
                     }, 1000 * 60 * 15 - 50000)
 
                     break
                 case 'reroll':
-                    let cost = (current_challenge.reroll_cost == "full price" ? truguts.reroll : current_challenge.reroll_cost == "discount" ? truguts.reroll_discout : 0)
-                    if (!(current_challenge.player?.member == interaction.user.id && current_challenge.type == 'private' && isActive(current_challenge))) { //not the right player or not active
-                        interaction.reply({
-                            embeds: [notYoursEmbed()],
-                            components: [{ type: 1, components: [playButton()] }],
-                            ephemeral: true
-                        })
+                    if (!isActive(current_challenge)) { //expired challeneg
+                        interaction.reply({ embeds: [expiredEmbed()], components: [{ type: 1, components: [playButton()] }], ephemeral: true })
                         return
                     }
+                    if (!(current_challenge.player?.member == interaction.user.id && current_challenge.type == 'private' && isActive(current_challenge))) { //not the right player or not active
+                        interaction.reply({ embeds: [notYoursEmbed()], components: [{ type: 1, components: [playButton()] }], ephemeral: true })
+                        return
+                    }
+                    let cost = (current_challenge.reroll_cost == "full price" ? truguts.reroll : current_challenge.reroll_cost == "discount" ? truguts.reroll_discout : 0)
                     if (profile.truguts_earned - profile.truguts_spent < cost) { //player doesn't have enough truguts to reroll
                         let noMoney = new EmbedBuilder()
                             .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
@@ -172,15 +163,12 @@ module.exports = {
                     //clean up old challenge
                     challengesref.child(interaction.message.id).update({ completed: true, rerolled: true })
                     current_challenge = challengesdata[interaction.message.id]
-                    let olddata = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata })
-                    editMessage(client, interaction.channel.id, interaction.message.id, { embeds: [olddata.message], components: [] })
+                    editMessage(client, interaction.channel.id, interaction.message.id, updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata }))
 
                     //prepare new challenge
                     let rerolltype = 'private'
                     current_challenge = initializeChallenge({ profile, member, type: rerolltype, name, avatar, user: player, sponsordata })
-                    let rerolldata = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata })
-                    let rerollmessage = null
-                    rerollmessage = await interaction.reply({ embeds: [rerolldata.message], components: [rerolldata.components], fetchReply: true })
+                    let rerollmessage = await interaction.reply(updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata }))
                     current_challenge.message = rerollmessage.id
                     current_challenge.channel = interaction.message.channelId
                     current_challenge.guild = interaction.guildId
@@ -188,6 +176,10 @@ module.exports = {
                     challengesref.child(rerollmessage.id).set(current_challenge)
                     break
                 case 'bribe':
+                    if (!isActive(current_challenge)) { //expired challeneg
+                        interaction.reply({ embeds: [expiredEmbed()], components: [{ type: 1, components: [playButton()] }], ephemeral: true })
+                        return
+                    }
                     if (interaction.user.id !== current_challenge.player.member) { //not your challenge
                         interaction.reply({ embeds: [notYoursEmbed()], components: [{ type: 1, components: [playButton()] }], ephemeral: true })
                         return
@@ -237,7 +229,10 @@ module.exports = {
                     current_challenge = challengesdata[current_challenge.message]
                     //populate options
                     let adata = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata })
-                    interaction.update({ embeds: [adata.message], components: [adata.components, (!bribed ? bribeComponents(current_challenge) : [])].flat().flat() })
+                    if (!bribed) {
+                        adata.components.push(bribeComponents(current_challenge)).flat().flat()
+                    }
+                    interaction.update(adata)
 
                     break
                 case 'predict':
@@ -268,8 +263,7 @@ module.exports = {
                         var newPostRef = current_challengeref.child("predictions").child(member).set(predictiondata);
                         current_challenge = challengesdata[interaction.message.id]
                         let playeruser = current_challenge.player.user
-                        let data = updateChallenge({ client, challengetimedata, profile: userdata?.[playeruser]?.random, current_challenge, current_challengeref, profileref: userref.child(playeruser).child('random'), member, name, avatar, interaction, sponsordata })
-                        interaction.update({ embeds: [data.message], components: [data.components] })
+                        interaction.update(updateChallenge({ client, challengetimedata, profile: userdata?.[playeruser]?.random, current_challenge, current_challengeref, profileref: userref.child(playeruser).child('random'), member, name, avatar, interaction, sponsordata }))
                     } else {
                         if (current_challenge.player && current_challenge.player.member == member) { //trying to predict own challenge
                             const holdUp = new EmbedBuilder()
@@ -315,8 +309,7 @@ module.exports = {
                         current_challengeref.child('submissions').child(interaction.user.id).remove()
 
                         current_challenge = challengesdata[interaction.message.id]
-                        let data = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata })
-                        interaction.update({ embeds: [data.message], components: [data.components] })
+                        interaction.update(updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata }))
                     } else {
                         const noMoney = new EmbedBuilder()
                             .setTitle("<:WhyNobodyBuy:589481340957753363> You must unsubmit what you have submitted.")
@@ -368,8 +361,7 @@ module.exports = {
                         }
                     });
                     current_challenge = challengesdata[interaction.message.id]
-                    let fdata = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata })
-                    interaction.update({ embeds: [fdata.message], components: [fdata.components] })
+                    interaction.update(updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata }))
 
                     break
                 case 'menu':
@@ -530,7 +522,7 @@ module.exports = {
                         })
 
 
-                        
+
                         return
 
                     } else {
@@ -633,8 +625,7 @@ module.exports = {
                             interaction.reply({ embeds: [cantSponsor], ephemeral: true })
                             return
                         }
-                        let publishdata = updateChallenge({ client, challengetimedata, profile, current_challenge: sponsorchallenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata })
-                        let publishmessage = await interaction.reply({ embeds: [publishdata.message], components: [publishdata.components], fetchReply: true })
+                        let publishmessage = await interaction.reply(updateChallenge({ client, challengetimedata, profile, current_challenge: sponsorchallenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata }))
                         sponsorchallenge.message = publishmessage.id
                         sponsorchallenge.url = publishmessage.url
                         sponsorref.child(interaction.message.id).update({ published: true, url: publishmessage.url })
@@ -1481,7 +1472,7 @@ module.exports = {
                         return
                     }
                     if (!isActive(current_challenge)) { //expired challeneg
-                        current_challengeref.update({ completed: true })
+                        //current_challengeref.update({ completed: true })
                         interaction.reply({
                             embeds: [expiredEmbed()], components: [
                                 {
@@ -1646,11 +1637,7 @@ module.exports = {
                     profile = userdata[player].random //update profile
 
                     //update challenge
-                    let newdata = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata })
-                    interaction.update({ embeds: [newdata.message], components: [newdata.components] })
-
-
-
+                    interaction.update(updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata }))
 
                     break
             }
