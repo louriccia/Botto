@@ -186,11 +186,11 @@ exports.initializeChallenge = function ({ profile, member, type, name, avatar, u
 
     //set default odds
     let odds = {
-        skips: (type == 'multiplayer' ? 0 : type == 'private' ? profile.settings.skips : settings_default.skips) / 100,
-        no_upgrades: (type == 'multiplayer' ? 0 : type == 'private' ? profile.settings.no_upgrades : settings_default.no_upgrades) / 100,
-        non_3_lap: (type == 'multiplayer' ? 0 : type == 'private' ? profile.settings.non_3_lap : settings_default.non_3_lap) / 100,
-        mirrored: (type == 'multiplayer' ? 0 : type == 'private' ? profile.settings.mirror_mode : settings_default.mirror_mode) / 100,
-        backwards: (type == 'multiplayer' ? 0 : type == 'private' ? profile.settings.backwards : settings_default.backwards) / 100,
+        skips: (type == 'cotd' ? 25 : type == 'multiplayer' ? 0 : type == 'private' ? profile.settings.skips : settings_default.skips) / 100,
+        no_upgrades: (type == 'cotd' ? 15 : type == 'multiplayer' ? 0 : type == 'private' ? profile.settings.no_upgrades : settings_default.no_upgrades) / 100,
+        non_3_lap: (type == 'cotd' ? 15 : type == 'multiplayer' ? 0 : type == 'private' ? profile.settings.non_3_lap : settings_default.non_3_lap) / 100,
+        mirrored: (type == 'cotd' ? 15 : type == 'multiplayer' ? 0 : type == 'private' ? profile.settings.mirror_mode : settings_default.mirror_mode) / 100,
+        backwards: (type == 'cotd' ? 10 : type == 'multiplayer' ? 0 : type == 'private' ? profile.settings.backwards : settings_default.backwards) / 100,
     }
 
     let skips = tracks[random_track].parskiptimes ? Math.random() < odds.skips : false
@@ -234,20 +234,41 @@ exports.initializeChallenge = function ({ profile, member, type, name, avatar, u
 
 exports.getSponsor = function (challenge, sponsordata) {
     Object.keys(sponsordata).forEach(key => {
-        challenge.sponsors = []
-        challenge.sponsor_title = ''
-        challenge.sponsor_time = ''
-        if (exports.matchingChallenge(sponsordata[key], challenge)) {
-            if (!challenge.sponsors[sponsordata[key].sponsor.member]) {
-                challenge.sponsors[sponsordata[key].sponsor.member] = sponsordata[key].sponsor
-                challenge.sponsors[sponsordata[key].sponsor.member].multiplier = 1
-            } else {
-                challenge.sponsors[sponsordata[key].sponsor.member].multiplier++
+        if (!challenge.submissions) {
+            challenge.sponsors = {}
+            challenge.sponsor_title = ''
+            challenge.sponsor_time = ''
+            if (exports.matchingChallenge(sponsordata[key], challenge)) {
+                if (!challenge.sponsors[sponsordata[key].sponsor.member]) {
+                    challenge.sponsors[sponsordata[key].sponsor.member] = sponsordata[key].sponsor
+                    challenge.sponsors[sponsordata[key].sponsor.member].multiplier = 1
+                } else {
+                    challenge.sponsors[sponsordata[key].sponsor.member].multiplier++
+                }
+                challenge.sponsor_title = sponsordata[key].title
+                challenge.sponsor_time = sponsordata[key].time
             }
-            challenge.sponsor_title = sponsordata[key].title
-            challenge.sponsor_time = sponsordata[key].time
         }
     })
+    return challenge
+}
+
+exports.getBounty = function (challenge, bountydata) {
+    if (!challenge.submissions) {
+        Object.keys(bountydata).forEach(key => {
+            challenge.bounties = []
+            let bounty = bountydata[key]
+            if (challenge.type == 'private' && challenge.track == bounty.track && challenge.racer == bounty.racer && (bounty.type == 'botd' || (bounty.player?.member == challenge.player?.member))) {
+                if ((bounty.type == 'botd' && Date.now() - 1000 * 60 * 60 * 24 < bounty.created) || (bounty.type == 'private' && Date.now() - 1000 * 60 * 60 < bounty.created)) {
+                    if (!bounty.completed) {
+                        challenge.bounties.push({ daily: bounty.type == 'botd', bonus: bounty.bonus, url: challenge.url, key })
+                    }
+                }
+            } else {
+                challenge.bounties = []
+            }
+        })
+    }
     return challenge
 }
 
@@ -276,7 +297,7 @@ exports.generateChallengeTitle = function (current_challenge) {
     let backwardstext = current_challenge.conditions.backwards && !current_challenge.conditions.mirror ? ", **BACKWARDS!**" : ""
     let bribed_racer = current_challenge.racer_bribe ? "*" : ""
     let bribed_track = current_challenge.track_bribe ? "*" : ""
-    let prefix = current_challenge.hunt ? ":dart: Challenge Bounty: " : ""
+    let prefix = current_challenge.bounties && current_challenge.bounties.length ? ":dart: Challenge Bounty\n" : ""
     let racer_flag = current_challenge.racer_bribe ? ":moneybag:" : racers[current_challenge.racer].flag
     let track_flag = current_challenge.track_bribe ? ":moneybag:" : planets[tracks[current_challenge.track].planet].emoji
     let status = current_challenge.rerolled ? ":arrows_counterclockwise: Rerolled: " : current_challenge.completed ? ":white_check_mark: Completed: " : ''
@@ -295,15 +316,28 @@ exports.generateChallengeDescription = function (current_challenge, best, profil
         expiration = "Expires <t:" + Math.round((current_challenge.created + duration) / 1000) + ":R>"
     }
 
-    desc = [exports.getFeedbackTally(feedbackdata, current_challenge), expiration, (current_challenge.sponsors.length ? exports.getSponsors(current_challenge) : ''), (current_challenge.predictions && !current_challenge.completed ? exports.getPredictors(current_challenge) : "")].filter(d => ![null, undefined, ''].includes(d)).join(" | ")
+    desc = [exports.getFeedbackTally(feedbackdata, current_challenge), (!current_challenge.completed && !current_challenge.rerolled ? expiration : ''), (current_challenge.sponsors ? exports.getSponsors(current_challenge) : ''), (current_challenge.predictions && !current_challenge.completed ? exports.getPredictors(current_challenge) : "")].filter(d => ![null, undefined, ''].includes(d)).join(" | ")
     if (current_challenge.conditions.backwards) {
         desc += '\n [Backwards tracks mod](https://www.speedrun.com/resourceasset/1aada)'
     }
 
     let crossout = ''
-    if (current_challenge.hunt && !current_challenge.completed) {
-        desc += "\nYou found the Challenge Bounty! Complete the challenge to earn a `📀" + tools.numberWithCommas(profile.hunt.bonus) + "` bonus"
-        crossout = '~~'
+    if (current_challenge.bounties && current_challenge.bounties.length) {
+        if (!current_challenge.completed) {
+            let total_bonus = 0
+            let daily = false
+            Object.values(current_challenge.bounties).forEach(b => {
+                total_bonus += b.bonus
+                if (b.daily) {
+                    daily = true
+                }
+            })
+            desc += "\nYou found " + (daily ? 'the Daily' : "a") + " Challenge Bounty! Complete the challenge to earn a " + '`📀' + tools.numberWithCommas(total_bonus) + "` reward"
+        }
+
+        if (current_challenge.refunded) {
+            crossout = '~~'
+        }
     }
     if (current_challenge.racer_bribe) {
         desc += crossout + "\n💰 (Racer) `-📀" + tools.numberWithCommas(truguts.bribe_racer) + "`" + crossout
@@ -319,7 +353,7 @@ exports.getPredictors = function (current_challenge) {
 }
 
 exports.getSponsors = function (current_challenge) {
-    return current_challenge.sponsors ? "📢 " + Object.values(current_challenge.sponsors).map(p => p.name).join(", ") : ""
+    return current_challenge.sponsors && Object.values(current_challenge.sponsors).length ? "📢 " + Object.values(current_challenge.sponsors).map(p => p.name + (p.earnings ? " `+📀" + tools.numberWithCommas(p.earnings) + "`" : "")).join(", ") : ""
 }
 
 exports.predictionScore = function (predicted_time, actual_time) {
@@ -370,7 +404,7 @@ exports.goalTimeList = function (current_challenge, profile) {
         })
     let goal_earnings = []
     for (let i = 0; i < 4; i++) {
-        let earning = Math.round(circuits[tracks[current_challenge.track].circuit].winnings[current_challenge.type == 'private' ? profile.settings.winnings : 1][i] * (current_challenge.type == 'abandoned' ? 0.5 : 1))
+        let earning = Math.round(circuits[tracks[current_challenge.track].circuit].winnings[current_challenge.type == 'private' ? profile.settings.winnings : 1][i] * (current_challenge.type == 'abandoned' ? truguts.abandoned : 1))
         goal_earnings.push(earning)
     }
     goal_earnings.push(0)
@@ -379,6 +413,44 @@ exports.goalTimeList = function (current_challenge, profile) {
         goalTimes += goal_symbols[i] + " " + tools.timefix(goals[i]) + (goal_earnings[i] ? "  `+📀" + tools.numberWithCommas(goal_earnings[i]) + "`" : '') + "\n"
     }
     return { list: goalTimes, times: goals, earnings: goal_earnings }
+}
+
+exports.predictionAchievement = function (challengesdata, member) {
+    let count = 0
+    Object.values(challengesdata).forEach(challenge => {
+        if (challenge.type == 'private' && challenge.submissions && challenge.predictions?.[member]) {
+
+            let submitted_time = Number(Object.values(challenge.submissions)[0].time)
+            let predicted_time = Number(challenge.predictions?.[member]?.time)
+            let diff = predicted_time - submitted_time
+
+            if (diff <= 1 && diff >= 0) {
+                count++
+            }
+            console.log(challenge, submitted_time, predicted_time, diff, count)
+        }
+    })
+    return count
+}
+
+exports.sponsorAchievement = function (sponsordata, member) {
+    let count = 0
+    Object.values(sponsordata).forEach(s => {
+        if (s?.sponsor?.member == member) {
+            count++
+        }
+    })
+    return count
+}
+
+exports.bountyAchievement = function (bountydata, member) {
+    let count = 0
+    Object.values(bountydata).forEach(bounty => {
+        if (bounty.player?.member == member && bounty.completed) {
+            count++
+        }
+    })
+    return count
 }
 
 exports.generateLeaderboard = function (best, member, current_challenge) {
@@ -573,18 +645,22 @@ exports.awardAchievements = function ({ client, achievements, current_challenge,
             }
             if (!profile.achievements[key]) { //send congrats
                 profileref.child("achievements").child(key).set(true)
-                const congratsEmbed = new EmbedBuilder()
-                    .setAuthor({ name: name + " got an achievement!", iconURL: avatar })
-                    .setDescription(achievements[key].description)
-                    .setColor("FFB900")
-                    .setTitle("**:trophy: " + achievements[key].name + "**")
-                if (current_challenge.guild == swe1r_guild) {
-                    congratsEmbed.setDescription("**<@&" + achievements[key].role + ">** - " + achievements[key].description)
-                }
-                postMessage(client, current_challenge.channel, { embeds: [congratsEmbed] })
+                postMessage(client, current_challenge.channel, { embeds: [exports.achievementEmbed(name, avatar, achievements[key], current_challenge.guild)] })
             }
         }
     })
+}
+
+exports.achievementEmbed = function (name, avatar, achievement, guild) {
+    const congratsEmbed = new EmbedBuilder()
+        .setAuthor({ name: name + " got an achievement!", iconURL: avatar })
+        .setDescription(achievement.description)
+        .setColor("FFB900")
+        .setTitle("**:trophy: " + achievement.name + "**")
+    if (guild == swe1r_guild) {
+        congratsEmbed.setDescription("**<@&" + achievement.role + ">** - " + achievement.description)
+    }
+    return congratsEmbed
 }
 
 exports.challengeWinnings = function ({ current_challenge, submitted_time, profile, best, goals, member } = {}) {
@@ -602,9 +678,13 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, profi
         earnings_total += goals.earnings[winnings_text]
     }
 
-    if (current_challenge.hunt) {
-        earnings += ":dart: `+📀" + tools.numberWithCommas(profile.hunt.bonus) + "`\n"
-        earnings_total += profile.hunt.bonus
+    if (current_challenge.bounties) {
+        let bounty_total = 0
+        Object.values(current_challenge.bounties).forEach(bounty => {
+            bounty_total += bounty.bonus
+        })
+        earnings += ":dart: `+📀" + tools.numberWithCommas(bounty_total) + "`\n"
+        earnings_total += bounty_total
     }
     if (current_challenge.sponsor_time && Number(submitted_time.time) - Number(current_challenge.sponsor_time) < 0) {
         earnings += "📢 `+📀" + tools.numberWithCommas(truguts.beat_sponsor) + "`\n"
@@ -693,13 +773,12 @@ exports.getBest = function (challengetimedata, current_challenge) {
     })
 }
 
-exports.updateChallenge = function ({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata } = {}) {
+exports.updateChallenge = function ({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata } = {}) {
     record_holder = false
     let player = member
     let player_name = name
     let player_profile = profile
     let player_avatar = avatar
-
     if (current_challenge.type == 'private') {
         player = current_challenge.player.member
         player_name = current_challenge.player.name
@@ -710,42 +789,33 @@ exports.updateChallenge = function ({ client, challengetimedata, profile, curren
 
     let best = exports.getBest(challengetimedata, current_challenge)
     let played = best.map(b => b.user).includes(player)
-
     if (best.length > 0 && best[0].user == player) {
         record_holder = true
     }
 
-    //check if current challenge satisfies hunt
-    if (current_challenge.hunt &&
-        current_challenge.racer == profile.hunt.racer &&
-        current_challenge.track == profile.hunt.track &&
-        !profile.hunt.completed && Date.now() - 3600000 <= profile.hunt.date) {
-        current_challengeref.update({ hunt: true })
-
-        //refund bribe
-        if (!current_challenge.refunded) {
-            if (current_challenge.racer_bribe) {
-                profileref.update({ truguts_spent: profile.truguts_spent - truguts.bribe_racer })
-            }
-            if (current_challenge.track_bribe) {
-                profileref.update({ truguts_spent: profile.truguts_spent - truguts.bribe_track })
-            }
-            current_challengeref.update({ refunded: true })
+    //refund bribe
+    if (!current_challenge.refunded && current_challenge.bounties) {
+        if (current_challenge.racer_bribe) {
+            //profileref.update({ truguts_spent: profile.truguts_spent - truguts.bribe_racer })
+            profile = exports.manageTruguts(profile, profileref, 'r', truguts.bribe_racer)
         }
-
-        if (current_challenge.completed) {
-            current_challengeref.update({ hunt_bonus: profile.hunt.bonus })
-            profileref.child("hunt").update({ completed: true })
+        if (current_challenge.track_bribe) {
+            //profileref.update({ truguts_spent: profile.truguts_spent - truguts.bribe_track })
+            profile = exports.manageTruguts(profile, profileref, 'r', truguts.bribe_track)
         }
+        current_challenge.refunded = true
     }
 
-    //get sponsor
+    //get sponsor/bounties
+
+    current_challenge = exports.getSponsor(current_challenge, sponsordata)
+    if (current_challenge.type == 'private') {
+        current_challenge = exports.getBounty(current_challenge, bountydata)
+        current_challenge.reroll_cost = current_challenge.sponsors[player] || record_holder ? "free" : played ? "discount" : "full price"
+    }
+
     if (current_challengeref) {
-        current_challengeref.update(exports.getSponsor(current_challenge, sponsordata))
-    }
-
-    if (!current_challenge.reroll_cost && current_challenge.type == 'private') { //set reroll cost
-        current_challenge.reroll_cost = record_holder ? "free" : played ? "discount" : "full price"
+        current_challengeref.update(current_challenge)
     }
 
     let flavor_text = ''
@@ -759,7 +829,7 @@ exports.updateChallenge = function ({ client, challengetimedata, profile, curren
 
     let data = {
         content: "*" + flavor_text + "*",
-        embeds: [exports.challengeEmbed({ client, current_challenge, current_challengeref, profile: player_profile, profileref, feedbackdata, best, name: player_name, member: player, avatar: player_avatar, interaction, challengetimedata })],
+        embeds: [exports.challengeEmbed({ client, current_challenge, profile: player_profile, profileref, feedbackdata, best, name: player_name, member: player, avatar: player_avatar, interaction, challengetimedata })],
         components: [exports.challengeComponents(current_challenge, profile)],
         fetchReply: true
     }
@@ -793,7 +863,7 @@ exports.checkActive = function (challengesdata, member, current_challenge) {
     return result
 }
 
-exports.challengeEmbed = function ({ current_challenge, profile, current_challengeref, profileref, feedbackdata, best, name, member, avatar, challengetimedata, client } = {}) {
+exports.challengeEmbed = function ({ current_challenge, profile, profileref, feedbackdata, best, name, member, avatar, challengetimedata, client } = {}) {
     let submitted_time = challengetimedata[current_challenge?.submissions?.[member]?.id] ?? {}
     let achs = exports.achievementProgress({ challengetimedata, player: member })
 
@@ -810,23 +880,23 @@ exports.challengeEmbed = function ({ current_challenge, profile, current_challen
             .setAuthor({ name: "Abandoned Challenge", iconURL: 'https://em-content.zobj.net/thumbs/120/twitter/322/dashing-away_1f4a8.png' })
     } else if (current_challenge.type == 'private') {
         challengeEmbed
-            .setFooter({ text: "Truguts: 📀" + tools.numberWithCommas(profile.truguts_earned - profile.truguts_spent) })
+            .setFooter({ text: "Truguts: 📀" + exports.currentTruguts(profile) })
             .setAuthor({ name: name + "'s Random Challenge", iconURL: avatar })
     } else if (current_challenge.type == 'open') {
         challengeEmbed.setAuthor({ name: "Open Challenge", iconURL: "https://em-content.zobj.net/thumbs/120/twitter/322/game-die_1f3b2.png" })
     } else if (current_challenge.type == 'cotd') {
         challengeEmbed.setAuthor({ name: "Random Challenge of the Day", iconURL: "https://em-content.zobj.net/thumbs/120/twitter/322/game-die_1f3b2.png" })
-            .setTimestamp()
+            .setTimestamp(current_challenge.created)
     }
     let goals = exports.goalTimeList(current_challenge, profile)
     if (current_challenge.rerolled) {
         let reroll = exports.rerollReceipt(current_challenge)
         challengeEmbed.setDescription(reroll.receipt)
     } else if (current_challenge.completed && ['private', 'abandoned'].includes(current_challenge.type)) {
-        let winnings = exports.challengeWinnings({ current_challenge, current_challengeref, profile, profileref, submitted_time, best, goals, member })
+        let winnings = exports.challengeWinnings({ current_challenge, profile, profileref, submitted_time, best, goals, member })
         challengeEmbed
             .addFields({ name: "Winnings", value: winnings.receipt, inline: true })
-            .setFooter({ text: "Truguts: 📀" + tools.numberWithCommas(profile.truguts_earned - profile.truguts_spent) })
+            .setFooter({ text: "Truguts: 📀" + exports.currentTruguts(profile) })
     } else {
         challengeEmbed.addFields({ name: "Goal Times", value: goals.list, inline: true })
     }
@@ -857,7 +927,7 @@ exports.challengeComponents = function (current_challenge, profile) {
             row.addComponents(
                 new ButtonBuilder()
                     .setCustomId("challenge_random_reroll")
-                    .setLabel(reroll.cost == 0 ? 'free' : "📀" + tools.numberWithCommas(reroll.cost))
+                    .setLabel(reroll.cost == 0 ? '(Free)' : "📀" + tools.numberWithCommas(reroll.cost))
                     .setStyle(ButtonStyle.Secondary)
                     .setEmoji("854097998357987418")
             )
@@ -960,7 +1030,14 @@ exports.bribeComponents = function (current_challenge) {
     }
     trackBribeRow.addComponents(track_selector)
     racerBribeRow.addComponents(racer_selector)
-    return [(!current_challenge.track_bribe ? trackBribeRow : []), (!current_challenge.racer_bribe ? racerBribeRow : [])]
+    let components = []
+    if (!current_challenge.track_bribe) {
+        components.push(trackBribeRow)
+    }
+    if (!current_challenge.racer_bribe) {
+        components.push(racerBribeRow)
+    }
+    return components
 }
 
 exports.menuEmbed = function () {
@@ -1056,7 +1133,7 @@ exports.hintEmbed = function ({ profile, name, avatar } = {}) {
         .setAuthor({ name: "Random Challenge", iconURL: "https://em-content.zobj.net/thumbs/120/twitter/322/game-die_1f3b2.png" })
         .setColor("#ED4245")
         .setDescription("Hints help you narrow down what challenges you need to complete for :trophy: **Achievements**. The more you pay, the better the hint.")
-        .setFooter({ text: name + " | Truguts: 📀" + tools.numberWithCommas(profile.truguts_earned - profile.truguts_spent), iconURL: avatar })
+        .setFooter({ text: name + " | Truguts: 📀" + exports.currentTruguts(profile), iconURL: avatar })
     return hintEmbed
 }
 
@@ -1117,7 +1194,7 @@ exports.huntEmbed = function (profile) {
         .setTitle(":dart: Challenge Bounty")
         .setAuthor({ name: "Random Challenge", iconURL: "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/game-die_1f3b2.png" })
         .setDescription("Challenge Bounty is a way to earn big truguts fast. Based on your hint selection, Botto hides a large trugut bonus on a random challenge. You have one hour to find and complete this challenge to claim your bonus.")
-        .setFooter({ text: "Truguts: 📀" + tools.numberWithCommas(profile.truguts_earned - profile.truguts_spent) })
+        .setFooter({ text: "Truguts: 📀" + exports.currentTruguts(profile) })
         .setColor("#ED4245")
 
     return huntEmbed
@@ -1215,27 +1292,13 @@ exports.settingsComponents = function (profile) {
 }
 
 exports.racerHint = function (racer, count) {
-    let h = [...racer_hints]
-    let racer_hint = h[racer]
-    let hs = []
-    for (let i = 0; i < count + 1; i++) {
-        let random_hint = Math.floor(Math.random() * racer_hint.length)
-        hs.push(racer_hint[random_hint])
-        racer_hint.splice(random_hint, 1)
-    }
-    return hs
+    const hint_shuffle = racer_hints[racer].sort(() => 0.5 - Math.random())
+    return hint_shuffle.slice(0, count + 1)
 }
 
 exports.trackHint = function (track, count) {
-    let h = [...track_hints]
-    let track_hint = h[track]
-    let hs = []
-    for (let i = 0; i < count + 1; i++) {
-        let random_hint = Math.floor(Math.random() * track_hint.length)
-        hs.push(track_hint[random_hint])
-        track_hint.splice(random_hint, 1)
-    }
-    return hs
+    const hint_shuffle = track_hints[track].sort(() => 0.5 - Math.random())
+    return hint_shuffle.slice(0, count + 1)
 }
 
 exports.sponsorEmbed = function (sponsorchallenge, profile, page) {
@@ -1243,7 +1306,7 @@ exports.sponsorEmbed = function (sponsorchallenge, profile, page) {
         .setTitle(":loudspeaker: Sponsor")
         .setAuthor({ name: "Random Challenge", iconURL: "https://em-content.zobj.net/thumbs/120/twitter/322/game-die_1f3b2.png" })
         .setDescription("Step 1: Select a circuit to sponsor\nStep 2: Set a custom title and time\nStep 3: Publish your challenge and get players to complete it\nStep 4: Profit")
-        .setFooter({ text: "Truguts: 📀" + tools.numberWithCommas(profile.truguts_earned - profile.truguts_spent) })
+        .setFooter({ text: "Truguts: 📀" + exports.currentTruguts(profile) })
         .setColor("#ED4245")
     let title = sponsorchallenge?.title ?? "No title set"
     let time = exports.validateTime(sponsorchallenge?.time) ?? "No time set"
@@ -1317,22 +1380,25 @@ exports.validateTime = function (time) {
     }
 }
 
+exports.easternHour = function () {
+    let hour = moment().utc().format("H") - 5
+    if (hour < 0) {
+        hour += 24
+    }
+    return hour
+}
+
 exports.dailyChallenge = async function ({ client, sponsordata, challengetimedata, challengesref, challengesdata } = {}) {
     let recent = null
     Object.values(challengesdata).filter(c => c.type == 'cotd').forEach(challenge => {
         if (!recent || recent.created - challenge.created < 0) {
             recent = challenge
-            console.log(recent)
         }
     })
-    let hour = moment().utc().format("H") - 5
-    if (hour < 0){
-        hour += 24
-    }
-    console.log(hour, moment().utc().format("DDD"), recent.day)
-    if (moment().utc().format("H") == 0 && moment().utc().format("DDD") !== recent.day) {
+
+    if (exports.easternHour() == 0 && moment().utc().format("DDD") !== recent.day) {
         current_challenge = exports.initializeChallenge({ type: "cotd", sponsordata })
-        let cotdmessage = await postMessage(client, '841824106676224041', exports.updateChallenge({ client, challengetimedata, current_challenge, sponsordata })) //551786988861128714
+        let cotdmessage = await postMessage(client, '841824106676224041', exports.updateChallenge({ client, challengetimedata, current_challenge, sponsordata, challengesdata })) //551786988861128714
         current_challenge.message = cotdmessage.id
         current_challenge.guild = cotdmessage.guildId
         current_challenge.channel = cotdmessage.channelId
@@ -1342,49 +1408,85 @@ exports.dailyChallenge = async function ({ client, sponsordata, challengetimedat
 
 }
 
-exports.dailyBounty = async function ({ client, sponsordata, challengetimedata } = {}) {
-    current_challenge = exports.initializeChallenge({ type: "cotd", sponsordata })
-    let cotddata = exports.updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, sponsordata })
-    let cotdmessage = null
-    cotdmessage = await postMessage(client, '841824106676224041', { embeds: [cotddata.message], components: [cotddata.components] }) //551786988861128714
-    current_challenge.message = cotdmessage.id
-    current_challenge.guild = cotdmessage.guildId
-    current_challenge.channel = cotdmessage.channelId
-    current_challenge.url = cotdmessage.url
-    challengesref.child(cotdmessage.id).set(current_challenge)
+exports.dailyBounty = async function ({ client, bountydata, bountyref } = {}) {
+    let recent = null
+    Object.values(bountydata).filter(b => b.type == 'botd').forEach(bounty => {
+        if (!recent || recent.created - bounty.created < 0) {
+            recent = bounty
+        }
+    })
+
+    if ((exports.easternHour() == 12 && moment().utc().format("DDD") !== recent.day)) { //
+        let bounty = exports.initializeBounty('botd')
+        let message = await postMessage(client, '841824106676224041', { embeds: [exports.bountyEmbed(bounty)] }) //551786988861128714
+        bounty.url = message.url
+        bountyref.push(bounty)
+    }
 }
 
-exports.bountyEmbed = function () {
-    const bounty = new EmbedBuilder()
-        .setTitle(":dart: " + hints[hselection].hunt)
+exports.bountyEmbed = function (bounty, profile) {
+    const bEmbed = new EmbedBuilder()
+        .setTitle(":dart: " + (bounty.type == 'botd' ? "Bounty of the Day" : hints[bounty.r_hints].hunt))
         .setColor("#ED4245")
-        .setAuthor({ name: name + "'s Random Challenge Bounty", iconURL: avatar })
-        .setDescription("`-📀" + tools.numberWithCommas(hints[hselection].price) + "`\nBounty expires: <t:" + Math.round((Date.now() + 1000 * 60 * 60) / 1000) + ":R>\n" +
-            "Potential bonus: `📀" + tools.numberWithCommas(hints[hselection].bonus) + "`")
         .addFields(
-            { name: "Track Hint", value: trackHint(track, hselection).map(h => "○ *" + h + "*").join("\n") },
-            { name: "Racer Hint", value: racerHint(racer, hselection).map(h => "○ *" + h + "*").join("\n") }
+            { name: "Track Leads", value: exports.trackHint(bounty.track, bounty.t_hints).map(h => "○ *" + h + "*").join("\n") },
+            { name: "Racer Leads", value: exports.racerHint(bounty.racer, bounty.r_hints).map(h => "○ *" + h + "*").join("\n") }
         )
-        .setFooter({ text: "Truguts: 📀" + tools.numberWithCommas(profile.truguts_earned - profile.truguts_spent) })
+
+    if (bounty.type == 'private') {
+        bEmbed
+            .setFooter({ text: "Truguts: 📀" + exports.currentTruguts(profile) })
+            .setDescription("`-📀" + tools.numberWithCommas(hints[bounty.r_hints].price) + "`\nBounty expires: <t:" + Math.round((Date.now() + 1000 * 60 * 60) / 1000) + ":R>\n" +
+                "Reward: `📀" + tools.numberWithCommas(hints[bounty.r_hints].bonus) + "`")
+            .setAuthor({ name: bounty.player.name + "'s Random Challenge Bounty", iconURL: bounty.player.avatar })
+    } else {
+        bEmbed
+            .setTimestamp(bounty.created)
+            //.setAuthor({ name: "Random Challenge Bounty", iconURL: 'https://em-content.zobj.net/thumbs/120/twitter/322/direct-hit_1f3af.png' })
+            .setDescription("Bounty expires: <t:" + Math.round((bounty.created + 1000 * 60 * 60 * 24) / 1000) + ":R>\n" +
+                "Reward: `📀" + tools.numberWithCommas(bounty.bonus) + "`")
+    }
+
+    return bEmbed
+}
+
+exports.initializeBounty = function (type, h, player) {
+    let bounty = {
+        track: Math.floor(Math.random() * 25),
+        racer: Math.floor(Math.random() * 23),
+        created: Date.now(),
+        completed: false,
+        r_hints: h,
+        t_hints: h,
+        type: type
+    }
+    if (type == 'botd') {
+        bounty.day = moment().utc().format("DDD")
+        bounty.r_hints = Math.floor(Math.random() * 3)
+        bounty.t_hints = Math.floor(Math.random() * 3)
+        bounty.bonus = Math.floor(Math.random() * 35) * 1000
+    } else if (type == 'private') {
+        bounty.player = player
+        bounty.r_hints = h
+        bounty.t_hints = h
+        bounty.bonus = hints[h].bonus
+    }
     return bounty
 }
 
-exports.initializeBounty = function () {
-    let track = Math.floor(Math.random() * 25)
-    let racer = Math.floor(Math.random() * 23)
-    profile = userdata[player].random
-
-    let message = interaction.reply({ embeds: [huntBuy], fetchReply: true })
-    let bounty = {
-        track: track,
-        racer: racer,
-        created: Date.now(),
-        type: 'private',
-        player: player,
-        member: member,
-        bonus: hints[hselection].bonus,
-        completed: false,
-        message: message.url
+exports.manageTruguts = function (profile, profileref, transaction, amount) {
+    if (transaction == 'w') {
+        profile.truguts_spent += amount
+    } else if (transaction == 'd') {
+        profile.truguts_earned += amount
+    } else if (transaction == 'r') {
+        profile.truguts_spent -= amount
     }
-    bountyref.push(bounty)
+    profileref.update(profile)
+    console.log(transaction, amount, profile.truguts_earned, profile.truguts_spent)
+    return profile
+}
+
+exports.currentTruguts = function (profile) {
+    return tools.numberWithCommas(profile.truguts_earned - profile.truguts_spent)
 }

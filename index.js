@@ -16,7 +16,7 @@ const client = new Client({
 var lookup = require("./data.js");
 var tourneylookup = require("./tourneydata.js");
 var tools = require('./tools.js');
-const { dailyChallenge } = require("./buttons/challenge/functions")
+const { dailyChallenge, dailyBounty } = require("./buttons/challenge/functions")
 client.commands = new Discord.Collection();
 client.buttons = new Discord.Collection();
 client.selects = new Discord.Collection();
@@ -230,10 +230,10 @@ client.once(Events.ClientReady, () => {
     const updater = async () => {
 
         dailyChallenge({ client, sponsordata, challengetimedata, challengesref, challengesdata })
+        dailyBounty({ client, bountydata, bountyref })
 
         const rp = require('request-promise');
-        const cheerio = require('cheerio');
-        //var cheerio = require('cheerio').default
+        const cheerio = require('cheerio').default;
         const url = 'http://speedgaming.org/swe1racer/';
         const fs = require('fs');
         const livechannel = "515311630100463656"
@@ -247,11 +247,6 @@ client.once(Events.ClientReady, () => {
             }
             return null
         }
-
-
-
-
-
 
         rp(url)
             .then(function (html) {

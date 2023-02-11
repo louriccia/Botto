@@ -338,7 +338,7 @@ exports.mpQuotes = [
     "You're on a wired connection, right?",
     "You're not on wifi, right?",
     "Camera backwards? Press tab.",
-    "I lagged into the wall...",
+    "I lagged into the wall...", 
     "Can anyone help me get set up?",
     "Crap, I forgot to change the track.",
     "Wait, why am I Teemto!?",
@@ -367,7 +367,6 @@ exports.playerPicks = [
     `Don't center on your anxieties, ${exports.a}. Keep your concentration here and now where it belongs.`,
     `This is so wizard ${exports.a}! I'm sure you'll do it this time.`,
     `The Chosen One ${exports.a} may be; nevertheless, grave danger I fear in their training.`,
-    ` And you, young ${exports.a}, we will watch your career with great interest.`,
     `It is possible ${exports.a} was conceived by the midi-chlorians.`,
     `${exports.a} smashed up my Pod in the last race. It will take some time to fix it.`,
     `Oh, me bones are aching ... storm's coming up, ${exports.a}. You'd better get home quick.`
@@ -681,7 +680,7 @@ exports.discordChannels = [
 ]
 
 exports.racer_hints = [
-    [
+    [ //anakin
         "pilots a Modified Radon-Ulzer 620C Racing Engines",
         "voiced by Jake Lloyd",
         "*He’s a credit to your race*",
@@ -694,14 +693,17 @@ exports.racer_hints = [
         "his podracer was given a paint job by R2D2",
         "has a reputation for being able to fix anything",
         "his legacy was continued by his son",
-        "his pod was sabotaged before the Boonta Classic",
-        "his pod stalled at the start of the Boonta Classic",
+        "his pod was sabotaged before the Boonta Eve Classic",
+        "his pod stalled at the start of the Boonta Eve Classic",
         "may have been conceived by the will of the Force",
-        "started the Boonta Classic in the second row",
+        "started the Boonta Eve Classic in the second row",
         "his pod is already available at the start of a new game",
         "his family attended the race",
-        "briefly appears on a viewscreen behind Fodesinbeed during the film"
-    ], [
+        "briefly appears on a viewscreen behind Fodesinbeed during the film",
+        "was a slave to an unscrupulous Toydarian junk dealer",
+        "the tenth racer introduced by Fodesinbeed in the film",
+        "his engines were cooked by Sebulba’s flamejet in a deleted scene",
+    ], [ //teemto
         "Veknoid outcast from Moonus Mandel",
         "known for his long engines",
         "in love with Ann Cella, one of Sebulba's masseuses",
@@ -712,8 +714,11 @@ exports.racer_hints = [
         "track favorite on an Amateur Circuit course",
         "voiced by Michael Sorich",
         "he can be briefly spotted talking to Ben Quadinaros in a scene from the film",
-        "started the Boonta Classic in the third row"
-    ], [
+        "started the Boonta Eve Classic in the third row",
+        "the second racer introduced by Fodesinbeed in the film",
+        "trades paint with Anakin Skywalker during the film",
+        "the fifth racer shown knocked out of the Boonta Eve Classic"
+    ], [ //sebulba
         "Malastare native",
         "pilots a Collor Pondrat Plug-F Mammoth, Split-X Configured",
         "voiced by Lewis Macleod",
@@ -727,13 +732,20 @@ exports.racer_hints = [
         "an especially dangerous Dug",
         "Watto’s favorite racer",
         "* Poo doo! *",
+        "owns a pair of Twi'lek masseuses",
+        "he always wins",
         "don’t get too close or you might catch fire",
-        "one of Mos Espa’s most notorious enemies",
+        "one of Mos Espa’s most notorious celebrities",
+        "frequenter of Akim's Munch street cafe",
         "commissioned a special perch for his awkward body that became his “lucky” pre-race chair",
-        "sabotaged a racer’s pod before the Boonta Classic",
-        "started the Boonta Classic in the front row",
-        "briefly appears on a viewscreen behind Fodesinbeed during the film"
-    ], [
+        "sabotaged a racer’s pod before the Boonta Eve Classic",
+        "started the Boonta Eve Classic in the front row",
+        "briefly appears on a viewscreen behind Fodesinbeed during the film",
+        "<a:flamejet:891129011550445579>",
+        "hails from Pixelito",
+        "the fourth racer introduced by Fodesinbeed in the film",
+        "trades paint with Anakin Skywalker during the film"
+    ], [ //ratts
         "pilots a Vokoff-Strood Titan 1250 Scatalpen",
         "voiced by Terry McGovern",
         "track favorite on an Ando Prime course",
@@ -745,10 +757,14 @@ exports.racer_hints = [
         "smallest of the podracing pilots",
         "mourned by an entire planet",
         "a foundation named in his honor campaigned to outlaw podracing",
+        "the second racer shown knocked out of the Boonta Eve Classic",
         "had a strong hatred for cheating",
         "vowed to kill Sebulba",
-        "started the Boonta Classic in the front row"
-    ], [
+        "started the Boonta Eve Classic in the front row",
+        "his introduction by Fodesinbeed was cut from the film",
+        "didn't make it through lap one of the Boonta Eve Classic"
+        
+    ], [ //aldar
         "pilots a Manta RamAir Mark IV Flat-Twin Turbojet",
         "voiced by Nick Jameson",
         "Glymphid",
@@ -758,28 +774,32 @@ exports.racer_hints = [
         "a track is named after him",
         "track favorite on an Amateur Circuit course",
         "track favorite on an Ando Prime course",
-        "finished third in the Boonta Classic",
+        "finished third in the Boonta Eve Classic",
         "worked as Sebulba’s bodyguard",
         "once accepted a contract to assassinate fellow podracer Elan Mak’s crime lord father",
-        "started the Boonta Classic in the front row",
+        "started the Boonta Eve Classic in the front row",
         "worst traction in the game"
-    ], [
+    ], [ //mawhonic
         "hails from Hok",
+        "the jock from Hok",
         "Gran",
         "track favorite on a Galactic circuit course",
         "track favorite on an Ando Prime course",
-        "started at the nearside pole position during the Boonta Classic",
+        "started at the nearside pole position during the Boonta Eve Classic",
         "pilots a Galactic Power Engineering GPE-3130",
         "voiced by Michael Sorich",
         "three-eyed racer",
-        "the first to be knocked out in the Boonta Classic",
-        "taken out by Sebulba during the Boonta Classic",
+        "the first racer shown knocked out of the Boonta Eve Classic",
+        "taken out by Sebulba during the Boonta Eve Classic",
         "resembles Return of the Jedi’s Ree-Yees",
         "the only podracer pilot to be played by an actor in costume",
         "posted bounties for Sebulba’s relatives as revenge",
         "also worked as a podracer parts dealer",
-        "started the Boonta Classic in the front row",
-    ], [
+        "started the Boonta Eve Classic in the front row",
+        "haw three eyes",
+        "the fifth racer introduced by Fodesinbeed in the film",
+        "didn't make it through lap one of the Boonta Eve Classic"
+    ], [ //ark
         "pilots a Vokoff-Strood Plug-8G 927 Cluster Array",
         "not good looking but not shy",
         "a track is named after him",
@@ -787,16 +807,17 @@ exports.racer_hints = [
         "track favorite on an Aquilaris course",
         "voiced by Roger L. Jackson",
         "Nuknog native of Sump",
-        "sabotaged a racer’s pod before the Boonta Classic",
-        "stopped for a pit stop on the second lap of the Boonta Classic",
+        "sabotaged a racer’s pod before the Boonta Eve Classic",
+        "stopped for a pit stop on the second lap of the Boonta Eve Classic",
         "this racer can only be seen in a deleted scene from the movie",
-        "ended up in a medcenter after colliding with another racer during the third lap of the Boonta Classic",
+        "ended up in a medcenter after colliding with another racer during the third lap of the Boonta Eve Classic",
         "best acceleration in the game",
-        "started the Boonta Classic in the fourth row",
+        "started the Boonta Eve Classic in the fourth row",
         "paranoid that Anakin Skywalker is out to get him",
         "has a nickname",
-        "worst traction in the game"
-    ], [
+        "worst traction in the game",
+        "his introduction by Fodesinbeed was cut from the film",
+    ], [ //wan
         "unabashed playboy from Ord Ramada",
         "voiced by Gregg Berger",
         "pilots a Elsinore-Cordova Turbodyne 99-U",
@@ -806,25 +827,28 @@ exports.racer_hints = [
         "his species has a lifespan of only 10 years",
         "heart-flutteringly handsome for a Devlikk",
         "involved in a plot to kill Sebulba",
-        "slammed into a Jawa sandcrawler during the Boonta Classic",
+        "slammed into a Jawa sandcrawler during the Boonta Eve Classic",
         "his legacy was continued by his son",
         "the father of Wan Sandage Jr.",
         "best brakes in the game",
         "best traction in the game"
-    ], [
-        "his pod was sabotaged before the Boonta Classic",
+    ], [ //mars
+        "his pod was sabotaged before the Boonta Eve Classic",
         "known for his massive engines",
         "pilots a Collor Pondrat Plug-2 Behemoth",
         "voiced by Jim Ward",
         "track favorite on an Amateur Circuit course",
         "track favorite on a Mon Gazza course",
         "a loud-mouthed Phuii from Phu",
-        "taken out by Sebulba during the Boonta Classic",
-        "was hungover during the Boonta Classic",
+        "taken out by Sebulba during the Boonta Eve Classic",
+        "was hungover during the Boonta Eve Classic",
         "'Raaawwwrrr'",
         "has the longest boost",
-        "started the Boonta Classic in the fourth row",
-    ], [
+        "started the Boonta Eve Classic in the fourth row",
+        "his introduction by Fodesinbeed was cut from the film",
+        "a newcomer moving up from the minor rim leagues",
+        "the fourth racer shown knocked out of the Boonta Eve Classic"
+    ], [ //ebe
         "a brash and swaggering Triffian",
         "boasts three semi-pro titles on Malastare",
         "pilots a JAK Racing J930 Dash-8, Split X Configured",
@@ -832,13 +856,13 @@ exports.racer_hints = [
         "track favorite on a Galactic Circuit course",
         "track favorite on a Baroonda course",
         "voiced by Roger L. Jackson",
-        "finished the Boonta Classic in fourth place",
+        "finished the Boonta Eve Classic in fourth place",
         "esquire",
         "former delivery man",
         "had his cockpit positioned high so his adoring fans could see his handsome face",
-        "started the Boonta Classic in the third row",
+        "started the Boonta Eve Classic in the third row",
         "his pod is already available at the start of a new game"
-    ], [
+    ], [ //dud
         "voiced by David Jeremiah",
         "Vulptereen from Vulpter",
         "pilots a Vulptereen RS 557",
@@ -846,12 +870,13 @@ exports.racer_hints = [
         "track favorite on a Malastare course",
         "has the worst turning in the game",
         "worked as Sebulba’s bodyguard",
-        "ended up in a medcenter after colliding with another racer during the third lap of the Boonta Classic",
+        "ended up in a medcenter after colliding with another racer during the third lap of the Boonta Eve Classic",
         "he has an antenna on his snout",
-        "started the Boonta Classic in the second row",
+        "started the Boonta Eve Classic in the second row",
         "before his final name, he was referred to as Bozzie Baranta during pre-production",
-        "his pod is already available at the start of a new game"
-    ], [
+        "his pod is already available at the start of a new game",
+        "the seventh racer introduced by Fodesinbeed in the film"
+    ], [ //gasgano
         "voiced by Bob Bergen",
         "Xexto from Troiken",
         "track favorite on an Invitational Circuit course",
@@ -860,12 +885,12 @@ exports.racer_hints = [
         "is introduced as being galaxy famous",
         "has 6 arms and 24 fingers",
         "races for Gardulla the Hutt",
-        "finished second place in the Boonta Classic",
+        "finished second place in the Boonta Eve Classic",
         "can be seen using a holoscreen to view racers behind him in the film",
         "worst cooling in the game",
-        "started the Boonta Classic in the third row",
+        "started the Boonta Eve Classic in the third row",
         "his pod is already available at the start of a new game"
-    ], [
+    ], [ //clegg
         "voiced by Dominic Armato",
         "pilots a Keizaar-Volvec KV9T9-B Wasp",
         "pompous Nosaurian",
@@ -873,12 +898,13 @@ exports.racer_hints = [
         "track favorite on an Amateur Circuit course",
         "track favorite on an Aquilaris course",
         "famous writer of Podracer Quarterly",
-        "taken out by Sebulba during the Boonta Classic",
+        "taken out by Sebulba during the Boonta Eve Classic",
         "his podracer is nicknamed The Wasp",
         "his engines were cooked by Sebulba’s flamejet in a deleted scene",
-        "assassinated by Aldar Beedo in Star Wars Kinect(spoiler alert)",
-        "started the Boonta Classic in the second row",
-    ], [
+        "assassinated by Aldar Beedo in Star Wars Kinect (spoiler alert)",
+        "started the Boonta Eve Classic in the second row",
+        "the sixth racer introduced by Fodesinbeed in the film"
+    ], [ //elan
         "*Just who is this mysterious podracer?*",
         "pilots a Kurtob KRT 410C",
         "voiced by Tom Kane",
@@ -888,14 +914,15 @@ exports.racer_hints = [
         "his alias is his real name backwards",
         "also known by a different name",
         "he is the son to a Fluggrian crime lord",
-        "finishes fifth in the Boonta Classic",
+        "finishes fifth in the Boonta Eve Classic",
         "sought revenge against Aldar Beedo",
-        "never piloted a podracer before racing in the Boonta Classic",
+        "never piloted a podracer before racing in the Boonta Eve Classic",
         "until the Boonta Eve, hadn’t won a race",
-        "started the Boonta Classic in the fourth row",
+        "started the Boonta Eve Classic in the fourth row",
         "his pod is already available at the start of a new game",
-        "worst traction in the game"
-    ], [
+        "worst traction in the game",
+        "his introduction by Fodesinbeed was cut from the film"
+    ], [ //neva
         "pilots a Farwan & Glott FG 8T8-Twin Block-2 Special",
         "pilots a new super experimental podracer",
         "'NO CABLES!'",
@@ -904,13 +931,13 @@ exports.racer_hints = [
         "voiced by Peter Lurie",
         "a small reptilian Xamster",
         "Xagobah native",
-        "disappeared during the second lap of the Boonta Classic",
-        "started the Boonta Classic in the very last row",
+        "disappeared during the second lap of the Boonta Eve Classic",
+        "started the Boonta Eve Classic in the very last row",
         "rumored to have been assassinated by Aurra Sing",
         "never shared his custom modification secrets for his podracer",
         "best acceleration in the game",
         "best traction in the game"
-    ], [
+    ], [ //bozzie
         "voiced by Terry McGovern",
         "track favorite on an Invitational Course",
         "track favorit on an Ord Ibanna course",
@@ -920,7 +947,7 @@ exports.racer_hints = [
         "his name was used during pre-production for Dud Bolt",
         "worked as a mechanic on Gasgano’s pit crew",
         "three-time winner",
-    ], [
+    ], [ //boles
         "he’s got money to burn",
         "shovel-jawed Sneevel",
         "fancies himself a crooner",
@@ -932,15 +959,16 @@ exports.racer_hints = [
         "a famous glim­mik singer",
         "known for his brash wagers and reeking body odor",
         "two-time winner",
-        "finished sixth in the Boonta Classic",
-        "started the Boonta Classic in the third row",
+        "finished sixth in the Boonta Eve Classic",
+        "started the Boonta Eve Classic in the third row",
         "the last competitor to successfully cross the finish line",
-        "lost a large bet that Ben Quadinaros wouldn’t show at the Boonta Classic",
+        "lost a large bet that Ben Quadinaros wouldn’t show at the Boonta Eve Classic",
         "nicknamed “Shaggy” in his concept art",
         "briefly appears on a viewscreen behind Fodesinbeed during the film",
-        "worst traction in the game"
-    ], [
-        "stopped for a pit stop on the second lap of the Boonta Classic",
+        "worst traction in the game",
+        "the third racer introduced by Fodesinbeed in the film"
+    ], [ //ody
+        "stopped for a pit stop on the second lap of the Boonta Eve Classic",
         "has a record-setting pit droid team",
         "Tatooine native",
         "Er’Kit",
@@ -952,8 +980,10 @@ exports.racer_hints = [
         "an adrenaline junky who watched races all his life",
         "taken out of the race by his own pitdroid",
         "'Oh no'",
-        "his pod is already available at the start of a new game"
-    ], [
+        "his pod is already available at the start of a new game",
+        "the eighth racer introduced by Fodesinbeed in the film",
+        "the third racer shown knocked out of the Boonta Eve Classic"
+    ], [ //fud
         "pilots a Bokaan Race Engineering BRE Block-6 Tri-Ram",
         "track favorite on an Oovo IV course",
         "track favorite on an Amateur Circuit course",
@@ -962,10 +992,10 @@ exports.racer_hints = [
         "does not appear in the finished film",
         "inmate at a maximum-security detention center known as Desolation Alley",
         "his podracer was provided by Fenn Booda",
-    ], [
+    ], [ //ben
         "he can be briefly spotted talking to Teemto Pagalies in a scene from the film",
-        "his pod was sabotaged before the Boonta Classic",
-        "his pod stalled at the start of the Boonta Classic",
+        "his pod was sabotaged before the Boonta Eve Classic",
+        "his pod stalled at the start of the Boonta Eve Classic",
         "tallest pilot in the field",
         "his pod sports a unique, quadri-pod design",
         "hails from the Tund system",
@@ -978,19 +1008,20 @@ exports.racer_hints = [
         "rented his podracer",
         "'Doowat macroon!'",
         "his last name suits his unique pod design",
-    ], [
+        "the first introduced by Fodesinbeed in the film"
+    ], [ //slide
         "does not appear in the finished film",
         "voiced by Tom Kane",
         "'Very sharp!'",
         "pilots a Pizer-Errol Stinger 627 S",
-        "track favorite on Ando Prime Centrum",
+        "track favorite on an Ando Prime course",
         "track favorite on an Invitational Circuit course",
         "best turning in the game",
         "most fragile pod in the game",
         "best cooling in the game",
         "you can tell by his craft that he has a strong dislike for large podracers",
         "shortest boost in the game"
-    ], [
+    ], [ //toy
         "does not appear in the finished film",
         "pilots a Turca 910 Special",
         "voiced by Dave Fennoy",
@@ -999,7 +1030,7 @@ exports.racer_hints = [
         "raced for the viewing pleasure of his imprisoned friends in Desolation Alley",
         "his two-color flag design perfectly matches his podracer",
         "best brakes in the game",
-    ], [
+    ], [ //bullseye
         "does not appear in the finished film",
         "best turning in the game",
         "best brakes in the game",
@@ -1013,7 +1044,7 @@ exports.racer_hints = [
 ]
 
 exports.track_hints = [
-    [
+    [ //btc
         "Sebulba is the track favorite",
         "the track favorite has orange on their flag",
         "the first race of its circuit",
@@ -1026,8 +1057,13 @@ exports.track_hints = [
         "features grandstands at its starting line",
         "features Hutt Flats",
         "starts with ‘the’",
-        "does not have a shortcut"
-    ], [
+        "does not have a shortcut",
+        "<:tatooine:862053955860168734>",
+        "features Starlite Flats",
+        "features Jett's Chute",
+        "a tall rock formation towers over the starting line",
+        "covered in slow terrain"
+    ], [ //mgs
         "Amateur Circuit",
         "the track favorite’s last name starts with ‘P’",
         "the track favorite has orange on their flag",
@@ -1038,8 +1074,9 @@ exports.track_hints = [
         "shortest track in the game",
         "has ‘way’ in its name",
         "features racer posters",
-        "does not have a shortcut"
-    ], [
+        "does not have a shortcut",
+        "<:mongazza:862053955428810753>"
+    ], [ //bwr
         "Amateur Circuit",
         "the track favorite’s first name starts with ‘A’",
         "features a shortcut that is only accessible after the first lap",
@@ -1055,8 +1092,19 @@ exports.track_hints = [
         "has an apostrophe in its name",
         "features a waterfall",
         "a racer could fall to their death",
-        "features fast terrain"
-    ], [
+        "features fast terrain",
+        "<:andotent:1023110359407657090>",
+        "<:andoprime:862053955880878140>",
+        "features Slide Alley",
+        "features Grandig Glacier",
+        "features Howler's Hollow",
+        "features a three-way split",
+        "features a bridge",
+        "you must break your way into the shortcut",
+        "features reflections",
+        "features a stone idol",
+        "features standing yellow flags"
+    ], [ //aqc
         "Amateur Circuit",
         "the track favorite has red in their flag",
         "the fourth race of its circuit",
@@ -1065,8 +1113,13 @@ exports.track_hints = [
         "the planet is in the name",
         "features grandstands at its starting line",
         "its name includes the word ‘classic’",
-        "features a figure-eight"
-    ], [
+        "features a figure-eight",
+        "<:aquilaris:862053955727130674>",
+        "requires you to dodge sliding doors",
+        "features a flying vehicle",
+        "features three small jumps",
+        "features reflections"
+    ], [ //m100
         "Amateur Circuit",
         "the track favorite has a three-letter first or last name",
         "the track favorite has red on their flag",
@@ -1083,8 +1136,13 @@ exports.track_hints = [
         "features a flying creature",
         "a racer could fall to their death",
         "features fast terrain",
-        "does not have a shortcut"
-    ], [
+        "does not have a shortcut",
+        "<:malastare:862053956111695892>",
+        "features a three-way split",
+        "features reflections",
+        "features methane falls",
+        "this course is 'Nugtosh Approved'"
+    ], [ //ven
         "Amateur Circuit",
         "the track favorite has a three-letter first or last name",
         "the sixth race of its circuit",
@@ -1097,8 +1155,12 @@ exports.track_hints = [
         "one-word name",
         "features fast terrain",
         "features a figure-eight",
-        "does not have a shortcut"
-    ], [
+        "does not have a shortcut",
+        "<a:oovodoor:964369275559223306>",
+        "<:oovoiv:862054435163996200>",
+        "a tall rock formation towers over the starting line",
+        "features a flying vehicle",
+    ], [ //smr
         "Amateur Circuit",
         "the track favorite has a three-letter first or last name",
         "the track favorite has orange on their flag",
@@ -1109,13 +1171,18 @@ exports.track_hints = [
         "features grandstands at its starting line",
         "features a section with an upper and lower track",
         "watch out for the mechanized ore loader",
-        "you might find a large vehicle in your waye",
+        "you might find a large vehicle in your way",
         "features caged corkscrews",
         "features a conveyor belt",
         "its name includes the word ‘run’",
         "features racer posters",
-        "features fast terrain"
-    ], [
+        "features fast terrain",
+        "<:mongazza:862053955428810753>",
+        "features a flying vehicle",
+        "features bulldozers",
+        "features a three-way split",
+        "the right tunnel is faster"
+    ], [ //sc
         "Semi-Pro Circuit",
         "the track favorite has a ‘V’ in his name",
         "the first race of its circuit",
@@ -1124,8 +1191,13 @@ exports.track_hints = [
         "features grandstands at its starting line",
         "features a narrow shortcut through a rusted tube",
         "features a section with an upper and lower track",
-        "features a figure-eight"
-    ], [
+        "features a figure-eight",
+        "<:aquilaris:862053955727130674>",
+        "requires you to dodge sliding doors",
+        "features Reef Cake Village",
+        "features a flying vehicle",
+        'features reflections'
+    ], [ //hg
         "Semi-Pro Circuit",
         "the track favorite’s last name ends with ‘rell’",
         "the track favorite has blue on their flag",
@@ -1138,8 +1210,14 @@ exports.track_hints = [
         "features a shortcut that is only accessible after the first lap",
         "features the Andobi Mountain Pipeline",
         "a racer could fall to their death",
-        "features fast terrain"
-    ], [
+        "features fast terrain",
+        "<:andotent:1023110359407657090>",
+        "<:andoprime:862053955880878140>",
+        "features a bridge",
+        "features reflections",
+        "features a stone idol",
+        "features standing yellow flags"
+    ], [ //dd
         "Semi-Pro Circuit",
         "the track favorite has a three-letter first or last name",
         "the track favorite has blue on their flag",
@@ -1149,8 +1227,13 @@ exports.track_hints = [
         "hosted by Nugtosh",
         "second shortest track in the game",
         "bears a striking resemblance to a real-life raceway",
-        "known for its difficult chicane"
-    ], [
+        "known for its difficult chicane",
+        "<:malastare:862053956111695892>",
+        "this course is 'Nugtosh Approved'",
+        "features a flying vehicle",
+        "features a toppling structure",
+        "a tall rock formation towers over the starting line"
+    ], [ //sr
         "Semi-Pro Circuit",
         "the track favorite has a three-letter first or last name",
         "the fourth race of its circuit",
@@ -1161,8 +1244,14 @@ exports.track_hints = [
         "has an apostrophe in its name",
         "a racer could fall to their death",
         "features fast terrain",
-        "does not have a shortcut"
-    ], [
+        "does not have a shortcut",
+        "<:ordibanna:862053955348463647>",
+        "features a flying vehicle",
+        "featuers a bridge",
+        "features a drop before its finish line",
+        "'the wind is howling'",
+        "abandoned gas mines"
+    ], [ //zc
         "Semi-Pro Circuit",
         "the track favorite’s name starts with ‘B’",
         "the track favorite has green on their flag",
@@ -1174,8 +1263,14 @@ exports.track_hints = [
         "you might find a large vehicle in your way",
         "features caged corkscrews",
         "features racer posters",
-        "a racer could fall to their death"
-    ], [
+        "a racer could fall to their death",
+        "<:mongazza:862053955428810753>",
+        "features a flying vehicle",
+        "featuers a three-way split",
+        "the left tunnel is faster",
+        "features bulldozers",
+
+    ], [ //bc
         "Semi-Pro Circuit",
         "the track favorite has a three-letter first or last name",
         "the track favorite has a ‘V’ in his name",
@@ -1187,8 +1282,17 @@ exports.track_hints = [
         "the only track that lets you drive in the water",
         "features a waterfall",
         "features a flying creature",
-        "a racer could fall to their death"
-    ], [
+        "a racer could fall to their death",
+        "<:PraiseMaja:1065889750445199471>",
+        "<:baroonda:862053955701702686>",
+        "features a flying vehicle",
+        "Baroo Heads",
+        "features a bridge",
+        "you must break your way into a shortcut",
+        "featuers Golden Ravine",
+        "features a stone idol"
+
+    ], [ //bb
         "Semi-Pro Circuit",
         "the track favorite has a three-letter first or last name",
         "the track favorite has orange on their flag",
@@ -1201,8 +1305,11 @@ exports.track_hints = [
         "features a section with an upper and lower track",
         "has an apostrophe in its name",
         "features a waterfall",
-        "you might feel the ground shake"
-    ], [
+        "you might feel the ground shake",
+        "<:aquilaris:862053955727130674>",
+        "requires you to dodge sliding doors",
+        "features a sequence of three drops"
+    ], [ //exec
         "Galactic Circuit",
         "the track favorite has a three-letter first or last name",
         "the first race of its circuit",
@@ -1212,8 +1319,12 @@ exports.track_hints = [
         "features anti-gravity tubes",
         "the second-to-the-left of four tunnels is the fastest",
         "one-word name",
-        "features fast terrain"
-    ], [
+        "features fast terrain",
+        "<:oovoiv:862054435163996200>",
+        "features a four-way split",
+        "a tall rock formation towers over the starting line",
+        "features a Patrol hangar",
+    ], [ //sl
         "Galactic Circuit",
         "Sebulba is the track favorite",
         "the track favorite has orange on their flag",
@@ -1224,8 +1335,12 @@ exports.track_hints = [
         "features a methane lake",
         "has an apostrophe in its name",
         "features a flying creature",
-        "a racer could fall to their death"
-    ], [
+        "a racer could fall to their death",
+        "<:malastare:862053956111695892>",
+        "this course is 'Nugtosh Approved'",
+        "features reflections",
+        "features Sketto Canyon Bend"
+    ], [ //gvg
         "Galactic Circuit",
         "the track favorite’s name starts with ‘A’",
         "the track favorite has blue on their flag",
@@ -1239,8 +1354,14 @@ exports.track_hints = [
         "has ‘way’ in its name",
         "features a waterfall",
         "you might feel the ground shake",
-        "a racer could fall to their death"
-    ], [
+        "a racer could fall to their death",
+        "<:PraiseMaja:1065889750445199471>",
+        "<:baroonda:862053955701702686>",
+        "features a flying vehicle",
+        "features Shallow Mud Marsh",
+        "features a stone idol",
+        "features a bridge"
+    ], [ //amr
         "Galactic Circuit",
         "the track favorite goes by one name",
         "the track favorite has green on their flag",
@@ -1254,8 +1375,15 @@ exports.track_hints = [
         "its name includes the word “run”",
         "its name includes the word ‘mountain’",
         "a racer could fall to their death",
-        "features fast terrain"
-    ], [
+        "features fast terrain",
+        "<:andotent:1023110359407657090>",
+        "<:andoprime:862053955880878140>",
+        "features a toppling structure",
+        "features a stone idol",
+        "features a bridge",
+        "features 'The Berg Sea'",
+        "features reflections"
+    ], [ //dr
         "Galactic Circuit",
         "the track favorite’s last name ends with ‘rell’",
         "the track favorite has orange on their flag",
@@ -1266,8 +1394,14 @@ exports.track_hints = [
         "features a section with an upper and lower track",
         "out-of-bounds finish",
         "has an apostrophe in its name",
-        "a racer could fall to their death"
-    ], [
+        "a racer could fall to their death",
+        "<:ordibanna:862053955348463647>",
+        "features standing yellow flags",
+        "features a drop before its finish line",
+        "features a flying vehicle",
+        "abandoned gas mines",
+        "'the wind is howling'"
+    ], [ //fmr
         "Galactic Circuit",
         "the track favorite’s first and last name starts with the same letter",
         "the track favorite has blue on their flag",
@@ -1284,8 +1418,13 @@ exports.track_hints = [
         "features a waterfall",
         "you might feel the ground shake",
         "a racer could fall to their death",
-        "features a figure-eight"
-    ], [
+        "features a figure-eight",
+        "<:PraiseMaja:1065889750445199471>",
+        "<:baroonda:862053955701702686>",
+        "features a bridge",
+        "features a flying vehicle",
+
+    ], [ //bec
         "Galactic Circuit",
         "Sebulba is the track favorite",
         "the track favorite has orange on their flag",
@@ -1303,8 +1442,12 @@ exports.track_hints = [
         "features arches",
         "its name includes the word ‘classic’",
         "starts with ‘the’",
-        "a racer could fall to their death"
-    ], [
+        "a racer could fall to their death",
+        "<:tatooine:862053955860168734>",
+        "a tall rock formation towers over the starting line",
+        "covered in slow terrain",
+        "features Mushroom Mesa"
+    ], [ //apc
         "the track favorite’s last name starts with ‘P’",
         "the first race of its circuit",
         "Ando Prime",
@@ -1313,8 +1456,11 @@ exports.track_hints = [
         "the planet is in the name",
         "features grandstands at its starting line",
         "features racer posters",
-        "does not overlap with any other track"
-    ], [
+        "does not overlap with any other track",
+        "<:andoprime:862053955880878140>",
+        "you must break your way into a shortcut",
+        "features a drop before its finish line",
+    ], [ //abyss
         "the track favorite’s first and last name starts with the same letter",
         "the second race of its circuit",
         "Ord Ibanna",
@@ -1325,8 +1471,13 @@ exports.track_hints = [
         "failure to stay on top will surely lose your lead",
         "one-word name",
         "a racer could fall to their death",
-        "features fast terrain"
-    ], [
+        "features fast terrain",
+        "<:ordibanna:862053955348463647>",
+        "features a drop before its finish line",
+        "features a flying vehicle",
+        "abandoned gas mines",
+        "'the wind is howling'"
+    ], [ //gan
         "the track favorite goes by one name",
         "the track favorite has green on their flag",
         "the track favorite has red on their flag",
@@ -1340,8 +1491,12 @@ exports.track_hints = [
         "features fire hazards",
         "starts with ‘the’",
         "a racer could fall to their death",
-        "features fast terrain"
-    ], [
+        "features fast terrain",
+        "<a:oovodoor:964369275559223306>",
+        "<:oovoiv:862054435163996200>",
+        "covered in slow terrain",
+        "a tall rock formation towers over the starting line",
+    ], [ //inferno
         "the track favorite’s first name starts with ‘B’",
         "the track favorite has red on their flag",
         "the track favorite has orange on their flag",
@@ -1354,6 +1509,9 @@ exports.track_hints = [
         "features arches",
         "one-word name",
         "does not overlap with any other track",
-        "features a figure-eight"
+        "features a figure-eight",
+        "<:PraiseMaja:1065889750445199471>",
+        "<:baroonda:862053955701702686>",
+        "features a bridge"
     ]
 ]

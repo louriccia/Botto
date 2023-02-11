@@ -1,5 +1,5 @@
 const { truguts, hints, settings_default, about } = require('./challenge/data.js');
-const { getGoalTimes, initializeChallenge, initializePlayer, updateChallenge, bribeComponents, menuEmbed, menuComponents, playButton, notYoursEmbed, hintEmbed, settingsEmbed, initializeUser, isActive, checkActive, expiredEmbed, challengeWinnings, getBest, goalTimeList, predictionScore, settingsComponents, achievementProgress, hintComponents, huntEmbed, huntComponents, racerHint, trackHint, sponsorComponents, sponsorEmbed, validateTime } = require('./challenge/functions.js');
+const { getGoalTimes, initializeChallenge, initializePlayer, updateChallenge, bribeComponents, menuEmbed, menuComponents, playButton, notYoursEmbed, hintEmbed, settingsEmbed, initializeUser, isActive, checkActive, expiredEmbed, challengeWinnings, getBest, goalTimeList, predictionScore, settingsComponents, achievementProgress, hintComponents, huntEmbed, huntComponents, racerHint, trackHint, sponsorComponents, sponsorEmbed, validateTime, initializeBounty, bountyEmbed, manageTruguts, currentTruguts, predictionAchievement, sponsorAchievement, bountyAchievement } = require('./challenge/functions.js');
 const { postMessage, editMessage } = require('../discord_message.js');
 const { tracks, circuits } = require('../data.js')
 const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } = require('discord.js');
@@ -90,6 +90,8 @@ module.exports = {
             return
         }
 
+        console.log(predictionAchievement(challengesdata, member), sponsorAchievement(sponsordata, member), bountyAchievement(bountydata, member))
+
         if (args[0] == "random") {
             switch (args[1]) {
                 case 'play':
@@ -102,7 +104,7 @@ module.exports = {
                     }
                     let type = interaction.member.voice?.channel?.id == '441840193754890250' ? 'multiplayer' : 'private'
                     current_challenge = initializeChallenge({ profile, member, type, name, avatar, user: player, sponsordata })
-                    let message = await interaction.reply(updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata }))
+                    let message = await interaction.reply(updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata }))
                     current_challenge.message = message.id
                     current_challenge.channel = interaction.message.channelId
                     current_challenge.guild = interaction.guildId
@@ -126,7 +128,7 @@ module.exports = {
                                 current_challengeref.update({ type: 'abandoned', players: [], predictions: [] })
                                 current_challenge = challengesdata[message.id]
                             }
-                            interaction.editReply(updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata }))
+                            interaction.editReply(updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata }))
 
                         }
                     }, 1000 * 60 * 15 - 50000)
@@ -141,7 +143,12 @@ module.exports = {
                         interaction.reply({ embeds: [notYoursEmbed()], components: [{ type: 1, components: [playButton()] }], ephemeral: true })
                         return
                     }
-                    let cost = (current_challenge.reroll_cost == "full price" ? truguts.reroll : current_challenge.reroll_cost == "discount" ? truguts.reroll_discout : 0)
+                    let cost = 0
+                    if (current_challenge.reroll_cost == "full price") {
+                        cost = truguts.reroll
+                    } else if (current_challenge.reroll_cost == "discount") {
+                        cost = truguts.reroll_discount
+                    }
                     if (profile.truguts_earned - profile.truguts_spent < cost) { //player doesn't have enough truguts to reroll
                         let noMoney = new EmbedBuilder()
                             .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
@@ -156,19 +163,30 @@ module.exports = {
                             purchased_item: "reroll",
                             selection: cost == truguts.reroll ? "full price" : "discount"
                         })
-                        profileref.update({ truguts_spent: profile.truguts_spent + cost })
+                        //profileref.update({ truguts_spent: profile.truguts_spent + cost })
+                        profile = manageTruguts(profile, profileref, 'w', cost)
                     }
-                    profile = userdata[current_challenge.player.user].random
+
+                    //award sponsorship cut
+                    if (current_challenge.sponsors) {
+                        Object.values(current_challenge.sponsors).forEach(sponsor => {
+                            let sponsor_earnings = cost
+                            let thissponsorref = userref.child(sponsor.user).child("random")
+                            let thissponsor = userdata[sponsor.user].random
+                            manageTruguts(thissponsor, thissponsorref, 'd', sponsor_earnings)
+                            current_challengeref.child('sponsors').child(sponsor.member).child('earnings').set((current_challenge.sponsors?.[sponsor.member]?.earnings ?? 0) + sponsor_earnings)
+                        })
+                    }
 
                     //clean up old challenge
                     challengesref.child(interaction.message.id).update({ completed: true, rerolled: true })
                     current_challenge = challengesdata[interaction.message.id]
-                    editMessage(client, interaction.channel.id, interaction.message.id, updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata }))
+                    editMessage(client, interaction.channel.id, interaction.message.id, updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata }))
 
                     //prepare new challenge
                     let rerolltype = 'private'
                     current_challenge = initializeChallenge({ profile, member, type: rerolltype, name, avatar, user: player, sponsordata })
-                    let rerollmessage = await interaction.reply(updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata }))
+                    let rerollmessage = await interaction.reply(updateChallenge({ client, challengetimedata, profile, current_challenge, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata }))
                     current_challenge.message = rerollmessage.id
                     current_challenge.channel = interaction.message.channelId
                     current_challenge.guild = interaction.guildId
@@ -222,15 +240,16 @@ module.exports = {
                         }
                         if (bribed) {
                             profileref.child("purchases").push(purchase)
-                            profileref.update({ truguts_spent: profile.truguts_spent + bribe_cost })
+                            //profileref.update({ truguts_spent: profile.truguts_spent + bribe_cost })
+                            manageTruguts(profile, profileref, 'w', bribe_cost)
                         }
                     }
 
                     current_challenge = challengesdata[current_challenge.message]
                     //populate options
-                    let adata = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata })
+                    let adata = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata })
                     if (!bribed) {
-                        adata.components.push(bribeComponents(current_challenge)).flat().flat()
+                        adata.components = [adata.components, bribeComponents(current_challenge)].flat()
                     }
                     interaction.update(adata)
 
@@ -263,7 +282,7 @@ module.exports = {
                         var newPostRef = current_challengeref.child("predictions").child(member).set(predictiondata);
                         current_challenge = challengesdata[interaction.message.id]
                         let playeruser = current_challenge.player.user
-                        interaction.update(updateChallenge({ client, challengetimedata, profile: userdata?.[playeruser]?.random, current_challenge, current_challengeref, profileref: userref.child(playeruser).child('random'), member, name, avatar, interaction, sponsordata }))
+                        interaction.update(updateChallenge({ client, challengetimedata, profile: userdata?.[playeruser]?.random, current_challenge, current_challengeref, profileref: userref.child(playeruser).child('random'), member, name, avatar, interaction, sponsordata, bountydata, challengesdata }))
                     } else {
                         if (current_challenge.player && current_challenge.player.member == member) { //trying to predict own challenge
                             const holdUp = new EmbedBuilder()
@@ -295,31 +314,31 @@ module.exports = {
                         await interaction.showModal(predictionModal)
                     }
                     break
-                case 'undo':
-                    let newactive = checkActive(challengesdata, member, current_challenge)
-                    if (newactive) { //already has active challenge
-                        interaction.reply({ embeds: [newactive], ephemeral: true })
-                        return
-                    }
-                    if (current_challenge?.submissions?.[interaction.user.id]) {
-                        profileref.update({ truguts_earned: profile.truguts_earned - current_challenge.earnings[interaction.user.id].truguts_earned })
-                        current_challengeref.update({ completed: false })
-                        challengetimeref.child(current_challenge.submissions[interaction.user.id].id).remove() //remove submissions
-                        current_challengeref.child('earnings').child(interaction.user.id).remove()
-                        current_challengeref.child('submissions').child(interaction.user.id).remove()
+                // case 'undo':
+                //     let newactive = checkActive(challengesdata, member, current_challenge)
+                //     if (newactive) { //already has active challenge
+                //         interaction.reply({ embeds: [newactive], ephemeral: true })
+                //         return
+                //     }
+                //     if (current_challenge?.submissions?.[interaction.user.id]) {
+                //         profileref.update({ truguts_earned: profile.truguts_earned - current_challenge.earnings[interaction.user.id].truguts_earned })
+                //         current_challengeref.update({ completed: false })
+                //         challengetimeref.child(current_challenge.submissions[interaction.user.id].id).remove() //remove submissions
+                //         current_challengeref.child('earnings').child(interaction.user.id).remove()
+                //         current_challengeref.child('submissions').child(interaction.user.id).remove()
 
-                        current_challenge = challengesdata[interaction.message.id]
-                        interaction.update(updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata }))
-                    } else {
-                        const noMoney = new EmbedBuilder()
-                            .setTitle("<:WhyNobodyBuy:589481340957753363> You must unsubmit what you have submitted.")
-                            .setDescription("You cannot undo a submission if you have not submitted a time.")
-                        interaction.reply({
-                            embeds: [noMoney],
-                            ephemeral: true
-                        })
-                    }
-                    break
+                //         current_challenge = challengesdata[interaction.message.id]
+                //         interaction.update(updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata }))
+                //     } else {
+                //         const noMoney = new EmbedBuilder()
+                //             .setTitle("<:WhyNobodyBuy:589481340957753363> You must unsubmit what you have submitted.")
+                //             .setDescription("You cannot undo a submission if you have not submitted a time.")
+                //         interaction.reply({
+                //             embeds: [noMoney],
+                //             ephemeral: true
+                //         })
+                //     }
+                //     break
                 case 'like':
                 case 'dislike':
                     if (!Object.keys(current_challenge.submissions).includes(interaction.user.id)) {
@@ -345,7 +364,9 @@ module.exports = {
                     current_challengeref.child('ratings').child(interaction.user.id).set({ user: player })
                     current_challengeref.child('earnings').child(interaction.user.id).update({ truguts_earned: current_challenge.earnings[interaction.user.id].truguts_earned + truguts.rated })
 
-                    profileref.update({ truguts_earned: profile.truguts_earned + truguts.rated })
+                    //profileref.update({ truguts_earned: profile.truguts_earned + truguts.rated })
+                    profile = manageTruguts(profile, profileref, 'd', truguts.rated)
+
                     feedbackref.push({
                         user: member,
                         feedback: args[1] == "dislike" ? "👎" : '👍',
@@ -361,7 +382,7 @@ module.exports = {
                         }
                     });
                     current_challenge = challengesdata[interaction.message.id]
-                    interaction.update(updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata }))
+                    interaction.update(updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata }))
 
                     break
                 case 'menu':
@@ -396,14 +417,11 @@ module.exports = {
                         interaction.update({ embeds: [hEmbed], components: hintComponents(achievements, profile, achievement_keys, achievement, selection), ephemeral: true })
                     } else if (args[2] == "selection") {
                         let split = interaction.values[0].split(":")
-                        console.log(split)
                         achievement = split[0]
                         selection = Number(split[1])
                         interaction.update({ embeds: [hEmbed], components: hintComponents(achievements, profile, achievement_keys, achievement, selection), ephemeral: true })
                     } else if (args[2] == "purchase") {
-                        console.log(args[3])
                         let split = args[3].split(":")
-                        console.log(split)
                         achievement = split[0].replace("-", "_")
                         selection = Number(split[1])
                         const hintBuy = new EmbedBuilder()
@@ -412,7 +430,7 @@ module.exports = {
                             hintBuy
                                 .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
                                 .setDescription("*'No money, no hint!'*\nYou do not have enough truguts to buy the selected hint.\n\nHint cost: `" + hints[selection].price + "`")
-                                .setFooter({ text: "Truguts: 📀" + tools.numberWithCommas(profile.truguts_earned - profile.truguts_spent) })
+                                .setFooter({ text: "Truguts: 📀" + currentTruguts(profile) })
                             interaction.reply({ embeds: [hintBuy], ephemeral: true })
                             return
                         }
@@ -447,7 +465,6 @@ module.exports = {
                                 }
                             }
                         }
-                        console.log(achievements)
                         //get random missing challenge
                         let racer = null, track = null
                         if (["galaxy_famous", "light_skipper", "mirror_dimension", "crowd_favorite", 'backwards_compatible'].includes(achievement)) {
@@ -465,7 +482,6 @@ module.exports = {
                             track = random[0]
                             racer = random[1]
                         }
-                        console.log(achievement, track, racer)
                         if ((["galaxy_famous", "light_skipper", "mirror_dimension", "crowd_favorite", "true_jedi", 'backwards_compatible'].includes(achievement) && track == null) || (["pod_champ", "slow_steady", "true_jedi"].includes(achievement) && racer == null)) {
                             //player already has achievement
                             hintBuy.setDescription("You already have this achievement and do not require a hint. You have not been charged. \n\nAlready have all the achievements? Try a Challenge Bounty!")
@@ -478,19 +494,20 @@ module.exports = {
                                 hintBuy.addFields({ name: "Racer Hint", value: racerHint(racer, selection).map(h => "○ *" + h + "*").join("\n") })
                             }
                             // process purchase
-                            profileref.update({ truguts_spent: profile.truguts_spent + hints[selection].price })
+
                             profileref.child("purchases").push({
                                 date: Date.now(),
                                 purchased_item: hints[selection].name,
                                 selection: achievement
                             })
                             hintBuy.setDescription("`-📀" + tools.numberWithCommas(hints[selection].price) + "`")
+                            //profileref.update({ truguts_spent: profile.truguts_spent + hints[selection].price })
+                            profile = manageTruguts(profile, profileref, 'w', hints[selection].price)
                         }
-                        profile = userdata[player].random
                         hintBuy
                             .setAuthor({ name: name + "'s Random Challenge Hint", iconURL: avatar })
                             .setTitle(":bulb: " + hints[selection].name + ": " + achievements[achievement].name)
-                            .setFooter({ text: "Truguts: 📀" + tools.numberWithCommas(profile.truguts_earned - profile.truguts_spent) })
+                            .setFooter({ text: "Truguts: 📀" + currentTruguts(profile) })
 
                         interaction.reply({ embeds: [hintBuy] })
                     } else {
@@ -504,7 +521,6 @@ module.exports = {
                         hselection = Number(interaction.values[0])
                         interaction.update({ embeds: [huntEmbed(profile)], components: huntComponents(profile, hselection) })
                     } else if (args[2] == "start") {
-                        console.log(args[3])
                         hselection = Number(args[3])
                         if (profile.truguts_earned - profile.truguts_spent < hints[hselection].price) {
                             const hintBuy = new EmbedBuilder()
@@ -514,17 +530,25 @@ module.exports = {
                             return
                         }
                         //process purchase
-                        profileref.update({ truguts_spent: profile.truguts_spent + hints[hselection].price })
+                        //profileref.update({ truguts_spent: profile.truguts_spent + hints[hselection].price })
+
                         profileref.child("purchases").push({
                             date: Date.now(),
                             purchased_item: hints[hselection].name,
                             selection: "challenge_hunt"
                         })
-
-
-
-                        return
-
+                        profile = manageTruguts(profile, profileref, 'w', hints[hselection].price)
+                        let bounty = initializeBounty('private', hselection, { name, member, user: player, avatar })
+                        let message = await interaction.reply({
+                            embeds: [bountyEmbed(bounty, profile)], components: [
+                                {
+                                    type: 1,
+                                    components: [playButton()]
+                                }
+                            ], fetchReply: true
+                        })
+                        bounty.url = message.url
+                        bountyref.push(bounty)
                     } else {
                         interaction.reply({ embeds: [huntEmbed(profile)], components: huntComponents(profile, hselection), ephemeral: true })
                     }
@@ -535,23 +559,21 @@ module.exports = {
                         const cantSponsor = new EmbedBuilder()
                             .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
                             .setDescription("*'No money, no sponsor!'*\nYou do not have enough truguts to sponsor a challenge.")
-                            .setFooter({ text: "Truguts: 📀" + tools.numberWithCommas(profile.truguts_earned - profile.truguts_spent) })
+                            .setFooter({ text: "Truguts: 📀" + currentTruguts(profile) })
                         interaction.reply({ embeds: [cantSponsor], ephemeral: true })
                         return
                     }
                     let recent = null
                     Object.keys(sponsordata).forEach(key => {
-                        console.log(recent, sponsordata[key].created)
                         if (sponsordata[key].sponsor?.member == interaction.user.id && (!recent || sponsordata[key].created > recent.date)) {
                             recent = { date: sponsordata[key].created, key }
                         }
                     })
-                    console.log(recent)
                     if (recent && Date.now() - 1000 * 60 * 60 * 23 < recent.date && interaction.message.id !== recent.key) {
                         const cantSponsor = new EmbedBuilder()
                             .setTitle("<:WhyNobodyBuy:589481340957753363> Patience Viceroy, patience.")
                             .setDescription("Sorry, you can only sponsor one challenge per day. You can sponsor your next challenge <t:" + Math.round((recent.date + 1000 * 60 * 60 * 23) / 1000) + ":R>")
-                            .setFooter({ text: "Truguts: 📀" + tools.numberWithCommas(profile.truguts_earned - profile.truguts_spent) })
+                            .setFooter({ text: "Truguts: 📀" + currentTruguts(profile) })
                         interaction.reply({ embeds: [cantSponsor], ephemeral: true })
                         return
                     }
@@ -561,23 +583,21 @@ module.exports = {
                     } else if (args[2] == 'submit') { //sponsorship is paid
                         //process purchase
                         cselection = Number(args[3])
-                        profileref.update({ truguts_spent: profile.truguts_spent + circuits[cselection].sponsor })
+                        //profileref.update({ truguts_spent: profile.truguts_spent + circuits[cselection].sponsor })
+
                         profileref.child("purchases").push({
                             date: Date.now(),
                             purchased_item: 'sponsor',
                             selection: cselection
                         })
-
+                        profile = manageTruguts(profile, profileref, 'w', circuits[cselection].sponsor)
                         //initialize challenge
-                        console.log(cselection)
                         let sponsorchallenge = initializeChallenge({ profile, member, type: "private", name, avatar, user: player, circuit: cselection, sponsordata })
                         sponsorchallenge.type = 'open'
-                        sponsorchallenge.sponsor = sponsorchallenge.player
                         delete sponsorchallenge.player
                         sponsorref.child(interaction.message.id).set(sponsorchallenge)
 
                         //reveal challenge
-                        profile = userdata[player].random
                         interaction.update({ embeds: [sponsorEmbed(sponsorchallenge, profile, 1)], components: sponsorComponents(profile, cselection, 1) })
                     } else if (args[2] == 'details') { //set title / time
                         sponsorchallenge = sponsordata[interaction.message.id]
@@ -625,7 +645,7 @@ module.exports = {
                             interaction.reply({ embeds: [cantSponsor], ephemeral: true })
                             return
                         }
-                        let publishmessage = await interaction.reply(updateChallenge({ client, challengetimedata, profile, current_challenge: sponsorchallenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata }))
+                        let publishmessage = await interaction.reply(updateChallenge({ client, challengetimedata, profile, current_challenge: sponsorchallenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata }))
                         sponsorchallenge.message = publishmessage.id
                         sponsorchallenge.url = publishmessage.url
                         sponsorref.child(interaction.message.id).update({ published: true, url: publishmessage.url })
@@ -1027,7 +1047,7 @@ module.exports = {
                             }
                             profileEmbed
                                 .setTitle("Statistics")
-                                .setDescription("Current trugut balance: `📀" + tools.numberWithCommas(profile.truguts_earned - profile.truguts_spent) + "`")
+                                .setDescription("Current trugut balance: `📀" + currentTruguts(profile) + "`")
                             //add goal times achieved for the stat section
                             if (hasraced) {
                                 profileEmbed
@@ -1610,7 +1630,8 @@ module.exports = {
 
                     //award winnings for this submission
                     let winnings = challengeWinnings({ current_challenge, submitted_time: submissiondata, profile, best: getBest(challengetimedata, current_challenge), goals: goalTimeList(current_challenge, profile), member })
-                    profileref.update({ truguts_earned: profile.truguts_earned + winnings.earnings })
+                    //profileref.update({ truguts_earned: profile.truguts_earned + winnings.earnings })
+                    profile = manageTruguts(profile, profileref, 'd', winnings.earnings)
                     current_challengeref.child("earnings").child(member).set({ truguts_earned: winnings.earnings, player: member })
                     total_revenue += winnings.earnings
 
@@ -1619,7 +1640,12 @@ module.exports = {
                         Object.values(current_challenge.predictions).forEach(p => {
                             let take = predictionScore(p.time, time)
                             total_revenue += take
-                            userref.child(p.user).child("random").update({ truguts_earned: userdata[p.user].random.truguts_earned + take })
+                            let predictorref = userref.child(p.user).child("random")
+                            let predictorprofile = userdata[p.user].random
+                            manageTruguts(predictorprofile, predictorref, 'd', take)
+
+                            //award achievements
+
                         })
                     }
 
@@ -1627,8 +1653,21 @@ module.exports = {
                     if (current_challenge.sponsors) {
                         Object.values(current_challenge.sponsors).forEach(sponsor => {
                             let sponsor_earnings = Math.round(total_revenue * truguts.sponsor_cut * sponsor.multiplier)
-                            userref.child(sponsor.user).child("random").update({ truguts_earned: userdata[sponsor.user].random.truguts_earned + sponsor_earnings })
-                            current_challengeref.child('sponsors').child(sponsor.member).child('earnings').update((current_challenge.sponsors?.[sponsor.member]?.earnings ?? 0) + sponsor_earnings)
+                            let thissponsorref = userref.child(sponsor.user).child("random")
+                            let thissponsor = userdata[sponsor.user].random
+                            manageTruguts(thissponsor, thissponsorref, 'd', sponsor_earnings)
+                            if (!current_challenge.sponsors[sponsor.member]?.earnings) {
+                                current_challenge.sponsors[sponsor.member].earnings = 0
+                            }
+                            current_challenge.sponsors[sponsor.member].earnings += sponsor_earnings
+                            current_challengeref.update(current_challenge)
+                        })
+                    }
+
+                    //close bounties
+                    if (current_challenge.bounties) {
+                        Object.values(current_challenge.bounties).forEach(bounty => {
+                            bountyref.child(bounty.key).update({ completed: true, player: { avatar, member, name, user: player } })
                         })
                     }
 
@@ -1637,7 +1676,7 @@ module.exports = {
                     profile = userdata[player].random //update profile
 
                     //update challenge
-                    interaction.update(updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata }))
+                    interaction.update(updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata }))
 
                     break
             }
