@@ -896,7 +896,6 @@ module.exports = {
                             .setAuthor(client.guilds.resolve(interaction.guild_id).members.resolve(member).user.username + "'s Random Challenge Profile", client.guilds.resolve(interaction.guild_id).members.resolve(member).user.avatarURL())
                         if (args[2] == "stats") {
 
-                            //console.log(trugutsEarned(member))
                             var keys = Object.keys(challengesdata)
                             var stats = {
                                 total: 0,
@@ -1115,7 +1114,6 @@ module.exports = {
                                     "Hints: `" + purchases.hints + "`\n" +
                                     "Total Spending: `📀" + tools.numberWithCommas(purchases.total_spending) + "`", true)
                         } else if (args[2] == "achievements") {
-                            //console.log(trugutsEarned(member))
                             var keys = Object.keys(challengesdata)
                             for (var i = 0; i < keys.length; i++) {
                                 var k = keys[i];
