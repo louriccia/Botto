@@ -427,7 +427,6 @@ exports.predictionAchievement = function (challengesdata, member) {
             if (diff <= 1 && diff >= 0) {
                 count++
             }
-            console.log(challenge, submitted_time, predicted_time, diff, count)
         }
     })
     return count
@@ -547,7 +546,7 @@ exports.achievementProgress = function ({ challengetimedata, player } = {}) {
     return achievements
 }
 
-exports.challengeAchievementProgress = function ({ client, current_challenge, profile, profileref, achievements, name, avatar } = {}) {
+exports.challengeAchievementProgress = function ({ client, current_challenge, profile, profileref, achievements, name, avatar, member } = {}) {
 
     let achievement_message_array = []
     if (Object.keys(achievements.galaxy_famous.collection).length < achievements.galaxy_famous.limit && !achievements.galaxy_famous.collection[current_challenge.track]) {
@@ -617,7 +616,7 @@ exports.challengeAchievementProgress = function ({ client, current_challenge, pr
     achievement_message_array.forEach((ach, index) => {
         achievement_progress += "**" + (current_challenge.guild == swe1r_guild ? "" : "🏆 ") + ach.name + "** `" + ach.count + "/" + ach.limit + "` " + (index !== achievement_message_array.length - 1 ? "○ " : "")
     })
-    exports.awardAchievements({ current_challenge, client, achievements, profile, profileref, name, avatar })
+    exports.awardAchievements({ current_challenge, client, achievements, profile, profileref, name, avatar, member })
     return achievement_progress
 }
 
@@ -635,12 +634,13 @@ exports.challengeColor = function (current_challenge) {
     return color
 }
 
-exports.awardAchievements = function ({ client, achievements, current_challenge, profile, profileref, name, avatar } = {}) {
+exports.awardAchievements = function ({ client, achievements, current_challenge, profile, profileref, name, avatar, member } = {}) {
     Object.keys(achievements).forEach(key => {
         if (Object.keys(achievements[key].collection).length >= achievements[key].limit || achievements[key].count >= achievements[key].limit) { //if player has met condition for achievement
             if (current_challenge.guild == swe1r_guild) {
-                if (client.member.roles.cache.some(r => r.id === achievements[key].role)) { //award role
-                    client.member.roles.add(achievements[key].role).catch(error => console.log(error))
+                let cmember = client.guilds.cache.get(current_challenge.guild).members.cache.get(member)
+                if (cmember.roles.cache.some(r => r.id === achievements[key].role)) { //award role
+                    cmember.roles.add(achievements[key].role).catch(error => console.log(error))
                 }
             }
             if (!profile.achievements[key]) { //send congrats
@@ -811,7 +811,7 @@ exports.updateChallenge = function ({ client, challengetimedata, profile, curren
     current_challenge = exports.getSponsor(current_challenge, sponsordata)
     if (current_challenge.type == 'private') {
         current_challenge = exports.getBounty(current_challenge, bountydata)
-        current_challenge.reroll_cost = current_challenge.sponsors[player] || record_holder ? "free" : played ? "discount" : "full price"
+        current_challenge.reroll_cost = current_challenge.sponsors?.[player] || record_holder ? "free" : played ? "discount" : "full price"
     }
 
     if (current_challengeref) {
@@ -866,11 +866,14 @@ exports.checkActive = function (challengesdata, member, current_challenge) {
 exports.challengeEmbed = function ({ current_challenge, profile, profileref, feedbackdata, best, name, member, avatar, challengetimedata, client } = {}) {
     let submitted_time = challengetimedata[current_challenge?.submissions?.[member]?.id] ?? {}
     let achs = exports.achievementProgress({ challengetimedata, player: member })
-
+    let desc = exports.generateChallengeDescription(current_challenge, best, profile, name, feedbackdata) + (current_challenge.type == 'private' ? "\n" + exports.challengeAchievementProgress({ client, current_challenge, profile, profileref, achievements: achs, name, avatar, member }) : '')
     const challengeEmbed = new EmbedBuilder()
         .setTitle(exports.generateChallengeTitle(current_challenge))
         .setColor(exports.challengeColor(current_challenge))
-        .setDescription(exports.generateChallengeDescription(current_challenge, best, profile, name, feedbackdata) + (current_challenge.type == 'private' ? "\n" + exports.challengeAchievementProgress({ client, current_challenge, profile, profileref, achievements: achs, name, avatar }) : ''))
+    if (desc) {
+        challengeEmbed.setDescription(desc)
+    }
+
 
     if (current_challenge.type == 'multiplayer') {
         challengeEmbed
@@ -1183,7 +1186,7 @@ exports.hintComponents = function (achievements, profile, achievement_keys, achi
             .setLabel("Buy Hint")
             .setStyle(ButtonStyle.Primary)
             .setEmoji("⏱️")
-            .setDisabled([achievement, selection].includes(null))
+            .setDisabled([achievement, selection].includes(null) || [achievement, selection].includes('null'))
     )
     return [row1, row2, row3]
 
@@ -1242,11 +1245,11 @@ exports.settingsEmbed = function ({ profile, name, avatar } = {}) {
     let winnings = Number(profile.settings.winnings)
     let predictions = profile.settings.predictions
     let odds = {
-        skips: profile.settings.skips + "%" + (profile.settings.skips > 0 && profile.settings.skips <= 25 ? " 📀" : ""),
-        no_upgrades: profile.settings.no_upgrades + "%" + (profile.settings.no_upgrades > 0 && profile.settings.no_upgrades <= 25 ? " 📀" : ""),
-        non_3_lap: profile.settings.non_3_lap + "%" + (profile.settings.non_3_lap > 0 && profile.settings.non_3_lap <= 25 ? " 📀" : ""),
-        mirror_mode: profile.settings.mirror_mode + "%" + (profile.settings.mirror_mode > 0 && profile.settings.mirror_mode <= 25 ? " 📀" : ""),
-        backwards: profile.settings.backwards + "%" + (profile.settings.backwards > 0 && profile.settings.backwards <= 25 ? " 📀" : "")
+        skips: profile.settings.skips + "%" + (profile.settings.skips > 0 && profile.settings.skips <= 25 ? " `+📀" + truguts.non_standard + "`" : ""),
+        no_upgrades: profile.settings.no_upgrades + "%" + (profile.settings.no_upgrades > 0 && profile.settings.no_upgrades <= 25 ? " `+📀" + truguts.non_standard + "`" : ""),
+        non_3_lap: profile.settings.non_3_lap + "%" + (profile.settings.non_3_lap > 0 && profile.settings.non_3_lap <= 25 ? " `+📀" + truguts.non_standard + "`" : ""),
+        mirror_mode: profile.settings.mirror_mode + "%" + (profile.settings.mirror_mode > 0 && profile.settings.mirror_mode <= 25 ? " `+📀" + truguts.non_standard + "`" : ""),
+        backwards: profile.settings.backwards + "%" + (profile.settings.backwards > 0 && profile.settings.backwards <= 25 ? " `+📀" + truguts.non_standard + "`" : "")
     }
     settingsEmbed
         .addFields({ name: "Your Odds", value: "Skips - " + odds.skips + "\nNo Upgrades - " + odds.no_upgrades + "\nNon 3-Lap - " + odds.non_3_lap + "\nMirror Mode - " + odds.mirror_mode + "\nBackwards - " + odds.backwards, inline: true })
@@ -1398,7 +1401,7 @@ exports.dailyChallenge = async function ({ client, sponsordata, challengetimedat
 
     if (exports.easternHour() == 0 && moment().utc().format("DDD") !== recent.day) {
         current_challenge = exports.initializeChallenge({ type: "cotd", sponsordata })
-        let cotdmessage = await postMessage(client, '841824106676224041', exports.updateChallenge({ client, challengetimedata, current_challenge, sponsordata, challengesdata })) //551786988861128714
+        let cotdmessage = await postMessage(client, '551786988861128714', exports.updateChallenge({ client, challengetimedata, current_challenge, sponsordata, challengesdata })) //551786988861128714
         current_challenge.message = cotdmessage.id
         current_challenge.guild = cotdmessage.guildId
         current_challenge.channel = cotdmessage.channelId
@@ -1418,7 +1421,7 @@ exports.dailyBounty = async function ({ client, bountydata, bountyref } = {}) {
 
     if ((exports.easternHour() == 12 && moment().utc().format("DDD") !== recent.day)) { //
         let bounty = exports.initializeBounty('botd')
-        let message = await postMessage(client, '841824106676224041', { embeds: [exports.bountyEmbed(bounty)] }) //551786988861128714
+        let message = await postMessage(client, '551786988861128714', { embeds: [exports.bountyEmbed(bounty)] }) //551786988861128714
         bounty.url = message.url
         bountyref.push(bounty)
     }
@@ -1483,7 +1486,6 @@ exports.manageTruguts = function (profile, profileref, transaction, amount) {
         profile.truguts_spent -= amount
     }
     profileref.update(profile)
-    console.log(transaction, amount, profile.truguts_earned, profile.truguts_spent)
     return profile
 }
 

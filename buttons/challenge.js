@@ -1,5 +1,5 @@
-const { truguts, hints, settings_default, about } = require('./challenge/data.js');
-const { getGoalTimes, initializeChallenge, initializePlayer, updateChallenge, bribeComponents, menuEmbed, menuComponents, playButton, notYoursEmbed, hintEmbed, settingsEmbed, initializeUser, isActive, checkActive, expiredEmbed, challengeWinnings, getBest, goalTimeList, predictionScore, settingsComponents, achievementProgress, hintComponents, huntEmbed, huntComponents, racerHint, trackHint, sponsorComponents, sponsorEmbed, validateTime, initializeBounty, bountyEmbed, manageTruguts, currentTruguts, predictionAchievement, sponsorAchievement, bountyAchievement } = require('./challenge/functions.js');
+const { truguts, hints, settings_default, about, achievement_data, swe1r_guild } = require('./challenge/data.js');
+const { getGoalTimes, initializeChallenge, initializePlayer, updateChallenge, bribeComponents, menuEmbed, menuComponents, playButton, notYoursEmbed, hintEmbed, settingsEmbed, initializeUser, isActive, checkActive, expiredEmbed, challengeWinnings, getBest, goalTimeList, predictionScore, settingsComponents, achievementProgress, hintComponents, huntEmbed, huntComponents, racerHint, trackHint, sponsorComponents, sponsorEmbed, validateTime, initializeBounty, bountyEmbed, manageTruguts, currentTruguts, predictionAchievement, sponsorAchievement, bountyAchievement, achievementEmbed } = require('./challenge/functions.js');
 const { postMessage, editMessage } = require('../discord_message.js');
 const { tracks, circuits } = require('../data.js')
 const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } = require('discord.js');
@@ -9,7 +9,7 @@ module.exports = {
     async execute(client, interaction, args) {
         let member = interaction.user.id
         const Discord = require('discord.js');
-        const Guild = client.guilds.cache.get(interaction.guild_id)
+        const Guild = interaction.guild
         const Member = interaction.member
         const name = interaction.member.displayName
         const avatar = await interaction.member.displayAvatarURL()
@@ -90,7 +90,18 @@ module.exports = {
             return
         }
 
-        console.log(predictionAchievement(challengesdata, member), sponsorAchievement(sponsordata, member), bountyAchievement(bountydata, member))
+
+        if (profile.truguts_spent + profile.truguts_earned >= achievement_data.big_time_swindler.limit && current_challenge) { //award big-time swindler achievement
+            if (current_challenge.guild == swe1r_guild) {
+                if (Member.roles.cache.some(r => r.id === achievement_data.big_time_swindler.role)) { //award role
+                    Member.roles.add(achievement_data.big_time_swindler.role).catch(error => console.log(error))
+                }
+            }
+            if (!profile.achievements.big_time_swindler) {
+                postMessage(client, current_challenge.channel, { embeds: [achievementEmbed(p.name, p.avatar, achievement_data.big_time_swindler, current_challenge.guild)] })
+                profileref.child('achievements').child("big_time_swindler").set(true)
+            }
+        }
 
         if (args[0] == "random") {
             switch (args[1]) {
@@ -650,6 +661,18 @@ module.exports = {
                         sponsorchallenge.url = publishmessage.url
                         sponsorref.child(interaction.message.id).update({ published: true, url: publishmessage.url })
                         challengesref.child(publishmessage.id).set(sponsorchallenge)
+
+                        if (sponsorAchievement(bountydata, member) >= achievement_data.bankroller_clan.limit) { //award achievement
+                            if (current_challenge.guild == swe1r_guild) {
+                                if (Member.roles.cache.some(r => r.id === achievement_data.bankroller_clan.role)) { //award role
+                                    Member.roles.add(achievement_data.bankroller_clan.role).catch(error => console.log(error))
+                                }
+                            }
+                            if (!profile.achievements.bankroller_clan) {
+                                postMessage(client, current_challenge.channel, { embeds: [achievementEmbed(p.name, p.avatar, achievement_data.bankroller_clan, current_challenge.guild)] })
+                                profileref.child('achievements').child("bankroller_clan").set(true)
+                            }
+                        }
                     } else {
                         interaction.reply({ embeds: [sponsorEmbed(null, profile, 0)], components: sponsorComponents(profile, cselection, 0), ephemeral: true })
                     }
@@ -1645,7 +1668,19 @@ module.exports = {
                             manageTruguts(predictorprofile, predictorref, 'd', take)
 
                             //award achievements
+                            if (predictionAchievement(challengesdata, p.member) >= achievement_data.force_sight.limit) {
+                                if (current_challenge.guild == swe1r_guild) {
+                                    let pmember = Guild.members.cache.get(p.member)
+                                    if (pmember.roles.cache.some(r => r.id === achievement_data.force_sight.role)) { //award role
+                                        pmember.roles.add(achievement_data.force_sight.role).catch(error => console.log(error))
+                                    }
+                                }
+                                if (!userdata[p.user].random.achievements.force_sight) {
+                                    postMessage(client, current_challenge.channel, { embeds: [achievementEmbed(p.name, p.avatar, achievement_data.force_sight, current_challenge.guild)] })
+                                    userref.child(p.user).child('random').child('achievements').child("force_sight").set(true)
+                                }
 
+                            }
                         })
                     }
 
@@ -1669,6 +1704,18 @@ module.exports = {
                         Object.values(current_challenge.bounties).forEach(bounty => {
                             bountyref.child(bounty.key).update({ completed: true, player: { avatar, member, name, user: player } })
                         })
+                        if (bountyAchievement(bountydata, member) >= achievement_data.bounty_hunter.limit) {
+                            if (current_challenge.guild == swe1r_guild) {
+                                if (Member.roles.cache.some(r => r.id === achievement_data.bounty_hunter.role)) { //award role
+                                    Member.roles.add(achievement_data.bounty_hunter.role).catch(error => console.log(error))
+                                }
+                            }
+                            if (!profile.achievements.bounty_hunter) {
+                                postMessage(client, current_challenge.channel, { embeds: [achievementEmbed(p.name, p.avatar, achievement_data.bounty_hunter, current_challenge.guild)] })
+                                profileref.child('achievements').child("bounty_hunter").set(true)
+                            }
+
+                        }
                     }
 
                     //update objects
