@@ -1407,6 +1407,8 @@ exports.dailyChallenge = async function ({ client, sponsordata, challengetimedat
         current_challenge.channel = cotdmessage.channelId
         current_challenge.url = cotdmessage.url
         challengesref.child(cotdmessage.id).set(current_challenge)
+        cotdmessage.pin()
+
     }
 
 }
@@ -1423,8 +1425,11 @@ exports.dailyBounty = async function ({ client, bountydata, bountyref } = {}) {
         let bounty = exports.initializeBounty('botd')
         let message = await postMessage(client, '551786988861128714', { embeds: [exports.bountyEmbed(bounty)] }) //551786988861128714
         bounty.url = message.url
+        bounty.message = message.id
         bountyref.push(bounty)
+        message.pin()
     }
+
 }
 
 exports.bountyEmbed = function (bounty, profile) {

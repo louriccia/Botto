@@ -77,7 +77,7 @@ exports.tips = [
     "Hints help you narrow down what challenges you need to complete for :trophy: Achievements",
     "Check out top-5 times for Random Challenges in :trophy: Leaderboards",
     "Click :grey_question: About to learn more about Random Challenges",
-    "You can return to the Random Challenge menu from anywhere by clicking <:menu:862620287735955487>"
+    "You can return to the Random Challenge menu from anywhere by clicking <:menu:862620287735955487>",
 ]
 
 exports.emoji = {

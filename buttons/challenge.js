@@ -559,6 +559,7 @@ module.exports = {
                             ], fetchReply: true
                         })
                         bounty.url = message.url
+                        bounty.message = message.id
                         bountyref.push(bounty)
                     } else {
                         interaction.reply({ embeds: [huntEmbed(profile)], components: huntComponents(profile, hselection), ephemeral: true })

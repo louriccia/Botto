@@ -16,6 +16,7 @@ const client = new Client({
 var lookup = require("./data.js");
 var tourneylookup = require("./tourneydata.js");
 var tools = require('./tools.js');
+var moment = require('moment');
 const { dailyChallenge, dailyBounty } = require("./buttons/challenge/functions")
 client.commands = new Discord.Collection();
 client.buttons = new Discord.Collection();
@@ -231,6 +232,17 @@ client.once(Events.ClientReady, () => {
 
         dailyChallenge({ client, sponsordata, challengetimedata, challengesref, challengesdata })
         dailyBounty({ client, bountydata, bountyref })
+        Object.values(challengesdata).forEach(challenge => {
+            if (challenge.type == 'cotd' && moment().utc().format("DDD") !== challenge.day && challenge.message) {
+                client.channels.cache.get('551786988861128714').messages.fetch(challenge.message).then(msg => msg.unpin().catch(console.error))
+            }
+        })
+
+        Object.values(bountydata).forEach(bounty => {
+            if (bounty.type == 'botd' && moment().utc().format("DDD") !== bounty.day && bounty.message) {
+                client.channels.cache.get('551786988861128714').messages.fetch(bounty.message).then(msg => msg.unpin().catch(console.error))
+            }
+        })
 
         const rp = require('request-promise');
         const cheerio = require('cheerio').default;
