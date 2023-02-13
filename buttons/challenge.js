@@ -560,6 +560,7 @@ module.exports = {
                         })
                         bounty.url = message.url
                         bounty.message = message.id
+                        bounty.channel = message.channelId
                         bountyref.push(bounty)
                     } else {
                         interaction.reply({ embeds: [huntEmbed(profile)], components: huntComponents(profile, hselection), ephemeral: true })

@@ -1426,6 +1426,7 @@ exports.dailyBounty = async function ({ client, bountydata, bountyref } = {}) {
         let message = await postMessage(client, '551786988861128714', { embeds: [exports.bountyEmbed(bounty)] }) //551786988861128714
         bounty.url = message.url
         bounty.message = message.id
+        bounty.channel = message.channelId
         bountyref.push(bounty)
         message.pin()
     }
