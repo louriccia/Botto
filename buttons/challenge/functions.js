@@ -1491,10 +1491,10 @@ exports.manageTruguts = function ({ profile, profileref, transaction, amount, pu
     } else if (transaction == 'r') {
         profile.truguts_spent -= amount
     }
-    if (transaction == 'w' && purchase) {
-        profile.purchases.push(purchase)
-    }
     profileref.update(profile)
+    if (transaction == 'w' && purchase) {
+        profileref.child("purchases").push(purchase)
+    }
     return profile
 }
 
