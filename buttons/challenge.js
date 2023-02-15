@@ -100,6 +100,7 @@ module.exports = {
             if (!profile.achievements.big_time_swindler) {
                 postMessage(client, current_challenge.channel, { embeds: [achievementEmbed(name, avatar, achievement_data.big_time_swindler, current_challenge.guild)] })
                 profileref.child('achievements').child("big_time_swindler").set(true)
+                profile = userdata[player]?.random
             }
         }
 
