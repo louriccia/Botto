@@ -169,13 +169,15 @@ module.exports = {
                     }
                     //process purchase
                     if (cost) {
-                        profileref.child("purchases").push({
-                            date: Date.now(),
-                            purchased_item: "reroll",
-                            selection: cost == truguts.reroll ? "full price" : "discount"
-                        })
+
                         //profileref.update({ truguts_spent: profile.truguts_spent + cost })
-                        profile = manageTruguts(profile, profileref, 'w', cost)
+                        profile = manageTruguts({
+                            profile, profileref, transaction: 'w', amount: cost, purchase: {
+                                date: Date.now(),
+                                purchased_item: "reroll",
+                                selection: cost == truguts.reroll ? "full price" : "discount"
+                            }
+                        })
                     }
 
                     //award sponsorship cut
@@ -184,7 +186,7 @@ module.exports = {
                             let sponsor_earnings = cost
                             let thissponsorref = userref.child(sponsor.user).child("random")
                             let thissponsor = userdata[sponsor.user].random
-                            manageTruguts(thissponsor, thissponsorref, 'd', sponsor_earnings)
+                            manageTruguts({ profile: thissponsor, profileref: thissponsorref, transaction: 'd', amount: sponsor_earnings })
                             current_challengeref.child('sponsors').child(sponsor.member).child('earnings').set((current_challenge.sponsors?.[sponsor.member]?.earnings ?? 0) + sponsor_earnings)
                         })
                     }
@@ -250,9 +252,7 @@ module.exports = {
                             bribed = true
                         }
                         if (bribed) {
-                            profileref.child("purchases").push(purchase)
-                            //profileref.update({ truguts_spent: profile.truguts_spent + bribe_cost })
-                            manageTruguts(profile, profileref, 'w', bribe_cost)
+                            manageTruguts({ profile, profileref, transaction: 'w', amount: bribe_cost, purchase })
                         }
                     }
 
@@ -376,7 +376,7 @@ module.exports = {
                     current_challengeref.child('earnings').child(interaction.user.id).update({ truguts_earned: current_challenge.earnings[interaction.user.id].truguts_earned + truguts.rated })
 
                     //profileref.update({ truguts_earned: profile.truguts_earned + truguts.rated })
-                    profile = manageTruguts(profile, profileref, 'd', truguts.rated)
+                    profile = manageTruguts({ profile, profileref, transaction: 'd', amount: truguts.rated })
 
                     feedbackref.push({
                         user: member,
@@ -506,14 +506,15 @@ module.exports = {
                             }
                             // process purchase
 
-                            profileref.child("purchases").push({
-                                date: Date.now(),
-                                purchased_item: hints[selection].name,
-                                selection: achievement
-                            })
                             hintBuy.setDescription("`-📀" + tools.numberWithCommas(hints[selection].price) + "`")
                             //profileref.update({ truguts_spent: profile.truguts_spent + hints[selection].price })
-                            profile = manageTruguts(profile, profileref, 'w', hints[selection].price)
+                            profile = manageTruguts({
+                                profile, profileref, transaction: 'w', amount: hints[selection].price, purchase: {
+                                    date: Date.now(),
+                                    purchased_item: hints[selection].name,
+                                    selection: achievement
+                                }
+                            })
                         }
                         hintBuy
                             .setAuthor({ name: name + "'s Random Challenge Hint", iconURL: avatar })
@@ -540,15 +541,15 @@ module.exports = {
                             interaction.reply({ embeds: [hintBuy], ephemeral: true })
                             return
                         }
-                        //process purchase
-                        //profileref.update({ truguts_spent: profile.truguts_spent + hints[hselection].price })
 
-                        profileref.child("purchases").push({
-                            date: Date.now(),
-                            purchased_item: hints[hselection].name,
-                            selection: "challenge_hunt"
+                        //process purchase
+                        profile = manageTruguts({
+                            profile, profileref, transaction: 'w', amount: hints[hselection].price, purchase: {
+                                date: Date.now(),
+                                purchased_item: hints[hselection].name,
+                                selection: "challenge_hunt"
+                            }
                         })
-                        profile = manageTruguts(profile, profileref, 'w', hints[hselection].price)
                         let bounty = initializeBounty('private', hselection, { name, member, user: player, avatar })
                         let message = await interaction.reply({
                             embeds: [bountyEmbed(bounty, profile)], components: [
@@ -598,12 +599,13 @@ module.exports = {
                         cselection = Number(args[3])
                         //profileref.update({ truguts_spent: profile.truguts_spent + circuits[cselection].sponsor })
 
-                        profileref.child("purchases").push({
-                            date: Date.now(),
-                            purchased_item: 'sponsor',
-                            selection: cselection
+                        profile = manageTruguts({
+                            profile, profileref, transaction: 'w', amount: circuits[cselection].sponsor, purchase: {
+                                date: Date.now(),
+                                purchased_item: 'sponsor',
+                                selection: cselection
+                            }
                         })
-                        profile = manageTruguts(profile, profileref, 'w', circuits[cselection].sponsor)
                         //initialize challenge
                         let sponsorchallenge = initializeChallenge({ profile, member, type: "private", name, avatar, user: player, circuit: cselection, sponsordata })
                         sponsorchallenge.type = 'open'
@@ -1654,7 +1656,7 @@ module.exports = {
                     //award winnings for this submission
                     let winnings = challengeWinnings({ current_challenge, submitted_time: submissiondata, profile, best: getBest(challengetimedata, current_challenge), goals: goalTimeList(current_challenge, profile), member })
                     //profileref.update({ truguts_earned: profile.truguts_earned + winnings.earnings })
-                    profile = manageTruguts(profile, profileref, 'd', winnings.earnings)
+                    profile = manageTruguts({ profile, profileref, transaction: 'd', amount: winnings.earnings })
                     current_challengeref.child("earnings").child(member).set({ truguts_earned: winnings.earnings, player: member })
                     total_revenue += winnings.earnings
 
@@ -1665,7 +1667,7 @@ module.exports = {
                             total_revenue += take
                             let predictorref = userref.child(p.user).child("random")
                             let predictorprofile = userdata[p.user].random
-                            manageTruguts(predictorprofile, predictorref, 'd', take)
+                            manageTruguts({ profile: predictorprofile, profileref: predictorref, transaction: 'd', amount: take })
 
                             //award achievements
                             if (predictionAchievement(challengesdata, p.member) >= achievement_data.force_sight.limit) {
@@ -1690,7 +1692,7 @@ module.exports = {
                             let sponsor_earnings = Math.round(total_revenue * truguts.sponsor_cut * sponsor.multiplier)
                             let thissponsorref = userref.child(sponsor.user).child("random")
                             let thissponsor = userdata[sponsor.user].random
-                            manageTruguts(thissponsor, thissponsorref, 'd', sponsor_earnings)
+                            manageTruguts({ profile: thissponsor, profileref: thissponsorref, transaction: 'd', amount: sponsor_earnings })
                             if (!current_challenge.sponsors[sponsor.member]?.earnings) {
                                 current_challenge.sponsors[sponsor.member].earnings = 0
                             }

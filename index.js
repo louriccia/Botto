@@ -17,7 +17,7 @@ var lookup = require("./data.js");
 var tourneylookup = require("./tourneydata.js");
 var tools = require('./tools.js');
 var moment = require('moment');
-const { dailyChallenge, dailyBounty } = require("./buttons/challenge/functions")
+const { dailyChallenge, dailyBounty, easternHour } = require("./buttons/challenge/functions")
 client.commands = new Discord.Collection();
 client.buttons = new Discord.Collection();
 client.selects = new Discord.Collection();
@@ -239,7 +239,7 @@ client.once(Events.ClientReady, () => {
         })
 
         Object.values(bountydata).forEach(bounty => {
-            if (bounty.type == 'botd' && moment().utc().format("DDD") !== bounty.day && bounty.channel == '551786988861128714' && bounty.message) {
+            if (bounty.type == 'botd' && moment().utc().format("DDD") !== bounty.day && bounty.channel == '551786988861128714' && bounty.message && easternHour() >= 12) {
                 client.channels.cache.get('551786988861128714').messages.fetch(bounty.message).then(msg => msg.unpin().catch(console.error))
             }
         })

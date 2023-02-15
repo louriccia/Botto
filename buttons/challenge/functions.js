@@ -1483,13 +1483,16 @@ exports.initializeBounty = function (type, h, player) {
     return bounty
 }
 
-exports.manageTruguts = function (profile, profileref, transaction, amount) {
+exports.manageTruguts = function ({ profile, profileref, transaction, amount, purchase } = {}) {
     if (transaction == 'w') {
         profile.truguts_spent += amount
     } else if (transaction == 'd') {
         profile.truguts_earned += amount
     } else if (transaction == 'r') {
         profile.truguts_spent -= amount
+    }
+    if (transaction == 'w' && purchase) {
+        profile.purchases.push(purchase)
     }
     profileref.update(profile)
     return profile
