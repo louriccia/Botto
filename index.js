@@ -239,7 +239,7 @@ client.once(Events.ClientReady, () => {
         })
 
         Object.values(bountydata).forEach(bounty => {
-            if (bounty.type == 'botd' && Date.now() - 24 * 60 * 60 * 1000 > challenge.created && bounty.channel == '551786988861128714' && bounty.message) {
+            if (bounty.type == 'botd' && Date.now() - 24 * 60 * 60 * 1000 > bounty.created && bounty.channel == '551786988861128714' && bounty.message) {
                 client.channels.cache.get('551786988861128714').messages.fetch(bounty.message).then(msg => msg.unpin().catch(console.error))
             }
         })
