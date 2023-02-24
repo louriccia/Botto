@@ -1062,7 +1062,8 @@ exports.track_hints = [
         "features Starlite Flats",
         "features Jett's Chute",
         "a tall rock formation towers over the starting line",
-        "covered in slow terrain"
+        "covered in slow terrain",
+        "already unlocked in a new game"
     ], [ //mgs
         "Amateur Circuit",
         "the track favorite’s last name starts with ‘P’",
@@ -1075,7 +1076,8 @@ exports.track_hints = [
         "has ‘way’ in its name",
         "features racer posters",
         "does not have a shortcut",
-        "<:mongazza:862053955428810753>"
+        "<:mongazza:862053955428810753>",
+        "already unlocked in a new game"
     ], [ //bwr
         "Amateur Circuit",
         "the track favorite’s first name starts with ‘A’",
@@ -1103,7 +1105,8 @@ exports.track_hints = [
         "you must break your way into the shortcut",
         "features reflections",
         "features a stone idol",
-        "features standing yellow flags"
+        "features standing yellow flags",
+        "already unlocked in a new game"
     ], [ //aqc
         "Amateur Circuit",
         "the track favorite has red in their flag",
@@ -1196,7 +1199,8 @@ exports.track_hints = [
         "requires you to dodge sliding doors",
         "features Reef Cake Village",
         "features a flying vehicle",
-        'features reflections'
+        'features reflections',
+        "already unlocked in a new game"
     ], [ //hg
         "Semi-Pro Circuit",
         "the track favorite’s last name ends with ‘rell’",
@@ -1216,7 +1220,8 @@ exports.track_hints = [
         "features a bridge",
         "features reflections",
         "features a stone idol",
-        "features standing yellow flags"
+        "features standing yellow flags",
+        "already unlocked in a new game"
     ], [ //dd
         "Semi-Pro Circuit",
         "the track favorite has a three-letter first or last name",
@@ -1324,6 +1329,7 @@ exports.track_hints = [
         "features a four-way split",
         "a tall rock formation towers over the starting line",
         "features a Patrol hangar",
+        "already unlocked in a new game"
     ], [ //sl
         "Galactic Circuit",
         "Sebulba is the track favorite",

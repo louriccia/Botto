@@ -239,7 +239,7 @@ exports.getSponsor = function (challenge, sponsordata) {
             challenge.sponsor_title = ''
             challenge.sponsor_time = ''
             if (exports.matchingChallenge(sponsordata[key], challenge)) {
-                if (!challenge.sponsors[sponsordata[key].sponsor.member]) {
+                if (!challenge.sponsors[sponsordata[key].sponsor?.member]) {
                     challenge.sponsors[sponsordata[key].sponsor.member] = sponsordata[key].sponsor
                     challenge.sponsors[sponsordata[key].sponsor.member].multiplier = 1
                 } else {

@@ -1639,17 +1639,7 @@ module.exports = {
                     }
 
 
-                    //handle streak
-                    if (!profile.streak_start) { //no streak started
-                        profileref.update({ streak_start: submissiondata.date, streak_end: submissiondata.date })
-                    } else {
-                        if (submissiondata.date - (1000 * 60 * 60 * 25) < profile.streak_end) { //streak continues
-                            profileref.update({ streak_end: submissiondata.date })
-                        } else { //streak broken
-                            profileref.child("streaks").push(profile.streak_end - profile.streak_start)
-                            profileref.update({ streak_start: submissiondata.date, streak_end: submissiondata.date })
-                        }
-                    }
+
 
 
                     let total_revenue = 0
@@ -1718,6 +1708,18 @@ module.exports = {
                                 profileref.child('achievements').child("bounty_hunter").set(true)
                             }
 
+                        }
+                    }
+
+                    //handle streak
+                    if (!profile.streak_start) { //no streak started
+                        profileref.update({ streak_start: submissiondata.date, streak_end: submissiondata.date })
+                    } else {
+                        if (submissiondata.date - (1000 * 60 * 60 * 25) < profile.streak_end) { //streak continues
+                            profileref.update({ streak_end: submissiondata.date })
+                        } else { //streak broken
+                            profileref.child("streaks").push(profile.streak_end - profile.streak_start)
+                            profileref.update({ streak_start: submissiondata.date, streak_end: submissiondata.date })
                         }
                     }
 
