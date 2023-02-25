@@ -610,6 +610,7 @@ module.exports = {
                         //initialize challenge
                         let sponsorchallenge = initializeChallenge({ profile, member, type: "private", name, avatar, user: player, circuit: cselection, sponsordata })
                         sponsorchallenge.type = 'open'
+                        sponsorchallenge.sponsor = sponsorchallenge.player
                         delete sponsorchallenge.player
                         sponsorref.child(interaction.message.id).set(sponsorchallenge)
 
