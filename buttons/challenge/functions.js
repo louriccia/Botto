@@ -1384,7 +1384,10 @@ exports.validateTime = function (time) {
 }
 
 exports.easternHour = function () {
-    let hour = moment().utc().format("H") - 5
+    let hour = moment().utc().format("H") - 4
+    if(moment().isDST()){
+        hour += 1
+    }
     if (hour < 0) {
         hour += 24
     }
