@@ -1396,12 +1396,14 @@ exports.easternHour = function () {
 
 exports.dailyChallenge = async function ({ client, sponsordata, challengetimedata, challengesref, challengesdata } = {}) {
     let recent = null
-    Object.values(challengesdata).filter(c => c.type == 'cotd').forEach(challenge => {
-        if (!recent || recent.created - challenge.created < 0) {
-            recent = challenge
-        }
-    })
-
+    if(challengesdata){
+        Object.values(challengesdata).filter(c => c.type == 'cotd').forEach(challenge => {
+            if (!recent || recent.created - challenge.created < 0) {
+                recent = challenge
+            }
+        })    
+    }
+    
     if (exports.easternHour() == 0 && moment().utc().format("DDD") !== recent.day) {
         current_challenge = exports.initializeChallenge({ type: "cotd", sponsordata })
         let cotdmessage = await postMessage(client, '551786988861128714', exports.updateChallenge({ client, challengetimedata, current_challenge, sponsordata, challengesdata })) //551786988861128714
@@ -1418,11 +1420,14 @@ exports.dailyChallenge = async function ({ client, sponsordata, challengetimedat
 
 exports.dailyBounty = async function ({ client, bountydata, bountyref } = {}) {
     let recent = null
-    Object.values(bountydata).filter(b => b.type == 'botd').forEach(bounty => {
-        if (!recent || recent.created - bounty.created < 0) {
-            recent = bounty
-        }
-    })
+    if(bountydata){
+        Object.values(bountydata).filter(b => b.type == 'botd').forEach(bounty => {
+            if (!recent || recent.created - bounty.created < 0) {
+                recent = bounty
+            }
+        })
+    }
+    
 
     if ((exports.easternHour() == 12 && moment().utc().format("DDD") !== recent.day)) { //
         let bounty = exports.initializeBounty('botd')
