@@ -1557,6 +1557,7 @@ module.exports = {
                         .setMinLength(6)
                         .setPlaceholder("--:--.---")
                         .setRequired(true)
+
                     const submissionNotes = new TextInputBuilder()
                         .setCustomId('challengeNotes')
                         .setLabel('Notes')
@@ -1565,12 +1566,18 @@ module.exports = {
                         .setMinLength(0)
                         .setPlaceholder("")
                         .setRequired(false)
+
                     const submissionProof = new TextInputBuilder()
                         .setCustomId('challengeProof')
                         .setLabel('Proof')
                         .setStyle(TextInputStyle.Short)
                         .setPlaceholder("image or video url (can be added later)")
                         .setRequired(false)
+                    if (current_challenge.submissions?.[member]) {
+                        submissionTime.setValue(tools.timefix(challengetimedata[current_challenge.submissions[member].id].time))
+                        submissionNotes.setValue(challengetimedata[current_challenge.submissions[member].id].notes)
+                        submissionProof.setValue(challengetimedata[current_challenge.submissions[member].id].proof)
+                    }
                     const ActionRow1 = new ActionRowBuilder().addComponents(submissionTime)
                     const ActionRow2 = new ActionRowBuilder().addComponents(submissionNotes)
                     const ActionRow3 = new ActionRowBuilder().addComponents(submissionProof)
