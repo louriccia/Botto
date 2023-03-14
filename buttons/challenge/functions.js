@@ -1404,7 +1404,7 @@ exports.dailyChallenge = async function ({ client, sponsordata, challengetimedat
         })    
     }
     
-    if (exports.easternHour() == 1 && recent && moment().utc().format("DDD") !== recent.day) {
+    if (exports.easternHour() == 0 && recent && moment().utc().format("DDD") !== recent.day) {
         console.log(recent)
         current_challenge = exports.initializeChallenge({ type: "cotd", sponsordata })
         let cotdmessage = await postMessage(client, '551786988861128714', exports.updateChallenge({ client, challengetimedata, current_challenge, sponsordata, challengesdata })) //551786988861128714
