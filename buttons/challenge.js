@@ -1518,7 +1518,7 @@ module.exports = {
                         interaction.reply({ embeds: [active], ephemeral: true })
                         return
                     }
-                    if (!isActive(current_challenge)) { //expired challeneg
+                    if (!isActive(current_challenge) && !current_challenge.submissions?.[member]) { //expired challeneg
                         //current_challengeref.update({ completed: true })
                         interaction.reply({
                             embeds: [expiredEmbed()], components: [
@@ -1531,21 +1531,21 @@ module.exports = {
                         })
                         return
                     }
-                    if (current_challenge.submissions?.[member]) { //already submitted
-                        const holdUp = new EmbedBuilder()
-                            .setTitle("<:WhyNobodyBuy:589481340957753363> You seem familiar...")
-                            .setDescription("You already submitted a time for this challenge. Why not try a new one?")
-                        interaction.reply({
-                            embeds: [holdUp], components: [
-                                {
-                                    type: 1,
-                                    components: [playButton()]
-                                }
+                    // if (current_challenge.submissions?.[member]) { //already submitted
+                    //     const holdUp = new EmbedBuilder()
+                    //         .setTitle("<:WhyNobodyBuy:589481340957753363> You seem familiar...")
+                    //         .setDescription("You already submitted a time for this challenge. Why not try a new one?")
+                    //     interaction.reply({
+                    //         embeds: [holdUp], components: [
+                    //             {
+                    //                 type: 1,
+                    //                 components: [playButton()]
+                    //             }
 
-                            ], ephemeral: true
-                        })
-                        return
-                    }
+                    //         ], ephemeral: true
+                    //     })
+                    //     return
+                    // }
                     const submissionModal = new ModalBuilder()
                         .setCustomId('challenge_random_submit')
                         .setTitle('Submit Results')
@@ -1565,16 +1565,23 @@ module.exports = {
                         .setMinLength(0)
                         .setPlaceholder("")
                         .setRequired(false)
+                    const submissionProof = new TextInputBuilder()
+                        .setCustomId('challengeProof')
+                        .setLabel('Proof')
+                        .setStyle(TextInputStyle.Short)
+                        .setPlaceholder("image or video url (can be added later by clicking the submit button again)")
+                        .setRequired(false)
                     const ActionRow1 = new ActionRowBuilder().addComponents(submissionTime)
                     const ActionRow2 = new ActionRowBuilder().addComponents(submissionNotes)
-                    submissionModal.addComponents(ActionRow1, ActionRow2)
+                    const ActionRow3 = new ActionRowBuilder().addComponents(submissionProof)
+                    submissionModal.addComponents(ActionRow1, ActionRow2, ActionRow3)
                     await interaction.showModal(submissionModal)
                     break
                 case 'submit':
                     let subtime = interaction.fields.getTextInputValue('challengeTime')
                     let subnotes = interaction.fields.getTextInputValue('challengeNotes')
-
-                    if (!isActive(current_challenge)) { //challenge no longer active
+                    let subproof = interaction.fields.getTextInputValue('challengeProof')
+                    if (!isActive(current_challenge) && !current_challenge.submissions?.[member]) { //challenge no longer active
                         interaction.reply({
                             embeds: [expiredEmbed()], components: [
                                 {
@@ -1603,6 +1610,25 @@ module.exports = {
                         interaction.reply({ embeds: [holdUp], ephemeral: true })
                         return
                     }
+
+                    if (current_challenge.submissions?.[member]) {
+                        challengetimeref.child(current_challenge.submissions[member].id).update(
+                            {
+                                time: time,
+                                notes: subnotes,
+                                proof: subproof
+                            }
+                        )
+
+                        //update objects
+                        current_challenge = challengesdata[interaction.message.id]
+                        profile = userdata[player].random //update profile
+
+                        //update challenge
+                        interaction.update(updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata }))
+                        return
+                    }
+
                     //log time
                     let submissiondata = {
                         user: member,
