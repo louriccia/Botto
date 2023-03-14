@@ -1569,7 +1569,7 @@ module.exports = {
                         .setCustomId('challengeProof')
                         .setLabel('Proof')
                         .setStyle(TextInputStyle.Short)
-                        .setPlaceholder("image or video url (can be added later by clicking the submit button again)")
+                        .setPlaceholder("image or video url (can be added later)")
                         .setRequired(false)
                     const ActionRow1 = new ActionRowBuilder().addComponents(submissionTime)
                     const ActionRow2 = new ActionRowBuilder().addComponents(submissionNotes)
@@ -1580,7 +1580,7 @@ module.exports = {
                 case 'submit':
                     let subtime = interaction.fields.getTextInputValue('challengeTime')
                     let subnotes = interaction.fields.getTextInputValue('challengeNotes')
-                    let subproof = interaction.fields.getTextInputValue('challengeProof')
+                    let subproof = interaction.fields.getTextInputValue('challengeProof') ?? ""
                     if (!isActive(current_challenge) && !current_challenge.submissions?.[member]) { //challenge no longer active
                         interaction.reply({
                             embeds: [expiredEmbed()], components: [
@@ -1634,6 +1634,7 @@ module.exports = {
                         user: member,
                         name: name,
                         time: time,
+                        proof: subproof,
                         date: current_challenge.created,
                         racer: current_challenge.racer,
                         track: current_challenge.track,
