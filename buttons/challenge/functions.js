@@ -1399,12 +1399,12 @@ exports.dailyChallenge = async function ({ client, sponsordata, challengetimedat
     if(challengesdata){
         Object.values(challengesdata).filter(c => c.type == 'cotd').forEach(challenge => {
             if (!recent || recent.created - challenge.created < 0) {
-                recent = challenge
+                recent = {...challenge}
             }
         })    
     }
     console.log(exports.easternHour(), moment().utc().format("DDD"), recent.message, recent.day)
-    if (exports.easternHour() == 0 && recent && moment().utc().format("DDD") !== recent.day) {
+    if (exports.easternHour() == 0 && moment().utc().format("DDD") !== recent.day) {
         
         current_challenge = exports.initializeChallenge({ type: "cotd", sponsordata })
         let cotdmessage = await postMessage(client, '551786988861128714', exports.updateChallenge({ client, challengetimedata, current_challenge, sponsordata, challengesdata })) //551786988861128714
@@ -1424,7 +1424,7 @@ exports.dailyBounty = async function ({ client, bountydata, bountyref } = {}) {
     if(bountydata){
         Object.values(bountydata).filter(b => b.type == 'botd').forEach(bounty => {
             if (!recent || recent.created - bounty.created < 0) {
-                recent = bounty
+                recent = {...bounty}
             }
         })
     }
