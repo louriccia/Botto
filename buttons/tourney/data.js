@@ -6,7 +6,6 @@ exports.methods = {
     already: "Already Decided",
     gents: "Gentleman's Agreement"
 }
-
 exports.firsts = {
     poe_c: { label: "Process of Elimination by Circuit", description: "Alternate circuit bans then track bans until one option remains" },
     poe_p: { label: "Process of Elimination by Planet", description: "Alternate planet bans then track bans until one option remains" },

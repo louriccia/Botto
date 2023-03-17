@@ -1029,3 +1029,188 @@ function permabanComponents(permaban) {
         }
     ]
 }
+
+function rulesetOverview(ruleset) {
+    let conditions = {
+        mu: "Upgrades Allowed",
+        nu: "No Upgrades",
+        ft: "Full Track",
+        sk: "Skips",
+        tt: "Total Time",
+        fl: "Fastest Lap",
+        um: "Unmirrored",
+        mi: "Mirrored",
+        l1: "1 Lap",
+        l2: "2 Laps",
+        l3: "3 Laps",
+        l4: "4 Laps",
+        l5: "5 Laps",
+    }
+    let methods = {
+        poe_c: "Process of Elimination by Circuit",
+        poe_p: "Process of Elimination by Planet",
+        poe_t: "Process of Elimination by Track",
+        random: "Random"
+    }
+    let choices = {
+        firstloser: "🇱 Loser of first race",
+        firstwinner: "👑 Winner of first race",
+        both: "👥 Both players",
+        lastloser: "🇱 Loser of last race",
+        lastwinner: "👑 Winner of last race",
+        player: "👥 Each player"
+    }
+    let events = {
+        tempban: "❌ Temporarily Bans",
+        selection: "👆 Selects",
+        override: "✳️ Overrides"
+    }
+    let fields = []
+    if (ruleset.general && ruleset.general.type == "1v1") {
+        let genfield = { name: "General", value: "", inline: false }
+        genfield.value = "👑 First to **" + ruleset.general.winlimit + " Wins**" + "\n" +
+            "**⚙️ Default Conditions**: " + Object.values(ruleset.general.default).map(con => "`" + conditions[con] + "`").join(", ") + "\n" +
+            "**🎩 Gentleman's Agreement** is " + (ruleset.general.gents == true ? "" : "*not* ") + "permitted" + "\n" +
+            "**⭐ Elo Rating** is " + (ruleset.general.ranked == true ? "" : "*not* ") + "affected" + "\n" +
+            "**1️⃣ First Track** can be " + (Object.values(ruleset.general.firsttrack.options).length == 4 ? "any track" : "a track from " + Object.values(ruleset.general.firsttrack.options).map(circuit => "`" + circuit.toUpperCase() + "` ")) + "\n" +
+            "**1️⃣ First Track** will be selected by " + methods[ruleset.general.firsttrack.primary] + "\n" +
+            ([undefined, null].includes(ruleset.general.firsttrack.secondary) ? "" : "◉ Alternatively, players may agree to select the **1️⃣ First Track** by " + Object.values(ruleset.general.firsttrack.secondary).map(method => "`" + methods[method] + "` "))
+
+        let matchfield = { name: "Every Match", value: "", inline: false }
+        matchfield.value = (ruleset.match.forcepoints.start > 0 && "👥 Both players start with `" + ruleset.match.forcepoints.start + "` **💠 Force Points** (`" + ruleset.match.forcepoints.max + " max`)" + "\n") +
+            (ruleset.match.permabans && Object.values(ruleset.match.permabans).map(ban => choices[ban.choice] + " **🚫 Permanently Bans** " + ban.limit + " " + ban.type + " (`" + (ban.cost == 0 ? "free" : ban.cost + "💠") + "`)\n").join("")) +
+            (ruleset.match.repeattrack && ("👥 Both players can use `" + ruleset.match.repeattrack.limit + "` " + ruleset.match.repeattrack.condition + " **🔁 Runback** " + (ruleset.match.repeattrack.style == "soft" ? "(`resets to default conditions, " : "(`must be same conditions, ") + (ruleset.match.repeattrack.cost == 0 ? "free" : ruleset.match.repeattrack.cost + "💠") + "`)"))
+
+        let racefield = { name: "Every Race", value: "", inline: false }
+        racefield.value = Object.values(ruleset.race).map(
+            race => choices[race.choice] + " **" + events[race.event] + "** " +
+                ([undefined, null].includes(race.limit) || race.limit == 1 ? "a " :
+                    (race.limit == 0 ? "any number of " : "up to `" + race.limit + "` ")) +
+                race.type +
+                (race.limit == 0 ? "s" : "") +
+                ([undefined, null].includes(race.cost) ? "" : " (`" + (race.cost == 0 ? "free" : race.cost + "💠/" + (race.count == 1 ? "" : race.count + " ") + race.type) + "`)") +
+                ([null, undefined, ""].includes(race.options) ? "" : " from the following options: " + Object.values(race.options).map(option => "`" + conditions[option] + "`").join(", ")) + "\n"
+        ).join("")
+        fields.push(genfield, matchfield, racefield)
+    }
+    return fields
+}
+
+function getUsername(user) {
+    let name = ""
+    Object.values(tourney_participants_data).forEach(participant => {
+        if (participant.id == user) {
+            name = participant.name
+            return
+        }
+    })
+    return name
+}
+
+function getTrackOption(i) {
+    return (
+        {
+            label: tracks[i].name,
+            value: i,
+            description: [circuits[tracks[i].circuit].abbreviation + " - Race " + tracks[i].cirnum, planets[tracks[i].planet].name, difficulties[tracks[i].difficulty].name, tracks[i].lengthclass].join(" | "),
+            emoji: {
+                name: planets[tracks[i].planet].emoji.split(":")[1],
+                id: planets[tracks[i].planet].emoji.split(":")[2].replace(">", "")
+            }
+        }
+    )
+}
+
+function getRacerOption(i) {
+    let muspeed = tools.avgSpeed(tools.upgradeTopSpeed(racers[i].max_speed, 5), racers[i].boost_thrust, racers[i].heat_rate, tools.upgradeCooling(racers[i].cool_rate, 5)).toFixed(0)
+    let nuspeed = tools.avgSpeed(tools.upgradeTopSpeed(racers[i].max_speed, 0), racers[i].boost_thrust, racers[i].heat_rate, tools.upgradeCooling(racers[i].cool_rate, 0)).toFixed(0)
+    return (
+        {
+            label: racers[i].name,
+            value: i,
+            description: 'Avg Speed ' + muspeed + ' (NU ' + nuspeed + "); Max Turn " + racers[i].max_turn_rate + "°/s",
+            emoji: {
+                name: racers[i].flag.split(":")[1],
+                id: racers[i].flag.split(":")[2].replace(">", "")
+            }
+        }
+    )
+}
+
+function getFirstOptions(liverules) {
+
+    let firstoptions = [
+        {
+            label: "Already Decided",
+            description: "Both players have already agreed to the starting track",
+            value: "already"
+        },
+        {
+            label: firsts[liverules.general.firsttrack.primary].label + " (Default)",
+            value: liverules.general.firsttrack.primary,
+            description: firsts[liverules.general.firsttrack.primary].description
+        }
+    ]
+    if (![undefined, null, ""].includes(liverules.general.firsttrack.secondary)) {
+        Object.values(liverules.general.firsttrack.secondary).forEach(first => firstoptions.push(
+            {
+                label: firsts[first].label,
+                description: firsts[first].description,
+                value: first
+            }
+        ))
+    }
+    return (firstoptions)
+}
+
+function getOpponent(player) {
+    let opponent = Object.values(livematch.players).filter(p => p != player)
+    return opponent[0]
+}
+
+function getWinner(race) {
+    let players = Object.values(livematch.players)
+    let winner = null
+    if (livematch.races[race].runs[players[0]].time.toLowerCase() == "dnf") {
+        winner = players[1]
+    } else if (livematch.races[race].runs[players[1]].time.toLowerCase() == "dnf") {
+        winner = players[0]
+    } else if (Number(livematch.races[race].runs[players[0]].time) < Number(livematch.races[race].runs[players[1]].time)) {
+        winner = players[0]
+    } else if (Number(livematch.races[race].runs[players[1]].time) < Number(livematch.races[race].runs[players[0]].time)) {
+        winner = players[1]
+    }
+    return winner
+}
+
+function getForcePoints(player) {
+    //livematch = tourney_live_data[interaction.channel_id]
+    let forcepoints = Number(liverules.match.forcepoints.start)
+    let races = Object.values(livematch.races)
+    races.forEach(race => {
+        if (![null, undefined, ""].includes(race.events)) {
+            let events = Object.values(race.events)
+            events.forEach(event => {
+                if (event.player == player && ![null, undefined, ""].includes(event.cost)) {
+                    forcepoints -= Number(event.cost)
+                }
+            })
+        }
+    })
+    return forcepoints
+}
+
+function getRunbacks(player) {
+    //livematch = tourney_live_data[interaction.channel_id]
+    let runbacks = liverules.match.repeattrack.limit
+    Object.values(livematch.races).forEach((race) => {
+        if (![null, undefined, ""].includes(race.events)) {
+            Object.values(race.events).forEach(event => {
+                if (event.player == player && event.event == 'selection' && event.type == 'track' && event.repeat == true) {
+                    runbacks--
+                }
+            })
+        }
+    })
+    return runbacks
+}
