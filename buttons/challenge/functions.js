@@ -1385,7 +1385,7 @@ exports.validateTime = function (time) {
 
 exports.easternHour = function () {
     let hour = moment().utc().format("H") - 4
-    if(moment().isDST()){
+    if (moment().isDST()) {
         hour += 1
     }
     if (hour < 0) {
@@ -1396,17 +1396,17 @@ exports.easternHour = function () {
 
 exports.dailyChallenge = async function ({ client, sponsordata, challengetimedata, challengesref, challengesdata } = {}) {
     let recent = null
-    if(challengesdata){
+    if (challengesdata) {
         Object.values(challengesdata).filter(c => c.type == 'cotd').forEach(challenge => {
             if (!recent || recent.created - challenge.created < 0) {
-                recent = {...challenge}
+                recent = { ...challenge }
             }
-        })    
+        })
     }
     console.log(exports.easternHour(), moment().utc().format("DDD"), recent.message, recent.day)
-    console.log(exports.easternHour() == 0,  moment().utc().format("DDD") !== recent.day)
+    console.log(exports.easternHour() == 0, moment().utc().format("DDD") !== recent.day)
     if (exports.easternHour() == 0 && moment().utc().format("DDD") !== recent.day) {
-        
+
         current_challenge = exports.initializeChallenge({ type: "cotd", sponsordata })
         let cotdmessage = await postMessage(client, '551786988861128714', exports.updateChallenge({ client, challengetimedata, current_challenge, sponsordata, challengesdata })) //551786988861128714
         current_challenge.message = cotdmessage.id
@@ -1422,16 +1422,17 @@ exports.dailyChallenge = async function ({ client, sponsordata, challengetimedat
 
 exports.dailyBounty = async function ({ client, bountydata, bountyref } = {}) {
     let recent = null
-    if(bountydata){
+    if (bountydata) {
         Object.values(bountydata).filter(b => b.type == 'botd').forEach(bounty => {
             if (!recent || recent.created - bounty.created < 0) {
-                recent = {...bounty}
+                recent = { ...bounty }
             }
         })
     }
-    
 
-    if ((exports.easternHour() == 12 && moment().utc().format("DDD") !== recent.day)) { //
+    console.log(exports.easternHour(), moment().utc().format("DDD"), recent.message, recent.day)
+    console.log(exports.easternHour() == 13, moment().utc().format("DDD") !== recent.day)
+    if ((exports.easternHour() == 13 && moment().utc().format("DDD") !== recent.day)) { //
         let bounty = exports.initializeBounty('botd')
         let message = await postMessage(client, '551786988861128714', { embeds: [exports.bountyEmbed(bounty)] }) //551786988861128714
         bounty.url = message.url
