@@ -1403,7 +1403,7 @@ exports.dailyChallenge = async function ({ client, sponsordata, challengetimedat
             }
         })
     }
-    console.log("bounty", exports.easternHour(), moment().utc().format("DDD"), recent.message, recent.day, exports.easternHour() == 0, moment().utc().format("DDD") !== recent.day)
+    console.log("challenge", exports.easternHour(), moment().utc().format("DDD"), recent.message, recent.day, exports.easternHour() == 0, moment().utc().format("DDD") !== recent.day)
     if (exports.easternHour() == 0 && moment().utc().format("DDD") !== recent.day) {
 
         current_challenge = exports.initializeChallenge({ type: "cotd", sponsordata })
