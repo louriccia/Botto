@@ -400,7 +400,7 @@ client.once(Events.ClientReady, () => {
                 })
             })
     }
-    setInterval(updater(), 1000 * 60)
+    setInterval(updater, 1000 * 60)
 })
 
 client.on("error", (e) => {
