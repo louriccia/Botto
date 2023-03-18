@@ -230,19 +230,19 @@ client.once(Events.ClientReady, () => {
 
     const updater = async () => {
 
-        
-            dailyChallenge({ client, sponsordata, challengetimedata, challengesref, challengesdata })
-        
-            dailyBounty({ client, bountydata, bountyref })
+
+        dailyChallenge({ client, sponsordata, challengetimedata, challengesref, challengesdata })
+
+        dailyBounty({ client, bountydata, bountyref })
         Object.values(challengesdata).forEach(challenge => {
             if (challenge.type == 'cotd' && Date.now() - 24 * 60 * 60 * 1000 > challenge.created && challenge.channel == '551786988861128714' && challenge.message) {
-                client.channels.cache.get('551786988861128714').messages.fetch(challenge.message).then(msg => msg.unpin().catch(console.error))
+                client.channels.cache.get('551786988861128714').messages.fetch(challenge.message).then(msg => { if (msg.pinned) { msg.unpin().catch(console.error) } })
             }
         })
 
         Object.values(bountydata).forEach(bounty => {
             if (bounty.type == 'botd' && Date.now() - 24 * 60 * 60 * 1000 > bounty.created && bounty.channel == '551786988861128714' && bounty.message) {
-                client.channels.cache.get('551786988861128714').messages.fetch(bounty.message).then(msg => msg.unpin().catch(console.error))
+                client.channels.cache.get('551786988861128714').messages.fetch(bounty.message).then(msg =>  { if (msg.pinned) { msg.unpin().catch(console.error) } })
             }
         })
 
@@ -400,7 +400,7 @@ client.once(Events.ClientReady, () => {
                 })
             })
     }
-    setInterval(updater, 1000 * 60)
+    setInterval(updater(), 1000 * 60)
 })
 
 client.on("error", (e) => {
