@@ -1,6 +1,5 @@
 const { } = require('./tourney/data.js');
 const { } = require('./tourney/functions.js');
-const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } = require('discord.js');
 const { play } = require('./tourney/play.js')
 module.exports = {
     name: 'tourney',

@@ -177,7 +177,7 @@ client.on(Events.InteractionCreate, async interaction => {
             return;
         }
         try {
-            client.commands.get(command).execute(interaction);
+            client.commands.get(command).execute(interaction, database);
         } catch (error) {
             console.error(error);
             await interaction.reply({ content: "`Error: Command failed to execute `\n" + errorMessage[Math.floor(Math.random() * errorMessage.length)] })

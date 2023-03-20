@@ -1,4 +1,6 @@
 const Discord = require('discord.js');
+const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } = require('discord.js');
+const { initializeMatch, adminEmbed, setupEmbed, setupComponents } = require('./functions.js')
 const myEmbed = new EmbedBuilder()
 
 exports.play = async function (args, interaction, database) {
@@ -12,16 +14,16 @@ exports.play = async function (args, interaction, database) {
     let livematch = {}
     let liverules
 
-    let livematchref = database.ref('tourney/live/' + interaction.channel_id)
+    let livematchref = database.ref('tourney/live/' + interaction.channel.id)
     livematchref.on('value', (snapshot) => {
         livematch = snapshot.val()
     }, (error) => {
         console.log('the read failed: ' + error.name)
     })
     let userref = database.ref('users');
-    let users_data = {}
+    let userdata = {}
     userref.on("value", function (snapshot) {
-        users_data = snapshot.val();
+        userdata = snapshot.val();
     }, function (errorObject) {
         console.log("The read failed: " + errorObject.code);
     });
@@ -33,8 +35,8 @@ exports.play = async function (args, interaction, database) {
         console.log("The read failed: " + errorObject);
     });
 
-    if (livematch) {
-        liverules = tourney_rulesets_data.saved[livematch.ruleset]
+    if (livematch?.ruleset && tourney_rulesets_data) {
+        liverules = tourney_rulesets_data?.saved?.[livematch.ruleset]
     }
 
     //if no match, assert setup
@@ -45,7 +47,7 @@ exports.play = async function (args, interaction, database) {
     } else if (interaction.isChatInputCommand()) {
         args[1] = 'admin'
         type = 4
-        interaction.update({ embeds: [adminEmbed()], components: [adminComponents()] })
+        interaction.update({ embeds: [adminEmbed({ livematch, tourney_tournaments_data })], components: [adminComponents()] })
         return
     }
 
@@ -63,9 +65,9 @@ exports.play = async function (args, interaction, database) {
 
     if (args[1] == 'admin') {
         let status = interaction.values[0]
-        if (Object.values(livematch.commentators).includes(member) || (interaction.guild_id == '441839750555369474' && (Member.roles.cache.some(r => r.id == '862810190072381471')) && !Object.values(livematch.players).includes(member))) {
+        if (Object.values(livematch.commentators).includes(member) || (interaction.guild.id == '441839750555369474' && (Member.roles.cache.some(r => r.id == '862810190072381471')) && !Object.values(livematch.players).includes(member))) {
             let race = livematch.current_race
-            client.channels.cache.get(interaction.channel_id).messages.fetch({ limit: 20 }).then(messages => {
+            client.channels.cache.get(interaction.channel.id).messages.fetch({ limit: 20 }).then(messages => {
                 let lastMessage = messages.filter(m => m.author.bot && m.id !== interaction.message.id).first();
                 if (lastMessage) {
                     lastMessage.delete().catch(err => console.log(err));
@@ -200,7 +202,12 @@ exports.play = async function (args, interaction, database) {
             interaction.update({ content: "Match was cancelled" })
             return
         }
-        interaction.update({ embeds: [setupEmbed()], components: [setupComponents()] })
+        if (interaction.isChatInputCommand()) {
+            interaction.reply({ embeds: [setupEmbed(livematch)], components: setupComponents({ livematch, tourney_rulesets_data, tourney_tournaments_data }) })
+        } else {
+            interaction.update({ embeds: [setupEmbed(livematch)], components: setupComponents({ livematch, tourney_rulesets_data, tourney_tournaments_data }) })
+        }
+
     } else if (args[1] == "start") {
         if (![null, undefined, ""].includes(livematch.datetime)) {
             livematchref.child('datetime').set(Date.now())
@@ -262,7 +269,7 @@ exports.play = async function (args, interaction, database) {
                     interaction.followUp({ content: Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), embeds: [raceEmbed(0)], components: raceComponents(0) })
                 }, 3000)
             } else {
-                interaction.update({ content: 'Please select a track', components: [firstbanComponents()] })
+                interaction.update({ content: 'Please select a track', components: firstbanComponents() })
             }
         } else if (args[2] == "vote") {
             livematchref.child("firstvote").child(member).set(interaction.values[0])
@@ -275,7 +282,7 @@ exports.play = async function (args, interaction, database) {
                 {
                     content: "" + ([undefined, null].includes(livematch.firstvote) ? Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") : Object.values(livematch.players).map(player => Object.keys(livematch.firstvote).includes(player) ? "" : "<@" + player + ">").join(" ")),
                     embeds: [firstEmbed()],
-                    components: [firstComponents()]
+                    components: firstComponents()
                 }
             )
         } else if (args[2] == "color") {
@@ -297,7 +304,7 @@ exports.play = async function (args, interaction, database) {
                 }, 2000)
                 return
             }
-            interaction.update({ content, embeds: [colorEmbed()], components: [colorComponents()] })
+            interaction.update({ content, embeds: [colorEmbed()], components: colorComponents() })
         } else if (args[2] == "ban") {
             function whoseTurn() {
                 let first = livematch.firstplayer
@@ -365,13 +372,13 @@ exports.play = async function (args, interaction, database) {
                     interaction.followUp({ content: Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), embeds: [raceEmbed(0)], components: raceComponents(0) })
                 } else {
                     let turn = whoseTurn()
-                    interaction.update({ content: "<@" + turn.current_turn + "> please make a selection", embeds: [firstbanEmbed()], components: [firstbanComponents()] })
+                    interaction.update({ content: "<@" + turn.current_turn + "> please make a selection", embeds: [firstbanEmbed()], components: firstbanComponents() })
                 }
             }
         } else if (args[2] == 'pick') {
             let firsttrack = interaction.values[0]
             setRace(firsttrack)
-            interaction.update({ content: Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), embeds: [raceEmbed(0)], components: [raceComponents(0)] })
+            interaction.update({ content: Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), embeds: [raceEmbed(0)], components: raceComponents(0) })
         }
     } else if (args[1].includes("permaban")) {
         if (!Object.values(livematch.players).includes(member)) {
@@ -395,9 +402,9 @@ exports.play = async function (args, interaction, database) {
             if (permaban_num + 1 == Object.values(liverules.match.permabans).length) {
                 let events = Object.values(liverules.race)
                 livematchref.child("status").set("events")
-                interaction.update({ content: "<@" + (events[0].choice == "lastwinner" ? getWinner(0) : getOpponent(getWinner(0))) + "> please make a selection", embeds: [raceEventEmbed(1)], components: [raceEventComponents(1)] })
+                interaction.update({ content: "<@" + (events[0].choice == "lastwinner" ? getWinner(0) : getOpponent(getWinner(0))) + "> please make a selection", embeds: [raceEventEmbed(1)], components: raceEventComponents(1) })
             } else {
-                interaction.update({ content: "<@" + (liverules.match.permabans[permaban_num + 1].choice == 'firstwinner' ? getWinner(0) : getOpponent(getWinner(0))) + ">", embeds: [permabanEmbed(permaban_num + 1)], components: [permabanComponents(permaban_num + 1)] })
+                interaction.update({ content: "<@" + (liverules.match.permabans[permaban_num + 1].choice == 'firstwinner' ? getWinner(0) : getOpponent(getWinner(0))) + ">", embeds: [permabanEmbed(permaban_num + 1)], components: permabanComponents(permaban_num + 1) })
             }
         } else {
             interaction.reply({ content: "It's not your turn to ban! <:WhyNobodyBuy:589481340957753363>", ephemeral: true })
@@ -465,7 +472,7 @@ exports.play = async function (args, interaction, database) {
                         interaction.update({
                             content: "<@" + (events[event].choice == "lastwinner" ? getWinner(race - 1) : getOpponent(getWinner(race - 1))) + "> please make a selection",
                             embeds: [raceEventEmbed(race)],
-                            components: [raceEventComponents(race)]
+                            components: raceEventComponents(race)
                         })
                         return
                     }
@@ -507,7 +514,7 @@ exports.play = async function (args, interaction, database) {
                         interaction.followUp({
                             content: Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "),
                             embeds: [raceEmbed(race)],
-                            components: [raceComponents(race)]
+                            components: raceComponents(race)
                         })
                         livematchref.child("status").set("prerace")
                     } else {
@@ -515,7 +522,7 @@ exports.play = async function (args, interaction, database) {
                         interaction.update({
                             content: "<@" + (events[event + 1].choice == "lastwinner" ? getWinner(race - 1) : getOpponent(getWinner(race - 1))) + "> please make a selection",
                             embeds: [raceEventEmbed(race)],
-                            components: [raceEventComponents(race)]
+                            components: raceEventComponents(race)
                         })
                     }
                 }
@@ -532,28 +539,28 @@ exports.play = async function (args, interaction, database) {
                     interaction.update({
                         content: Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(comm => "<@" + comm + ">").join(" "),
                         embeds: [raceEmbed(race)],
-                        components: [raceComponents(race)]
+                        components: raceComponents(race)
                     })
                 }
             } else if (Object.values(livematch.players).includes(member)) {
                 interaction.reply({ content: "You have not selected a racer yet! <:WhyNobodyBuy:589481340957753363>", ephemeral: true })
                 return
             }
-            if (Object.values(livematch.commentators).includes(member) || (interaction.guild_id == '441839750555369474' && (Member.roles.cache.some(r => r.id == '862810190072381471')) && !Object.values(livematch.players).includes(member))) {
+            if (Object.values(livematch.commentators).includes(member) || (interaction.guild.id == '441839750555369474' && (Member.roles.cache.some(r => r.id == '862810190072381471')) && !Object.values(livematch.players).includes(member))) {
                 if (Object.values(livematch.races[race].ready).filter(r => r == false).length == 1 && !livematch.races[race].ready.commentators) {
                     livematchref.child("races").child(race).child("ready").child("commentators").set((args[2] == "ready" ? true : false))
                     interaction.update({
                         content: Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + "\n<a:countdown:672640791369482251> Countdown incoming! Good luck <a:countdown:672640791369482251>"
                     })
                     setTimeout(async function () {
-                        client.channels.cache.get(interaction.channel_id).messages.fetch(interaction.message.id).then(message => message.delete())
+                        client.channels.cache.get(interaction.channel.id).messages.fetch(interaction.message.id).then(message => message.delete())
                     }, 10000)
                     livematchref.child("status").set("midrace")
                     countDown()
                     //initiate race
                     livematchref.child("races").child(race).child("live").set(true)
                     setTimeout(async function () {
-                        interaction.followUp({ embeds: [raceEmbed(race)], components: [raceComponents(race)] })
+                        interaction.followUp({ embeds: [raceEmbed(race)], components: raceComponents(race) })
                     }, 10000)
                 } else {
                     interaction.reply({ content: "Players are not ready yet! <:WhyNobodyBuy:589481340957753363>", ephemeral: true })
@@ -568,7 +575,7 @@ exports.play = async function (args, interaction, database) {
                     interaction.update({
                         content: "<@" + getOpponent(member) + "> do you accept the terms of the proposed 🎩 **Gentlemen's Agreement**?\n*" + terms + "*",
                         embeds: [raceEmbed(race)],
-                        components: [raceComponents(race)]
+                        components: raceComponents(race)
                     })
                 } else {
                     if (args.length == 3) {
@@ -607,7 +614,7 @@ exports.play = async function (args, interaction, database) {
                             interaction.update({
                                 content: Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(comm => "<@" + comm + ">").join(" "),
                                 embeds: [raceEmbed(race)],
-                                components: [raceComponents(race)]
+                                components: raceComponents(race)
                             })
                         } else {
                             interaction.reply({ content: "Not you! <:WhyNobodyBuy:589481340957753363>", ephemeral: true })
@@ -625,7 +632,7 @@ exports.play = async function (args, interaction, database) {
             interaction.update({
                 content: Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(comm => "<@" + comm + ">").join(" "),
                 embeds: [raceEmbed(race)],
-                components: [raceComponents(race)]
+                components: raceComponents(race)
             })
         } else if (args[2] == "reveal") {
             if (Object.values(livematch.players).includes(member)) {
@@ -634,7 +641,7 @@ exports.play = async function (args, interaction, database) {
             interaction.update({
                 content: Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" "),
                 embeds: [raceEmbed(race)],
-                components: [raceComponents(race)]
+                components: raceComponents(race)
             })
         } else if (args[2] == "submit") {
             if (Object.values(livematch.players).includes(member)) {
@@ -651,7 +658,7 @@ exports.play = async function (args, interaction, database) {
                         interaction.update({
                             content: "",
                             embeds: [raceEmbed(race)],
-                            components: [raceComponents(race)]
+                            components: raceComponents(race)
                         })
                     } else {
                         interaction.reply({ content: "Race is no longer live. <:WhyNobodyBuy:589481340957753363>", ephemeral: true })
@@ -723,7 +730,7 @@ exports.play = async function (args, interaction, database) {
             if (interaction.type == 5) {
                 async function verify() {
                     const Member = await Guild.members.fetch(member)
-                    if (Object.values(livematch.commentators).includes(member) || (interaction.guild_id == '441839750555369474' && Member.roles.cache.some(r => r.id == '862810190072381471') && !Object.values(livematch.players).includes(member))) {
+                    if (Object.values(livematch.commentators).includes(member) || (interaction.guild.id == '441839750555369474' && Member.roles.cache.some(r => r.id == '862810190072381471') && !Object.values(livematch.players).includes(member))) {
                         interaction.data.components.map(field => {
                             if (field.components[0].custom_id.includes("time")) {
                                 livematchref.child("races").child(race).child("runs").child(field.components[0].custom_id.replace("time", "")).update({ time: (field.components[0].value.toLowerCase() == 'dnf' ? 'DNF' : tools.timetoSeconds(field.components[0].value)) })
@@ -770,7 +777,7 @@ exports.play = async function (args, interaction, database) {
                                 livematchref.remove()
                             })
 
-                            if (interaction.guild_id == '441839750555369474') {
+                            if (interaction.guild.id == '441839750555369474') {
                                 setTimeout(async function () {
                                     everybody.forEach(async function (p) {
                                         const thisMember = await Guild.members.fetch(p)
@@ -815,13 +822,13 @@ exports.play = async function (args, interaction, database) {
                             interaction.followUp({
                                 content: "<@" + (liverules.match.permabans[0].choice == "firstloser" ? getOpponent(getWinner(0)) : getWinner(0)) + "> please select a permanent ban",
                                 embeds: [permabanEmbed(0)],
-                                components: [permabanComponents(0)]
+                                components: permabanComponents(0)
                             })
                         } else { //restart event loop for next race
                             interaction.followUp({
                                 content: "<@" + (events[0].choice == "lastwinner" ? getWinner(race) : getOpponent(getWinner(race))) + "> please make a selection",
                                 embeds: [raceEventEmbed(nextrace)],
-                                components: [raceEventComponents(nextrace)]
+                                components: raceEventComponents(nextrace)
                             })
                         }
                     }
@@ -831,7 +838,7 @@ exports.play = async function (args, interaction, database) {
             } else {
                 async function verify() {
                     const Member = await Guild.members.fetch(member)
-                    if (Object.values(livematch.commentators).includes(member) || (interaction.guild_id == '441839750555369474' && Member.roles.cache.some(r => r.id == '862810190072381471') && !Object.values(livematch.players).includes(member))) {
+                    if (Object.values(livematch.commentators).includes(member) || (interaction.guild.id == '441839750555369474' && Member.roles.cache.some(r => r.id == '862810190072381471') && !Object.values(livematch.players).includes(member))) {
                         let modal = {
                             data: {
                                 type: 9,
@@ -898,14 +905,14 @@ exports.play = async function (args, interaction, database) {
             interaction.update({
                 content: Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" "),
                 embeds: [raceEmbed(race)],
-                components: [raceComponents(race)]
+                components: raceComponents(race)
             })
         }
     }
 
-    livematchref.off('value')
-    userref.off('value')
-    tourney_rulesets.off('value')
+    //livematchref.off('value')
+    //userref.off('value')
+    //tourney_rulesets.off('value')
     //a tourney cancel command can be used by an admin to cancel a match
     /*
     Update profile
