@@ -326,31 +326,6 @@ module.exports = {
                         await interaction.showModal(predictionModal)
                     }
                     break
-                // case 'undo':
-                //     let newactive = checkActive(challengesdata, member, current_challenge)
-                //     if (newactive) { //already has active challenge
-                //         interaction.reply({ embeds: [newactive], ephemeral: true })
-                //         return
-                //     }
-                //     if (current_challenge?.submissions?.[interaction.user.id]) {
-                //         profileref.update({ truguts_earned: profile.truguts_earned - current_challenge.earnings[interaction.user.id].truguts_earned })
-                //         current_challengeref.update({ completed: false })
-                //         challengetimeref.child(current_challenge.submissions[interaction.user.id].id).remove() //remove submissions
-                //         current_challengeref.child('earnings').child(interaction.user.id).remove()
-                //         current_challengeref.child('submissions').child(interaction.user.id).remove()
-
-                //         current_challenge = challengesdata[interaction.message.id]
-                //         interaction.update(updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata }))
-                //     } else {
-                //         const noMoney = new EmbedBuilder()
-                //             .setTitle("<:WhyNobodyBuy:589481340957753363> You must unsubmit what you have submitted.")
-                //             .setDescription("You cannot undo a submission if you have not submitted a time.")
-                //         interaction.reply({
-                //             embeds: [noMoney],
-                //             ephemeral: true
-                //         })
-                //     }
-                //     break
                 case 'like':
                 case 'dislike':
                     if (!Object.keys(current_challenge.submissions).includes(interaction.user.id)) {

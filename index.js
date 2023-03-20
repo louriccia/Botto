@@ -188,7 +188,7 @@ client.on(Events.InteractionCreate, async interaction => {
         const args = split.slice(1)
 
         try {
-            client.buttons.get(name).execute(client, interaction, args);
+            client.buttons.get(name).execute(client, interaction, args, database);
         } catch (error) {
             console.error(error);
         }

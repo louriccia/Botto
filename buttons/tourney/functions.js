@@ -1,3 +1,20 @@
+function initializeMatch(livematchref) {
+    let match = {
+        status: "setup",
+        tourney: "",
+        bracket: "",
+        ruleset: "",
+        datetime: "",
+        players: [],
+        commentators: [],
+        stream: "",
+        firstvote: "",
+        current_race: 0
+    }
+    livematchref.set(match)
+    return match
+}
+
 function countDown() {
     //postMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + "\n<a:countdown:672640791369482251> Countdown incoming! Good luck <a:countdown:672640791369482251>", [], [])
     for (let i = 0; i <= 5; i++) {
@@ -1213,4 +1230,34 @@ function getRunbacks(player) {
         }
     })
     return runbacks
+}
+
+function matchMakerEmbed() {
+    const matchmaker = new Discord.MessageEmbed()
+        .setAuthor(livematch.tourney == "practice" ? "`Practice Mode`" : tourney_tournaments_data[livematch.tourney].name, "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png")
+        .setTitle((livematch.tourney == "practice" ? "" : tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].bracket + " " + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].round) + " - " + Object.values(livematch.players).map(player => getUsername(player)).join(" vs "))
+        .setDescription("📜 " + tourney_rulesets_data.saved[livematch.ruleset].general.name + "\n" +
+            "🎙️ " + ([null, undefined, ""].includes(livematch.commentators) ? "" : Object.values(livematch.commentators).map(id => "<@" + id + "> ")) + "\n" +
+            "📺 " + livematch.stream
+        )
+        .setColor("#3BA55D")
+
+    return matchmaker
+}
+
+function reminderEmbed() {
+    const reminder = new Discord.MessageEmbed()
+        .setTitle("Reminders")
+        .addField("🕹️ Player Reminders", "○ Verify all pods/tracks/upgrades are unlocked\n○ Check that stream is running smoothly\n○ Disable game music\n○ Limit stream quality to 720p\n○ Wait until the results screen to report your times", false)
+        .addField("🎙️ Commentator Reminders", "○ Enable all voice related settings in Discord such as noise supression/reduction, advanced voice activity, etc.\n○  Open stream on Twitch to respond to chat", false)
+    return reminder
+}
+
+function rulesetOverviewEmbed() {
+    const ruleset = new Discord.MessageEmbed()
+        .setAuthor("Ruleset Overview")
+        .setTitle("📜 " + tourney_rulesets_data.saved[livematch.ruleset].general.name)
+        .setDescription(tourney_rulesets_data.saved[livematch.ruleset].general.description)
+        .addFields(rulesetOverview(tourney_rulesets_data.saved[livematch.ruleset]))
+    return ruleset
 }

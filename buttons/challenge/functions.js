@@ -1403,7 +1403,7 @@ exports.dailyChallenge = async function ({ client, sponsordata, challengetimedat
             }
         })
     }
-    console.log("challenge", exports.easternHour(), moment().utc().format("DDD"), recent.message, recent.day, exports.easternHour() == 0, moment().utc().format("DDD") !== recent.day)
+    //console.log("challenge", exports.easternHour(), moment().utc().format("DDD"), recent.message, recent.day, exports.easternHour() == 0, moment().utc().format("DDD") !== recent.day)
     if (exports.easternHour() == 0 && moment().utc().format("DDD") !== recent.day) {
 
         current_challenge = exports.initializeChallenge({ type: "cotd", sponsordata })
@@ -1429,7 +1429,7 @@ exports.dailyBounty = async function ({ client, bountydata, bountyref } = {}) {
         })
     }
 
-    console.log("bounty", exports.easternHour(), moment().utc().format("DDD"), recent.message, recent.day, exports.easternHour() == 12, moment().utc().format("DDD") !== recent.day)
+    //console.log("bounty", exports.easternHour(), moment().utc().format("DDD"), recent.message, recent.day, exports.easternHour() == 12, moment().utc().format("DDD") !== recent.day)
     if ((exports.easternHour() == 12 && moment().utc().format("DDD") !== recent.day)) { //
         let bounty = exports.initializeBounty('botd')
         let message = await postMessage(client, '551786988861128714', { embeds: [exports.bountyEmbed(bounty)] }) //551786988861128714
