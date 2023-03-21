@@ -1,7 +1,7 @@
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder } = require('discord.js');
-const { methods, trackgroups, firsts } = require('./data.js')
+const { methods, trackgroups, firsts, condition_names } = require('./data.js')
 const { racers, tracks, planets, circuits, difficulties } = require('../../data.js')
-
+const { avgSpeed, upgradeCooling, upgradeTopSpeed, timefix, capitalize } = require('../../tools.js')
 
 exports.initializeMatch = function (livematchref) {
     let match = {
@@ -20,12 +20,12 @@ exports.initializeMatch = function (livematchref) {
     return match
 }
 
-exports.countDown = function () {
+exports.countDown = function (interaction) {
     //postMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + "\n<a:countdown:672640791369482251> Countdown incoming! Good luck <a:countdown:672640791369482251>", [], [])
     for (let i = 0; i <= 5; i++) {
         setTimeout(async function () {
             interaction.followUp({
-                content: (i == 5 ? "GO!" : (5 - i))
+                content: String((i == 5 ? "GO!" : (5 - i)))
             })
         }, 3000 + i * 1000)
     }
@@ -80,7 +80,7 @@ exports.firstbanEmbed = function ({ livematch }) {
     return embed
 }
 
-exports.raceEmbed = function ({ race, livematch } = {}) {
+exports.raceEmbed = function ({ race, livematch, liverules, userdata } = {}) {
     let track = ""
     let repeat = false
     let events = Object.values(livematch.races[race].events)
@@ -102,7 +102,7 @@ exports.raceEmbed = function ({ race, livematch } = {}) {
             }
         }
     })
-    let forces = events.filter(event => event.event == 'override' && event.type == 'condition').map(event => tools.capitalize(condition_names[event.selection]))
+    let forces = events.filter(event => event.event == 'override' && event.type == 'condition').map(event => capitalize(condition_names[event.selection]))
     if (repeat) {
         forces.push('Runback')
     }
@@ -124,7 +124,7 @@ exports.raceEmbed = function ({ race, livematch } = {}) {
                 value: (livematch.races[race].runs[player].time == "" ? ":red_circle: Awaiting submission" :
                     Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length > 0 ? ":green_circle: Results Submitted" :
                         racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name + "\n" +
-                        "⏱️ " + (String(livematch.races[race].runs[player]?.time).toLowerCase() == 'dnf' ? 'DNF' : (livematch.races[race].runs[player].time === "" ? "--:--.---" : tools.timefix(livematch.races[race].runs[player].time))) + "\n" +
+                        "⏱️ " + (String(livematch.races[race].runs[player]?.time).toLowerCase() == 'dnf' ? 'DNF' : (livematch.races[race].runs[player].time === "" ? "--:--.---" : timefix(livematch.races[race].runs[player].time))) + "\n" +
                         "💀 " + (livematch.races[race].runs[player].deaths === "" ? "--" : Number(livematch.races[race].runs[player].deaths)) + "\n" +
                         (livematch.races[race].runs[player].notes == "" ? "" : "📝 " + livematch.races[race].runs[player].notes))
                 ,
@@ -143,7 +143,7 @@ exports.raceEmbed = function ({ race, livematch } = {}) {
                 Object.values(livematch.players).map(player => embed.addFields({
                     name: (player == winner ? "👑 " : "") + exports.getUsername({ member: player, userdata }),
                     value: racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name + "\n" +
-                        "⏱️ " + (livematch.races[race].runs[player].time.toLowerCase() == 'dnf' ? 'DNF' : (player == winner ? "__" : "") + tools.timefix(livematch.races[race].runs[player].time) + (player == winner ? "__" : "")) + "\n" +
+                        "⏱️ " + (livematch.races[race].runs[player].time.toLowerCase() == 'dnf' ? 'DNF' : (player == winner ? "__" : "") + timefix(livematch.races[race].runs[player].time) + (player == winner ? "__" : "")) + "\n" +
                         "💀 " + (livematch.races[race].runs[player].deaths == "" ? "--" : Number(livematch.races[race].runs[player].deaths)) + "\n" +
                         (livematch.races[race].runs[player].notes == "" ? "" : "📝 " + livematch.races[race].runs[player].notes),
                     inline: true
@@ -169,7 +169,7 @@ exports.raceEmbed = function ({ race, livematch } = {}) {
         }
         ))
 
-        embed.addFields("🎙️ Commentators/Trackers", (livematch.races[race].ready.commentators ? ":green_circle: Ready" : ":red_circle: Not Ready"))
+        embed.addFields({ name: "🎙️ Commentators/Trackers", value: (livematch.races[race].ready.commentators ? ":green_circle: Ready" : ":red_circle: Not Ready") })
         if (forces.includes("No Upgrades")) {
             embed.addFields({ name: "🕹️ Players", value: ":orange_circle: Don't forget to show your parts to verify upgrades", inline: false })
         }
@@ -197,8 +197,8 @@ exports.matchSummaryEmbed = function ({ liverules, livematch } = {}) {
     })
     Object.values(livematch.races).forEach((race, index) => {
         if (!race.live) {
-            if (getWinner(index)) {
-                summary[getWinner(index)].wins++
+            if (exports.getWinner(index)) {
+                summary[exports.getWinner(index)].wins++
             }
             if (![null, undefined, ""].includes(race.events)) {
                 Object.values(race.events).forEach(event => {
@@ -249,7 +249,7 @@ exports.matchSummaryEmbed = function ({ liverules, livematch } = {}) {
         name: (leader.player == player ? "👑 " : "") + exports.getUsername({ member: player, userdata }) + " - " + summary[player].wins,
         value: '💠 ' + summary[player].forcepoints +
             (liverules.match.repeattrack ? '\n🔁 ' + summary[player].runbacks : "") +
-            '\n⏱️ ' + tools.timefix(summary[player].time) + (summary[player].timetrue ? "" : "+") + " (total)" +
+            '\n⏱️ ' + timefix(summary[player].time) + (summary[player].timetrue ? "" : "+") + " (total)" +
             '\n💀 ' + summary[player].deaths + (summary[player].deathtrue ? "" : "+") + " (total)",
         inline: true
     }))
@@ -421,7 +421,7 @@ exports.raceEventComponents = function ({ race, livematch, interaction } = {}) {
                 let tempbanned_racers = Object.values(livematch.races[race].events).filter(event => event.event == "tempban" && event.type == "racer").map(event => Number(event.selection))
                 for (let i = 0; i < 25; i++) {
                     if (i < 23 || (event.event == 'selection' && ((!tempbanned_racers.includes(8) && !permabanned_racers.includes(i) && i == 23) || (!tempbanned_racers.includes(22) && !permabanned_racers.includes(i) && i == 24)))) { //handle secret pods
-                        let option = getRacerOption(i)
+                        let option = exports.getRacerOption(i)
 
                         if (default_stuff.includes(String(i))) {
                             option.default = true
@@ -447,16 +447,16 @@ exports.raceEventComponents = function ({ race, livematch, interaction } = {}) {
                 options = options.sort(function (a, b) {
                     let a_racer = Number(String(a.value).replace("ban", ""))
                     let b_racer = Number(String(b.value).replace("ban", ""))
-                    let aspeed = tools.avgSpeed(
-                        tools.upgradeTopSpeed(racers[a_racer].max_speed, upg),
+                    let aspeed = avgSpeed(
+                        upgradeTopSpeed(racers[a_racer].max_speed, upg),
                         racers[a_racer].boost_thrust,
                         racers[a_racer].heat_rate,
-                        tools.upgradeCooling(racers[a_racer].cool_rate, upg))
-                    let bspeed = tools.avgSpeed(
-                        tools.upgradeTopSpeed(racers[b_racer].max_speed, upg),
+                        upgradeCooling(racers[a_racer].cool_rate, upg))
+                    let bspeed = avgSpeed(
+                        upgradeTopSpeed(racers[b_racer].max_speed, upg),
                         racers[b_racer].boost_thrust,
                         racers[b_racer].heat_rate,
-                        tools.upgradeCooling(racers[b_racer].cool_rate, upg))
+                        upgradeCooling(racers[b_racer].cool_rate, upg))
                     return bspeed - aspeed
                 })
             } else if (event.type == "track") {
@@ -556,7 +556,7 @@ exports.raceEventComponents = function ({ race, livematch, interaction } = {}) {
                         type: 3,
                         custom_id: "tourney_play_race" + race + "_event" + i,
                         options: options,
-                        placeholder: tools.capitalize([event.event.replace("selection", "select"), event.type].join(" ")) + ([null, undefined, ""].includes(event.cost) ? "" : " (" + (event.cost == 0 ? "free" : event.cost + "💠/" + (event.count == 1 ? event.type : event.count + " " + event.type + "s")) + ")") + (oddselect ? " (select in sets of " + event.count : ""),
+                        placeholder: capitalize([event.event.replace("selection", "select"), event.type].join(" ")) + ([null, undefined, ""].includes(event.cost) ? "" : " (" + (event.cost == 0 ? "free" : event.cost + "💠/" + (event.count == 1 ? event.type : event.count + " " + event.type + "s")) + ")") + (oddselect ? " (select in sets of " + event.count : ""),
                         min_values: [undefined, null, ""].includes(event.count) ? 1 : 0,
                         max_values: [undefined, null, ""].includes(event.count) ? 1 : [undefined, null, ""].includes(event.limit) ? options.length : event.limit == 0 ? options.length : event.count * event.limit
                     }
@@ -715,7 +715,6 @@ exports.setupComponents = function ({ livematch, tourney_rulesets_data, tourney_
 }
 
 exports.raceComponents = function ({ race, liverules, livematch }) {
-    //livematch = tourney_live_data[interaction.channel_id]
     let events = Object.values(livematch.races[race].events)
     let podbans = []
     let podoptions = []
@@ -750,125 +749,99 @@ exports.raceComponents = function ({ race, liverules, livematch }) {
         return (
             {
                 value: option,
-                avg: tools.avgSpeed(
-                    tools.upgradeTopSpeed(racers[option].max_speed, upg),
+                avg: avgSpeed(
+                    upgradeTopSpeed(racers[option].max_speed, upg),
                     racers[option].boost_thrust,
                     racers[option].heat_rate,
-                    tools.upgradeCooling(racers[option].cool_rate, upg))
+                    upgradeCooling(racers[option].cool_rate, upg))
             }
         )
     }
     ).sort(function (a, b) { return (b.avg - a.avg) })
     podoptions = podoptions.map(option => option.value)
-    let components = [
-        {
-            type: 1,
-            components: [
-                {
-                    type: 3,
-                    custom_id: "tourney_play_race" + race + "_racer",
-                    options: podoptions.map(pod => {
-                        return getRacerOption(pod)
-                    }),
-                    placeholder: "Select Racer",
-                    min_values: 1,
-                    max_values: 1
-                }
-            ]
-        },
-        {
-            type: 1,
-            components: [
-                {
-                    type: 2,
-                    label: "Ready",
-                    style: 3,
-                    custom_id: "tourney_play_race" + race + "_ready"
-                },
-                {
-                    type: 2,
-                    label: "Not Ready",
-                    style: 4,
-                    custom_id: "tourney_play_race" + race + "_unready"
-                },
-                {
-                    type: 2,
-                    label: "Reveal Racer Choice",
-                    style: 2,
-                    custom_id: "tourney_play_race" + race + "_reveal"
-                }
-            ]
-        },
-    ]
-    if (liverules.general.gents) {
-        components[1].components.push(
-            {
-                type: 2,
-                label: "",
-                emoji: {
-                    name: "🎩"
-                },
-                style: 1,
-                custom_id: "tourney_play_race" + race + "_gents"
-            }
+    const RacerRow = new ActionRowBuilder()
+    const racer_select = new StringSelectMenuBuilder()
+        .setCustomId("tourney_play_race" + race + "_racer")
+        .setOptions(podoptions.map(pod => {
+            return exports.getRacerOption(pod)
+        }))
+        .setPlaceholder("Select Racer")
+        .setMaxValues(1)
+        .setMinValues(1)
+    RacerRow.addComponents(racer_select)
+
+    const ButtonRow = new ActionRowBuilder()
+    if (livematch.races[race].gents?.agreed == "?") {
+        ButtonRow.addComponents(
+            new ButtonBuilder()
+                .setCustomId("tourney_play_race" + race + "_gents_true")
+                .setLabel("Accept")
+                .setStyle(ButtonStyle.Success),
+            new ButtonBuilder()
+                .setCustomId("tourney_play_race" + race + "_gents_false")
+                .setLabel("Deny")
+                .setStyle(ButtonStyle.Success)
         )
+        return [ButtonRow]
     }
-    if (livematch.races[race].live) {
-        components = [
-            {
-                type: 1,
-                components: [
-                    {
-                        type: 2,
-                        label: "Submit Results",
-                        style: 3,
-                        custom_id: "tourney_play_race" + race + "_submit"
-                    },
-                ]
-            }
-        ]
-        if (Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time !== "").length == 0) {
-            components[0].components.push(
-                {
-                    type: 2,
-                    label: "Restart",
-                    style: 2,
-                    custom_id: "tourney_play_race" + race + "_restart"
-                }
+    if (!livematch.races[race].live) {
+        ButtonRow
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId("tourney_play_race" + race + "_ready")
+                    .setLabel("Ready")
+                    .setStyle(ButtonStyle.Success)
             )
-        } else if (Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length == 0) {
-            components[0].components.push(
-                {
-                    type: 2,
-                    label: "Verify",
-                    style: 1,
-                    custom_id: "tourney_play_race" + race + "_verify"
-                }
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId("tourney_play_race" + race + "_unready")
+                    .setLabel("Not Ready")
+                    .setStyle(ButtonStyle.Danger)
+            )
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId("tourney_play_race" + race + "_reveal")
+                    .setLabel("Reveal Racer Choice")
+                    .setStyle(ButtonStyle.Secondary)
+            )
+        if (liverules.general.gents) {
+            ButtonRow.addComponents(
+                new ButtonBuilder()
+                    .setCustomId("tourney_play_race" + race + "_gents")
+                    .setEmoji("🎩")
+                    .setStyle(ButtonStyle.Secondary)
             )
         }
+        return [RacerRow, ButtonRow]
+    } else {
+        ButtonRow
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId("tourney_play_race" + race + "_submit")
+                    .setStyle(ButtonStyle.Primary)
+                    .setLabel("Submit Results")
+            )
+        if (Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time !== "").length == 0) {
+            ButtonRow
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId("tourney_play_race" + race + "_restart")
+                        .setStyle(ButtonStyle.Secondary)
+                        .setLabel("Restart")
+                )
+        } else if (Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length == 0) {
+            ButtonRow
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId("tourney_play_race" + race + "_verify")
+                        .setLabel("Verify")
+                        .setStyle(ButtonStyle.Secondary)
+                )
+        }
+        return [ButtonRow]
     }
-    if (livematch.races[race].gents?.agreed == "?") {
-        components = [
-            {
-                type: 1,
-                components: [
-                    {
-                        type: 2,
-                        label: "Accept",
-                        style: 3,
-                        custom_id: "tourney_play_race" + race + "_gents_true"
-                    },
-                    {
-                        type: 2,
-                        label: "Deny",
-                        style: 4,
-                        custom_id: "tourney_play_race" + race + "_gents_false"
-                    }
-                ]
-            }
-        ]
-    }
-    return components
+
+
 }
 
 exports.firstComponents = function ({ liverules, livematch } = {}) {
@@ -924,13 +897,12 @@ exports.firstbanComponents = function ({ livematch, liverules } = {}) {
     trackoptions = [undefined, null].includes(livematch.firstbans) ? trackoptions : trackoptions.filter(option => !Object.values(livematch.firstbans).map(ban => Number(ban.ban)).includes(option) && planetoptions.map(option => trackgroups[option].code).includes(Number(tracks[option].planet)))
     let selectoptions = []
     if (livematch.firstmethod == "poe_c" && circuitoptions.length > 1) {
-        selectoptions = circuitoptions.map(option => { return ({ label: trackgroups[option].name, value: option, description: trackgroups[option].count + " tracks" }) })
+        selectoptions = circuitoptions.map(option => { return ({ label: trackgroups[option].name, value: String(option), description: trackgroups[option].count + " tracks" }) })
     } else if (livematch.firstmethod == "poe_p" && planetoptions.length > 1) {
-        selectoptions = planetoptions.map(option => { return ({ label: trackgroups[option].name, value: option, description: trackgroups[option].count + " tracks" }) })
+        selectoptions = planetoptions.map(option => { return ({ label: trackgroups[option].name, value: String(option), description: trackgroups[option].count + " tracks" }) })
     } else {
         selectoptions = trackoptions.map(option => exports.getTrackOption(option))
     }
-
     const first_ban_selector = new StringSelectMenuBuilder()
         .setCustomId("tourney_play_first_" + (livematch.firstmethod.includes("poe") ? "ban" : "pick"))
         .setPlaceholder("Select Option")
@@ -959,7 +931,7 @@ exports.permabanComponents = function ({ permaban, livematch } = {}) {
         for (let i = 0; i < 25; i++) {
             if (!permaracerbans.includes(i)) {
                 selectoptions.push(
-                    getRacerOption(i)
+                    exports.getRacerOption(i)
 
                 )
             }
@@ -1049,8 +1021,8 @@ exports.rulesetOverview = function (ruleset) {
     return fields
 }
 
-exports.getUsername = function ({ member, userdata }) {
-    let name = ""
+exports.getUsername = function ({ member, userdata } = {}) {
+    let name = "N/A"
     Object.values(userdata).forEach(user => {
         if (user.discordID == member) {
             name = user.name
@@ -1064,7 +1036,7 @@ exports.getTrackOption = function (i) {
     return (
         {
             label: tracks[i].name,
-            value: i,
+            value: String(i),
             description: [circuits[tracks[i].circuit].abbreviation + " - Race " + tracks[i].cirnum, planets[tracks[i].planet].name, difficulties[tracks[i].difficulty].name, tracks[i].lengthclass].join(" | "),
             emoji: {
                 name: planets[tracks[i].planet].emoji.split(":")[1],
@@ -1075,12 +1047,12 @@ exports.getTrackOption = function (i) {
 }
 
 exports.getRacerOption = function (i) {
-    let muspeed = tools.avgSpeed(tools.upgradeTopSpeed(racers[i].max_speed, 5), racers[i].boost_thrust, racers[i].heat_rate, tools.upgradeCooling(racers[i].cool_rate, 5)).toFixed(0)
-    let nuspeed = tools.avgSpeed(tools.upgradeTopSpeed(racers[i].max_speed, 0), racers[i].boost_thrust, racers[i].heat_rate, tools.upgradeCooling(racers[i].cool_rate, 0)).toFixed(0)
+    let muspeed = avgSpeed(upgradeTopSpeed(racers[i].max_speed, 5), racers[i].boost_thrust, racers[i].heat_rate, upgradeCooling(racers[i].cool_rate, 5)).toFixed(0)
+    let nuspeed = avgSpeed(upgradeTopSpeed(racers[i].max_speed, 0), racers[i].boost_thrust, racers[i].heat_rate, upgradeCooling(racers[i].cool_rate, 0)).toFixed(0)
     return (
         {
             label: racers[i].name,
-            value: i,
+            value: String(i),
             description: 'Avg Speed ' + muspeed + ' (NU ' + nuspeed + "); Max Turn " + racers[i].max_turn_rate + "°/s",
             emoji: {
                 name: racers[i].flag.split(":")[1],

@@ -29,6 +29,7 @@ exports.trackgroups = {
 }
 
 exports.condition_names = {
+    fp: "Free Play",
     ft: "Full Track",
     sk: "Skips",
     mu: "Upgrades Allowed",
