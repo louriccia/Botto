@@ -940,7 +940,7 @@ exports.racer_hints = [
     ], [ //bozzie
         "voiced by Terry McGovern",
         "track favorite on an Invitational Course",
-        "track favorit on an Ord Ibanna course",
+        "track favorite on an Ord Ibanna course",
         "pilots a Shelba 730S Razor",
         "does not appear in the finished film",
         "goes for pit stops more than any other racer",
@@ -953,7 +953,7 @@ exports.racer_hints = [
         "fancies himself a crooner",
         "hails from Sneeve",
         "track favorite on a Semi-Pro Circuit course",
-        "track favorit on a Mon Gazza course",
+        "track favorite on a Mon Gazza course",
         "voiced by Peter Lurie",
         "pilots a Bin Gassi Racing Engines Quadrijet 4-Barrel 904E",
         "a famous glim­mik singer",
