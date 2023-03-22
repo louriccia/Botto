@@ -1,10 +1,10 @@
 const Discord = require('discord.js');
 const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } = require('discord.js');
-const { initializeMatch, adminEmbed, setupEmbed, setupComponents, adminComponents, matchMakerEmbed, colorEmbed, getUsername, rulesetOverviewEmbed, reminderEmbed, firstEmbed, firstComponents, firstbanComponents, colorComponents, firstbanEmbed, getOpponent, raceEmbed, raceComponents, countDown } = require('./functions.js')
+const { initializeMatch, adminEmbed, setupEmbed, setupComponents, adminComponents, matchMakerEmbed, colorEmbed, getUsername, rulesetOverviewEmbed, reminderEmbed, firstEmbed, firstComponents, firstbanComponents, colorComponents, firstbanEmbed, getOpponent, raceEmbed, raceComponents, countDown, getWinner, matchSummaryEmbed, permabanEmbed, permabanComponents, raceEventEmbed, raceEventComponents } = require('./functions.js')
 const { initializeUser } = require('../challenge/functions.js');
 const { planets, tracks } = require('../../data.js')
 const { trackgroups } = require('./data.js')
-const { timetoSeconds } = require('../../tools.js')
+const { timetoSeconds, timefix } = require('../../tools.js')
 
 const myEmbed = new EmbedBuilder()
 
@@ -80,12 +80,12 @@ exports.play = async function (args, interaction, database) {
             })
             if (status == 'first') {
                 livematchref.update({ races: "", firstbans: "", firstvote: "", eventstart: 0, eventend: 0, runs: "", firstcolors: "" })
-                livematchref.child('races').child(livematch.current_race).child('ready').child('commentators').set(false)
+                //livematchref.child('races').child(livematch.current_race).child('ready').child('commentators').set(false)
                 interaction.update({ content: Object.values(livematch.players).map(player => "<@" + player + ">").join(", "), embeds: [firstEmbed(livematch)], components: firstComponents({ liverules, livematch }) })
                 livematchref.child("status").set("first")
             } else if (status == 'permaban') {
                 livematchref.child('races').child('1').update({ events: "", eventstart: 0, eventend: 0, live: false })
-                livematchref.child('races').child(livematch.current_race).child('ready').child('commentators').set(false)
+                //livematchref.child('races').child(livematch.current_race).child('ready').child('commentators').set(false)
                 Object.values(livematch.players).map(player => {
                     livematchref.child('races')
                     livematchref.child('races').child(livematch.current_race).child('ready').child(player).set(false)
@@ -99,7 +99,7 @@ exports.play = async function (args, interaction, database) {
                         time: ""
                     })
                 })
-                interaction.update({ content: "<@" + (liverules.match.permabans[0].choice == "firstloser" ? getOpponent({ livematch, player: getWinner(0) }) : getWinner(0)) + "> please select a permanent ban", embed: [permabanEmbed(0)], components: permabanComponents(0) })
+                interaction.update({ content: "<@" + (liverules.match.permabans[0].choice == "firstloser" ? getOpponent({ livematch, player: getWinner({ race: 0, livematch }) }) : getWinner({ race: 0, livematch })) + "> please select a permanent ban", embed: [permabanEmbed({ livematch })], components: permabanComponents({ permaban: 0, livematch, liverules }) })
             } else if (status == 'prevrace') {
                 let current_race = livematch.current_race
                 livematchref.child('races').child(livematch.current_race).remove()
@@ -107,14 +107,14 @@ exports.play = async function (args, interaction, database) {
                 livematchref.child('races').child(current_race - 1).child('live').set(true)
                 interaction.update(
                     {
-                        content: Object.values(livematch.players).filter(player => !livematch.races[current_race - 1].ready[player]).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(comm => "<@" + comm + ">").join(" "),
+                        content: Object.values(livematch.players).filter(player => !livematch.races[current_race - 1]?.ready[player]).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(comm => "<@" + comm + ">").join(" "),
                         embeds: [raceEmbed({ race: current_race - 1, livematch, liverules, userdata })],
-                        components: [raceComponents({ race: current_race - 1, liverules, livematch })]
+                        components: raceComponents({ race: current_race - 1, liverules, livematch })
                     })
             } else if (status == 'events') {
                 let events = Object.values(liverules.race)
                 livematchref.child('races').child(livematch.current_race).update({ events: "", eventstart: 0, eventend: 0, live: false })
-                livematchref.child('races').child(livematch.current_race).child('ready').child('commentators').set(false)
+                //livematchref.child('races').child(livematch.current_race).child('ready').child('commentators').set(false)
                 Object.values(livematch.players).map(player => {
                     livematchref.child('races').child(livematch.current_race).child('ready').child(player).set(false)
                     livematchref.child('races').child(livematch.current_race).child('reveal').child(player).set(false)
@@ -129,20 +129,20 @@ exports.play = async function (args, interaction, database) {
                 })
                 if (livematch.current_race == 1 && Object.values(liverules.match.permabans).length > 0) {
                     interaction.update({
-                        content: "<@" + (liverules.match.permabans[0].choice == "firstloser" ? getOpponent({ livematch, player: getWinner(0) }) : getWinner(0)) + "> please select a permanent ban",
-                        embeds: [permabanEmbed(0)],
-                        components: [permabanComponents(0)]
+                        content: "<@" + (liverules.match.permabans[0].choice == "firstloser" ? getOpponent({ livematch, player: getWinner({ race: 0, livematch }) }) : getWinner({ race: 0, livematch })) + "> please select a permanent ban",
+                        embeds: [permabanEmbed({ livematch })],
+                        components: permabanComponents({ permaban: 0, livematch, liverules })
                     })
                 } else {
                     interaction.update({
-                        content: "<@" + (events[0].choice == "lastwinner" ? getWinner(race - 1) : getOpponent({ livematch, player: getWinner(race - 1) })) + "> please make a selection",
-                        embeds: [raceEventEmbed(race)],
-                        components: [raceEventComponents(race)]
+                        content: "<@" + (events[0].choice == "lastwinner" ? getWinner(race - 1) : getOpponent({ livematch, player: getWinner({ race: race - 1, livematch }) })) + "> please make a selection",
+                        embeds: [raceEventEmbed({ race, livematch, liverules })],
+                        components: raceEventComponents({ race, livematch, interaction, liverules })
                     })
                 }
             } else if (status == 'prerace') {
                 livematchref.child('races').child(livematch.current_race).update({ live: false })
-                livematchref.child('races').child(livematch.current_race).child('ready').child('commentators').set(false)
+                //livematchref.child('races').child(livematch.current_race).child('ready').child('commentators').set(false)
                 Object.values(livematch.players).map(player => {
                     livematchref.child('races').child(livematch.current_race).child('ready').child(player).set(false)
                     livematchref.child('races').child(livematch.current_race).child('reveal').child(player).set(false)
@@ -237,7 +237,7 @@ exports.play = async function (args, interaction, database) {
             }
             let race_object = {
                 events: [event],
-                ready: { commentators: false },
+                ready: {},
                 reveal: {},
                 runs: {},
                 live: false
@@ -296,8 +296,8 @@ exports.play = async function (args, interaction, database) {
                 Object.values(livematch.players).forEach(player => {
                     livematchref.child("firstcolors").child(player).set(player == member ? args[3] : args[3] == "red" ? "blue" : "red")
                 })
-                await interaction.update({ embeds: [colorEmbed(livematch)] })
-                interaction.followUp("Rolling a chance cube... <a:OovoDoor:964369275559223306>")
+                //await interaction.update({ embeds: [colorEmbed(livematch)], components: [] })
+                await interaction.update({ content: "Rolling a chance cube... <a:OovoDoor:964369275559223306>", embeds: [colorEmbed(livematch)], components: [] })
                 setTimeout(async function () {
                     let players = Object.keys(livematch.firstcolors)
                     let firstplayer = Math.floor(Math.random() * 2) == 1 ? players[1] : players[0]
@@ -373,7 +373,7 @@ exports.play = async function (args, interaction, database) {
                 if (turn.options.length == 2) {
                     turn.options = turn.options.filter(t => Number(t) !== Number(interaction.values[0]))
                     setRace(turn.options[0])
-                    await interaction.update({ embeds: [firstbanEmbed({ livematch })], components: [] })
+                    await interaction.update({ content: "", embeds: [firstbanEmbed({ livematch })], components: [] })
                     interaction.followUp({ content: Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), embeds: [raceEmbed({ race: 0, livematch, liverules, userdata })], components: raceComponents({ race: 0, liverules, livematch }) })
                 } else {
                     let turn = whoseTurn()
@@ -392,7 +392,7 @@ exports.play = async function (args, interaction, database) {
         livematchref.child("status").set("permaban")
         let permaban_num = Number(args[2])
         let permaban = liverules.match.permabans[permaban_num]
-        if ((permaban.choice == "firstwinner" && member == getWinner(0)) || (permaban.choice == "firstloser" && member == getOpponent({ livematch, player: getWinner(0) }))) {
+        if ((permaban.choice == "firstwinner" && member == getWinner({ race: 0, livematch })) || (permaban.choice == "firstloser" && member == getOpponent({ livematch, player: getWinner({ race: 0, livematch }) }))) {
             interaction.values.forEach(selection => {
                 livematchref.child("races").child(1).child("events").push(
                     {
@@ -407,9 +407,9 @@ exports.play = async function (args, interaction, database) {
             if (permaban_num + 1 == Object.values(liverules.match.permabans).length) {
                 let events = Object.values(liverules.race)
                 livematchref.child("status").set("events")
-                interaction.update({ content: "<@" + (events[0].choice == "lastwinner" ? getWinner(0) : getOpponent({ livematch, player: getWinner(0) })) + "> please make a selection", embeds: [raceEventEmbed(1)], components: raceEventComponents(1) })
+                interaction.update({ content: "<@" + (events[0].choice == "lastwinner" ? getWinner({ race: 0, livematch }) : getOpponent({ livematch, player: getWinner({ race: 0, livematch }) })) + "> please make a selection", embeds: [raceEventEmbed({ race: 1, livematch, liverules })], components: raceEventComponents({ race: 1, livematch, interaction, liverules }) })
             } else {
-                interaction.update({ content: "<@" + (liverules.match.permabans[permaban_num + 1].choice == 'firstwinner' ? getWinner(0) : getOpponent({ livematch, player: getWinner(0) })) + ">", embeds: [permabanEmbed(permaban_num + 1)], components: permabanComponents(permaban_num + 1) })
+                interaction.update({ content: "<@" + (liverules.match.permabans[permaban_num + 1].choice == 'firstwinner' ? getWinner({ race: 0, livematch }) : getOpponent({ livematch, player: getWinner({ race: 0, livematch }) })) + ">", embeds: [permabanEmbed({ livematch })], components: permabanComponents({ permaban: permaban_num + 1, livematch, liverules }) })
             }
         } else {
             interaction.reply({ content: "It's not your turn to ban! <:WhyNobodyBuy:589481340957753363>", ephemeral: true })
@@ -423,17 +423,17 @@ exports.play = async function (args, interaction, database) {
         let eventend = livematch.races[race].eventend
         let responded = false
         if (args[2].includes("event")) {
-            if (member == (e.choice == "lastwinner" ? getWinner(race - 1) : getOpponent({ livematch, player: getWinner(race - 1) }))) {
+            if (member == (e.choice == "lastwinner" ? getWinner({ race: race - 1, livematch }) : getOpponent({ livematch, player: getWinner({ race: race - 1, livematch }) }))) {
                 livematchref.child("status").set("events")
                 if (interaction.message.components.length > 1) {
                     if (args[3] == "submit") {
                         let newevents = []
                         interaction.message.components.forEach(component => {
-                            if (component.components[0].type == 3) {
-                                let thisargs = component.components[0].custom_id.split("_")
+                            if (component.components[0].data.type == 3) {
+                                let thisargs = component.components[0].data.custom_id.split("_")
                                 let thisevent = Number(thisargs[3].replace("event", ""))
                                 let e = liverules.race[thisevent]
-                                let options = component.components[0].options.filter(option => option.default)
+                                let options = component.components[0].data.options.filter(option => option.default)
                                 if ([null, undefined, ""].includes(e.count)) {
                                     e.count = 1
                                 }
@@ -475,9 +475,9 @@ exports.play = async function (args, interaction, database) {
 
                     } else {
                         interaction.update({
-                            content: "<@" + (events[event].choice == "lastwinner" ? getWinner(race - 1) : getOpponent({ livematch, player: getWinner(race - 1) })) + "> please make a selection",
-                            embeds: [raceEventEmbed(race)],
-                            components: raceEventComponents(race)
+                            content: "<@" + (events[event].choice == "lastwinner" ? getWinner({ race: race - 1, livematch }) : getOpponent({ livematch, player: getWinner({ race: race - 1, livematch }) })) + "> please make a selection",
+                            embeds: [raceEventEmbed({ race, livematch, liverules })],
+                            components: raceEventComponents({ race, livematch, interaction, liverules })
                         })
                         return
                     }
@@ -515,7 +515,7 @@ exports.play = async function (args, interaction, database) {
                         }
                     }
                     if (eventend + 1 == events.length) {
-                        interaction.update({ embeds: [raceEventEmbed(race)] })
+                        await interaction.update({ content: "", embeds: [raceEventEmbed({ race, livematch, liverules })], components: [] })
                         interaction.followUp({
                             content: Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "),
                             embeds: [raceEmbed({ race, livematch, liverules, userdata })],
@@ -525,9 +525,9 @@ exports.play = async function (args, interaction, database) {
                     } else {
                         livematchref.child("races").child(race).update({ eventstart: eventend + 1, eventend: eventend + 1 + streak })
                         interaction.update({
-                            content: "<@" + (events[event + 1].choice == "lastwinner" ? getWinner(race - 1) : getOpponent({ livematch, player: getWinner(race - 1) })) + "> please make a selection",
-                            embeds: [raceEventEmbed(race)],
-                            components: raceEventComponents(race)
+                            content: "<@" + (events[event + 1].choice == "lastwinner" ? getWinner({ race: race - 1, livematch }) : getOpponent({ livematch, player: getWinner({ race: race - 1, livematch }) })) + "> please make a selection",
+                            embeds: [raceEventEmbed({ race, livematch, liverules })],
+                            components: raceEventComponents({ race, livematch, interaction, liverules })
                         })
                     }
                 }
@@ -540,20 +540,7 @@ exports.play = async function (args, interaction, database) {
         } else if (["ready", "unready"].includes(args[2])) {
             if (Object.values(livematch.players).includes(member) && ![undefined, null, ""].includes(livematch.races[race].runs) && ![undefined, null, ""].includes(livematch.races[race].runs[member]) && ![undefined, null, ""].includes(livematch.races[race].runs[member].pod)) {
                 livematchref.child("races").child(race).child("ready").child(member).set((args[2] == "ready" ? true : false))
-                if (!Object.values(livematch.commentators).includes(member)) {
-                    interaction.update({
-                        content: Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(comm => "<@" + comm + ">").join(" "),
-                        embeds: [raceEmbed({ race, livematch, liverules, userdata })],
-                        components: raceComponents({ race, liverules, livematch })
-                    })
-                }
-            } else if (Object.values(livematch.players).includes(member)) {
-                interaction.reply({ content: "You have not selected a racer yet! <:WhyNobodyBuy:589481340957753363>", ephemeral: true })
-                return
-            }
-            if (Object.values(livematch.commentators).includes(member) || (interaction.guild.id == '441839750555369474' && (Member.roles.cache.some(r => r.id == '862810190072381471')) && !Object.values(livematch.players).includes(member))) {
-                if (Object.values(livematch.races[race].ready).filter(r => r == false).length == 1 && !livematch.races[race].ready.commentators) {
-                    livematchref.child("races").child(race).child("ready").child("commentators").set((args[2] == "ready" ? true : false))
+                if (Object.values(livematch.races[race].ready).filter(r => r == false).length == 0) {
                     await interaction.update({
                         content: Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + "\n<a:countdown:672640791369482251> Countdown incoming! Good luck <a:countdown:672640791369482251>",
                         embeds: [],
@@ -570,9 +557,41 @@ exports.play = async function (args, interaction, database) {
                         interaction.followUp({ embeds: [raceEmbed({ race, livematch, liverules, userdata })], components: raceComponents({ race, liverules, livematch }) })
                     }, 10000)
                 } else {
-                    interaction.reply({ content: "Players are not ready yet! <:WhyNobodyBuy:589481340957753363>", ephemeral: true })
+                    await interaction.update({
+                        content: Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(comm => "<@" + comm + ">").join(" "),
+                        embeds: [raceEmbed({ race, livematch, liverules, userdata })],
+                        components: raceComponents({ race, liverules, livematch })
+                    })
                 }
+            } else if (Object.values(livematch.players).includes(member)) {
+                interaction.reply({ content: "You have not selected a racer yet! <:WhyNobodyBuy:589481340957753363>", ephemeral: true })
+                return
+            } else {
+                interaction.reply({ content: "You are not a player!", ephemeral: true })
+                return
             }
+            // if (Object.values(livematch.commentators).includes(member) || (interaction.guild.id == '441839750555369474' && (Member.roles.cache.some(r => r.id == '862810190072381471')) && !Object.values(livematch.players).includes(member))) {
+            //     if (Object.values(livematch.races[race].ready).filter(r => r == false).length == 1 && !livematch.races[race].ready.commentators) {
+            //         //livematchref.child("races").child(race).child("ready").child("commentators").set((args[2] == "ready" ? true : false))
+            //         await interaction.update({
+            //             content: Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + "\n<a:countdown:672640791369482251> Countdown incoming! Good luck <a:countdown:672640791369482251>",
+            //             embeds: [],
+            //             components: []
+            //         })
+            //         setTimeout(async function () {
+            //             interaction.client.channels.cache.get(interaction.channel.id).messages.fetch(interaction.message.id).then(message => message.delete())
+            //         }, 10000)
+            //         livematchref.child("status").set("midrace")
+            //         countDown(interaction)
+            //         //initiate race
+            //         livematchref.child("races").child(race).child("live").set(true)
+            //         setTimeout(async function () {
+            //             interaction.followUp({ embeds: [raceEmbed({ race, livematch, liverules, userdata })], components: raceComponents({ race, liverules, livematch }) })
+            //         }, 10000)
+            //     } else {
+            //         interaction.reply({ content: "Players are not ready yet! <:WhyNobodyBuy:589481340957753363>", ephemeral: true })
+            //     }
+            // }
 
         } else if (args[2] == 'gents') {
             if (!Object.values(livematch.players).includes(member)) {
@@ -647,6 +666,14 @@ exports.play = async function (args, interaction, database) {
                     interaction.reply({ content: "Race is no longer live. <:WhyNobodyBuy:589481340957753363>", ephemeral: true })
                     return
                 }
+                let submittime = interaction.fields.getTextInputValue('time')
+                if (submittime.toLowerCase() !== 'dnf' && (isNaN(Number(submittime.replace(":", ""))) || timetoSeconds(submittime) == null)) { //time doesn't make sense
+                    const holdUp = new EmbedBuilder()
+                        .setTitle("<:WhyNobodyBuy:589481340957753363> Time Does Not Compute")
+                        .setDescription("Your time was submitted in an incorrect format.")
+                    interaction.reply({ embeds: [holdUp], ephemeral: true })
+                    return
+                }
                 livematchref.child("races").child(race).child("runs").child(member).update(
                     {
                         time: (interaction.fields.getTextInputValue('time').toLowerCase() == 'dnf' ? 'DNF' : timetoSeconds(interaction.fields.getTextInputValue('time')) == null ? "DNF" : timetoSeconds(interaction.fields.getTextInputValue('time').trim())),
@@ -656,7 +683,7 @@ exports.play = async function (args, interaction, database) {
                     }
                 )
                 interaction.update({
-                    content: "",
+                    content: Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length == 0 ? Object.values(livematch.commentators).map(comm => "<@" + comm + ">").join(" ") : "",
                     embeds: [raceEmbed({ race, livematch, liverules, userdata })],
                     components: raceComponents({ race, liverules, livematch })
                 })
@@ -695,171 +722,139 @@ exports.play = async function (args, interaction, database) {
             }
         } else if (args[2] == "verify") {
 
-            if (interaction.type == 5) {
-                async function verify() {
-                    const Member = await Guild.members.fetch(member)
-                    if (Object.values(livematch.commentators).includes(member) || (interaction.guild.id == '441839750555369474' && Member.roles.cache.some(r => r.id == '862810190072381471') && !Object.values(livematch.players).includes(member))) {
-                        interaction.data.components.map(field => {
-                            if (field.components[0].custom_id.includes("time")) {
-                                livematchref.child("races").child(race).child("runs").child(field.components[0].custom_id.replace("time", "")).update({ time: (field.components[0].value.toLowerCase() == 'dnf' ? 'DNF' : tools.timetoSeconds(field.components[0].value)) })
-                            } else if (field.components[0].custom_id.includes("deaths")) {
-                                livematchref.child("races").child(race).child("runs").child(field.components[0].custom_id.replace("deaths", "")).update({ deaths: (field.components[0].value == "" ? "" : Number(field.components[0].value)) })
-                            }
-                        })
-                    }
-                    return
-                }
-                verify().then(async () => {
-                    livematchref.child("races").child(race).child("live").set(false)
-                    await interaction.update({
-                        content: "",
-                        embeds: [raceEmbed({ race, livematch, liverules, userdata })]
-                    })
-                    interaction.followUp({ embeds: [matchSummaryEmbed()] })
+            if (interaction.isModalSubmit()) {
+                Object.keys(livematch.races[race].runs).map(key => {
+                    livematchref.child("races").child(race).child("runs").child(key).update(
+                        {
+                            time: (interaction.fields.getTextInputValue('time' + key).toLowerCase() == 'dnf' ? 'DNF' : timetoSeconds(interaction.fields.getTextInputValue('time' + key))),
+                            deaths: (interaction.fields.getTextInputValue('deaths' + key) == "" ? "" : Number(interaction.fields.getTextInputValue('deaths' + key)))
+                        }
+                    )
+                })
 
-                    //check win condition
-                    let scoreboard = {}
-                    Object.keys(livematch.races).forEach(race => {
-                        let winner = getWinner(race)
-                        if (winner) {
-                            if ([null, undefined, ""].includes(scoreboard[winner])) {
-                                scoreboard[winner] = 1
-                            } else {
-                                scoreboard[winner]++
-                            }
-                        }
-                    })
-                    let wincondition = false
-                    Object.keys(scoreboard).forEach(player => {
-                        if (scoreboard[player] == liverules.general.winlimit) {
-                            //win condition
-                            const winEmbed = new EmbedBuilder()
-                                .setAuthor("Match Concluded")
-                                .setTitle(getUsername(player) + " Wins!")
-                                .setDescription("GGs, racers! The match has been saved.\n<@&970995237952569404> role will be automatically removed in 15 minutes")
-                                .addField(":microphone2: Commentators/Trackers", ":orange_circle: Don't forget to click 'Episode Finished' after the interviews")
-                            interaction.followUp({ embeds: [winEmbed] })
-                            wincondition = true
-                            let everybody = Object.values(livematch.players).concat(Object.values(livematch.commentators))
-                            tourney_matches.push(livematch).then(() => {
-                                livematchref.remove()
-                            })
+                livematchref.child("races").child(race).child("live").set(false)
+                await interaction.update({
+                    content: "",
+                    embeds: [raceEmbed({ race, livematch, liverules, userdata })],
+                    components: []
+                })
+                interaction.followUp({ embeds: [matchSummaryEmbed({ liverules, livematch, userdata })] })
 
-                            if (interaction.guild.id == '441839750555369474') {
-                                setTimeout(async function () {
-                                    everybody.forEach(async function (p) {
-                                        const thisMember = await Guild.members.fetch(p)
-                                        if (thisMember && thisMember.roles.cache.some(r => r.id == '970995237952569404')) {
-                                            thisMember.roles.remove('970995237952569404').catch(console.error)
-                                        }
-                                    })
-                                }, 15 * 60 * 1000)
-                            }
-                            return
-                        }
-                    })
-                    if (!wincondition) {
-                        let nextrace = livematch.current_race + 1
-                        livematchref.child("current_race").set(nextrace)
-                        let race_object = {
-                            ready: { commentators: false },
-                            reveal: {},
-                            runs: {},
-                            live: false,
-                            events: "",
-                            eventstart: 0,
-                            eventend: 0
-                        }
-                        Object.values(livematch.players).map(player => {
-                            race_object.ready[player] = false
-                            race_object.reveal[player] = false
-                            race_object.runs[player] = {
-                                deaths: "",
-                                notes: "",
-                                platform: "pc",
-                                player: "",
-                                pod: "",
-                                time: ""
-                            }
-                        }
-                        )
-                        livematchref.child('races').child(nextrace).update(race_object)
-                        livematchref.child("status").set("events")
-                        //start permabans
-                        if (race == 0 && Object.values(liverules.match.permabans).length > 0) {
-                            interaction.followUp({
-                                content: "<@" + (liverules.match.permabans[0].choice == "firstloser" ? getOpponent({ livematch, player: getWinner(0) }) : getWinner(0)) + "> please select a permanent ban",
-                                embeds: [permabanEmbed(0)],
-                                components: permabanComponents(0)
-                            })
-                        } else { //restart event loop for next race
-                            interaction.followUp({
-                                content: "<@" + (events[0].choice == "lastwinner" ? getWinner(race) : getOpponent({ livematch, player: getWinner(race) })) + "> please make a selection",
-                                embeds: [raceEventEmbed(nextrace)],
-                                components: raceEventComponents(nextrace)
-                            })
+                //check win condition
+                let scoreboard = {}
+                Object.keys(livematch.races).forEach(race => {
+                    let winner = getWinner({ race, livematch })
+                    if (winner) {
+                        if ([null, undefined, ""].includes(scoreboard[winner])) {
+                            scoreboard[winner] = 1
+                        } else {
+                            scoreboard[winner]++
                         }
                     }
                 })
+                let wincondition = false
+                Object.keys(scoreboard).forEach(player => {
+                    if (scoreboard[player] == liverules.general.winlimit) {
+                        //win condition
+                        const winEmbed = new EmbedBuilder()
+                            .setAuthor("Match Concluded")
+                            .setTitle(getUsername({ member: player, userdata }) + " Wins!")
+                            .setDescription("GGs, racers! The match has been saved.\n<@&970995237952569404> role will be automatically removed in 15 minutes")
+                            .addField(":microphone2: Commentators/Trackers", ":orange_circle: Don't forget to click 'Episode Finished' after the interviews")
+                        interaction.followUp({ embeds: [winEmbed] })
+                        wincondition = true
+                        let everybody = Object.values(livematch.players).concat(Object.values(livematch.commentators))
+                        tourney_matches.push(livematch).then(() => {
+                            livematchref.remove()
+                        })
+
+                        if (interaction.guild.id == '441839750555369474') {
+                            setTimeout(async function () {
+                                everybody.forEach(async function (p) {
+                                    const thisMember = await Guild.members.fetch(p)
+                                    if (thisMember && thisMember.roles.cache.some(r => r.id == '970995237952569404')) {
+                                        thisMember.roles.remove('970995237952569404').catch(console.error)
+                                    }
+                                })
+                            }, 15 * 60 * 1000)
+                        }
+                        return
+                    }
+                })
+                if (!wincondition) {
+                    let nextrace = livematch.current_race + 1
+                    livematchref.child("current_race").set(nextrace)
+                    let race_object = {
+                        ready: {},
+                        reveal: {},
+                        runs: {},
+                        live: false,
+                        events: "",
+                        eventstart: 0,
+                        eventend: 0
+                    }
+                    Object.values(livematch.players).map(player => {
+                        race_object.ready[player] = false
+                        race_object.reveal[player] = false
+                        race_object.runs[player] = {
+                            deaths: "",
+                            notes: "",
+                            platform: "pc",
+                            player: "",
+                            pod: "",
+                            time: ""
+                        }
+                    })
+                    livematchref.child('races').child(nextrace).update(race_object)
+                    livematchref.child("status").set("events")
+                    //start permabans
+                    if (race == 0 && Object.values(liverules.match.permabans).length > 0) {
+                        interaction.followUp({
+                            content: "<@" + (liverules.match.permabans[0].choice == "firstloser" ? getOpponent({ livematch, player: getWinner({ race: 0, livematch }) }) : getWinner({ race: 0, livematch })) + "> please select a permanent ban",
+                            embeds: [permabanEmbed({ livematch })],
+                            components: permabanComponents({ permaban: 0, livematch, liverules })
+                        })
+                    } else { //restart event loop for next race
+                        interaction.followUp({
+                            content: "<@" + (events[0].choice == "lastwinner" ? getWinner({ race, livematch }) : getOpponent({ livematch, player: getWinner({ race, livematch }) })) + "> please make a selection",
+                            embeds: [raceEventEmbed({ race: nextrace, livematch, liverules })],
+                            components: raceEventComponents({ race: nextrace, livematch, interaction, liverules })
+                        })
+                    }
+                }
 
 
             } else {
-                async function verify() {
-                    const Member = await Guild.members.fetch(member)
-                    if (Object.values(livematch.commentators).includes(member) || (interaction.guild.id == '441839750555369474' && Member.roles.cache.some(r => r.id == '862810190072381471') && !Object.values(livematch.players).includes(member))) {
-                        let modal = {
-                            data: {
-                                type: 9,
-                                data: {
-                                    custom_id: "tourney_play_race" + race + "_verify",
-                                    title: "Verify Race " + (race + 1) + " Results",
-                                    components: []
-                                }
-                            }
-                        }
-                        Object.keys(livematch.races[race].runs).map(key => {
-                            modal.data.data.components.push(
-                                {
-                                    type: 1,
-                                    components: [
-                                        {
-                                            type: 4,
-                                            custom_id: "time" + key,
-                                            label: ("⏱️ " + getUsername({member: key, userdata}) + "'s Time").substring(0, 45),
-                                            style: 1,
-                                            min_length: 1,
-                                            max_length: 10,
-                                            required: true,
-                                            placeholder: "--:--.---",
-                                            value: (livematch.races[race].runs[key].time.toLowerCase() == "dnf" ? "DNF" : tools.timefix(livematch.races[race].runs[key].time))
-                                        }
-                                    ]
-                                }
-                            )
-                            modal.data.data.components.push(
-                                {
-                                    type: 1,
-                                    components: [
-                                        {
-                                            type: 4,
-                                            custom_id: "deaths" + key,
-                                            label: ("💀 " + getUsername(key) + "'s Deaths").substring(0, 45),
-                                            style: 1,
-                                            min_length: 0,
-                                            max_length: 2,
-                                            required: false,
-                                            value: livematch.races[race].runs[key].deaths
-                                        }
-                                    ]
-                                }
-                            )
-                        })
-                        client.api.interactions(interaction.id, interaction.token).callback.post(modal)
-                    } else {
-                        interaction.reply({ content: "Only commentators/trackers can verify match times. <:WhyNobodyBuy:589481340957753363>", ephemeral: true })
-                    }
+                if (Object.values(livematch.commentators).includes(member) || (interaction.guild.id == '441839750555369474' && Member.roles.cache.some(r => r.id == '862810190072381471') && !Object.values(livematch.players).includes(member))) {
+                    const verifyModal = new ModalBuilder()
+                        .setCustomId("tourney_play_race" + race + "_verify")
+                        .setTitle("Verify Race " + (race + 1) + " Results")
+                    Object.keys(livematch.races[race].runs).map(key => {
+                        let time = new TextInputBuilder()
+                            .setCustomId("time" + key)
+                            .setLabel(("⏱️ " + getUsername({ member: key, userdata }) + "'s Time").substring(0, 45))
+                            .setStyle(TextInputStyle.Short)
+                            .setPlaceholder("--:--.---")
+                            .setMinLength(1)
+                            .setMaxLength(10)
+                            .setRequired(true)
+                            .setValue((livematch.races[race].runs[key].time.toLowerCase() == "dnf" ? "DNF" : timefix(livematch.races[race].runs[key].time)))
+                        let deaths = new TextInputBuilder()
+                            .setCustomId("deaths" + key)
+                            .setLabel(("💀 " + getUsername({ member: key, userdata }) + "'s Deaths").substring(0, 45))
+                            .setStyle(TextInputStyle.Short)
+                            .setMinLength(0)
+                            .setMaxLength(10)
+                            .setRequired(false)
+                            .setValue(livematch.races[race].runs[key].deaths)
+                        let TimeRow = new ActionRowBuilder().addComponents(time)
+                        let DeathRow = new ActionRowBuilder().addComponents(deaths)
+                        verifyModal.addComponents(TimeRow, DeathRow)
+                    })
+                    await interaction.showModal(verifyModal)
+                } else {
+                    interaction.reply({ content: "Only commentators/trackers can verify match times. <:WhyNobodyBuy:589481340957753363>", ephemeral: true })
                 }
-                verify()
             }
         } else if (args[2] == "restart") {
             if (!Object.values(livematch.commentators).includes(member)) {
