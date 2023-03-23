@@ -2,6 +2,7 @@ const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, StringSelect
 const { methods, trackgroups, firsts, condition_names } = require('./data.js')
 const { racers, tracks, planets, circuits, difficulties } = require('../../data.js')
 const { avgSpeed, upgradeCooling, upgradeTopSpeed, timefix, capitalize } = require('../../tools.js')
+const { postMessage } = require('../../discord_message.js');
 
 exports.initializeMatch = function (livematchref) {
     let match = {
@@ -24,7 +25,7 @@ exports.countDown = function (interaction) {
     //postMessage(Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + "\n<a:countdown:672640791369482251> Countdown incoming! Good luck <a:countdown:672640791369482251>", [], [])
     for (let i = 0; i <= 5; i++) {
         setTimeout(async function () {
-            interaction.followUp({
+            postMessage(interaction.client, interaction.channel.id, {
                 content: String((i == 5 ? "GO!" : (5 - i)))
             })
         }, 3000 + i * 1000)
@@ -241,6 +242,7 @@ exports.matchSummaryEmbed = function ({ liverules, livematch, userdata } = {}) {
     const embed = new EmbedBuilder()
         .setAuthor({ name: 'Match Summary' })
         .setColor("#FFFFFF")
+        .setDescription('First to ' + liverules.general.winlimit + ' wins.')
         .setTitle(
             leader.player == "tie" ?
                 "Tied Match " + leader.wins + " to " + leader.wins :
@@ -274,19 +276,19 @@ exports.raceEventEmbed = function ({ race, livematch, liverules } = {}) {
         .setAuthor({ name: "Race " + (race + 1) + " - Ban Phase" })
         .setColor("#FAA81A")
     let desc = "" + ([undefined, null, ""].includes(events) ? "" :
-    Object.values(events).map(e =>
-        "<@" + e.player + "> " + actions[e.event] + " a " + e.type + ": **" + (e.type == "track" ?
-            (e.repeat ? "🔁" : planets[tracks[e.selection].planet].emoji) + " " + tracks[e.selection].name :
-            e.type == "racer" ?
-                Array.isArray(e.selection) ?
-                    e.selection.map(racer => racers[racer].flag + " " + racers[racer].name).join(", ") :
-                    racers[e.selection].flag + " " + racers[e.selection].name :
-                condition_names[e.selection]) + "**" + ([null, undefined, "", 0].includes(e.cost) ? "" : " for " + e.cost + "💠 forcepoint" + (e.cost == 1 ? "" : "s"))
-    ).join("\n"))
-    if(desc){
+        Object.values(events).map(e =>
+            "<@" + e.player + "> " + actions[e.event] + " a " + e.type + ": **" + (e.type == "track" ?
+                (e.repeat ? "🔁" : planets[tracks[e.selection].planet].emoji) + " " + tracks[e.selection].name :
+                e.type == "racer" ?
+                    Array.isArray(e.selection) ?
+                        e.selection.map(racer => racers[racer].flag + " " + racers[racer].name).join(", ") :
+                        racers[e.selection].flag + " " + racers[e.selection].name :
+                    condition_names[e.selection]) + "**" + ([null, undefined, "", 0].includes(e.cost) ? "" : " for " + e.cost + "💠 forcepoint" + (e.cost == 1 ? "" : "s"))
+        ).join("\n"))
+    if (desc) {
         embed.setDescription(desc)
     }
-        
+
 
     let summary = {}
     Object.values(livematch.players).forEach(player => {
@@ -400,7 +402,6 @@ exports.raceEventComponents = function ({ race, livematch, interaction, liverule
         let default_stuff = []
         //get defaults
         interaction.message.components.forEach(component => {
-            console.log(component.components[0].data)
             let this_args = component.components[0].data.custom_id.split("_")
             if (this_args.length > 3) {
                 if (Number(this_args[3].replace("event", "")) == i) {
@@ -408,7 +409,6 @@ exports.raceEventComponents = function ({ race, livematch, interaction, liverule
                 }
             }
         })
-        console.log(interaction)
         let this_args = interaction.customId.split("_")
         if (this_args.length > 3) {
             if (interaction.values && Number(this_args[3].replace("event", "")) == i) {
@@ -513,7 +513,7 @@ exports.raceEventComponents = function ({ race, livematch, interaction, liverule
                     } else if (event.event !== 'selection' && already_played[i] && saltmap[liverules.match.repeattrack.condition] <= already_played[i].played && already_played[i].loser == exports.getOpponent({ livematch, player }) && exports.getRunbacks({ player: exports.getOpponent({ livematch, player }), livematch, liverules }) > 0) { //not selecting the track but opponent could still runback
                         option.description = "Already played but your opponent could run it back"
                         options.push(option)
-                    } else if (event.event == 'selection' && already_played[i] && saltmap[liverules.match.repeattrack.condition] <= already_played[i].played && already_played[i].loser == player && exports.getRunbacks({player, livematch, liverules}) > 0) { //selecting the track and it can be runback
+                    } else if (event.event == 'selection' && already_played[i] && saltmap[liverules.match.repeattrack.condition] <= already_played[i].played && already_played[i].loser == player && exports.getRunbacks({ player, livematch, liverules }) > 0) { //selecting the track and it can be runback
                         option.emoji = {
                             name: "🔁"
                         }
@@ -634,7 +634,7 @@ exports.setupComponents = function ({ livematch, tourney_rulesets_data, tourney_
         value: "practice",
         emoji: { name: "🚩" }
     })
-    Object.keys(tourney_tournaments_data).forEach(key => {
+    Object.keys(tourney_tournaments_data).sort((a, b) => tourney_tournaments_data[a].startdate - tourney_tournaments_data[b].startdate).forEach(key => {
         tourney_selector.addOptions(
             {
                 label: tourney_tournaments_data[key]?.name,
@@ -789,7 +789,7 @@ exports.raceComponents = function ({ race, liverules, livematch }) {
             new ButtonBuilder()
                 .setCustomId("tourney_play_race" + race + "_gents_false")
                 .setLabel("Deny")
-                .setStyle(ButtonStyle.Success)
+                .setStyle(ButtonStyle.Danger)
         )
         return [ButtonRow]
     }
@@ -1160,6 +1160,17 @@ exports.matchMakerEmbed = function ({ livematch, tourney_tournaments_data, tourn
         .setColor("#3BA55D")
 
     return matchmaker
+}
+
+exports.profileComponents = function () {
+    const ButtonRow = new ActionRowBuilder()
+    ButtonRow.addComponents(
+        new ButtonBuilder()
+            .setCustomId("tourney_play_profile")
+            .setLabel("Update Profile")
+            .setStyle(ButtonStyle.Secondary)
+    )
+    return [ButtonRow]
 }
 
 exports.reminderEmbed = function () {

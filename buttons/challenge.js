@@ -1634,7 +1634,7 @@ module.exports = {
                             non_3_lap: profile.settings.non_3_lap,
                             skips: profile.settings.skips,
                             mirror_mode: profile.settings.mirror_mode,
-                            backwards: profile.settings.backwards ?? 5,
+                            backwards:  profile.settings.backwards ?? 5,
                             predictions: profile.settings.predictions ?? true
                         },
                         challenge: interaction.message.id

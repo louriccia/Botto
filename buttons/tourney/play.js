@@ -1,6 +1,6 @@
 const Discord = require('discord.js');
 const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } = require('discord.js');
-const { initializeMatch, adminEmbed, setupEmbed, setupComponents, adminComponents, matchMakerEmbed, colorEmbed, getUsername, rulesetOverviewEmbed, reminderEmbed, firstEmbed, firstComponents, firstbanComponents, colorComponents, firstbanEmbed, getOpponent, raceEmbed, raceComponents, countDown, getWinner, matchSummaryEmbed, permabanEmbed, permabanComponents, raceEventEmbed, raceEventComponents } = require('./functions.js')
+const { initializeMatch, adminEmbed, setupEmbed, setupComponents, adminComponents, matchMakerEmbed, colorEmbed, getUsername, rulesetOverviewEmbed, reminderEmbed, firstEmbed, firstComponents, firstbanComponents, colorComponents, firstbanEmbed, getOpponent, raceEmbed, raceComponents, countDown, getWinner, matchSummaryEmbed, permabanEmbed, permabanComponents, raceEventEmbed, raceEventComponents, profileComponents } = require('./functions.js')
 const { initializeUser } = require('../challenge/functions.js');
 const { planets, tracks } = require('../../data.js')
 const { trackgroups } = require('./data.js')
@@ -52,7 +52,7 @@ exports.play = async function (args, interaction, database) {
     } else if (interaction.isChatInputCommand()) {
         args[1] = 'admin'
         type = 4
-        interaction.reply({ embeds: [adminEmbed({ livematch, tourney_tournaments_data, userdata })], components: adminComponents({ livematch, liverules }) })
+        interaction.reply({ embeds: [adminEmbed({ livematch, tourney_tournaments_data, userdata })], components: adminComponents({ livematch, liverules }), ephemeral: true })
         return
     }
 
@@ -67,8 +67,55 @@ exports.play = async function (args, interaction, database) {
     if (!player) {
         player = initializeUser(userref, member)
     }
+    if (args[1] == 'profile') {
+        if (interaction.isModalSubmit()) {
+            //parse inputs
+            let submittime = interaction.fields.getTextInputValue('time')
 
-    if (args[1] == 'admin') {
+            livematchref.child("races").child(race).child("runs").child(member).update(
+                {
+                    time: (interaction.fields.getTextInputValue('time').toLowerCase() == 'dnf' ? 'DNF' : timetoSeconds(interaction.fields.getTextInputValue('time')) == null ? "DNF" : timetoSeconds(interaction.fields.getTextInputValue('time').trim())),
+                    deaths: interaction.fields.getTextInputValue('deaths').trim(),
+                    notes: interaction.fields.getTextInputValue('notes').trim(),
+                    player: member
+                }
+            )
+            interaction.update({ embeds: [matchMakerEmbed({ livematch, tourney_tournaments_data, tourney_rulesets_data, userdata })], components: profileComponents() })
+        } else {
+            const submitModal = new ModalBuilder()
+                .setCustomId("tourney_play_race" + race + "_submit")
+                .setTitle("Submit Race " + (race + 1) + " Results")
+            const Time = new TextInputBuilder()
+                .setCustomId("time")
+                .setLabel("⏱️ Time (write 'dnf' if forfeited)")
+                .setStyle(TextInputStyle.Short)
+                .setMinLength(0)
+                .setMaxLength(10)
+                .setRequired(true)
+                .setValue((String(livematch.races[race].runs[member]?.time).toLowerCase() == 'dnf' ? 'DNF' : (livematch.races[race].runs[member].time == "" ? "" : timefix(livematch.races[race].runs[member].time))))
+            const Deaths = new TextInputBuilder()
+                .setCustomId("deaths")
+                .setLabel("💀 Deaths (leave blank if unsure)")
+                .setStyle(TextInputStyle.Short)
+                .setMinLength(0)
+                .setMaxLength(2)
+                .setRequired(false)
+                .setValue(livematch.races[race].runs[member].deaths)
+            const Notes = new TextInputBuilder()
+                .setCustomId("notes")
+                .setLabel("📝 Notes")
+                .setStyle(TextInputStyle.Short)
+                .setMaxLength(100)
+                .setRequired(false)
+                .setValue(livematch.races[race].runs[member].notes)
+            const ActionRow1 = new ActionRowBuilder().addComponents(Time)
+            const ActionRow2 = new ActionRowBuilder().addComponents(Deaths)
+            const ActionRow3 = new ActionRowBuilder().addComponents(Notes)
+            submitModal.addComponents(ActionRow1, ActionRow2, ActionRow3)
+            await interaction.showModal(submitModal)
+        }
+
+    } else if (args[1] == 'admin') {
         let status = interaction.values[0]
         if (Object.values(livematch.commentators).includes(member) || (interaction.guild.id == '441839750555369474' && (Member.roles.cache.some(r => r.id == '862810190072381471')) && !Object.values(livematch.players).includes(member))) {
             let race = livematch.current_race
@@ -217,7 +264,8 @@ exports.play = async function (args, interaction, database) {
         if (![null, undefined, ""].includes(livematch.datetime)) {
             livematchref.child('datetime').set(Date.now())
         }
-        await interaction.update({ embeds: [rulesetOverviewEmbed({ tourney_rulesets_data, livematch }), reminderEmbed(), matchMakerEmbed({ livematch, tourney_tournaments_data, tourney_rulesets_data, userdata })], components: [] })
+        await interaction.update({ embeds: [rulesetOverviewEmbed({ tourney_rulesets_data, livematch }), reminderEmbed()], components: [] })
+        await interaction.followUp({ embeds: [matchMakerEmbed({ livematch, tourney_tournaments_data, tourney_rulesets_data, userdata })], components: profileComponents() })
         interaction.followUp({ content: Object.values(livematch.players).map(player => "<@" + player + ">").join(", "), embeds: [firstEmbed(livematch)], components: firstComponents({ liverules, livematch }) })
         livematchref.child("status").set("first")
     } else if (args[1] == "first") {
@@ -698,7 +746,7 @@ exports.play = async function (args, interaction, database) {
                     .setMinLength(0)
                     .setMaxLength(10)
                     .setRequired(true)
-                    .setValue((String(livematch.races[race].runs[member]?.time).toLowerCase() == 'dnf' ? 'DNF' : (livematch.races[race].runs[member].time == "" ? "" : tools.timefix(livematch.races[race].runs[member].time))))
+                    .setValue((String(livematch.races[race].runs[member]?.time).toLowerCase() == 'dnf' ? 'DNF' : (livematch.races[race].runs[member].time == "" ? "" : timefix(livematch.races[race].runs[member].time))))
                 const Deaths = new TextInputBuilder()
                     .setCustomId("deaths")
                     .setLabel("💀 Deaths (leave blank if unsure)")
@@ -756,17 +804,16 @@ exports.play = async function (args, interaction, database) {
                 Object.keys(scoreboard).forEach(player => {
                     if (scoreboard[player] == liverules.general.winlimit) {
                         //win condition
+                        const postRef = database.ref('tourney/matches').push(livematch)
                         const winEmbed = new EmbedBuilder()
-                            .setAuthor("Match Concluded")
+                            .setAuthor({ name: "Match Concluded" })
                             .setTitle(getUsername({ member: player, userdata }) + " Wins!")
-                            .setDescription("GGs, racers! The match has been saved.\n<@&970995237952569404> role will be automatically removed in 15 minutes")
-                            .addField(":microphone2: Commentators/Trackers", ":orange_circle: Don't forget to click 'Episode Finished' after the interviews")
+                            .setDescription("GGs, racers! The match has been saved.\nCheck out the full match summary [here](https://botto-efbfd.web.app/tournaments/matches/" + postRef.key + ")\n<@&970995237952569404> role will be automatically removed in 15 minutes")
+                            .addFields({ name: ":microphone2: Commentators/Trackers", value: ":orange_circle: Don't forget to click 'Episode Finished' after the interviews" })
                         interaction.followUp({ embeds: [winEmbed] })
                         wincondition = true
                         let everybody = Object.values(livematch.players).concat(Object.values(livematch.commentators))
-                        tourney_matches.push(livematch).then(() => {
-                            livematchref.remove()
-                        })
+                        livematchref.remove()
 
                         if (interaction.guild.id == '441839750555369474') {
                             setTimeout(async function () {
