@@ -1,8 +1,8 @@
 const fs = require('fs');
 const Discord = require('discord.js');
-//const { Client, Events, GatewayIntentBits } = require('discord.js')
+const { Client, Events, GatewayIntentBits } = require('discord.js')
 var moment = require('moment');
-const { prefix, token, firebaseCon } = require('./config.json');
+//const { prefix, token, firebaseCon } = require('./config.json');
 const { welcomeMessages } = require('./data.js')
 const client = new Client({
     intents: [
