@@ -244,7 +244,7 @@ exports.matchSummaryEmbed = function ({ liverules, livematch, userdata } = {}) {
         .setTitle(
             leader.player == "tie" ?
                 "Tied Match " + leader.wins + " to " + leader.wins :
-                exports.getUsername({ member: leader.player, userdata }) + " leads " + leader.wins + " to " + summary[exports.getOpponent({ livematch, player: livematch.player })].wins + (leader.wins == liverules.general.winlimit - 1 ? " (Match Point)" : ""))
+                exports.getUsername({ member: leader.player, userdata }) + " leads " + leader.wins + " to " + summary[exports.getOpponent({ livematch, player: leader.player })].wins + (leader.wins == liverules.general.winlimit - 1 ? " (Match Point)" : ""))
     Object.values(livematch.players).forEach(player => embed.addFields({
         name: (leader.player == player ? "👑 " : "") + exports.getUsername({ member: player, userdata }) + " - " + summary[player].wins,
         value: '💠 ' + summary[player].forcepoints +
