@@ -142,7 +142,7 @@ exports.raceEmbed = function ({ race, livematch, liverules, userdata } = {}) {
             if (![null, undefined, ""].includes(livematch.races[race].runs) && Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length == 0) {
                 let winner = exports.getWinner({ race, livematch })
                 Object.values(livematch.players).map(player => embed.addFields({
-                    name: (player == winner ? "👑 " : "") + exports.getUsername({ member: player, userdata }),
+                    name: exports.getUsername({ member: player, userdata }) + (player == winner ? " 👑" : ""),
                     value: racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name + "\n" +
                         "⏱️ " + (livematch.races[race].runs[player].time.toLowerCase() == 'dnf' ? 'DNF' : (player == winner ? "__" : "") + timefix(livematch.races[race].runs[player].time) + (player == winner ? "__" : "")) + "\n" +
                         "💀 " + (livematch.races[race].runs[player].deaths == "" ? "--" : Number(livematch.races[race].runs[player].deaths)) + "\n" +
@@ -248,7 +248,7 @@ exports.matchSummaryEmbed = function ({ liverules, livematch, userdata } = {}) {
                 "Tied Match " + leader.wins + " to " + leader.wins :
                 exports.getUsername({ member: leader.player, userdata }) + " leads " + leader.wins + " to " + summary[exports.getOpponent({ livematch, player: leader.player })].wins + (leader.wins == liverules.general.winlimit - 1 ? " (Match Point)" : ""))
     Object.values(livematch.players).forEach(player => embed.addFields({
-        name: (leader.player == player ? "👑 " : "") + exports.getUsername({ member: player, userdata }) + " - " + summary[player].wins,
+        name: exports.getUsername({ member: player, userdata }) + " - " + summary[player].wins + (leader.player == player ? " 👑" : ""),
         value: '💠 ' + summary[player].forcepoints +
             (liverules.match.repeattrack ? '\n🔁 ' + summary[player].runbacks : "") +
             '\n⏱️ ' + timefix(summary[player].time) + (summary[player].timetrue ? "" : "+") + " (total)" +
@@ -1034,7 +1034,7 @@ exports.getUsername = function ({ member, userdata } = {}) {
     let name = "N/A"
     Object.values(userdata).forEach(user => {
         if (user.discordID == member) {
-            name = user.name
+            name = (user.country ? ":flag_" + user.country + ": " : "") + user.name + (user.pronouns ? " (" + exports.joinPronouns(user.pronouns) + ")": "")
             return
         }
     })
@@ -1158,8 +1158,26 @@ exports.matchMakerEmbed = function ({ livematch, tourney_tournaments_data, tourn
             "📺 " + livematch.stream
         )
         .setColor("#3BA55D")
+    Object.keys(livematch.players).forEach(p => {
+        matchmaker.addFields({
+            name: (userdata[p].country ? ":flag_" + userdata[p].country + ": " : "") + userdata[p].name + (userdata[p].pronouns ? " (" + exports.joinPronouns(userdata[p].pronouns) + ")" : ""),
+            value: (userdata[p].platform ? "`" + userdata[p].platform + "`" : "No platform set") + " - " + (userdata[p].input ? "`" + userdata[p].input + "`" : 'No input set') + "\n" + ("*" + userdata[p].bio + "*" ?? "")
+        })
+    })
 
     return matchmaker
+}
+
+exports.joinPronouns = function (pronouns) {
+    if (Array.isArray(pronouns)) {
+        if (pronouns.length > 1) {
+            return pronouns.map(p => p.split("/")[0]).join("/")
+        } else {
+            return pronouns[0]
+        }
+    } else {
+        return pronouns
+    }
 }
 
 exports.profileComponents = function () {

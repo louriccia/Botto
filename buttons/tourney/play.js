@@ -65,53 +65,99 @@ exports.play = async function (args, interaction, database) {
         }
     })
     if (!player) {
-        player = initializeUser(userref, member)
+        player = initializeUser(userref, member, name)
     }
+    console.log(player)
     if (args[1] == 'profile') {
         if (interaction.isModalSubmit()) {
             //parse inputs
-            let submittime = interaction.fields.getTextInputValue('time')
+            let bio = interaction.fields.getTextInputValue('bio')
+            let flag = interaction.fields.getTextInputValue('flag').toLowerCase()
+            let pronouns = interaction.fields.getTextInputValue('pronouns').toLowerCase().split("/")
+            let platform = interaction.fields.getTextInputValue('platform')
+            let input = interaction.fields.getTextInputValue('input')
 
-            livematchref.child("races").child(race).child("runs").child(member).update(
-                {
-                    time: (interaction.fields.getTextInputValue('time').toLowerCase() == 'dnf' ? 'DNF' : timetoSeconds(interaction.fields.getTextInputValue('time')) == null ? "DNF" : timetoSeconds(interaction.fields.getTextInputValue('time').trim())),
-                    deaths: interaction.fields.getTextInputValue('deaths').trim(),
-                    notes: interaction.fields.getTextInputValue('notes').trim(),
-                    player: member
+            let pronouns_set = []
+            console.log(pronouns)
+            pronouns.forEach(p => {
+                let pronoun = p.toLowerCase().replaceAll(",", "").trim()
+                if (pronoun.includes('they') || pronoun.includes('them') || pronoun.includes('their')) {
+                    if (!pronouns_set.includes('They/Them')) {
+                        pronouns_set.push('They/Them')
+                    }
+                } else if (pronoun.includes('she') || pronoun.includes('her') || pronoun.includes('hers')) {
+                    if (!pronouns_set.includes('She/Her')) {
+                        pronouns_set.push('She/Her')
+                    }
+                } else if (pronoun.includes('he') || pronoun.includes('him') || pronoun.includes('his')) {
+                    if (!pronouns_set.includes('He/Him')) {
+                        pronouns_set.push('He/Him')
+                    }
+
                 }
-            )
+            })
+
+            userref.child(player).update(
+                {
+                    bio,
+                    country: flag,
+                    pronouns: pronouns_set,
+                    platform,
+                    input
+                })
             interaction.update({ embeds: [matchMakerEmbed({ livematch, tourney_tournaments_data, tourney_rulesets_data, userdata })], components: profileComponents() })
         } else {
             const submitModal = new ModalBuilder()
-                .setCustomId("tourney_play_race" + race + "_submit")
-                .setTitle("Submit Race " + (race + 1) + " Results")
-            const Time = new TextInputBuilder()
-                .setCustomId("time")
-                .setLabel("⏱️ Time (write 'dnf' if forfeited)")
+                .setCustomId("tourney_play_profile")
+                .setTitle("Update Profile Info")
+            //.setValue()
+            const Flag = new TextInputBuilder()
+                .setCustomId("flag")
+                .setLabel("Country Code")
                 .setStyle(TextInputStyle.Short)
-                .setMinLength(0)
-                .setMaxLength(10)
-                .setRequired(true)
-                .setValue((String(livematch.races[race].runs[member]?.time).toLowerCase() == 'dnf' ? 'DNF' : (livematch.races[race].runs[member].time == "" ? "" : timefix(livematch.races[race].runs[member].time))))
-            const Deaths = new TextInputBuilder()
-                .setCustomId("deaths")
-                .setLabel("💀 Deaths (leave blank if unsure)")
-                .setStyle(TextInputStyle.Short)
-                .setMinLength(0)
+                .setPlaceholder('two letter code')
                 .setMaxLength(2)
                 .setRequired(false)
-                .setValue(livematch.races[race].runs[member].deaths)
-            const Notes = new TextInputBuilder()
-                .setCustomId("notes")
-                .setLabel("📝 Notes")
+            if (userdata[player].country) {
+                Flag.setValue(userdata[player].country)
+            }
+            console.log(userdata[player].country)
+            const Pronouns = new TextInputBuilder()
+                .setCustomId("pronouns")
+                .setLabel("Pronouns")
+                .setPlaceholder('he/she/they')
                 .setStyle(TextInputStyle.Short)
-                .setMaxLength(100)
                 .setRequired(false)
-                .setValue(livematch.races[race].runs[member].notes)
-            const ActionRow1 = new ActionRowBuilder().addComponents(Time)
-            const ActionRow2 = new ActionRowBuilder().addComponents(Deaths)
-            const ActionRow3 = new ActionRowBuilder().addComponents(Notes)
-            submitModal.addComponents(ActionRow1, ActionRow2, ActionRow3)
+            if (userdata[player].pronouns) {
+                Pronouns.setValue(Object.values(userdata[player].pronouns).join(", "))
+            }
+            const Platform = new TextInputBuilder()
+                .setCustomId("platform")
+                .setLabel("Platform")
+                .setPlaceholder('pc/switch/ps4/xbox')
+                .setStyle(TextInputStyle.Short)
+                .setRequired(false)
+                .setValue(userdata[player].platform ?? "")
+            const Input = new TextInputBuilder()
+                .setCustomId("input")
+                .setLabel("Input Method")
+                .setPlaceholder('keyboard/xbox controller')
+                .setStyle(TextInputStyle.Short)
+                .setRequired(false)
+                .setValue(userdata[player].input ?? "")
+            const Bio = new TextInputBuilder()
+                .setCustomId("bio")
+                .setLabel("Bio")
+                .setStyle(TextInputStyle.Paragraph)
+                .setPlaceholder('Just who is this mysterious podracer?')
+                .setRequired(false)
+                .setValue(userdata[player].bio ?? "")
+            const ActionRow1 = new ActionRowBuilder().addComponents(Bio)
+            const ActionRow2 = new ActionRowBuilder().addComponents(Flag)
+            const ActionRow3 = new ActionRowBuilder().addComponents(Pronouns)
+            const ActionRow4 = new ActionRowBuilder().addComponents(Platform)
+            const ActionRow5 = new ActionRowBuilder().addComponents(Input)
+            submitModal.addComponents(ActionRow1, ActionRow2, ActionRow3, ActionRow4, ActionRow5)
             await interaction.showModal(submitModal)
         }
 
@@ -225,7 +271,7 @@ exports.play = async function (args, interaction, database) {
             livematchref.update({ ruleset: interaction.values[0] })
         } else if (args[2] == "player") {
             if (!livematch.players || (livematch.players && !Object.values(livematch.players).includes(member))) {
-                livematchref.child("players").push(member)
+                livematchref.child("players").child(player).set(member)
             }
         } else if (args[2] == "comm") {
             if (!livematch.commentators || (livematch.commentators && !Object.values(livematch.commentators).includes(member))) {

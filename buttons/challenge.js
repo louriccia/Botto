@@ -66,7 +66,7 @@ module.exports = {
             }
         })
         if (!player) {
-            player = initializeUser(userref, member)
+            player = initializeUser(userref, member, name)
         }
         //initialize player if they don't exist
         let profile = userdata[player]?.random

@@ -162,9 +162,10 @@ exports.initializePlayer = function (ref, name) {
     return data
 }
 
-exports.initializeUser = function (ref, id) {
+exports.initializeUser = function (ref, id, name) {
     let data = {
-        discordID: id
+        discordID: id,
+        name: name
     }
     const push = ref.push(data)
     return push.key
