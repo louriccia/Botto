@@ -616,6 +616,24 @@ exports.play = async function (args, interaction, database) {
                             components: raceComponents({ race, liverules, livematch })
                         })
                         livematchref.child("status").set("prerace")
+                        //autocountdown
+                        setTimeout(async function () {
+                            await interaction.update({
+                                content: Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + "\n<a:countdown:672640791369482251> Countdown incoming! Good luck <a:countdown:672640791369482251>",
+                                embeds: [],
+                                components: []
+                            })
+                            setTimeout(async function () {
+                                interaction.client.channels.cache.get(interaction.channel.id).messages.fetch(interaction.message.id).then(message => message.delete())
+                            }, 10000)
+                            livematchref.child("status").set("midrace")
+                            countDown(interaction)
+                            //initiate race
+                            livematchref.child("races").child(race).child("live").set(true)
+                            setTimeout(async function () {
+                                interaction.followUp({ embeds: [raceEmbed({ race, livematch, liverules, userdata })], components: raceComponents({ race, liverules, livematch }) })
+                            }, 10000)
+                        }, 2 * 60 * 1000)
                     } else {
                         livematchref.child("races").child(race).update({ eventstart: eventend + 1, eventend: eventend + 1 + streak })
                         interaction.update({
