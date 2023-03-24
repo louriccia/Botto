@@ -174,7 +174,7 @@ exports.play = async function (args, interaction, database) {
             if (status == 'first') {
                 livematchref.update({ races: "", firstbans: "", firstvote: "", eventstart: 0, eventend: 0, runs: "", firstcolors: "" })
                 //livematchref.child('races').child(livematch.current_race).child('ready').child('commentators').set(false)
-                interaction.update({ content: Object.values(livematch.players).map(player => "<@" + player + ">").join(", "), embeds: [firstEmbed(livematch)], components: firstComponents({ liverules, livematch }) })
+                interaction.reply({ content: Object.values(livematch.players).map(player => "<@" + player + ">").join(", "), embeds: [firstEmbed(livematch)], components: firstComponents({ liverules, livematch }) })
                 livematchref.child("status").set("first")
             } else if (status == 'permaban') {
                 livematchref.child('races').child('1').update({ events: "", eventstart: 0, eventend: 0, live: false })
@@ -192,13 +192,13 @@ exports.play = async function (args, interaction, database) {
                         time: ""
                     })
                 })
-                interaction.update({ content: "<@" + (liverules.match.permabans[0].choice == "firstloser" ? getOpponent({ livematch, player: getWinner({ race: 0, livematch }) }) : getWinner({ race: 0, livematch })) + "> please select a permanent ban", embed: [permabanEmbed({ livematch })], components: permabanComponents({ permaban: 0, livematch, liverules }) })
+                interaction.reply({ content: "<@" + (liverules.match.permabans[0].choice == "firstloser" ? getOpponent({ livematch, player: getWinner({ race: 0, livematch }) }) : getWinner({ race: 0, livematch })) + "> please select a permanent ban", embed: [permabanEmbed({ livematch })], components: permabanComponents({ permaban: 0, livematch, liverules }) })
             } else if (status == 'prevrace') {
                 let current_race = livematch.current_race
                 livematchref.child('races').child(livematch.current_race).remove()
                 livematchref.child('current_race').set(current_race - 1)
                 livematchref.child('races').child(current_race - 1).child('live').set(true)
-                interaction.update(
+                interaction.reply(
                     {
                         content: Object.values(livematch.players).filter(player => !livematch.races[current_race - 1]?.ready[player]).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(comm => "<@" + comm + ">").join(" "),
                         embeds: [raceEmbed({ race: current_race - 1, livematch, liverules, userdata })],
@@ -221,13 +221,13 @@ exports.play = async function (args, interaction, database) {
                     })
                 })
                 if (livematch.current_race == 1 && Object.values(liverules.match.permabans).length > 0) {
-                    interaction.update({
+                    interaction.reply({
                         content: "<@" + (liverules.match.permabans[0].choice == "firstloser" ? getOpponent({ livematch, player: getWinner({ race: 0, livematch }) }) : getWinner({ race: 0, livematch })) + "> please select a permanent ban",
                         embeds: [permabanEmbed({ livematch })],
                         components: permabanComponents({ permaban: 0, livematch, liverules })
                     })
                 } else {
-                    interaction.update({
+                    interaction.reply({
                         content: "<@" + (events[0].choice == "lastwinner" ? getWinner(race - 1) : getOpponent({ livematch, player: getWinner({ race: race - 1, livematch }) })) + "> please make a selection",
                         embeds: [raceEventEmbed({ race, livematch, liverules })],
                         components: raceEventComponents({ race, livematch, interaction, liverules })
@@ -248,7 +248,7 @@ exports.play = async function (args, interaction, database) {
                         time: ""
                     })
                 })
-                interaction.update({ content: Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), embeds: [raceEmbed({ race, livematch, liverules, userdata })], components: raceComponents({ race, liverules, livematch }) })
+                interaction.reply({ content: Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), embeds: [raceEmbed({ race, livematch, liverules, userdata })], components: raceComponents({ race, liverules, livematch }) })
             } else if (status == 'delete') {
                 livematchref.remove()
                 interaction.reply({ content: "Match was cancelled" })
@@ -609,31 +609,46 @@ exports.play = async function (args, interaction, database) {
                         }
                     }
                     if (eventend + 1 == events.length) {
+                        let countdown = 2 * 60 * 1000 + (Object.values(livematch.races[race].events).map(e => e.selection).includes('sk') ? 1000 * 60 : 0)
+                        console.log('countdown: ' + countdown)
+                        livematchref.child('races').child(race).child('countdown').set(Math.round((Date.now() + countdown) / 1000))
                         await interaction.update({ content: "", embeds: [raceEventEmbed({ race, livematch, liverules })], components: [] })
-                        interaction.followUp({
+                        let rE = await interaction.followUp({
                             content: Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "),
                             embeds: [raceEmbed({ race, livematch, liverules, userdata })],
-                            components: raceComponents({ race, liverules, livematch })
+                            components: raceComponents({ race, liverules, livematch }),
+                            fetchReply: true
                         })
                         livematchref.child("status").set("prerace")
+                        Object.values(livematch.players).forEach(player => {
+                            livematchref.child('races').child(race).child('ready').child(player).set(true)
+                        })
+
                         //autocountdown
                         setTimeout(async function () {
-                            await interaction.update({
-                                content: Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + "\n<a:countdown:672640791369482251> Countdown incoming! Good luck <a:countdown:672640791369482251>",
-                                embeds: [],
-                                components: []
-                            })
-                            setTimeout(async function () {
-                                interaction.client.channels.cache.get(interaction.channel.id).messages.fetch(interaction.message.id).then(message => message.delete())
-                            }, 10000)
-                            livematchref.child("status").set("midrace")
-                            countDown(interaction)
-                            //initiate race
-                            livematchref.child("races").child(race).child("live").set(true)
-                            setTimeout(async function () {
-                                interaction.followUp({ embeds: [raceEmbed({ race, livematch, liverules, userdata })], components: raceComponents({ race, liverules, livematch }) })
-                            }, 10000)
-                        }, 2 * 60 * 1000)
+                            if (livematch.races[race].countdown) {
+                                console.log('autocountdown')
+                                interaction.client.channels.cache.get(interaction.channel.id).messages.fetch(rE.id).then(message => message.delete())
+                                let cD = await interaction.followUp({
+                                    content: Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + "\n<a:countdown:672640791369482251> Countdown incoming! Good luck <a:countdown:672640791369482251>",
+                                    embeds: [],
+                                    components: [],
+                                    fetchReply: true
+                                })
+                                setTimeout(async function () {
+
+                                    interaction.client.channels.cache.get(interaction.channel.id).messages.fetch(cD.id).then(message => message.delete())
+                                }, 10000)
+                                livematchref.child("status").set("midrace")
+                                countDown(interaction)
+                                //initiate race
+                                await livematchref.child("races").child(race).child("live").set(true)
+                                await livematchref.child("races").child(race).child("countdown").remove()
+                                setTimeout(async function () {
+                                    interaction.followUp({ embeds: [raceEmbed({ race, livematch, liverules, userdata })], components: raceComponents({ race, liverules, livematch }) })
+                                }, 10000)
+                            }
+                        }, countdown)
                     } else {
                         livematchref.child("races").child(race).update({ eventstart: eventend + 1, eventend: eventend + 1 + streak })
                         interaction.update({
@@ -648,7 +663,20 @@ exports.play = async function (args, interaction, database) {
                 interaction.reply({ content: "It's not your turn! <:WhyNobodyBuy:589481340957753363>", ephemeral: true })
             }
 
-
+        } else if (args[2] == 'abort') {
+            if (!Object.values(livematch.players).includes(member) && !Object.values(livematch.commentators).includes(member)) {
+                interaction.reply({ content: "You are not a player or commentator!", ephemeral: true })
+                return
+            }
+            Object.values(livematch.players).forEach(player => {
+                livematchref.child('races').child(race).child('ready').child(player).set(false)
+            })
+            await livematchref.child('races').child(race).child('countdown').remove()
+            interaction.update({
+                content: Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(comm => "<@" + comm + ">").join(" "),
+                embeds: [raceEmbed({ race, livematch, liverules, userdata })],
+                components: raceComponents({ race, liverules, livematch })
+            })
         } else if (["ready", "unready"].includes(args[2])) {
             if (Object.values(livematch.players).includes(member) && ![undefined, null, ""].includes(livematch.races[race].runs) && ![undefined, null, ""].includes(livematch.races[race].runs[member]) && ![undefined, null, ""].includes(livematch.races[race].runs[member].pod)) {
                 livematchref.child("races").child(race).child("ready").child(member).set((args[2] == "ready" ? true : false))
@@ -682,28 +710,6 @@ exports.play = async function (args, interaction, database) {
                 interaction.reply({ content: "You are not a player!", ephemeral: true })
                 return
             }
-            // if (Object.values(livematch.commentators).includes(member) || (interaction.guild.id == '441839750555369474' && (Member.roles.cache.some(r => r.id == '862810190072381471')) && !Object.values(livematch.players).includes(member))) {
-            //     if (Object.values(livematch.races[race].ready).filter(r => r == false).length == 1 && !livematch.races[race].ready.commentators) {
-            //         //livematchref.child("races").child(race).child("ready").child("commentators").set((args[2] == "ready" ? true : false))
-            //         await interaction.update({
-            //             content: Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + "\n<a:countdown:672640791369482251> Countdown incoming! Good luck <a:countdown:672640791369482251>",
-            //             embeds: [],
-            //             components: []
-            //         })
-            //         setTimeout(async function () {
-            //             interaction.client.channels.cache.get(interaction.channel.id).messages.fetch(interaction.message.id).then(message => message.delete())
-            //         }, 10000)
-            //         livematchref.child("status").set("midrace")
-            //         countDown(interaction)
-            //         //initiate race
-            //         livematchref.child("races").child(race).child("live").set(true)
-            //         setTimeout(async function () {
-            //             interaction.followUp({ embeds: [raceEmbed({ race, livematch, liverules, userdata })], components: raceComponents({ race, liverules, livematch }) })
-            //         }, 10000)
-            //     } else {
-            //         interaction.reply({ content: "Players are not ready yet! <:WhyNobodyBuy:589481340957753363>", ephemeral: true })
-            //     }
-            // }
 
         } else if (args[2] == 'gents') {
             if (!Object.values(livematch.players).includes(member)) {
@@ -833,7 +839,6 @@ exports.play = async function (args, interaction, database) {
                 await interaction.showModal(submitModal)
             }
         } else if (args[2] == "verify") {
-
             if (interaction.isModalSubmit()) {
                 Object.keys(livematch.races[race].runs).map(key => {
                     livematchref.child("races").child(race).child("runs").child(key).update(
