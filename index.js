@@ -2,7 +2,7 @@ const fs = require('fs');
 const Discord = require('discord.js');
 const { Client, Events, GatewayIntentBits } = require('discord.js')
 var moment = require('moment');
-const { prefix, token, firebaseCon } = require('./config.json');
+//const { prefix, token, firebaseCon } = require('./config.json');
 const { welcomeMessages } = require('./data.js')
 const client = new Client({
     intents: [
@@ -24,7 +24,7 @@ client.selects = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 const buttonFiles = fs.readdirSync('./buttons').filter(file => file.endsWith('.js'));
 
-let testing = true
+let testing = false
 
 let discord_token = testing ? token : process.env.token
 
@@ -160,6 +160,14 @@ speedruns.on("value", function (snapshot) {
     console.log("The read failed: " + errorObject.code);
 });
 
+let betref = database.ref('tourney/bets');
+let betdata = {}
+betref.on("value", function (snapshot) {
+    betdata = snapshot.val();
+}, function (errorObject) {
+    console.log("The read failed: " + errorObject.code);
+});
+
 var users = database.ref('users');
 var users_data = {}
 users.on("value", function (snapshot) {
@@ -242,7 +250,7 @@ client.once(Events.ClientReady, () => {
 
         Object.values(bountydata).forEach(bounty => {
             if (bounty.type == 'botd' && Date.now() - 24 * 60 * 60 * 1000 > bounty.created && bounty.channel == '551786988861128714' && bounty.message) {
-                client.channels.cache.get('551786988861128714').messages.fetch(bounty.message).then(msg =>  { if (msg.pinned) { msg.unpin().catch(console.error) } })
+                client.channels.cache.get('551786988861128714').messages.fetch(bounty.message).then(msg => { if (msg.pinned) { msg.unpin().catch(console.error) } })
             }
         })
 

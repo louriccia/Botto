@@ -11,7 +11,7 @@ module.exports = {
                 .setName('random')
                 .setDescription('get a random pod/track challenge, submit your time, earn truguts')
         ),
-    execute(interaction) {
+    execute(interaction, database) {
         if (interaction.options.getSubcommand() == "random") {
             interaction.client.buttons.get("challenge").execute(interaction.client, interaction, ["random", "menu", "new"])
         } 

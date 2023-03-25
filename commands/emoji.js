@@ -106,7 +106,7 @@ module.exports = {
                 .setDescription('post animated emotes by proxy')
         )
     ,
-    execute(client, interaction, args) {
+    execute(interaction, database) {
         const emojimap = {
             ballquadinaros: "<a:BallQuadinaros:964303313904484362>",
             benhi: "<a:BenHi:672640761501843466>",
@@ -134,7 +134,7 @@ module.exports = {
             wipeout: "<a:wipeout:672640904473083904>",
             restart: "<a:restart:855623455751143434>"
         }
-        interaction.reply({ content: emojimap[args[0]] })
+        interaction.reply({ content: emojimap[interaction.options.getSubcommand()] })
     }
 
 }
