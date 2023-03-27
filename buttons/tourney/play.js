@@ -67,7 +67,6 @@ exports.play = async function (args, interaction, database) {
     if (!player) {
         player = initializeUser(userref, member, name)
     }
-    console.log(player)
     if (args[1] == 'profile') {
         if (interaction.isModalSubmit()) {
             //parse inputs
@@ -78,7 +77,6 @@ exports.play = async function (args, interaction, database) {
             let input = interaction.fields.getTextInputValue('input')
 
             let pronouns_set = []
-            console.log(pronouns)
             pronouns.forEach(p => {
                 let pronoun = p.toLowerCase().replaceAll(",", "").trim()
                 if (pronoun.includes('they') || pronoun.includes('them') || pronoun.includes('their')) {
@@ -121,12 +119,12 @@ exports.play = async function (args, interaction, database) {
             if (userdata[player].country) {
                 Flag.setValue(userdata[player].country)
             }
-            console.log(userdata[player].country)
             const Pronouns = new TextInputBuilder()
                 .setCustomId("pronouns")
                 .setLabel("Pronouns")
                 .setPlaceholder('he/she/they')
                 .setStyle(TextInputStyle.Short)
+                .setMaxLength(50)
                 .setRequired(false)
             if (userdata[player].pronouns) {
                 Pronouns.setValue(Object.values(userdata[player].pronouns).join(", "))
@@ -137,6 +135,7 @@ exports.play = async function (args, interaction, database) {
                 .setPlaceholder('pc/switch/ps4/xbox')
                 .setStyle(TextInputStyle.Short)
                 .setRequired(false)
+                .setMaxLength(50)
                 .setValue(userdata[player].platform ?? "")
             const Input = new TextInputBuilder()
                 .setCustomId("input")
@@ -144,6 +143,7 @@ exports.play = async function (args, interaction, database) {
                 .setPlaceholder('keyboard/xbox controller')
                 .setStyle(TextInputStyle.Short)
                 .setRequired(false)
+                .setMaxLength(50)
                 .setValue(userdata[player].input ?? "")
             const Bio = new TextInputBuilder()
                 .setCustomId("bio")
@@ -151,6 +151,7 @@ exports.play = async function (args, interaction, database) {
                 .setStyle(TextInputStyle.Paragraph)
                 .setPlaceholder('Just who is this mysterious podracer?')
                 .setRequired(false)
+                .setMaxLength(500)
                 .setValue(userdata[player].bio ?? "")
             const ActionRow1 = new ActionRowBuilder().addComponents(Bio)
             const ActionRow2 = new ActionRowBuilder().addComponents(Flag)
@@ -569,7 +570,7 @@ exports.play = async function (args, interaction, database) {
 
                     } else {
                         interaction.update({
-                            content: "<@" + (events[event].choice == "lastwinner" ? getWinner({ race: race - 1, livematch }) : getOpponent({ livematch, player: getWinner({ race: race - 1, livematch }) })) + "> please make a selection",
+                            content: "<@" + (events[event].choice == "lastwinner" ? getWinner({ race: race - 1, livematch }) : getOpponent({ livematch, player: getWinner({ race: race - 1, livematch }) })) + "> please make a selection" + (eventend + 2 == events.length ? "\n(once this selection is made, a " + (Object.values(livematch.races[race].events).map(e => e.selection == 'sk').length > 0 ? "3" : "2") + "-minute warmup timer begins)" : ""),
                             embeds: [raceEventEmbed({ race, livematch, liverules })],
                             components: raceEventComponents({ race, livematch, interaction, liverules })
                         })
@@ -610,11 +611,10 @@ exports.play = async function (args, interaction, database) {
                     }
                     if (eventend + 1 == events.length) {
                         let countdown = 2 * 60 * 1000 + (Object.values(livematch.races[race].events).map(e => e.selection).includes('sk') ? 1000 * 60 : 0)
-                        console.log('countdown: ' + countdown)
                         livematchref.child('races').child(race).child('countdown').set(Math.round((Date.now() + countdown) / 1000))
                         await interaction.update({ content: "", embeds: [raceEventEmbed({ race, livematch, liverules })], components: [] })
                         let rE = await interaction.followUp({
-                            content: Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "),
+                            content: Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + "\nRace begins <t:" + livematch.races[race].countdown + ":R>",
                             embeds: [raceEmbed({ race, livematch, liverules, userdata })],
                             components: raceComponents({ race, liverules, livematch }),
                             fetchReply: true
@@ -627,7 +627,6 @@ exports.play = async function (args, interaction, database) {
                         //autocountdown
                         setTimeout(async function () {
                             if (livematch.races[race].countdown) {
-                                console.log('autocountdown')
                                 interaction.client.channels.cache.get(interaction.channel.id).messages.fetch(rE.id).then(message => message.delete())
                                 let cD = await interaction.followUp({
                                     content: Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + "\n<a:countdown:672640791369482251> Countdown incoming! Good luck <a:countdown:672640791369482251>",
@@ -672,11 +671,12 @@ exports.play = async function (args, interaction, database) {
                 livematchref.child('races').child(race).child('ready').child(player).set(false)
             })
             await livematchref.child('races').child(race).child('countdown').remove()
-            interaction.update({
+            await interaction.update({
                 content: Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(comm => "<@" + comm + ">").join(" "),
                 embeds: [raceEmbed({ race, livematch, liverules, userdata })],
                 components: raceComponents({ race, liverules, livematch })
             })
+            interaction.followUp({content: '<@' + member + '> aborted the countdown. Once both players click READY, the countdown will begin.'})
         } else if (["ready", "unready"].includes(args[2])) {
             if (Object.values(livematch.players).includes(member) && ![undefined, null, ""].includes(livematch.races[race].runs) && ![undefined, null, ""].includes(livematch.races[race].runs[member]) && ![undefined, null, ""].includes(livematch.races[race].runs[member].pod)) {
                 livematchref.child("races").child(race).child("ready").child(member).set((args[2] == "ready" ? true : false))

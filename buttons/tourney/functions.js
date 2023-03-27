@@ -246,11 +246,13 @@ exports.matchSummaryEmbed = function ({ liverules, livematch, userdata } = {}) {
                 "Tied Match " + leader.wins + " to " + leader.wins :
                 exports.getUsername({ member: leader.player, userdata }) + " leads " + leader.wins + " to " + summary[exports.getOpponent({ livematch, player: leader.player })].wins + (leader.wins == liverules.general.winlimit - 1 ? " (Match Point)" : ""))
     Object.values(livematch.players).forEach(player => embed.addFields({
-        name: exports.getUsername({ member: player, userdata }) + " - " + summary[player].wins + (leader.player == player ? " 👑" : ""),
-        value: '💠 ' + summary[player].forcepoints +
-            (liverules.match.repeattrack ? '\n🔁 ' + summary[player].runbacks : "") +
-            '\n⏱️ ' + timefix(summary[player].time) + (summary[player].timetrue ? "" : "+") + " (total)" +
-            '\n💀 ' + summary[player].deaths + (summary[player].deathtrue ? "" : "+") + " (total)",
+        name: exports.getUsername({ member: player, userdata }),
+        value: [
+            "👑 " + summary[player].wins, '💠 ' + summary[player].forcepoints,
+            (liverules.match.repeattrack ? '\n🔁 ' + summary[player].runbacks : ""),
+            '⏱️ ' + timefix(summary[player].time) + (summary[player].timetrue ? "" : "+"),
+            '💀 ' + summary[player].deaths + (summary[player].deathtrue ? "" : "+")
+        ].filter(a => a !== '').join(" | "),
         inline: true
     }))
     embed.addFields({ name: "🎙️ Commentators/Trackers", value: ":orange_circle: Don't forget to update the score!", inline: false })
@@ -536,7 +538,7 @@ exports.raceEventComponents = function ({ race, livematch, interaction, liverule
             } else if (event.type == "condition") {
                 let conditions = {
                     nu: { name: 'No Upgrades', desc: "Players must race with stock parts" },
-                    sk: { name: 'Skips', desc: "Players can use skips (including AI and MFG skips)" },
+                    sk: { name: 'Skips', desc: "Players can use skips (excluding AI and bounce skips)" },
                     fl: { name: 'Fastest Lap', desc: "winner is determined by fastest lap time of 3 laps" }
                 }
                 options = Object.values(event.options).map(e => {
@@ -662,7 +664,6 @@ exports.setupComponents = function ({ livematch, tourney_rulesets_data, tourney_
                     }
                 )
             })
-            console.log(ruleset_selector)
             components.push(rulesetRow)
         } else {
             let stages = Object.keys(tourney_tournaments_data[livematch.tourney].stages)
