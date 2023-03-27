@@ -244,15 +244,14 @@ exports.matchSummaryEmbed = function ({ liverules, livematch, userdata } = {}) {
         .setTitle(
             leader.player == "tie" ?
                 "Tied Match " + leader.wins + " to " + leader.wins :
-                exports.getUsername({ member: leader.player, userdata }) + " leads " + leader.wins + " to " + summary[exports.getOpponent({ livematch, player: leader.player })].wins + (leader.wins == liverules.general.winlimit - 1 ? " (Match Point)" : ""))
+                exports.getUsername({ member: leader.player, userdata }) + " " + (leader.wins == liverules.general.winlimit ? "wins" : "leads") + " " + leader.wins + " to " + summary[exports.getOpponent({ livematch, player: leader.player })].wins + (leader.wins == liverules.general.winlimit - 1 ? " (Match Point)" : ""))
     Object.values(livematch.players).forEach(player => embed.addFields({
         name: exports.getUsername({ member: player, userdata }),
         value: [
-            "👑 " + summary[player].wins, '💠 ' + summary[player].forcepoints,
-            (liverules.match.repeattrack ? '\n🔁 ' + summary[player].runbacks : ""),
-            '⏱️ ' + timefix(summary[player].time) + (summary[player].timetrue ? "" : "+"),
-            '💀 ' + summary[player].deaths + (summary[player].deathtrue ? "" : "+")
-        ].filter(a => a !== '').join(" | "),
+            "👑" + summary[player].wins, '💠' + summary[player].forcepoints,
+            (liverules.match.repeattrack ? '🔁' + summary[player].runbacks : "")
+        ].filter(a => a !== '').map(a => '`' + a + '`').join(" ") + '\n`⏱️' + timefix(summary[player].time) + (summary[player].timetrue ? "" : "+") + '`' +
+            ' `💀' + summary[player].deaths + (summary[player].deathtrue ? "" : "+") + '`',
         inline: true
     }))
     embed.addFields({ name: "🎙️ Commentators/Trackers", value: ":orange_circle: Don't forget to update the score!", inline: false })

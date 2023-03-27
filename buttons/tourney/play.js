@@ -569,8 +569,9 @@ exports.play = async function (args, interaction, database) {
                         })
 
                     } else {
+                        console.log(eventend + ", " + events.length)
                         interaction.update({
-                            content: "<@" + (events[event].choice == "lastwinner" ? getWinner({ race: race - 1, livematch }) : getOpponent({ livematch, player: getWinner({ race: race - 1, livematch }) })) + "> please make a selection" + (eventend + 2 == events.length ? "\n(once this selection is made, a " + (Object.values(livematch.races[race].events).map(e => e.selection == 'sk').length > 0 ? "3" : "2") + "-minute warmup timer begins)" : ""),
+                            content: "<@" + (events[event].choice == "lastwinner" ? getWinner({ race: race - 1, livematch }) : getOpponent({ livematch, player: getWinner({ race: race - 1, livematch }) })) + "> please make a selection" + (eventend + 1 == events.length ? "\n*Once this selection is submitted, the warmup timer begins (2 minutes for full track, 3 minutes for skips)*" : ""),
                             embeds: [raceEventEmbed({ race, livematch, liverules })],
                             components: raceEventComponents({ race, livematch, interaction, liverules })
                         })
@@ -614,7 +615,7 @@ exports.play = async function (args, interaction, database) {
                         livematchref.child('races').child(race).child('countdown').set(Math.round((Date.now() + countdown) / 1000))
                         await interaction.update({ content: "", embeds: [raceEventEmbed({ race, livematch, liverules })], components: [] })
                         let rE = await interaction.followUp({
-                            content: Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + "\nRace begins <t:" + livematch.races[race].countdown + ":R>",
+                            content: Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " Race begins <t:" + livematch.races[race].countdown + ":R>",
                             embeds: [raceEmbed({ race, livematch, liverules, userdata })],
                             components: raceComponents({ race, liverules, livematch }),
                             fetchReply: true
@@ -676,7 +677,7 @@ exports.play = async function (args, interaction, database) {
                 embeds: [raceEmbed({ race, livematch, liverules, userdata })],
                 components: raceComponents({ race, liverules, livematch })
             })
-            interaction.followUp({content: '<@' + member + '> aborted the countdown. Once both players click READY, the countdown will begin.'})
+            interaction.followUp({ content: '<@' + member + '> aborted the countdown. Once both players click READY, the countdown will begin.' })
         } else if (["ready", "unready"].includes(args[2])) {
             if (Object.values(livematch.players).includes(member) && ![undefined, null, ""].includes(livematch.races[race].runs) && ![undefined, null, ""].includes(livematch.races[race].runs[member]) && ![undefined, null, ""].includes(livematch.races[race].runs[member].pod)) {
                 livematchref.child("races").child(race).child("ready").child(member).set((args[2] == "ready" ? true : false))
@@ -761,7 +762,7 @@ exports.play = async function (args, interaction, database) {
                 livematchref.child("races").child(race).child("runs").child(member).child("pod").set(interaction.values[0])
             }
             interaction.update({
-                content: Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(comm => "<@" + comm + ">").join(" "),
+                content: Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" "),
                 embeds: [raceEmbed({ race, livematch, liverules, userdata })],
                 components: raceComponents({ race, liverules, livematch })
             })
@@ -925,17 +926,22 @@ exports.play = async function (args, interaction, database) {
                     livematchref.child("status").set("events")
                     //start permabans
                     if (race == 0 && Object.values(liverules.match.permabans).length > 0) {
-                        interaction.followUp({
-                            content: "<@" + (liverules.match.permabans[0].choice == "firstloser" ? getOpponent({ livematch, player: getWinner({ race: 0, livematch }) }) : getWinner({ race: 0, livematch })) + "> please select a permanent ban",
-                            embeds: [permabanEmbed({ livematch })],
-                            components: permabanComponents({ permaban: 0, livematch, liverules })
-                        })
+                        setTimeout(async function () {
+                            interaction.followUp({
+                                content: "<@" + (liverules.match.permabans[0].choice == "firstloser" ? getOpponent({ livematch, player: getWinner({ race: 0, livematch }) }) : getWinner({ race: 0, livematch })) + "> please select a permanent ban",
+                                embeds: [permabanEmbed({ livematch })],
+                                components: permabanComponents({ permaban: 0, livematch, liverules })
+                            })
+                        }, 3 * 1000)
+
                     } else { //restart event loop for next race
-                        interaction.followUp({
-                            content: "<@" + (events[0].choice == "lastwinner" ? getWinner({ race, livematch }) : getOpponent({ livematch, player: getWinner({ race, livematch }) })) + "> please make a selection",
-                            embeds: [raceEventEmbed({ race: nextrace, livematch, liverules })],
-                            components: raceEventComponents({ race: nextrace, livematch, interaction, liverules })
-                        })
+                        setTimeout(async function () {
+                            interaction.followUp({
+                                content: "<@" + (events[0].choice == "lastwinner" ? getWinner({ race, livematch }) : getOpponent({ livematch, player: getWinner({ race, livematch }) })) + "> please make a selection",
+                                embeds: [raceEventEmbed({ race: nextrace, livematch, liverules })],
+                                components: raceEventComponents({ race: nextrace, livematch, interaction, liverules })
+                            })
+                        }, 3 * 1000)
                     }
                 }
 
