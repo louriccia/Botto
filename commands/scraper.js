@@ -3,18 +3,13 @@ const { SlashCommandBuilder } = require('discord.js');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('scrape'),
-    execute(client, interaction, args) {
+    execute(client, database) {
         const fetch = require('node-fetch');
         const rp = require('request-promise');
         const $ = require('cheerio');
         const charts = [];
         const all = [];
         var tools = require('./../tools.js');
-
-        var firebase = require("firebase/app");
-        require('firebase/auth');
-        require('firebase/database');
-        var database = firebase.database();
 
         var speedruns = database.ref('speedruns');
         var speedruns_data = {}
