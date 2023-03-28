@@ -366,7 +366,7 @@ exports.play = async function (args, interaction, database) {
                     interaction.followUp("**" + planets[tracks[randomtrack].planet].emoji + " " + tracks[randomtrack].name + "**")
                 }, 2000)
                 setTimeout(async function () {
-                    interaction.followUp({ content: Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), embeds: [raceEmbed({ race: 0, livematch, liverules, userdata })], components: raceComponents({ race: 0, liverules, livematch }) })
+                    interaction.followUp({ content: Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + "❗ Countown starts as soon as both players ready", embeds: [raceEmbed({ race: 0, livematch, liverules, userdata })], components: raceComponents({ race: 0, liverules, livematch }) })
                 }, 3000)
             } else {
                 interaction.update({ content: 'Please select a track', components: firstbanComponents({ livematch, liverules }) })

@@ -161,12 +161,12 @@ exports.raceEmbed = function ({ race, livematch, liverules, userdata } = {}) {
                 name: exports.getUsername({ member: player, userdata }) + (player == winner ? " 👑" : ""),
                 value: livematch.races[race].runs[player].pod == "" ? '❔' : racers[livematch.races[race].runs[player].pod].flag + " " +
                     (livematch.races[race].runs[player].time.toLowerCase() == 'dnf' ? 'DNF' : (player == winner ? "__" : "") + timefix(livematch.races[race].runs[player].time) + (player == winner ? "__" : "")) +
-                    "💀 " + (livematch.races[race].runs[player].deaths == "" ? "(💀×?)" : livematch.races[race].runs[player].deaths === 0 ? "" : "(💀×" + Number(livematch.races[race].runs[player].deaths)) + ")" + "\n" +
+                    (livematch.races[race].runs[player].deaths == "" ? "`💀×?`" : livematch.races[race].runs[player].deaths === 0 ? "" : "`💀×" + Number(livematch.races[race].runs[player].deaths)) + "`" + "\n" +
                     (livematch.races[race].runs[player].notes == "" ? "" : "📝 " + livematch.races[race].runs[player].notes),
                 inline: true
             }
             ))
-            embed.setTitle(planets[tracks[track].planet].emoji + " " + tracks[track].name + (forces.length > 0 ? " (" + forces.join(", ") + ")" : "") + " \n" + (exports.getUsername({ member: winner, userdata })) + " Wins!")
+            embed.setTitle(planets[tracks[track].planet].emoji + " " + tracks[track].name + (forces.length > 0 ? " (" + forces.join(", ") + ")" : "") + " \n" + (exports.getUsername({ member: winner, userdata, short:true })) + " Wins!")
         }
     }
 
@@ -628,7 +628,7 @@ exports.setupComponents = function ({ livematch, tourney_rulesets_data, tourney_
         emoji: { name: "🚩" },
         default: livematch.tourney == 'practice'
     })
-    Object.keys(tourney_tournaments_data).sort((a, b) => tourney_tournaments_data[a].startdate - tourney_tournaments_data[b].startdate).forEach(key => {
+    Object.keys(tourney_tournaments_data).sort((a, b) => tourney_tournaments_data[b].startdate - tourney_tournaments_data[a].startdate).forEach(key => {
         tourney_selector.addOptions(
             {
                 label: tourney_tournaments_data[key]?.name,
