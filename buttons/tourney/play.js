@@ -59,7 +59,7 @@ exports.play = async function (args, interaction, database) {
     //find player in userbase
     let player = null
     Object.keys(userdata).forEach(key => {
-        if (userdata[key].discordID && userdata[key].discordID == member) {
+        if (userdata[key]?.discordID == member) {
             player = key
             return
         }
@@ -877,7 +877,7 @@ exports.play = async function (args, interaction, database) {
                         const postRef = database.ref('tourney/matches').push(livematch)
                         const winEmbed = new EmbedBuilder()
                             .setAuthor({ name: "Match Concluded" })
-                            .setTitle(getUsername({ member: player, userdata }) + " Wins!")
+                            .setTitle(getUsername({ member: player, userdata, short: true }) + " Wins!")
                             .setDescription("GGs, racers! The match has been saved.\nCheck out the full match summary [here](https://botto-efbfd.web.app/tournaments/matches/" + postRef.key + ")\n<@&970995237952569404> role will be automatically removed in 15 minutes")
                             .addFields({ name: ":microphone2: Commentators/Trackers", value: ":orange_circle: Don't forget to click 'Episode Finished' after the interviews" })
                         interaction.followUp({ embeds: [winEmbed] })
@@ -954,7 +954,7 @@ exports.play = async function (args, interaction, database) {
                     Object.keys(livematch.races[race].runs).map(key => {
                         let time = new TextInputBuilder()
                             .setCustomId("time" + key)
-                            .setLabel(("⏱️ " + getUsername({ member: key, userdata }) + "'s Time").substring(0, 45))
+                            .setLabel(("⏱️ " + getUsername({ member: key, userdata, short: true }) + "'s Time").substring(0, 45))
                             .setStyle(TextInputStyle.Short)
                             .setPlaceholder("--:--.---")
                             .setMinLength(1)
@@ -963,7 +963,7 @@ exports.play = async function (args, interaction, database) {
                             .setValue((livematch.races[race].runs[key].time.toLowerCase() == "dnf" ? "DNF" : timefix(livematch.races[race].runs[key].time)))
                         let deaths = new TextInputBuilder()
                             .setCustomId("deaths" + key)
-                            .setLabel(("💀 " + getUsername({ member: key, userdata }) + "'s Deaths").substring(0, 45))
+                            .setLabel(("💀 " + getUsername({ member: key, userdata, short: true }) + "'s Deaths").substring(0, 45))
                             .setStyle(TextInputStyle.Short)
                             .setMinLength(0)
                             .setMaxLength(10)

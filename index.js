@@ -228,11 +228,11 @@ client.once(Events.ClientReady, () => {
     })
         .catch(console.error);
     client.channels.cache.get("444208252541075476").send("Deployed <t:" + Math.round(Date.now() / 1000) + ":R>");
-    try {
+    //try {
         client.commands.get("scraper").execute(client);
-    } catch {
-        console.error("scrape failed");
-    }
+    // } catch {
+    //     console.error("scrape failed");
+    // }
 
     const Guild = client.guilds.cache.get("441839750555369474")
 

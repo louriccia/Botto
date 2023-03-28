@@ -244,7 +244,7 @@ exports.matchSummaryEmbed = function ({ liverules, livematch, userdata } = {}) {
         .setTitle(
             leader.player == "tie" ?
                 "Tied Match " + leader.wins + " to " + leader.wins :
-                exports.getUsername({ member: leader.player, userdata }) + " " + (leader.wins == liverules.general.winlimit ? "wins" : "leads") + " " + leader.wins + " to " + summary[exports.getOpponent({ livematch, player: leader.player })].wins + (leader.wins == liverules.general.winlimit - 1 ? " (Match Point)" : ""))
+                exports.getUsername({ member: leader.player, userdata, short: true }) + " " + (leader.wins == liverules.general.winlimit ? "wins" : "leads") + " " + leader.wins + " to " + summary[exports.getOpponent({ livematch, player: leader.player })].wins + (leader.wins == liverules.general.winlimit - 1 ? " (Match Point)" : ""))
     Object.values(livematch.players).forEach(player => embed.addFields({
         name: exports.getUsername({ member: player, userdata }),
         value: [
@@ -1049,11 +1049,14 @@ exports.rulesetOverview = function (ruleset) {
     return fields
 }
 
-exports.getUsername = function ({ member, userdata } = {}) {
+exports.getUsername = function ({ member, userdata, short } = {}) {
     let name = "N/A"
     Object.values(userdata).forEach(user => {
         if (user.discordID == member) {
             name = (user.country ? ":flag_" + user.country + ": " : "") + user.name + (user.pronouns ? " (" + exports.joinPronouns(user.pronouns) + ")" : "")
+            if(short){
+                name = user.name
+            }
             return
         }
     })
