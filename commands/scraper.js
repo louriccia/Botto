@@ -1,7 +1,8 @@
 const { SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
-    name: 'scrape',
+    data: new SlashCommandBuilder()
+        .setName('scrape'),
     execute(client, interaction, args) {
         const fetch = require('node-fetch');
         const rp = require('request-promise');

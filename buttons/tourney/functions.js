@@ -144,13 +144,7 @@ exports.raceEmbed = function ({ race, livematch, liverules, userdata } = {}) {
             .setColor("#DD2E44")
         Object.values(livematch.players).map(player => embed.addFields({
             name: exports.getUsername({ member: player, userdata }),
-            value: (livematch.races[race].runs[player].time == "" ? ":red_circle: Awaiting submission" :
-                Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length > 0 ? ":green_circle: Results Submitted" :
-                    (livematch.races[race].runs[player].pod == "" ? "Unknown Racer" : racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name) + "\n" +
-                    "⏱️ " + (String(livematch.races[race].runs[player]?.time).toLowerCase() == 'dnf' ? 'DNF' : (livematch.races[race].runs[player].time === "" ? "--:--.---" : timefix(livematch.races[race].runs[player].time))) + "\n" +
-                    "💀 " + (livematch.races[race].runs[player].deaths === "" ? "--" : Number(livematch.races[race].runs[player].deaths)) + "\n" +
-                    (livematch.races[race].runs[player].notes == "" ? "" : "📝 " + livematch.races[race].runs[player].notes))
-            ,
+            value: livematch.races[race].runs[player].time == "" ? ":red_circle: Awaiting submission" : ":green_circle: Results Submitted",
             inline: true
         }))
         if (Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length == 0) {
@@ -165,9 +159,9 @@ exports.raceEmbed = function ({ race, livematch, liverules, userdata } = {}) {
             let winner = exports.getWinner({ race, livematch })
             Object.values(livematch.players).map(player => embed.addFields({
                 name: exports.getUsername({ member: player, userdata }) + (player == winner ? " 👑" : ""),
-                value: (livematch.races[race].runs[player].pod == "" ? 'Unknown Racer' : racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name) + "\n" +
-                    "⏱️ " + (livematch.races[race].runs[player].time.toLowerCase() == 'dnf' ? 'DNF' : (player == winner ? "__" : "") + timefix(livematch.races[race].runs[player].time) + (player == winner ? "__" : "")) + "\n" +
-                    "💀 " + (livematch.races[race].runs[player].deaths == "" ? "--" : Number(livematch.races[race].runs[player].deaths)) + "\n" +
+                value: livematch.races[race].runs[player].pod == "" ? '❔' : racers[livematch.races[race].runs[player].pod].flag + " " +
+                    (livematch.races[race].runs[player].time.toLowerCase() == 'dnf' ? 'DNF' : (player == winner ? "__" : "") + timefix(livematch.races[race].runs[player].time) + (player == winner ? "__" : "")) +
+                    "💀 " + (livematch.races[race].runs[player].deaths == "" ? "(💀×?)" : livematch.races[race].runs[player].deaths === 0 ? "" : "(💀×" + Number(livematch.races[race].runs[player].deaths)) + ")" + "\n" +
                     (livematch.races[race].runs[player].notes == "" ? "" : "📝 " + livematch.races[race].runs[player].notes),
                 inline: true
             }
@@ -1054,7 +1048,7 @@ exports.getUsername = function ({ member, userdata, short } = {}) {
     Object.values(userdata).forEach(user => {
         if (user.discordID == member) {
             name = (user.country ? ":flag_" + user.country + ": " : "") + user.name + (user.pronouns ? " (" + exports.joinPronouns(user.pronouns) + ")" : "")
-            if(short){
+            if (short) {
                 name = user.name
             }
             return
