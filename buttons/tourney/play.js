@@ -951,7 +951,7 @@ exports.play = async function (args, interaction, database) {
                     const verifyModal = new ModalBuilder() 
                         .setCustomId("tourney_play_race" + race + "_verify")
                         .setTitle("Verify Race " + (race + 1) + " Results")
-                    Object.keys(livematch.races[race].runs).map(key => {
+                    Object.keys(livematch.races[race].runs).map(key => { 
                         let time = new TextInputBuilder()
                             .setCustomId("time" + key)
                             .setLabel(("⏱️ " + getUsername({ member: key, userdata, short: true }) + "'s Time").substring(0, 45))
