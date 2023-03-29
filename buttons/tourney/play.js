@@ -164,7 +164,7 @@ exports.play = async function (args, interaction, database) {
 
     } else if (args[1] == 'admin') {
         let status = interaction.values[0]
-        if (Object.values(livematch.commentators).includes(member) || (interaction.guild.id == '441839750555369474' && (Member.roles.cache.some(r => r.id == '862810190072381471')) && !Object.values(livematch.players).includes(member))) {
+        if ((livematch.commentators && Object.values(livematch.commentators).includes(member)) || (interaction.guild.id == '441839750555369474' && (Member.roles.cache.some(r => r.id == '862810190072381471')) && !Object.values(livematch.players).includes(member))) {
             let race = livematch.current_race
             interaction.client.channels.cache.get(interaction.channel.id).messages.fetch({ limit: 20 }).then(messages => {
                 let lastMessage = messages.filter(m => m.author.bot && m.id !== interaction.message.id).first();
