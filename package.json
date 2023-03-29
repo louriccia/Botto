@@ -14,7 +14,7 @@
   "license": "ISC",
   "dependencies": {
     "cheerio": "^1.0.0-rc.5",
-    "discord.js": "^14.x",
+    "discord.js": "^14.8",
     "express": "^4.17.1",
     "firebase": "^9.16.0",
     "firebase-admin": "^11.0.1",
