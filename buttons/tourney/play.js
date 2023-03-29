@@ -948,7 +948,7 @@ exports.play = async function (args, interaction, database) {
 
             } else {
                 if (Object.values(livematch.commentators).includes(member) || (interaction.guild.id == '441839750555369474' && Member.roles.cache.some(r => r.id == '862810190072381471') && !Object.values(livematch.players).includes(member))) {
-                    const verifyModal = new ModalBuilder()
+                    const verifyModal = new ModalBuilder() 
                         .setCustomId("tourney_play_race" + race + "_verify")
                         .setTitle("Verify Race " + (race + 1) + " Results")
                     Object.keys(livematch.races[race].runs).map(key => {
@@ -960,7 +960,7 @@ exports.play = async function (args, interaction, database) {
                             .setMinLength(1)
                             .setMaxLength(10)
                             .setRequired(true)
-                            .setValue((livematch.races[race].runs[key].time.toLowerCase() == "dnf" ? "DNF" : timefix(livematch.races[race].runs[key].time)))
+                            .setValue(String((livematch.races[race].runs[key].time.toLowerCase() == "dnf" ? "DNF" : timefix(livematch.races[race].runs[key].time))))
                         let deaths = new TextInputBuilder()
                             .setCustomId("deaths" + key)
                             .setLabel(("💀 " + getUsername({ member: key, userdata, short: true }) + "'s Deaths").substring(0, 45))
@@ -968,7 +968,7 @@ exports.play = async function (args, interaction, database) {
                             .setMinLength(0)
                             .setMaxLength(10)
                             .setRequired(false)
-                            .setValue(livematch.races[race].runs[key].deaths)
+                            .setValue(String(livematch.races[race].runs[key].deaths))
                         let TimeRow = new ActionRowBuilder().addComponents(time)
                         let DeathRow = new ActionRowBuilder().addComponents(deaths)
                         verifyModal.addComponents(TimeRow, DeathRow)
