@@ -159,7 +159,7 @@ exports.raceEmbed = function ({ race, livematch, liverules, userdata } = {}) {
             let winner = exports.getWinner({ race, livematch })
             Object.values(livematch.players).map(player => embed.addFields({
                 name: exports.getUsername({ member: player, userdata }) + (player == winner ? " 👑" : ""),
-                value: livematch.races[race].runs[player].pod == "" ? '❔' : racers[livematch.races[race].runs[player].pod].flag + " " +
+                value: (livematch.races[race].runs[player].pod == "" ? '❔' : racers[livematch.races[race].runs[player].pod].flag) + " " +
                     (livematch.races[race].runs[player].time.toLowerCase() == 'dnf' ? 'DNF' : (player == winner ? "__" : "") + timefix(livematch.races[race].runs[player].time) + (player == winner ? "__" : "")) +
                     (livematch.races[race].runs[player].deaths == "" ? "`💀×?`" : livematch.races[race].runs[player].deaths === 0 ? "" : "`💀×" + Number(livematch.races[race].runs[player].deaths)) + "`" + "\n" +
                     (livematch.races[race].runs[player].notes == "" ? "" : "📝 " + livematch.races[race].runs[player].notes),
