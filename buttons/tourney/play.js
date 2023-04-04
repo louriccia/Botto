@@ -13,7 +13,7 @@ exports.play = async function (args, interaction, database) {
     const Guild = interaction.guild
     const Member = interaction.member
     const name = interaction.member.displayName
-    const avatar = await interaction.member.displayAvatarURL()
+    //const avatar = await interaction.member.displayAvatarURL()
     let member = interaction.user.id
 
     let livematch = {}

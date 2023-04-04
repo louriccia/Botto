@@ -240,8 +240,8 @@ client.once(Events.ClientReady, () => {
 
 
         dailyChallenge({ client, sponsordata, challengetimedata, challengesref, challengesdata })
-
         dailyBounty({ client, bountydata, bountyref })
+        
         Object.values(challengesdata).forEach(challenge => {
             if (challenge.type == 'cotd' && Date.now() - 24 * 60 * 60 * 1000 > challenge.created && challenge.channel == '551786988861128714' && challenge.message) {
                 client.channels.cache.get('551786988861128714').messages.fetch(challenge.message).then(msg => { if (msg.pinned) { msg.unpin().catch(console.error) } })
