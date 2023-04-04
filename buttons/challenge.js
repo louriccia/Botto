@@ -1560,6 +1560,7 @@ module.exports = {
                     await interaction.showModal(submissionModal)
                     break
                 case 'submit':
+                    await interaction.deferReply()
                     let subtime = interaction.fields.getTextInputValue('challengeTime')
                     let subnotes = interaction.fields.getTextInputValue('challengeNotes')
                     let subproof = interaction.fields.getTextInputValue('challengeProof') ?? ""
@@ -1738,7 +1739,7 @@ module.exports = {
                     profile = userdata[player].random //update profile
 
                     //update challenge
-                    interaction.update(updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata }))
+                    interaction.editReply(updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata }))
 
                     break
             }
