@@ -1565,7 +1565,7 @@ module.exports = {
                     let subnotes = interaction.fields.getTextInputValue('challengeNotes')
                     let subproof = interaction.fields.getTextInputValue('challengeProof') ?? ""
                     if (!isActive(current_challenge) && !current_challenge.submissions?.[member]) { //challenge no longer active
-                        interaction.reply({
+                        interaction.editReply({
                             embeds: [expiredEmbed()], components: [
                                 {
                                     type: 1,
@@ -1579,7 +1579,7 @@ module.exports = {
                         const holdUp = new EmbedBuilder()
                             .setTitle("<:WhyNobodyBuy:589481340957753363> Time Does Not Compute")
                             .setDescription("Your time was submitted in an incorrect format.")
-                        interaction.reply({ embeds: [holdUp], ephemeral: true })
+                        interaction.editReply({ embeds: [holdUp], ephemeral: true })
                         return
                     }
                     let challengeend = Date.now()
@@ -1590,7 +1590,7 @@ module.exports = {
                         const holdUp = new EmbedBuilder()
                             .setTitle("<:WhyNobodyBuy:589481340957753363> I warn you. No funny business.")
                             .setDescription("You submitted a time that was impossible to achieve in the given timeframe.")
-                        interaction.reply({ embeds: [holdUp], ephemeral: true })
+                        interaction.editReply({ embeds: [holdUp], ephemeral: true })
                         return
                     }
 
@@ -1608,7 +1608,7 @@ module.exports = {
                         profile = userdata[player].random //update profile
 
                         //update challenge
-                        interaction.update(updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata }))
+                        interaction.editReply(updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata }))
                         return
                     }
 
@@ -1648,10 +1648,6 @@ module.exports = {
                     if (['abandoned', 'private'].includes(current_challenge.type)) {
                         await current_challengeref.update({ completed: true })
                     }
-
-
-
-
 
                     let total_revenue = 0
 
