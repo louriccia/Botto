@@ -1560,12 +1560,12 @@ module.exports = {
                     await interaction.showModal(submissionModal)
                     break
                 case 'submit':
-                    await interaction.deferUpdate()
+                    
                     let subtime = interaction.fields.getTextInputValue('challengeTime')
                     let subnotes = interaction.fields.getTextInputValue('challengeNotes')
                     let subproof = interaction.fields.getTextInputValue('challengeProof') ?? ""
                     if (!isActive(current_challenge) && !current_challenge.submissions?.[member]) { //challenge no longer active
-                        interaction.editReply({
+                        interaction.reply({
                             embeds: [expiredEmbed()], components: [
                                 {
                                     type: 1,
@@ -1579,7 +1579,7 @@ module.exports = {
                         const holdUp = new EmbedBuilder()
                             .setTitle("<:WhyNobodyBuy:589481340957753363> Time Does Not Compute")
                             .setDescription("Your time was submitted in an incorrect format.")
-                        interaction.editReply({ embeds: [holdUp], ephemeral: true })
+                        interaction.reply({ embeds: [holdUp], ephemeral: true })
                         return
                     }
                     let challengeend = Date.now()
@@ -1590,7 +1590,7 @@ module.exports = {
                         const holdUp = new EmbedBuilder()
                             .setTitle("<:WhyNobodyBuy:589481340957753363> I warn you. No funny business.")
                             .setDescription("You submitted a time that was impossible to achieve in the given timeframe.")
-                        interaction.editReply({ embeds: [holdUp], ephemeral: true })
+                        interaction.reply({ embeds: [holdUp], ephemeral: true })
                         return
                     }
 
@@ -1608,10 +1608,11 @@ module.exports = {
                         profile = userdata[player].random //update profile
 
                         //update challenge
-                        interaction.editReply(updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata }))
+                        interaction.reply(updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata }))
                         return
                     }
 
+                    await interaction.deferUpdate()
                     //log time
                     let submissiondata = {
                         user: member,
