@@ -1560,7 +1560,7 @@ module.exports = {
                     await interaction.showModal(submissionModal)
                     break
                 case 'submit':
-                    await interaction.deferReply()
+                    await interaction.deferUpdate()
                     let subtime = interaction.fields.getTextInputValue('challengeTime')
                     let subnotes = interaction.fields.getTextInputValue('challengeNotes')
                     let subproof = interaction.fields.getTextInputValue('challengeProof') ?? ""
