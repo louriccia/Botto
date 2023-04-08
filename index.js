@@ -263,7 +263,7 @@ client.once(Events.ClientReady, () => {
             let ptc = Object.keys(users_data)
             for (k = 0; k < ptc.length; k++) {
                 let p = ptc[k]
-                if (users_data[p].name.toLowerCase() == name.trim().toLowerCase()) {
+                if ((users_data[p].name ?? '').toLowerCase() == name.trim().toLowerCase()) {
                     return p
                 }
             }
@@ -292,13 +292,17 @@ client.once(Events.ClientReady, () => {
                                     match.url = ""
                                 }
                             } else if (values[j].includes("comm")) {
-                                content.split(",").map(comm => getParticipantbyName(comm)).filter(c => c !== null).forEach(c => {
+                                console.log(content)
+                                console.log(content.split(/(vs|\.|,)/))
+                                content.split(/(vs|\.|,)/).map(comm => getParticipantbyName(comm)).filter(c => c !== null).forEach(c => {
                                     match.commentators[c] = users_data[c].discordID ?? ''
                                 })
                             } else if (values[j].includes("date")) {
                                 match.datetime = Date.parse(content.replace(", ", " " + new Date().getFullYear() + " ").replace(" ", " ") + " EDT")
                             } else if (values[j].includes("players")) {
-                                content.split("vs").map(play => getParticipantbyName(play)).filter(p => p !== null).forEach(p => {
+                                console.log(content)
+                                console.log(content.split(/(vs|\.|,)/))
+                                content.split(/(vs|\.|,)/).map(play => getParticipantbyName(play)).filter(p => p !== null).forEach(p => {
                                     match.players[p] = users_data[p].discordID ?? ''
                                 })
                             } else {
