@@ -357,7 +357,7 @@ client.once(Events.ClientReady, () => {
                             entityType: 3,
                             description: "Commentary: " + (match.commentators && Object.keys(match.commentators).length > 0 ? Object.keys(match.commentators).map(id => users_data[id].name).join(", ") : ""),
                             entityMetadata: { location: (match.url == "" ? "https://twitch.tv/SpeedGaming" : match.url) },
-                            privacyLevel: 'GUILD_ONLY'
+                            privacyLevel: 2
                         })
                     }
                 })
