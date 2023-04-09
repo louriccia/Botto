@@ -293,16 +293,16 @@ client.once(Events.ClientReady, () => {
                                 }
                             } else if (values[j].includes("comm")) {
                                 console.log(content)
-                                console.log(content.split(/[^A-Za-z_]/g))
-                                content.split(/[^A-Za-z_]+/g).map(comm => getParticipantbyName(comm)).filter(c => c !== null).forEach(c => {
+                                console.log(content.split(/[^A-Za-z_ ]/g))
+                                content.split(/[^A-Za-z_ ]+/g).map(comm => getParticipantbyName(comm)).filter(c => ![null, undefined, ''].includes(c)).forEach(c => {
                                     match.commentators[c] = users_data[c].discordID ?? ''
                                 })
                             } else if (values[j].includes("date")) {
                                 match.datetime = Date.parse(content.replace(", ", " " + new Date().getFullYear() + " ").replace(" ", " ") + " EDT")
                             } else if (values[j].includes("players")) {
                                 console.log(content)
-                                console.log(content.split(/[^A-Za-z_]/g))
-                                content.split(/[^A-Za-z_]/g).map(play => getParticipantbyName(play)).filter(p => p !== null).forEach(p => {
+                                console.log(content.split(/[^A-Za-z_ ]/g))
+                                content.split(/[^A-Za-z_ ]/g).map(play => getParticipantbyName(play)).filter(p => ![null, undefined, ''].includes(p)).forEach(p => {
                                     match.players[p] = users_data[p].discordID ?? ''
                                 })
                             } else {
@@ -340,7 +340,7 @@ client.once(Events.ClientReady, () => {
                                     Guild.scheduledEvents.edit(Guild.scheduledEvents.resolve(event.id), {
                                         name: match.players ? Object.keys(match.players).map(id => users_data[id].name).join(" vs ") : 'Unknown Players',
                                         description: "Commentary: " + (match.commentators && Object.keys(match.commentators).length > 0 ? Object.keys(match.commentators).map(id => users_data[id].name).join(", ") : ""),
-                                        entityType: 'EXTERNAL',
+                                        entityType: 3,
                                         entityMetadata: { location: (match.url == "" ? "https://twitch.tv/SpeedGaming" : match.url) }
                                     })
                                 } catch {
@@ -354,7 +354,7 @@ client.once(Events.ClientReady, () => {
                             name: match.players ? Object.keys(match.players).map(id => users_data[id].name).join(" vs ") : 'Unknown Players',
                             scheduledStartTime: match.datetime,
                             scheduledEndTime: match.datetime + 1000 * 60 * 60,
-                            entityType: "EXTERNAL",
+                            entityType: 3,
                             description: "Commentary: " + (match.commentators && Object.keys(match.commentators).length > 0 ? Object.keys(match.commentators).map(id => users_data[id].name).join(", ") : ""),
                             entityMetadata: { location: (match.url == "" ? "https://twitch.tv/SpeedGaming" : match.url) },
                             privacyLevel: 'GUILD_ONLY'
