@@ -1563,7 +1563,7 @@ module.exports = {
                 case 'submit':
                     console.log(interaction)
                     let subtime = interaction.fields.getTextInputValue('challengeTime')
-                    let subnotes = interaction.fields.getTextInputValue('challengeNotes')
+                    let subnotes = interaction.fields.getTextInputValue('challengeNotes').replace(/[^a-zA-Z0-9 ]/g, '')
                     let subproof = interaction.fields.getTextInputValue('challengeProof') ?? ""
                     if (!isActive(current_challenge) && !current_challenge.submissions?.[member]) { //challenge no longer active
                         interaction.reply({

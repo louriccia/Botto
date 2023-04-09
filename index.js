@@ -293,16 +293,16 @@ client.once(Events.ClientReady, () => {
                                 }
                             } else if (values[j].includes("comm")) {
                                 console.log(content)
-                                console.log(content.split(/(vs|\.|,)/))
-                                content.split(/(vs|\.|,)/).map(comm => getParticipantbyName(comm)).filter(c => c !== null).forEach(c => {
+                                console.log(content.split(/(vs|\. |,|\/)/g))
+                                content.split(/(vs|\. |,|\/)/g).map(comm => getParticipantbyName(comm)).filter(c => c !== null).forEach(c => {
                                     match.commentators[c] = users_data[c].discordID ?? ''
                                 })
                             } else if (values[j].includes("date")) {
                                 match.datetime = Date.parse(content.replace(", ", " " + new Date().getFullYear() + " ").replace(" ", " ") + " EDT")
                             } else if (values[j].includes("players")) {
                                 console.log(content)
-                                console.log(content.split(/(vs|\.|,)/))
-                                content.split(/(vs|\.|,)/).map(play => getParticipantbyName(play)).filter(p => p !== null).forEach(p => {
+                                console.log(content.split(/(vs|\. |,|\/)/g))
+                                content.split(/(vs|\. |,|\/)/g).map(play => getParticipantbyName(play)).filter(p => p !== null).forEach(p => {
                                     match.players[p] = users_data[p].discordID ?? ''
                                 })
                             } else {
