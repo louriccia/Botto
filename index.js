@@ -293,16 +293,16 @@ client.once(Events.ClientReady, () => {
                                 }
                             } else if (values[j].includes("comm")) {
                                 console.log(content)
-                                console.log(content.split(/(vs|\. |,|\/)/g))
-                                content.split(/(vs|\. |,|\/)/g).map(comm => getParticipantbyName(comm)).filter(c => c !== null).forEach(c => {
+                                console.log(content.split(/[^A-Za-z_]/g))
+                                content.split(/[^A-Za-z_]+/g).map(comm => getParticipantbyName(comm)).filter(c => c !== null).forEach(c => {
                                     match.commentators[c] = users_data[c].discordID ?? ''
                                 })
                             } else if (values[j].includes("date")) {
                                 match.datetime = Date.parse(content.replace(", ", " " + new Date().getFullYear() + " ").replace(" ", " ") + " EDT")
                             } else if (values[j].includes("players")) {
                                 console.log(content)
-                                console.log(content.split(/(vs|\. |,|\/)/g))
-                                content.split(/(vs|\. |,|\/)/g).map(play => getParticipantbyName(play)).filter(p => p !== null).forEach(p => {
+                                console.log(content.split(/[^A-Za-z_]/g))
+                                content.split(/[^A-Za-z_]/g).map(play => getParticipantbyName(play)).filter(p => p !== null).forEach(p => {
                                     match.players[p] = users_data[p].discordID ?? ''
                                 })
                             } else {
@@ -312,7 +312,7 @@ client.once(Events.ClientReady, () => {
                     })
                     if (i !== 0) {
                         let dup = false
-                        if (![undefined, null].includes(tourney_scheduled_data)) {
+                        if (tourney_scheduled_data) {
                             Object.keys(tourney_scheduled_data).forEach(key => {
                                 if (tourney_scheduled_data[key].datetime == match.datetime) {
                                     match.current = true
@@ -339,7 +339,7 @@ client.once(Events.ClientReady, () => {
                                 try {
                                     Guild.scheduledEvents.edit(Guild.scheduledEvents.resolve(event.id), {
                                         name: match.players ? Object.keys(match.players).map(id => users_data[id].name).join(" vs ") : 'Unknown Players',
-                                        description: "Commentary: " + (match.commentary && Object.keys(match.commentary).length > 0 ? Object.keys(match.commentary).map(id => users_data[id].name).join(", ") : ""),
+                                        description: "Commentary: " + (match.commentators && Object.keys(match.commentators).length > 0 ? Object.keys(match.commentators).map(id => users_data[id].name).join(", ") : ""),
                                         entityType: 'EXTERNAL',
                                         entityMetadata: { location: (match.url == "" ? "https://twitch.tv/SpeedGaming" : match.url) }
                                     })
@@ -355,7 +355,7 @@ client.once(Events.ClientReady, () => {
                             scheduledStartTime: match.datetime,
                             scheduledEndTime: match.datetime + 1000 * 60 * 60,
                             entityType: "EXTERNAL",
-                            description: "Commentary: " + (match.commentary && Object.keys(match.commentary).length > 0 ? Object.keys(match.commentary).map(id => users_data[id].name).join(", ") : ""),
+                            description: "Commentary: " + (match.commentators && Object.keys(match.commentators).length > 0 ? Object.keys(match.commentators).map(id => users_data[id].name).join(", ") : ""),
                             entityMetadata: { location: (match.url == "" ? "https://twitch.tv/SpeedGaming" : match.url) },
                             privacyLevel: 'GUILD_ONLY'
                         })
@@ -374,7 +374,7 @@ client.once(Events.ClientReady, () => {
                     if (match.current && match.notification == false && match.datetime <= Date.now() + 1000 * 60 * 10 && Date.now() <= match.datetime + 1000 * 60 * 10) {
                         tourney_scheduled.child(key).child("notification").set(true)
                         //add roles
-                        let everybody = Object.values(match.players).concat(Object.values(match.commentary))
+                        let everybody = Object.values(match.players).concat(Object.values(match.commentators))
                         everybody.forEach(async function (player) {
                             const thismember = await Guild.members.fetch(player)
                             thismember.roles.add('970995237952569404').catch(error => console.log(error))
@@ -396,7 +396,7 @@ client.once(Events.ClientReady, () => {
                         tourney_live.child("970994773517299712").set(newmatch)
                         client.api.channels("515311630100463656").messages.post({
                             data: {
-                                content: "<@&841059665474617353>\n**" + Object.keys(match.players).map(p => users_data[p].name).join(" vs. ") + "**\n:microphone2: " + Object.values(match.commentary).map(comm => users_data[comm].name).join(", ") + "\n" + match.url
+                                content: "<@&841059665474617353>\n**" + Object.keys(match.players).map(p => users_data[p].name).join(" vs. ") + "**\n:microphone2: " + Object.values(match.commentators).map(comm => users_data[comm].name).join(", ") + "\n" + match.url
                             }
                         })
                         client.api.channels("970994773517299712").messages.post({
