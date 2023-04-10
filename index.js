@@ -18,6 +18,7 @@ var tourneylookup = require("./tourneydata.js");
 var tools = require('./tools.js');
 var moment = require('moment');
 const { dailyChallenge, dailyBounty, easternHour } = require("./buttons/challenge/functions")
+const { banners } = require('./data.js')
 client.commands = new Discord.Collection();
 client.buttons = new Discord.Collection();
 client.selects = new Discord.Collection();
@@ -214,7 +215,7 @@ async function getCommands() {
 //getCommands()
 //client.api.applications("545798436105224203").guilds('441839750555369474').commands("").delete()
 
-client.once(Events.ClientReady, () => {
+client.once(Events.ClientReady, async () => {
     console.log('Ready!')
 
     //set bot activity
@@ -234,7 +235,9 @@ client.once(Events.ClientReady, () => {
         console.error("scrape failed");
     }
 
-    const Guild = client.guilds.cache.get("441839750555369474")
+    const Guild = await client.guilds.cache.get("441839750555369474")
+
+    await Guild.edit({ banner: banners[Math.floor(Math.random() * banners.length)] })
 
     const updater = async () => {
 

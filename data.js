@@ -45,6 +45,44 @@ exports.difficulties = [
     { "name": "Brutal" }
 ]
 
+exports.banners = [
+    'https://media.discordapp.net/attachments/602412114363154432/1094782342784098344/aby.png?width=1142&height=643',
+    'https://media.discordapp.net/attachments/602412114363154432/1094782345170657350/apc.png?width=1142&height=643',
+    'https://media.discordapp.net/attachments/602412114363154432/1094782345481027735/aqc.png?width=1142&height=643',
+    'https://media.discordapp.net/attachments/602412114363154432/1094782345854324776/btc.png?width=1142&height=643',
+    'https://media.discordapp.net/attachments/602412114363154432/1094782346194067507/m100.png?width=1142&height=643',
+    'https://media.discordapp.net/attachments/602412114363154432/1094782347704012891/407gvg.png?width=1142&height=643',
+    'https://media.discordapp.net/attachments/602412114363154432/1094782348169576540/409gvg.png?width=1142&height=643',
+    'https://media.discordapp.net/attachments/602412114363154432/1094782348911972463/aqc.png?width=1142&height=643',
+    'https://media.discordapp.net/attachments/602412114363154432/1094782349293658182/BC.png?width=1142&height=643',
+    'https://media.discordapp.net/attachments/602412114363154432/1094782349591445625/bwr.png?width=1142&height=643',
+    'https://media.discordapp.net/attachments/602412114363154432/1094782483851120750/fmr.png?width=1142&height=643',
+    'https://media.discordapp.net/attachments/602412114363154432/1094782484081819688/gau.png?width=1142&height=643',
+    'https://media.discordapp.net/attachments/602412114363154432/1094782484304113705/gvg.png?width=1142&height=643',
+    'https://media.discordapp.net/attachments/602412114363154432/1094782484568346765/hq.png?width=1142&height=643',
+    'https://media.discordapp.net/attachments/602412114363154432/1094782484857765958/inf.png?width=1142&height=643',
+    'https://media.discordapp.net/attachments/602412114363154432/1094782485168140458/sc.png?width=1142&height=643',
+    'https://media.discordapp.net/attachments/602412114363154432/1094782485432373278/smr.png?width=1142&height=643',
+    'https://media.discordapp.net/attachments/602412114363154432/1094782485679849662/ven.png?width=1142&height=643',
+    'https://media.discordapp.net/attachments/602412114363154432/647564309240479817/Wattic.jpg?width=973&height=643',
+    'https://media.discordapp.net/attachments/602412114363154432/806794573065748490/Mind_Tricks_Dont_work.png?width=422&height=264',
+    'https://media.discordapp.net/attachments/602412114363154432/832346808796839946/unknown.png?width=819&height=643',
+    'https://media.discordapp.net/attachments/602412114363154432/812432838363185222/rif-1613769412782.jpg?width=870&height=643',
+    'https://media.discordapp.net/attachments/602412114363154432/919316746459033641/unknown.png?width=1285&height=643',
+    'https://cdn.discordapp.com/attachments/441842584592056320/748334037084667965/Episode_I_Racer_8_26_2020_8_10_45_PM.png',
+    'https://cdn.discordapp.com/attachments/441842584592056320/748340642203304016/beedo.jpg',
+    'https://cdn.discordapp.com/attachments/441842584592056320/748340699610611752/teemto.png',
+    'https://cdn.discordapp.com/attachments/441842584592056320/748340900891197590/3ontatooineedited.png',
+    'https://cdn.discordapp.com/attachments/441842584592056320/748360567063838861/Episode_I_Racer_8_26_2020_9_40_06_PM.png',
+    'https://cdn.discordapp.com/attachments/441842584592056320/748360733732896868/Episode_I_Racer_8_26_2020_9_44_52_PM.png',
+    'https://cdn.discordapp.com/attachments/441842584592056320/749704566907469885/Episode_I_Racer_8_30_2020_2_27_47_PM.png',
+    'https://cdn.discordapp.com/attachments/441842584592056320/749704627808763934/Episode_I_Racer_8_30_2020_2_40_25_PM.png',
+    'https://cdn.discordapp.com/attachments/441842584592056320/749704685690028042/Episode_I_Racer_8_30_2020_2_42_20_PM.png',
+    'https://cdn.discordapp.com/attachments/441842584592056320/749704788014268576/Episode_I_Racer_8_30_2020_2_43_57_PM.png',
+    'https://cdn.discordapp.com/attachments/441842584592056320/749704908873400481/Episode_I_Racer_8_30_2020_2_44_21_PM.png',
+    'https://cdn.discordapp.com/attachments/441842584592056320/749706152627011685/Episode_I_Racer_8_30_2020_2_45_38_PM.png'
+]
+
 exports.srcmap = {
     "game": "m1mnnrxd",
     "levels": [
@@ -338,7 +376,7 @@ exports.mpQuotes = [
     "You're on a wired connection, right?",
     "You're not on wifi, right?",
     "Camera backwards? Press tab.",
-    "I lagged into the wall...", 
+    "I lagged into the wall...",
     "Can anyone help me get set up?",
     "Crap, I forgot to change the track.",
     "Wait, why am I Teemto!?",
@@ -763,7 +801,7 @@ exports.racer_hints = [
         "started the Boonta Eve Classic in the front row",
         "his introduction by Fodesinbeed was cut from the film",
         "didn't make it through lap one of the Boonta Eve Classic"
-        
+
     ], [ //aldar
         "pilots a Manta RamAir Mark IV Flat-Twin Turbojet",
         "voiced by Nick Jameson",
@@ -1137,7 +1175,7 @@ exports.track_hints = [
         "bears a striking resemblance to a real-life raceway",
         "features a waterfall",
         "features a flying creature",
-        "features a chasm or death pit",,
+        "features a chasm or death pit", ,
         "features fast terrain",
         "does not have a shortcut",
         "<:malastare:862053956111695892>",
@@ -1213,7 +1251,7 @@ exports.track_hints = [
         "a secret tent route is no question",
         "features a shortcut that is only accessible after the first lap",
         "features the Andobi Mountain Pipeline",
-        "features a chasm or death pit",,
+        "features a chasm or death pit", ,
         "features fast terrain",
         "<:andotent:1023110359407657090>",
         "<:andoprime:862053955880878140>",
@@ -1268,7 +1306,7 @@ exports.track_hints = [
         "you might find a large vehicle in your way",
         "features caged corkscrews",
         "features racer posters",
-        "features a chasm or death pit",,
+        "features a chasm or death pit", ,
         "<:mongazza:862053955428810753>",
         "features a flying vehicle",
         "featuers a three-way split",
