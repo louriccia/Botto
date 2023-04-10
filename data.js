@@ -80,7 +80,28 @@ exports.banners = [
     'https://cdn.discordapp.com/attachments/441842584592056320/749704685690028042/Episode_I_Racer_8_30_2020_2_42_20_PM.png',
     'https://cdn.discordapp.com/attachments/441842584592056320/749704788014268576/Episode_I_Racer_8_30_2020_2_43_57_PM.png',
     'https://cdn.discordapp.com/attachments/441842584592056320/749704908873400481/Episode_I_Racer_8_30_2020_2_44_21_PM.png',
-    'https://cdn.discordapp.com/attachments/441842584592056320/749706152627011685/Episode_I_Racer_8_30_2020_2_45_38_PM.png'
+    'https://cdn.discordapp.com/attachments/441842584592056320/749706152627011685/Episode_I_Racer_8_30_2020_2_45_38_PM.png',
+    'https://cdn.discordapp.com/attachments/442116200147714049/841955843309961216/welcome2.png',
+    'https://cdn.discordapp.com/attachments/602412114363154432/855118340019978260/pod.png',
+    'https://cdn.discordapp.com/attachments/602412114363154432/982664330082398278/unknown.png',
+    'https://media.discordapp.net/attachments/554524314632978433/1094869341117370458/EkZk4_dU4AAoVWG.jpg?width=1371&height=639',
+    'https://media.discordapp.net/attachments/554524314632978433/1094869341406773290/EkZkdcpUcAAKYU-.jpg?width=1208&height=535',
+    'https://media.discordapp.net/attachments/554524314632978433/1094869341658419280/EkZkdcTUYAAQIz0.jpg?width=1206&height=540',
+    'https://media.discordapp.net/attachments/554524314632978433/1094869341947842580/EkZkdfMU0AA5gMG.jpg?width=1195&height=535',
+    'https://media.discordapp.net/attachments/554524314632978433/1094869342207885332/EkZkdhHUcAICM6o.jpg?width=1371&height=633',
+    'https://media.discordapp.net/attachments/554524314632978433/1094869342543417424/EkZkrGeVcAAn9u-.jpg?width=1206&height=535',
+    'https://media.discordapp.net/attachments/554524314632978433/1094869342887366716/EkZkrHZVoAAv40I.jpg?width=1204&height=537',
+    'https://media.discordapp.net/attachments/554524314632978433/1094869343260655676/EkZkrIJVcAAm7sn.jpg?width=1202&height=537',
+    'https://media.discordapp.net/attachments/554524314632978433/1094869398860341298/EkeFsQKUYAEs-P8.jpg?width=750&height=643',
+    'https://media.discordapp.net/attachments/554524314632978433/1094869399208480828/EkeFsShVcAEfhI_.jpg?width=761&height=643',
+    'https://media.discordapp.net/attachments/554524314632978433/1094869399493685358/EkeFsWFVMAAjJI6.jpg?width=764&height=643',
+    'https://media.discordapp.net/attachments/554524314632978433/1094869399774699620/EkeFsZeUUAEu8hF.jpg?width=761&height=643',
+    'https://media.discordapp.net/attachments/554524314632978433/1094870944889184286/ben.PNG?width=1201&height=643',
+    'https://media.discordapp.net/attachments/554524314632978433/1094870945367347281/bengazza.png?width=1142&height=643',
+    'https://media.discordapp.net/attachments/554524314632978433/1094870945853870110/dd.PNG?width=1204&height=643',
+    'https://media.discordapp.net/attachments/554524314632978433/1094870946235555860/gau.PNG?width=1203&height=643',
+    'https://media.discordapp.net/attachments/554524314632978433/1094870946730496000/gvg.PNG?width=1203&height=643',
+    'https://media.discordapp.net/attachments/554524314632978433/1094870947363819550/mgs.PNG?width=1210&height=643'
 ]
 
 exports.srcmap = {
