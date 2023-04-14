@@ -18,6 +18,7 @@ var tourneylookup = require("./tourneydata.js");
 var tools = require('./tools.js');
 var moment = require('moment');
 const { dailyChallenge, dailyBounty, easternHour } = require("./buttons/challenge/functions")
+const { banners } = require('./data.js')
 client.commands = new Discord.Collection();
 client.buttons = new Discord.Collection();
 client.selects = new Discord.Collection();
@@ -214,7 +215,7 @@ async function getCommands() {
 //getCommands()
 //client.api.applications("545798436105224203").guilds('441839750555369474').commands("").delete()
 
-client.once(Events.ClientReady, () => {
+client.once(Events.ClientReady, async () => {
     console.log('Ready!')
 
     //set bot activity
@@ -234,14 +235,16 @@ client.once(Events.ClientReady, () => {
         console.error("scrape failed");
     }
 
-    const Guild = client.guilds.cache.get("441839750555369474")
+    const Guild = await client.guilds.cache.get("441839750555369474")
+
+    await Guild.edit({ banner: banners[Math.floor(Math.random() * banners.length)] })
 
     const updater = async () => {
 
 
         dailyChallenge({ client, sponsordata, challengetimedata, challengesref, challengesdata })
         dailyBounty({ client, bountydata, bountyref })
-        
+
         Object.values(challengesdata).forEach(challenge => {
             if (challenge.type == 'cotd' && Date.now() - 24 * 60 * 60 * 1000 > challenge.created && challenge.channel == '551786988861128714' && challenge.message) {
                 client.channels.cache.get('551786988861128714').messages.fetch(challenge.message).then(msg => { if (msg.pinned) { msg.unpin().catch(console.error) } })
@@ -260,10 +263,10 @@ client.once(Events.ClientReady, () => {
         const fs = require('fs');
         const livechannel = "515311630100463656"
         function getParticipantbyName(name) {
-            let ptc = Object.keys(tourney_participants_data)
+            let ptc = Object.keys(users_data)
             for (k = 0; k < ptc.length; k++) {
                 let p = ptc[k]
-                if (tourney_participants_data[p].name == name.trim()) {
+                if ((users_data[p].name ?? '').toLowerCase() == name.trim().toLowerCase()) {
                     return p
                 }
             }
@@ -279,7 +282,7 @@ client.once(Events.ClientReady, () => {
                     tourney_scheduled.child(key).update({ current: false })
                 })
                 cheerio('tr', table).each((i, elem) => { //for each row
-                    let match = {}
+                    let match = { commentators: {}, players: {} }
                     cheerio('td', elem).each((j, cell) => { //for each cell, populate match
                         let content = cheerio(cell).text().trim().replace(/\t/g, "").replace(/\n/g, "")
                         if (i == 0) {
@@ -292,11 +295,19 @@ client.once(Events.ClientReady, () => {
                                     match.url = ""
                                 }
                             } else if (values[j].includes("comm")) {
-                                match.commentary = content.split(",").map(comm => getParticipantbyName(comm)).filter(c => c !== null)
+                                console.log(content)
+                                console.log(content.split(/[^A-Za-z_ ]/g))
+                                content.split(/[^A-Za-z_ ]+/g).map(comm => getParticipantbyName(comm)).filter(c => ![null, undefined, ''].includes(c)).forEach(c => {
+                                    match.commentators[c] = users_data[c].discordID ?? ''
+                                })
                             } else if (values[j].includes("date")) {
                                 match.datetime = Date.parse(content.replace(", ", " " + new Date().getFullYear() + " ").replace(" ", " ") + " EDT")
                             } else if (values[j].includes("players")) {
-                                match.players = content.split("vs").map(play => getParticipantbyName(play)).filter(p => p !== null)
+                                console.log(content)
+                                console.log(content.split(/[^A-Za-z_ ]/g))
+                                content.split(/[^A-Za-z_ ]/g).map(play => getParticipantbyName(play)).filter(p => ![null, undefined, ''].includes(p)).forEach(p => {
+                                    match.players[p] = users_data[p].discordID ?? ''
+                                })
                             } else {
                                 match[values[j]] = content
                             }
@@ -304,7 +315,7 @@ client.once(Events.ClientReady, () => {
                     })
                     if (i !== 0) {
                         let dup = false
-                        if (![undefined, null].includes(tourney_scheduled_data)) {
+                        if (tourney_scheduled_data) {
                             Object.keys(tourney_scheduled_data).forEach(key => {
                                 if (tourney_scheduled_data[key].datetime == match.datetime) {
                                     match.current = true
@@ -330,9 +341,9 @@ client.once(Events.ClientReady, () => {
                             if (event.status == "SCHEDULED") {
                                 try {
                                     Guild.scheduledEvents.edit(Guild.scheduledEvents.resolve(event.id), {
-                                        name: match.players.map(id => tourney_participants_data[id].name).join(" vs "),
-                                        description: "Commentary: " + (match.commentary && Object.values(match.commentary).length > 0 ? Object.values(match.commentary).map(id => tourney_participants_data[id].name).join(", ") : ""),
-                                        entityType: 'EXTERNAL',
+                                        name: match.players ? Object.keys(match.players).map(id => users_data[id].name).join(" vs ") : 'Unknown Players',
+                                        description: "Commentary: " + (match.commentators && Object.keys(match.commentators).length > 0 ? Object.keys(match.commentators).map(id => users_data[id].name).join(", ") : ""),
+                                        entityType: 3,
                                         entityMetadata: { location: (match.url == "" ? "https://twitch.tv/SpeedGaming" : match.url) }
                                     })
                                 } catch {
@@ -343,13 +354,13 @@ client.once(Events.ClientReady, () => {
                     })
                     if (!eventdup && match.current && match.datetime > Date.now()) {
                         Guild.scheduledEvents.create({
-                            name: match.players.map(id => tourney_participants_data[id].name).join(" vs "),
+                            name: match.players ? Object.keys(match.players).map(id => users_data[id].name).join(" vs ") : 'Unknown Players',
                             scheduledStartTime: match.datetime,
                             scheduledEndTime: match.datetime + 1000 * 60 * 60,
-                            entityType: "EXTERNAL",
-                            description: "Commentary: " + (match.commentary && Object.values(match.commentary).length > 0 ? Object.values(match.commentary).map(id => tourney_participants_data[id].name).join(", ") : ""),
+                            entityType: 3,
+                            description: "Commentary: " + (match.commentators && Object.keys(match.commentators).length > 0 ? Object.keys(match.commentators).map(id => users_data[id].name).join(", ") : ""),
                             entityMetadata: { location: (match.url == "" ? "https://twitch.tv/SpeedGaming" : match.url) },
-                            privacyLevel: 'GUILD_ONLY'
+                            privacyLevel: 2
                         })
                     }
                 })
@@ -366,9 +377,9 @@ client.once(Events.ClientReady, () => {
                     if (match.current && match.notification == false && match.datetime <= Date.now() + 1000 * 60 * 10 && Date.now() <= match.datetime + 1000 * 60 * 10) {
                         tourney_scheduled.child(key).child("notification").set(true)
                         //add roles
-                        let everybody = Object.values(match.players).concat(Object.values(match.commentary))
+                        let everybody = Object.values(match.players).concat(Object.values(match.commentators))
                         everybody.forEach(async function (player) {
-                            const thismember = await Guild.members.fetch(tourney_participants_data[player].id)
+                            const thismember = await Guild.members.fetch(player)
                             thismember.roles.add('970995237952569404').catch(error => console.log(error))
                         }
 
@@ -380,22 +391,22 @@ client.once(Events.ClientReady, () => {
                             bracket: "",
                             ruleset: "",
                             datetime: match.datetime,
-                            players: match.players.map(player => tourney_participants_data[player].id),
-                            commentators: match.commentary.map(player => tourney_participants_data[player].id),
+                            players: match.players,
+                            commentators: match.commentators,
                             stream: match.url,
                             firstvote: ""
                         }
                         tourney_live.child("970994773517299712").set(newmatch)
                         client.api.channels("515311630100463656").messages.post({
                             data: {
-                                content: "<@&841059665474617353>\n**" + match.players.map(p => tourney_participants_data[p].name).join(" vs. ") + "**\n:microphone2: " + match.commentary.map(comm => tourney_participants_data[comm].name).join(", ") + "\n" + match.url
+                                content: "<@&841059665474617353>\n**" + Object.keys(match.players).map(p => users_data[p].name).join(" vs. ") + "**\n:microphone2: " + Object.values(match.commentators).map(comm => users_data[comm].name).join(", ") + "\n" + match.url
                             }
                         })
                         client.api.channels("970994773517299712").messages.post({
                             data: {
                                 content: Object.values(newmatch.commentators).map(player => "<@" + player + ">").join(" ") + " " +
                                     Object.values(newmatch.players).map(player => "<@" + player + ">").join(" ") + "\n**" +
-                                    match.players.map(player => tourney_participants_data[player].name).join(" vs. ") + "** is about to begin!",
+                                    Object.values(match.players).map(player => users_data[player].name).join(" vs. ") + "** is about to begin!",
                                 components: [
                                     {
                                         type: 1,
