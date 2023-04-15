@@ -2,7 +2,7 @@ const fs = require('fs');
 const Discord = require('discord.js');
 const { Client, Events, GatewayIntentBits } = require('discord.js')
 var moment = require('moment');
-//const { prefix, token, firebaseCon } = require('./config.json');
+const { prefix, token, firebaseCon } = require('./config.json');
 const { welcomeMessages } = require('./data.js')
 const client = new Client({
     intents: [
@@ -25,7 +25,7 @@ client.selects = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 const buttonFiles = fs.readdirSync('./buttons').filter(file => file.endsWith('.js'));
 
-const testing = false
+const testing = true
 
 let discord_token = testing ? token : process.env.token
 
@@ -73,109 +73,74 @@ var database = admin.database();
 var logref = database.ref('log');
 var errorlogref = database.ref('log/error');
 
-var challengetimeref = database.ref('challenge/times');
-challengetimeref.on("value", function (snapshot) {
-    challengetimedata = snapshot.val();
-}, function (errorObject) {
-    console.log("The read failed: " + errorObject);
-});
-var profileref = database.ref('challenge/profiles');
-profileref.on("value", function (snapshot) {
-    profiledata = snapshot.val();
-}, function (errorObject) {
-    console.log("The read failed: " + errorObject.code);
-});
-var challengesref = database.ref('challenge/challenges');
-challengesref.on("value", function (snapshot) {
-    challengesdata = snapshot.val();
-}, function (errorObject) {
-    console.log("The read failed: " + errorObject.code);
-});
-var feedbackref = database.ref('challenge/feedback');
-feedbackref.on("value", function (snapshot) {
-    feedbackdata = snapshot.val();
-}, function (errorObject) {
-    console.log("The read failed: " + errorObject.code);
+function fetchData(ref, callback) {
+    ref.on("value", function (snapshot) {
+        callback(snapshot.val());
+    }, function (errorObject) {
+        console.log("The read failed: " + errorObject.code);
+    });
+}
+
+fetchData(database.ref('challenge/times'), function (data) {
+    challengetimedata = data;
 });
 
-var bountyref = database.ref('challenge/bounties');
-bountyref.on("value", function (snapshot) {
-    bountydata = snapshot.val();
-}, function (errorObject) {
-    console.log("The read failed: " + errorObject.code);
-});
-var sponsorref = database.ref('challenge/sponsorships');
-sponsorref.on("value", function (snapshot) {
-    sponsordata = snapshot.val();
-}, function (errorObject) {
-    console.log("The read failed: " + errorObject.code);
+fetchData(database.ref('challenge/profiles'), function (data) {
+    profiledata = data;
 });
 
-var tourney_races = database.ref('tourney/races');
-tourney_races.on("value", function (snapshot) {
-    tourney_races_data = snapshot.val();
-}, function (errorObject) {
-    console.log("The read failed: " + errorObject);
-});
-var tourney_matches = database.ref('tourney/matches')
-tourney_matches.on("value", function (snapshot) {
-    tourney_matches_data = snapshot.val();
-}, function (errorObject) {
-    console.log("The read failed: " + errorObject);
-});
-var tourney_scheduled = database.ref('tourney/scheduled')
-tourney_scheduled.on("value", function (snapshot) {
-    tourney_scheduled_data = snapshot.val();
-}, function (errorObject) {
-    console.log("The read failed: " + errorObject);
-});
-var tourney_participants = database.ref('tourney/participants')
-tourney_participants.on("value", function (snapshot) {
-    tourney_participants_data = snapshot.val();
-}, function (errorObject) {
-    console.log("The read failed: " + errorObject);
-});
-var tourney_tournaments = database.ref('tourney/tournaments')
-tourney_tournaments.on("value", function (snapshot) {
-    tourney_tournaments_data = snapshot.val();
-}, function (errorObject) {
-    console.log("The read failed: " + errorObject);
-});
-var tourney_rulesets = database.ref('tourney/rulesets')
-tourney_rulesets.on("value", function (snapshot) {
-    tourney_rulesets_data = snapshot.val();
-}, function (errorObject) {
-    console.log("The read failed: " + errorObject);
-});
-var tourney_live = database.ref('tourney/live')
-tourney_live.on("value", function (snapshot) {
-    tourney_live_data = snapshot.val();
-}, function (errorObject) {
-    console.log("The read failed: " + errorObject);
-});
-var speedruns = database.ref('speedruns');
-var speedruns_data = {}
-speedruns.on("value", function (snapshot) {
-    speedruns_data = snapshot.val();
-}, function (errorObject) {
-    console.log("The read failed: " + errorObject.code);
+fetchData(database.ref('challenge/challenges'), function (data) {
+    challengesdata = data;
 });
 
-let betref = database.ref('tourney/bets');
-let betdata = {}
-betref.on("value", function (snapshot) {
-    betdata = snapshot.val();
-}, function (errorObject) {
-    console.log("The read failed: " + errorObject.code);
+fetchData(database.ref('challenge/feedback'), function (data) {
+    feedbackdata = data;
 });
 
-var users = database.ref('users');
-var users_data = {}
-users.on("value", function (snapshot) {
-    users_data = snapshot.val();
-}, function (errorObject) {
-    console.log("The read failed: " + errorObject.code);
+fetchData(database.ref('challenge/bounties'), function (data) {
+    bountydata = data;
 });
+
+fetchData(database.ref('challenge/sponsorships'), function (data) {
+    sponsordata = data;
+});
+
+fetchData(database.ref('tourney/races'), function (data) {
+    tourney_races_data = data;
+});
+
+fetchData(database.ref('tourney/matches'), function (data) {
+    tourney_matches_data = data;
+});
+
+fetchData(database.ref('tourney/scheduled'), function (data) {
+    tourney_scheduled_data = data;
+});
+
+fetchData(database.ref('tourney/tournaments'), function (data) {
+    tourney_tournaments_data = data;
+});
+
+fetchData(database.ref('tourney/rulesets'), function (data) {
+    tourney_rulesets_data = data;
+});
+
+fetchData(database.ref('tourney/live'), function (data) {
+    tourney_live_data = data;
+});
+
+fetchData(database.ref('speedruns'), function (data) {
+    speedruns_data = data;
+});
+
+fetchData(database.ref('tourney/bets'), function (data) {
+    betdata = data;
+});
+
+fetchData(database.ref('users'), function (data) {
+    users = data;
+});
+
 client.on(Events.InteractionCreate, async interaction => {
     if (interaction.isChatInputCommand()) {
         const command = interaction.commandName.toLowerCase();
@@ -230,7 +195,7 @@ client.once(Events.ClientReady, async () => {
         .catch(console.error);
     client.channels.cache.get("444208252541075476").send("Deployed <t:" + Math.round(Date.now() / 1000) + ":R>");
     try {
-        //client.commands.get("scrape").execute(client, database);
+        client.commands.get("scrape").execute(client, database);
     } catch {
         console.error("scrape failed");
     }

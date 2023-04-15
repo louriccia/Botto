@@ -155,7 +155,6 @@ module.exports = {
                     promises.push(getsrcData(extension, offset))
                 }
                 await Promise.all(promises)
-                console.log(`finished getting ${runs_data.length} records from src`)
             }
 
             forLoop()
