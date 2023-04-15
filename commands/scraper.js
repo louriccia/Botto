@@ -1,11 +1,11 @@
 const { SlashCommandBuilder } = require('discord.js');
 
+
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('scrape'),
-    execute(client, database) {
+    async execute(client, database) {
         const fetch = require('node-fetch');
-
         let speedruns = database.ref('speedruns');
         let users = database.ref('users');
 
@@ -151,10 +151,13 @@ module.exports = {
                 for (let index = 0; index < 30; index++) {
                     const offset = 200 * index
                     console.log('offset ' + offset)
-                    promises.push(getsrcData(game, offset))
-                    promises.push(getsrcData(extension, offset))
+                    const push1 = await getsrcData(game, offset)
+                    promises.push(push1)
+                    const push2 = getsrcData(extension, offset)
+                    promises.push(push2)
                 }
                 await Promise.all(promises)
+                console.log('done updating records from src')
             }
 
             forLoop()
