@@ -101,7 +101,8 @@ exports.banners = [
     'https://media.discordapp.net/attachments/554524314632978433/1094870945853870110/dd.PNG?width=1204&height=643',
     'https://media.discordapp.net/attachments/554524314632978433/1094870946235555860/gau.PNG?width=1203&height=643',
     'https://media.discordapp.net/attachments/554524314632978433/1094870946730496000/gvg.PNG?width=1203&height=643',
-    'https://media.discordapp.net/attachments/554524314632978433/1094870947363819550/mgs.PNG?width=1210&height=643'
+    'https://media.discordapp.net/attachments/554524314632978433/1094870947363819550/mgs.PNG?width=1210&height=643',
+    'https://media.discordapp.net/attachments/602412114363154432/1094885804700090388/vlcsnap-2020-12-13-00h06m31s804.png?width=1142&height=643'
 ]
 
 exports.srcmap = {
