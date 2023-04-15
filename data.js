@@ -1533,7 +1533,6 @@ exports.track_hints = [
         "failure to stay on top will surely lose your lead",
         "one-word name",
         "features useless guardrails",
-        "features fast terrain",
         "<:ordibanna:862053955348463647>",
         "features a drop before its finish line",
         "features a flying vehicle",
