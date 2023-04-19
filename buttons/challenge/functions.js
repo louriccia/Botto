@@ -1397,8 +1397,10 @@ exports.easternHour = function () {
 
 exports.dailyChallenge = async function ({ client, sponsordata, challengetimedata, challengesref, challengesdata } = {}) {
     let recent = null
+    let lastfive = []
     if (challengesdata) {
-        Object.values(challengesdata).filter(c => c.type == 'cotd').forEach(challenge => {
+        Object.values(challengesdata).filter(c => c.type == 'cotd').sort((a, b) => b.created - a.created).slice(0, 5).forEach(challenge => {
+            lastfive.push(challenge)
             if (!recent || recent.created - challenge.created < 0) {
                 recent = { ...challenge }
             }
@@ -1406,8 +1408,38 @@ exports.dailyChallenge = async function ({ client, sponsordata, challengetimedat
     }
     //console.log("challenge", exports.easternHour(), moment().utc().format("DDD"), recent.message, recent.day, exports.easternHour() == 0, moment().utc().format("DDD") !== recent.day)
     if (exports.easternHour() == 0 && moment().utc().format("DDD") !== recent.day) {
-
-        current_challenge = exports.initializeChallenge({ type: "cotd", sponsordata })
+        let current_challenge = exports.initializeChallenge({ type: "cotd", sponsordata })
+        console.log(current_challenge)
+        if (lastfive.map(c => c.racer).includes(current_challenge.racer)) {
+            if (Math.random() < 0.9) {
+                let leftoverracers = []
+                for (let i = 0; i < 23; i++) {
+                    if (!lastfive.map(c => c.racer).includes(i)) {
+                        leftoverracers.push(i)
+                    }
+                }
+                current_challenge.racer = leftoverracers[Math.floor(Math.random() * leftoverracers.length)]
+            }
+        }
+        if (lastfive.map(c => c.track).includes(current_challenge.track)) {
+            if (Math.random() < 0.9) {
+                let leftovertracks = []
+                for (let i = 0; i < 25; i++) {
+                    if (!lastfive.map(c => c.track).includes(i)) {
+                        leftovertracks.push(i)
+                    }
+                }
+                current_challenge.track = leftovertracks[Math.floor(Math.random() * leftovertracks.length)]
+            }
+        }
+        ['laps', 'nu', 'skips', 'mirror', 'backwards'].forEach(con => {
+            if (con == 'laps' && recent[con] !== 3 && current_challenge[con] !== 3 && Math.random() < .9) {
+                current_challenge[con] = 3
+            } else if (recent[con] && current_challenge[con] && Math.random() < .9) {
+                current_challenge[con] = false
+            }
+        })
+        console.log('adjusted', current_challenge)
         let cotdmessage = await postMessage(client, '551786988861128714', exports.updateChallenge({ client, challengetimedata, current_challenge, sponsordata, challengesdata })) //551786988861128714
         current_challenge.message = cotdmessage.id
         current_challenge.guild = cotdmessage.guildId
@@ -1415,9 +1447,7 @@ exports.dailyChallenge = async function ({ client, sponsordata, challengetimedat
         current_challenge.url = cotdmessage.url
         challengesref.child(cotdmessage.id).set(current_challenge)
         cotdmessage.pin()
-
     }
-
 }
 
 exports.dailyBounty = async function ({ client, bountydata, bountyref } = {}) {
