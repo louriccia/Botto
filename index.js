@@ -255,13 +255,17 @@ client.once(Events.ClientReady, async () => {
                                     match.url = ""
                                 }
                             } else if (values[j].includes("comm")) {
-                                content.split(/[^A-Za-z0-9_ ]+/g).map(comm => getParticipantbyName(comm)).filter(c => ![null, undefined, ''].includes(c)).forEach(c => {
+                                let split = content.split(/[^A-Za-z0-9_ ]+/g)
+                                console.log(split)
+                                split.map(comm => getParticipantbyName(comm.trim())).filter(c => ![null, undefined, ''].includes(c)).forEach(c => {
                                     match.commentators[c] = users[c].discordID ?? ''
                                 })
                             } else if (values[j].includes("date")) {
                                 match.datetime = Date.parse(content.replace(", ", " " + new Date().getFullYear() + " ").replace(" ", " ") + " EDT")
                             } else if (values[j].includes("players")) {
-                                content.split(/[^A-Za-z0-9_ ]/g).map(play => getParticipantbyName(play)).filter(p => ![null, undefined, ''].includes(p)).forEach(p => {
+                                let split = content.split(/[^A-Za-z0-9_ ]+/g)
+                                console.log(split)
+                                split.map(play => getParticipantbyName(play.trim())).filter(p => ![null, undefined, ''].includes(p)).forEach(p => {
                                     match.players[p] = users[p].discordID ?? ''
                                 })
                             } else {
