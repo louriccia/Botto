@@ -242,7 +242,7 @@ client.once(Events.ClientReady, async () => {
             .then(function (html) {
                 let table = cheerio('tbody', html)
                 let guildevents = Guild.scheduledEvents.cache
-                Guild.scheduledEvents.cache.fetch('1102014024343892072').then(event => event.edit({ name: 'test' }))
+                Guild.scheduledEvents.fetch('1102014024343892072').then(event => event.edit({ name: 'test' }))
                 let events = guildevents.toJSON()
                 let values = []
                 Object.keys(tourney_scheduled_data).forEach(key => {
