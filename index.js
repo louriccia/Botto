@@ -242,7 +242,6 @@ client.once(Events.ClientReady, async () => {
             .then(function (html) {
                 let table = cheerio('tbody', html)
                 let guildevents = Guild.scheduledEvents.cache
-                Guild.scheduledEvents.fetch('1102014024343892072').then(event => event.edit({ name: 'test' }))
                 let events = guildevents.toJSON()
                 let values = []
                 Object.keys(tourney_scheduled_data).forEach(key => {
@@ -305,12 +304,12 @@ client.once(Events.ClientReady, async () => {
                             database.ref('tourney/scheduled').child(key).update({ event: event.id })
                             if (event.status == "SCHEDULED") {
                                 try {
-                                    Guild.scheduledEvents.edit(Guild.scheduledEvents.resolve(event.id), {
+                                    Guild.scheduledEvents.fetch(event.id).then(event => event.edit({
                                         name: match.players ? Object.keys(match.players).map(id => users[id].name).join(" vs ") : 'Unknown Players',
                                         description: "Commentary: " + (match.commentators && Object.keys(match.commentators).length > 0 ? Object.keys(match.commentators).map(id => users[id].name).join(", ") : ""),
                                         entityType: 3,
                                         entityMetadata: { location: (match.url == "" ? "https://twitch.tv/SpeedGaming" : match.url) }
-                                    })
+                                    }))
                                 } catch {
                                     console.log("failed to edit scheduled event")
                                 }
