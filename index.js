@@ -229,7 +229,7 @@ client.once(Events.ClientReady, async () => {
         const livechannel = "515311630100463656"
         function getParticipantbyName(name) {
             let ptc = Object.keys(users)
-            return ptc.find(key => users[key].sgName === name) ?? ""
+            return ptc.find(key => users[key].sgName === name.trim()) ?? ""
         }
 
         rp(url)
@@ -256,16 +256,14 @@ client.once(Events.ClientReady, async () => {
                                 }
                             } else if (values[j].includes("comm")) {
                                 let split = content.split(/[^A-Za-z0-9_ ]+/g)
-                                console.log(split)
-                                split.map(comm => getParticipantbyName(comm.trim())).filter(c => ![null, undefined, ''].includes(c)).forEach(c => {
+                                split.map(comm => getParticipantbyName(comm)).filter(c => ![null, undefined, ''].includes(c)).forEach(c => {
                                     match.commentators[c] = users[c].discordID ?? ''
                                 })
                             } else if (values[j].includes("date")) {
                                 match.datetime = Date.parse(content.replace(", ", " " + new Date().getFullYear() + " ").replace(" ", " ") + " EDT")
                             } else if (values[j].includes("players")) {
                                 let split = content.split(/[^A-Za-z0-9_ ]+/g)
-                                console.log(split)
-                                split.map(play => getParticipantbyName(play.trim())).filter(p => ![null, undefined, ''].includes(p)).forEach(p => {
+                                split.map(play => getParticipantbyName(play)).filter(p => ![null, undefined, ''].includes(p)).forEach(p => {
                                     match.players[p] = users[p].discordID ?? ''
                                 })
                             } else {
