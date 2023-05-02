@@ -301,7 +301,7 @@ client.once(Events.ClientReady, async () => {
                         if (event.scheduledStartTimestamp == match.datetime) {
                             eventdup = true
                             database.ref('tourney/scheduled').child(key).update({ event: event.id })
-                            if (event.status == "SCHEDULED") {
+                            if (event.status == 1) {
                                 try {
                                     Guild.scheduledEvents.fetch(event.id).then(event => event.edit({
                                         name: match.players ? Object.keys(match.players).map(id => users[id].name).join(" vs ") : 'Unknown Players',
