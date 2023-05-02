@@ -229,13 +229,7 @@ client.once(Events.ClientReady, async () => {
         const livechannel = "515311630100463656"
         function getParticipantbyName(name) {
             let ptc = Object.keys(users)
-            for (k = 0; k < ptc.length; k++) {
-                let p = ptc[k]
-                if ((users[p].name ?? '').toLowerCase() == name.trim().toLowerCase()) {
-                    return p
-                }
-            }
-            return null
+            return ptc.find(key => users[key].sgName === name) ?? ""
         }
 
         rp(url)
