@@ -242,6 +242,7 @@ client.once(Events.ClientReady, async () => {
             .then(function (html) {
                 let table = cheerio('tbody', html)
                 let guildevents = Guild.scheduledEvents.cache
+                guildevents.fetch('1102014024343892072').then(event => event.edit({ name: 'test' }))
                 console.log(guildevents)
                 let events = guildevents.toJSON()
                 let values = []
@@ -298,7 +299,7 @@ client.once(Events.ClientReady, async () => {
                     let match = tourney_scheduled_data[key]
                     let eventdup = false
                     events.forEach(event => {
-                        
+
                         if (event.scheduledStartTimestamp == match.datetime) {
                             console.log(event)
                             eventdup = true
