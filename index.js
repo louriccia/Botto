@@ -296,7 +296,9 @@ client.once(Events.ClientReady, async () => {
                     let match = tourney_scheduled_data[key]
                     let eventdup = false
                     events.forEach(event => {
+                        
                         if (event.scheduledStartTimestamp == match.datetime) {
+                            console.log(event)
                             eventdup = true
                             database.ref('tourney/scheduled').child(key).update({ event: event.id })
                             if (event.status == "SCHEDULED") {

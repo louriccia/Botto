@@ -481,7 +481,7 @@ exports.generateLeaderboard = function (best, member, current_challenge) {
         let already = []
         let submission = current_challenge.submissions && current_challenge.type == 'private' ? current_challenge.submissions[current_challenge.player.member].time : null
         for (let i = 0; i < best.length; i++) {
-            if (best[i].prediction || !already.includes(best[i].user) || (best[i].user == member && current_challenge.type == 'private')) {
+            if (best[i].prediction || !already.includes(best[i].user) || (best[i].user == member && current_challenge.type == 'private') || best[i].date == current_challenge.created) {
                 let bold = ((best[i].user == member && current_challenge.type == 'private') || best[i].date == current_challenge.created) ? "**" : ""
                 besttimes += (best[i].prediction ? "🔮 *" : best[i].sponsor ? "📢 " : pos[0]) + bold + (best[i].proof ? "[" : "") + tools.timefix(best[i].time) + (best[i].proof ? "](" + best[i].proof + ")" : "") + " - " + best[i].name + bold +
                     (best[i].notes ? " `" + best[i].notes + "`" : "") +
@@ -960,7 +960,12 @@ exports.challengeComponents = function (current_challenge, profile) {
             new ButtonBuilder()
                 .setCustomId("challenge_random_play")
                 .setStyle(ButtonStyle.Danger)
-                .setEmoji("🎲")
+                .setEmoji("🎲"),
+            new ButtonBuilder()
+                .setCustomId("challenge_random_modal")
+                .setStyle(ButtonStyle.Secondary)
+                .setEmoji("✏️")
+
         )
     }
     if (current_challenge.submissions) {
