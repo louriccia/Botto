@@ -241,7 +241,9 @@ client.once(Events.ClientReady, async () => {
         rp(url)
             .then(function (html) {
                 let table = cheerio('tbody', html)
-                let events = Guild.scheduledEvents.cache.toJSON()
+                let guildevents = Guild.scheduledEvents.cache
+                console.log(guildevents)
+                let events = guildevents.toJSON()
                 let values = []
                 Object.keys(tourney_scheduled_data).forEach(key => {
                     database.ref('tourney/scheduled').child(key).update({ current: false })
