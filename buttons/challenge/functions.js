@@ -798,11 +798,11 @@ exports.updateChallenge = function ({ client, challengetimedata, profile, curren
     if (!current_challenge.refunded && current_challenge.bounties) {
         if (current_challenge.racer_bribe) {
             //profileref.update({ truguts_spent: profile.truguts_spent - truguts.bribe_racer })
-            profile = exports.manageTruguts(profile, profileref, 'r', truguts.bribe_racer)
+            profile = exports.manageTruguts({ profile, profileref, transaction: 'r', amount: truguts.bribe_racer })
         }
         if (current_challenge.track_bribe) {
             //profileref.update({ truguts_spent: profile.truguts_spent - truguts.bribe_track })
-            profile = exports.manageTruguts(profile, profileref, 'r', truguts.bribe_track)
+            profile = exports.manageTruguts({ profile, profileref, transaction: 'r', amount: truguts.bribe_track })
         }
         current_challenge.refunded = true
     }
