@@ -357,7 +357,7 @@ client.once(Events.ClientReady, async () => {
                             stream: match.url,
                             firstvote: ""
                         }
-                        tourney_live.child("970994773517299712").set(newmatch)
+                        database.ref('tourney/live').child("970994773517299712").set(newmatch)
                         client.api.channels("515311630100463656").messages.post({
                             data: {
                                 content: "<@&841059665474617353>\n**" + Object.keys(match.players).map(p => users[p].name).join(" vs. ") + "**\n:microphone2: " + Object.values(match.commentators).map(comm => users[comm].name).join(", ") + "\n" + match.url
