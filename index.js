@@ -229,19 +229,14 @@ client.once(Events.ClientReady, async () => {
         const livechannel = "515311630100463656"
         function getParticipantbyName(name) {
             let ptc = Object.keys(users)
-            for (k = 0; k < ptc.length; k++) {
-                let p = ptc[k]
-                if ((users[p].name ?? '').toLowerCase() == name.trim().toLowerCase()) {
-                    return p
-                }
-            }
-            return null
+            return ptc.find(key => users[key].sgName === name.trim()) ?? ""
         }
 
         rp(url)
             .then(function (html) {
                 let table = cheerio('tbody', html)
-                let events = Guild.scheduledEvents.cache.toJSON()
+                let guildevents = Guild.scheduledEvents.cache
+                let events = guildevents.toJSON()
                 let values = []
                 Object.keys(tourney_scheduled_data).forEach(key => {
                     database.ref('tourney/scheduled').child(key).update({ current: false })
@@ -260,13 +255,15 @@ client.once(Events.ClientReady, async () => {
                                     match.url = ""
                                 }
                             } else if (values[j].includes("comm")) {
-                                content.split(/[^A-Za-z_ ]+/g).map(comm => getParticipantbyName(comm)).filter(c => ![null, undefined, ''].includes(c)).forEach(c => {
+                                let split = content.split(/[^A-Za-z0-9_ ]+/g)
+                                split.map(comm => getParticipantbyName(comm)).filter(c => ![null, undefined, ''].includes(c)).forEach(c => {
                                     match.commentators[c] = users[c].discordID ?? ''
                                 })
                             } else if (values[j].includes("date")) {
                                 match.datetime = Date.parse(content.replace(", ", " " + new Date().getFullYear() + " ").replace(" ", " ") + " EDT")
                             } else if (values[j].includes("players")) {
-                                content.split(/[^A-Za-z_ ]/g).map(play => getParticipantbyName(play)).filter(p => ![null, undefined, ''].includes(p)).forEach(p => {
+                                let split = content.split(/[^A-Za-z0-9_ ]+/g)
+                                split.map(play => getParticipantbyName(play)).filter(p => ![null, undefined, ''].includes(p)).forEach(p => {
                                     match.players[p] = users[p].discordID ?? ''
                                 })
                             } else {
@@ -296,17 +293,18 @@ client.once(Events.ClientReady, async () => {
                     let match = tourney_scheduled_data[key]
                     let eventdup = false
                     events.forEach(event => {
+
                         if (event.scheduledStartTimestamp == match.datetime) {
                             eventdup = true
                             database.ref('tourney/scheduled').child(key).update({ event: event.id })
-                            if (event.status == "SCHEDULED") {
+                            if (event.status == 1) {
                                 try {
-                                    Guild.scheduledEvents.edit(Guild.scheduledEvents.resolve(event.id), {
+                                    Guild.scheduledEvents.fetch(event.id).then(event => event.edit({
                                         name: match.players ? Object.keys(match.players).map(id => users[id].name).join(" vs ") : 'Unknown Players',
                                         description: "Commentary: " + (match.commentators && Object.keys(match.commentators).length > 0 ? Object.keys(match.commentators).map(id => users[id].name).join(", ") : ""),
                                         entityType: 3,
                                         entityMetadata: { location: (match.url == "" ? "https://twitch.tv/SpeedGaming" : match.url) }
-                                    })
+                                    }))
                                 } catch {
                                     console.log("failed to edit scheduled event")
                                 }
