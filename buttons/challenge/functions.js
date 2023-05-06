@@ -1438,10 +1438,10 @@ exports.dailyChallenge = async function ({ client, sponsordata, challengetimedat
             }
         }
         ['laps', 'nu', 'skips', 'mirror', 'backwards'].forEach(con => {
-            if (con == 'laps' && recent[con] !== 3 && current_challenge[con] !== 3 && Math.random() < .9) {
-                current_challenge[con] = 3
-            } else if (recent[con] && current_challenge[con] && Math.random() < .9) {
-                current_challenge[con] = false
+            if (con == 'laps' && recent.conditions[con] !== 3 && current_challenge.conditions[con] !== 3 && Math.random() < .9) {
+                current_challenge.conditions[con] = 3
+            } else if (recent.conditions[con] && current_challenge.conditions[con] && Math.random() < .9) {
+                current_challenge.conditions[con] = false
             }
         })
         console.log('adjusted', current_challenge)
