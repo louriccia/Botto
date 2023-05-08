@@ -1437,7 +1437,7 @@ exports.dailyChallenge = async function ({ client, sponsordata, challengetimedat
                 current_challenge.track = leftovertracks[Math.floor(Math.random() * leftovertracks.length)]
             }
         }
-        if (con == 'laps' && recent.conditions.laps !== 3 && current_challenge.conditions.laps !== 3 && Math.random() < .9) {
+        if (recent.conditions.laps !== 3 && current_challenge.conditions.laps !== 3 && Math.random() < .9) {
             current_challenge.conditions.laps = 3
         }
         ['nu', 'skips', 'mirror', 'backwards'].forEach(con => {
