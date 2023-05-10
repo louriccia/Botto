@@ -73,6 +73,7 @@ exports.banners = [
     'https://cdn.discordapp.com/attachments/441842584592056320/748340642203304016/beedo.jpg',
     'https://cdn.discordapp.com/attachments/441842584592056320/748340699610611752/teemto.png',
     'https://cdn.discordapp.com/attachments/441842584592056320/748340900891197590/3ontatooineedited.png',
+    'https://cdn.discordapp.com/attachments/554524314632978433/1105741861127192576/image.png',
     'https://cdn.discordapp.com/attachments/441842584592056320/748360567063838861/Episode_I_Racer_8_26_2020_9_40_06_PM.png',
     'https://cdn.discordapp.com/attachments/441842584592056320/748360733732896868/Episode_I_Racer_8_26_2020_9_44_52_PM.png',
     'https://cdn.discordapp.com/attachments/441842584592056320/749704566907469885/Episode_I_Racer_8_30_2020_2_27_47_PM.png',
