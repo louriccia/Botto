@@ -171,7 +171,7 @@ exports.initializeUser = function (ref, id, name) {
     return push.key
 }
 
-exports.initializeChallenge = function ({ profile, member, type, name, avatar, user, circuit, sponsordata } = {}) {
+exports.initializeChallenge = function ({ profile, member, type, name, avatar, user, circuit, sponsordata, interaction } = {}) {
     //get values
     let random_racer = Math.floor(Math.random() * 23)
     let trackpool = []
@@ -220,7 +220,9 @@ exports.initializeChallenge = function ({ profile, member, type, name, avatar, u
             mirror: mirror,
             backwards: backwards,
         },
-        hunt_bonus: 0
+        hunt_bonus: 0,
+        channel: interaction.message.channelId,
+        guild: interaction.guildId,
     }
     if (type == 'private') {
         challenge.player = { member: member, name: name, avatar: avatar, user: user }
@@ -640,12 +642,13 @@ exports.awardAchievements = function ({ client, achievements, current_challenge,
         if (Object.keys(achievements[key].collection).length >= achievements[key].limit || achievements[key].count >= achievements[key].limit) { //if player has met condition for achievement
             if (current_challenge.guild == swe1r_guild) {
                 let cmember = client.guilds.cache.get(current_challenge.guild).members.cache.get(member)
-                if (cmember.roles.cache.some(r => r.id === achievements[key].role)) { //award role
+                if (!cmember.roles.cache.some(r => r.id === achievements[key].role)) { //award role
                     cmember.roles.add(achievements[key].role).catch(error => console.log(error))
                 }
             }
             if (!profile.achievements[key]) { //send congrats
                 profileref.child("achievements").child(key).set(true)
+                console.log(current_challenge)
                 postMessage(client, current_challenge.channel, { embeds: [exports.achievementEmbed(name, avatar, achievements[key], current_challenge.guild)] })
             }
         }
@@ -818,7 +821,7 @@ exports.updateChallenge = function ({ client, challengetimedata, profile, curren
     if (current_challengeref) {
         current_challengeref.update(current_challenge)
     }
-    
+
     let flavor_text = ''
     if (Math.random() < 0.20 && best.length > 0) {
         flavor_text = "The current record-holder for this challenge is... " + best[0].name + "!"

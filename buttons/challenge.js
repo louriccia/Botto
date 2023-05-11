@@ -93,7 +93,7 @@ module.exports = {
 
         if (profile.truguts_spent + profile.truguts_earned >= achievement_data.big_time_swindler.limit && current_challenge) { //award big-time swindler achievement
             if (current_challenge.guild == swe1r_guild) {
-                if (Member.roles.cache.some(r => r.id === achievement_data.big_time_swindler.role)) { //award role
+                if (!Member.roles.cache.some(r => r.id === achievement_data.big_time_swindler.role)) { //award role
                     Member.roles.add(achievement_data.big_time_swindler.role).catch(error => console.log(error))
                 }
             }
@@ -115,7 +115,7 @@ module.exports = {
                         return
                     }
                     let type = interaction.member.voice?.channel?.id == '441840193754890250' ? 'multiplayer' : 'private'
-                    current_challenge = initializeChallenge({ profile, member, type, name, avatar, user: player, sponsordata })
+                    current_challenge = initializeChallenge({ profile, member, type, name, avatar, user: player, sponsordata, interaction })
                     let message = await interaction.reply(updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata }))
                     current_challenge.message = message.id
                     current_challenge.channel = interaction.message.channelId
@@ -199,7 +199,7 @@ module.exports = {
 
                     //prepare new challenge
                     let rerolltype = 'private'
-                    current_challenge = initializeChallenge({ profile, member, type: rerolltype, name, avatar, user: player, sponsordata })
+                    current_challenge = initializeChallenge({ profile, member, type: rerolltype, name, avatar, user: player, sponsordata, interaction })
                     let rerollmessage = await interaction.reply(updateChallenge({ client, challengetimedata, profile, current_challenge, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata }))
                     current_challenge.message = rerollmessage.id
                     current_challenge.channel = interaction.message.channelId
@@ -583,7 +583,7 @@ module.exports = {
                             }
                         })
                         //initialize challenge
-                        let sponsorchallenge = initializeChallenge({ profile, member, type: "private", name, avatar, user: player, circuit: cselection, sponsordata })
+                        let sponsorchallenge = initializeChallenge({ profile, member, type: "private", name, avatar, user: player, circuit: cselection, sponsordata, interaction })
                         sponsorchallenge.type = 'open'
                         sponsorchallenge.sponsor = sponsorchallenge.player
                         delete sponsorchallenge.player
@@ -645,7 +645,7 @@ module.exports = {
 
                         if (sponsorAchievement(bountydata, member) >= achievement_data.bankroller_clan.limit) { //award achievement
                             if (current_challenge.guild == swe1r_guild) {
-                                if (Member.roles.cache.some(r => r.id === achievement_data.bankroller_clan.role)) { //award role
+                                if (!Member.roles.cache.some(r => r.id === achievement_data.bankroller_clan.role)) { //award role
                                     Member.roles.add(achievement_data.bankroller_clan.role).catch(error => console.log(error))
                                 }
                             }
@@ -1614,7 +1614,7 @@ module.exports = {
                         await interaction.editReply(updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata }))
                         return
                     }
-                    
+
                     //log time
                     let submissiondata = {
                         user: member,
@@ -1638,7 +1638,7 @@ module.exports = {
                             non_3_lap: profile.settings.non_3_lap,
                             skips: profile.settings.skips,
                             mirror_mode: profile.settings.mirror_mode,
-                            backwards:  profile.settings.backwards ?? 5,
+                            backwards: profile.settings.backwards ?? 5,
                             predictions: profile.settings.predictions ?? true
                         },
                         challenge: interaction.message.id

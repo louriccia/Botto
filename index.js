@@ -2,7 +2,7 @@ const fs = require('fs');
 const Discord = require('discord.js');
 const { Client, Events, GatewayIntentBits } = require('discord.js')
 var moment = require('moment');
-const { prefix, token, firebaseCon } = require('./config.json');
+//const { prefix, token, firebaseCon } = require('./config.json');
 const { welcomeMessages } = require('./data.js')
 const client = new Client({
     intents: [
@@ -25,7 +25,7 @@ client.selects = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 const buttonFiles = fs.readdirSync('./buttons').filter(file => file.endsWith('.js'));
 
-const testing = true
+const testing = false
 
 let discord_token = testing ? token : process.env.token
 
@@ -194,11 +194,14 @@ client.once(Events.ClientReady, async () => {
     })
         .catch(console.error);
     client.channels.cache.get("444208252541075476").send("Deployed <t:" + Math.round(Date.now() / 1000) + ":R>");
-    try {
-        client.commands.get("scrape").execute(client, database);
-    } catch (error) {
-        console.log(error);
+    if (!testing) {
+        try {
+            client.commands.get("scrape").execute(client, database);
+        } catch (error) {
+            console.log(error);
+        }
     }
+
 
     const Guild = await client.guilds.cache.get("441839750555369474")
 
