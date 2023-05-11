@@ -818,7 +818,7 @@ exports.updateChallenge = function ({ client, challengetimedata, profile, curren
     if (current_challengeref) {
         current_challengeref.update(current_challenge)
     }
-
+    
     let flavor_text = ''
     if (Math.random() < 0.20 && best.length > 0) {
         flavor_text = "The current record-holder for this challenge is... " + best[0].name + "!"

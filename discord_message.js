@@ -23,13 +23,14 @@ exports.followupMessage = function (client, interaction, content, embeds, compon
     client.api.webhooks(client.user.id, interaction.token).post({
         data: {
             content: content,
-            embeds: embeds,
+            embeds: embeds, 
             components: components
         }
     })
 }
 
 exports.postMessage = async function (client, channel, message) {
+    console.log(client, channel)
     const messagefetch = await client.channels.cache.get(channel).send(message)
     return messagefetch
 }
