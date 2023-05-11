@@ -2,7 +2,7 @@ const fs = require('fs');
 const Discord = require('discord.js');
 const { Client, Events, GatewayIntentBits } = require('discord.js')
 var moment = require('moment');
-//const { prefix, token, firebaseCon } = require('./config.json');
+const { prefix, token, firebaseCon } = require('./config.json');
 const { welcomeMessages } = require('./data.js')
 const client = new Client({
     intents: [
@@ -25,7 +25,7 @@ client.selects = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 const buttonFiles = fs.readdirSync('./buttons').filter(file => file.endsWith('.js'));
 
-const testing = false
+const testing = true
 
 let discord_token = testing ? token : process.env.token
 
