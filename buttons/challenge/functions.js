@@ -221,11 +221,11 @@ exports.initializeChallenge = function ({ profile, member, type, name, avatar, u
             backwards: backwards,
         },
         hunt_bonus: 0,
-        channel: interaction.message.channelId,
-        guild: interaction.guildId,
     }
     if (type == 'private') {
         challenge.player = { member: member, name: name, avatar: avatar, user: user }
+        challenge.channel = interaction.message.channelId
+        challenge.guild = interaction.guildId
     } else if (type == 'cotd') {
         challenge.day = moment().utc().format('DDD')
     }
