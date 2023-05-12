@@ -194,7 +194,7 @@ client.once(Events.ClientReady, async () => {
     })
         .catch(console.error);
     client.channels.cache.get("444208252541075476").send("Deployed <t:" + Math.round(Date.now() / 1000) + ":R>");
-    if (!testing) {
+    if (false && !testing) {
         try {
             client.commands.get("scrape").execute(client, database);
         } catch (error) {
