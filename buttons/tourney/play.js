@@ -627,8 +627,8 @@ exports.play = async function (args, interaction, database) {
 
                         //autocountdown
                         setTimeout(async function () {
-                            interaction.followUp({content: 'Countdown starts <t:" + livematch.races[race].countdown + ":R>!'})
-                        }, countdown - 30*1000)
+                            interaction.followUp({ content: 'Countdown starts <t:" + livematch.races[race].countdown + ":R>!' })
+                        }, countdown - 30 * 1000)
                         setTimeout(async function () {
                             if (livematch.races[race].countdown) {
                                 interaction.client.channels.cache.get(interaction.channel.id).messages.fetch(rE.id).then(message => message.delete())
@@ -799,7 +799,7 @@ exports.play = async function (args, interaction, database) {
                 livematchref.child("races").child(race).child("runs").child(member).update(
                     {
                         time: (interaction.fields.getTextInputValue('time').toLowerCase() == 'dnf' ? 'DNF' : timetoSeconds(interaction.fields.getTextInputValue('time')) == null ? "DNF" : timetoSeconds(interaction.fields.getTextInputValue('time').trim())),
-                        deaths: interaction.fields.getTextInputValue('deaths').trim(),
+                        deaths: isNaN(Number(interaction.fields.getTextInputValue('deaths'))) ? '' : Number(interaction.fields.getTextInputValue('deaths')),
                         notes: interaction.fields.getTextInputValue('notes').trim(),
                         player: member
                     }
