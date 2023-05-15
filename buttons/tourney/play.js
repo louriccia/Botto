@@ -627,6 +627,9 @@ exports.play = async function (args, interaction, database) {
 
                         //autocountdown
                         setTimeout(async function () {
+                            interaction.followUp({content: 'Countdown starts <t:" + livematch.races[race].countdown + ":R>!'})
+                        }, countdown - 30*1000)
+                        setTimeout(async function () {
                             if (livematch.races[race].countdown) {
                                 interaction.client.channels.cache.get(interaction.channel.id).messages.fetch(rE.id).then(message => message.delete())
                                 let cD = await interaction.followUp({
