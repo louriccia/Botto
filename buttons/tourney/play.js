@@ -611,7 +611,7 @@ exports.play = async function (args, interaction, database) {
                         }
                     }
                     if (eventend + 1 == events.length) {
-                        let countdown = 2 * 60 * 1000 + (Object.values(livematch.races[race].events).map(e => e.selection).includes('sk') ? 1000 * 60 : 0)
+                        let countdown = 2.5 * 60 * 1000 + (Object.values(livematch.races[race].events).map(e => e.selection).includes('sk') ? 1000 * 60 : 0)
                         livematchref.child('races').child(race).child('countdown').set(Math.round((Date.now() + countdown) / 1000))
                         await interaction.update({ content: "", embeds: [raceEventEmbed({ race, livematch, liverules })], components: [] })
                         let rE = await interaction.followUp({
