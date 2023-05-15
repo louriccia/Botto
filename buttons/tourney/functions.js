@@ -115,6 +115,13 @@ exports.raceEmbed = function ({ race, livematch, liverules, userdata } = {}) {
         .setTitle((repeat ? "🔁" : planets[tracks[track].planet].emoji) + " " + tracks[track].name + (forces.length > 0 ? " (" + forces.join(", ") + ")" : ""))
         .setThumbnail(tracks[track].preview)
         .setDescription(conmap + ([null, undefined, ""].includes(livematch.races[race].gents) ? "" : "\n🎩 " + livematch.races[race].gents.terms))
+
+    function resultFormat(run, winner) {
+        (run.pod == "" ? '❔' : racers[run.pod].flag) + " " +
+            (run.time.toLowerCase() == 'dnf' ? 'DNF' : (winner ? "__" : "") + timefix(run.time) + (winner ? "__" : "")) +
+            (run.deaths == "" ? "`💀×?`" : run.deaths === 0 ? "" : "`💀×" + Number(run.deaths)) + "`" + "\n" +
+            (run.notes == "" ? "" : "📝 " + run.notes)
+    }
     if (Object.values(livematch.races[race].ready).filter(r => r == false).length > 0 || livematch.races[race].countdown) {
         embed
             .setAuthor({ name: "Race " + (race + 1) + " - Setup" })
@@ -144,7 +151,7 @@ exports.raceEmbed = function ({ race, livematch, liverules, userdata } = {}) {
             .setColor("#DD2E44")
         Object.values(livematch.players).map(player => embed.addFields({
             name: exports.getUsername({ member: player, userdata }),
-            value: livematch.races[race].runs[player].time == "" ? ":red_circle: Awaiting submission" : ":green_circle: Results Submitted",
+            value: livematch.races[race].runs[player].time == "" ? ":red_circle: Awaiting submission" : ":green_circle: Results Submitted\n||" + resultFormat(livematch.races[race].runs[player], false) + "||",
             inline: true
         }))
         if (Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length == 0) {
@@ -159,14 +166,11 @@ exports.raceEmbed = function ({ race, livematch, liverules, userdata } = {}) {
             let winner = exports.getWinner({ race, livematch })
             Object.values(livematch.players).map(player => embed.addFields({
                 name: exports.getUsername({ member: player, userdata }) + (player == winner ? " 👑" : ""),
-                value: (livematch.races[race].runs[player].pod == "" ? '❔' : racers[livematch.races[race].runs[player].pod].flag) + " " +
-                    (livematch.races[race].runs[player].time.toLowerCase() == 'dnf' ? 'DNF' : (player == winner ? "__" : "") + timefix(livematch.races[race].runs[player].time) + (player == winner ? "__" : "")) +
-                    (livematch.races[race].runs[player].deaths == "" ? "`💀×?`" : livematch.races[race].runs[player].deaths === 0 ? "" : "`💀×" + Number(livematch.races[race].runs[player].deaths)) + "`" + "\n" +
-                    (livematch.races[race].runs[player].notes == "" ? "" : "📝 " + livematch.races[race].runs[player].notes),
+                value: resultFormat(livematch.races[race].runs[player], winner == player),
                 inline: true
             }
             ))
-            embed.setTitle(planets[tracks[track].planet].emoji + " " + tracks[track].name + (forces.length > 0 ? " (" + forces.join(", ") + ")" : "") + " \n" + (exports.getUsername({ member: winner, userdata, short:true })) + " Wins!")
+            embed.setTitle(planets[tracks[track].planet].emoji + " " + tracks[track].name + (forces.length > 0 ? " (" + forces.join(", ") + ")" : "") + " \n" + (exports.getUsername({ member: winner, userdata, short: true })) + " Wins!")
         }
     }
 
