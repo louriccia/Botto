@@ -110,7 +110,7 @@ exports.raceEmbed = function ({ race, livematch, liverules, userdata } = {}) {
     if (livematch.races[race].gents?.agreed) {
         forces.push("🎩 Gentleman's Agreement")
     }
-    let conmap = conditions.filter(!['um', 'fp', 'tt'].includes(con)).map(con => "`" + condition_names[con] + "`").join(" ")
+    let conmap = conditions.filter(c => !['um', 'fp', 'tt'].includes(c)).map(con => "`" + condition_names[con] + "`").join(" ")
     const embed = new EmbedBuilder()
         .setTitle((repeat ? "🔁" : planets[tracks[track].planet].emoji) + " " + tracks[track].name + (forces.length > 0 ? " (" + forces.join(", ") + ")" : ""))
         .setThumbnail(tracks[track].preview)
