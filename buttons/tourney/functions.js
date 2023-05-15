@@ -117,10 +117,10 @@ exports.raceEmbed = function ({ race, livematch, liverules, userdata } = {}) {
         .setDescription(conmap + ([null, undefined, ""].includes(livematch.races[race].gents) ? "" : "\n🎩 " + livematch.races[race].gents.terms))
 
     function resultFormat(run, winner) {
-        return (run.pod == "" ? '❔' : racers[run.pod].flag) + " " +
-            (run.time.toLowerCase() == 'dnf' ? 'DNF' : (winner ? "__" : "") + timefix(run.time) + (winner ? "__" : "")) +
-            (run.deaths == "" ? "`💀×?`" : run.deaths === 0 ? "" : "`💀×" + Number(run.deaths)) + "`" + "\n" +
-            (run.notes == "" ? "" : "📝 " + run.notes)
+        return [(run.pod == "" ? '❔' : racers[run.pod].flag),
+        (run.time.toLowerCase() == 'dnf' ? 'DNF' : (winner ? "__" : "") + timefix(run.time) + (winner ? "__" : "")),
+        (run.deaths === 0 ? '' : "`" + `💀×${run.deaths == "" ? "?" : Number(run.deaths)}` + "`"),
+        (run.notes == "" ? "" : "📝 " + run.notes)].filter(f => f !== "").join(" ")
 
     }
     if (Object.values(livematch.races[race].ready).filter(r => r == false).length > 0 || livematch.races[race].countdown) {
