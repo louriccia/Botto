@@ -627,7 +627,7 @@ exports.play = async function (args, interaction, database) {
 
                         //autocountdown
                         setTimeout(async function () {
-                            interaction.followUp({ content: 'Countdown starts <t:" + livematch.races[race].countdown + ":R>!' })
+                            interaction.followUp({ content: "Countdown starts <t:" + livematch.races[race].countdown + ":R>!" })
                         }, countdown - 30 * 1000)
                         setTimeout(async function () {
                             if (livematch.races[race].countdown) {

@@ -110,7 +110,7 @@ exports.raceEmbed = function ({ race, livematch, liverules, userdata } = {}) {
     if (livematch.races[race].gents?.agreed) {
         forces.push("🎩 Gentleman's Agreement")
     }
-    let conmap = conditions.map(con => "`" + condition_names[con] + "`").join(" ")
+    let conmap = conditions.filter(!['um', 'fp', 'tt'].includes(con)).map(con => "`" + condition_names[con] + "`").join(" ")
     const embed = new EmbedBuilder()
         .setTitle((repeat ? "🔁" : planets[tracks[track].planet].emoji) + " " + tracks[track].name + (forces.length > 0 ? " (" + forces.join(", ") + ")" : ""))
         .setThumbnail(tracks[track].preview)
@@ -120,7 +120,7 @@ exports.raceEmbed = function ({ race, livematch, liverules, userdata } = {}) {
         return [(run.pod == "" ? '❔' : racers[run.pod].flag),
         (run.time.toLowerCase() == 'dnf' ? 'DNF' : (winner ? "__" : "") + timefix(run.time) + (winner ? "__" : "")),
         (run.deaths === 0 ? '' : "`" + `💀×${run.deaths == "" ? "?" : Number(run.deaths)}` + "`"),
-        (run.notes == "" ? "" : "📝 " + run.notes)].filter(f => f !== "").join(" ")
+        (run.notes == "" ? "" : "\n📝 " + run.notes)].filter(f => f !== "").join(" ")
 
     }
     if (Object.values(livematch.races[race].ready).filter(r => r == false).length > 0 || livematch.races[race].countdown) {
