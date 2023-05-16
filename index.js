@@ -266,6 +266,7 @@ client.once(Events.ClientReady, async () => {
                                 match.datetime = Date.parse(content.replace(", ", " " + new Date().getFullYear() + " ").replace(" ", " ") + " EDT")
                             } else if (values[j].includes("players")) {
                                 let split = content.split(/[^A-Za-z0-9_ ]+/g)
+                                console.log(split)
                                 split.map(play => getParticipantbyName(play)).filter(p => ![null, undefined, ''].includes(p)).forEach(p => {
                                     match.players[p] = users[p].discordID ?? ''
                                 })

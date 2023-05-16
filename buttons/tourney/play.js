@@ -615,7 +615,7 @@ exports.play = async function (args, interaction, database) {
                         livematchref.child('races').child(race).child('countdown').set(Math.round((Date.now() + countdown) / 1000))
                         await interaction.update({ content: "", embeds: [raceEventEmbed({ race, livematch, liverules })], components: [] })
                         let rE = await interaction.followUp({
-                            content: Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " Race begins <t:" + livematch.races[race].countdown + ":R>",
+                            content: Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " Countdown begins <t:" + livematch.races[race].countdown + ":R>",
                             embeds: [raceEmbed({ race, livematch, liverules, userdata })],
                             components: raceComponents({ race, liverules, livematch }),
                             fetchReply: true
