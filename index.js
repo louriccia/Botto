@@ -46,6 +46,7 @@ var firebase = require("firebase/app");
 require('firebase/auth');
 require('firebase/database');
 var admin = require('firebase-admin');
+const { postMessage, editMessage } = require('./discord_message.js');
 
 admin.initializeApp({
     credential: admin.credential.cert({
@@ -336,12 +337,42 @@ client.once(Events.ClientReady, async () => {
                     }
                 })
 
-                Object.keys(tourney_scheduled_data).forEach(key => {
+                Object.keys(tourney_scheduled_data).forEach(async key => {
                     let match = tourney_scheduled_data[key]
 
                     //truguts
-                    if (match.current && !match.truguts && match.datetime <= Date.now() + 1000 * 60 * 60 * 24 && Date.now() <= match.datetime + 1000 * 60 * 10) {
-                        //post trugut
+                    if (match.current && !match.bet && match.datetime <= Date.now() + 1000 * 60 * 60 * 36 && Date.now() <= match.datetime + 1000 * 60 * 10 && Object.values(match.players).length == 2) {
+                        //post bet
+                        let players = Object.keys(match.players)
+                        let bet = {
+                            author: {
+                                name: 'Botto',
+                                avatar,
+                                id: player,
+                                discordId: member
+                            },
+                            title: matchTitle(match),
+                            status: "open",
+                            close: match.datetime,
+                            outcome_a: {
+                                title: `${users[players[0]].name} Wins`,
+                                id: match.players[players[0]]
+                            },
+                            outcome_b: {
+                                title: `${users[players[1]].name} Wins`,
+                                id: match.players[players[1]]
+                            },
+                            min: interaction.options.getInteger('min_bet') ?? 0,
+                            max: interaction.options.getInteger('max_bet') ?? 100000
+                        }
+                        const betMessage = await postMessage(client, '536455290091077652', { embeds: [betEmbed(bet)], components: betComponents(bet), fetchReply: true })
+                        database.ref('tourney/bets').child(betMessage.id).set(bet)
+                        database.ref('tourney/scheduled').child(key).child("bet").set(betMessage.id)
+                    }
+
+                    if (match.datetime > Date.now() && match.bet && betdata[match.bet].status == 'open') {
+                        database.ref('tourney/bets').child(match.bet).child('status').set('closed')
+                        editMessage(client, '536455290091077652', match.bet, { embeds: [betEmbed(betdata[match.bet])], components: betComponents(betdata[match.bet]) })
                     }
 
                     //match setup 

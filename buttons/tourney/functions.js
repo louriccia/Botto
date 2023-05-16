@@ -1214,9 +1214,9 @@ exports.profileComponents = function () {
 
 exports.reminderEmbed = function () {
     const reminder = new EmbedBuilder()
-        .setTitle("Reminders")
-        .addFields({ name: "🕹️ Player Reminders", value: "○ Verify all pods/tracks/upgrades are unlocked\n○ Check that stream is running smoothly\n○ Disable game music\n○ Limit stream quality to 720p\n○ Wait until the results screen to report your times", inline: false })
-        .addFields({ name: "🎙️ Commentator Reminders", value: "○ Enable all voice related settings in Discord such as noise supression/reduction, advanced voice activity, etc.\n○  Open stream on Twitch to respond to chat", inline: false })
+        .setTitle("Responsibilities")
+        .addFields({ name: "🕹️ Player Responsibilities", value: "○ Verify all pods/tracks/upgrades are unlocked\n○ Check that stream is running smoothly\n○ Disable game music\n○ Limit stream quality to 720p\n○ Wait until the results screen to report your times\n○ Be attentive to this chat", inline: false })
+        .addFields({ name: "🎙️ Commentator Responsibilities", value: "○ Use SG interface to conduct a sound check!\n○ Enable all voice related settings in Discord including Krisp noise supression, advanced voice activity, etc.\n○  Open stream on Twitch to respond to chat\n○ Verify race results/update score", inline: false })
     return reminder
 }
 
@@ -1228,3 +1228,4 @@ exports.rulesetOverviewEmbed = function ({ tourney_rulesets_data, livematch } = 
         .addFields(exports.rulesetOverview(tourney_rulesets_data.saved[livematch.ruleset]))
     return ruleset
 }
+

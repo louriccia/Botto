@@ -1,12 +1,12 @@
 const Discord = require('discord.js');
 const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } = require('discord.js');
 const { initializeMatch, adminEmbed, setupEmbed, setupComponents, adminComponents, matchMakerEmbed, colorEmbed, getUsername, rulesetOverviewEmbed, reminderEmbed, firstEmbed, firstComponents, firstbanComponents, colorComponents, firstbanEmbed, getOpponent, raceEmbed, raceComponents, countDown, getWinner, matchSummaryEmbed, permabanEmbed, permabanComponents, raceEventEmbed, raceEventComponents, profileComponents } = require('./functions.js')
-const { initializeUser } = require('../challenge/functions.js');
+const { initializeUser, manageTruguts } = require('../challenge/functions.js');
 const { planets, tracks } = require('../../data.js')
 const { trackgroups } = require('./data.js')
-const { timetoSeconds, timefix } = require('../../tools.js')
+const { timetoSeconds, timefix } = require('../../tools.js');
+const { editMessage } = require('../../discord_message.js');
 
-const myEmbed = new EmbedBuilder()
 
 exports.play = async function (args, interaction, database) {
 
@@ -32,10 +32,19 @@ exports.play = async function (args, interaction, database) {
     }, function (errorObject) {
         console.log("The read failed: " + errorObject.code);
     });
+    
     let tourney_rulesets = database.ref('tourney/rulesets')
     let tourney_rulesets_data = {}
     tourney_rulesets.on("value", function (snapshot) {
         tourney_rulesets_data = snapshot.val();
+    }, function (errorObject) {
+        console.log("The read failed: " + errorObject);
+    });
+
+    let tourney_bets = database.ref('tourney/bets')
+    let betsdata = {}
+    tourney_bets.on("value", function (snapshot) {
+        betsdata = snapshot.val();
     }, function (errorObject) {
         console.log("The read failed: " + errorObject);
     });
@@ -874,10 +883,10 @@ exports.play = async function (args, interaction, database) {
                     }
                 })
                 let wincondition = false
-                Object.keys(scoreboard).forEach(player => {
+                Object.keys(scoreboard).forEach(async player => {
                     if (scoreboard[player] == liverules.general.winlimit) {
                         //win condition
-                        const postRef = database.ref('tourney/matches').push(livematch)
+                        const postRef = await database.ref('tourney/matches').push(livematch)
                         const winEmbed = new EmbedBuilder()
                             .setAuthor({ name: "Match Concluded" })
                             .setTitle(getUsername({ member: player, userdata, short: true }) + " Wins!")
@@ -888,6 +897,39 @@ exports.play = async function (args, interaction, database) {
                         let everybody = Object.values(livematch.players).concat(Object.values(livematch.commentators))
                         livematchref.remove()
 
+                        
+
+                        //handle bet
+                        let bet = betdata[livematch.bet]
+                        bet.status = 'complete'
+                        ['a', 'b'].forEach(a => {
+                            bet[`outcome_${a}`].winner = (bet[`outcome_${a}`].id == player)
+                        })
+                        //handle truguts
+                        let totals = {
+                            a: bet.outcome_a.bets ? bet.outcome_a.bets.map(b => b.amount).reduce((a, b) => a + b) : 0,
+                            b: bet.outcome_b.bets ? bet.outcome_b.bets.map(b => b.amount).reduce((a, b) => a + b) : 0
+                        }
+                        ['a', 'b'].forEach(x => {
+                            let outcome = bet['outcome_' + x]
+                            let opposite = x == 'a' ? 'b' : 'a'
+                            if (outcome.bets) {
+                                outcome.bets.forEach(b => {
+                                    if (outcome.winner) {
+                                        let take = Math.round((b.amount / totals[x]) * totals[opposite])
+                                        manageTruguts({ profile: userdata[b.id].random, profileref: userref.child(b.id).child('random'), transaction: 'd', amount: take })
+                                        b.take = take
+                                    } else {
+                                        manageTruguts({ profile: userdata[b.id].random, profileref: userref.child(b.id).child('random'), transaction: 'w', amount: b.amount })
+                                    }
+                                })
+                            }
+                        })
+
+                        database.ref('tourney/bets').child(match.bet).update(bet)
+                        editMessage(client, '536455290091077652', match.bet, { embeds: [betEmbed(betdata[livematch.bet])], components: betComponents(betdata[livematch.bet]) })
+
+                        //remove roles
                         if (interaction.guild.id == '441839750555369474') {
                             setTimeout(async function () {
                                 everybody.forEach(async function (p) {

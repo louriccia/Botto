@@ -1,6 +1,7 @@
 const { EmbedBuilder, ComponentBuilder, ButtonBuilder, ModalBuilder, ActionRowBuilder, ActionRow, ButtonStyle, TextInputBuilder, TextInputStyle } = require('discord.js');
 const { numberWithCommas } = require('../tools.js');
 const { initializeUser, initializePlayer, manageTruguts } = require('../buttons/challenge/functions');
+const { betEmbed, betComponents } = require('./trugut_functions.js')
 module.exports = {
     name: 'truguts',
     async execute(client, interaction, args, database) {
@@ -36,54 +37,6 @@ module.exports = {
         let profile = userdata[player]?.random
         if (!profile) {
             profile = initializePlayer(userref.child(player).child('random'), name)
-        }
-        function betEmbed(bet) {
-            const Embed = new EmbedBuilder()
-                .setTitle(bet.title)
-                .setDescription("minimum bet: `📀" + numberWithCommas(bet.min) + "` | maximum bet: `📀" + numberWithCommas(bet.max) + "`")
-                .setAuthor({ name: bet.author.name + "'s Bet", iconURL: bet.author.avatar })
-                .addFields({ name: (bet.outcome_a.winner ? ":white_check_mark: " : "") + bet.outcome_a.title, value: bet.outcome_a.bets ? bet.outcome_a.bets.map(b => b.name + " - " + (bet.outcome_a.winner === false ? "~~" : "") + "`📀" + numberWithCommas(b.amount) + (b.take ? " +" + b.take : "") + "`" + (bet.outcome_a.winner === false ? "~~" : "")).join("\n") : " ", inline: true })
-                .addFields({ name: (bet.outcome_b.winner ? ":white_check_mark: " : "") + bet.outcome_b.title, value: bet.outcome_b.bets ? bet.outcome_b.bets.map(b => b.name + " - " + (bet.outcome_b.winner === false ? "~~" : "") + "`📀" + numberWithCommas(b.amount) + (b.take ? " +" + b.take : "") + "`" + (bet.outcome_b.winner === false ? "~~" : "")).join("\n") : " ", inline: true })
-            return Embed
-        }
-        function betComponents(bet) {
-            const row1 = new ActionRowBuilder()
-            if (bet.status == 'open') {
-                row1.addComponents(
-                    new ButtonBuilder()
-                        .setCustomId("truguts_bet_a")
-                        .setLabel(bet.outcome_a.title)
-                        .setStyle(ButtonStyle.Primary),
-                    new ButtonBuilder()
-                        .setCustomId("truguts_bet_b")
-                        .setLabel(bet.outcome_b.title)
-                        .setStyle(ButtonStyle.Primary),
-                    new ButtonBuilder()
-                        .setCustomId("truguts_bet_close")
-                        .setLabel("Close")
-                        .setStyle(ButtonStyle.Secondary)
-                )
-            } else if (bet.status == 'closed') {
-                row1.addComponents(
-                    new ButtonBuilder()
-                        .setCustomId("truguts_bet_a")
-                        .setLabel("Set Outcome: " + bet.outcome_a.title)
-                        .setStyle(ButtonStyle.Primary),
-                    new ButtonBuilder()
-                        .setCustomId("truguts_bet_b")
-                        .setLabel("Set Outcome: " + bet.outcome_b.title)
-                        .setStyle(ButtonStyle.Primary),
-                    new ButtonBuilder()
-                        .setCustomId("truguts_bet_open")
-                        .setLabel("Reopen")
-                        .setStyle(ButtonStyle.Secondary),
-                    new ButtonBuilder()
-                        .setCustomId("truguts_bet_delete")
-                        .setLabel("Delete")
-                        .setStyle(ButtonStyle.Danger)
-                )
-            }
-            return [row1]
         }
         if (args[0] == "bet") {
 

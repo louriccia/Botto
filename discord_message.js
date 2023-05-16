@@ -29,8 +29,7 @@ exports.followupMessage = function (client, interaction, content, embeds, compon
     })
 }
 
-exports.postMessage = async function (client, channel, message, interaction) {
-    console.log(client, channel)
+exports.postMessage = async function (client, channel, message) {
     if (channel) {
         const messageFetch = await client.channels.cache.get(channel).send(message)
         return messageFetch
