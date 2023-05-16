@@ -266,7 +266,6 @@ client.once(Events.ClientReady, async () => {
                                 match.datetime = Date.parse(content.replace(", ", " " + new Date().getFullYear() + " ").replace(" ", " ") + " EDT")
                             } else if (values[j].includes("players")) {
                                 let split = content.split(/[^A-Za-z0-9_ ]+/g).map(f => f.split(" vs ")).flat()
-                                console.log(split)
                                 split.map(play => getParticipantbyName(play)).filter(p => ![null, undefined, ''].includes(p)).forEach(p => {
                                     match.players[p] = users[p].discordID ?? ''
                                 })
@@ -293,6 +292,15 @@ client.once(Events.ClientReady, async () => {
                         }
                     }
                 })
+                function matchDesc(match) {
+                    return (match.commentators && Object.keys(match.commentators).length > 0 ? "🎙️ " + Object.keys(match.commentators).map(id => users[id].name).join(", ") : "Sign up for commentary: https://speedgaming.org/swe1racer/crew/") +
+                        (match.tourney ? `\n${tourney_tournaments_data[match.tourney]?.name ?? ""}` : "") +
+                        (!match.url ? "\n(Channel to be determined)" : "")
+                }
+                function matchTitle(match) {
+                    let round = tourney_tournaments_data[match.tourney]?.stages[match.bracket] ?? null
+                    return (round ? `${round.bracket} ${round.round}: ` : '') + (match.players ? Object.keys(match.players).map(id => users[id].name).join(" vs ") : 'Unknown Players')
+                }
                 Object.keys(tourney_scheduled_data).map(key => {
                     let match = tourney_scheduled_data[key]
                     let eventdup = false
@@ -304,8 +312,8 @@ client.once(Events.ClientReady, async () => {
                             if (event.status == 1) {
                                 try {
                                     Guild.scheduledEvents.fetch(event.id).then(event => event.edit({
-                                        name: match.players ? Object.keys(match.players).map(id => users[id].name).join(" vs ") : 'Unknown Players',
-                                        description: "Commentary: " + (match.commentators && Object.keys(match.commentators).length > 0 ? Object.keys(match.commentators).map(id => users[id].name).join(", ") : ""),
+                                        name: matchTitle(match),
+                                        description: matchDesc(match),
                                         entityType: 3,
                                         entityMetadata: { location: (match.url == "" ? "https://twitch.tv/SpeedGaming" : match.url) }
                                     }))
@@ -317,11 +325,11 @@ client.once(Events.ClientReady, async () => {
                     })
                     if (!eventdup && match.current && match.datetime > Date.now()) {
                         Guild.scheduledEvents.create({
-                            name: match.players ? Object.keys(match.players).map(id => users[id].name).join(" vs ") : 'Unknown Players',
+                            name: matchTitle(match),
                             scheduledStartTime: match.datetime,
                             scheduledEndTime: match.datetime + 1000 * 60 * 60,
                             entityType: 3,
-                            description: "Commentary: " + (match.commentators && Object.keys(match.commentators).length > 0 ? Object.keys(match.commentators).map(id => users[id].name).join(", ") : ""),
+                            description: matchDesc(match),
                             entityMetadata: { location: (match.url == "" ? "https://twitch.tv/SpeedGaming" : match.url) },
                             privacyLevel: 2
                         })
