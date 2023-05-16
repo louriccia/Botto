@@ -265,7 +265,7 @@ client.once(Events.ClientReady, async () => {
                             } else if (values[j].includes("date")) {
                                 match.datetime = Date.parse(content.replace(", ", " " + new Date().getFullYear() + " ").replace(" ", " ") + " EDT")
                             } else if (values[j].includes("players")) {
-                                let split = content.split(/[^A-Za-z0-9_ ]+/g)
+                                let split = content.split(/[^A-Za-z0-9_ ]+/g).map(f => f.split(" vs ")).flat()
                                 console.log(split)
                                 split.map(play => getParticipantbyName(play)).filter(p => ![null, undefined, ''].includes(p)).forEach(p => {
                                     match.players[p] = users[p].discordID ?? ''
