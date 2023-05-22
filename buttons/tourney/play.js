@@ -32,7 +32,7 @@ exports.play = async function (args, interaction, database) {
     }, function (errorObject) {
         console.log("The read failed: " + errorObject.code);
     });
-    
+
     let tourney_rulesets = database.ref('tourney/rulesets')
     let tourney_rulesets_data = {}
     tourney_rulesets.on("value", function (snapshot) {
@@ -894,42 +894,41 @@ exports.play = async function (args, interaction, database) {
                             .addFields({ name: ":microphone2: Commentators/Trackers", value: ":orange_circle: Don't forget to click 'Episode Finished' after the interviews" })
                         interaction.followUp({ embeds: [winEmbed] })
                         wincondition = true
-                        let everybody = Object.values(livematch.players).concat(Object.values(livematch.commentators))
-                        livematchref.remove()
-
-                        
 
                         //handle bet
-                        let bet = betdata[livematch.bet]
-                        bet.status = 'complete'
-                        ['a', 'b'].forEach(a => {
-                            bet[`outcome_${a}`].winner = (bet[`outcome_${a}`].id == player)
-                        })
-                        //handle truguts
-                        let totals = {
-                            a: bet.outcome_a.bets ? bet.outcome_a.bets.map(b => b.amount).reduce((a, b) => a + b) : 0,
-                            b: bet.outcome_b.bets ? bet.outcome_b.bets.map(b => b.amount).reduce((a, b) => a + b) : 0
-                        }
-                        ['a', 'b'].forEach(x => {
-                            let outcome = bet['outcome_' + x]
-                            let opposite = x == 'a' ? 'b' : 'a'
-                            if (outcome.bets) {
-                                outcome.bets.forEach(b => {
-                                    if (outcome.winner) {
-                                        let take = Math.round((b.amount / totals[x]) * totals[opposite])
-                                        manageTruguts({ profile: userdata[b.id].random, profileref: userref.child(b.id).child('random'), transaction: 'd', amount: take })
-                                        b.take = take
-                                    } else {
-                                        manageTruguts({ profile: userdata[b.id].random, profileref: userref.child(b.id).child('random'), transaction: 'w', amount: b.amount })
-                                    }
-                                })
+                        if (livematch?.bet) {
+                            let bet = betdata[livematch.bet]
+                            bet.status = 'complete'
+                            ['a', 'b'].forEach(a => {
+                                bet[`outcome_${a}`].winner = (bet[`outcome_${a}`].id == player)
+                            })
+                            //handle truguts
+                            let totals = {
+                                a: bet.outcome_a.bets ? bet.outcome_a.bets.map(b => b.amount).reduce((a, b) => a + b) : 0,
+                                b: bet.outcome_b.bets ? bet.outcome_b.bets.map(b => b.amount).reduce((a, b) => a + b) : 0
                             }
-                        })
+                            ['a', 'b'].forEach(x => {
+                                let outcome = bet['outcome_' + x]
+                                let opposite = x == 'a' ? 'b' : 'a'
+                                if (outcome.bets) {
+                                    outcome.bets.forEach(b => {
+                                        if (outcome.winner) {
+                                            let take = Math.round((b.amount / totals[x]) * totals[opposite])
+                                            manageTruguts({ profile: userdata[b.id].random, profileref: userref.child(b.id).child('random'), transaction: 'd', amount: take })
+                                            b.take = take
+                                        } else {
+                                            manageTruguts({ profile: userdata[b.id].random, profileref: userref.child(b.id).child('random'), transaction: 'w', amount: b.amount })
+                                        }
+                                    })
+                                }
+                            })
 
-                        database.ref('tourney/bets').child(match.bet).update(bet)
-                        editMessage(client, '536455290091077652', match.bet, { embeds: [betEmbed(betdata[livematch.bet])], components: betComponents(betdata[livematch.bet]) })
+                            database.ref('tourney/bets').child(match.bet).update(bet)
+                            editMessage(client, '536455290091077652', match.bet, { embeds: [betEmbed(betdata[livematch.bet])], components: betComponents(betdata[livematch.bet]) })
+                        }
 
                         //remove roles
+                        let everybody = Object.values(livematch.players).concat(Object.values(livematch.commentators))
                         if (interaction.guild.id == '441839750555369474') {
                             setTimeout(async function () {
                                 everybody.forEach(async function (p) {
@@ -940,6 +939,7 @@ exports.play = async function (args, interaction, database) {
                                 })
                             }, 15 * 60 * 1000)
                         }
+                        livematchref.remove()
                         return
                     }
                 })
