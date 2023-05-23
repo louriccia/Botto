@@ -362,8 +362,8 @@ client.once(Events.ClientReady, async () => {
                                 title: `${users[players[1]].name} Wins`,
                                 id: match.players[players[1]]
                             },
-                            min: interaction.options.getInteger('min_bet') ?? 0,
-                            max: interaction.options.getInteger('max_bet') ?? 100000
+                            min: 0,
+                            max: 100000
                         }
                         const betMessage = await postMessage(client, '536455290091077652', { embeds: [betEmbed(bet)], components: betComponents(bet), fetchReply: true })
                         database.ref('tourney/bets').child(betMessage.id).set(bet)
