@@ -347,7 +347,7 @@ client.once(Events.ClientReady, async () => {
                         let bet = {
                             author: {
                                 name: 'Botto',
-                                avatar,
+                                avatar: 'https://cdn.discordapp.com/avatars/545798436105224203/5e4668356877db6367e4f51017124aaa.webp',
                                 id: player,
                                 discordId: member
                             },
