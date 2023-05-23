@@ -1,5 +1,5 @@
 const { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle } = require('discord.js');
-
+const { numberWithCommas } = require('../tools.js');
 
 exports.betEmbed = function (bet) {
     const Embed = new EmbedBuilder()
