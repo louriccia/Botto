@@ -16,6 +16,7 @@ const client = new Client({
 var lookup = require("./data.js");
 var tourneylookup = require("./tourneydata.js");
 var tools = require('./tools.js');
+const {betEmbed, betComponents} = require('./buttons/trugut_functions.js')
 var moment = require('moment');
 const { dailyChallenge, dailyBounty, easternHour } = require("./buttons/challenge/functions")
 const { banners } = require('./data.js')

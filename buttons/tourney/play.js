@@ -6,7 +6,7 @@ const { planets, tracks } = require('../../data.js')
 const { trackgroups } = require('./data.js')
 const { timetoSeconds, timefix } = require('../../tools.js');
 const { editMessage } = require('../../discord_message.js');
-
+const {betEmbed, betComponents} = require('../trugut_functions.js')
 
 exports.play = async function (args, interaction, database) {
 
