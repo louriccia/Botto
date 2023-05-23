@@ -1,3 +1,6 @@
+const { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle } = require('discord.js');
+
+
 exports.betEmbed = function (bet) {
     const Embed = new EmbedBuilder()
         .setTitle(bet.title)
