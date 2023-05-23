@@ -348,8 +348,8 @@ client.once(Events.ClientReady, async () => {
                             author: {
                                 name: 'Botto',
                                 avatar: 'https://cdn.discordapp.com/avatars/545798436105224203/5e4668356877db6367e4f51017124aaa.webp',
-                                id: player,
-                                discordId: member
+                                id: '',
+                                discordId: '545798436105224203'
                             },
                             title: matchTitle(match),
                             status: "open",
