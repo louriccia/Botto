@@ -341,7 +341,7 @@ client.once(Events.ClientReady, async () => {
                     let match = tourney_scheduled_data[key]
 
                     //truguts
-                    if (match.current && !match.bet && match.datetime <= Date.now() + 1000 * 60 * 60 * 36 && Date.now() <= match.datetime + 1000 * 60 * 10 && Object.values(match.players).length == 2) {
+                    if (match.current && !match.bet && match.datetime <= Date.now() + 1000 * 60 * 60 * 48 && Date.now() <= match.datetime + 1000 * 60 * 10 && Object.values(match.players).length == 2) {
                         //post bet
                         let players = Object.keys(match.players)
                         let bet = {
