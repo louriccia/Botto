@@ -364,7 +364,7 @@ client.once(Events.ClientReady, async () => {
                                 title: `${users[players[1]].name} Wins`,
                                 id: match.players[players[1]]
                             },
-                            min: 0,
+                            min: 10,
                             max: 100000
                         }
                         const betMessage = await postMessage(client, '536455290091077652', { embeds: [betEmbed(bet)], components: betComponents(bet), fetchReply: true })
