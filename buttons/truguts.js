@@ -151,7 +151,7 @@ module.exports = {
 
             } else if (args[1] == 'close') {
                 let bet = betdata[interaction.message.id]
-                if (member !== bet.author.discordId) {
+                if (member !== bet.author.discordId && member !== '256236315144749059') {
                     interaction.reply({ content: "You are not the author of this bet!", ephemeral: true })
                     return
                 }
@@ -160,7 +160,7 @@ module.exports = {
                 interaction.update({ embeds: [betEmbed(bet)], components: betComponents(bet) })
             } else if (args[1] == 'open') {
                 let bet = betdata[interaction.message.id]
-                if (member !== bet.author.discordId) {
+                if (member !== bet.author.discordId && member !== '256236315144749059') {
                     interaction.reply({ content: "You are not the author of this bet!", ephemeral: true })
                     return
                 }
@@ -169,7 +169,7 @@ module.exports = {
                 interaction.update({ embeds: [betEmbed(bet)], components: betComponents(bet) })
             } else if (args[1] == 'delete') {
                 let bet = betdata[interaction.message.id]
-                if (member !== bet.author.discordId) {
+                if (member !== bet.author.discordId && member !== '256236315144749059') {
                     interaction.reply({ content: "You are not the author of this bet!", ephemeral: true })
                     return
                 }

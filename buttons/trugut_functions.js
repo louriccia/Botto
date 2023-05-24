@@ -1,8 +1,8 @@
 exports.betEmbed = function (bet) {
     const Embed = new EmbedBuilder()
         .setTitle(bet.title)
-        .setDescription("minimum bet: `📀" + numberWithCommas(bet.min) + "` | maximum bet: `📀" + numberWithCommas(bet.max) + "`")
-        .setAuthor({ name: bet.author.name + "'s Bet", iconURL: bet.author.avatar })
+        .setDescription("`📀" + numberWithCommas(bet.min) + "` - `📀" + numberWithCommas(bet.max) + "`")
+        .setAuthor({ name: bet.type == 'tourney' ? 'Tournament Wager' : bet.author.name + "'s Bet", iconURL: bet.type == 'tourney' ? 'https://em-content.zobj.net/thumbs/120/twitter/322/crossed-swords_2694-fe0f.png' : bet.author.avatar })
         .addFields({ name: (bet.outcome_a.winner ? ":white_check_mark: " : "") + bet.outcome_a.title, value: bet.outcome_a.bets ? bet.outcome_a.bets.map(b => b.name + " - " + (bet.outcome_a.winner === false ? "~~" : "") + "`📀" + numberWithCommas(b.amount) + (b.take ? " +" + b.take : "") + "`" + (bet.outcome_a.winner === false ? "~~" : "")).join("\n") : " ", inline: true })
         .addFields({ name: (bet.outcome_b.winner ? ":white_check_mark: " : "") + bet.outcome_b.title, value: bet.outcome_b.bets ? bet.outcome_b.bets.map(b => b.name + " - " + (bet.outcome_b.winner === false ? "~~" : "") + "`📀" + numberWithCommas(b.amount) + (b.take ? " +" + b.take : "") + "`" + (bet.outcome_b.winner === false ? "~~" : "")).join("\n") : " ", inline: true })
     return Embed
