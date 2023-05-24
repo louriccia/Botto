@@ -22,11 +22,7 @@ exports.betComponents = function (bet) {
             new ButtonBuilder()
                 .setCustomId("truguts_bet_b")
                 .setLabel(bet.outcome_b.title)
-                .setStyle(ButtonStyle.Primary),
-            new ButtonBuilder()
-                .setCustomId("truguts_bet_close")
-                .setLabel("Close")
-                .setStyle(ButtonStyle.Secondary)
+                .setStyle(ButtonStyle.Primary)
         )
     } else if (bet.status == 'closed') {
         row1.addComponents(

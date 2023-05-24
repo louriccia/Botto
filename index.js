@@ -16,7 +16,7 @@ const client = new Client({
 var lookup = require("./data.js");
 var tourneylookup = require("./tourneydata.js");
 var tools = require('./tools.js');
-const {betEmbed, betComponents} = require('./buttons/trugut_functions.js')
+const { betEmbed, betComponents } = require('./buttons/trugut_functions.js')
 var moment = require('moment');
 const { dailyChallenge, dailyBounty, easternHour } = require("./buttons/challenge/functions")
 const { banners } = require('./data.js')
@@ -354,6 +354,7 @@ client.once(Events.ClientReady, async () => {
                             },
                             title: matchTitle(match),
                             status: "open",
+                            type: 'tourney',
                             close: match.datetime,
                             outcome_a: {
                                 title: `${users[players[0]].name} Wins`,
@@ -371,7 +372,7 @@ client.once(Events.ClientReady, async () => {
                         database.ref('tourney/scheduled').child(key).child("bet").set(betMessage.id)
                     }
 
-                    if (match.datetime > Date.now() && match.bet && betdata[match.bet].status == 'open') {
+                    if (match.datetime < Date.now() && match.bet && betdata[match.bet].status == 'open') {
                         database.ref('tourney/bets').child(match.bet).child('status').set('closed')
                         editMessage(client, '536455290091077652', match.bet, { embeds: [betEmbed(betdata[match.bet])], components: betComponents(betdata[match.bet]) })
                     }
