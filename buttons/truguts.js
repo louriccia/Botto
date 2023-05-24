@@ -56,7 +56,7 @@ module.exports = {
                     outcome_b: {
                         title: interaction.options.getString('outcome_b')
                     },
-                    min: interaction.options.getInteger('min_bet') ?? 0,
+                    min: interaction.options.getInteger('min_bet') ?? 10,
                     max: interaction.options.getInteger('max_bet') ?? 100000
                 }
                 const betMessage = await interaction.reply({ embeds: [betEmbed(bet)], components: betComponents(bet), fetchReply: true })

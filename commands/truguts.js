@@ -14,6 +14,20 @@ module.exports = {
         )
         .addSubcommand(subcommand =>
             subcommand
+                .setName('transfer')
+                .setDescription("transfer truguts to another user")
+                .addUserOption(option =>
+                    option.setName('user')
+                        .setDescription('user receiving this amount')
+                        .setRequired(true)
+                )
+                .addIntegerOption(option =>
+                    option.setName('amount')
+                        .setDescription('amount to transfer from your balance')
+                        .setRequired(true))
+        )
+        .addSubcommand(subcommand =>
+            subcommand
                 .setName('bet')
                 .setDescription("create a new bet")
                 .addStringOption(option =>
@@ -75,6 +89,14 @@ module.exports = {
             interaction.reply({ embeds: [Embed], ephemeral: true })
         } else if (interaction.options.getSubcommand() == "bet") {
             interaction.client.buttons.get("truguts").execute(interaction.client, interaction, ["bet", "new"], database)
+        } else if (interaction.options.getSubcommand() == 'transfer') {
+            let amount = interaction.options.getString('amount')
+            let user = interaction.options.getUser('user')
+            const Embed = new EmbedBuilder()
+                .setAuthor({ name: name + " made a transfer", iconURL: avatar })
+                .setTitle("📀" + numberWithCommas(amount) + " Truguts")
+                .setDescription(`Sent to ${user.username}`)
+            interaction.reply({ embeds: [Embed] })
         }
     }
 
