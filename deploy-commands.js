@@ -9,7 +9,8 @@ let commands = []
 // Grab the SlashCommandBuilder#toJSON() output of each command's data for deployment
 for (const file of commandFiles) {
 	const command = require(`./commands/${file}`);
-	if (command.data) {
+	if (command.data && command.data.name !== 'scrape') {
+		console.log(command.data)
 		commands.push(command.data.toJSON());
 	}
 
