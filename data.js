@@ -326,7 +326,7 @@ exports.movieQuotes = [
     "I see the flaggers are moving onto the track.",
     "You've never won a race? Not even finished?",
     "Ouna bakeesa. Bonapa keesa pateeso, o wanna meetee chobodd.",
-    "You won the small toss, outlander, bou you won't win the race, so ... it makes little difference.",
+    "You won the small toss, outlander, but you won't win the race, so ... it makes little difference.",
     "No pod is worth two slaves ... not by a long shot.",
     "You'll have your winnings before the suns set, and we'll be far away from here.",
     "The reading's off the chart... over twenty thousand.",

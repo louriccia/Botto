@@ -16,6 +16,7 @@ const client = new Client({
 var lookup = require("./data.js");
 var tourneylookup = require("./tourneydata.js");
 var tools = require('./tools.js');
+const {betEmbed, betComponents} = require('./buttons/trugut_functions.js')
 var moment = require('moment');
 const { dailyChallenge, dailyBounty, easternHour } = require("./buttons/challenge/functions")
 const { banners } = require('./data.js')
@@ -341,15 +342,15 @@ client.once(Events.ClientReady, async () => {
                     let match = tourney_scheduled_data[key]
 
                     //truguts
-                    if (match.current && !match.bet && match.datetime <= Date.now() + 1000 * 60 * 60 * 36 && Date.now() <= match.datetime + 1000 * 60 * 10 && Object.values(match.players).length == 2) {
+                    if (match.current && !match.bet && match.datetime <= Date.now() + 1000 * 60 * 60 * 48 && Date.now() <= match.datetime + 1000 * 60 * 10 && Object.values(match.players).length == 2) {
                         //post bet
                         let players = Object.keys(match.players)
                         let bet = {
                             author: {
                                 name: 'Botto',
-                                avatar,
-                                id: player,
-                                discordId: member
+                                avatar: 'https://cdn.discordapp.com/avatars/545798436105224203/5e4668356877db6367e4f51017124aaa.webp',
+                                id: '',
+                                discordId: '545798436105224203'
                             },
                             title: matchTitle(match),
                             status: "open",
@@ -362,8 +363,8 @@ client.once(Events.ClientReady, async () => {
                                 title: `${users[players[1]].name} Wins`,
                                 id: match.players[players[1]]
                             },
-                            min: interaction.options.getInteger('min_bet') ?? 0,
-                            max: interaction.options.getInteger('max_bet') ?? 100000
+                            min: 0,
+                            max: 100000
                         }
                         const betMessage = await postMessage(client, '536455290091077652', { embeds: [betEmbed(bet)], components: betComponents(bet), fetchReply: true })
                         database.ref('tourney/bets').child(betMessage.id).set(bet)
