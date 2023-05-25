@@ -401,12 +401,12 @@ client.once(Events.ClientReady, async () => {
                             firstvote: ""
                         }
                         database.ref('tourney/live').child("970994773517299712").set(newmatch)
-                        client.api.channels.cache.get("515311630100463656").messages.post({
+                        postMessage(client, "515311630100463656", {
                             data: {
                                 content: "<@&841059665474617353>\n**" + Object.keys(match.players).map(p => users[p].name).join(" vs. ") + "**\n:microphone2: " + Object.values(match.commentators).map(comm => users[comm].name).join(", ") + "\n" + match.url
                             }
                         })
-                        client.api.channels("970994773517299712").messages.post({
+                        postMessage(client, "970994773517299712", {
                             data: {
                                 content: Object.values(newmatch.commentators).map(player => "<@" + player + ">").join(" ") + " " +
                                     Object.values(newmatch.players).map(player => "<@" + player + ">").join(" ") + "\n**" +
