@@ -7,8 +7,18 @@ exports.betEmbed = function (bet) {
         .setColor('#5865F2')
         .setDescription("`📀" + numberWithCommas(bet.min) + "` - `📀" + numberWithCommas(bet.max) + "`")
         .setAuthor({ name: bet.type == 'tourney' ? 'Tournament Wager' : bet.author.name + "'s Bet", iconURL: bet.type == 'tourney' ? 'https://em-content.zobj.net/thumbs/120/twitter/322/crossed-swords_2694-fe0f.png' : bet.author.avatar })
-        .addFields({ name: (bet.outcome_a.winner ? ":white_check_mark: " : "") + bet.outcome_a.title, value: bet.outcome_a.bets ? bet.outcome_a.bets.map(b => b.name + " - " + (bet.outcome_a.winner === false ? "~~" : "") + "`📀" + numberWithCommas(b.amount) + (b.take ? " +" + b.take : "") + "`" + (bet.outcome_a.winner === false ? "~~" : "")).join("\n") : " ", inline: true })
-        .addFields({ name: (bet.outcome_b.winner ? ":white_check_mark: " : "") + bet.outcome_b.title, value: bet.outcome_b.bets ? bet.outcome_b.bets.map(b => b.name + " - " + (bet.outcome_b.winner === false ? "~~" : "") + "`📀" + numberWithCommas(b.amount) + (b.take ? " +" + b.take : "") + "`" + (bet.outcome_b.winner === false ? "~~" : "")).join("\n") : " ", inline: true })
+    ['outcome_a', 'outcome_b'].forEach(outcome => {
+        Embed.addFields(
+            {
+                name: (bet[outcome].winner ? ":white_check_mark: " : "") + bet[outcome].title,
+                value: bet[outcome].bets ? bet[outcome].bets.map(b =>
+                    b.name + " - " + (bet[outcome].winner === false ? "~~" : "") +
+                    "`📀" + numberWithCommas(b.amount) + (b.take ? " +" + numberWithCommas(b.take) : "") +
+                    "`" + (bet[outcome].winner === false ? "~~" : "")).join("\n") +
+                    "\nTotal: `" + numberWithCommas(Object.values(bet[outcome].bets).map(b => b.amount).reduce((a, b) => a + b)) + "`" : " ",
+                inline: true
+            })
+    })
     return Embed
 }
 
