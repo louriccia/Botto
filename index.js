@@ -377,56 +377,58 @@ client.once(Events.ClientReady, async () => {
                         editMessage(client, '536455290091077652', match.bet, { embeds: [betEmbed(betdata[match.bet])], components: betComponents(betdata[match.bet]) })
                     }
 
-                    //match setup 
-                    // if (match.current && match.notification == false && match.datetime <= Date.now() + 1000 * 60 * 10 && Date.now() <= match.datetime + 1000 * 60 * 10) {
-                    //     database.ref('tourney/scheduled').child(key).child("notification").set(true)
-                    //     //add roles
-                    //     let everybody = Object.values(match.players).concat(Object.values(match.commentators))
-                    //     everybody.forEach(async function (player) {
-                    //         const thismember = await Guild.members.fetch(player)
-                    //         thismember.roles.add('970995237952569404').catch(error => console.log(error))
-                    //     }
-
-                    //     )
-                    //     //setup match
-                    //     let newmatch = {
-                    //         status: "setup",
-                    //         tourney: "",
-                    //         bracket: "",
-                    //         ruleset: "",
-                    //         datetime: match.datetime,
-                    //         players: match.players,
-                    //         commentators: match.commentators,
-                    //         stream: match.url,
-                    //         firstvote: ""
-                    //     }
-                    //     database.ref('tourney/live').child("970994773517299712").set(newmatch)
-                    //     // postMessage(client, "515311630100463656", {
-                    //     //     data: {
-                    //     //         content: "<@&841059665474617353>\n**" + Object.keys(match.players).map(p => users[p]?.name).join(" vs. ") + "**\n:microphone2: " + Object.values(match.commentators).map(comm => users[comm]?.name).join(", ") + "\n" + match.url
-                    //     //     }
-                    //     // })
-                    //     // postMessage(client, "970994773517299712", {
-                    //     //     data: {
-                    //     //         content: Object.values(newmatch.commentators).map(player => "<@" + player + ">").join(" ") + " " +
-                    //     //             Object.values(newmatch.players).map(player => "<@" + player + ">").join(" ") + "\n**" +
-                    //     //             Object.values(match.players).map(player => users[player].name).join(" vs. ") + "** is about to begin!",
-                    //     //         components: [
-                    //     //             {
-                    //     //                 type: 1,
-                    //     //                 components: [
-                    //     //                     {
-                    //     //                         type: 2,
-                    //     //                         label: "Set Up Match",
-                    //     //                         style: 1,
-                    //     //                         custom_id: "tourney_play_setup",
-                    //     //                     }
-                    //     //                 ]
-                    //     //             }
-                    //     //         ]
-                    //     //     }
-                    //     // })
-                    // }
+                    // match setup 
+                    if (match.current && match.notification == false && match.datetime <= Date.now() + 1000 * 60 * 10 && Date.now() <= match.datetime + 1000 * 60 * 10) {
+                        database.ref('tourney/scheduled').child(key).child("notification").set(true)
+                        //add roles
+                        let everybody = Object.values(match.players).concat(Object.values(match.commentators))
+                        everybody.forEach(async function (player) {
+                            const thismember = await Guild.members.fetch(player)
+                            thismember.roles.add('970995237952569404').catch(error => console.log(error))
+                        }
+                        )
+                        //setup match
+                        let newmatch = {
+                            status: "setup",
+                            tourney: "",
+                            bracket: "",
+                            ruleset: "",
+                            datetime: match.datetime,
+                            players: match.players,
+                            commentators: match.commentators,
+                            stream: match.url,
+                            firstvote: ""
+                        }
+                        database.ref('tourney/live').child("970994773517299712").set(newmatch)
+                        function getUserNameByDiscordID(id) {
+                            return Object.values(users).find(u => u.discordID == id)?.name ?? ''
+                        }
+                        postMessage(client, "515311630100463656", {
+                            data: {
+                                content: "<@&841059665474617353>\n**" + Object.keys(match.players).map(p => getUserNameByDiscordID(p)).join(" vs. ") + "**\n:microphone2: " + Object.values(match.commentators).map(comm => getUserNameByDiscordID(comm)).join(", ") + "\n" + match.url
+                            }
+                        })
+                        postMessage(client, "970994773517299712", {
+                            data: {
+                                content: Object.values(newmatch.commentators).map(player => "<@" + player + ">").join(" ") + " " +
+                                    Object.values(newmatch.players).map(player => "<@" + player + ">").join(" ") + "\n**" +
+                                    Object.values(match.players).map(player => getUserNameByDiscordID(player)).join(" vs. ") + "** is about to begin!",
+                                components: [
+                                    {
+                                        type: 1,
+                                        components: [
+                                            {
+                                                type: 2,
+                                                label: "Set Up Match",
+                                                style: 1,
+                                                custom_id: "tourney_play_setup",
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        })
+                    }
                 })
             })
     }

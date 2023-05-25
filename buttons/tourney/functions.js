@@ -1216,7 +1216,7 @@ exports.reminderEmbed = function () {
     const reminder = new EmbedBuilder()
         .setTitle("Responsibilities")
         .addFields({ name: "🕹️ Player Responsibilities", value: "○ Verify all pods/tracks/upgrades are unlocked\n○ Check that stream is running smoothly\n○ Disable game music\n○ Limit stream quality to 720p\n○ Wait until the results screen to report your times\n○ Be attentive to this chat", inline: false })
-        .addFields({ name: "🎙️ Commentator Responsibilities", value: "○ Use SG interface to conduct a sound check!\n○ Enable all voice related settings in Discord including Krisp noise supression, advanced voice activity, etc.\n○  Open stream on Twitch to respond to chat\n○ Verify race results/update score", inline: false })
+        .addFields({ name: "🎙️ Commentator Responsibilities", value: "○ Use SG interface to conduct a sound check!\n○ Enable all voice related settings in Discord including Krisp noise supression, advanced voice activity, etc.\n○  Open stream on Twitch to respond to chat\n○ Verify race results/update score\n○ Sync streams (avoid decreasing delay mid-race)", inline: false })
     return reminder
 }
 

@@ -883,7 +883,7 @@ exports.play = async function (args, interaction, database) {
                     }
                 })
                 let wincondition = false
-                Object.keys(scoreboard).forEach(async player => {
+                await Object.keys(scoreboard).forEach(async player => {
                     if (scoreboard[player] == liverules.general.winlimit) {
                         //win condition
                         const postRef = await database.ref('tourney/matches').push(livematch)
@@ -924,7 +924,7 @@ exports.play = async function (args, interaction, database) {
                             })
 
                             database.ref('tourney/bets').child(match.bet).update(bet)
-                            editMessage(client, '536455290091077652', match.bet, { embeds: [betEmbed(betdata[livematch.bet])], components: betComponents(betdata[livematch.bet]) })
+                            editMessage(client, '536455290091077652', match.bet, { embeds: [betEmbed(bet)], components: betComponents(bet) })
                         }
 
                         //remove roles
