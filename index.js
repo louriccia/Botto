@@ -406,26 +406,26 @@ client.once(Events.ClientReady, async () => {
                         //         content: "<@&841059665474617353>\n**" + Object.keys(match.players).map(p => users[p]?.name).join(" vs. ") + "**\n:microphone2: " + Object.values(match.commentators).map(comm => users[comm]?.name).join(", ") + "\n" + match.url
                         //     }
                         // })
-                        postMessage(client, "970994773517299712", {
-                            data: {
-                                content: Object.values(newmatch.commentators).map(player => "<@" + player + ">").join(" ") + " " +
-                                    Object.values(newmatch.players).map(player => "<@" + player + ">").join(" ") + "\n**" +
-                                    Object.values(match.players).map(player => users[player].name).join(" vs. ") + "** is about to begin!",
-                                components: [
-                                    {
-                                        type: 1,
-                                        components: [
-                                            {
-                                                type: 2,
-                                                label: "Set Up Match",
-                                                style: 1,
-                                                custom_id: "tourney_play_setup",
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
-                        })
+                        // postMessage(client, "970994773517299712", {
+                        //     data: {
+                        //         content: Object.values(newmatch.commentators).map(player => "<@" + player + ">").join(" ") + " " +
+                        //             Object.values(newmatch.players).map(player => "<@" + player + ">").join(" ") + "\n**" +
+                        //             Object.values(match.players).map(player => users[player].name).join(" vs. ") + "** is about to begin!",
+                        //         components: [
+                        //             {
+                        //                 type: 1,
+                        //                 components: [
+                        //                     {
+                        //                         type: 2,
+                        //                         label: "Set Up Match",
+                        //                         style: 1,
+                        //                         custom_id: "tourney_play_setup",
+                        //                     }
+                        //                 ]
+                        //             }
+                        //         ]
+                        //     }
+                        // })
                     }
                 })
             })
