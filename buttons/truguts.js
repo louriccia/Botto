@@ -119,7 +119,8 @@ module.exports = {
                         interaction.reply({ content: "The bet amount is outside the accepted range. (" + bet.min + " - " + bet.max + ")", ephemeral: true })
                         return
                     }
-                    if (!bet[key].bets.map(b => b.discordID).includes(member) || amount - bet[key].bets.find(b => b.discordID == member)?.amount < 0) {
+                    let existing = bet[key].bets.find(b => b.discordID == member)
+                    if (existing && (!bet[key].bets.map(b => b.discordID).includes(member) || amount - bet[key].bets.find(b => b.discordID == member)?.amount < 0)) {
                         interaction.reply({ content: "You can only increase an existing bet.", ephemeral: true })
                         return
                     }
@@ -132,7 +133,6 @@ module.exports = {
                     if (!bet[key].bets) {
                         bet[key].bets = []
                     }
-                    let existing = bet[key].bets.find(b => b.discordID == member)
                     if (existing) {
                         existing.amount = amount
                     } else {
@@ -150,7 +150,7 @@ module.exports = {
                         .setTitle(args[1] == 'a' ? bet.outcome_a.title : bet.outcome_b.title)
                     const Amount = new TextInputBuilder()
                         .setCustomId("amount")
-                        .setLabel("Bet Amount (Available Truguts: 📀" + numberWithCommas(profile.truguts_earned - profile.truguts_spent))
+                        .setLabel("Bet Amount (Available Truguts: 📀" + numberWithCommas(profile.truguts_earned - profile.truguts_spent) + ")")
                         .setStyle(TextInputStyle.Short)
                         .setRequired(true)
                     const ActionRow1 = new ActionRowBuilder().addComponents(Amount)
