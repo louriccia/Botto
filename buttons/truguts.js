@@ -120,7 +120,8 @@ module.exports = {
                         return
                     }
 
-                    let already = bet.outcome_a?.bets?.map(b => b?.discordID).concat(bet.outcome_b?.bets?.map(b => b?.discordID)).flat()
+                    let already = (bet.outcome_a.bets ? bet.outcome_a?.bets?.map(b => b?.discordID) : []).concat(
+                        (bet.outcome_b.bets ? bet.outcome_b?.bets?.map(b => b?.discordID) : [])).flat()
                     let existing = bet[key].bets ? bet[key].bets.find(b => b?.discordID == member) : null
                     console.log(already, existing)
                     if (already.includes(member)) {

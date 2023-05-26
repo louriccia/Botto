@@ -12,7 +12,7 @@ exports.betEmbed = function (bet) {
         Embed.addFields(
             {
                 name: (bet[outcome].winner ? ":white_check_mark: " : "") + bet[outcome].title,
-                value: bet[outcome].bets ? bet[outcome].bets.map(b =>
+                value: bet[outcome].bets ? Object.values(bet[outcome].bets).map(b =>
                     b.name + " - " + (bet[outcome].winner === false ? "~~" : "") +
                     "`📀" + numberWithCommas(b.amount) + (b.take ? " +" + numberWithCommas(b.take) : "") +
                     "`" + (bet[outcome].winner === false ? "~~" : "")).join("\n") +
