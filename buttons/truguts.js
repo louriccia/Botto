@@ -119,7 +119,7 @@ module.exports = {
                         interaction.reply({ content: "The bet amount is outside the accepted range. (" + bet.min + " - " + bet.max + ")", ephemeral: true })
                         return
                     }
-                    let existing = bet[key].bets?.find(b => b.discordID == member)
+                    let existing = bet[key].bets ? bet[key].bets.find(b => b?.discordID == member) : null
                     if (existing && amount - existing.amount < 0) {
                         interaction.reply({ content: "You can only increase an existing bet.", ephemeral: true })
                         return
