@@ -120,8 +120,8 @@ module.exports = {
                         return
                     }
 
-                    let a_bets = bet.outcome_a.bets ? bet.outcome_a.bets.map(b => b.discordID) : []
-                    let b_bets = bet.outcome_b.bets ? bet.outcome_b.bets.map(b => b.discordID) : []
+                    let a_bets = bet.outcome_a.bets ? Object.values(bet.outcome_a.bets).map(b => b.discordID) : []
+                    let b_bets = bet.outcome_b.bets ? Object.values(bet.outcome_b.bets).map(b => b.discordID) : []
                     let already = a_bets.concat(b_bets).flat()
                     let existing = bet[key].bets ? bet[key].bets.find(b => b?.discordID == member) : null
                     console.log(bet, a_bets, b_bets, already, existing)
