@@ -124,6 +124,7 @@ module.exports = {
                     console.log(already)
                     if (already.includes(member)) {
                         let existing = bet[key].bets ? bet[key].bets.find(b => b?.discordID == member) : null
+                        console.log(existing)
                         if (existing && amount - existing.amount < 0) {
                             interaction.reply({ content: "You can only increase an existing bet.", ephemeral: true })
                             return
@@ -133,7 +134,7 @@ module.exports = {
                         }
                     }
 
-                    console.log(existing)
+
                     let thisbet = {
                         amount,
                         name: interaction.member.displayName,
