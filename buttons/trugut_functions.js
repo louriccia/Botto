@@ -7,7 +7,8 @@ exports.betEmbed = function (bet) {
         .setColor('#5865F2')
         .setDescription("`📀" + numberWithCommas(bet.min) + "` - `📀" + numberWithCommas(bet.max) + "`")
         .setAuthor({ name: bet.type == 'tourney' ? 'Tournament Wager' : bet.author.name + "'s Bet", iconURL: bet.type == 'tourney' ? 'https://em-content.zobj.net/thumbs/120/twitter/322/crossed-swords_2694-fe0f.png' : bet.author.avatar })
-    ['outcome_a', 'outcome_b'].forEach(outcome => {
+    let outcomes = ['outcome_a', 'outcome_b']
+    outcomes.forEach(outcome => {
         Embed.addFields(
             {
                 name: (bet[outcome].winner ? ":white_check_mark: " : "") + bet[outcome].title,
