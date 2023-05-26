@@ -120,16 +120,16 @@ module.exports = {
                         return
                     }
 
-                    let a_bets = bet.outcome_a.bets ? Object.values(bet.outcome_a.bets).map(b => b.discordID) : []
-                    let b_bets = bet.outcome_b.bets ? Object.values(bet.outcome_b.bets).map(b => b.discordID) : []
+                    let a_bets = bet.outcome_a.bets ? Object.values(bet.outcome_a.bets).map(b => b.discordId) : []
+                    let b_bets = bet.outcome_b.bets ? Object.values(bet.outcome_b.bets).map(b => b.discordId) : []
                     let already = a_bets.concat(b_bets).flat()
-                    let existing = bet[key].bets ? bet[key].bets.find(b => b?.discordID == member) : null
-                    console.log(bet, a_bets, b_bets, already, existing)
+                    let existing = bet[key].bets ? bet[key].bets.find(b => b?.discordId == member) : null
+                    console.log(existing)
                     if (already.includes(member)) {
                         if (existing && amount - existing.amount < 0) {
                             interaction.reply({ content: "You can only increase an existing bet.", ephemeral: true })
                             return
-                        } else {
+                        } else if (!existing) {
                             interaction.reply({ content: "You cannot bet on both outcomes!", ephemeral: true })
                             return
                         }
