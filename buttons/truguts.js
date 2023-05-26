@@ -102,10 +102,6 @@ module.exports = {
                     if (bet.outcome_b.bets) {
                         bet.outcome_b.bets.forEach(b => current_bets.push(b.discordId))
                     }
-                    if (current_bets.includes(member)) {
-                        interaction.reply({ content: "You have already placed a bet.", ephemeral: true })
-                        return
-                    }
                     // if (bet.author.discordId == member) {
                     //     interaction.reply({ content: "You are the manager of this bet and cannot place a bet.", ephemeral: true })
                     //     return
@@ -123,6 +119,10 @@ module.exports = {
                         interaction.reply({ content: "The bet amount is outside the accepted range. (" + bet.min + " - " + bet.max + ")", ephemeral: true })
                         return
                     }
+                    if (!bet[key].bets.map(b => b.discordID).includes(member) || amount - bet[key].bets.find(b => b.discordID == member)?.amount < 0) {
+                        interaction.reply({ content: "You can only increase an existing bet.", ephemeral: true })
+                        return
+                    }
                     let thisbet = {
                         amount,
                         name: interaction.member.displayName,
@@ -132,16 +132,25 @@ module.exports = {
                     if (!bet[key].bets) {
                         bet[key].bets = []
                     }
-                    bet[key].bets.push(thisbet)
+                    let existing = bet[key].bets.find(b => b.discordID == member)
+                    if (existing) {
+                        existing.amount = amount
+                    } else {
+                        bet[key].bets.push(thisbet)
+                    }
                     betref.child(interaction.message.id).update(bet)
                     interaction.update({ embeds: [betEmbed(bet)], components: betComponents(bet) })
                 } else {
+                    if (bet.status == 'closed') {
+                        interaction.reply({ content: "This bet has closed.", ephemeral: true })
+                        return
+                    }
                     const submitModal = new ModalBuilder()
                         .setCustomId("truguts_bet_" + args[1])
                         .setTitle(args[1] == 'a' ? bet.outcome_a.title : bet.outcome_b.title)
                     const Amount = new TextInputBuilder()
                         .setCustomId("amount")
-                        .setLabel("Bet Amount")
+                        .setLabel("Bet Amount (Available Truguts: 📀" + numberWithCommas(profile.truguts_earned - profile.truguts_spent))
                         .setStyle(TextInputStyle.Short)
                         .setRequired(true)
                     const ActionRow1 = new ActionRowBuilder().addComponents(Amount)

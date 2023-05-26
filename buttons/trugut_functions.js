@@ -16,7 +16,7 @@ exports.betEmbed = function (bet) {
                     b.name + " - " + (bet[outcome].winner === false ? "~~" : "") +
                     "`📀" + numberWithCommas(b.amount) + (b.take ? " +" + numberWithCommas(b.take) : "") +
                     "`" + (bet[outcome].winner === false ? "~~" : "")).join("\n") +
-                    "\nTotal: `" + numberWithCommas(Object.values(bet[outcome].bets).map(b => b.amount).reduce((a, b) => a + b)) + "`" : " ",
+                    "\nTotal: `📀" + numberWithCommas(Object.values(bet[outcome].bets).map(b => b.amount).reduce((a, b) => a + b)) + "`" : " ",
                 inline: true
             })
     })
