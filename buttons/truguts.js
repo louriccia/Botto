@@ -119,11 +119,12 @@ module.exports = {
                         interaction.reply({ content: "The bet amount is outside the accepted range. (" + bet.min + " - " + bet.max + ")", ephemeral: true })
                         return
                     }
-                    let existing = bet[key].bets.find(b => b.discordID == member)
-                    if (existing && (!bet[key].bets.map(b => b.discordID).includes(member) || amount - bet[key].bets.find(b => b.discordID == member)?.amount < 0)) {
+                    let existing = bet[key].bets?.find(b => b.discordID == member)
+                    if (existing && amount - existing.amount < 0) {
                         interaction.reply({ content: "You can only increase an existing bet.", ephemeral: true })
                         return
                     }
+                    console.log(existing)
                     let thisbet = {
                         amount,
                         name: interaction.member.displayName,
