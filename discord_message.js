@@ -31,7 +31,7 @@ exports.followupMessage = function (client, interaction, content, embeds, compon
 
 exports.postMessage = async function (client, channel, message) {
     if (channel) {
-        const messageFetch = await client.channels.cache.get(channel).send(message)
+        const messageFetch = await client.channels.cache.get(channel).send(message ? message : 'empty message')
         return messageFetch
     }
 }
