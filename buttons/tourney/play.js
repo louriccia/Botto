@@ -6,7 +6,7 @@ const { planets, tracks } = require('../../data.js')
 const { trackgroups } = require('./data.js')
 const { timetoSeconds, timefix } = require('../../tools.js');
 const { editMessage } = require('../../discord_message.js');
-const {betEmbed, betComponents} = require('../trugut_functions.js')
+const { betEmbed, betComponents } = require('../trugut_functions.js')
 
 exports.play = async function (args, interaction, database) {
 
@@ -578,7 +578,6 @@ exports.play = async function (args, interaction, database) {
                         })
 
                     } else {
-                        console.log(eventend + ", " + events.length)
                         interaction.update({
                             content: "<@" + (events[event].choice == "lastwinner" ? getWinner({ race: race - 1, livematch }) : getOpponent({ livematch, player: getWinner({ race: race - 1, livematch }) })) + "> please make a selection" + (eventend + 1 == events.length ? "\n*Once this selection is submitted, the warmup timer begins (2 minutes for full track, 3 minutes for skips)*" : ""),
                             embeds: [raceEventEmbed({ race, livematch, liverules })],
@@ -882,68 +881,65 @@ exports.play = async function (args, interaction, database) {
                         }
                     }
                 })
-                let wincondition = false
-                await Object.keys(scoreboard).forEach(async player => {
-                    if (scoreboard[player] == liverules.general.winlimit) {
-                        //win condition
-                        const postRef = await database.ref('tourney/matches').push(livematch)
-                        const winEmbed = new EmbedBuilder()
-                            .setAuthor({ name: "Match Concluded" })
-                            .setTitle(getUsername({ member: player, userdata, short: true }) + " Wins!")
-                            .setDescription("GGs, racers! The match has been saved.\nCheck out the full match summary [here](https://botto-efbfd.web.app/tournaments/matches/" + postRef.key + ")\n<@&970995237952569404> role will be automatically removed in 15 minutes")
-                            .addFields({ name: ":microphone2: Commentators/Trackers", value: ":orange_circle: Don't forget to click 'Episode Finished' after the interviews" })
-                        interaction.followUp({ embeds: [winEmbed] })
-                        wincondition = true
+                let wincondition = Object.values(scoreboard).includes(liverules.general.winlimit)
 
-                        //handle bet
-                        if (livematch?.bet) {
-                            let bet = betdata[livematch.bet]
-                            bet.status = 'complete'
-                            ['a', 'b'].forEach(a => {
-                                bet[`outcome_${a}`].winner = (bet[`outcome_${a}`].id == player)
-                            })
-                            //handle truguts
-                            let totals = {
-                                a: bet.outcome_a.bets ? bet.outcome_a.bets.map(b => b.amount).reduce((a, b) => a + b) : 0,
-                                b: bet.outcome_b.bets ? bet.outcome_b.bets.map(b => b.amount).reduce((a, b) => a + b) : 0
-                            }
-                            ['a', 'b'].forEach(x => {
-                                let outcome = bet['outcome_' + x]
-                                let opposite = x == 'a' ? 'b' : 'a'
-                                if (outcome.bets) {
-                                    outcome.bets.forEach(b => {
-                                        if (outcome.winner) {
-                                            let take = Math.round((b.amount / totals[x]) * totals[opposite])
-                                            manageTruguts({ profile: userdata[b.id].random, profileref: userref.child(b.id).child('random'), transaction: 'd', amount: take })
-                                            b.take = take
-                                        } else {
-                                            manageTruguts({ profile: userdata[b.id].random, profileref: userref.child(b.id).child('random'), transaction: 'w', amount: b.amount })
-                                        }
-                                    })
-                                }
-                            })
+                if (wincondition) {
+                    //win condition
+                    const postRef = await database.ref('tourney/matches').push(livematch)
+                    const winEmbed = new EmbedBuilder()
+                        .setAuthor({ name: "Match Concluded" })
+                        .setTitle(getUsername({ member: player, userdata, short: true }) + " Wins!")
+                        .setDescription("GGs, racers! The match has been saved.\nCheck out the full match summary [here](https://botto-efbfd.web.app/tournaments/matches/" + postRef.key + ")\n<@&970995237952569404> role will be automatically removed in 15 minutes")
+                        .addFields({ name: ":microphone2: Commentators/Trackers", value: ":orange_circle: Don't forget to click 'Episode Finished' after the interviews" })
+                    interaction.followUp({ embeds: [winEmbed] })
 
-                            database.ref('tourney/bets').child(match.bet).update(bet)
-                            editMessage(client, '536455290091077652', match.bet, { embeds: [betEmbed(bet)], components: betComponents(bet) })
+                    //handle bet
+                    if (livematch?.bet) {
+                        let bet = betdata[livematch.bet]
+                        bet.status = 'complete'
+                        ['a', 'b'].forEach(a => {
+                            bet[`outcome_${a}`].winner = (bet[`outcome_${a}`].id == player)
+                        })
+                        //handle truguts
+                        let totals = {
+                            a: bet.outcome_a.bets ? bet.outcome_a.bets.map(b => b.amount).reduce((a, b) => a + b) : 0,
+                            b: bet.outcome_b.bets ? bet.outcome_b.bets.map(b => b.amount).reduce((a, b) => a + b) : 0
                         }
-
-                        //remove roles
-                        let everybody = Object.values(livematch.players).concat(Object.values(livematch.commentators))
-                        if (interaction.guild.id == '441839750555369474') {
-                            setTimeout(async function () {
-                                everybody.forEach(async function (p) {
-                                    const thisMember = await Guild.members.fetch(p)
-                                    if (thisMember && thisMember.roles.cache.some(r => r.id == '970995237952569404')) {
-                                        thisMember.roles.remove('970995237952569404').catch(console.error)
+                        ['a', 'b'].forEach(x => {
+                            let outcome = bet['outcome_' + x]
+                            let opposite = x == 'a' ? 'b' : 'a'
+                            if (outcome.bets) {
+                                outcome.bets.forEach(b => {
+                                    if (outcome.winner) {
+                                        let take = Math.round((b.amount / totals[x]) * totals[opposite])
+                                        manageTruguts({ profile: userdata[b.id].random, profileref: userref.child(b.id).child('random'), transaction: 'd', amount: take })
+                                        b.take = take
+                                    } else {
+                                        manageTruguts({ profile: userdata[b.id].random, profileref: userref.child(b.id).child('random'), transaction: 'w', amount: b.amount })
                                     }
                                 })
-                            }, 15 * 60 * 1000)
-                        }
-                        livematchref.remove()
-                        return
+                            }
+                        })
+
+                        database.ref('tourney/bets').child(match.bet).update(bet)
+                        editMessage(client, '536455290091077652', match.bet, { embeds: [betEmbed(bet)], components: betComponents(bet) })
                     }
-                })
-                if (!wincondition) {
+
+                    //remove roles
+                    let everybody = Object.values(livematch.players).concat(Object.values(livematch.commentators))
+                    if (interaction.guild.id == '441839750555369474') {
+                        setTimeout(async function () {
+                            everybody.forEach(async function (p) {
+                                const thisMember = await Guild.members.fetch(p)
+                                if (thisMember && thisMember.roles.cache.some(r => r.id == '970995237952569404')) {
+                                    thisMember.roles.remove('970995237952569404').catch(console.error)
+                                }
+                            })
+                        }, 15 * 60 * 1000)
+                    }
+                    livematchref.remove()
+                    return
+                } else {
                     let nextrace = livematch.current_race + 1
                     livematchref.child("current_race").set(nextrace)
                     let race_object = {

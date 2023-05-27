@@ -1124,8 +1124,11 @@ exports.getOpponent = function ({ livematch, player } = {}) {
 }
 
 exports.getWinner = function ({ race, livematch } = {}) {
-    let players = Object.values(livematch.players)
     let winner = null
+    if (!livematch) {
+        return null
+    }
+    let players = livematch.players ? Object.values(livematch.players) : []
     if (livematch.races[race].runs[players[0]].time.toLowerCase() == "dnf") {
         winner = players[1]
     } else if (livematch.races[race].runs[players[1]].time.toLowerCase() == "dnf") {

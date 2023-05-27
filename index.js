@@ -2,7 +2,7 @@ const fs = require('fs');
 const Discord = require('discord.js');
 const { Client, Events, GatewayIntentBits } = require('discord.js')
 var moment = require('moment');
-//const { prefix, token, firebaseCon } = require('./config.json');
+const { prefix, token, firebaseCon } = require('./config.json');
 const { welcomeMessages } = require('./data.js')
 const client = new Client({
     intents: [
@@ -26,7 +26,7 @@ client.selects = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 const buttonFiles = fs.readdirSync('./buttons').filter(file => file.endsWith('.js'));
 
-const testing = false
+const testing = true
 
 let discord_token = testing ? token : process.env.token
 
@@ -372,6 +372,7 @@ client.once(Events.ClientReady, async () => {
                         database.ref('tourney/scheduled').child(key).child("bet").set(betMessage.id)
                     }
 
+                    //close bets
                     if (match.datetime < Date.now() && match.bet && betdata[match.bet].status == 'open') {
                         database.ref('tourney/bets').child(match.bet).child('status').set('closed')
                         editMessage(client, '536455290091077652', match.bet, { embeds: [betEmbed(betdata[match.bet])], components: betComponents(betdata[match.bet]) })
@@ -403,30 +404,28 @@ client.once(Events.ClientReady, async () => {
                         function getUserNameByDiscordID(id) {
                             return Object.values(users).find(u => u.discordID == id)?.name ?? ''
                         }
-                        postMessage(client, "515311630100463656", {
-                            data: {
-                                content: "<@&841059665474617353>\n**" + Object.keys(match.players).map(p => getUserNameByDiscordID(p)).join(" vs. ") + "**\n:microphone2: " + Object.values(match.commentators).map(comm => getUserNameByDiscordID(comm)).join(", ") + "\n" + match.url
-                            }
-                        })
+                        postMessage(
+                            client,
+                            "515311630100463656",
+                            `<@&841059665474617353>\n**${Object.keys(match.players).map(p => getUserNameByDiscordID(p)).join(" vs. ")}**\n:microphone2: ${Object.values(match.commentators).map(comm => getUserNameByDiscordID(comm)).join(", ")}\n ${match.url}`
+                        )
                         postMessage(client, "970994773517299712", {
-                            data: {
-                                content: Object.values(newmatch.commentators).map(player => "<@" + player + ">").join(" ") + " " +
-                                    Object.values(newmatch.players).map(player => "<@" + player + ">").join(" ") + "\n**" +
-                                    Object.values(match.players).map(player => getUserNameByDiscordID(player)).join(" vs. ") + "** is about to begin!",
-                                components: [
-                                    {
-                                        type: 1,
-                                        components: [
-                                            {
-                                                type: 2,
-                                                label: "Set Up Match",
-                                                style: 1,
-                                                custom_id: "tourney_play_setup",
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            content: Object.values(newmatch.commentators).map(player => "<@" + player + ">").join(" ") + " " +
+                                Object.values(newmatch.players).map(player => "<@" + player + ">").join(" ") + "\n**" +
+                                Object.values(match.players).map(player => getUserNameByDiscordID(player)).join(" vs. ") + "** is about to begin!",
+                            components: [
+                                {
+                                    type: 1,
+                                    components: [
+                                        {
+                                            type: 2,
+                                            label: "Set Up Match",
+                                            style: 1,
+                                            custom_id: "tourney_play_setup",
+                                        }
+                                    ]
+                                }
+                            ]
                         })
                     }
                 })

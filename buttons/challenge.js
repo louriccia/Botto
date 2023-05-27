@@ -1474,7 +1474,6 @@ module.exports = {
                     interaction.editReply({ embeds: [challengeLeaderboard], components: components })
                     break
                 case 'modal':
-                    console.log(interaction)
                     if (current_challenge.type == 'private' && member !== current_challenge.player?.member) { //not your challenge
                         const holdUp = new EmbedBuilder()
                             .setTitle("<:WhyNobodyBuy:589481340957753363> Get Lost!")
@@ -1561,7 +1560,6 @@ module.exports = {
                     await interaction.showModal(submissionModal)
                     break
                 case 'submit':
-                    console.log(interaction)
                     let subtime = interaction.fields.getTextInputValue('challengeTime')
                     let subnotes = interaction.fields.getTextInputValue('challengeNotes').replace(/[^a-zA-Z0-9 ]/g, '')
                     let subproof = interaction.fields.getTextInputValue('challengeProof') ?? ""
