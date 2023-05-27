@@ -32,6 +32,7 @@ exports.condition_names = {
     fp: "Free Play",
     ft: "Full Track",
     sk: "Skips",
+    fs: "Skips",
     mu: "Upgrades Allowed",
     nu: "No Upgrades",
     mi: "Mirrored",

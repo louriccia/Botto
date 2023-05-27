@@ -81,53 +81,79 @@ exports.firstbanEmbed = function ({ livematch }) {
     return embed
 }
 
-exports.raceEmbed = function ({ race, livematch, liverules, userdata } = {}) {
-    let track = ""
-    let repeat = false
-    let events = Object.values(livematch.races[race].events)
-    let conditions = Object.values(liverules.general.default)
-    events.forEach(event => {
-        if (event.event == "selection" && event.type == "track") {
-            track = Number(event.selection)
-            if (event.repeat) {
-                repeat = true
-            }
-        }
-        if (event.event == "override" && event.type == "condition") {
-            if (event.selection == "sk") {
-                conditions[conditions.indexOf('ft')] = "sk"
-            } else if (event.selection == "nu") {
-                conditions[conditions.indexOf('mu')] = "nu"
-            } else if (event.selection == "fl") {
-                conditions[conditions.indexOf('tt')] = "fl"
-            }
+exports.getLeaderboard = function ({ track, conditions, matchdata, rulesetdata, podbans } = {}) {
+    let leaderboard = []
+    Object.values(matchdata).forEach(match => {
+        let ruleset = rulesetdata.saved[match.ruleset]
+        if (match.races && ruleset.general.type !== 'Qualifier') {
+            Object.values(match.races).forEach(race => {
+                let thistrack = exports.getTrack(race)
+                let thisconditions = exports.getConditions(ruleset, race)
+                if (track == thistrack) {
+                    if (race.runs) {
+                        Object.values(race.runs).forEach(run => {
+                            if (run.retroskip) {
+                                thisconditions.trak = 'fs'
+                            }
+                            if (run.time !== 'DNF' && exports.matchConditions(conditions, thisconditions) && !podbans.includes(String(run.pod))) {
+                                leaderboard.push(run)
+                            }
+                        })
+                    }
+                }
+            })
         }
     })
+    leaderboard = leaderboard.sort((a, b) => a.time - b.time)
+    leaderboard[0].record = true
+    let unique = []
+    leaderboard.forEach(r => {
+        if (!unique.map(u => u.player).includes(r.player)) {
+            unique.push(r)
+        }
+    })
+    return unique
+}
+
+exports.raceEmbed = function ({ race, livematch, liverules, userdata, matchdata, rulesetdata } = {}) {
+    let repeat = false
+    let events = Object.values(livematch.races[race].events)
+    let conditions = exports.getConditions(liverules, livematch.races[race], race)
+    let track = exports.getTrack(livematch.races[race])
+    let podbans = livematch.races[race].events ? Object.values(livematch.races[race].events).filter(e => e.event == 'tempban' && e.type == 'racer').map(e => e.selection).flat().map(s => String(s)) : []
     let forces = events.filter(event => event.event == 'override' && event.type == 'condition').map(event => capitalize(condition_names[event.selection]))
-    if (repeat) {
+    let players = Object.values(livematch.players)
+    if (events.map(e => e.repeat).includes(true)) {
         forces.push('Runback')
     }
     if (livematch.races[race].gents?.agreed) {
         forces.push("🎩 Gentleman's Agreement")
     }
-    let conmap = conditions.filter(c => !['um', 'fp', 'tt'].includes(c)).map(con => "`" + condition_names[con] + "`").join(" ")
+    let conmap = Object.values(conditions).filter(c => !['um', 'fp', 'tt'].includes(c)).map(con => "`" + condition_names[con] + "`").join(" ")
     const embed = new EmbedBuilder()
         .setTitle((repeat ? "🔁" : planets[tracks[track].planet].emoji) + " " + tracks[track].name + (forces.length > 0 ? " (" + forces.join(", ") + ")" : ""))
         .setThumbnail(tracks[track].preview)
         .setDescription(conmap + ([null, undefined, ""].includes(livematch.races[race].gents) ? "" : "\n🎩 " + livematch.races[race].gents.terms))
 
-    function resultFormat(run, winner) {
-        return [(run.pod == "" ? '❔' : racers[run.pod].flag),
-        (run.time.toLowerCase() == 'dnf' ? 'DNF' : (winner ? "__" : "") + timefix(run.time) + (winner ? "__" : "")),
+    function resultFormat(run, winner, leaderboard) {
+        if (!run || !run.time) {
+            return ''
+        }
+        return [(leaderboard ? `${exports.getUsername({ member: run.player, userdata, short: true })} - ` : ''),
+        (run.pod == "" ? '❔' : racers[run.pod].flag),
+        (String(run.time).toLowerCase() == 'dnf' ? 'DNF' : (winner ? "__" : "") + timefix(run.time) + (winner ? "__" : "")),
         (run.deaths === 0 ? '' : "`" + `💀×${run.deaths == "" ? "?" : Number(run.deaths)}` + "`"),
-        (run.notes == "" ? "" : "\n📝 " + run.notes)].filter(f => f !== "").join(" ")
-
+        (run.notes == "" || leaderboard ? "" : "\n📝 " + run.notes), (run.record ? '<:p1:671601240228233216>' : '')].filter(f => f !== "").join(" ")
     }
+    let leaderboard = exports.getLeaderboard({ track, conditions, matchdata, rulesetdata, podbans }).filter(r => r.record || players.includes(r.player))
+    embed.addFields({ name: 'Best Times', value: leaderboard.map(r => resultFormat(r, false, true)).join("\n"), inline: false })
+
     if (Object.values(livematch.races[race].ready).filter(r => r == false).length > 0 || livematch.races[race].countdown) {
         embed
             .setAuthor({ name: "Race " + (race + 1) + " - Setup" })
             .setColor("#FAA81A")
             .setDescription(conmap + ([null, undefined, ""].includes(livematch.races[race].gents) ? "" : "\n🎩 " + livematch.races[race].gents.terms) + (livematch.races[race].live ? "" : "\n" + (livematch.races[race].countdown ? "\nCountdown starts <t:" + livematch.races[race].countdown + ":R>" : "Countdown starts when both players have readied.")))
+
         Object.values(livematch.players).map(player => embed.addFields({
             name: exports.getUsername({ member: player, userdata }),
             value: ([undefined, null, ""].includes(livematch.races[race].runs[player].pod) ?
@@ -1052,7 +1078,7 @@ exports.getUsername = function ({ member, userdata, short } = {}) {
     let name = "N/A"
     Object.values(userdata).forEach(user => {
         if (user.discordID == member) {
-            name = (user.country ? ":flag_" + user.country + ": " : "") + user.name + (user.pronouns ? " (" + exports.joinPronouns(user.pronouns) + ")" : "")
+            name = (user.country ? ":flag_" + user.country.toLowerCase() + ": " : "") + user.name + (user.pronouns ? " (" + exports.joinPronouns(user.pronouns) + ")" : "")
             if (short) {
                 name = user.name
             }
@@ -1232,3 +1258,48 @@ exports.rulesetOverviewEmbed = function ({ tourney_rulesets_data, livematch } = 
     return ruleset
 }
 
+exports.getConditions = function (ruleset, race, racenum) {
+    let conditions = {}
+    if (ruleset !== 'practice' && ruleset?.general?.type == '1v1') {
+        conditions = { ...ruleset.general.default }
+        if (race.events) {
+            Object.values(race.events).filter(e => e.event == 'override' && e.type == 'condition').forEach(event => {
+                if (event.selection == 'nu') {
+                    conditions.upgr = 'nu'
+                }
+                if (event.selection == 'fl') {
+                    conditions.time = 'fl'
+                }
+                if (event.selection == 'sk') {
+                    conditions.trak = 'fs'
+                }
+            })
+        }
+    } else {
+        conditions = { ...ruleset?.playlist?.[racenum]?.conditions }
+    }
+    return conditions
+}
+
+exports.matchConditions = function (conditions1, conditions2) {
+    if (!conditions1 | !conditions2) {
+        return false
+    }
+    let match = true
+    Object.values(conditions1).forEach(con => {
+        if (!Object.values(conditions2).includes(con)) {
+            match = false
+        }
+    })
+    return match
+}
+
+exports.getTrack = function (race) {
+    if (race?.track) {
+        return race.track
+    } else if (race?.events) {
+        return Object.values(race.events).find(event => event.event == 'selection' && event.type == 'track')?.selection ?? ""
+    } else {
+        return null
+    }
+}

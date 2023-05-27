@@ -33,6 +33,14 @@ exports.play = async function (args, interaction, database) {
         console.log("The read failed: " + errorObject.code);
     });
 
+    let matchref = database.ref('tourney/matches');
+    let matchdata = {}
+    matchref.on("value", function (snapshot) {
+        matchdata = snapshot.val();
+    }, function (errorObject) {
+        console.log("The read failed: " + errorObject.code);
+    });
+
     let tourney_rulesets = database.ref('tourney/rulesets')
     let tourney_rulesets_data = {}
     tourney_rulesets.on("value", function (snapshot) {
@@ -211,7 +219,7 @@ exports.play = async function (args, interaction, database) {
                 interaction.reply(
                     {
                         content: Object.values(livematch.players).filter(player => !livematch.races[current_race - 1]?.ready[player]).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(comm => "<@" + comm + ">").join(" "),
-                        embeds: [raceEmbed({ race: current_race - 1, livematch, liverules, userdata })],
+                        embeds: [raceEmbed({ race: current_race - 1, livematch, liverules, userdata, matchdata, rulesetdata: tourney_rulesets_data })],
                         components: raceComponents({ race: current_race - 1, liverules, livematch })
                     })
             } else if (status == 'events') {
@@ -258,7 +266,7 @@ exports.play = async function (args, interaction, database) {
                         time: ""
                     })
                 })
-                interaction.reply({ content: Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), embeds: [raceEmbed({ race, livematch, liverules, userdata })], components: raceComponents({ race, liverules, livematch }) })
+                interaction.reply({ content: Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), embeds: [raceEmbed({ race, livematch, liverules, userdata, matchdata, rulesetdata: tourney_rulesets_data })], components: raceComponents({ race, liverules, livematch }) })
             } else if (status == 'delete') {
                 livematchref.remove()
                 interaction.reply({ content: "Match was cancelled" })
@@ -375,7 +383,7 @@ exports.play = async function (args, interaction, database) {
                     interaction.followUp("**" + planets[tracks[randomtrack].planet].emoji + " " + tracks[randomtrack].name + "**")
                 }, 2000)
                 setTimeout(async function () {
-                    interaction.followUp({ content: Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + "❗ Countown starts as soon as both players ready", embeds: [raceEmbed({ race: 0, livematch, liverules, userdata })], components: raceComponents({ race: 0, liverules, livematch }) })
+                    interaction.followUp({ content: Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + "❗ Countown starts as soon as both players ready", embeds: [raceEmbed({ race: 0, livematch, liverules, userdata, matchdata, rulesetdata: tourney_rulesets_data })], components: raceComponents({ race: 0, liverules, livematch }) })
                 }, 3000)
             } else {
                 interaction.update({ content: 'Please select a track', components: firstbanComponents({ livematch, liverules }) })
@@ -478,7 +486,7 @@ exports.play = async function (args, interaction, database) {
                     turn.options = turn.options.filter(t => Number(t) !== Number(interaction.values[0]))
                     setRace(turn.options[0])
                     await interaction.update({ content: "", embeds: [firstbanEmbed({ livematch })], components: [] })
-                    interaction.followUp({ content: Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), embeds: [raceEmbed({ race: 0, livematch, liverules, userdata })], components: raceComponents({ race: 0, liverules, livematch }) })
+                    interaction.followUp({ content: Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), embeds: [raceEmbed({ race: 0, livematch, liverules, userdata, matchdata, rulesetdata: tourney_rulesets_data })], components: raceComponents({ race: 0, liverules, livematch }) })
                 } else {
                     let turn = whoseTurn()
                     interaction.update({ content: "<@" + turn.current_turn + "> please make a selection", embeds: [firstbanEmbed({ livematch })], components: firstbanComponents({ livematch, liverules }) })
@@ -487,7 +495,7 @@ exports.play = async function (args, interaction, database) {
         } else if (args[2] == 'pick') {
             let firsttrack = interaction.values[0]
             setRace(firsttrack)
-            interaction.update({ content: Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), embeds: [raceEmbed({ race: 0, livematch, liverules, userdata })], components: raceComponents({ race: 0, liverules, livematch }) })
+            interaction.update({ content: Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(player => "<@" + player + ">").join(" "), embeds: [raceEmbed({ race: 0, livematch, liverules, userdata, matchdata, rulesetdata: tourney_rulesets_data })], components: raceComponents({ race: 0, liverules, livematch }) })
         }
     } else if (args[1].includes("permaban")) {
         if (!Object.values(livematch.players).includes(member)) {
@@ -624,7 +632,7 @@ exports.play = async function (args, interaction, database) {
                         await interaction.update({ content: "", embeds: [raceEventEmbed({ race, livematch, liverules })], components: [] })
                         let rE = await interaction.followUp({
                             content: Object.values(livematch.players).map(player => "<@" + player + ">").join(" ") + " Countdown begins <t:" + livematch.races[race].countdown + ":R>",
-                            embeds: [raceEmbed({ race, livematch, liverules, userdata })],
+                            embeds: [raceEmbed({ race, livematch, liverules, userdata, matchdata, rulesetdata: tourney_rulesets_data })],
                             components: raceComponents({ race, liverules, livematch }),
                             fetchReply: true
                         })
@@ -635,7 +643,9 @@ exports.play = async function (args, interaction, database) {
 
                         //autocountdown
                         setTimeout(async function () {
-                            interaction.followUp({ content: "Countdown starts <t:" + livematch.races[race].countdown + ":R>!" })
+                            if (livematch.races[race].countdown) {
+                                interaction.followUp({ content: "Countdown starts <t:" + livematch.races[race].countdown + ":R>!" })
+                            }
                         }, countdown - 30 * 1000)
                         setTimeout(async function () {
                             if (livematch.races[race].countdown) {
@@ -656,7 +666,7 @@ exports.play = async function (args, interaction, database) {
                                 await livematchref.child("races").child(race).child("live").set(true)
                                 await livematchref.child("races").child(race).child("countdown").remove()
                                 setTimeout(async function () {
-                                    interaction.followUp({ embeds: [raceEmbed({ race, livematch, liverules, userdata })], components: raceComponents({ race, liverules, livematch }) })
+                                    interaction.followUp({ embeds: [raceEmbed({ race, livematch, liverules, userdata, matchdata, rulesetdata: tourney_rulesets_data })], components: raceComponents({ race, liverules, livematch }) })
                                 }, 10000)
                             }
                         }, countdown)
@@ -685,7 +695,7 @@ exports.play = async function (args, interaction, database) {
             await livematchref.child('races').child(race).child('countdown').remove()
             await interaction.update({
                 content: Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(comm => "<@" + comm + ">").join(" "),
-                embeds: [raceEmbed({ race, livematch, liverules, userdata })],
+                embeds: [raceEmbed({ race, livematch, liverules, userdata, matchdata, rulesetdata: tourney_rulesets_data })],
                 components: raceComponents({ race, liverules, livematch })
             })
             interaction.followUp({ content: '<@' + member + '> aborted the countdown. Once both players click READY, the countdown will begin.' })
@@ -706,12 +716,12 @@ exports.play = async function (args, interaction, database) {
                     //initiate race
                     livematchref.child("races").child(race).child("live").set(true)
                     setTimeout(async function () {
-                        interaction.followUp({ embeds: [raceEmbed({ race, livematch, liverules, userdata })], components: raceComponents({ race, liverules, livematch }) })
+                        interaction.followUp({ embeds: [raceEmbed({ race, livematch, liverules, userdata, matchdata, rulesetdata: tourney_rulesets_data })], components: raceComponents({ race, liverules, livematch }) })
                     }, 10000)
                 } else {
                     await interaction.update({
                         content: Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(comm => "<@" + comm + ">").join(" "),
-                        embeds: [raceEmbed({ race, livematch, liverules, userdata })],
+                        embeds: [raceEmbed({ race, livematch, liverules, userdata, matchdata, rulesetdata: tourney_rulesets_data })],
                         components: raceComponents({ race, liverules, livematch })
                     })
                 }
@@ -734,7 +744,7 @@ exports.play = async function (args, interaction, database) {
                 livematchref.child('races').child(race).child('gents').set({ terms: terms, player: member, agreed: "?" })
                 interaction.update({
                     content: "<@" + getOpponent({ livematch, player: member }) + "> do you accept the terms of the proposed 🎩 **Gentlemen's Agreement**?\n*" + terms + "*",
-                    embeds: [raceEmbed({ race, livematch, liverules, userdata })],
+                    embeds: [raceEmbed({ race, livematch, liverules, userdata, matchdata, rulesetdata: tourney_rulesets_data })],
                     components: raceComponents({ race, liverules, livematch })
                 })
             } else {
@@ -760,7 +770,7 @@ exports.play = async function (args, interaction, database) {
                         }
                         interaction.update({
                             content: Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.commentators).map(comm => "<@" + comm + ">").join(" "),
-                            embeds: [raceEmbed({ race, livematch, liverules, userdata })],
+                            embeds: [raceEmbed({ race, livematch, liverules, userdata, matchdata, rulesetdata: tourney_rulesets_data })],
                             components: raceComponents({ race, liverules, livematch })
                         })
                     } else {
@@ -774,7 +784,7 @@ exports.play = async function (args, interaction, database) {
             }
             interaction.update({
                 content: Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" "),
-                embeds: [raceEmbed({ race, livematch, liverules, userdata })],
+                embeds: [raceEmbed({ race, livematch, liverules, userdata, matchdata, rulesetdata: tourney_rulesets_data })],
                 components: raceComponents({ race, liverules, livematch })
             })
         } else if (args[2] == "reveal") {
@@ -783,7 +793,7 @@ exports.play = async function (args, interaction, database) {
             }
             interaction.update({
                 content: Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" "),
-                embeds: [raceEmbed({ race, livematch, liverules, userdata })],
+                embeds: [raceEmbed({ race, livematch, liverules, userdata, matchdata, rulesetdata: tourney_rulesets_data })],
                 components: raceComponents({ race, liverules, livematch })
             })
         } else if (args[2] == "submit") {
@@ -814,7 +824,7 @@ exports.play = async function (args, interaction, database) {
                 )
                 interaction.update({
                     content: Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length == 0 ? Object.values(livematch.commentators).map(comm => "<@" + comm + ">").join(" ") : "",
-                    embeds: [raceEmbed({ race, livematch, liverules, userdata })],
+                    embeds: [raceEmbed({ race, livematch, liverules, userdata, matchdata, rulesetdata: tourney_rulesets_data })],
                     components: raceComponents({ race, liverules, livematch })
                 })
             } else {
@@ -828,7 +838,7 @@ exports.play = async function (args, interaction, database) {
                     .setMinLength(0)
                     .setMaxLength(10)
                     .setRequired(true)
-                    .setValue((String(livematch.races[race].runs[member]?.time).toLowerCase() == 'dnf' ? 'DNF' : (livematch.races[race].runs[member].time == "" ? "" : timefix(livematch.races[race].runs[member].time))))
+                    .setValue((String(livematch.races[race].runs[member]?.time).toLowerCase() == 'dnf' ? 'DNF' : (livematch.races[race].runs[member].time == "" ? "" : String(timefix(livematch.races[race].runs[member].time)))))
                 const Deaths = new TextInputBuilder()
                     .setCustomId("deaths")
                     .setLabel("💀 Deaths (leave blank if unsure)")
@@ -836,14 +846,14 @@ exports.play = async function (args, interaction, database) {
                     .setMinLength(0)
                     .setMaxLength(2)
                     .setRequired(false)
-                    .setValue(livematch.races[race].runs[member].deaths)
+                    .setValue(String(livematch.races[race].runs[member].deaths))
                 const Notes = new TextInputBuilder()
                     .setCustomId("notes")
                     .setLabel("📝 Notes")
                     .setStyle(TextInputStyle.Short)
                     .setMaxLength(100)
                     .setRequired(false)
-                    .setValue(livematch.races[race].runs[member].notes)
+                    .setValue(String(livematch.races[race].runs[member].notes))
                 const ActionRow1 = new ActionRowBuilder().addComponents(Time)
                 const ActionRow2 = new ActionRowBuilder().addComponents(Deaths)
                 const ActionRow3 = new ActionRowBuilder().addComponents(Notes)
@@ -864,7 +874,7 @@ exports.play = async function (args, interaction, database) {
                 livematchref.child("races").child(race).child("live").set(false)
                 await interaction.update({
                     content: "",
-                    embeds: [raceEmbed({ race, livematch, liverules, userdata })],
+                    embeds: [raceEmbed({ race, livematch, liverules, userdata, matchdata, rulesetdata: tourney_rulesets_data })],
                     components: []
                 })
                 interaction.followUp({ embeds: [matchSummaryEmbed({ liverules, livematch, userdata })] })
@@ -1033,7 +1043,7 @@ exports.play = async function (args, interaction, database) {
             })
             interaction.update({
                 content: Object.values(livematch.players).filter(player => !livematch.races[race].ready[player]).map(player => "<@" + player + ">").join(" "),
-                embeds: [raceEmbed({ race, livematch, liverules, userdata })],
+                embeds: [raceEmbed({ race, livematch, liverules, userdata, matchdata, rulesetdata: tourney_rulesets_data })],
                 components: raceComponents({ race, liverules, livematch })
             })
         }

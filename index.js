@@ -2,7 +2,7 @@ const fs = require('fs');
 const Discord = require('discord.js');
 const { Client, Events, GatewayIntentBits } = require('discord.js')
 var moment = require('moment');
-const { prefix, token, firebaseCon } = require('./config.json');
+//const { prefix, token, firebaseCon } = require('./config.json');
 const { welcomeMessages } = require('./data.js')
 const client = new Client({
     intents: [
@@ -26,7 +26,7 @@ client.selects = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 const buttonFiles = fs.readdirSync('./buttons').filter(file => file.endsWith('.js'));
 
-const testing = true
+const testing = false
 
 let discord_token = testing ? token : process.env.token
 
@@ -379,7 +379,7 @@ client.once(Events.ClientReady, async () => {
                     }
 
                     // match setup 
-                    if (match.current && match.notification == false && match.datetime <= Date.now() + 1000 * 60 * 10 && Date.now() <= match.datetime + 1000 * 60 * 10) {
+                    if (match.current && match.notification == false && match.datetime <= Date.now() + 1000 * 60 * 30 && Date.now() <= match.datetime + 1000 * 60 * 10) {
                         database.ref('tourney/scheduled').child(key).child("notification").set(true)
                         //add roles
                         let everybody = Object.values(match.players).concat(Object.values(match.commentators))
