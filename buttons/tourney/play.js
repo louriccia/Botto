@@ -587,7 +587,7 @@ exports.play = async function (args, interaction, database) {
 
                     } else {
                         interaction.update({
-                            content: "<@" + (events[event].choice == "lastwinner" ? getWinner({ race: race - 1, livematch }) : getOpponent({ livematch, player: getWinner({ race: race - 1, livematch }) })) + "> please make a selection" + (eventend + 1 == events.length ? "\n*Once this selection is submitted, the warmup timer begins (2 minutes for full track, 3 minutes for skips)*" : ""),
+                            content: "<@" + (events[event].choice == "lastwinner" ? getWinner({ race: race - 1, livematch }) : getOpponent({ livematch, player: getWinner({ race: race - 1, livematch }) })) + "> please make a selection" + (eventend + 1 == events.length ? "\n*Once this selection is submitted, the warmup timer begins (2.5 minutes, 3.5 minutes for skips)*" : ""),
                             embeds: [raceEventEmbed({ race, livematch, liverules })],
                             components: raceEventComponents({ race, livematch, interaction, liverules })
                         })
@@ -862,6 +862,10 @@ exports.play = async function (args, interaction, database) {
             }
         } else if (args[2] == "verify") {
             if (interaction.isModalSubmit()) {
+                if (livematch.races[race].live === false) {
+                    interaction.reply({ content: "This race has already been verified. <:WhyNobodyBuy:589481340957753363>", ephemeral: true })
+                    return
+                }
                 Object.keys(livematch.races[race].runs).map(key => {
                     livematchref.child("races").child(race).child("runs").child(key).update(
                         {

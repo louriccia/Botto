@@ -95,8 +95,8 @@ exports.getLeaderboard = function ({ track, conditions, matchdata, rulesetdata, 
                             if (run.retroskip) {
                                 thisconditions.trak = 'fs'
                             }
-                            if (run.time !== 'DNF' && exports.matchConditions(conditions, thisconditions) && !podbans.includes(String(run.pod))) {
-                                leaderboard.push(run)
+                            if (run.time !== 'DNF' && exports.matchConditions(conditions, thisconditions)) {
+                                leaderboard.push({ ...run, podban: podbans.includes(String(run.pod)) })
                             }
                         })
                     }
@@ -105,8 +105,13 @@ exports.getLeaderboard = function ({ track, conditions, matchdata, rulesetdata, 
         }
     })
     leaderboard = leaderboard.sort((a, b) => a.time - b.time)
-    leaderboard[0].record = true
+    leaderboard[0].trecord = true
     let unique = []
+    if (podbans.includes(String(leaderboard[0].pod))) {
+        unique.push(leaderboard[0])
+    }
+    leaderboard = leaderboard.filter(r => !r.podban)
+    leaderboard[0].record = true
     leaderboard.forEach(r => {
         if (!unique.map(u => u.player).includes(r.player)) {
             unique.push(r)
@@ -139,13 +144,13 @@ exports.raceEmbed = function ({ race, livematch, liverules, userdata, matchdata,
         if (!run || !run.time) {
             return ''
         }
-        return [(leaderboard ? `${exports.getUsername({ member: run.player, userdata, short: true })} - ` : ''),
-        (run.pod == "" ? '❔' : racers[run.pod].flag),
+        return [(run.pod == "" ? '❔' : racers[run.pod].flag),
         (String(run.time).toLowerCase() == 'dnf' ? 'DNF' : (winner ? "__" : "") + timefix(run.time) + (winner ? "__" : "")),
-        (run.deaths === 0 ? '' : "`" + `💀×${run.deaths == "" ? "?" : Number(run.deaths)}` + "`"),
-        (run.notes == "" || leaderboard ? "" : "\n📝 " + run.notes), (run.record ? '<:p1:671601240228233216>' : '')].filter(f => f !== "").join(" ")
+        (leaderboard ? ` - ${exports.getUsername({ member: run.player, userdata, short: true })}` : ''),
+        ([null, undefined, 0].includes(run.deaths) ? '' : "`" + `💀×${run.deaths == "" ? "?" : Number(run.deaths)}` + "`"),
+        (run.notes == "" || leaderboard ? "" : "\n📝 " + run.notes), (run.trecord ? '`Tourney Record`' : run.record ? '`Best Available Pod`' : '')].filter(f => f !== "").join(" ")
     }
-    let leaderboard = exports.getLeaderboard({ track, conditions, matchdata, rulesetdata, podbans }).filter(r => r.record || players.includes(r.player))
+    let leaderboard = exports.getLeaderboard({ track, conditions, matchdata, rulesetdata, podbans }).filter(r => r.record || r.trecord || players.includes(r.player))
     embed.addFields({ name: 'Best Times', value: leaderboard.map(r => resultFormat(r, false, true)).join("\n"), inline: false })
 
     if (Object.values(livematch.races[race].ready).filter(r => r == false).length > 0 || livematch.races[race].countdown) {
@@ -841,7 +846,7 @@ exports.raceComponents = function ({ race, liverules, livematch }) {
                 .addComponents(
                     new ButtonBuilder()
                         .setCustomId("tourney_play_race" + race + "_ready")
-                        .setLabel("Ready")
+                        .setLabel(Object.values(livematch.races[race].ready).filter(v => v === false).length == 1 ? "Start Countdown" : "Ready")
                         .setStyle(ButtonStyle.Success)
                 )
                 .addComponents(

@@ -2,7 +2,7 @@ const fs = require('fs');
 const Discord = require('discord.js');
 const { Client, Events, GatewayIntentBits } = require('discord.js')
 var moment = require('moment');
-const { prefix, token, firebaseCon } = require('./config.json');
+//const { prefix, token, firebaseCon } = require('./config.json');
 const { welcomeMessages } = require('./data.js')
 const client = new Client({
     intents: [
@@ -26,7 +26,7 @@ client.selects = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 const buttonFiles = fs.readdirSync('./buttons').filter(file => file.endsWith('.js'));
 
-const testing = true
+const testing = false
 
 let discord_token = testing ? token : process.env.token
 
@@ -144,9 +144,16 @@ fetchData(database.ref('users'), function (data) {
 });
 
 client.on(Events.InteractionCreate, async interaction => {
+
+    console.log(interaction.isChatInputCommand() ? 'slash' :
+        interaction.isButton() ? 'button' :
+            interaction.isMessageComponent() ? 'message_component' :
+                interaction.isModalSubmit() ? 'modal_submit' :
+                    'other', interaction.isChatInputCommand() ? interaction?.commandName?.toLowerCase() : interaction.customId, interaction.member.displayName)
+
     if (interaction.isChatInputCommand()) {
         const command = interaction.commandName.toLowerCase();
-        console.log(command)
+
         //command handler
         if (!client.commands.has(command)) {
             console.log('command does not exist')
@@ -305,6 +312,7 @@ client.once(Events.ClientReady, async () => {
                 }
                 Object.keys(tourney_scheduled_data).map(key => {
                     let match = tourney_scheduled_data[key]
+
                     let eventdup = false
                     events.forEach(event => {
 
@@ -407,7 +415,7 @@ client.once(Events.ClientReady, async () => {
                         postMessage(
                             client,
                             "515311630100463656",
-                            `<@&841059665474617353>\n**${Object.keys(match.players).map(p => getUserNameByDiscordID(p)).join(" vs. ")}**\n:microphone2: ${Object.values(match.commentators).map(comm => getUserNameByDiscordID(comm)).join(", ")}\n ${match.url}`
+                            `<@&841059665474617353>\n**${Object.values(match.players).map(p => getUserNameByDiscordID(p)).join(" vs. ")}**\n:microphone2: ${Object.values(match.commentators).map(comm => getUserNameByDiscordID(comm)).join(", ")}\n ${match.url}`
                         )
                         postMessage(client, "970994773517299712", {
                             content: Object.values(newmatch.commentators).map(player => "<@" + player + ">").join(" ") + " " +
