@@ -1563,7 +1563,6 @@ module.exports = {
                     let subtime = interaction.fields.getTextInputValue('challengeTime')
                     let subnotes = interaction.fields.getTextInputValue('challengeNotes').replace(/[^a-zA-Z0-9 ]/g, '')
                     let subproof = interaction.fields.getTextInputValue('challengeProof') ?? ""
-                    console.log('isactive', isActive(current_challenge))
                     if (!isActive(current_challenge) && !current_challenge.submissions?.[member]) { //challenge no longer active
                         interaction.reply({
                             embeds: [expiredEmbed()], components: [

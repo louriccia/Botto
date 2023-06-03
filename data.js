@@ -106,9 +106,7 @@ exports.banners = [
     'https://media.discordapp.net/attachments/602412114363154432/1094885804700090388/vlcsnap-2020-12-13-00h06m31s804.png?width=1142&height=643',
     'https://media.discordapp.net/attachments/602412114363154432/1109592268471554118/mgs_back.png?width=1097&height=618',
     'https://media.discordapp.net/attachments/602412114363154432/1109592269050355793/mgs_startline.png?width=1097&height=618',
-    'https://media.discordapp.net/attachments/602412114363154432/1108676311259557952/btc_startline.png?width=1097&height=618',
-    'https://steamuserimages-a.akamaihd.net/ugc/1830151557957731768/9F32B71A450517C287FDDB4C610D3B02A0C0C4C6/?imw=5000&imh=5000&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=false',
-    'https://steamuserimages-a.akamaihd.net/ugc/1010438621185512967/6F028632A87458DE1A0DACE5AEDFE3BF482C0F70/?imw=5000&imh=5000&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=false'
+    'https://media.discordapp.net/attachments/602412114363154432/1108676311259557952/btc_startline.png?width=1097&height=618'
 ]
 
 exports.srcmap = {
