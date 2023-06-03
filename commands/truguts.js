@@ -61,7 +61,7 @@ module.exports = {
         const avatar = await interaction.member.displayAvatarURL()
         let userref = database.ref('users');
         let userdata = {}
-        userref.on("value", function (snapshot) {
+        await userref.once("value", function (snapshot) {
             userdata = snapshot.val();
         }, function (errorObject) {
             console.log("The read failed: " + errorObject.code);
