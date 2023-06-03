@@ -27,7 +27,7 @@ exports.play = async function (args, interaction, database) {
     })
     let userref = database.ref('users');
     let userdata = {}
-    userref.on("value", function (snapshot) {
+    userref.once("value", function (snapshot) {
         userdata = snapshot.val();
     }, function (errorObject) {
         console.log("The read failed: " + errorObject.code);
@@ -35,7 +35,7 @@ exports.play = async function (args, interaction, database) {
 
     let matchref = database.ref('tourney/matches');
     let matchdata = {}
-    matchref.on("value", function (snapshot) {
+    matchref.once("value", function (snapshot) {
         matchdata = snapshot.val();
     }, function (errorObject) {
         console.log("The read failed: " + errorObject.code);
@@ -43,7 +43,7 @@ exports.play = async function (args, interaction, database) {
 
     let tourney_rulesets = database.ref('tourney/rulesets')
     let tourney_rulesets_data = {}
-    tourney_rulesets.on("value", function (snapshot) {
+    tourney_rulesets.once("value", function (snapshot) {
         tourney_rulesets_data = snapshot.val();
     }, function (errorObject) {
         console.log("The read failed: " + errorObject);
@@ -51,7 +51,7 @@ exports.play = async function (args, interaction, database) {
 
     let tourney_bets = database.ref('tourney/bets')
     let betsdata = {}
-    tourney_bets.on("value", function (snapshot) {
+    tourney_bets.once("value", function (snapshot) {
         betsdata = snapshot.val();
     }, function (errorObject) {
         console.log("The read failed: " + errorObject);
@@ -902,7 +902,7 @@ exports.play = async function (args, interaction, database) {
                     const postRef = await database.ref('tourney/matches').push(livematch)
                     const winEmbed = new EmbedBuilder()
                         .setAuthor({ name: "Match Concluded" })
-                        .setTitle(getUsername({ member: player, userdata, short: true }) + " Wins!")
+                        .setTitle(getUsername({ member: getWinner({ race, livematch }), userdata, short: true }) + " Wins!")
                         .setDescription("GGs, racers! The match has been saved.\nCheck out the full match summary [here](https://botto-efbfd.web.app/tournaments/matches/" + postRef.key + ")\n<@&970995237952569404> role will be automatically removed in 15 minutes")
                         .addFields({ name: ":microphone2: Commentators/Trackers", value: ":orange_circle: Don't forget to click 'Episode Finished' after the interviews" })
                     interaction.followUp({ embeds: [winEmbed] })

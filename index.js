@@ -76,7 +76,7 @@ var logref = database.ref('log');
 var errorlogref = database.ref('log/error');
 
 function fetchData(ref, callback) {
-    ref.on("value", function (snapshot) {
+    ref.once("value", function (snapshot) {
         callback(snapshot.val());
     }, function (errorObject) {
         console.log("The read failed: " + errorObject.code);
