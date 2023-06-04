@@ -637,6 +637,9 @@ exports.play = async function (args, interaction, database) {
                             fetchReply: true
                         })
                         livematchref.child("status").set("prerace")
+                        if (!livematch.current_race) {
+                            livematchref.child('current_race').set(0)
+                        }
                         Object.values(livematch.players).forEach(player => {
                             livematchref.child('races').child(race).child('ready').child(player).set(true)
                         })
