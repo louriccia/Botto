@@ -106,7 +106,15 @@ exports.banners = [
     'https://media.discordapp.net/attachments/602412114363154432/1094885804700090388/vlcsnap-2020-12-13-00h06m31s804.png?width=1142&height=643',
     'https://media.discordapp.net/attachments/602412114363154432/1109592268471554118/mgs_back.png?width=1097&height=618',
     'https://media.discordapp.net/attachments/602412114363154432/1109592269050355793/mgs_startline.png?width=1097&height=618',
-    'https://media.discordapp.net/attachments/602412114363154432/1108676311259557952/btc_startline.png?width=1097&height=618'
+    'https://media.discordapp.net/attachments/602412114363154432/1108676311259557952/btc_startline.png?width=1097&height=618',
+    'https://media.discordapp.net/attachments/554524314632978433/1115800263329075210/EP1_IA_70093_R-topaz-enhance3.jpg?width=1081&height=608',
+    'https://media.discordapp.net/attachments/554524314632978433/1115800264868372602/Mos_Espa_Grand_Arena-topaz-enhance2.jpg?width=1081&height=608',
+    'https://media.discordapp.net/attachments/554524314632978433/1115800265648525463/Mos-Esley.jpg?width=1081&height=608',
+    'https://media.discordapp.net/attachments/554524314632978433/1115800266340565084/Star_Wars_Racer_2.jpg?width=1081&height=608',
+    'https://media.discordapp.net/attachments/554524314632978433/1115800266625798275/star_wars_ep1.bg_.jpg?width=1081&height=608',
+    'https://media.discordapp.net/attachments/554524314632978433/1115800266982301697/Untitled-1.jpg?width=1081&height=608',
+    'https://media.discordapp.net/attachments/554524314632978433/1115800267678568519/Untitled-2-16.jpg?width=1080&height=608',
+    'https://media.discordapp.net/attachments/554524314632978433/1115800268299305061/a9fd76c8ed641b2bdd283a069b333544-16.9.jpg?width=1081&height=608'
 ]
 
 exports.srcmap = {
