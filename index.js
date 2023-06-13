@@ -381,7 +381,7 @@ client.once(Events.ClientReady, async () => {
                     }
 
                     //close bets
-                    if (match.datetime < Date.now() && match.bet && betdata[match.bet].status == 'open') {
+                    if (match.datetime < Date.now() && match.bet && betdata[match.bet]?.status == 'open') {
                         database.ref('tourney/bets').child(match.bet).child('status').set('closed')
                         editMessage(client, '536455290091077652', match.bet, { embeds: [betEmbed(betdata[match.bet])], components: betComponents(betdata[match.bet]) })
                     }
