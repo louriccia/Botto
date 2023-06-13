@@ -408,7 +408,7 @@ client.once(Events.ClientReady, async () => {
                             stream: match.url,
                             firstvote: ""
                         }
-                        database.ref('tourney/live').child("970994773517299712").set(newmatch)
+                        database.ref('tourney/live').child("970994773517299712").set({ ...match, current_race: 0, bracket: "", status: 'setup', firstvote: "", tourney: "", ruleset: "", stream: match.url })
                         function getUserNameByDiscordID(id) {
                             return Object.values(users).find(u => u.discordID == id)?.name ?? ''
                         }

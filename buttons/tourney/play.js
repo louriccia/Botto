@@ -637,6 +637,9 @@ exports.play = async function (args, interaction, database) {
                             fetchReply: true
                         })
                         livematchref.child("status").set("prerace")
+                        if (!livematch.current_race) {
+                            livematchref.child('current_race').set(0)
+                        }
                         Object.values(livematch.players).forEach(player => {
                             livematchref.child('races').child(race).child('ready').child(player).set(true)
                         })
@@ -911,7 +914,8 @@ exports.play = async function (args, interaction, database) {
                     if (livematch?.bet) {
                         let bet = betdata[livematch.bet]
                         bet.status = 'complete'
-                        ['a', 'b'].forEach(a => {
+                        let outcomes = ['a', 'b']
+                        outcomes.forEach(a => {
                             bet[`outcome_${a}`].winner = (bet[`outcome_${a}`].id == player)
                         })
                         //handle truguts
@@ -919,7 +923,7 @@ exports.play = async function (args, interaction, database) {
                             a: bet.outcome_a.bets ? bet.outcome_a.bets.map(b => b.amount).reduce((a, b) => a + b) : 0,
                             b: bet.outcome_b.bets ? bet.outcome_b.bets.map(b => b.amount).reduce((a, b) => a + b) : 0
                         }
-                        ['a', 'b'].forEach(x => {
+                        outcomes.forEach(x => {
                             let outcome = bet['outcome_' + x]
                             let opposite = x == 'a' ? 'b' : 'a'
                             if (outcome.bets) {
