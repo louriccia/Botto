@@ -4,7 +4,7 @@ const { Client, Events, GatewayIntentBits } = require('discord.js')
 const { Configuration, OpenAIApi } = require("openai")
 
 var moment = require('moment');
-const { prefix, token, firebaseCon, OPENAI_API_KEY } = require('./config.json');
+//const { prefix, token, firebaseCon, OPENAI_API_KEY } = require('./config.json');
 const { welcomeMessages } = require('./data.js')
 const client = new Client({
     intents: [
@@ -15,10 +15,8 @@ const client = new Client({
         GatewayIntentBits.GuildVoiceStates
     ]
 });
-const openai = new OpenAIApi(new Configuration({
-    apiKey: testing ? OPENAI_API_KEY : process.env.OPENAI_API_KEY,
-}));
-var lookup = require("./data.js");
+
+var { errorMessage } = require("./data.js");
 var tourneylookup = require("./tourneydata.js");
 var tools = require('./tools.js');
 const { betEmbed, betComponents } = require('./buttons/trugut_functions.js')
@@ -30,9 +28,10 @@ client.buttons = new Discord.Collection();
 client.selects = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 const buttonFiles = fs.readdirSync('./buttons').filter(file => file.endsWith('.js'));
-
-const testing = true
-
+const testing = false
+const openai = new OpenAIApi(new Configuration({
+    apiKey: testing ? OPENAI_API_KEY : process.env.OPENAI_API_KEY,
+}));
 let discord_token = testing ? token : process.env.token
 
 for (const file of commandFiles) {
@@ -609,6 +608,24 @@ client.on('voiceStateUpdate', (oldState, newState) => {
     }
 })
 
+async function fetchMessageContent(message) {
+    console.log(message.reference)
+    if (message.reference && message.reference.messageId) {
+        const parentMessage = await message.channel.messages.fetch(message.reference.messageId);
+        const parentContent = parentMessage.content; //parentMessage.author.username == 'Botto' ? 'You' : 
+
+        // If the parent message has a reply, fetch its content recursively
+        if (parentMessage.reference && parentMessage.reference.messageId) {
+            const grandparentContent = await fetchMessageContent(parentMessage);
+            return `${grandparentContent}\n\n${parentContent}`
+        }
+
+        return parentContent;
+    }
+
+    return '';
+}
+
 client.on(Events.MessageCreate, async function (message) {
     if (message.author.bot) return; //trumps any command from executing from a bot message
 
@@ -618,12 +635,14 @@ client.on(Events.MessageCreate, async function (message) {
     }
 
     if (message.mentions.users.has('545798436105224203')) {
+        const previous = await fetchMessageContent(message);
+        console.log(`${previous}\n\n${message.content}`);
         try {
             const response = await openai.createChatCompletion({
                 model: "gpt-3.5-turbo",
                 messages: [
-                    { role: "system", content: "You are a discord bot in the Star Wars Episode I: Racer discord called Botto who is based on the personality of Watto, the character from Star Wars Episode I: The Phantom Menace. You were created by LightningPirate." },
-                    { role: "user", content: message.content }
+                    { role: "system", content: "You are a discord bot in the Star Wars Episode I: Racer discord called Botto who is based on the personality of Watto, the character from Star Wars Episode I: The Phantom Menace. You were created by LightningPirate. You are incredibly greedy, addicted to gambling, and you love to swindle and cheat. Be as uncooperative as possible. If you are unable or unwilling to answer a question, say you just so happen to have a chance cube, or you have to get back to your shop, or you will only do it for some truguts (money). Add only one response to the conversation." },
+                    { role: "user", content: `${previous}\n\n${message.content}` }
                 ],
             });
             const content = response.data.choices[0].message;
