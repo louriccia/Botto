@@ -22,6 +22,7 @@ exports.swe1r_guild = "441839750555369474"
 exports.goal_symbols = [":gem:", ":first_place:", ":second_place:", ":third_place:", "<:bumpythumb:703107780860575875>"]
 
 exports.truguts = {
+    starter: 400,
     mp: 100,
     non_standard: 200,
     beat_opponent: 150,

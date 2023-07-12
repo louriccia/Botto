@@ -502,12 +502,13 @@ exports.welcomeMessages = [
     `*I see that the dashing ${exports.a} has joined the group for today's race. They've been podracing since they were two!*`,
     `*${exports.a} is piloting their new super experimental podracer. This may be the future of podracer racing folks so take a good look: NO CABLES!*`,
     `*Would you check out the size of those engines ${exports.a} is reigning? UNBELIEVABLE!*`,
-    `*${exports.a} has come out of nowhere to challenge the best podracers today. This confident Triffian bosts three semi-pro titles on Malastare!*`,
+    `*${exports.a} has come out of nowhere to challenge the best podracers today. This confident Triffian boasts three semi-pro titles on Malastare!*`,
     `*Ahh they're reckless but a real crowd-pleaser. The Tatooine native ${exports.a} is on the starting grid.*`,
     `*My money's on ${exports.a} for this race. Just look at the size of those engines!*`,
     `*It's two-time winner ${exports.a}. This Sneevel's got money to burn and they've put it all into their podracer!*`,
     `*I think ${exports.a} is the one to watch today. They really want to win!*`,
-    `*I'm betting on that tall drink of water from the Toong system, ${exports.a}. They've got four-- COUNT 'EM... FOUR ENGINES!*`
+    `*I'm betting on that tall drink of water from the Toong system, ${exports.a}. They've got four-- COUNT 'EM... FOUR ENGINES!*`,
+    `*It's a new server member! ${exports.a}*`
 ]
 
 exports.goodbyeMessages = [
@@ -517,7 +518,7 @@ exports.goodbyeMessages = [
     `*Get lost ${exports.a}! Come back when you got some money!*`,
     `*You were the chosen one, ${exports.a}!*`,
     `*You're going down a path I can't follow, ${exports.a}!*`,
-    `*${exports.a} was banished because he was clumsy.*`,
+    `*${exports.a} was banished because they were clumsy.*`,
     `*Suit yourself, ${exports.a}!*`,
     `*You have a big day tomorrow. Sleep well, ${exports.a}.*`
 ]
@@ -868,7 +869,7 @@ exports.racer_hints = [
         "posted bounties for Sebulba’s relatives as revenge",
         "also worked as a podracer parts dealer",
         "started the Boonta Eve Classic in the front row",
-        "haw three eyes",
+        "has three eyes",
         "the fifth racer introduced by Fodesinbeed in the film",
         "didn't make it through lap one of the Boonta Eve Classic"
     ], [ //ark

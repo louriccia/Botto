@@ -1,8 +1,10 @@
 const fs = require('fs');
 const Discord = require('discord.js');
 const { Client, Events, GatewayIntentBits } = require('discord.js')
+const { Configuration, OpenAIApi } = require("openai")
+
 var moment = require('moment');
-//const { prefix, token, firebaseCon } = require('./config.json');
+const { prefix, token, firebaseCon, OPENAI_API_KEY } = require('./config.json');
 const { welcomeMessages } = require('./data.js')
 const client = new Client({
     intents: [
@@ -13,6 +15,9 @@ const client = new Client({
         GatewayIntentBits.GuildVoiceStates
     ]
 });
+const openai = new OpenAIApi(new Configuration({
+    apiKey: testing ? OPENAI_API_KEY : process.env.OPENAI_API_KEY,
+}));
 var lookup = require("./data.js");
 var tourneylookup = require("./tourneydata.js");
 var tools = require('./tools.js');
@@ -26,7 +31,7 @@ client.selects = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 const buttonFiles = fs.readdirSync('./buttons').filter(file => file.endsWith('.js'));
 
-const testing = false
+const testing = true
 
 let discord_token = testing ? token : process.env.token
 
@@ -604,12 +609,31 @@ client.on('voiceStateUpdate', (oldState, newState) => {
     }
 })
 
-client.on('message', message => {
+client.on(Events.MessageCreate, async function (message) {
     if (message.author.bot) return; //trumps any command from executing from a bot message
 
     if (message.content == `${prefix}guilds`) {
         console.log(client.guilds.cache)
         //console.log(client.guilds.cache.get("697833083201650689"))
+    }
+
+    if (message.mentions.users.has('545798436105224203')) {
+        try {
+            const response = await openai.createChatCompletion({
+                model: "gpt-3.5-turbo",
+                messages: [
+                    { role: "system", content: "You are a discord bot in the Star Wars Episode I: Racer discord called Botto who is based on the personality of Watto, the character from Star Wars Episode I: The Phantom Menace. You were created by LightningPirate." },
+                    { role: "user", content: message.content }
+                ],
+            });
+            const content = response.data.choices[0].message;
+            return message.reply(content);
+        } catch (err) {
+            console.log(err)
+            return message.reply(
+                errorMessage[Math.floor(Math.random() * errorMessage.length)]
+            );
+        }
     }
 
     if (message.content.toLowerCase() == `${prefix}botto`) {
