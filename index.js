@@ -78,7 +78,6 @@ firebase.initializeApp(firebaseConfig);
 var database = admin.database();
 var logref = database.ref('log');
 var errorlogref = database.ref('log/error');
-let users
 
 function fetchData(ref, callback) {
     ref.on("value", function (snapshot) {
@@ -209,31 +208,36 @@ client.once(Events.ClientReady, async () => {
         .catch(console.error);
     client.channels.cache.get("444208252541075476").send("Deployed <t:" + Math.round(Date.now() / 1000) + ":R>");
 
-    client.guilds.fetch("441839750555369474").then(guild => {
-        try {
-            guild.members.fetch({ force: true }).then(members => {
-                Object.keys(users).forEach(async function (key) {
-                    let user = users[key];
-                    if (user.discordID && guild.members.cache.some(m => m == user.discordID)) {
-                        guild.members.fetch({ user: user.discordID, force: true }).then(member => {
-                            // Storing role IDs in the 'roles' array
-                            const roles = member.roles.cache.map(role => role.id);
+    database.ref('users').once("value", function (snapshot) {
+        let users = snapshot.val()
+        client.guilds.fetch("441839750555369474").then(guild => {
+            try {
+                guild.members.fetch({ force: true }).then(members => {
+                    Object.keys(users).forEach(async function (key) {
+                        let user = users[key];
+                        if (user.discordID && guild.members.cache.some(m => m == user.discordID)) {
+                            guild.members.fetch({ user: user.discordID, force: true }).then(member => {
+                                // Storing role IDs in the 'roles' array
+                                const roles = member.roles.cache.map(role => role.id);
 
-                            database.ref('users').child(key).child('avatar').set(member.displayAvatarURL())
-                            database.ref('users').child(key).child('discord').update({
-                                displayName: member.displayName,
-                                joinedTimestamp: member.joinedTimestamp,
-                                nickname: member.nickname,
-                                tag: member.user.tag,
-                                roles: roles, // Adding the roles array to the user's data
+                                database.ref('users').child(key).child('avatar').set(member.displayAvatarURL())
+                                database.ref('users').child(key).child('discord').update({
+                                    displayName: member.displayName,
+                                    joinedTimestamp: member.joinedTimestamp,
+                                    nickname: member.nickname,
+                                    tag: member.user.tag,
+                                    roles: roles, // Adding the roles array to the user's data
+                                });
                             });
-                        });
-                    }
+                        }
+                    });
                 });
-            });
-        } catch (e) {
-            console.log(e);
-        }
+            } catch (e) {
+                console.log(e);
+            }
+        });
+    }, function (errorObject) {
+        console.log("The read failed: " + errorObject.code);
     });
 
     if (false && !testing) {
