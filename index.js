@@ -78,6 +78,7 @@ firebase.initializeApp(firebaseConfig);
 var database = admin.database();
 var logref = database.ref('log');
 var errorlogref = database.ref('log/error');
+let users
 
 function fetchData(ref, callback) {
     ref.on("value", function (snapshot) {
