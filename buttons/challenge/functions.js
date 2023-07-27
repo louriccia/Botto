@@ -1415,7 +1415,7 @@ exports.dailyChallenge = async function ({ client, sponsordata, challengetimedat
         })
     }
     //console.log("challenge", exports.easternHour(), moment().utc().format("DDD"), recent.message, recent.day, exports.easternHour() == 0, moment().utc().format("DDD") !== recent.day)
-    if (exports.easternHour() >= 0 && moment().utc().format("DDD") !== recent.day) {
+    if (exports.easternHour() == 0 && moment().utc().format("DDD") !== recent.day) {
         let current_challenge = exports.initializeChallenge({ type: "cotd", sponsordata })
         console.log(current_challenge)
         if (lastfive.map(c => c.racer).includes(current_challenge.racer)) {
