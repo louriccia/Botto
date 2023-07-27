@@ -3,7 +3,10 @@ const tools = require('../../tools.js')
 const { truguts, swe1r_guild, tips, goal_symbols, settings_default, achievement_data, winnings_map, hints } = require('./data.js')
 const { postMessage } = require('../../discord_message.js')
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder } = require('discord.js');
-var moment = require('moment');
+const moment = require('moment');
+require('moment-timezone')
+
+const currentTimeEastern = moment().tz('America/New_York');
 
 exports.getGoalTimes = function ({ track, racer, skips, nu, laps, backwards } = {}) {
     let upg = nu ? 0 : 5
@@ -187,11 +190,11 @@ exports.initializeChallenge = function ({ profile, member, type, name, avatar, u
 
     //set default odds
     let odds = {
-        skips: (type == 'cotd' ? 35 : type == 'multiplayer' ? 0 : type == 'private' ? profile.settings.skips : settings_default.skips) / 100,
-        no_upgrades: (type == 'cotd' ? 15 : type == 'multiplayer' ? 0 : type == 'private' ? profile.settings.no_upgrades : settings_default.no_upgrades) / 100,
-        non_3_lap: (type == 'cotd' ? 20 : type == 'multiplayer' ? 0 : type == 'private' ? profile.settings.non_3_lap : settings_default.non_3_lap) / 100,
-        mirrored: (type == 'cotd' ? 20 : type == 'multiplayer' ? 0 : type == 'private' ? profile.settings.mirror_mode : settings_default.mirror_mode) / 100,
-        backwards: (type == 'cotd' ? 15 : type == 'multiplayer' ? 0 : type == 'private' ? profile.settings.backwards : settings_default.backwards) / 100,
+        skips: (type == 'cotm' ? 35 : type == 'cotd' ? 35 : type == 'multiplayer' ? 0 : type == 'private' ? profile.settings.skips : settings_default.skips) / 100,
+        no_upgrades: (type == 'cotm' ? 15 : type == 'cotd' ? 15 : type == 'multiplayer' ? 0 : type == 'private' ? profile.settings.no_upgrades : settings_default.no_upgrades) / 100,
+        non_3_lap: (type == 'cotm' ? 20 : type == 'cotd' ? 20 : type == 'multiplayer' ? 0 : type == 'private' ? profile.settings.non_3_lap : settings_default.non_3_lap) / 100,
+        mirrored: (type == 'cotm' ? 20 : type == 'cotd' ? 20 : type == 'multiplayer' ? 0 : type == 'private' ? profile.settings.mirror_mode : settings_default.mirror_mode) / 100,
+        backwards: (type == 'cotm' ? 0 : type == 'cotd' ? 15 : type == 'multiplayer' ? 0 : type == 'private' ? profile.settings.backwards : settings_default.backwards) / 100,
     }
 
     let skips = tracks[random_track].parskiptimes ? Math.random() < odds.skips : false
@@ -199,6 +202,42 @@ exports.initializeChallenge = function ({ profile, member, type, name, avatar, u
     let laps = Math.random() < odds.non_3_lap ? alt_laps[Math.floor(Math.random() * 4)] : 3
     let mirror = Math.random() < odds.mirrored
     let backwards = Math.random() < odds.backwards
+
+    if (type == 'cotm') {
+        let random_tracks = []
+
+        function RandomCircuitLength() {
+            const numbers = [4, 5, 6, 7, 8, 9, 10];
+            const weights = [1, 2, 3, 4, 3, 2, 1]; // Adjust the weights to control the probabilities
+
+            // Calculate the total weight
+            const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+
+            // Generate a random number between 0 and the total weight
+            const randomValue = Math.random() * totalWeight;
+
+            // Find the corresponding number based on the random value and weights
+            let sum = 0;
+            for (let i = 0; i < numbers.length; i++) {
+                sum += weights[i];
+                if (randomValue < sum) {
+                    return numbers[i];
+                }
+            }
+        }
+
+        let num_tracks = RandomCircuitLength()
+        let track_pool = []
+        for (let i = 0; i < 25; i++) {
+            track_pool.push(i)
+        }
+        for (let i = 0; i < num_tracks; i++) {
+            let rt = Math.floor(Math.random() * track_pool.length)
+            random_tracks.push(track_pool[rt])
+            track_pool.splice(rt, 1)
+        }
+        random_track = random_tracks
+    }
 
     //initialize challenge
     let challenge = {
@@ -227,7 +266,9 @@ exports.initializeChallenge = function ({ profile, member, type, name, avatar, u
         challenge.channel = interaction.message.channelId
         challenge.guild = interaction.guildId
     } else if (type == 'cotd') {
-        challenge.day = moment().utc().format('DDD')
+        challenge.day = currentTimeEastern.format('DDD')
+    } else if (type == 'cotm') {
+        challenge.month = currentTimeEastern.format('MMM')
     }
 
     challenge = exports.getSponsor(challenge, sponsordata)
@@ -285,8 +326,10 @@ exports.expiredEmbed = function () {
 exports.isActive = function (current_challenge) {
     let intime = Date.now() - 15 * 60 * 1000 < current_challenge.created
     let intime_day = Date.now() - 24 * 60 * 60 * 1000 < current_challenge.created
+    let intime_month = currentTimeEastern.month() == moment(current_challenge.created).tz('America/New_York').month()
     return ((current_challenge.type == 'abandoned' && !current_challenge.submissions) ||
         (['open', 'cotd'].includes(current_challenge.type) && intime_day) ||
+        (current_challenge.type == 'cotm') && intime_month ||
         (current_challenge.type == 'multiplayer' && intime) ||
         (current_challenge.type == 'private' && intime)) &&
         (!current_challenge.completed && !current_challenge.rerolled)
@@ -301,11 +344,14 @@ exports.generateChallengeTitle = function (current_challenge) {
     let bribed_racer = current_challenge.racer_bribe ? "*" : ""
     let bribed_track = current_challenge.track_bribe ? "*" : ""
     let prefix = current_challenge.bounties && current_challenge.bounties.length ? ":dart: Challenge Bounty\n" : ""
-    let racer_flag = current_challenge.racer_bribe ? ":moneybag:" : racers[current_challenge.racer].flag
-    let track_flag = current_challenge.track_bribe ? ":moneybag:" : planets[tracks[current_challenge.track].planet].emoji
+    let racer_flag = current_challenge.racer_bribe ? ":moneybag:" : racers[current_challenge.racer]?.flag
+    let track_flag = current_challenge.track_bribe ? ":moneybag:" : planets[tracks[current_challenge.track]?.planet]?.emoji
     let status = current_challenge.rerolled ? ":arrows_counterclockwise: Rerolled: " : current_challenge.completed ? ":white_check_mark: Completed: " : ''
     let sponsortitle = current_challenge.sponsor_title ? `*"${current_challenge.sponsor_title}"*\n` : ""
-    let title = sponsortitle + status + prefix + (current_challenge.rerolled ? "~~" : "") + "Race as **" + bribed_racer + racer_flag + " " + racers[current_challenge.racer].name + bribed_racer + "**" + nutext + " on **" + bribed_track + track_flag + " " + tracks[current_challenge.track].name + bribed_track + "**" + laptext + skipstext + mirrortext + backwardstext + (current_challenge.rerolled ? "~~" : "")
+    let title = sponsortitle + status + prefix + (current_challenge.rerolled ? "~~" : "") + "Race as **" + bribed_racer + racer_flag + " " + racers[current_challenge.racer].name + bribed_racer + "**" + nutext + " on **" + bribed_track + track_flag + " " + tracks[current_challenge.track]?.name + bribed_track + "**" + laptext + skipstext + mirrortext + backwardstext + (current_challenge.rerolled ? "~~" : "")
+    if (current_challenge.type == 'cotm') {
+        title = "Race as **" + racer_flag + " " + racers[current_challenge.racer].name + "**" + nutext + " on...\n **" + current_challenge.track.map(t => planets[tracks[t]?.planet]?.emoji + " " + tracks[t].name).join('\n') + "\n" + laptext + skipstext + mirrortext + backwardstext
+    }
     return title
 }
 
@@ -313,7 +359,7 @@ exports.generateChallengeDescription = function (current_challenge, best, profil
     let desc = ''
 
 
-    let duration = ['abandoned', 'multiplayer', 'private'].includes(current_challenge.type) ? 1000 * 60 * 15 : 1000 * 60 * 60 * 24
+    let duration = ['abandoned', 'multiplayer', 'private'].includes(current_challenge.type) ? 1000 * 60 * 15 : current_challenge.type == 'cotm' ? 1000 * 60 * 60 * currentTimeEastern.daysInMonth() : 1000 * 60 * 60 * 24
     let expiration = ''
     if (current_challenge.type !== 'abandoned') {
         expiration = "Expires <t:" + Math.round((current_challenge.created + duration) / 1000) + ":R>"
@@ -322,6 +368,10 @@ exports.generateChallengeDescription = function (current_challenge, best, profil
     desc = [exports.getFeedbackTally(feedbackdata, current_challenge), (!current_challenge.completed && !current_challenge.rerolled ? expiration : ''), (current_challenge.sponsors ? exports.getSponsors(current_challenge) : ''), (current_challenge.predictions && !current_challenge.completed ? exports.getPredictors(current_challenge) : "")].filter(d => ![null, undefined, ''].includes(d)).join(" | ")
     if (current_challenge.conditions.backwards) {
         desc += '\n [Backwards tracks mod](https://www.speedrun.com/resourceasset/1aada)'
+    }
+
+    if (current_challenge.type == 'cotm') {
+        desc += '\nComplete the tracks in any order, back-to-back as in an RTA setting. Submit your total in-game time (IGT).'
     }
 
     let crossout = ''
@@ -370,13 +420,40 @@ exports.predictionScore = function (predicted_time, actual_time) {
 }
 
 exports.matchingChallenge = function (challenge1, challenge2) {
-    return challenge1.track == challenge2.track &&
-        challenge1.racer == challenge2.racer &&
-        challenge1.conditions.laps == challenge2.conditions.laps &&
-        challenge1.conditions.mirror == challenge2.conditions.mirror &&
-        challenge1.conditions.nu == challenge2.conditions.nu &&
-        challenge1.conditions.skips == challenge2.conditions.skips &&
-        challenge1.conditions.backwards == challenge2.conditions.backwards
+    if (Array.isArray(challenge1.track) && Array.isArray(challenge2.track)) {
+        if (arr1.length !== arr2.length) {
+            return false;
+        }
+
+        // Sort both arrays in ascending order
+        const sortedArr1 = challenge1.track.slice().sort((a, b) => a - b);
+        const sortedArr2 = challenge2.track.slice().sort((a, b) => a - b);
+
+        // Compare the sorted arrays element by element
+        for (let i = 0; i < sortedArr1.length; i++) {
+            if (sortedArr1[i] !== sortedArr2[i]) {
+                return false;
+            }
+        }
+
+        return challenge1.racer == challenge2.racer &&
+            challenge1.conditions.laps == challenge2.conditions.laps &&
+            challenge1.conditions.mirror == challenge2.conditions.mirror &&
+            challenge1.conditions.nu == challenge2.conditions.nu &&
+            challenge1.conditions.skips == challenge2.conditions.skips
+        // && challenge1.conditions.backwards == challenge2.conditions.backwards
+    } else if (!Array.isArray(challenge1.track) && !Array.isArray(challenge2.track)) {
+        return challenge1.track == challenge2.track &&
+            challenge1.racer == challenge2.racer &&
+            challenge1.conditions.laps == challenge2.conditions.laps &&
+            challenge1.conditions.mirror == challenge2.conditions.mirror &&
+            challenge1.conditions.nu == challenge2.conditions.nu &&
+            challenge1.conditions.skips == challenge2.conditions.skips &&
+            challenge1.conditions.backwards == challenge2.conditions.backwards
+    } else {
+        return false
+    }
+
 }
 
 exports.getFeedbackTally = function (feedbackdata, current_challenge) {
@@ -396,18 +473,29 @@ exports.getFeedbackTally = function (feedbackdata, current_challenge) {
 
 exports.goalTimeList = function (current_challenge, profile) {
     //calculate goal time
-    let goals = exports.getGoalTimes(
-        {
-            track: current_challenge.track,
-            racer: current_challenge.racer,
-            skips: current_challenge.conditions.skips,
-            nu: current_challenge.conditions.nu,
-            laps: current_challenge.conditions.laps,
-            backwards: current_challenge.conditions.backwards
-        })
+    let goals = current_challenge.type == 'cotm' ?
+        current_challenge.track.map(t => exports.getGoalTimes(
+            {
+                track: t,
+                racer: current_challenge.racer,
+                skips: current_challenge.conditions.skips,
+                nu: current_challenge.conditions.nu,
+                laps: current_challenge.conditions.laps,
+                backwards: current_challenge.conditions.backwards
+            })).reduce((a, b) => a + b)
+        : exports.getGoalTimes(
+            {
+                track: current_challenge.track,
+                racer: current_challenge.racer,
+                skips: current_challenge.conditions.skips,
+                nu: current_challenge.conditions.nu,
+                laps: current_challenge.conditions.laps,
+                backwards: current_challenge.conditions.backwards
+            })
     let goal_earnings = []
     for (let i = 0; i < 4; i++) {
-        let earning = Math.round(circuits[tracks[current_challenge.track].circuit].winnings[current_challenge.type == 'private' ? profile.settings.winnings : 1][i] * (current_challenge.type == 'abandoned' ? truguts.abandoned : 1))
+        let earning = current_challenge.type == 'cotm' ? current_challenge.track.map(t => circuits[tracks[t].circuit].winnings[1][i]).reduce((a, b) => a + b) :
+            Math.round(circuits[tracks[current_challenge.track].circuit].winnings[current_challenge.type == 'private' ? profile.settings.winnings : 1][i] * (current_challenge.type == 'abandoned' ? truguts.abandoned : 1))
         goal_earnings.push(earning)
     }
     goal_earnings.push(0)
@@ -514,29 +602,39 @@ exports.achievementProgress = function ({ challengetimedata, player } = {}) {
         achievements[key].missing = []
     })
 
-    Object.keys(challengetimedata).forEach(key => {
-        if (challengetimedata[key].user == player) { //get achievement progress
-            achievements.galaxy_famous.collection[String(challengetimedata[key].track)] = 1
-            achievements.pod_champ.collection[String(challengetimedata[key].racer)] = 1
-            if (challengetimedata[key].conditions.skips) {
-                achievements.light_skipper.collection[String(challengetimedata[key].track)] = 1
+    function updateProgress(challenge) {
+        achievements.galaxy_famous.collection[String(challenge.track)] = 1
+        achievements.pod_champ.collection[String(challenge.racer)] = 1
+        if (challenge.conditions.skips) {
+            achievements.light_skipper.collection[String(challenge.track)] = 1
+        }
+        if (challenge.conditions.nu) {
+            achievements.slow_steady.collection[String(challenge.racer)] = 1
+        }
+        if (challenge.conditions.mirror) {
+            achievements.mirror_dimension.collection[String(challenge.track)] = 1
+        }
+        if (challenge.conditions.backwards) {
+            achievements.backwards_compatible.collection[String(challenge.track)] = 1
+        }
+        if (challenge.conditions.laps !== 3) {
+            achievements.lap_god.count += Number(challenge.conditions.laps)
+        }
+        if (challenge.racer == tracks[String(challenge.track)].favorite) {
+            achievements.crowd_favorite.collection[String(challenge.track)] = 1
+        }
+        achievements.true_jedi.collection[String(challenge.track + " " + challenge.racer)] = 1
+    }
+
+    Object.values(challengetimedata).forEach(challenge => {
+        if (challenge.user == player) { //get achievement progress
+            if (challenge.type == 'cotm') {
+                challenge.track.forEach(t => {
+                    updateProgress({ ...challenge, track: t })
+                })
+            } else {
+                updateProgress(challenge)
             }
-            if (challengetimedata[key].conditions.nu) {
-                achievements.slow_steady.collection[String(challengetimedata[key].racer)] = 1
-            }
-            if (challengetimedata[key].conditions.mirror) {
-                achievements.mirror_dimension.collection[String(challengetimedata[key].track)] = 1
-            }
-            if (challengetimedata[key].conditions.backwards) {
-                achievements.backwards_compatible.collection[String(challengetimedata[key].track)] = 1
-            }
-            if (challengetimedata[key].conditions.laps !== 3) {
-                achievements.lap_god.count += Number(challengetimedata[key].conditions.laps)
-            }
-            if (challengetimedata[key].racer == tracks[String(challengetimedata[key].track)].favorite) {
-                achievements.crowd_favorite.collection[String(challengetimedata[key].track)] = 1
-            }
-            achievements.true_jedi.collection[String(challengetimedata[key].track + " " + challengetimedata[key].racer)] = 1
         }
     })
 
@@ -893,6 +991,9 @@ exports.challengeEmbed = function ({ current_challenge, profile, profileref, fee
         challengeEmbed.setAuthor({ name: "Open Challenge", iconURL: "https://em-content.zobj.net/thumbs/120/twitter/322/game-die_1f3b2.png" })
     } else if (current_challenge.type == 'cotd') {
         challengeEmbed.setAuthor({ name: "Random Challenge of the Day", iconURL: "https://em-content.zobj.net/thumbs/120/twitter/322/game-die_1f3b2.png" })
+            .setTimestamp(current_challenge.created)
+    } else if (current_challenge.type == 'cotm') {
+        challengeEmbed.setAuthor({ name: "Random Challenge of the Month", iconURL: "https://em-content.zobj.net/thumbs/120/twitter/322/game-die_1f3b2.png" })
             .setTimestamp(current_challenge.created)
     }
     let goals = exports.goalTimeList(current_challenge, profile)
@@ -1393,14 +1494,38 @@ exports.validateTime = function (time) {
 }
 
 exports.easternHour = function () {
-    let hour = moment().utc().format("H") - 4
-    if (moment().isDST()) {
-        hour += 1
+    return currentTimeEastern.hour()
+}
+
+exports.monthlyChallenge = async function ({ client, sponsordata, challengetimedata, challengesref, challengesdata } = {}) {
+    let recent = null
+    let lastfive = []
+    if (challengesdata) {
+        Object.values(challengesdata).filter(c => c.type == 'cotm').sort((a, b) => b.created - a.created).slice(0, 5).forEach(challenge => {
+            lastfive.push(challenge)
+            if (!recent || recent.created - challenge.created < 0) {
+                recent = { ...challenge }
+            }
+        })
     }
-    if (hour < 0) {
-        hour += 24
+    if (currentTimeEastern.month() !== recent?.month) { //exports.easternHour() == 0 && 
+        let current_challenge = exports.initializeChallenge({ type: "cotm", sponsordata })
+        if (recent?.conditions.laps !== 3 && current_challenge.conditions.laps !== 3 && Math.random() < .9) {
+            current_challenge.conditions.laps = 3
+        }
+        ['nu', 'skips', 'mirror', 'backwards'].forEach(con => {
+            if (recent?.conditions[con] && current_challenge.conditions[con] && Math.random() < .9) {
+                current_challenge.conditions[con] = false
+            }
+        })
+        let cotmmessage = await postMessage(client, '841824106676224041', exports.updateChallenge({ client, challengetimedata, current_challenge, sponsordata, challengesdata })) //551786988861128714
+        current_challenge.message = cotmmessage.id
+        current_challenge.guild = cotmmessage.guildId
+        current_challenge.channel = cotmmessage.channelId
+        current_challenge.url = cotmmessage.url
+        challengesref.child(cotmmessage.id).set(current_challenge)
+        cotmmessage.pin()
     }
-    return hour
 }
 
 exports.dailyChallenge = async function ({ client, sponsordata, challengetimedata, challengesref, challengesdata } = {}) {
@@ -1414,8 +1539,8 @@ exports.dailyChallenge = async function ({ client, sponsordata, challengetimedat
             }
         })
     }
-    //console.log("challenge", exports.easternHour(), moment().utc().format("DDD"), recent.message, recent.day, exports.easternHour() == 0, moment().utc().format("DDD") !== recent.day)
-    if (exports.easternHour() == 0 && moment().utc().format("DDD") !== recent.day) {
+    //console.log("challenge", exports.easternHour(), moment().utc().dayOfYear(), recent.message, recent.day, exports.easternHour() == 0, moment().utc().dayOfYear() !== recent.day)
+    if (currentTimeEastern.dayOfYear() !== recent.day) {
         let current_challenge = exports.initializeChallenge({ type: "cotd", sponsordata })
         console.log(current_challenge)
         if (lastfive.map(c => c.racer).includes(current_challenge.racer)) {
@@ -1449,7 +1574,7 @@ exports.dailyChallenge = async function ({ client, sponsordata, challengetimedat
             }
         })
         console.log('adjusted', current_challenge)
-        let cotdmessage = await postMessage(client, '551786988861128714', exports.updateChallenge({ client, challengetimedata, current_challenge, sponsordata, challengesdata })) //551786988861128714
+        let cotdmessage = await postMessage(client, '841824106676224041', exports.updateChallenge({ client, challengetimedata, current_challenge, sponsordata, challengesdata })) //551786988861128714
         current_challenge.message = cotdmessage.id
         current_challenge.guild = cotdmessage.guildId
         current_challenge.channel = cotdmessage.channelId
@@ -1469,8 +1594,8 @@ exports.dailyBounty = async function ({ client, bountydata, bountyref } = {}) {
         })
     }
 
-    //console.log("bounty", exports.easternHour(), moment().utc().format("DDD"), recent.message, recent.day, exports.easternHour() == 12, moment().utc().format("DDD") !== recent.day)
-    if ((exports.easternHour() == 12 && moment().utc().format("DDD") !== recent.day)) { //
+    //console.log("bounty", exports.easternHour(), moment().utc().dayOfYear(), recent.message, recent.day, exports.easternHour() == 12, moment().utc().dayOfYear() !== recent.day)
+    if ((exports.easternHour() == 12 && currentTimeEastern.dayOfYear() !== recent.day)) { //
         let bounty = exports.initializeBounty('botd')
         let message = await postMessage(client, '551786988861128714', { embeds: [exports.bountyEmbed(bounty)] }) //551786988861128714
         bounty.url = message.url
@@ -1519,7 +1644,7 @@ exports.initializeBounty = function (type, h, player) {
         type: type
     }
     if (type == 'botd') {
-        bounty.day = moment().utc().format("DDD")
+        bounty.day = currentTimeEastern.dayOfYear()
         bounty.r_hints = Math.floor(Math.random() * 3)
         bounty.t_hints = Math.floor(Math.random() * 3)
         bounty.bonus = Math.floor(Math.random() * 35) * 1000

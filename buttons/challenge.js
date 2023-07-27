@@ -1526,12 +1526,21 @@ module.exports = {
                         .setTitle('Submit Results')
                     const submissionTime = new TextInputBuilder()
                         .setCustomId('challengeTime')
-                        .setLabel('Total Time')
+                        .setLabel('Total Time' + current_challenge.type == 'cotm' ? ' (IGT)' : '')
                         .setStyle(TextInputStyle.Short)
-                        .setMaxLength(9)
+                        .setMaxLength(11)
                         .setMinLength(6)
                         .setPlaceholder("--:--.---")
                         .setRequired(true)
+
+                    const submissionRTA = new TextInputBuilder()
+                        .setCustomId('challengeRTA')
+                        .setLabel('RTA (optional)')
+                        .setStyle(TextInputStyle.Short)
+                        .setMaxLength(11)
+                        .setMinLength(6)
+                        .setPlaceholder("--:--.---")
+                        .setRequired(false)
 
                     const submissionNotes = new TextInputBuilder()
                         .setCustomId('challengeNotes')
@@ -1540,6 +1549,15 @@ module.exports = {
                         .setMaxLength(25)
                         .setMinLength(0)
                         .setPlaceholder("")
+                        .setRequired(false)
+
+                    const submissionPlatform = new TextInputBuilder()
+                        .setCustomId('challengePlatform')
+                        .setLabel('Platform')
+                        .setStyle(TextInputStyle.Short)
+                        .setMaxLength(25)
+                        .setMinLength(0)
+                        .setPlaceholder("pc, n64, dc, switch, xbox, ps4")
                         .setRequired(false)
 
                     const submissionProof = new TextInputBuilder()
@@ -1552,17 +1570,27 @@ module.exports = {
                         submissionTime.setValue(tools.timefix(challengetimedata[current_challenge.submissions[member].id].time))
                         submissionNotes.setValue(challengetimedata[current_challenge.submissions[member].id].notes)
                         submissionProof.setValue(challengetimedata[current_challenge.submissions[member].id].proof)
+                        submissionRTA.setValue(challengetimedata[current_challenge.submissions[member].id].rta)
+                        submissionPlatform.setValue(challengetimedata[current_challenge.submissions[member].id].platform)
                     }
                     const ActionRow1 = new ActionRowBuilder().addComponents(submissionTime)
                     const ActionRow2 = new ActionRowBuilder().addComponents(submissionNotes)
                     const ActionRow3 = new ActionRowBuilder().addComponents(submissionProof)
-                    submissionModal.addComponents(ActionRow1, ActionRow2, ActionRow3)
+                    const ActionRow4 = new ActionRowBuilder().addComponents(submissionPlatform)
+                    const ActionRow1a = new ActionRowBuilder().addComponents(submissionRTA)
+                    submissionModal.addComponents(ActionRow1)
+                    if (current_challenge.type == 'cotm') {
+                        submissionModal.addComponents(ActionRow1a)
+                    }
+                    submissionModal.addComponents(ActionRow2, ActionRow3)
                     await interaction.showModal(submissionModal)
                     break
                 case 'submit':
                     let subtime = interaction.fields.getTextInputValue('challengeTime')
                     let subnotes = interaction.fields.getTextInputValue('challengeNotes').replace(/[^a-zA-Z0-9 ]/g, '')
                     let subproof = interaction.fields.getTextInputValue('challengeProof') ?? ""
+                    let subplatform = interaction.fields.getTextInputValue('challengePlatform') ?? ""
+                    let subrta = current_challenge.type == 'cotm' ? interaction.fields.getTextInputValue('challengeRTA') : ""
                     if (!isActive(current_challenge) && !current_challenge.submissions?.[member]) { //challenge no longer active
                         interaction.reply({
                             embeds: [expiredEmbed()], components: [
@@ -1583,6 +1611,8 @@ module.exports = {
                     }
                     let challengeend = Date.now()
                     let time = tools.timetoSeconds(subtime)
+                    let rta = tools.timetoSeconds(rta)
+                    let platform = subplatform.toLowerCase()
                     if ((challengeend - current_challenge.created) < time * 1000) { //submitted time is impossible
                         current_challengeref.update({ completed: true, funny_business: true })
                         profileref.update({ funny_business: (profile.funny_business ?? 0) + 1 })
@@ -1600,7 +1630,9 @@ module.exports = {
                             {
                                 time: time,
                                 notes: subnotes,
-                                proof: subproof
+                                proof: subproof,
+                                platform: platform,
+                                rta: subrta
                             }
                         )
 
@@ -1618,6 +1650,8 @@ module.exports = {
                         user: member,
                         name: name,
                         time: time,
+                        rta: rta,
+                        platform: platform,
                         proof: subproof,
                         date: current_challenge.created,
                         racer: current_challenge.racer,
