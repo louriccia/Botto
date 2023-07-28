@@ -16,6 +16,43 @@ exports.circuits = [
     { "name": "Invitational", "winnings": [[2000, 1750, 1500, 250], [3000, 1500, 750, 250], [5500, 0, 0, 0]], "sponsor": 5500, "abbreviation": "INV", "races": 4 }
 ]
 
+exports.emojimap = {
+    ballquadinaros: "<a:BallQuadinaros:964303313904484362>",
+    benhi: "<a:BenHi:672640761501843466>",
+    benrage: "<a:BenRage:672640776718647367>",
+    bullseyesteer: "<a:BullseyeSTEER:853758198049800212>",
+    fodesinbeed: "<a:Fodesinbeed:672640805055496192>",
+    hammerhead: "<a:HammerHead:965839199452430358>",
+    jarjarblinks: "<a:JarJarBlinks:966191699586056222>",
+    niktoboo: "<a:NiktoBoo:964362648214986802>",
+    odyohno: "<a:OdyOhNo:712555049816948767>",
+    padmewhat: "<a:PadmeWhat:964049906895581194>",
+    pitdroid: "<a:PitDroid:965844766971560016>",
+    ripratts: "<a:RIPratts:674357178949304379>",
+    slideflip: "<a:SlideFlip:965874632253112330>",
+    thumbsupbinks: "<a:ThumbsUpBinks:964280524141101086>",
+    triffianbow: "<a:TriffianBow:966052969432907866>",
+    walddance: "<a:WaldDance:964282241968660511>",
+    wattolol: "<a:WattoLOL:672640878736703509>",
+    whatto: "<a:Whatto:672640891139260467>",
+    xamsterdance: "<a:XamsterDance:965870334089764864>",
+    countdown: "<a:countdown:672640791369482251>",
+    guidearrow: "<a:guidearrow:891128437354401842>",
+    newrecord: "<a:newrecord:672640831882133524>",
+    speedo: "<a:speedo:672640865130381312>",
+    wipeout: "<a:wipeout:672640904473083904>",
+    restart: "<a:restart:855623455751143434>"
+}
+
+exports.console_emojis = {
+    pc: "<:pc:1134295250979012758>",
+    switch: "<:switch:1134295246872772648>",
+    dc: "<:dc:1134295247543877663>",
+    ps4: "<:ps4:1134295243429265538>",
+    n64: "<:n64:1134295249712336956>",
+    xbox: "<:xbox:1134295245543194734>"
+}
+
 exports.parts = [
     {
         "names": [

@@ -1526,7 +1526,7 @@ module.exports = {
                         .setTitle('Submit Results')
                     const submissionTime = new TextInputBuilder()
                         .setCustomId('challengeTime')
-                        .setLabel('Total Time' + current_challenge.type == 'cotm' ? ' (IGT)' : '')
+                        .setLabel('Total Time' + (current_challenge.type == 'cotm' ? ' (IGT)' : ''))
                         .setStyle(TextInputStyle.Short)
                         .setMaxLength(11)
                         .setMinLength(6)
@@ -1538,7 +1538,7 @@ module.exports = {
                         .setLabel('RTA (optional)')
                         .setStyle(TextInputStyle.Short)
                         .setMaxLength(11)
-                        .setMinLength(6)
+                        .setMinLength(0)
                         .setPlaceholder("--:--.---")
                         .setRequired(false)
 
@@ -1582,7 +1582,7 @@ module.exports = {
                     if (current_challenge.type == 'cotm') {
                         submissionModal.addComponents(ActionRow1a)
                     }
-                    submissionModal.addComponents(ActionRow2, ActionRow3)
+                    submissionModal.addComponents(ActionRow2, ActionRow3, ActionRow4)
                     await interaction.showModal(submissionModal)
                     break
                 case 'submit':
@@ -1611,7 +1611,7 @@ module.exports = {
                     }
                     let challengeend = Date.now()
                     let time = tools.timetoSeconds(subtime)
-                    let rta = tools.timetoSeconds(rta)
+                    let rta = tools.timetoSeconds(subrta)
                     let platform = subplatform.toLowerCase()
                     if ((challengeend - current_challenge.created) < time * 1000) { //submitted time is impossible
                         current_challengeref.update({ completed: true, funny_business: true })

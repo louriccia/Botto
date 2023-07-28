@@ -4,7 +4,7 @@ const { Client, Events, GatewayIntentBits } = require('discord.js')
 const { Configuration, OpenAIApi } = require("openai")
 
 var moment = require('moment');
-const { prefix, token, firebaseCon, OPENAI_API_KEY } = require('./config.json');
+//const { prefix, token, firebaseCon, OPENAI_API_KEY } = require('./config.json');
 const { welcomeMessages } = require('./data.js')
 const client = new Client({
     intents: [
@@ -21,14 +21,14 @@ var tourneylookup = require("./tourneydata.js");
 var tools = require('./tools.js');
 const { betEmbed, betComponents } = require('./buttons/trugut_functions.js')
 var moment = require('moment');
-const { dailyChallenge, dailyBounty, easternHour } = require("./buttons/challenge/functions")
+const { dailyChallenge, monthlyChallenge, dailyBounty, easternHour } = require("./buttons/challenge/functions")
 const { banners } = require('./data.js')
 client.commands = new Discord.Collection();
 client.buttons = new Discord.Collection();
 client.selects = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 const buttonFiles = fs.readdirSync('./buttons').filter(file => file.endsWith('.js'));
-const testing = true
+const testing = false
 const openai = new OpenAIApi(new Configuration({
     apiKey: testing ? OPENAI_API_KEY : process.env.OPENAI_API_KEY,
 }));
@@ -257,6 +257,7 @@ client.once(Events.ClientReady, async () => {
 
 
         dailyChallenge({ client, sponsordata, challengetimedata, challengesref: database.ref('challenge/challenges'), challengesdata })
+        monthlyChallenge({ client, sponsordata, challengetimedata, challengesref: database.ref('challenge/challenges'), challengesdata })
         dailyBounty({ client, bountydata, bountyref: database.ref('challenge/bounties') })
 
         Object.values(challengesdata).forEach(challenge => {
