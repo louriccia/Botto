@@ -1532,7 +1532,7 @@ exports.monthlyChallenge = async function ({ client, sponsordata, challengetimed
                 current_challenge.conditions[con] = false
             }
         })
-        let cotmmessage = await postMessage(client, '841824106676224041', exports.updateChallenge({ client, challengetimedata, current_challenge, sponsordata, challengesdata })) //551786988861128714
+        let cotmmessage = await postMessage(client, '551786988861128714', exports.updateChallenge({ client, challengetimedata, current_challenge, sponsordata, challengesdata })) //551786988861128714
         current_challenge.message = cotmmessage.id
         current_challenge.guild = cotmmessage.guildId
         current_challenge.channel = cotmmessage.channelId
@@ -1586,7 +1586,7 @@ exports.dailyChallenge = async function ({ client, sponsordata, challengetimedat
                 current_challenge.conditions[con] = false
             }
         })
-        let cotdmessage = await postMessage(client, '841824106676224041', exports.updateChallenge({ client, challengetimedata, current_challenge, sponsordata, challengesdata })) //551786988861128714
+        let cotdmessage = await postMessage(client, '551786988861128714', exports.updateChallenge({ client, challengetimedata, current_challenge, sponsordata, challengesdata })) //551786988861128714
         current_challenge.message = cotdmessage.id
         current_challenge.guild = cotdmessage.guildId
         current_challenge.channel = cotdmessage.channelId
