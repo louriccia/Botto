@@ -21,7 +21,7 @@ var tourneylookup = require("./tourneydata.js");
 var tools = require('./tools.js');
 const { betEmbed, betComponents } = require('./buttons/trugut_functions.js')
 var moment = require('moment');
-const { dailyChallenge, monthlyChallenge, dailyBounty, easternHour } = require("./buttons/challenge/functions")
+const { dailyChallenge, monthlyChallenge, dailyBounty } = require("./buttons/challenge/functions")
 const { banners } = require('./data.js')
 client.commands = new Discord.Collection();
 client.buttons = new Discord.Collection();
@@ -149,37 +149,38 @@ fetchData(database.ref('users'), function (data) {
 
 client.on(Events.InteractionCreate, async interaction => {
 
-    console.log(interaction.isChatInputCommand() ? 'slash' :
-        interaction.isButton() ? 'button' :
-            interaction.isMessageComponent() ? 'message_component' :
-                interaction.isModalSubmit() ? 'modal_submit' :
-                    'other', interaction.isChatInputCommand() ? interaction?.commandName?.toLowerCase() : interaction.customId, interaction.member.displayName)
+    if ((testing && interaction.guildId == '1135800421290627112') || (!testing && interaction.guildId == '1135800421290627112')) {
+        console.log(interaction.isChatInputCommand() ? 'slash' :
+            interaction.isButton() ? 'button' :
+                interaction.isMessageComponent() ? 'message_component' :
+                    interaction.isModalSubmit() ? 'modal_submit' :
+                        'other', interaction.isChatInputCommand() ? interaction?.commandName?.toLowerCase() : interaction.customId, interaction.member.displayName)
 
-    if (interaction.isChatInputCommand()) {
-        const command = interaction.commandName.toLowerCase();
+        if (interaction.isChatInputCommand()) {
+            const command = interaction.commandName.toLowerCase();
 
-        //command handler
-        if (!client.commands.has(command)) {
-            console.log('command does not exist')
-            return;
+            //command handler
+            if (!client.commands.has(command)) {
+                console.log('command does not exist')
+                return;
+            }
+            try {
+                client.commands.get(command).execute(interaction, database);
+            } catch (error) {
+                console.error(error);
+                await interaction.reply({ content: "`Error: Command failed to execute `\n" + errorMessage[Math.floor(Math.random() * errorMessage.length)] })
+            }
+        } else {
+            let split = interaction.customId.split("_")
+            const name = split[0]
+            const args = split.slice(1)
+
+            try {
+                client.buttons.get(name).execute(client, interaction, args, database);
+            } catch (error) {
+                console.error(error);
+            }
         }
-        try {
-            client.commands.get(command).execute(interaction, database);
-        } catch (error) {
-            console.error(error);
-            await interaction.reply({ content: "`Error: Command failed to execute `\n" + errorMessage[Math.floor(Math.random() * errorMessage.length)] })
-        }
-    } else {
-        let split = interaction.customId.split("_")
-        const name = split[0]
-        const args = split.slice(1)
-
-        try {
-            client.buttons.get(name).execute(client, interaction, args, database);
-        } catch (error) {
-            console.error(error);
-        }
-
     }
 })
 

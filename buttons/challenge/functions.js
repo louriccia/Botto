@@ -6,9 +6,6 @@ const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, StringSelect
 const moment = require('moment');
 require('moment-timezone')
 
-const currentTimeEastern = moment().tz('America/New_York');
-
-
 exports.getGoalTimes = function ({ track, racer, skips, nu, laps, backwards } = {}) {
     let upg = nu ? 0 : 5
     if (skips) {
@@ -176,6 +173,7 @@ exports.initializeUser = function (ref, id, name) {
 }
 
 exports.initializeChallenge = function ({ profile, member, type, name, avatar, user, circuit, sponsordata, interaction } = {}) {
+    
     //get values
     let random_racer = Math.floor(Math.random() * 23)
     let trackpool = []
@@ -270,9 +268,9 @@ exports.initializeChallenge = function ({ profile, member, type, name, avatar, u
         challenge.channel = interaction.message.channelId
         challenge.guild = interaction.guildId
     } else if (type == 'cotd') {
-        challenge.day = currentTimeEastern.dayOfYear()
+        challenge.day = exports.easternTime().dayOfYear()
     } else if (type == 'cotm') {
-        challenge.month = currentTimeEastern.month()
+        challenge.month = exports.easternTime().month()
     }
 
     challenge = exports.getSponsor(challenge, sponsordata)
@@ -330,7 +328,7 @@ exports.expiredEmbed = function () {
 exports.isActive = function (current_challenge) {
     let intime = Date.now() - 15 * 60 * 1000 < current_challenge.created
     let intime_day = Date.now() - 24 * 60 * 60 * 1000 < current_challenge.created
-    let intime_month = currentTimeEastern.month() == moment(current_challenge.created).tz('America/New_York').month()
+    let intime_month = exports.easternTime().month() == moment(current_challenge.created).tz('America/New_York').month()
     return ((current_challenge.type == 'abandoned' && !current_challenge.submissions) ||
         (['open', 'cotd'].includes(current_challenge.type) && intime_day) ||
         (current_challenge.type == 'cotm') && intime_month ||
@@ -362,7 +360,7 @@ exports.generateChallengeTitle = function (current_challenge) {
 exports.generateChallengeDescription = function (current_challenge, best, profile, name, feedbackdata) {
     let desc = ''
 
-    let duration = ['abandoned', 'multiplayer', 'private'].includes(current_challenge.type) ? 1000 * 60 * 15 : current_challenge.type == 'cotm' ? 1000 * 60 * 60 * 24 * currentTimeEastern.daysInMonth() : 1000 * 60 * 60 * 24
+    let duration = ['abandoned', 'multiplayer', 'private'].includes(current_challenge.type) ? 1000 * 60 * 15 : current_challenge.type == 'cotm' ? 1000 * 60 * 60 * 24 * exports.easternTime().daysInMonth() : 1000 * 60 * 60 * 24
     let expiration = ''
     if (current_challenge.type !== 'abandoned') {
         expiration = "Expires <t:" + Math.round((current_challenge.created + duration) / 1000) + ":R>"
@@ -374,6 +372,7 @@ exports.generateChallengeDescription = function (current_challenge, best, profil
     }
 
     if (current_challenge.type == 'cotm') {
+        console.log(current_challenge.track)
         desc += `\nComplete the following tracks in any order, back-to-back as in an RTA setting. Submit your total in-game time (IGT).\n\n${current_challenge.track.map(track => planets[tracks[track].planet].emoji + " **" + tracks[track].name + "**").join("\n")}`
     }
 
@@ -1507,8 +1506,9 @@ exports.validateTime = function (time) {
     }
 }
 
-exports.easternHour = function () {
-    return currentTimeEastern.hour()
+exports.easternTime = function () {
+    console.log(moment().tz('America/New_York'))
+    return moment().tz('America/New_York')
 }
 
 exports.monthlyChallenge = async function ({ client, sponsordata, challengetimedata, challengesref, challengesdata } = {}) {
@@ -1522,7 +1522,7 @@ exports.monthlyChallenge = async function ({ client, sponsordata, challengetimed
             }
         })
     }
-    if (currentTimeEastern.month() !== recent?.month || recent === null) { //exports.easternHour() == 0 && 
+    if (exports.easternTime().month() !== recent?.month || recent === null) { //exports.easternHour() == 0 && 
         let current_challenge = exports.initializeChallenge({ type: "cotm", sponsordata })
         if (recent?.conditions.laps !== 3 && current_challenge.conditions.laps !== 3 && Math.random() < .9) {
             current_challenge.conditions.laps = 3
@@ -1553,8 +1553,8 @@ exports.dailyChallenge = async function ({ client, sponsordata, challengetimedat
             }
         })
     }
-    //console.log("challenge", exports.easternHour(), moment().utc().dayOfYear(), recent.message, recent.day, exports.easternHour() == 0, moment().utc().dayOfYear() !== recent.day)
-    if (currentTimeEastern.dayOfYear() !== recent.day) {
+    console.log("challenge", exports.easternTime().dayOfYear(), moment().utc().dayOfYear(), recent.message, recent.day, exports.easternTime() == 0, moment().utc().dayOfYear() !== recent.day)
+    if (exports.easternTime().dayOfYear() !== recent.day) {
         let current_challenge = exports.initializeChallenge({ type: "cotd", sponsordata })
         if (lastfive.map(c => c.racer).includes(current_challenge.racer)) {
             if (Math.random() < 0.9) {
@@ -1607,7 +1607,7 @@ exports.dailyBounty = async function ({ client, bountydata, bountyref } = {}) {
     }
 
     //console.log("bounty", exports.easternHour(), moment().utc().dayOfYear(), recent.message, recent.day, exports.easternHour() == 12, moment().utc().dayOfYear() !== recent.day)
-    if ((exports.easternHour() == 12 && currentTimeEastern.dayOfYear() !== recent.day)) { //
+    if ((exports.easternTime() == 12 && exports.easternTime().dayOfYear() !== recent.day)) { //
         let bounty = exports.initializeBounty('botd')
         let message = await postMessage(client, '551786988861128714', { embeds: [exports.bountyEmbed(bounty)] }) //551786988861128714
         bounty.url = message.url
@@ -1656,7 +1656,7 @@ exports.initializeBounty = function (type, h, player) {
         type: type
     }
     if (type == 'botd') {
-        bounty.day = currentTimeEastern.dayOfYear()
+        bounty.day = exports.easternTime().dayOfYear()
         bounty.r_hints = Math.floor(Math.random() * 3)
         bounty.t_hints = Math.floor(Math.random() * 3)
         bounty.bonus = Math.floor(Math.random() * 35) * 1000
