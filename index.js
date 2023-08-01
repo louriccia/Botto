@@ -4,7 +4,7 @@ const { Client, Events, GatewayIntentBits } = require('discord.js')
 const { Configuration, OpenAIApi } = require("openai")
 
 var moment = require('moment');
-const { prefix, token, firebaseCon, OPENAI_API_KEY } = require('./config.json');
+//const { prefix, token, firebaseCon, OPENAI_API_KEY } = require('./config.json');
 const { welcomeMessages } = require('./data.js')
 const client = new Client({
     intents: [
@@ -28,7 +28,7 @@ client.buttons = new Discord.Collection();
 client.selects = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 const buttonFiles = fs.readdirSync('./buttons').filter(file => file.endsWith('.js'));
-const testing = true
+const testing = false
 const openai = new OpenAIApi(new Configuration({
     apiKey: testing ? OPENAI_API_KEY : process.env.OPENAI_API_KEY,
 }));
