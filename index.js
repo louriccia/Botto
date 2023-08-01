@@ -3,8 +3,7 @@ const Discord = require('discord.js');
 const { Client, Events, GatewayIntentBits } = require('discord.js')
 const { Configuration, OpenAIApi } = require("openai")
 
-var moment = require('moment');
-//const { prefix, token, firebaseCon, OPENAI_API_KEY } = require('./config.json');
+//const { token, firebaseCon, OPENAI_API_KEY } = require('./config.json');
 const { welcomeMessages } = require('./data.js')
 const client = new Client({
     intents: [
@@ -149,7 +148,7 @@ fetchData(database.ref('users'), function (data) {
 
 client.on(Events.InteractionCreate, async interaction => {
 
-    if ((testing && interaction.guildId == '1135800421290627112') || (!testing && interaction.guildId == '1135800421290627112')) {
+    if ((testing && interaction.guildId == '1135800421290627112') || (!testing && interaction.guildId !== '1135800421290627112')) {
         console.log(interaction.isChatInputCommand() ? 'slash' :
             interaction.isButton() ? 'button' :
                 interaction.isMessageComponent() ? 'message_component' :
