@@ -5,26 +5,34 @@ const { postMessage } = require('../../discord_message.js')
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder } = require('discord.js');
 const moment = require('moment');
 require('moment-timezone')
+const youtubeThumbnail = require('youtube-thumbnail');
 
-exports.getGoalTimes = function ({ track, racer, skips, nu, laps, backwards } = {}) {
-    let upg = nu ? 0 : 5
-    if (skips) {
-        return [
-            tools.timetoSeconds(tracks[track].parskiptimes[0]) * multipliers[0].skips_multiplier,
-            tools.timetoSeconds(tracks[track].parskiptimes[1]) * multipliers[1].skips_multiplier,
-            tools.timetoSeconds(tracks[track].parskiptimes[2]) * multipliers[2].skips_multiplier,
-            tools.timetoSeconds(tracks[track].parskiptimes[3]) * multipliers[3].skips_multiplier,
-            tools.timetoSeconds(tracks[track].parskiptimes[4]) * multipliers[4].skips_multiplier
-        ]
-    } else {
-        return [
-            tools.getGoalTime({ track, racer, acceleration: upg, top_speed: upg, cooling: upg, laps, length_mod: 1.02, uh_mod: 1.05, us_mod: 1.05, deaths: 0.25 + .25 * tracks[track].difficulty }),
-            tools.getGoalTime({ track, racer, acceleration: upg, top_speed: upg, cooling: upg, laps, length_mod: 1.05, uh_mod: 1.10, us_mod: 1.10, deaths: 0.3 + .4 * tracks[track].difficulty }),
-            tools.getGoalTime({ track, racer, acceleration: upg, top_speed: upg, cooling: upg, laps, length_mod: 1.10, uh_mod: 1.15, us_mod: 1.15, deaths: 0.5 + .75 * tracks[track].difficulty }),
-            tools.getGoalTime({ track, racer, acceleration: upg, top_speed: upg, cooling: upg, laps, length_mod: 1.18, uh_mod: 1.30, us_mod: 1.30, deaths: 0.5 + 1.5 * tracks[track].difficulty }),
-            tools.getGoalTime({ track, racer, acceleration: upg, top_speed: upg, cooling: upg, laps, length_mod: 1.25, uh_mod: 1.45, us_mod: 1.45, deaths: 0.5 + 2 * tracks[track].difficulty })
-        ]
+const getThumbnail = async (url) => {
+    try {
+        const thumbnailInfo = await youtubeThumbnail(url);
+        return thumbnailInfo.medium.url
+    } catch (error) {
+        return null
     }
+};
+
+exports.getGoalTimes = function ({ track, racer, skips, nu, laps, backwards, best } = {}) {
+    let upg = nu ? 0 : 5
+    let times = [
+        tools.getGoalTime({ track, racer, acceleration: upg, top_speed: upg, cooling: upg, laps, length_mod: 1.02, uh_mod: 1.05, us_mod: 1.05, deaths: 0.25 + .25 * tracks[track].difficulty }),
+        tools.getGoalTime({ track, racer, acceleration: upg, top_speed: upg, cooling: upg, laps, length_mod: 1.05, uh_mod: 1.10, us_mod: 1.10, deaths: 0.3 + .4 * tracks[track].difficulty }),
+        tools.getGoalTime({ track, racer, acceleration: upg, top_speed: upg, cooling: upg, laps, length_mod: 1.10, uh_mod: 1.15, us_mod: 1.15, deaths: 0.5 + .75 * tracks[track].difficulty }),
+        tools.getGoalTime({ track, racer, acceleration: upg, top_speed: upg, cooling: upg, laps, length_mod: 1.18, uh_mod: 1.30, us_mod: 1.30, deaths: 0.5 + 1.5 * tracks[track].difficulty }),
+        tools.getGoalTime({ track, racer, acceleration: upg, top_speed: upg, cooling: upg, laps, length_mod: 1.25, uh_mod: 1.45, us_mod: 1.45, deaths: 0.5 + 2 * tracks[track].difficulty })
+    ]
+    if (best?.length) {
+        let record = best[0].time
+        const weight = skips ? 0.8 : backwards ? 0.7 : 0.5
+        const adjust = (record * weight + times[0] * (1 - weight)) / times[0]
+        times = times.map(t => t * adjust * (backwards ? 1.1 : 1))
+    }
+
+    return times
 }
 
 exports.trugutsEarned = function (player) {
@@ -173,7 +181,7 @@ exports.initializeUser = function (ref, id, name) {
 }
 
 exports.initializeChallenge = function ({ profile, member, type, name, avatar, user, circuit, sponsordata, interaction } = {}) {
-    
+
     //get values
     let random_racer = Math.floor(Math.random() * 23)
     let trackpool = []
@@ -196,7 +204,7 @@ exports.initializeChallenge = function ({ profile, member, type, name, avatar, u
         backwards: (type == 'cotm' ? 0 : type == 'cotd' ? 15 : type == 'multiplayer' ? 0 : type == 'private' ? profile.settings.backwards : settings_default.backwards) / 100,
     }
 
-    let skips = tracks[random_track].parskiptimes ? Math.random() < odds.skips : false
+    let skips = tracks[random_track].skips ? Math.random() < odds.skips : false
     let nu = Math.random() < odds.no_upgrades
     let laps = Math.random() < odds.non_3_lap ? alt_laps[Math.floor(Math.random() * 4)] : 3
     let mirror = Math.random() < odds.mirrored
@@ -231,7 +239,7 @@ exports.initializeChallenge = function ({ profile, member, type, name, avatar, u
             track_pool.push(i)
         }
         if (skips) {
-            track_pool = track_pool.filter(t => tracks[t].parskipstimes)
+            track_pool = track_pool.filter(t => tracks[t].skips)
         }
         for (let i = 0; i < num_tracks; i++) {
             let rt = Math.floor(Math.random() * track_pool.length)
@@ -372,7 +380,6 @@ exports.generateChallengeDescription = function (current_challenge, best, profil
     }
 
     if (current_challenge.type == 'cotm') {
-        console.log(current_challenge.track)
         desc += `\nComplete the following tracks in any order, back-to-back as in an RTA setting. Submit your total in-game time (IGT).\n\n${current_challenge.track.map(track => planets[tracks[track].planet].emoji + " **" + tracks[track].name + "**").join("\n")}`
     }
 
@@ -473,10 +480,9 @@ exports.getFeedbackTally = function (feedbackdata, current_challenge) {
     return (like ? "`👍" + like + "` " : "") + (dislike ? "`👎" + dislike + "` " : "")
 }
 
-exports.goalTimeList = function (current_challenge, profile) {
+exports.goalTimeList = function (current_challenge, profile, best) {
     //calculate goal time
     let goals = [0, 0, 0, 0, 0]
-
     if (current_challenge.type == 'cotm') {
         current_challenge.track.forEach(t => {
             let tgoals = exports.getGoalTimes(
@@ -486,7 +492,8 @@ exports.goalTimeList = function (current_challenge, profile) {
                     skips: current_challenge.conditions.skips,
                     nu: current_challenge.conditions.nu,
                     laps: current_challenge.conditions.laps,
-                    backwards: current_challenge.conditions.backwards
+                    backwards: current_challenge.conditions.backwards,
+                    best: best?.filter(b => b.date !== current_challenge.created)
                 })
             for (let i = 0; i < 5; i++) {
                 goals[i] += tgoals[i]
@@ -500,7 +507,8 @@ exports.goalTimeList = function (current_challenge, profile) {
                 skips: current_challenge.conditions.skips,
                 nu: current_challenge.conditions.nu,
                 laps: current_challenge.conditions.laps,
-                backwards: current_challenge.conditions.backwards
+                backwards: current_challenge.conditions.backwards,
+                best: best?.filter(b => b.date !== current_challenge.created)
             })
     }
 
@@ -576,6 +584,24 @@ exports.generateLeaderboard = function (best, member, current_challenge) {
                 sponsor: true
             })
         }
+        if (current_challenge.completed && current_challenge.type == 'private') {
+            let times = exports.getGoalTimes({
+                track: current_challenge.track,
+                racer: current_challenge.racer,
+                skips: current_challenge.conditions.skips,
+                nu: current_challenge.conditions.nu,
+                laps: current_challenge.conditions.laps,
+                backwards: current_challenge.conditions.backwards,
+                best: best.filter(b => b.date !== current_challenge.created)
+            })
+            times.forEach((time, i) => {
+                best.push({
+                    time: time,
+                    name: goal_symbols[i],
+                    goal: true
+                })
+            })
+        }
         best.sort(function (a, b) {
             return a.time - b.time;
         })
@@ -585,14 +611,14 @@ exports.generateLeaderboard = function (best, member, current_challenge) {
         for (let i = 0; i < best.length; i++) {
             if (best[i].prediction || !already.includes(best[i].user) || (best[i].user == member && current_challenge.type == 'private') || best[i].date == current_challenge.created) {
                 let bold = ((best[i].user == member && current_challenge.type == 'private') || best[i].date == current_challenge.created) ? "**" : ""
-                besttimes += (best[i].prediction ? "🔮 *" : best[i].sponsor ? "📢 " : pos[0]) + bold + (best[i].proof ? "[" : "") + tools.timefix(best[i].time) + (best[i].proof ? "](" + best[i].proof + ")" : "") +
-                    " - " + best[i].name + bold +
+                besttimes += (best[i].goal ? `*${best[i].name} ` : best[i].prediction ? "🔮 *" : best[i].sponsor ? "📢 " : pos[0]) + bold + (best[i].proof ? "[" : "") + tools.timefix(best[i].time) + (best[i].proof ? "](" + best[i].proof + ")" : "") +
+                    (best[i].goal ? '*' : " - " + best[i].name) + bold +
                     (console_emojis[best[i].platform] ? ` ${console_emojis[best[i].platform]}` : '') +
                     (best[i].notes ? " `" + best[i].notes + "`" : "") +
                     (best[i].prediction ? " `+📀" + exports.predictionScore(best[i].time, submission) + "`*" : "") +
                     (!['private', 'abandoned'].includes(current_challenge.type) && current_challenge?.earnings?.[best[i].user] ? " `+📀" + tools.numberWithCommas(current_challenge.earnings?.[best[i].user]?.truguts_earned) + "`" : "") +
                     (best[i].date == current_challenge.created ? " <a:newrecord:672640831882133524>" : "") + "\n"
-                if (!best[i].prediction && !best[i].sponsor) {
+                if (!best[i].prediction && !best[i].sponsor && !best[i].goal) {
                     pos.splice(0, 1)
                     already.push(best[i].user)
                 }
@@ -789,7 +815,7 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, profi
         }
     }
     if (goals.earnings[winnings_text] > 0) {
-        earnings += goal_symbols[winnings_text] + " `+📀" + tools.numberWithCommas(goals.earnings[winnings_text]) + "`\n"
+        earnings += "`+📀" + tools.numberWithCommas(goals.earnings[winnings_text]) + "` " + goal_symbols[winnings_text] + "\n"
         earnings_total += goals.earnings[winnings_text]
     }
 
@@ -798,17 +824,17 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, profi
         Object.values(current_challenge.bounties).forEach(bounty => {
             bounty_total += bounty.bonus
         })
-        earnings += ":dart: `+📀" + tools.numberWithCommas(bounty_total) + "`\n"
+        earnings += "`+📀" + tools.numberWithCommas(bounty_total) + "` :dart:\n"
         earnings_total += bounty_total
     }
     if (current_challenge.sponsor_time && Number(submitted_time.time) - Number(current_challenge.sponsor_time) < 0) {
-        earnings += "📢 `+📀" + tools.numberWithCommas(truguts.beat_sponsor) + "`\n"
+        earnings += "`+📀" + tools.numberWithCommas(truguts.beat_sponsor) + "` 📢\n"
         earnings_total += truguts.beat_sponsor
     }
     if (profile.streak_start) {
         let streak = Math.floor((profile.streak_end - profile.streak_start) / (1000 * 60 * 60 * 24))
         if (streak > 0) {
-            earnings += streak + "-Day Streak `+📀" + tools.numberWithCommas(truguts.streak * streak) + "`\n"
+            earnings += "`+📀" + tools.numberWithCommas(truguts.streak * streak) + "` " + streak + "-Day Streak\n"
             earnings_total += truguts.streak * streak
         }
     }
@@ -820,12 +846,12 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, profi
                 pb = true
             }
         }
-        if (best[i].user !== member && submitted_time.time - best[i].time < 0 && !beat.includes(best[i].user)) {
-            beat.push(best[i].user)
+        if (best[i].user !== member && Number(submitted_time.time) - Number(best[i].time) < 0 && !beat.includes(String(best[i].user))) {
+            beat.push(String(best[i].user))
         }
     }
     if (first) {
-        earnings += ":snowflake: `+📀" + tools.numberWithCommas(truguts.first) + "`\n"
+        earnings += "`+📀" + tools.numberWithCommas(truguts.first) + "` :snowflake:\n"
         earnings_total += truguts.first
     }
 
@@ -846,32 +872,32 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, profi
         winnings_non_standard++
     }
     if (winnings_non_standard) {
-        earnings += "Non-Standard `+📀" + tools.numberWithCommas(truguts.non_standard) + " × " + winnings_non_standard + "`\n"
+        earnings += "`+📀" + tools.numberWithCommas(truguts.non_standard) + " × " + winnings_non_standard + "` Non-Standard\n"
         earnings_total += truguts.non_standard * winnings_non_standard
     }
 
     if (current_challenge.type !== 'cotm' && tracks[current_challenge.track].lengthclass == 'Long' && !current_challenge.conditions.skips) {
-        earnings += "Long `+📀" + tools.numberWithCommas(truguts.long) + "`\n"
+        earnings += "`+📀" + tools.numberWithCommas(truguts.long) + "` Long\n"
         earnings_total += truguts.long
     }
     if (current_challenge.type !== 'cotm' && tracks[current_challenge.track].lengthclass == 'Extra Long' && !current_challenge.conditions.skips) {
-        earnings += "Extra Long `+📀" + tools.numberWithCommas(truguts.extra_long) + "`\n"
+        earnings += "`+📀" + tools.numberWithCommas(truguts.extra_long) + "` Extra Long\n"
         earnings_total += truguts.extra_long
     }
     if (beat.length) {
-        earnings += "Beat Opponent `+📀" + tools.numberWithCommas(truguts.beat_opponent) + " × " + beat.length + "`\n"
+        earnings += "`+📀" + tools.numberWithCommas(truguts.beat_opponent) + " × " + beat.length + "` Bop\n"
         earnings_total += truguts.beat_opponent * beat.length
     }
     if (pb) {
-        earnings += "PB `+📀" + tools.numberWithCommas(truguts.personal_best) + "`\n"
+        earnings += "`+📀" + tools.numberWithCommas(truguts.personal_best) + "` PB\n"
         earnings_total += truguts.personal_best
     }
 
     if (current_challenge?.ratings?.[member]) {
-        earnings += "Rated `+📀" + tools.numberWithCommas(truguts.rated) + "`\n"
+        earnings += "`+📀" + tools.numberWithCommas(truguts.rated) + "` Rated\n"
         earnings_total += truguts.rated
     }
-    earnings += "\n**Total: **`+📀" + tools.numberWithCommas(earnings_total) + "`"
+    earnings += "▬▬▬▬▬▬▬\n**`+📀" + tools.numberWithCommas(earnings_total) + "` Total**"
     let winnings = { earnings: earnings_total, receipt: earnings }
     return winnings
 }
@@ -888,7 +914,7 @@ exports.getBest = function (challengetimedata, current_challenge) {
     })
 }
 
-exports.updateChallenge = function ({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata } = {}) {
+exports.updateChallenge = async function ({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata } = {}) {
     record_holder = false
     let player = member
     let player_name = name
@@ -942,10 +968,12 @@ exports.updateChallenge = function ({ client, challengetimedata, profile, curren
         flavor_text = current_challenge.type == 'multiplayer' ? mpQuotes[Math.floor(Math.random() * mpQuotes.length)] : movieQuotes[Math.floor(Math.random() * movieQuotes.length)]
     }
 
+    const cembed = await exports.challengeEmbed({ client, current_challenge, profile: player_profile, profileref, feedbackdata, best, name: player_name, member: player, avatar: player_avatar, interaction, challengetimedata })
+
     let data = {
-        content: "*" + flavor_text + "*",
-        embeds: [exports.challengeEmbed({ client, current_challenge, profile: player_profile, profileref, feedbackdata, best, name: player_name, member: player, avatar: player_avatar, interaction, challengetimedata })],
-        components: [exports.challengeComponents(current_challenge, profile)],
+        content: current_challenge.rerolled ? '' : "*" + flavor_text + "*",
+        embeds: [cembed],
+        components: current_challenge.rerolled ? [] : [exports.challengeComponents(current_challenge, profile)],
         fetchReply: true
     }
     return data
@@ -978,7 +1006,7 @@ exports.checkActive = function (challengesdata, member, current_challenge) {
     return result
 }
 
-exports.challengeEmbed = function ({ current_challenge, profile, profileref, feedbackdata, best, name, member, avatar, challengetimedata, client } = {}) {
+exports.challengeEmbed = async function ({ current_challenge, profile, profileref, feedbackdata, best, name, member, avatar, challengetimedata, client } = {}) {
     let submitted_time = challengetimedata[current_challenge?.submissions?.[member]?.id] ?? {}
     let achs = exports.achievementProgress({ challengetimedata, player: member })
     let desc = exports.generateChallengeDescription(current_challenge, best, profile, name, feedbackdata) + (current_challenge.type == 'private' ? "\n" + exports.challengeAchievementProgress({ client, current_challenge, profile, profileref, achievements: achs, name, avatar, member }) : '')
@@ -1009,7 +1037,7 @@ exports.challengeEmbed = function ({ current_challenge, profile, profileref, fee
         challengeEmbed.setAuthor({ name: "Random Challenge of the Month", iconURL: "https://em-content.zobj.net/thumbs/120/twitter/322/game-die_1f3b2.png" })
             .setTimestamp(current_challenge.created)
     }
-    let goals = exports.goalTimeList(current_challenge, profile)
+    let goals = exports.goalTimeList(current_challenge, profile, best)
     if (current_challenge.rerolled) {
         let reroll = exports.rerollReceipt(current_challenge)
         challengeEmbed.setDescription(reroll.receipt)
@@ -1021,7 +1049,14 @@ exports.challengeEmbed = function ({ current_challenge, profile, profileref, fee
     } else {
         challengeEmbed.addFields({ name: "Goal Times", value: goals.list, inline: true })
     }
-
+    const image_url = best.find(b => b.proof?.includes('youtu'))?.proof ?? null
+    let image = null
+    if (image_url && !current_challenge.completed && !current_challenge.rerolled) {
+        image = await getThumbnail(image_url)
+    }
+    if (image) {
+        challengeEmbed.setImage(image)
+    }
     if (!current_challenge.rerolled) {
         challengeEmbed.addFields({ name: "Best Times", value: exports.generateLeaderboard(best, member, current_challenge), inline: true })
     }
@@ -1507,7 +1542,6 @@ exports.validateTime = function (time) {
 }
 
 exports.easternTime = function () {
-    console.log(moment().tz('America/New_York'))
     return moment().tz('America/New_York')
 }
 
@@ -1532,7 +1566,7 @@ exports.monthlyChallenge = async function ({ client, sponsordata, challengetimed
                 current_challenge.conditions[con] = false
             }
         })
-        let cotmmessage = await postMessage(client, '551786988861128714', exports.updateChallenge({ client, challengetimedata, current_challenge, sponsordata, challengesdata })) //551786988861128714
+        let cotmmessage = await postMessage(client, '551786988861128714', await exports.updateChallenge({ client, challengetimedata, current_challenge, sponsordata, challengesdata })) //551786988861128714
         current_challenge.message = cotmmessage.id
         current_challenge.guild = cotmmessage.guildId
         current_challenge.channel = cotmmessage.channelId
@@ -1553,7 +1587,6 @@ exports.dailyChallenge = async function ({ client, sponsordata, challengetimedat
             }
         })
     }
-    console.log("challenge", exports.easternTime().dayOfYear(), moment().utc().dayOfYear(), recent.message, recent.day, exports.easternTime() == 0, moment().utc().dayOfYear() !== recent.day)
     if (exports.easternTime().dayOfYear() !== recent.day) {
         let current_challenge = exports.initializeChallenge({ type: "cotd", sponsordata })
         if (lastfive.map(c => c.racer).includes(current_challenge.racer)) {
@@ -1586,7 +1619,7 @@ exports.dailyChallenge = async function ({ client, sponsordata, challengetimedat
                 current_challenge.conditions[con] = false
             }
         })
-        let cotdmessage = await postMessage(client, '551786988861128714', exports.updateChallenge({ client, challengetimedata, current_challenge, sponsordata, challengesdata })) //551786988861128714
+        let cotdmessage = await postMessage(client, '551786988861128714', await exports.updateChallenge({ client, challengetimedata, current_challenge, sponsordata, challengesdata })) //551786988861128714
         current_challenge.message = cotdmessage.id
         current_challenge.guild = cotdmessage.guildId
         current_challenge.channel = cotdmessage.channelId

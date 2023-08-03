@@ -116,7 +116,8 @@ module.exports = {
                     }
                     let type = interaction.member.voice?.channel?.id == '441840193754890250' ? 'multiplayer' : 'private'
                     current_challenge = initializeChallenge({ profile, member, type, name, avatar, user: player, sponsordata, interaction })
-                    let message = await interaction.reply(updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata }))
+                    const reply = await updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata })
+                    let message = await interaction.reply(reply)
                     current_challenge.message = message.id
                     current_challenge.channel = interaction.message.channelId
                     current_challenge.guild = interaction.guildId
@@ -195,12 +196,14 @@ module.exports = {
                     //clean up old challenge
                     challengesref.child(interaction.message.id).update({ completed: true, rerolled: true })
                     current_challenge = challengesdata[interaction.message.id]
-                    editMessage(client, interaction.channel.id, interaction.message.id, updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata }))
+                    const edit_message = await updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata })
+                    editMessage(client, interaction.channel.id, interaction.message.id, edit_message)
 
                     //prepare new challenge
                     let rerolltype = 'private'
                     current_challenge = initializeChallenge({ profile, member, type: rerolltype, name, avatar, user: player, sponsordata, interaction })
-                    let rerollmessage = await interaction.reply(updateChallenge({ client, challengetimedata, profile, current_challenge, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata }))
+                    const reroll_reply = await updateChallenge({ client, challengetimedata, profile, current_challenge, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata })
+                    let rerollmessage = await interaction.reply(reroll_reply)
                     current_challenge.message = rerollmessage.id
                     current_challenge.channel = interaction.message.channelId
                     current_challenge.guild = interaction.guildId
@@ -369,7 +372,8 @@ module.exports = {
                         }
                     });
                     current_challenge = challengesdata[interaction.message.id]
-                    interaction.update(updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata }))
+                    const feedback_reply = await updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata })
+                    interaction.update(feedback_reply)
 
                     break
                 case 'menu':
@@ -1641,7 +1645,8 @@ module.exports = {
                         profile = userdata[player].random //update profile
 
                         //update challenge
-                        await interaction.editReply(updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata }))
+                        const edit_reply = await updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata })
+                        await interaction.editReply(edit_reply)
                         return
                     }
 
@@ -1770,7 +1775,8 @@ module.exports = {
                     profile = userdata[player].random //update profile
 
                     //update challenge
-                    interaction.editReply(updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata }))
+                    const submit_reply = await updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata })
+                    interaction.editReply(submit_reply)
 
                     break
             }

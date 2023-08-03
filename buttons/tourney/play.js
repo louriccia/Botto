@@ -62,7 +62,7 @@ exports.play = async function (args, interaction, database) {
     }
 
     //if no match, assert setup
-    if ([null, undefined, ""].includes(livematch)) {
+    if ([null, undefined, ""].includes(livematch) || [null, undefined, ""].includes(livematch.races)) {
         args[1] = "setup"
         initializeMatch(livematchref)
         //else give admin options

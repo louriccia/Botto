@@ -198,15 +198,17 @@ client.once(Events.ClientReady, async () => {
 
     //set bot activity
     client.user.setActivity("/help");
-    client.channels.cache.get("444208252541075476").messages.fetch({ limit: 1 }).then(messages => {
-        let lastMessage = messages.first();
+    if (!testing) {
+        client.channels.cache.get("444208252541075476").messages.fetch({ limit: 1 }).then(messages => {
+            let lastMessage = messages.first();
 
-        if (lastMessage.author.bot) {
-            lastMessage.delete().catch(err => console.log(err));
-        }
-    })
-        .catch(console.error);
-    client.channels.cache.get("444208252541075476").send("Deployed <t:" + Math.round(Date.now() / 1000) + ":R>");
+            if (lastMessage.author.bot) {
+                lastMessage.delete().catch(err => console.log(err));
+            }
+        })
+            .catch(console.error);
+    }
+    client.channels.cache.get(testing ? "1135800422066556940" : "444208252541075476").send("Deployed <t:" + Math.round(Date.now() / 1000) + ":R>");
 
     database.ref('users').once("value", function (snapshot) {
         let users = snapshot.val()

@@ -3,7 +3,7 @@ const tools = require('../../tools.js')
 exports.achievement_data = {
     galaxy_famous: { name: "Galaxy Famous", description: "Race on every track", role: "819514261289828362", limit: 25, count: 0, collection: {}, array: [], missing: [] },
     pod_champ: { name: "Pod Champ", description: "Race as every pod", role: "819514029218463774", limit: 23, count: 0, collection: {}, array: [], missing: [] },
-    light_skipper: { name: "Lightspeed Skipper", description: "Race every track with a Skip", role: "819514330985922621", limit: 12, count: 0, collection: {}, array: [], missing: [] },
+    light_skipper: { name: "Lightspeed Skipper", description: "Race every track with a Skip", role: "819514330985922621", limit: 14, count: 0, collection: {}, array: [], missing: [] },
     slow_steady: { name: "Slow 'n Steady", description: "Race as every pod with No Upgrades", role: "819514431472926721", limit: 23, count: 0, collection: {}, array: [], missing: [] },
     mirror_dimension: { name: "Mirror Dimension", description: "Race Mirrored on every track", role: "843573636119134219", limit: 25, count: 0, collection: {}, array: [], missing: [] },
     backwards_compatible: { name: "Backwards Compatible", description: "Race every track backwards", role: "1064620122276384909", limit: 25, count: 0, collection: {}, array: [], missing: [] },
@@ -19,7 +19,7 @@ exports.achievement_data = {
 
 exports.swe1r_guild = "441839750555369474"
 
-exports.goal_symbols = [":gem:", ":first_place:", ":second_place:", ":third_place:", "<:bumpythumb:703107780860575875>"]
+exports.goal_symbols = ["<:diamond:1136554333723435068>", "<:platinum:1136554336705597510>", "<:gold:1136554335426318406>", "<:silver:1136554338895011850>", "<:bronze:1136554332586786879>"]
 
 exports.truguts = {
     starter: 400,
