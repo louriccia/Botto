@@ -3,7 +3,7 @@ const Discord = require('discord.js');
 const { Client, Events, GatewayIntentBits } = require('discord.js')
 const { Configuration, OpenAIApi } = require("openai")
 
-//const { token, firebaseCon, OPENAI_API_KEY } = require('./config.json');
+const { token, firebaseCon, OPENAI_API_KEY } = require('./config.json');
 const { welcomeMessages } = require('./data.js')
 const client = new Client({
     intents: [
@@ -27,7 +27,7 @@ client.buttons = new Discord.Collection();
 client.selects = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 const buttonFiles = fs.readdirSync('./buttons').filter(file => file.endsWith('.js'));
-const testing = false
+const testing = true
 const openai = new OpenAIApi(new Configuration({
     apiKey: testing ? OPENAI_API_KEY : process.env.OPENAI_API_KEY,
 }));
@@ -148,39 +148,39 @@ fetchData(database.ref('users'), function (data) {
 
 client.on(Events.InteractionCreate, async interaction => {
 
-    if ((testing && interaction.guildId == '1135800421290627112') || (!testing && interaction.guildId !== '1135800421290627112')) {
-        console.log(interaction.isChatInputCommand() ? 'slash' :
-            interaction.isButton() ? 'button' :
-                interaction.isMessageComponent() ? 'message_component' :
-                    interaction.isModalSubmit() ? 'modal_submit' :
-                        'other', interaction.isChatInputCommand() ? interaction?.commandName?.toLowerCase() : interaction.customId, interaction.member.displayName)
+    // if ((testing && interaction.guildId == '1135800421290627112') || (!testing && interaction.guildId !== '1135800421290627112')) {
+    console.log(interaction.isChatInputCommand() ? 'slash' :
+        interaction.isButton() ? 'button' :
+            interaction.isMessageComponent() ? 'message_component' :
+                interaction.isModalSubmit() ? 'modal_submit' :
+                    'other', interaction.isChatInputCommand() ? interaction?.commandName?.toLowerCase() : interaction.customId, interaction.member.displayName)
 
-        if (interaction.isChatInputCommand()) {
-            const command = interaction.commandName.toLowerCase();
+    if (interaction.isChatInputCommand()) {
+        const command = interaction.commandName.toLowerCase();
 
-            //command handler
-            if (!client.commands.has(command)) {
-                console.log('command does not exist')
-                return;
-            }
-            try {
-                client.commands.get(command).execute(interaction, database);
-            } catch (error) {
-                console.error(error);
-                await interaction.reply({ content: "`Error: Command failed to execute `\n" + errorMessage[Math.floor(Math.random() * errorMessage.length)] })
-            }
-        } else {
-            let split = interaction.customId.split("_")
-            const name = split[0]
-            const args = split.slice(1)
+        //command handler
+        if (!client.commands.has(command)) {
+            console.log('command does not exist')
+            return;
+        }
+        try {
+            client.commands.get(command).execute(interaction, database);
+        } catch (error) {
+            console.error(error);
+            await interaction.reply({ content: "`Error: Command failed to execute `\n" + errorMessage[Math.floor(Math.random() * errorMessage.length)] })
+        }
+    } else {
+        let split = interaction.customId.split("_")
+        const name = split[0]
+        const args = split.slice(1)
 
-            try {
-                client.buttons.get(name).execute(client, interaction, args, database);
-            } catch (error) {
-                console.error(error);
-            }
+        try {
+            client.buttons.get(name).execute(client, interaction, args, database);
+        } catch (error) {
+            console.error(error);
         }
     }
+    // }
 })
 
 async function getCommands() {
