@@ -282,7 +282,7 @@ exports.play = async function (args, interaction, database) {
             livematchref.update(
                 {
                     bracket: interaction.values[0],
-                    ruleset: tourney_tournaments_data[livematch.tourney].stages[interaction.values[0]].ruleset
+                    ruleset: tourney_tournaments_data[livematch.tourney]?.stages[interaction.values[0]]?.ruleset
                 }
             )
         } else if (args[2] == "ruleset") {
