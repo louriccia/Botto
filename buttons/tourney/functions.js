@@ -36,7 +36,7 @@ exports.setupEmbed = function ({ livematch, tourney_rulesets_data, tourney_tourn
     const matchMaker = new EmbedBuilder()
         .setTitle("Match Setup")
         .setDescription("🏆 Tournament: " + (livematch.tourney == "" ? "" : livematch.tourney == "practice" ? "`Practice Mode`" : "`" + tourney_tournaments_data[livematch.tourney]?.name + "`") + "\n" +
-            (livematch.tourney == "practice" ? "" : "⭕ Bracket/Round: " + (livematch.bracket == "" || livematch.tourney == "practice" ? "" : "`" + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].bracket + " " + tourney_tournaments_data[livematch.tourney].stages[livematch.bracket].round + "`") + "\n") +
+            (livematch.tourney == "practice" ? "" : "⭕ Bracket/Round: " + (livematch.bracket == "" || livematch.tourney == "practice" ? "" : "`" + tourney_tournaments_data[livematch.tourney]?.stages[livematch.bracket].bracket + " " + tourney_tournaments_data[livematch.tourney]?.stages[livematch.bracket].round + "`") + "\n") +
             "📜 Ruleset: " + (livematch.ruleset == "" ? "" : "`" + tourney_rulesets_data?.saved[livematch.ruleset]?.general?.name + "`") + "\n" +
             "👥 Players: " + ([null, undefined, ""].includes(livematch.players) ? "" : Object.values(livematch.players).map(id => "<@" + id + "> ")) + "\n" +
             "🎙️ Commentators/Trackers: " + ([null, undefined, ""].includes(livematch.commentators) ? "" : Object.values(livematch.commentators).map(id => "<@" + id + "> ")) + "\n" +

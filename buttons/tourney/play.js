@@ -62,7 +62,7 @@ exports.play = async function (args, interaction, database) {
     }
 
     //if no match, assert setup
-    if ([null, undefined, ""].includes(livematch) || [null, undefined, ""].includes(livematch.races)) {
+    if ([null, undefined, ""].includes(livematch)) {
         args[1] = "setup"
         initializeMatch(livematchref)
         //else give admin options
@@ -279,6 +279,7 @@ exports.play = async function (args, interaction, database) {
         if (args[2] == "tournament") {
             livematchref.update({ tourney: interaction.values[0], bracket: "", ruleset: "" })
         } else if (args[2] == "bracket") {
+            console.log(interaction.values[0], tourney_tournaments_data[livematch.tourney]?.stages[interaction.values[0]]?.ruleset)
             livematchref.update(
                 {
                     bracket: interaction.values[0],

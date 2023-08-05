@@ -3,7 +3,7 @@ const Discord = require('discord.js');
 const { Client, Events, GatewayIntentBits } = require('discord.js')
 const { Configuration, OpenAIApi } = require("openai")
 
-const { token, firebaseCon, OPENAI_API_KEY } = require('./config.json');
+//const { token, firebaseCon, OPENAI_API_KEY } = require('./config.json');
 const { welcomeMessages } = require('./data.js')
 const client = new Client({
     intents: [
@@ -27,7 +27,7 @@ client.buttons = new Discord.Collection();
 client.selects = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 const buttonFiles = fs.readdirSync('./buttons').filter(file => file.endsWith('.js'));
-const testing = true
+const testing = false
 const openai = new OpenAIApi(new Configuration({
     apiKey: testing ? OPENAI_API_KEY : process.env.OPENAI_API_KEY,
 }));
@@ -148,7 +148,7 @@ fetchData(database.ref('users'), function (data) {
 
 client.on(Events.InteractionCreate, async interaction => {
 
-    // if ((testing && interaction.guildId == '1135800421290627112') || (!testing && interaction.guildId !== '1135800421290627112')) {
+    if ((testing && interaction.guildId == '1135800421290627112') || (!testing && interaction.guildId !== '1135800421290627112')) {
     console.log(interaction.isChatInputCommand() ? 'slash' :
         interaction.isButton() ? 'button' :
             interaction.isMessageComponent() ? 'message_component' :
@@ -180,7 +180,7 @@ client.on(Events.InteractionCreate, async interaction => {
             console.error(error);
         }
     }
-    // }
+     }
 })
 
 async function getCommands() {
