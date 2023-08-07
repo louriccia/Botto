@@ -106,15 +106,6 @@ function fetchData(ref, callback) {
     });
 }
 
-let updatedData = null;
-
-// Set up a .on callback to listen for changes in the database
-const dataRef = database.ref('challenge/times')
-dataRef.on('value', (snapshot) => {
-    updatedData = snapshot.val();
-    console.log('Updated Data:', Object.values(updatedData).length);
-});
-
 fetchData(database.ref('challenge/times'), function (data) {
     db.ch.times = data;
 });
