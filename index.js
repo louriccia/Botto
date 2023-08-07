@@ -78,60 +78,82 @@ var database = admin.database();
 var logref = database.ref('log');
 var errorlogref = database.ref('log/error');
 
+let db = {
+    ch: {
+        times: null,
+        challenges: null,
+        feedback: null,
+        bounties: null,
+        sponsors: null
+    },
+    ty: {
+        bets: null,
+        matches: null,
+        rulesets: null,
+        tournaments: null,
+        scheduled: null,
+        live: null,
+        bets: null
+    },
+    user: null
+}
+
 function fetchData(ref, callback) {
     ref.on("value", function (snapshot) {
         callback(snapshot.val());
+
     }, function (errorObject) {
         console.log("The read failed: " + errorObject.code);
     });
 }
 
-fetchData(database.ref('challenge/times'), function (data) {
-    challengetimedata = data;
+let updatedData = null;
+
+// Set up a .on callback to listen for changes in the database
+const dataRef = database.ref('challenge/times')
+dataRef.on('value', (snapshot) => {
+    updatedData = snapshot.val();
+    console.log('Updated Data:', Object.values(updatedData).length);
 });
 
-fetchData(database.ref('challenge/profiles'), function (data) {
-    profiledata = data;
+fetchData(database.ref('challenge/times'), function (data) {
+    db.ch.times = data;
 });
 
 fetchData(database.ref('challenge/challenges'), function (data) {
-    challengesdata = data;
+    db.ch.challenges = data;
 });
 
 fetchData(database.ref('challenge/feedback'), function (data) {
-    feedbackdata = data;
+    db.ch.feedback = data;
 });
 
 fetchData(database.ref('challenge/bounties'), function (data) {
-    bountydata = data;
+    db.ch.bounties = data;
 });
 
 fetchData(database.ref('challenge/sponsorships'), function (data) {
-    sponsordata = data;
-});
-
-fetchData(database.ref('tourney/races'), function (data) {
-    tourney_races_data = data;
+    db.ch.sponsors = data;
 });
 
 fetchData(database.ref('tourney/matches'), function (data) {
-    tourney_matches_data = data;
+    db.ty.matches = data;
 });
 
 fetchData(database.ref('tourney/scheduled'), function (data) {
-    tourney_scheduled_data = data;
+    db.ty.scheduled = data;
 });
 
 fetchData(database.ref('tourney/tournaments'), function (data) {
-    tourney_tournaments_data = data;
+    db.ty.tournaments = data;
 });
 
 fetchData(database.ref('tourney/rulesets'), function (data) {
-    tourney_rulesets_data = data;
+    db.ty.rulesets = data;
 });
 
 fetchData(database.ref('tourney/live'), function (data) {
-    tourney_live_data = data;
+    db.ty.live = data;
 });
 
 fetchData(database.ref('speedruns'), function (data) {
@@ -139,48 +161,48 @@ fetchData(database.ref('speedruns'), function (data) {
 });
 
 fetchData(database.ref('tourney/bets'), function (data) {
-    betdata = data;
+    db.ty.bets = data;
 });
 
 fetchData(database.ref('users'), function (data) {
-    users = data;
+    db.user = data;
 });
 
 client.on(Events.InteractionCreate, async interaction => {
 
     if ((testing && interaction.guildId == '1135800421290627112') || (!testing && interaction.guildId !== '1135800421290627112')) {
-    console.log(interaction.isChatInputCommand() ? 'slash' :
-        interaction.isButton() ? 'button' :
-            interaction.isMessageComponent() ? 'message_component' :
-                interaction.isModalSubmit() ? 'modal_submit' :
-                    'other', interaction.isChatInputCommand() ? interaction?.commandName?.toLowerCase() : interaction.customId, interaction.member.displayName)
+        console.log(interaction.isChatInputCommand() ? 'slash' :
+            interaction.isButton() ? 'button' :
+                interaction.isMessageComponent() ? 'message_component' :
+                    interaction.isModalSubmit() ? 'modal_submit' :
+                        'other', interaction.isChatInputCommand() ? interaction?.commandName?.toLowerCase() : interaction.customId, interaction.member.displayName)
 
-    if (interaction.isChatInputCommand()) {
-        const command = interaction.commandName.toLowerCase();
+        if (interaction.isChatInputCommand()) {
+            const command = interaction.commandName.toLowerCase();
 
-        //command handler
-        if (!client.commands.has(command)) {
-            console.log('command does not exist')
-            return;
-        }
-        try {
-            client.commands.get(command).execute(interaction, database);
-        } catch (error) {
-            console.error(error);
-            await interaction.reply({ content: "`Error: Command failed to execute `\n" + errorMessage[Math.floor(Math.random() * errorMessage.length)] })
-        }
-    } else {
-        let split = interaction.customId.split("_")
-        const name = split[0]
-        const args = split.slice(1)
+            //command handler
+            if (!client.commands.has(command)) {
+                console.log('command does not exist')
+                return;
+            }
+            try {
+                client.commands.get(command).execute(interaction, database);
+            } catch (error) {
+                console.error(error);
+                await interaction.reply({ content: "`Error: Command failed to execute `\n" + errorMessage[Math.floor(Math.random() * errorMessage.length)] })
+            }
+        } else {
+            let split = interaction.customId.split("_")
+            const name = split[0]
+            const args = split.slice(1)
 
-        try {
-            client.buttons.get(name).execute(client, interaction, args, database);
-        } catch (error) {
-            console.error(error);
+            try {
+                client.buttons.get(name).execute(client, interaction, args, database, db);
+            } catch (error) {
+                console.error(error);
+            }
         }
     }
-     }
 })
 
 async function getCommands() {
@@ -258,17 +280,17 @@ client.once(Events.ClientReady, async () => {
     const updater = async () => {
 
 
-        dailyChallenge({ client, sponsordata, challengetimedata, challengesref: database.ref('challenge/challenges'), challengesdata })
-        monthlyChallenge({ client, sponsordata, challengetimedata, challengesref: database.ref('challenge/challenges'), challengesdata })
-        dailyBounty({ client, bountydata, bountyref: database.ref('challenge/bounties') })
+        dailyChallenge({ client, db, challengesref: database.ref('challenge/challenges') })
+        monthlyChallenge({ client, db, challengesref: database.ref('challenge/challenges') })
+        dailyBounty({ client, db, bountyref: database.ref('challenge/bounties') })
 
-        Object.values(challengesdata).forEach(challenge => {
+        Object.values(db.ch.challenges).forEach(challenge => {
             if (challenge.type == 'cotd' && Date.now() - 24 * 60 * 60 * 1000 > challenge.created && challenge.channel == '551786988861128714' && challenge.message) {
                 client.channels.cache.get('551786988861128714').messages.fetch(challenge.message).then(msg => { if (msg.pinned) { msg.unpin().catch(console.error) } })
             }
         })
 
-        Object.values(bountydata).forEach(bounty => {
+        Object.values(db.ch.bounties).forEach(bounty => {
             if (bounty.type == 'botd' && Date.now() - 24 * 60 * 60 * 1000 > bounty.created && bounty.channel == '551786988861128714' && bounty.message) {
                 client.channels.cache.get('551786988861128714').messages.fetch(bounty.message).then(msg => { if (msg.pinned) { msg.unpin().catch(console.error) } })
             }
@@ -280,8 +302,8 @@ client.once(Events.ClientReady, async () => {
         const fs = require('fs');
         const livechannel = "515311630100463656"
         function getParticipantbyName(name) {
-            let ptc = Object.keys(users)
-            return ptc.find(key => users[key].sgName === name.trim()) ?? ""
+            let ptc = Object.keys(db.user)
+            return ptc.find(key => db.user[key].sgName === name.trim()) ?? ""
         }
 
         rp(url)
@@ -290,7 +312,7 @@ client.once(Events.ClientReady, async () => {
                 let guildevents = Guild.scheduledEvents.cache
                 let events = guildevents.toJSON()
                 let values = []
-                Object.keys(tourney_scheduled_data).forEach(key => {
+                Object.keys(db.ty.scheduled).forEach(key => {
                     database.ref('tourney/scheduled').child(key).update({ current: false })
                 })
                 cheerio('tr', table).each((i, elem) => { //for each row
@@ -309,14 +331,14 @@ client.once(Events.ClientReady, async () => {
                             } else if (values[j].includes("comm")) {
                                 let split = content.split(/[^A-Za-z0-9_ ]+/g)
                                 split.map(comm => getParticipantbyName(comm)).filter(c => ![null, undefined, ''].includes(c)).forEach(c => {
-                                    match.commentators[c] = users[c].discordID ?? ''
+                                    match.commentators[c] = db.user[c].discordID ?? ''
                                 })
                             } else if (values[j].includes("date")) {
                                 match.datetime = Date.parse(content.replace(", ", " " + new Date().getFullYear() + " ").replace(" ", " ") + " EDT")
                             } else if (values[j].includes("players")) {
                                 let split = content.split(/[^A-Za-z0-9_ ]+/g).map(f => f.split(" vs ")).flat()
                                 split.map(play => getParticipantbyName(play)).filter(p => ![null, undefined, ''].includes(p)).forEach(p => {
-                                    match.players[p] = users[p].discordID ?? ''
+                                    match.players[p] = db.user[p].discordID ?? ''
                                 })
                             } else {
                                 match[values[j]] = content
@@ -325,9 +347,9 @@ client.once(Events.ClientReady, async () => {
                     })
                     if (i !== 0) {
                         let dup = false
-                        if (tourney_scheduled_data) {
-                            Object.keys(tourney_scheduled_data).forEach(key => {
-                                if (tourney_scheduled_data[key].datetime == match.datetime) {
+                        if (db.ty.scheduled) {
+                            Object.keys(db.ty.scheduled).forEach(key => {
+                                if (db.ty.scheduled[key].datetime == match.datetime) {
                                     match.current = true
                                     database.ref('tourney/scheduled').child(key).update(match)
                                     dup = true
@@ -342,16 +364,16 @@ client.once(Events.ClientReady, async () => {
                     }
                 })
                 function matchDesc(match) {
-                    return (match.commentators && Object.keys(match.commentators).length > 0 ? "🎙️ " + Object.keys(match.commentators).map(id => users[id].name).join(", ") : "Sign up for commentary: https://speedgaming.org/swe1racer/crew/") +
-                        (match.tourney ? `\n${tourney_tournaments_data[match.tourney]?.name ?? ""}` : "") +
+                    return (match.commentators && Object.keys(match.commentators).length > 0 ? "🎙️ " + Object.keys(match.commentators).map(id => db.user[id].name).join(", ") : "Sign up for commentary: https://speedgaming.org/swe1racer/crew/") +
+                        (match.tourney ? `\n${db.ty.tournaments[match.tourney]?.name ?? ""}` : "") +
                         (!match.url ? "\n(Channel to be determined)" : "")
                 }
                 function matchTitle(match) {
-                    let round = tourney_tournaments_data[match.tourney]?.stages[match.bracket] ?? null
-                    return (round ? `${round.bracket} ${round.round}: ` : '') + (match.players ? Object.keys(match.players).map(id => users[id].name).join(" vs ") : 'Unknown Players')
+                    let round = db.ty.tournaments[match.tourney]?.stages[match.bracket] ?? null
+                    return (round ? `${round.bracket} ${round.round}: ` : '') + (match.players ? Object.keys(match.players).map(id => db.user[id].name).join(" vs ") : 'Unknown Players')
                 }
-                Object.keys(tourney_scheduled_data).map(key => {
-                    let match = tourney_scheduled_data[key]
+                Object.keys(db.ty.scheduled).map(key => {
+                    let match = db.ty.scheduled[key]
 
                     let eventdup = false
                     events.forEach(event => {
@@ -386,8 +408,8 @@ client.once(Events.ClientReady, async () => {
                     }
                 })
 
-                Object.keys(tourney_scheduled_data).forEach(async key => {
-                    let match = tourney_scheduled_data[key]
+                Object.keys(db.ty.scheduled).forEach(async key => {
+                    let match = db.ty.scheduled[key]
 
                     //truguts
                     if (match.current && !match.bet && match.datetime <= Date.now() + 1000 * 60 * 60 * 48 && Date.now() <= match.datetime + 1000 * 60 * 10 && Object.values(match.players).length == 2) {
@@ -405,11 +427,11 @@ client.once(Events.ClientReady, async () => {
                             type: 'tourney',
                             close: match.datetime,
                             outcome_a: {
-                                title: `${users[players[0]].name} Wins`,
+                                title: `${db.user[players[0]].name} Wins`,
                                 id: match.players[players[0]]
                             },
                             outcome_b: {
-                                title: `${users[players[1]].name} Wins`,
+                                title: `${db.user[players[1]].name} Wins`,
                                 id: match.players[players[1]]
                             },
                             min: 10,
@@ -421,9 +443,9 @@ client.once(Events.ClientReady, async () => {
                     }
 
                     //close bets
-                    if (match.datetime < Date.now() && match.bet && betdata[match.bet]?.status == 'open') {
+                    if (match.datetime < Date.now() && match.bet && db.ty.bets[match.bet]?.status == 'open') {
                         database.ref('tourney/bets').child(match.bet).child('status').set('closed')
-                        editMessage(client, '536455290091077652', match.bet, { embeds: [betEmbed(betdata[match.bet])], components: betComponents(betdata[match.bet]) })
+                        editMessage(client, '536455290091077652', match.bet, { embeds: [betEmbed(db.ty.bets[match.bet])], components: betComponents(db.ty.bets[match.bet]) })
                     }
 
                     // match setup 
@@ -450,7 +472,7 @@ client.once(Events.ClientReady, async () => {
                         }
                         database.ref('tourney/live').child("970994773517299712").set({ ...match, current_race: 0, bracket: "", status: 'setup', firstvote: "", tourney: "", ruleset: "", stream: match.url })
                         function getUserNameByDiscordID(id) {
-                            return Object.values(users).find(u => u.discordID == id)?.name ?? ''
+                            return Object.values(db.user).find(u => u.discordID == id)?.name ?? ''
                         }
                         postMessage(
                             client,

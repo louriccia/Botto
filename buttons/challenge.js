@@ -6,70 +6,40 @@ const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInpu
 
 module.exports = {
     name: 'challenge',
-    async execute(client, interaction, args) {
+    async execute(client, interaction, args, database, db) {
         let member = interaction.user.id
-        const Discord = require('discord.js');
         const Guild = interaction.guild
         const Member = interaction.member
         const name = interaction.member.displayName
         const avatar = await interaction.member.displayAvatarURL()
+        console.log(name, interaction)
         var tools = require('./../tools.js');
-        var admin = require('firebase-admin');
-        var database = admin.database();
-        var firebase = require("firebase/app");
 
-        var challengetimeref = database.ref('challenge/times');
-        challengetimeref.on("value", function (snapshot) {
-            challengetimedata = snapshot.val();
-        }, function (errorObject) {
-            console.log("The read failed: " + errorObject);
-        });
-        var feedbackref = database.ref('challenge/feedback');
-        feedbackref.on("value", function (snapshot) {
-            feedbackdata = snapshot.val();
-        }, function (errorObject) {
-            console.log("The read failed: " + errorObject.code);
-        });
-        var challengesref = database.ref('challenge/challenges');
-        challengesref.on("value", function (snapshot) {
-            challengesdata = snapshot.val();
-        }, function (errorObject) {
-            console.log("The read failed: " + errorObject.code);
-        });
-        var userref = database.ref('users');
-        userref.on("value", function (snapshot) {
-            userdata = snapshot.val();
-        }, function (errorObject) {
-            console.log("The read failed: " + errorObject.code);
-        });
+        const challengetimeref = database.ref('challenge/times');
+        const feedbackref = database.ref('challenge/feedback');
+        const challengesref = database.ref('challenge/challenges');
+        const userref = database.ref('users');
+        const sponsorref = database.ref('challenge/sponsorships');
+        const bountyref = database.ref('challenge/bounties');
 
-        var sponsorref = database.ref('challenge/sponsorships');
-        sponsorref.on("value", function (snapshot) {
-            sponsordata = snapshot.val();
-        }, function (errorObject) {
-            console.log("The read failed: " + errorObject.code);
-        });
-
-        var bountyref = database.ref('challenge/bounties');
-        bountyref.on("value", function (snapshot) {
-            bountydata = snapshot.val();
-        }, function (errorObject) {
-            console.log("The read failed: " + errorObject.code);
-        });
-
-        //find player in userbase
         let player = null
-        Object.keys(userdata).forEach(key => {
-            if (userdata[key].discordID && userdata[key].discordID == member) {
-                player = key
-                return
+        let playerdata = null
+        await database.ref(`users`).orderByChild('discordID').equalTo(member).limitToFirst(1).once("value", async function (snapshot) {
+            if (snapshot.exists()) {
+                player = Object.keys(snapshot.val())[0]
+                playerdata = snapshot.val()[player];
+            } else {
+                console.log('no user found')
             }
-        })
+        }, function (errorObject) {
+            console.log(errorObject)
+            return null
+        });
         if (!player) {
             player = initializeUser(userref, member, name)
         }
         //initialize player if they don't exist
-        let profile = userdata[player]?.random
+        let profile = playerdata.random
         if (!profile) {
             profile = initializePlayer(userref.child(player).child('random'), name)
         }
@@ -79,7 +49,7 @@ module.exports = {
         let current_challengeref = null
         if (!interaction.isChatInputCommand() && args[1] !== 'play') {
             current_challengeref = challengesref.child(interaction.message.id)
-            current_challenge = challengesdata[interaction.message.id]
+            current_challenge = db.ch.challenges[interaction.message.id]
         }
 
         if (!current_challenge && ["submit", "modal", "like", "dislike", "reroll", "bribe", "predict", "undo"].includes(args[1])) {
@@ -100,7 +70,7 @@ module.exports = {
             if (!profile.achievements.big_time_swindler) {
                 postMessage(client, current_challenge.channel, { embeds: [achievementEmbed(name, avatar, achievement_data.big_time_swindler, current_challenge.guild)] })
                 profileref.child('achievements').child("big_time_swindler").set(true)
-                profile = userdata[player]?.random
+                profile = db.user[player]?.random
             }
         }
 
@@ -109,25 +79,25 @@ module.exports = {
                 case 'play':
 
                     //check if challenge already in progress FIXME change to reposting challenge
-                    let activechallenge = checkActive(challengesdata, member, current_challenge)
+                    let activechallenge = checkActive(db, member, current_challenge)
                     if (activechallenge) {
                         interaction.reply({ embeds: [activechallenge], ephemeral: true })
                         return
                     }
                     let type = interaction.member.voice?.channel?.id == '441840193754890250' ? 'multiplayer' : 'private'
-                    current_challenge = initializeChallenge({ profile, member, type, name, avatar, user: player, sponsordata, interaction })
-                    const reply = await updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata })
+                    current_challenge = initializeChallenge({ profile, member, type, name, avatar, user: player, db, interaction })
+                    const reply = await updateChallenge({  client, db, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction })
                     let message = await interaction.reply(reply)
                     current_challenge.message = message.id
                     current_challenge.channel = interaction.message.channelId
                     current_challenge.guild = interaction.guildId
                     current_challenge.url = message.url
                     challengesref.child(message.id).set(current_challenge)
-                    current_challenge = challengesdata[message.id]
+                    current_challenge = db.ch.challenges[message.id]
                     current_challengeref = challengesref.child(message.id)
 
                     setTimeout(async function () { //mark challenge abandoned
-                        current_challenge = challengesdata[message.id]
+                        current_challenge = db.ch.challenges[message.id]
                         if (current_challenge.type == 'private' && isActive(current_challenge) && !current_challenge.track_bribe && !current_challenge.racer_bribe) {
                             const row = new ActionRowBuilder()
                             row.addComponents(
@@ -139,9 +109,10 @@ module.exports = {
                             )
                             if (!current_challenge.completed && !current_challenge.rerolled) {
                                 current_challengeref.update({ type: 'abandoned', players: [], predictions: [] })
-                                current_challenge = challengesdata[message.id]
+                                current_challenge = db.ch.challenges[message.id]
                             }
-                            interaction.editReply(updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata }))
+                            const aba_response = await updateChallenge({  client, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, db })
+                            interaction.editReply(aba_response)
 
                         }
                     }, 1000 * 60 * 15 - 50000)
@@ -187,7 +158,7 @@ module.exports = {
                         Object.values(current_challenge.sponsors).forEach(sponsor => {
                             let sponsor_earnings = cost
                             let thissponsorref = userref.child(sponsor.user).child("random")
-                            let thissponsor = userdata[sponsor.user].random
+                            let thissponsor = db.user[sponsor.user].random
                             manageTruguts({ profile: thissponsor, profileref: thissponsorref, transaction: 'd', amount: sponsor_earnings })
                             current_challengeref.child('sponsors').child(sponsor.member).child('earnings').set((current_challenge.sponsors?.[sponsor.member]?.earnings ?? 0) + sponsor_earnings)
                         })
@@ -195,14 +166,14 @@ module.exports = {
 
                     //clean up old challenge
                     challengesref.child(interaction.message.id).update({ completed: true, rerolled: true })
-                    current_challenge = challengesdata[interaction.message.id]
-                    const edit_message = await updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata })
+                    current_challenge = db.ch.challenges[interaction.message.id]
+                    const edit_message = await updateChallenge({  client, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, db })
                     editMessage(client, interaction.channel.id, interaction.message.id, edit_message)
 
                     //prepare new challenge
                     let rerolltype = 'private'
-                    current_challenge = initializeChallenge({ profile, member, type: rerolltype, name, avatar, user: player, sponsordata, interaction })
-                    const reroll_reply = await updateChallenge({ client, challengetimedata, profile, current_challenge, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata })
+                    current_challenge = initializeChallenge({ profile, member, type: rerolltype, name, avatar, user: player, db, interaction })
+                    const reroll_reply = await updateChallenge({  client, profile, current_challenge, profileref, member, name, avatar, interaction, db })
                     let rerollmessage = await interaction.reply(reroll_reply)
                     current_challenge.message = rerollmessage.id
                     current_challenge.channel = interaction.message.channelId
@@ -260,9 +231,9 @@ module.exports = {
                         }
                     }
 
-                    current_challenge = challengesdata[current_challenge.message]
+                    current_challenge = db.ch.challenges[current_challenge.message]
                     //populate options
-                    let adata = updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata })
+                    let adata = await updateChallenge({  client, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, db })
                     if (!bribed) {
                         adata.components = [adata.components, bribeComponents(current_challenge)].flat()
                     }
@@ -270,14 +241,14 @@ module.exports = {
 
                     break
                 case 'predict':
+                    if (!isActive(current_challenge)) { //no longer active
+                        const holdUp = new EmbedBuilder()
+                            .setTitle("<:WhyNobodyBuy:589481340957753363> Bet you didn't predict that!")
+                            .setDescription("Predictions are no longer available for this challenge.")
+                        interaction.reply({ embeds: [holdUp], ephemeral: true })
+                        return
+                    }
                     if (interaction.isModalSubmit()) {
-                        if (!isActive(current_challenge)) { //no longer active
-                            const holdUp = new EmbedBuilder()
-                                .setTitle("<:WhyNobodyBuy:589481340957753363> Bet you didn't predict that!")
-                                .setDescription("Predictions are no longer available for this challenge.")
-                            interaction.reply({ embeds: [holdUp], ephemeral: true })
-                            return
-                        }
                         let predictiontime = interaction.fields.getTextInputValue('predictionTime')
                         if (isNaN(Number(predictiontime.replace(":", ""))) || tools.timetoSeconds(predictiontime) == null) { //incorrect time format
                             const holdUp = new EmbedBuilder()
@@ -294,10 +265,11 @@ module.exports = {
                             time: time,
                             user: player
                         }
-                        var newPostRef = current_challengeref.child("predictions").child(member).set(predictiondata);
-                        current_challenge = challengesdata[interaction.message.id]
+                        await current_challengeref.child("predictions").child(member).set(predictiondata);
                         let playeruser = current_challenge.player.user
-                        interaction.update(updateChallenge({ client, challengetimedata, profile: userdata?.[playeruser]?.random, current_challenge, current_challengeref, profileref: userref.child(playeruser).child('random'), member, name, avatar, interaction, sponsordata, bountydata, challengesdata }))
+                        current_challenge = db.ch.challenges[interaction.message.id]
+                        const pd_response = await updateChallenge({  client, profile: db.user?.[playeruser]?.random, current_challenge, current_challengeref, profileref: userref.child(playeruser).child('random'), member, name, avatar, interaction, db })
+                        interaction.update(pd_response)
                     } else {
                         if (current_challenge.player && current_challenge.player.member == member) { //trying to predict own challenge
                             const holdUp = new EmbedBuilder()
@@ -351,8 +323,8 @@ module.exports = {
                         })
                         return
                     }
-                    current_challengeref.child('ratings').child(interaction.user.id).set({ user: player })
-                    current_challengeref.child('earnings').child(interaction.user.id).update({ truguts_earned: current_challenge.earnings[interaction.user.id].truguts_earned + truguts.rated })
+                    await current_challengeref.child('ratings').child(interaction.user.id).set({ user: player })
+                    await current_challengeref.child('earnings').child(interaction.user.id).update({ truguts_earned: current_challenge.earnings[interaction.user.id].truguts_earned + truguts.rated })
 
                     //profileref.update({ truguts_earned: profile.truguts_earned + truguts.rated })
                     profile = manageTruguts({ profile, profileref, transaction: 'd', amount: truguts.rated })
@@ -371,8 +343,8 @@ module.exports = {
                             backwards: current_challenge.conditions.backwards
                         }
                     });
-                    current_challenge = challengesdata[interaction.message.id]
-                    const feedback_reply = await updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata })
+                    current_challenge = db.ch.challenges[interaction.message.id]
+                    const feedback_reply = await updateChallenge({  client, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, db })
                     interaction.update(feedback_reply)
 
                     break
@@ -381,7 +353,7 @@ module.exports = {
                     break
                 case 'hint':
                     //get achievement progress
-                    let achievements = achievementProgress({ challengetimedata, player: member })
+                    let achievements = achievementProgress({ db, player: member })
                     const hEmbed = hintEmbed({ profile, name, avatar })
                     let achievement = null
                     let selection = null
@@ -558,9 +530,9 @@ module.exports = {
                         return
                     }
                     let recent = null
-                    Object.keys(sponsordata).forEach(key => {
-                        if (sponsordata[key].sponsor?.member == interaction.user.id && (!recent || sponsordata[key].created > recent.date)) {
-                            recent = { date: sponsordata[key].created, key }
+                    Object.keys(db.ch.sponsors).forEach(key => {
+                        if (db.ch.sponsors[key].sponsor?.member == interaction.user.id && (!recent || db.ch.sponsors[key].created > recent.date)) {
+                            recent = { date: db.ch.sponsors[key].created, key }
                         }
                     })
                     if (recent && Date.now() - 1000 * 60 * 60 * 23 < recent.date && interaction.message.id !== recent.key) {
@@ -587,7 +559,7 @@ module.exports = {
                             }
                         })
                         //initialize challenge
-                        let sponsorchallenge = initializeChallenge({ profile, member, type: "private", name, avatar, user: player, circuit: cselection, sponsordata, interaction })
+                        let sponsorchallenge = initializeChallenge({ profile, member, type: "private", name, avatar, user: player, circuit: cselection, db, interaction })
                         sponsorchallenge.type = 'open'
                         sponsorchallenge.sponsor = sponsorchallenge.player
                         delete sponsorchallenge.player
@@ -596,7 +568,7 @@ module.exports = {
                         //reveal challenge
                         interaction.update({ embeds: [sponsorEmbed(sponsorchallenge, profile, 1)], components: sponsorComponents(profile, cselection, 1) })
                     } else if (args[2] == 'details') { //set title / time
-                        sponsorchallenge = sponsordata[interaction.message.id]
+                        sponsorchallenge = db.ch.sponsors[interaction.message.id]
                         if (interaction.isModalSubmit()) {
                             let title = interaction.fields.getTextInputValue('customTitle')
                             let time = interaction.fields.getTextInputValue('customTime')
@@ -604,8 +576,8 @@ module.exports = {
 
                             sponsorref.child(interaction.message.id).update({ title, time })
 
-                            profile = userdata[player].random
-                            sponsorchallenge = sponsordata[interaction.message.id]
+                            profile = db.user[player].random
+                            sponsorchallenge = db.ch.sponsors[interaction.message.id]
                             interaction.update({ embeds: [sponsorEmbed(sponsorchallenge, profile, 1)], components: sponsorComponents(profile, cselection, 1) })
                         } else {
                             const sponsorModal = new ModalBuilder()
@@ -633,7 +605,7 @@ module.exports = {
                         }
 
                     } else if (args[2] == 'publish') { //post challenge
-                        let sponsorchallenge = sponsordata[interaction.message.id]
+                        let sponsorchallenge = db.ch.sponsors[interaction.message.id]
                         if (sponsorchallenge.published) {
                             const cantSponsor = new EmbedBuilder()
                                 .setTitle("<:WhyNobodyBuy:589481340957753363> You what?")
@@ -641,13 +613,14 @@ module.exports = {
                             interaction.reply({ embeds: [cantSponsor], ephemeral: true })
                             return
                         }
-                        let publishmessage = await interaction.reply(updateChallenge({ client, challengetimedata, profile, current_challenge: sponsorchallenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata }))
+                        const pub_response = await updateChallenge({  client, profile, current_challenge: sponsorchallenge, current_challengeref, profileref, member, name, avatar, interaction, db })
+                        let publishmessage = await interaction.reply(pub_response)
                         sponsorchallenge.message = publishmessage.id
                         sponsorchallenge.url = publishmessage.url
                         sponsorref.child(interaction.message.id).update({ published: true, url: publishmessage.url })
                         challengesref.child(publishmessage.id).set(sponsorchallenge)
 
-                        if (sponsorAchievement(bountydata, member) >= achievement_data.bankroller_clan.limit) { //award achievement
+                        if (sponsorAchievement(db, member) >= achievement_data.bankroller_clan.limit) { //award achievement
                             if (current_challenge.guild == swe1r_guild) {
                                 if (!Member.roles.cache.some(r => r.id === achievement_data.bankroller_clan.role)) { //award role
                                     Member.roles.add(achievement_data.bankroller_clan.role).catch(error => console.log(error))
@@ -665,11 +638,11 @@ module.exports = {
                 case 'settings':
                     if (args[2] == "winnings") {
                         profileref.child("settings").update({ winnings: Number(interaction.values[0]) })
-                        profile = userdata[player].random
+                        profile = db.user[player].random
                         interaction.update({ embeds: [settingsEmbed({ profile, name, avatar })], components: settingsComponents(profile) })
                     } else if (args[2] == "predictions") {
                         profileref.child("settings").update({ predictions: !profile.settings.predictions })
-                        profile = userdata[player].random
+                        profile = db.user[player].random
                         interaction.update({ embeds: [settingsEmbed({ profile, name, avatar })], components: settingsComponents(profile) })
                     } else if (args[2] == "odds") {
                         if (interaction.isModalSubmit()) {
@@ -688,7 +661,7 @@ module.exports = {
                                 }
                             })
                             profileref.child('settings').update(odds)
-                            profile = userdata[player].random
+                            profile = db.user[player].random
                             interaction.update({ embeds: [settingsEmbed({ profile, name, avatar })], components: settingsComponents(profile) })
                         } else {
                             const oddsModal = new ModalBuilder()
@@ -753,10 +726,10 @@ module.exports = {
                             backwards: settings_default.backwards,
                             predictions: settings_default.predictions
                         })
-                        profile = userdata[player].random
+                        profile = db.user[player].random
                         interaction.update({ embeds: [settingsEmbed({ profile, name, avatar })], components: settingsComponents(profile) })
                     } else {
-                        profile = userdata[player].random
+                        profile = db.user[player].random
                         interaction.reply({ embeds: [settingsEmbed({ profile, name, avatar })], components: settingsComponents(profile), ephemeral: true })
                     }
                     break
@@ -881,7 +854,7 @@ module.exports = {
                             .setAuthor(client.guilds.resolve(interaction.guild_id).members.resolve(member).user.username + "'s Random Challenge Profile", client.guilds.resolve(interaction.guild_id).members.resolve(member).user.avatarURL())
                         if (args[2] == "stats") {
 
-                            var keys = Object.keys(challengesdata)
+                            var keys = Object.keys(db.ch.challenges)
                             var stats = {
                                 total: 0,
                                 standard: 0,
@@ -964,15 +937,15 @@ module.exports = {
                             var hasraced = false
                             for (var i = 0; i < keys.length; i++) {
                                 var k = keys[i];
-                                if (challengesdata[k].user == member) {
+                                if (db.ch.challenges[k].user == member) {
                                     stats.total++
                                     //time stats
-                                    times.total += Number(challengesdata[k].time)
-                                    var goals = getGoalTimes(challengesdata[k].track, challengesdata[k].racer, challengesdata[k].skips, challengesdata[k].nu, challengesdata[k].laps)
+                                    times.total += Number(db.ch.challenges[k].time)
+                                    var goals = getGoalTimes(db.ch.challenges[k].track, db.ch.challenges[k].racer, db.ch.challenges[k].skips, db.ch.challenges[k].nu, db.ch.challenges[k].laps)
                                     var goal_array = ["elite", "pro", "rookie", "amateur", "youngling"]
                                     var goal_time = null
                                     for (var j = goals.length - 1; j > -1; j--) {
-                                        if (challengesdata[k].time < goals[j]) {
+                                        if (db.ch.challenges[k].time < goals[j]) {
                                             goal_time = j
                                         }
                                     }
@@ -980,48 +953,48 @@ module.exports = {
                                         times[goal_array[goal_time]]++
                                     }
                                     //stats
-                                    if (!challengesdata[k].mirror && !challengesdata[k].nu && !challengesdata[k].skips && challengesdata[k].laps == 3) {
+                                    if (!db.ch.challenges[k].mirror && !db.ch.challenges[k].nu && !db.ch.challenges[k].skips && db.ch.challenges[k].laps == 3) {
                                         stats.standard++
                                     } else {
-                                        if (challengesdata[k].skips) {
+                                        if (db.ch.challenges[k].skips) {
                                             stats.skips++
                                             bonuses.non_standard++
                                         }
-                                        if (challengesdata[k].nu) {
+                                        if (db.ch.challenges[k].nu) {
                                             stats.no_upgrades++
                                             bonuses.non_standard++
                                         }
-                                        if (challengesdata[k].laps !== 3) {
+                                        if (db.ch.challenges[k].laps !== 3) {
                                             stats.non_3_lap++
                                             bonuses.non_standard++
                                         }
-                                        if (challengesdata[k].mirror) {
+                                        if (db.ch.challenges[k].mirror) {
                                             stats.mirrored++
                                             bonuses.non_standard++
                                         }
                                     }
                                     hasraced = true
-                                    getMost(mostPod, challengesdata[k].racer)
-                                    getMost(mostTrack, challengesdata[k].track)
-                                    getMost(mostPlanet, tracks[challengesdata[k].track].planet)
-                                    getMost(mostCircuit, tracks[challengesdata[k].track].circuit)
+                                    getMost(mostPod, db.ch.challenges[k].racer)
+                                    getMost(mostTrack, db.ch.challenges[k].track)
+                                    getMost(mostPlanet, tracks[db.ch.challenges[k].track].planet)
+                                    getMost(mostCircuit, tracks[db.ch.challenges[k].track].circuit)
                                     var first = true
                                     var pb = false
                                     var beat = []
                                     for (var p = 0; p < keys.length; p++) {
                                         var n = keys[p]
-                                        if (challengesdata[n].track == challengesdata[k].track && challengesdata[n].racer == challengesdata[k].racer && challengesdata[n].skips == challengesdata[k].skips && challengesdata[n].nu == challengesdata[k].nu && challengesdata[n].laps == challengesdata[k].laps && challengesdata[n].mirror == challengesdata[k].mirror) {
-                                            if (challengesdata[n].date < challengesdata[k].date) {
+                                        if (db.ch.challenges[n].track == db.ch.challenges[k].track && db.ch.challenges[n].racer == db.ch.challenges[k].racer && db.ch.challenges[n].skips == db.ch.challenges[k].skips && db.ch.challenges[n].nu == db.ch.challenges[k].nu && db.ch.challenges[n].laps == db.ch.challenges[k].laps && db.ch.challenges[n].mirror == db.ch.challenges[k].mirror) {
+                                            if (db.ch.challenges[n].date < db.ch.challenges[k].date) {
                                                 first = false
-                                                if (challengesdata[n].user == member) {
+                                                if (db.ch.challenges[n].user == member) {
                                                     pb = true
-                                                    if (challengesdata[n].time < challengesdata[k].time) {
+                                                    if (db.ch.challenges[n].time < db.ch.challenges[k].time) {
                                                         pb = false
                                                     }
                                                 }
                                             }
-                                            if (challengesdata[n].user !== member && challengesdata[n].time > challengesdata[k].time && challengesdata[n].date < challengesdata[k].date && !beat.includes(challengesdata[n].user)) {
-                                                beat.push(challengesdata[n].user)
+                                            if (db.ch.challenges[n].user !== member && db.ch.challenges[n].time > db.ch.challenges[k].time && db.ch.challenges[n].date < db.ch.challenges[k].date && !beat.includes(db.ch.challenges[n].user)) {
+                                                beat.push(db.ch.challenges[n].user)
                                             }
                                         }
                                     }
@@ -1099,25 +1072,25 @@ module.exports = {
                                     "Hints: `" + purchases.hints + "`\n" +
                                     "Total Spending: `📀" + tools.numberWithCommas(purchases.total_spending) + "`", true)
                         } else if (args[2] == "achievements") {
-                            var keys = Object.keys(challengesdata)
+                            var keys = Object.keys(db.ch.challenges)
                             for (var i = 0; i < keys.length; i++) {
                                 var k = keys[i];
-                                if (challengesdata[k].user == member) {
-                                    achievements.galaxy_famous.collection[String(challengesdata[k].track)] = 1
-                                    achievements.pod_champ.collection[String(challengesdata[k].racer)] = 1
-                                    if (challengesdata[k].skips) {
-                                        achievements.light_skipper.collection[String(challengesdata[k].track)] = 1
+                                if (db.ch.challenges[k].user == member) {
+                                    achievements.galaxy_famous.collection[String(db.ch.challenges[k].track)] = 1
+                                    achievements.pod_champ.collection[String(db.ch.challenges[k].racer)] = 1
+                                    if (db.ch.challenges[k].skips) {
+                                        achievements.light_skipper.collection[String(db.ch.challenges[k].track)] = 1
                                     }
-                                    if (challengesdata[k].nu) {
-                                        achievements.slow_steady.collection[String(challengesdata[k].racer)] = 1
+                                    if (db.ch.challenges[k].nu) {
+                                        achievements.slow_steady.collection[String(db.ch.challenges[k].racer)] = 1
                                     }
-                                    if (challengesdata[k].mirror) {
-                                        achievements.mirror_dimension.collection[String(challengesdata[k].track)] = 1
+                                    if (db.ch.challenges[k].mirror) {
+                                        achievements.mirror_dimension.collection[String(db.ch.challenges[k].track)] = 1
                                     }
-                                    if (challengesdata[k].racer == tracks[String(challengesdata[k].track)].favorite) {
-                                        achievements.crowd_favorite.collection[String(challengesdata[k].track)] = 1
+                                    if (db.ch.challenges[k].racer == tracks[String(db.ch.challenges[k].track)].favorite) {
+                                        achievements.crowd_favorite.collection[String(db.ch.challenges[k].track)] = 1
                                     }
-                                    achievements.true_jedi.collection[String(challengesdata[k].track + " " + challengesdata[k].racer)] = 1
+                                    achievements.true_jedi.collection[String(db.ch.challenges[k].track + " " + db.ch.challenges[k].racer)] = 1
                                 }
                             }
                             if (member == interaction.member.user.id) {
@@ -1311,7 +1284,7 @@ module.exports = {
                     if (mirrored.length == 0) { mirrored.push(true, false), conditions.push("unmirr", "mirr") }
                     if (laps.length == 0) { laps.push(1, 2, 3, 4, 5), conditions.push("lap1", "lap2", "lap3", "lap4", "lap5") }
                     //filter
-                    var challenge = Object.values(challengesdata)
+                    var challenge = Object.values(db.ch.challenges)
                     var challengefiltered = challenge.filter(element => element.track == track)
                     challengefiltered = challengefiltered.filter(element => skips.includes(element.skips))
                     challengefiltered = challengefiltered.filter(element => nu.includes(element.nu))
@@ -1492,7 +1465,7 @@ module.exports = {
                         })
                         return
                     }
-                    let active = checkActive(challengesdata, member, current_challenge)
+                    let active = checkActive(db, member, current_challenge)
                     if (active) { //already has active challenge
                         interaction.reply({ embeds: [active], ephemeral: true })
                         return
@@ -1509,6 +1482,14 @@ module.exports = {
                             ], ephemeral: true
                         })
                         return
+                    }
+
+                    lastconsole = Object.values(db.ch.times).filter(c => c.user == member && c.platform).sort((a, b) => b.date - a.date)
+                    if (lastconsole.length) {
+                        console.log(lastconsole[0])
+                        lastconsole = lastconsole[0].platform
+                    } else {
+                        lastconsole = ""
                     }
                     // if (current_challenge.submissions?.[member]) { //already submitted
                     //     const holdUp = new EmbedBuilder()
@@ -1563,7 +1544,7 @@ module.exports = {
                         .setMinLength(0)
                         .setPlaceholder("pc, n64, dc, switch, xbox, ps4")
                         .setRequired(false)
-
+                        .setValue(lastconsole)
                     const submissionProof = new TextInputBuilder()
                         .setCustomId('challengeProof')
                         .setLabel('Proof')
@@ -1571,11 +1552,12 @@ module.exports = {
                         .setPlaceholder("image or video url (can be added later)")
                         .setRequired(false)
                     if (current_challenge.submissions?.[member]) {
-                        submissionTime.setValue(tools.timefix(challengetimedata[current_challenge.submissions[member].id].time))
-                        submissionNotes.setValue(challengetimedata[current_challenge.submissions[member].id].notes)
-                        submissionProof.setValue(challengetimedata[current_challenge.submissions[member].id].proof)
-                        submissionRTA.setValue(challengetimedata[current_challenge.submissions[member].id].rta)
-                        submissionPlatform.setValue(challengetimedata[current_challenge.submissions[member].id].platform)
+                        const this_submission = db.ch.times[current_challenge.submissions[member].id]
+                        submissionTime.setValue(tools.timefix(this_submission.time))
+                        submissionNotes.setValue(this_submission.notes)
+                        submissionProof.setValue(this_submission.proof)
+                        submissionRTA.setValue(this_submission.rta)
+                        submissionPlatform.setValue(this_submission.platform)
                     }
                     const ActionRow1 = new ActionRowBuilder().addComponents(submissionTime)
                     const ActionRow2 = new ActionRowBuilder().addComponents(submissionNotes)
@@ -1641,11 +1623,11 @@ module.exports = {
                         )
 
                         //update objects
-                        current_challenge = challengesdata[interaction.message.id]
-                        profile = userdata[player].random //update profile
+                        current_challenge = db.ch.challenges[interaction.message.id]
+                        profile = db.user[player].random //update profile
 
                         //update challenge
-                        const edit_reply = await updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata })
+                        const edit_reply = await updateChallenge({  client, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, db })
                         await interaction.editReply(edit_reply)
                         return
                     }
@@ -1692,7 +1674,7 @@ module.exports = {
                     let total_revenue = 0
 
                     //award winnings for this submission
-                    let winnings = challengeWinnings({ current_challenge, submitted_time: submissiondata, profile, best: getBest(challengetimedata, current_challenge), goals: goalTimeList(current_challenge, profile), member })
+                    let winnings = challengeWinnings({ current_challenge, submitted_time: submissiondata, profile, best: getBest(db, current_challenge), goals: goalTimeList(current_challenge, profile), member })
                     //profileref.update({ truguts_earned: profile.truguts_earned + winnings.earnings })
                     profile = manageTruguts({ profile, profileref, transaction: 'd', amount: winnings.earnings })
                     current_challengeref.child("earnings").child(member).set({ truguts_earned: winnings.earnings, player: member })
@@ -1704,18 +1686,18 @@ module.exports = {
                             let take = predictionScore(p.time, time)
                             total_revenue += take
                             let predictorref = userref.child(p.user).child("random")
-                            let predictorprofile = userdata[p.user].random
+                            let predictorprofile = db.user[p.user].random
                             manageTruguts({ profile: predictorprofile, profileref: predictorref, transaction: 'd', amount: take })
 
                             //award achievements
-                            if (predictionAchievement(challengesdata, p.member) >= achievement_data.force_sight.limit) {
+                            if (predictionAchievement(db, p.member) >= achievement_data.force_sight.limit) {
                                 if (current_challenge.guild == swe1r_guild) {
                                     let pmember = Guild.members.cache.get(p.member)
                                     if (pmember.roles.cache.some(r => r.id === achievement_data.force_sight.role)) { //award role
                                         pmember.roles.add(achievement_data.force_sight.role).catch(error => console.log(error))
                                     }
                                 }
-                                if (!userdata[p.user].random.achievements.force_sight) {
+                                if (!db.user[p.user].random.achievements.force_sight) {
                                     postMessage(client, current_challenge.channel, { embeds: [achievementEmbed(p.name, p.avatar, achievement_data.force_sight, current_challenge.guild)] })
                                     userref.child(p.user).child('random').child('achievements').child("force_sight").set(true)
                                 }
@@ -1729,7 +1711,7 @@ module.exports = {
                         Object.values(current_challenge.sponsors).forEach(sponsor => {
                             let sponsor_earnings = Math.round(total_revenue * truguts.sponsor_cut * sponsor.multiplier)
                             let thissponsorref = userref.child(sponsor.user).child("random")
-                            let thissponsor = userdata[sponsor.user].random
+                            let thissponsor = db.user[sponsor.user].random
                             manageTruguts({ profile: thissponsor, profileref: thissponsorref, transaction: 'd', amount: sponsor_earnings })
                             if (!current_challenge.sponsors[sponsor.member]?.earnings) {
                                 current_challenge.sponsors[sponsor.member].earnings = 0
@@ -1744,7 +1726,7 @@ module.exports = {
                         Object.values(current_challenge.bounties).forEach(bounty => {
                             bountyref.child(bounty.key).update({ completed: true, player: { avatar, member, name, user: player } })
                         })
-                        if (bountyAchievement(bountydata, member) >= achievement_data.bounty_hunter.limit) {
+                        if (bountyAchievement(db, member) >= achievement_data.bounty_hunter.limit) {
                             if (current_challenge.guild == swe1r_guild) {
                                 if (Member.roles.cache.some(r => r.id === achievement_data.bounty_hunter.role)) { //award role
                                     Member.roles.add(achievement_data.bounty_hunter.role).catch(error => console.log(error))
@@ -1771,11 +1753,11 @@ module.exports = {
                     }
 
                     //update objects
-                    current_challenge = challengesdata[interaction.message.id]
-                    profile = userdata[player].random //update profile
+                    current_challenge = db.ch.challenges[interaction.message.id]
+                    profile = db.user[player].random //update profile
 
                     //update challenge
-                    const submit_reply = await updateChallenge({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata })
+                    const submit_reply = await updateChallenge({  client, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, db })
                     interaction.editReply(submit_reply)
 
                     break

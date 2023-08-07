@@ -36,7 +36,7 @@ exports.getGoalTimes = function ({ track, racer, skips, nu, laps, backwards, bes
 }
 
 exports.trugutsEarned = function (player) {
-    var keys = Object.keys(challengetimedata)
+    var keys = Object.keys(db.ch.times)
     var report = {
         earnings: 0,
         mp: 0,
@@ -49,55 +49,55 @@ exports.trugutsEarned = function (player) {
     }
     for (var i = 0; i < keys.length; i++) {
         var k = keys[i];
-        if (challengetimedata[k].user == player) {
-            var goals = getGoalTimes(challengetimedata[k].track, challengetimedata[k].racer, challengetimedata[k].skips, challengetimedata[k].nu, challengetimedata[k].laps)
+        if (db.ch.times[k].user == player) {
+            var goals = getGoalTimes(db.ch.times[k].track, db.ch.times[k].racer, db.ch.times[k].skips, db.ch.times[k].nu, db.ch.times[k].laps)
             var winnings = 1
-            if (challengetimedata[k].settings !== undefined) {
-                winnings = challengetimedata[k].settings.winnings
+            if (db.ch.times[k].settings !== undefined) {
+                winnings = db.ch.times[k].settings.winnings
             }
             var goal_earnings = [
-                circuits[tracks[challengetimedata[k].track].circuit].winnings[winnings][0],
-                circuits[tracks[challengetimedata[k].track].circuit].winnings[winnings][1],
-                circuits[tracks[challengetimedata[k].track].circuit].winnings[winnings][2],
-                circuits[tracks[challengetimedata[k].track].circuit].winnings[winnings][3],
+                circuits[tracks[db.ch.times[k].track].circuit].winnings[winnings][0],
+                circuits[tracks[db.ch.times[k].track].circuit].winnings[winnings][1],
+                circuits[tracks[db.ch.times[k].track].circuit].winnings[winnings][2],
+                circuits[tracks[db.ch.times[k].track].circuit].winnings[winnings][3],
                 0
             ]
             var winnings = 0
             for (var j = goals.length - 1; j > -1; j--) {
-                if (challengetimedata[k].time < goals[j]) {
+                if (db.ch.times[k].time < goals[j]) {
                     winnings = goal_earnings[j]
                 }
             }
             report.earnings += winnings
-            if (challengetimedata[k].settings == undefined) {
-                if (challengetimedata[k].skips) {
+            if (db.ch.times[k].settings == undefined) {
+                if (db.ch.times[k].skips) {
                     report.non_standard++
                 }
-                if (challengetimedata[k].mirror) {
+                if (db.ch.times[k].mirror) {
                     report.non_standard++
                 }
-                if (challengetimedata[k].laps !== 3) {
+                if (db.ch.times[k].laps !== 3) {
                     report.non_standard++
                 }
-                if (challengetimedata[k].nu) {
+                if (db.ch.times[k].nu) {
                     report.non_standard++
                 }
             } else {
-                if (challengetimedata[k].skips && challengetimedata[k].settings.skips <= 25) {
+                if (db.ch.times[k].skips && db.ch.times[k].settings.skips <= 25) {
                     report.non_standard++
                 }
-                if (challengetimedata[k].mirror && challengetimedata[k].settings.mirror_mode <= 25) {
+                if (db.ch.times[k].mirror && db.ch.times[k].settings.mirror_mode <= 25) {
                     report.non_standard++
                 }
-                if (challengetimedata[k].laps !== 3 && challengetimedata[k].settings.non_3_lap <= 25) {
+                if (db.ch.times[k].laps !== 3 && db.ch.times[k].settings.non_3_lap <= 25) {
                     report.non_standard++
                 }
-                if (challengetimedata[k].nu && challengetimedata[k].settings.no_upgrades <= 25) {
+                if (db.ch.times[k].nu && db.ch.times[k].settings.no_upgrades <= 25) {
                     report.non_standard++
                 }
             }
 
-            if (challengetimedata[k].mp == true) {
+            if (db.ch.times[k].mp == true) {
                 report.mp++
             }
             var first = true
@@ -105,18 +105,18 @@ exports.trugutsEarned = function (player) {
             var beat = []
             for (var p = 0; p < keys.length; p++) {
                 var n = keys[p]
-                if (challengetimedata[n].track == challengetimedata[k].track && challengetimedata[n].racer == challengetimedata[k].racer && challengetimedata[n].skips == challengetimedata[k].skips && challengetimedata[n].nu == challengetimedata[k].nu && challengetimedata[n].laps == challengetimedata[k].laps && challengetimedata[n].mirror == challengetimedata[k].mirror) {
-                    if (challengetimedata[n].date < challengetimedata[k].date) {
+                if (db.ch.times[n].track == db.ch.times[k].track && db.ch.times[n].racer == db.ch.times[k].racer && db.ch.times[n].skips == db.ch.times[k].skips && db.ch.times[n].nu == db.ch.times[k].nu && db.ch.times[n].laps == db.ch.times[k].laps && db.ch.times[n].mirror == db.ch.times[k].mirror) {
+                    if (db.ch.times[n].date < db.ch.times[k].date) {
                         first = false
-                        if (challengetimedata[n].user == player) {
+                        if (db.ch.times[n].user == player) {
                             pb = true
-                            if (challengetimedata[n].time < challengetimedata[k].time) {
+                            if (db.ch.times[n].time < db.ch.times[k].time) {
                                 pb = false
                             }
                         }
                     }
-                    if (challengetimedata[n].user !== player && challengetimedata[n].time > challengetimedata[k].time && challengetimedata[n].date < challengetimedata[k].date && !beat.includes(challengetimedata[n].user)) {
-                        beat.push(challengetimedata[n].user)
+                    if (db.ch.times[n].user !== player && db.ch.times[n].time > db.ch.times[k].time && db.ch.times[n].date < db.ch.times[k].date && !beat.includes(db.ch.times[n].user)) {
+                        beat.push(db.ch.times[n].user)
                     }
                 }
             }
@@ -130,11 +130,11 @@ exports.trugutsEarned = function (player) {
         }
     }
     var feedback = {}
-    var keys = Object.keys(feedbackdata)
+    var keys = Object.keys(db.ch.feedback)
     for (var i = 0; i < keys.length; i++) {
         var k = keys[i]
-        if (feedbackdata[k].user == player) {
-            feedback[feedbackdata[k].track + " " + feedbackdata[k].racer + " " + feedbackdata[k].skips + " " + feedbackdata[k].nu + " " + feedbackdata[k].laps + " " + feedbackdata[k].mirror] = 0
+        if (db.ch.feedback[k].user == player) {
+            feedback[db.ch.feedback[k].track + " " + db.ch.feedback[k].racer + " " + db.ch.feedback[k].skips + " " + db.ch.feedback[k].nu + " " + db.ch.feedback[k].laps + " " + db.ch.feedback[k].mirror] = 0
         }
     }
     var fb = Object.keys(feedback)
@@ -180,7 +180,7 @@ exports.initializeUser = function (ref, id, name) {
     return push.key
 }
 
-exports.initializeChallenge = function ({ profile, member, type, name, avatar, user, circuit, sponsordata, interaction } = {}) {
+exports.initializeChallenge = function ({ profile, member, type, name, avatar, user, circuit, db, interaction } = {}) {
 
     //get values
     let random_racer = Math.floor(Math.random() * 23)
@@ -281,37 +281,37 @@ exports.initializeChallenge = function ({ profile, member, type, name, avatar, u
         challenge.month = exports.easternTime().month()
     }
 
-    challenge = exports.getSponsor(challenge, sponsordata)
+    challenge = exports.getSponsor(challenge, db)
 
     return challenge
 }
 
-exports.getSponsor = function (challenge, sponsordata) {
-    Object.keys(sponsordata).forEach(key => {
+exports.getSponsor = function (challenge, db) {
+    Object.keys(db.ch.sponsors).forEach(key => {
         if (!challenge.submissions) {
             challenge.sponsors = {}
             challenge.sponsor_title = ''
             challenge.sponsor_time = ''
-            if (exports.matchingChallenge(sponsordata[key], challenge)) {
-                if (!challenge.sponsors[sponsordata[key].sponsor?.member]) {
-                    challenge.sponsors[sponsordata[key].sponsor.member] = sponsordata[key].sponsor
-                    challenge.sponsors[sponsordata[key].sponsor.member].multiplier = 1
+            if (exports.matchingChallenge(db.ch.sponsors[key], challenge)) {
+                if (!challenge.sponsors[db.ch.sponsors[key].sponsor?.member]) {
+                    challenge.sponsors[db.ch.sponsors[key].sponsor.member] = db.ch.sponsors[key].sponsor
+                    challenge.sponsors[db.ch.sponsors[key].sponsor.member].multiplier = 1
                 } else {
-                    challenge.sponsors[sponsordata[key].sponsor.member].multiplier++
+                    challenge.sponsors[db.ch.sponsors[key].sponsor.member].multiplier++
                 }
-                challenge.sponsor_title = sponsordata[key].title
-                challenge.sponsor_time = sponsordata[key].time
+                challenge.sponsor_title = db.ch.sponsors[key].title
+                challenge.sponsor_time = db.ch.sponsors[key].time
             }
         }
     })
     return challenge
 }
 
-exports.getBounty = function (challenge, bountydata) {
+exports.getBounty = function (challenge, db) {
     if (!challenge.submissions) {
-        Object.keys(bountydata).forEach(key => {
+        Object.keys(db.ch.bounties).forEach(key => {
             challenge.bounties = []
-            let bounty = bountydata[key]
+            let bounty = db.ch.bounties[key]
             if (challenge.type == 'private' && challenge.track == bounty.track && challenge.racer == bounty.racer && (bounty.type == 'botd' || (bounty.player?.member == challenge.player?.member))) {
                 if ((bounty.type == 'botd' && Date.now() - 1000 * 60 * 60 * 24 < bounty.created) || (bounty.type == 'private' && Date.now() - 1000 * 60 * 60 < bounty.created)) {
                     if (!bounty.completed) {
@@ -365,7 +365,7 @@ exports.generateChallengeTitle = function (current_challenge) {
     return title.slice(0, 255)
 }
 
-exports.generateChallengeDescription = function (current_challenge, best, profile, name, feedbackdata) {
+exports.generateChallengeDescription = function (current_challenge, best, profile, name, db) {
     let desc = ''
 
     let duration = ['abandoned', 'multiplayer', 'private'].includes(current_challenge.type) ? 1000 * 60 * 15 : current_challenge.type == 'cotm' ? 1000 * 60 * 60 * 24 * exports.easternTime().daysInMonth() : 1000 * 60 * 60 * 24
@@ -374,7 +374,7 @@ exports.generateChallengeDescription = function (current_challenge, best, profil
         expiration = "Expires <t:" + Math.round((current_challenge.created + duration) / 1000) + ":R>"
     }
 
-    desc = [exports.getFeedbackTally(feedbackdata, current_challenge), (!current_challenge.completed && !current_challenge.rerolled ? expiration : ''), (current_challenge.sponsors ? exports.getSponsors(current_challenge) : ''), (current_challenge.predictions && !current_challenge.completed ? exports.getPredictors(current_challenge) : "")].filter(d => ![null, undefined, ''].includes(d)).join(" | ")
+    desc = [exports.getFeedbackTally(db, current_challenge), (!current_challenge.completed && !current_challenge.rerolled ? expiration : ''), (current_challenge.sponsors ? exports.getSponsors(current_challenge) : ''), (current_challenge.predictions && !current_challenge.completed ? exports.getPredictors(current_challenge) : "")].filter(d => ![null, undefined, ''].includes(d)).join(" | ")
     if (current_challenge.conditions.backwards) {
         desc += '\n [Backwards tracks mod](https://www.speedrun.com/resourceasset/1aada)'
     }
@@ -465,14 +465,14 @@ exports.matchingChallenge = function (challenge1, challenge2) {
 
 }
 
-exports.getFeedbackTally = function (feedbackdata, current_challenge) {
+exports.getFeedbackTally = function (db, current_challenge) {
     //tally likes and dislikes
     let like = 0, dislike = 0
-    Object.keys(feedbackdata).forEach(key => {
-        if (exports.matchingChallenge(feedbackdata[key], current_challenge)) {
-            if (feedbackdata[key].feedback == "👍") {
+    Object.keys(db.ch.feedback).forEach(key => {
+        if (exports.matchingChallenge(db.ch.feedback[key], current_challenge)) {
+            if (db.ch.feedback[key].feedback == "👍") {
                 like++
-            } else if (feedbackdata[key].feedback == "👎") {
+            } else if (db.ch.feedback[key].feedback == "👎") {
                 dislike++
             }
         }
@@ -526,9 +526,9 @@ exports.goalTimeList = function (current_challenge, profile, best) {
     return { list: goalTimes, times: goals, earnings: goal_earnings }
 }
 
-exports.predictionAchievement = function (challengesdata, member) {
+exports.predictionAchievement = function (db, member) {
     let count = 0
-    Object.values(challengesdata).forEach(challenge => {
+    Object.values(db.ch.challenges).forEach(challenge => {
         if (challenge.type == 'private' && challenge.submissions && challenge.predictions?.[member]) {
 
             let submitted_time = Number(Object.values(challenge.submissions)[0].time)
@@ -543,9 +543,9 @@ exports.predictionAchievement = function (challengesdata, member) {
     return count
 }
 
-exports.sponsorAchievement = function (sponsordata, member) {
+exports.sponsorAchievement = function (db, member) {
     let count = 0
-    Object.values(sponsordata).forEach(s => {
+    Object.values(db.ch.sponsors).forEach(s => {
         if (s?.sponsor?.member == member) {
             count++
         }
@@ -553,9 +553,9 @@ exports.sponsorAchievement = function (sponsordata, member) {
     return count
 }
 
-exports.bountyAchievement = function (bountydata, member) {
+exports.bountyAchievement = function (db, member) {
     let count = 0
-    Object.values(bountydata).forEach(bounty => {
+    Object.values(db.ch.bounties).forEach(bounty => {
         if (bounty.player?.member == member && bounty.completed) {
             count++
         }
@@ -632,7 +632,7 @@ exports.generateLeaderboard = function (best, member, current_challenge) {
     return besttimes
 }
 
-exports.achievementProgress = function ({ challengetimedata, player } = {}) {
+exports.achievementProgress = function ({ db, player } = {}) {
     let achievements = { ...achievement_data }
 
     Object.keys(achievements).forEach(key => {
@@ -666,7 +666,7 @@ exports.achievementProgress = function ({ challengetimedata, player } = {}) {
         achievements.true_jedi.collection[String(challenge.track + " " + challenge.racer)] = 1
     }
 
-    Object.values(challengetimedata).forEach(challenge => {
+    Object.values(db.ch.times).forEach(challenge => {
         if (challenge.user == player) { //get achievement progress
             if (Array.isArray(challenge.track)) {
                 challenge.track.forEach(t => {
@@ -688,7 +688,6 @@ exports.achievementProgress = function ({ challengetimedata, player } = {}) {
 }
 
 exports.challengeAchievementProgress = function ({ client, current_challenge, profile, profileref, achievements, name, avatar, member } = {}) {
-
     let achievement_message_array = []
     if (Object.keys(achievements.galaxy_famous.collection).length < achievements.galaxy_famous.limit && !achievements.galaxy_famous.collection[current_challenge.track]) {
         achievement_message_array.push({
@@ -902,11 +901,11 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, profi
     return winnings
 }
 
-exports.getBest = function (challengetimedata, current_challenge) {
+exports.getBest = function (db, current_challenge) {
     let best = []
-    Object.keys(challengetimedata).forEach(key => {
-        if (exports.matchingChallenge(challengetimedata[key], current_challenge)) { //get leaderboard
-            best.push(challengetimedata[key])
+    Object.keys(db.ch.times).forEach(key => {
+        if (exports.matchingChallenge(db.ch.times[key], current_challenge)) { //get leaderboard
+            best.push(db.ch.times[key])
         }
     })
     return best.sort(function (a, b) {
@@ -914,7 +913,7 @@ exports.getBest = function (challengetimedata, current_challenge) {
     })
 }
 
-exports.updateChallenge = async function ({ client, challengetimedata, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, sponsordata, bountydata, challengesdata } = {}) {
+exports.updateChallenge = async function ({ client, db, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction } = {}) {
     record_holder = false
     let player = member
     let player_name = name
@@ -924,11 +923,11 @@ exports.updateChallenge = async function ({ client, challengetimedata, profile, 
         player = current_challenge.player.member
         player_name = current_challenge.player.name
         let player_user = current_challenge.player.user
-        player_profile = userdata[player_user].random
+        player_profile = db.user[player_user]?.random ?? null
         player_avatar = current_challenge.player.avatar
     }
 
-    let best = exports.getBest(challengetimedata, current_challenge)
+    let best = exports.getBest(db, current_challenge)
     let played = best.map(b => b.user).includes(player)
     if (best.length > 0 && best[0].user == player) {
         record_holder = true
@@ -938,20 +937,20 @@ exports.updateChallenge = async function ({ client, challengetimedata, profile, 
     if (!current_challenge.refunded && current_challenge.bounties) {
         if (current_challenge.racer_bribe) {
             //profileref.update({ truguts_spent: profile.truguts_spent - truguts.bribe_racer })
-            profile = exports.manageTruguts({ profile, profileref, transaction: 'r', amount: truguts.bribe_racer })
+            exports.manageTruguts({ profile, profileref, transaction: 'r', amount: truguts.bribe_racer })
         }
         if (current_challenge.track_bribe) {
             //profileref.update({ truguts_spent: profile.truguts_spent - truguts.bribe_track })
-            profile = exports.manageTruguts({ profile, profileref, transaction: 'r', amount: truguts.bribe_track })
+            exports.manageTruguts({ profile, profileref, transaction: 'r', amount: truguts.bribe_track })
         }
         current_challenge.refunded = true
     }
 
     //get sponsor/bounties
 
-    current_challenge = exports.getSponsor(current_challenge, sponsordata)
+    current_challenge = exports.getSponsor(current_challenge, db)
     if (current_challenge.type == 'private') {
-        current_challenge = exports.getBounty(current_challenge, bountydata)
+        current_challenge = exports.getBounty(current_challenge, db)
         current_challenge.reroll_cost = current_challenge.sponsors?.[player] || record_holder ? "free" : played ? "discount" : "full price"
     }
 
@@ -968,7 +967,7 @@ exports.updateChallenge = async function ({ client, challengetimedata, profile, 
         flavor_text = current_challenge.type == 'multiplayer' ? mpQuotes[Math.floor(Math.random() * mpQuotes.length)] : movieQuotes[Math.floor(Math.random() * movieQuotes.length)]
     }
 
-    const cembed = await exports.challengeEmbed({ client, current_challenge, profile: player_profile, profileref, feedbackdata, best, name: player_name, member: player, avatar: player_avatar, interaction, challengetimedata })
+    const cembed = await exports.challengeEmbed({ client, current_challenge, profile: player_profile, profileref, best, name: player_name, member: player, avatar: player_avatar, interaction, db })
 
     let data = {
         content: current_challenge.rerolled ? '' : "*" + flavor_text + "*",
@@ -987,11 +986,11 @@ exports.rerollReceipt = function (current_challenge) {
     }
 }
 
-exports.checkActive = function (challengesdata, member, current_challenge) {
+exports.checkActive = function (db, member, current_challenge) {
     let occupied = null
     let result = null
-    Object.keys(challengesdata).forEach(key => {
-        let challenge = challengesdata[key]
+    Object.keys(db.ch.challenges).forEach(key => {
+        let challenge = db.ch.challenges[key]
         if (challenge.player?.member == member && challenge.type == 'private' && exports.isActive(challenge) && ((current_challenge && current_challenge.message !== challenge.message) || !current_challenge)) {
             challenge.message = key
             occupied = challenge
@@ -1006,10 +1005,10 @@ exports.checkActive = function (challengesdata, member, current_challenge) {
     return result
 }
 
-exports.challengeEmbed = async function ({ current_challenge, profile, profileref, feedbackdata, best, name, member, avatar, challengetimedata, client } = {}) {
-    let submitted_time = challengetimedata[current_challenge?.submissions?.[member]?.id] ?? {}
-    let achs = exports.achievementProgress({ challengetimedata, player: member })
-    let desc = exports.generateChallengeDescription(current_challenge, best, profile, name, feedbackdata) + (current_challenge.type == 'private' ? "\n" + exports.challengeAchievementProgress({ client, current_challenge, profile, profileref, achievements: achs, name, avatar, member }) : '')
+exports.challengeEmbed = async function ({ current_challenge, profile, profileref, best, name, member, avatar, db, client } = {}) {
+    let submitted_time = db.ch.times[current_challenge?.submissions?.[member]?.id] ?? {}
+    let achs = exports.achievementProgress({ db, player: member })
+    let desc = exports.generateChallengeDescription(current_challenge, best, profile, name, db) + (current_challenge.type == 'private' ? "\n" + exports.challengeAchievementProgress({ client, current_challenge, profile, profileref, achievements: achs, name, avatar, member }) : '')
     const challengeEmbed = new EmbedBuilder()
         .setTitle(exports.generateChallengeTitle(current_challenge))
         .setColor(exports.challengeColor(current_challenge))
@@ -1545,11 +1544,11 @@ exports.easternTime = function () {
     return moment().tz('America/New_York')
 }
 
-exports.monthlyChallenge = async function ({ client, sponsordata, challengetimedata, challengesref, challengesdata } = {}) {
+exports.monthlyChallenge = async function ({ client, challengesref, db } = {}) {
     let recent = null
     let lastfive = []
-    if (challengesdata) {
-        Object.values(challengesdata).filter(c => c.type == 'cotm').sort((a, b) => b.created - a.created).slice(0, 5).forEach(challenge => {
+    if (db.ch.challenges) {
+        Object.values(db.ch.challenges).filter(c => c.type == 'cotm').sort((a, b) => b.created - a.created).slice(0, 5).forEach(challenge => {
             lastfive.push(challenge)
             if (!recent || recent.created - challenge.created < 0) {
                 recent = { ...challenge }
@@ -1557,7 +1556,7 @@ exports.monthlyChallenge = async function ({ client, sponsordata, challengetimed
         })
     }
     if (exports.easternTime().month() !== recent?.month || recent === null) { //exports.easternHour() == 0 && 
-        let current_challenge = exports.initializeChallenge({ type: "cotm", sponsordata })
+        let current_challenge = exports.initializeChallenge({ type: "cotm", db })
         if (recent?.conditions.laps !== 3 && current_challenge.conditions.laps !== 3 && Math.random() < .9) {
             current_challenge.conditions.laps = 3
         }
@@ -1566,7 +1565,7 @@ exports.monthlyChallenge = async function ({ client, sponsordata, challengetimed
                 current_challenge.conditions[con] = false
             }
         })
-        let cotmmessage = await postMessage(client, '551786988861128714', await exports.updateChallenge({ client, challengetimedata, current_challenge, sponsordata, challengesdata })) //551786988861128714
+        let cotmmessage = await postMessage(client, '551786988861128714', await exports.updateChallenge({ client, current_challenge, db })) //551786988861128714
         current_challenge.message = cotmmessage.id
         current_challenge.guild = cotmmessage.guildId
         current_challenge.channel = cotmmessage.channelId
@@ -1576,11 +1575,11 @@ exports.monthlyChallenge = async function ({ client, sponsordata, challengetimed
     }
 }
 
-exports.dailyChallenge = async function ({ client, sponsordata, challengetimedata, challengesref, challengesdata } = {}) {
+exports.dailyChallenge = async function ({ client, challengesref, db } = {}) {
     let recent = null
     let lastfive = []
-    if (challengesdata) {
-        Object.values(challengesdata).filter(c => c.type == 'cotd').sort((a, b) => b.created - a.created).slice(0, 5).forEach(challenge => {
+    if (db.ch.challenges) {
+        Object.values(db.ch.challenges).filter(c => c.type == 'cotd').sort((a, b) => b.created - a.created).slice(0, 5).forEach(challenge => {
             lastfive.push(challenge)
             if (!recent || recent.created - challenge.created < 0) {
                 recent = { ...challenge }
@@ -1588,7 +1587,7 @@ exports.dailyChallenge = async function ({ client, sponsordata, challengetimedat
         })
     }
     if (exports.easternTime().dayOfYear() !== recent.day) {
-        let current_challenge = exports.initializeChallenge({ type: "cotd", sponsordata })
+        let current_challenge = exports.initializeChallenge({ type: "cotd", db })
         if (lastfive.map(c => c.racer).includes(current_challenge.racer)) {
             if (Math.random() < 0.9) {
                 let leftoverracers = []
@@ -1619,7 +1618,7 @@ exports.dailyChallenge = async function ({ client, sponsordata, challengetimedat
                 current_challenge.conditions[con] = false
             }
         })
-        let cotdmessage = await postMessage(client, '551786988861128714', await exports.updateChallenge({ client, challengetimedata, current_challenge, sponsordata, challengesdata })) //551786988861128714
+        let cotdmessage = await postMessage(client, '551786988861128714', await exports.updateChallenge({ client, current_challenge, db })) //551786988861128714
         current_challenge.message = cotdmessage.id
         current_challenge.guild = cotdmessage.guildId
         current_challenge.channel = cotdmessage.channelId
@@ -1629,10 +1628,10 @@ exports.dailyChallenge = async function ({ client, sponsordata, challengetimedat
     }
 }
 
-exports.dailyBounty = async function ({ client, bountydata, bountyref } = {}) {
+exports.dailyBounty = async function ({ client, db, bountyref } = {}) {
     let recent = null
-    if (bountydata) {
-        Object.values(bountydata).filter(b => b.type == 'botd').forEach(bounty => {
+    if (db.ch.bounties) {
+        Object.values(db.ch.bounties).filter(b => b.type == 'botd').forEach(bounty => {
             if (!recent || recent.created - bounty.created < 0) {
                 recent = { ...bounty }
             }
