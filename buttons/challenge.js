@@ -12,8 +12,12 @@ module.exports = {
         const Member = interaction.member
         const name = interaction.member.displayName
         const avatar = await interaction.member.displayAvatarURL()
-        console.log(name, interaction)
         var tools = require('./../tools.js');
+
+        if (!database) {
+            interaction.reply({ content: 'Impossible, the archives must be... down?', ephemeral: true })
+            return
+        }
 
         const challengetimeref = database.ref('challenge/times');
         const feedbackref = database.ref('challenge/feedback');
@@ -86,7 +90,7 @@ module.exports = {
                     }
                     let type = interaction.member.voice?.channel?.id == '441840193754890250' ? 'multiplayer' : 'private'
                     current_challenge = initializeChallenge({ profile, member, type, name, avatar, user: player, db, interaction })
-                    const reply = await updateChallenge({  client, db, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction })
+                    const reply = await updateChallenge({ client, db, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction })
                     let message = await interaction.reply(reply)
                     current_challenge.message = message.id
                     current_challenge.channel = interaction.message.channelId
@@ -111,7 +115,7 @@ module.exports = {
                                 current_challengeref.update({ type: 'abandoned', players: [], predictions: [] })
                                 current_challenge = db.ch.challenges[message.id]
                             }
-                            const aba_response = await updateChallenge({  client, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, db })
+                            const aba_response = await updateChallenge({ client, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, db })
                             interaction.editReply(aba_response)
 
                         }
@@ -167,13 +171,13 @@ module.exports = {
                     //clean up old challenge
                     challengesref.child(interaction.message.id).update({ completed: true, rerolled: true })
                     current_challenge = db.ch.challenges[interaction.message.id]
-                    const edit_message = await updateChallenge({  client, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, db })
+                    const edit_message = await updateChallenge({ client, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, db })
                     editMessage(client, interaction.channel.id, interaction.message.id, edit_message)
 
                     //prepare new challenge
                     let rerolltype = 'private'
                     current_challenge = initializeChallenge({ profile, member, type: rerolltype, name, avatar, user: player, db, interaction })
-                    const reroll_reply = await updateChallenge({  client, profile, current_challenge, profileref, member, name, avatar, interaction, db })
+                    const reroll_reply = await updateChallenge({ client, profile, current_challenge, profileref, member, name, avatar, interaction, db })
                     let rerollmessage = await interaction.reply(reroll_reply)
                     current_challenge.message = rerollmessage.id
                     current_challenge.channel = interaction.message.channelId
@@ -233,7 +237,7 @@ module.exports = {
 
                     current_challenge = db.ch.challenges[current_challenge.message]
                     //populate options
-                    let adata = await updateChallenge({  client, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, db })
+                    let adata = await updateChallenge({ client, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, db })
                     if (!bribed) {
                         adata.components = [adata.components, bribeComponents(current_challenge)].flat()
                     }
@@ -268,7 +272,7 @@ module.exports = {
                         await current_challengeref.child("predictions").child(member).set(predictiondata);
                         let playeruser = current_challenge.player.user
                         current_challenge = db.ch.challenges[interaction.message.id]
-                        const pd_response = await updateChallenge({  client, profile: db.user?.[playeruser]?.random, current_challenge, current_challengeref, profileref: userref.child(playeruser).child('random'), member, name, avatar, interaction, db })
+                        const pd_response = await updateChallenge({ client, profile: db.user?.[playeruser]?.random, current_challenge, current_challengeref, profileref: userref.child(playeruser).child('random'), member, name, avatar, interaction, db })
                         interaction.update(pd_response)
                     } else {
                         if (current_challenge.player && current_challenge.player.member == member) { //trying to predict own challenge
@@ -344,7 +348,7 @@ module.exports = {
                         }
                     });
                     current_challenge = db.ch.challenges[interaction.message.id]
-                    const feedback_reply = await updateChallenge({  client, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, db })
+                    const feedback_reply = await updateChallenge({ client, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, db })
                     interaction.update(feedback_reply)
 
                     break
@@ -613,7 +617,7 @@ module.exports = {
                             interaction.reply({ embeds: [cantSponsor], ephemeral: true })
                             return
                         }
-                        const pub_response = await updateChallenge({  client, profile, current_challenge: sponsorchallenge, current_challengeref, profileref, member, name, avatar, interaction, db })
+                        const pub_response = await updateChallenge({ client, profile, current_challenge: sponsorchallenge, current_challengeref, profileref, member, name, avatar, interaction, db })
                         let publishmessage = await interaction.reply(pub_response)
                         sponsorchallenge.message = publishmessage.id
                         sponsorchallenge.url = publishmessage.url
@@ -1486,7 +1490,6 @@ module.exports = {
 
                     lastconsole = Object.values(db.ch.times).filter(c => c.user == member && c.platform).sort((a, b) => b.date - a.date)
                     if (lastconsole.length) {
-                        console.log(lastconsole[0])
                         lastconsole = lastconsole[0].platform
                     } else {
                         lastconsole = ""
@@ -1599,7 +1602,7 @@ module.exports = {
                     let time = tools.timetoSeconds(subtime)
                     let rta = tools.timetoSeconds(subrta)
                     let platform = subplatform.toLowerCase()
-                    if ((challengeend - current_challenge.created) < time * 1000) { //submitted time is impossible
+                    if ((challengeend - current_challenge.created) < time * 1000 && !current_challenge.rescue) { //submitted time is impossible
                         current_challengeref.update({ completed: true, funny_business: true })
                         profileref.update({ funny_business: (profile.funny_business ?? 0) + 1 })
                         const holdUp = new EmbedBuilder()
@@ -1627,7 +1630,7 @@ module.exports = {
                         profile = db.user[player].random //update profile
 
                         //update challenge
-                        const edit_reply = await updateChallenge({  client, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, db })
+                        const edit_reply = await updateChallenge({ client, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, db })
                         await interaction.editReply(edit_reply)
                         return
                     }
@@ -1757,7 +1760,7 @@ module.exports = {
                     profile = db.user[player].random //update profile
 
                     //update challenge
-                    const submit_reply = await updateChallenge({  client, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, db })
+                    const submit_reply = await updateChallenge({ client, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, db })
                     interaction.editReply(submit_reply)
 
                     break

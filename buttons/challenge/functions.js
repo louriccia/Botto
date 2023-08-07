@@ -334,6 +334,9 @@ exports.expiredEmbed = function () {
 }
 
 exports.isActive = function (current_challenge) {
+    if (current_challenge.rescue) {
+        return true
+    }
     let intime = Date.now() - 15 * 60 * 1000 < current_challenge.created
     let intime_day = Date.now() - 24 * 60 * 60 * 1000 < current_challenge.created
     let intime_month = exports.easternTime().month() == moment(current_challenge.created).tz('America/New_York').month()

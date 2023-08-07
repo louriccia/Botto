@@ -73,10 +73,9 @@ var firebaseConfig = testing ? firebaseCon : {
 };
 firebase.initializeApp(firebaseConfig);
 
-//var database = firebase.database();
-var database = admin.database();
-var logref = database.ref('log');
-var errorlogref = database.ref('log/error');
+const database = admin.database();
+const logref = database.ref('log');
+const errorlogref = database.ref('log/error');
 
 let db = {
     ch: {
@@ -186,7 +185,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 return;
             }
             try {
-                client.commands.get(command).execute(interaction, database);
+                client.commands.get(command).execute(interaction, database, db);
             } catch (error) {
                 console.error(error);
                 await interaction.reply({ content: "`Error: Command failed to execute `\n" + errorMessage[Math.floor(Math.random() * errorMessage.length)] })
