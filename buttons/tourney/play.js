@@ -27,7 +27,6 @@ exports.play = async function (args, interaction, database, db) {
     })
 
     const userref = database.ref('users');
-
     if (livematch?.ruleset && db.ty.rulesets) {
         liverules = db.ty.rulesets?.saved?.[livematch.ruleset]
     }
