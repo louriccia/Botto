@@ -1,14 +1,14 @@
-const { winnings_map, racers, tracks, planets, playerPicks, movieQuotes } = require('./data.js')
+const { winnings_map, racers, tracks, planets, circuits, playerPicks, movieQuotes } = require('./data.js')
 
 module.exports = {
     numberWithCommas: function (x) {
-        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        return x?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     },
-    capitalize: function(string){
+    capitalize: function (string) {
         return string.split(" ").map(word => word[0].toUpperCase() + word.slice(1)).join(" ")
     },
     timefix: function (time) {
-        if(time == "DNF"){
+        if (time == "DNF") {
             return "DNF"
         } else {
             time = Number(time)
@@ -141,6 +141,9 @@ module.exports = {
         var avgspeed = ((100 / heatrate) * (topspeed + avgboost) + (100 / coolrate) * (topspeed + avgcool)) / (100 / heatrate + 100 / coolrate)
         return avgspeed
     },
+    getRacerName: function (index) {
+        return [null, undefined, ""].includes(index) ? '--' : `${racers[index]?.flag} ${racers[index]?.name}`
+    },
     getRacerEmbed: function (numb) {
         const Discord = require('discord.js');
         var Tier = ["Top", "High", "Mid", "Low"]
@@ -165,6 +168,15 @@ module.exports = {
             .addField("Max Turn", racers[numb].max_turn_rate + "°/s", true)
             .setImage(racers[numb].stats)
         return racerEmbed
+    },
+    getTrackName: function (index) {
+        return [null, undefined, ""].includes(index) ? '--' : `${planets[tracks[index]?.planet]?.emoji} ${tracks[index]?.name}`
+    },
+    getCircuitName: function (index) {
+        return [null, undefined, ""].includes(index) ? '--' : `${circuits[index]?.name}`
+    },
+    getPlanetName: function (index) {
+        return [null, undefined, ""].includes(index) ? '--' : `${planets[index]?.emoji} ${planets[index]?.name}`
     },
     getTrackEmbed: function (numb, client, channel, interaction) {
         const Discord = require('discord.js');
@@ -216,17 +228,17 @@ module.exports = {
             if (![undefined, "", "Qualifying"].includes(match.bracket)) {
                 let players = {}
                 Object.values(match.races).forEach(race => {
-                    let winner = {player: null, time: null}
+                    let winner = { player: null, time: null }
                     Object.values(race.runs).forEach(run => {
-                        if(players[run.player] == undefined){
-                            players[run.player] = {player: run.player, score: 0}
+                        if (players[run.player] == undefined) {
+                            players[run.player] = { player: run.player, score: 0 }
                         }
-                        if(run.time !== "DNF" && (winner.time == null || run.time < winner.time)){
+                        if (run.time !== "DNF" && (winner.time == null || run.time < winner.time)) {
                             winner.time = run.time
                             winner.player = run.player
                         }
                     })
-                    players[winner.player].score ++
+                    players[winner.player].score++
                 })
                 players = Object.values(players)
                 if (players.length == 2) {
@@ -276,7 +288,7 @@ module.exports = {
         })
         return ranks
     },
-    getGoalTime: function ({track, racer, acceleration, top_speed, cooling, laps, length_mod, uh_mod, us_mod, deaths} = {}) {
+    getGoalTime: function ({ track, racer, acceleration, top_speed, cooling, laps, length_mod, uh_mod, us_mod, deaths } = {}) {
         //0. get required values
         var accel = this.upgradeAcceleration(racers[racer].acceleration, acceleration)
         var topspeed = this.upgradeTopSpeed(racers[racer].max_speed, top_speed)
@@ -486,10 +498,10 @@ module.exports = {
 
         //var chosenTrack = track
         var trackLength = null
-        if(laps == 1) {
+        if (laps == 1) {
             trackLength = tracks[chosenTrack].first_lap.length
         } else {
-            trackLength = tracks[chosenTrack].first_lap.length + (laps - 1 ) * tracks[chosenTrack].lap.length
+            trackLength = tracks[chosenTrack].first_lap.length + (laps - 1) * tracks[chosenTrack].lap.length
         }
         const firstPod = 0
         const lastPod = 22 //inclusive
@@ -795,7 +807,7 @@ module.exports = {
                 state.speedValue += state.noseMultiplier * frameTime * state.speedTimeMultiplier
                 state.baseSpeed = calculateBaseSpeed(state.speedValue) //where base speed is calculated
             }
-            
+
             //handle the effects of boost
             {
                 if (state.isBoosting) {
@@ -832,7 +844,7 @@ module.exports = {
                 }
             }
         }
-        
+
         function calculateBaseSpeed(speedValue) { //calculates base speed (before boost speed)
             return speedValue * podStats.statSpeed / (podStats.statAccel + speedValue)
         }

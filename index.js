@@ -91,8 +91,7 @@ let db = {
         rulesets: null,
         tournaments: null,
         scheduled: null,
-        live: null,
-        bets: null
+        live: null
     },
     user: null
 }
@@ -146,9 +145,9 @@ fetchData(database.ref('tourney/live'), function (data) {
     db.ty.live = data;
 });
 
-fetchData(database.ref('speedruns'), function (data) {
-    speedruns_data = data;
-});
+// fetchData(database.ref('speedruns'), function (data) {
+//     speedruns_data = data;
+// });
 
 fetchData(database.ref('tourney/bets'), function (data) {
     db.ty.bets = data;
@@ -223,33 +222,35 @@ client.once(Events.ClientReady, async () => {
     client.channels.cache.get(testing ? "1135800422066556940" : "444208252541075476").send("Deployed <t:" + Math.round(Date.now() / 1000) + ":R>");
 
     database.ref('users').once("value", function (snapshot) {
-        let users = snapshot.val()
-        client.guilds.fetch("441839750555369474").then(guild => {
-            try {
-                guild.members.fetch({ force: true }).then(members => {
-                    Object.keys(users).forEach(async function (key) {
-                        let user = users[key];
-                        if (user.discordID && guild.members.cache.some(m => m == user.discordID)) {
-                            guild.members.fetch({ user: user.discordID, force: true }).then(member => {
-                                // Storing role IDs in the 'roles' array
-                                const roles = member.roles.cache.map(role => role.id);
+        if (!testing) {
+            let users = snapshot.val()
+            client.guilds.fetch("441839750555369474").then(guild => {
+                try {
+                    guild.members.fetch({ force: true }).then(members => {
+                        Object.keys(users).forEach(async function (key) {
+                            let user = users[key];
+                            if (user.discordID && guild.members.cache.some(m => m == user.discordID)) {
+                                guild.members.fetch({ user: user.discordID, force: true }).then(member => {
+                                    // Storing role IDs in the 'roles' array
+                                    const roles = member.roles.cache.map(role => role.id);
 
-                                database.ref('users').child(key).child('avatar').set(member.displayAvatarURL())
-                                database.ref('users').child(key).child('discord').update({
-                                    displayName: member.displayName,
-                                    joinedTimestamp: member.joinedTimestamp,
-                                    nickname: member.nickname,
-                                    tag: member.user.tag,
-                                    roles: roles, // Adding the roles array to the user's data
+                                    database.ref('users').child(key).child('avatar').set(member.displayAvatarURL())
+                                    database.ref('users').child(key).child('discord').update({
+                                        displayName: member.displayName,
+                                        joinedTimestamp: member.joinedTimestamp,
+                                        nickname: member.nickname,
+                                        tag: member.user.tag,
+                                        roles: roles, // Adding the roles array to the user's data
+                                    });
                                 });
-                            });
-                        }
+                            }
+                        });
                     });
-                });
-            } catch (e) {
-                console.log(e);
-            }
-        });
+                } catch (e) {
+                    console.log(e);
+                }
+            });
+        }
     }, function (errorObject) {
         console.log("The read failed: " + errorObject.code);
     });
@@ -265,8 +266,10 @@ client.once(Events.ClientReady, async () => {
 
     const Guild = await client.guilds.cache.get("441839750555369474")
 
-    await Guild.edit({ banner: banners[Math.floor(Math.random() * banners.length)] })
-
+    if(!testing){
+        await Guild.edit({ banner: banners[Math.floor(Math.random() * banners.length)] })
+    }
+    
     const updater = async () => {
 
 
@@ -491,7 +494,7 @@ client.once(Events.ClientReady, async () => {
                 })
             })
     }
-    setInterval(updater, 1000 * 60)
+    if (!testing) { setInterval(updater, 1000 * 60) }
 })
 
 client.on("error", (e) => {

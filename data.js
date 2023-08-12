@@ -151,7 +151,13 @@ exports.banners = [
     'https://media.discordapp.net/attachments/554524314632978433/1115800266625798275/star_wars_ep1.bg_.jpg?width=1081&height=608',
     'https://media.discordapp.net/attachments/554524314632978433/1115800266982301697/Untitled-1.jpg?width=1081&height=608',
     'https://media.discordapp.net/attachments/554524314632978433/1115800267678568519/Untitled-2-16.jpg?width=1080&height=608',
-    'https://media.discordapp.net/attachments/554524314632978433/1115800268299305061/a9fd76c8ed641b2bdd283a069b333544-16.9.jpg?width=1081&height=608'
+    'https://media.discordapp.net/attachments/554524314632978433/1115800268299305061/a9fd76c8ed641b2bdd283a069b333544-16.9.jpg?width=1081&height=608',
+    'https://web.archive.org/web/20220131140446im_/https://starwarsblog.starwars.com/wp-content/uploads/2022/01/podracing-crew-pit-droids.jpg',
+    'https://web.archive.org/web/20220131140446im_/https://starwarsblog.starwars.com/wp-content/uploads/2022/01/inside-intel-podracing-anakini-TALL.jpg',
+    'https://web.archive.org/web/20220131140446im_/https://starwarsblog.starwars.com/wp-content/uploads/2022/01/anakin-s-podracer.jpg',
+    'https://web.archive.org/web/20220131140446im_/https://starwarsblog.starwars.com/wp-content/uploads/2022/01/anakin-s-podracer-flight.jpg',
+    'https://web.archive.org/web/20220131140446im_/https://starwarsblog.starwars.com/wp-content/uploads/2021/12/podrace-boonta-eve-classic.jpg',
+    
 ]
 
 exports.srcmap = {
