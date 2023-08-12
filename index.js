@@ -3,7 +3,7 @@ const Discord = require('discord.js');
 const { Client, Events, GatewayIntentBits } = require('discord.js')
 const { Configuration, OpenAIApi } = require("openai")
 
-const { token, firebaseCon, OPENAI_API_KEY } = require('./config.json');
+//const { token, firebaseCon, OPENAI_API_KEY } = require('./config.json');
 const { welcomeMessages } = require('./data.js')
 const client = new Client({
     intents: [
@@ -266,10 +266,10 @@ client.once(Events.ClientReady, async () => {
 
     const Guild = await client.guilds.cache.get("441839750555369474")
 
-    if(!testing){
+    if (!testing) {
         await Guild.edit({ banner: banners[Math.floor(Math.random() * banners.length)] })
     }
-    
+
     const updater = async () => {
 
 

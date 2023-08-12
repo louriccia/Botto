@@ -32,8 +32,8 @@ exports.play = async function (args, interaction, database, db) {
     }
 
     if (!liverules) {
-        interaction.reply({ content: 'Could not get ruleset', ephemeral: true })
-        return
+        //interaction.reply({ content: 'Could not get ruleset', ephemeral: true })
+        //return
     }
 
     //if no match, assert setup
