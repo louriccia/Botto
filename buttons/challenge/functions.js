@@ -1,6 +1,6 @@
 const { racers, tracks, planets, playerPicks, movieQuotes, circuits, multipliers, racer_hints, track_hints, mpQuotes, emojimap, console_emojis } = require('../../data.js')
 const tools = require('../../tools.js')
-const { truguts, swe1r_guild, tips, goal_symbols, settings_default, achievement_data, winnings_map, hints } = require('./data.js')
+const { truguts, swe1r_guild, tips, goal_symbols, settings_default, achievement_data, winnings_map, hints, shoplines } = require('./data.js')
 const { postMessage } = require('../../discord_message.js')
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder } = require('discord.js');
 const moment = require('moment');
@@ -687,6 +687,13 @@ exports.achievementProgress = function ({ db, player } = {}) {
         }
     })
 
+    achievements.bounty_hunter.count = exports.bountyAchievement(db, player)
+    achievements.bankroller_clan.count = exports.sponsorAchievement(db, player)
+    achievements.force_sight.count = exports.predictionAchievement(db, player)
+    console.log(player)
+    let profile = Object.values(db.user).find(u => u.discordID == player)
+    achievements.big_time_swindler.count = profile.random.truguts_earned + profile.random.truguts_spent
+
     return achievements
 }
 
@@ -984,7 +991,7 @@ exports.updateChallenge = async function ({ client, db, profile, current_challen
 exports.rerollReceipt = function (current_challenge) {
     let reroll_cost = current_challenge.reroll_cost
     return {
-        receipt: reroll_cost == 'discount' ? "`-📀" + tools.numberWithCommas(truguts.reroll_discount) + "` (discounted)" : (reroll_cost == 'free' ? "(no charge for record holders)" : "`-📀" + tools.numberWithCommas(truguts.reroll) + "`"),
+        receipt: reroll_cost == 'discount' ? "-📀" + tools.numberWithCommas(truguts.reroll_discount) + " (discounted)" : (reroll_cost == 'free' ? "(no charge for record holders)" : "-📀" + tools.numberWithCommas(truguts.reroll)),
         cost: reroll_cost == 'discount' ? truguts.reroll_discount : (reroll_cost == 'free' ? 0 : truguts.reroll)
     }
 }
@@ -1012,45 +1019,64 @@ exports.challengeEmbed = async function ({ current_challenge, profile, profilere
     let submitted_time = db.ch.times[current_challenge?.submissions?.[member]?.id] ?? {}
     let achs = exports.achievementProgress({ db, player: member })
     let desc = exports.generateChallengeDescription(current_challenge, best, profile, name, db) + (current_challenge.type == 'private' ? "\n" + exports.challengeAchievementProgress({ client, current_challenge, profile, profileref, achievements: achs, name, avatar, member }) : '')
+    let title = exports.generateChallengeTitle(current_challenge)
     const challengeEmbed = new EmbedBuilder()
-        .setTitle(exports.generateChallengeTitle(current_challenge))
+
         .setColor(exports.challengeColor(current_challenge))
+    if (title && !current_challenge.rerolled) {
+        challengeEmbed.setTitle(title)
+    }
     if (desc) {
-        challengeEmbed.setDescription(desc)
+        challengeEmbed.setDescription(current_challenge.rerolled ? title : desc)
     }
 
-
-    if (current_challenge.type == 'multiplayer') {
-        challengeEmbed
-            .setAuthor({ name: "Multiplayer Challenge", iconURL: "https://em-content.zobj.net/thumbs/120/twitter/322/chequered-flag_1f3c1.png" })
-    } else if (current_challenge.type == 'abandoned') {
-        challengeEmbed
-            .setAuthor({ name: "Abandoned Challenge", iconURL: 'https://em-content.zobj.net/thumbs/120/twitter/322/dashing-away_1f4a8.png' })
-    } else if (current_challenge.type == 'private') {
-        challengeEmbed
-            .setFooter({ text: "Truguts: 📀" + exports.currentTruguts(profile) })
-            .setAuthor({ name: name + "'s Random Challenge", iconURL: avatar })
-    } else if (current_challenge.type == 'open') {
-        challengeEmbed.setAuthor({ name: "Open Challenge", iconURL: "https://em-content.zobj.net/thumbs/120/twitter/322/game-die_1f3b2.png" })
-    } else if (current_challenge.type == 'cotd') {
-        challengeEmbed.setAuthor({ name: "Random Challenge of the Day", iconURL: "https://em-content.zobj.net/thumbs/120/twitter/322/game-die_1f3b2.png" })
-            .setTimestamp(current_challenge.created)
-    } else if (current_challenge.type == 'cotm') {
-        challengeEmbed.setAuthor({ name: "Random Challenge of the Month", iconURL: "https://em-content.zobj.net/thumbs/120/twitter/322/game-die_1f3b2.png" })
-            .setTimestamp(current_challenge.created)
+    const authormap = {
+        multiplayer: {
+            name: 'Multiplayer Challenge',
+            iconURL: 'https://em-content.zobj.net/thumbs/120/twitter/322/chequered-flag_1f3c1.png'
+        },
+        abandoned: {
+            name: 'Abandoned Challenge',
+            iconURL: 'https://em-content.zobj.net/thumbs/120/twitter/322/dashing-away_1f4a8.png'
+        },
+        private: {
+            name: `${name}'s Random Challenge`,
+            iconURL: avatar
+        },
+        open: {
+            name: 'Open Challenge',
+            iconURL: 'https://em-content.zobj.net/thumbs/120/twitter/322/game-die_1f3b2.png'
+        },
+        cotd: {
+            name: 'Random Challenge of the Day',
+            iconURL: 'https://em-content.zobj.net/thumbs/120/twitter/322/game-die_1f3b2.png'
+        },
+        cotm: {
+            name: 'Random Challenge of the Month',
+            iconURL: 'https://em-content.zobj.net/thumbs/120/twitter/322/game-die_1f3b2.png'
+        }
     }
+
+    challengeEmbed.setAuthor(authormap[current_challenge.type])
+
+    if (current_challenge.type == 'private') {
+        challengeEmbed.setFooter({ text: "Truguts: 📀" + exports.currentTruguts(profile) })
+    } else if (['cotd', 'cotm'].includes(current_challenge.type)) {
+        challengeEmbed.setTimestamp(current_challenge.created)
+    }
+
     let goals = exports.goalTimeList(current_challenge, profile, best)
     if (current_challenge.rerolled) {
         let reroll = exports.rerollReceipt(current_challenge)
-        challengeEmbed.setDescription(reroll.receipt)
+        challengeEmbed.setFooter({ text: reroll.receipt + "\nTruguts: 📀" + exports.currentTruguts(profile) })
     } else if (current_challenge.completed && ['private', 'abandoned'].includes(current_challenge.type)) {
         let winnings = exports.challengeWinnings({ current_challenge, profile, profileref, submitted_time, best, goals, member })
         challengeEmbed
             .addFields({ name: "Winnings", value: winnings.receipt, inline: true })
-            .setFooter({ text: "Truguts: 📀" + exports.currentTruguts(profile) })
     } else {
         challengeEmbed.addFields({ name: "Goal Times", value: goals.list, inline: true })
     }
+
     const image_url = best.find(b => b.proof?.includes('youtu'))?.proof ?? null
     let image = null
     if (image_url && !current_challenge.completed && !current_challenge.rerolled) {
@@ -1224,24 +1250,18 @@ exports.menuComponents = function () {
         )
         .addComponents(
             new ButtonBuilder()
-                .setCustomId("challenge_random_hint_initial")
-                .setLabel("Hints")
+                .setCustomId("challenge_random_shop")
+                .setLabel("Shop")
                 .setStyle(ButtonStyle.Secondary)
-                .setEmoji('💡')
+                .setEmoji('🛒')
         )
         .addComponents(
             new ButtonBuilder()
-                .setCustomId("challenge_random_hunt_initial")
-                .setLabel("Bounty")
+                .setCustomId("challenge_random_inventory")
+                .setLabel("Inventory")
                 .setStyle(ButtonStyle.Secondary)
-                .setEmoji('🎯')
-        )
-        .addComponents(
-            new ButtonBuilder()
-                .setCustomId("challenge_random_sponsor")
-                .setLabel("Sponsor")
-                .setStyle(ButtonStyle.Secondary)
-                .setEmoji('📢')
+                .setEmoji('🎒')
+                .setDisabled(true)
         )
 
     const row2 = new ActionRowBuilder()
@@ -1261,18 +1281,411 @@ exports.menuComponents = function () {
         )
         .addComponents(
             new ButtonBuilder()
-                .setCustomId("challenge_random_leaderboards_initial")
-                .setLabel("Leaderboards")
-                .setStyle(ButtonStyle.Secondary)
-                .setEmoji('🏆')
-        )
-        .addComponents(
-            new ButtonBuilder()
-                .setCustomId("challenge_random_about")
+                .setCustomId("challenge_random_menu")
                 .setStyle(ButtonStyle.Secondary)
                 .setEmoji('❔')
         )
     return [row1, row2]
+}
+
+exports.shopOptions = function ({ profile, selection, player, db } = {}) {
+    return [
+        {
+            label: `Hint (📀${tools.numberWithCommas(Math.min(truguts.hint_basic, truguts.hint_standard, truguts.hint_deluxe))} - 📀${tools.numberWithCommas(Math.max(truguts.hint_basic, truguts.hint_standard, truguts.hint_deluxe))})`,
+            value: 'hint',
+            description: "Get a hint for incomplete achievements",
+            info: "Hints help you narrow down what challenges you need to complete for :trophy: **Achievements**. The more you pay, the better the hint.",
+            emoji: {
+                name: "💡"
+            },
+            options: exports.hintComponents({ db, profile, selection, player })
+        },
+        {
+            label: `Bounty (📀${tools.numberWithCommas(Math.min(truguts.hint_basic, truguts.hint_standard, truguts.hint_deluxe))} - 📀${tools.numberWithCommas(Math.max(truguts.hint_basic, truguts.hint_standard, truguts.hint_deluxe))})`,
+            value: 'bounty',
+            description: "Take on a challenge bounty, find it, and claim your prize!",
+            info: "Challenge Bounty is a way to earn big truguts fast. Based on your hint selection, Botto hides a large trugut bonus on a random challenge.",
+            emoji: {
+                name: "🎯"
+            },
+            options: exports.huntComponents(profile, selection)
+        },
+        {
+            label: `Sponsor Challenge (📀2,200 - 📀5,500)`,
+            value: 'sponsorchallenge',
+            description: "Sponsor a random challenge and earn truguts!",
+            info: "Invest in a random challenge and make truguts on all its earnings. Select a circuit to sponsor and generate your random challenge based on your current odds. Next, you'll get a chance to set a title and sponsor time.",
+            emoji: {
+                name: "📣"
+            },
+            options: exports.sponsorShopComponents(profile, selection)
+        },
+        {
+            label: `Shuffle Banner (📀12,000)`,
+            value: 'shuffle_banner',
+            description: "Set a new random banner for the server",
+            info: "Tired of the current banner? Give us a new one!",
+            emoji: {
+                name: "🚩"
+            }
+        }
+    ]
+}
+
+exports.shopComponents = function ({ profile, selection, shoptions, purchased }) {
+    const row1 = new ActionRowBuilder()
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId("challenge_random_play")
+                .setLabel("Play")
+                .setStyle(ButtonStyle.Danger)
+                .setEmoji('🎲')
+        )
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId("challenge_random_shop")
+                .setLabel("Shop")
+                .setStyle(ButtonStyle.Secondary)
+                .setEmoji('🛒')
+                .setDisabled(true)
+        )
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId("challenge_random_inventory")
+                .setLabel("Inventory")
+                .setStyle(ButtonStyle.Secondary)
+                .setEmoji('🎒')
+                .setDisabled(true)
+        )
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId("challenge_random_menu")
+                .setStyle(ButtonStyle.Secondary)
+                .setEmoji("862620287735955487")
+        )
+    const row2 = new ActionRowBuilder()
+
+    const shop_select = new StringSelectMenuBuilder()
+        .setCustomId('challenge_random_shop_1')
+        .setPlaceholder(exports.currentTruguts(profile) < 100 ? 'Get lost! Come back when you got some money!' : shoplines[Math.floor(Math.random() * shoplines.length)])
+        .setMinValues(1)
+        .setMaxValues(1)
+    shoptions.forEach(option => {
+        shop_select.addOptions(option)
+    })
+    row2.addComponents(shop_select)
+
+    const comp = [row1, row2]
+
+    let options = shoptions.find(s => s.value == [selection[1]])?.options
+    if (options) {
+        comp.push(...options)
+    }
+    let selectable = []
+
+    comp.forEach((row, i) => {
+        row.components.filter(c => c.options).forEach(c => {
+            c.options?.forEach(o => {
+                if (o.data.value == selection[i]) {
+                    o.setDefault(true)
+                }
+            })
+            selectable.push(c.options.map(o => o.data.default).includes(true))
+        })
+    })
+
+    const purchase = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+            .setCustomId("challenge_random_shop_purchase")
+            .setLabel(purchased ? 'Purchased' : "Purchase")
+            .setStyle(ButtonStyle.Success)
+            .setDisabled(selectable.includes(false) || purchased)
+    )
+
+    comp.push(purchase)
+
+    return comp
+}
+
+exports.profileEmbed = function ({ db, player, page, name, avatar } = {}) {
+    const profileEmbed = new EmbedBuilder()
+    profileEmbed
+        .setAuthor({ name: name + "'s Random Challenge Profile", iconURL: avatar })
+
+    const profile = Object.values(db.user).find(u => u.discordID == player)
+
+    if (page == 'achievements') {
+        const ach_report = exports.achievementProgress({ db, player })
+        Object.values(ach_report).forEach(ach => {
+            const achievement_title = (ach.count >= ach.limit ? ":white_check_mark: " : ":trophy: ") + ach.name + "  `" + tools.numberWithCommas(ach.count) + "/" + tools.numberWithCommas(ach.limit) + "`"
+            const achievement_text = ach.description
+            profileEmbed.addFields({ name: achievement_title, value: achievement_text, inline: false })
+        })
+        profileEmbed.setTitle(`Achievements (${Object.values(ach_report).filter(a => a.count >= a.limit).length}/${Object.keys(ach_report).length})`)
+    } else if (page == 'stats') {
+        profileEmbed
+            .setTitle("Statistics")
+            .setDescription("Current trugut balance: `📀" + exports.currentTruguts(profile.random) + "`")
+
+        const stats = exports.getStats({ db, member: player, profile })
+        profileEmbed
+            .addFields({
+                name: ":bar_chart: Challenge Stats",
+                value: "Total: `" + stats.totals.total +
+                    "`\nStandard: `" + stats.totals.standard +
+                    "`\nSkips: `" + stats.totals.skips +
+                    "`\nNo Upgrades: `" + stats.totals.no_upgrades +
+                    "`\nNon 3-Lap: `" + stats.totals.non_3_lap +
+                    "`\nMirrored: `" + stats.totals.mirrored + "`",
+                inline: true
+            })
+            .addFields({
+                name: ":chart_with_upwards_trend: Gameplay Trends", value: "**Most Played Pod:** \n" + tools.getRacerName(stats.plays.mostPod.most_name) + " `" + stats.plays.mostPod.most_count + "`" +
+                    "\n**Most Played Track:**\n" + tools.getTrackName(stats.plays.mostTrack.most_name) + " `" + stats.plays.mostTrack.most_count + "`" +
+                    "\n**Most Played Planet:**\n" + tools.getPlanetName(stats.plays.mostPlanet.most_name) + " `" + stats.plays.mostPlanet.most_count + "`" +
+                    "\n**Most Played Circuit:**\n" + tools.getCircuitName(stats.plays.mostCircuit.most_name) + " `" + stats.plays.mostCircuit.most_count + "`", inline: true
+            })
+
+        var feedbacktrend = ""
+        feedbacktrend += "**Most Liked Pod:** \n" + tools.getRacerName(stats.feedback.likePod.most_name) + " `👍" + stats.feedback.likePod.most_count + "`" +
+            "\n**Most Liked Track:**\n" + tools.getTrackName(stats.feedback.likeTrack.most_name) + " `👍" + stats.feedback.likeTrack.most_count + "`\n"
+        feedbacktrend += "**Most Disliked Pod:**\n" + tools.getRacerName(stats.feedback.dislikePod.most_name) + " `👎" + stats.feedback.dislikePod.most_count + "`" +
+            "\n**Most Disliked Track:**\n" + tools.getTrackName(stats.feedback.dislikeTrack.most_name) + " `👎" + stats.feedback.dislikeTrack.most_count + "`"
+        profileEmbed
+            .addFields({ name: ":pencil: Feedback Trends", value: feedbacktrend, inline: true })
+            .addFields({
+                name: ":stopwatch: Time Stats", value: "Total time: `" + tools.timefix(stats.times.total) + "`\n" +
+                    "<:diamond:1136554333723435068> `" + stats.times.elite + "`\n" +
+                    "<:platinum:1136554336705597510> `" + stats.times.pro + "`\n" +
+                    "<:gold:1136554335426318406> `" + stats.times.rookie + "`\n" +
+                    "<:silver:1136554338895011850> `" + stats.times.amateur + "`\n" +
+                    "<:bronze:1136554332586786879> `" + stats.times.youngling + "`", inline: true
+            })
+            .addFields({
+                name: ":moneybag: Bonus Stats", value: ":snowflake: `" + stats.bonuses.first + "`\n" +
+                    "Bop `" + stats.bonuses.opponents_beat + "`\n" +
+                    "PB `" + stats.bonuses.pbs + "`\n" +
+                    "Non-Standard: `" + stats.bonuses.non_standard + "`\n" +
+                    "Total `📀" + tools.numberWithCommas(profile.random.truguts_earned) + "`", inline: true
+            })
+            .addFields({
+                name: ":shopping_cart: Purchase Stats", value: "Rerolls: `" + stats.purchases.rerolls + "`\n" +
+                    "Track Bribes: `" + stats.purchases.track_bribes + "`\n" +
+                    "Racer Bribes: `" + stats.purchases.racer_bribes + "`\n" +
+                    "Hints: `" + stats.purchases.hints + "`\n" +
+                    "Total Spending: `📀" + tools.numberWithCommas(profile.random.truguts_spent) + "`", inline: true
+            })
+    }
+
+    return profileEmbed
+}
+
+exports.profileComponents = function ({ member, page }) {
+    const row1 = new ActionRowBuilder()
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId("challenge_random_profile_stats_uid" + member)
+                .setLabel("Stats")
+                .setStyle(ButtonStyle.Secondary)
+                .setEmoji('📊')
+                .setDisabled(page == 'stats')
+        )
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId("challenge_random_profile_achievements_uid" + member)
+                .setLabel("Achievements")
+                .setStyle(ButtonStyle.Secondary)
+                .setEmoji('🏆')
+                .setDisabled(page == 'achievements')
+        )
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId("challenge_random_menu_uid" + member)
+                .setStyle(ButtonStyle.Secondary)
+                .setEmoji("862620287735955487")
+        )
+
+    return [row1]
+}
+
+exports.getStats = function ({ db, member, profile } = {}) {
+    let stats = {
+        totals: {
+            total: 0,
+            standard: 0,
+            skips: 0,
+            no_upgrades: 0,
+            non_3_lap: 0,
+            mirrored: 0
+        },
+        times: {
+            total: 0,
+            elite: 0,
+            pro: 0,
+            rookie: 0,
+            amateur: 0,
+            youngling: 0
+        },
+        bonuses: {
+            first: 0,
+            opponents_beat: 0,
+            pbs: 0,
+            non_standard: 0,
+            total_earnings: 0
+        },
+        purchases: {
+            rerolls: 0,
+            track_bribes: 0,
+            racer_bribes: 0,
+            hints: 0,
+            total_spending: 0
+        },
+        plays: {
+            mostPod: {},
+            mostTrack: {},
+            mostPlanet: {},
+            mostCircuit: {}
+        },
+        feedback: {
+            likePod: {},
+            likeTrack: {},
+            dislikePod: {},
+            dislikeTrack: {}
+        }
+    }
+    stats.bonuses.total_earnings = profile.truguts_earned
+    stats.purchases.total_spending = profile.truguts_spent
+    if (profile.random.purchases) {
+        Object.values(profile.random.purchases).forEach(purchase => {
+            if (["Basic Hint", "Standard Hint", "Deluxe Hint"].includes(purchase.purchased_item)) {
+                stats.purchases.hints++
+            }
+            if (purchase.purchased_item == "track bribe") {
+                stats.purchases.track_bribes++
+            }
+            if (purchase.purchased_item == "racer bribe") {
+                stats.purchases.racer_bribes++
+            }
+            if (purchase.purchased_item == "reroll") {
+                stats.purchases.rerolls++
+            }
+        })
+    }
+
+    stats.plays.mostPod.most_count = 0
+    stats.plays.mostPod.most_name = null
+    stats.plays.mostTrack.most_count = 0
+    stats.plays.mostTrack.most_name = null
+    stats.plays.mostPlanet.most_count = 0
+    stats.plays.mostPlanet.most_name = null
+    stats.plays.mostCircuit.most_count = 0
+    stats.plays.mostCircuit.most_name = null
+    stats.feedback.likePod.most_count = 0
+    stats.feedback.likePod.most_name = null
+    stats.feedback.likeTrack.most_count = 0
+    stats.feedback.likeTrack.most_name = null
+    stats.feedback.dislikePod.most_count = 0
+    stats.feedback.dislikePod.most_name = null
+    stats.feedback.dislikeTrack.most_count = 0
+    stats.feedback.dislikeTrack.most_name = null
+    function getMost(obj, prop) {
+        if (obj[prop] == null) {
+            obj[prop] = 1
+        } else {
+            obj[prop]++
+        }
+        if (obj[prop] > obj.most_count) {
+            obj.most_name = prop;
+            obj.most_count = obj[prop];
+        }
+    }
+    Object.values(db.ch.times).forEach(challenge => {
+        if (challenge.user == member) {
+            stats.totals.total++
+            //time stats
+            stats.times.total += Number(challenge.time)
+            var goals = exports.getGoalTimes({ ...challenge, best: Object.values(db.ch.times).filter(c => exports.matchingChallenge(c, challenge) && c.date < challenge.date) })
+            var goal_array = ["elite", "pro", "rookie", "amateur", "youngling"]
+            var goal_time = null
+            for (var j = goals.length - 1; j > -1; j--) {
+                if (challenge.time < goals[j]) {
+                    goal_time = j
+                }
+            }
+            if (goal_time !== null) {
+                stats.times[goal_array[goal_time]]++
+            }
+            //stats
+            if (!challenge.mirror && !challenge.nu && !challenge.skips && challenge.laps == 3) {
+                stats.totals.standard++
+            } else {
+                if (challenge.skips) {
+                    stats.totals.skips++
+                    stats.bonuses.non_standard++
+                }
+                if (challenge.nu) {
+                    stats.totals.no_upgrades++
+                    stats.bonuses.non_standard++
+                }
+                if (challenge.laps !== 3) {
+                    challenge
+                    stats.totals.non_3_lap++
+                    stats.bonuses.non_standard++
+                }
+                if (challenge.mirror) {
+                    stats.totals.mirrored++
+                    stats.bonuses.non_standard++
+                }
+            }
+            hasraced = true
+            getMost(stats.plays.mostPod, challenge.racer)
+            getMost(stats.plays.mostTrack, challenge.track)
+            getMost(stats.plays.mostPlanet, tracks[challenge.track].planet)
+            getMost(stats.plays.mostCircuit, tracks[challenge.track].circuit)
+            var first = true
+            var pb = false
+            var beat = []
+            Object.values(db.ch.times).filter(c => exports.matchingChallenge(c, challenge)).forEach(c => {
+                if (c < challenge.date) {
+                    first = false
+                    if (c.user == member) {
+                        pb = true
+                        if (c.time < challenge.time) {
+                            pb = false
+                        }
+                    }
+                }
+                if (c.user !== member && c.time > challenge.time && c.date < challenge.date && !beat.includes(c.user)) {
+                    beat.push(c.user)
+                }
+            })
+            stats.bonuses.opponents_beat += beat.length
+            if (first) {
+                stats.bonuses.first++
+            }
+            if (pb) {
+                stats.bonuses.pbs++
+            }
+        }
+    })
+    Object.values(db.ch.feedback).filter(f => f.user == member).forEach(f => {
+        getMost(f.feedback == "👍" ? stats.feedback.likePod : stats.feedback.dislikePod, f.racer)
+        getMost(f.feedback == "👍" ? stats.feedback.likeTrack : stats.feedback.dislikeTrack, f.track)
+    })
+
+    return stats
+}
+
+exports.shopEmbed = function ({ shoptions, selection, profile }) {
+    const selected = shoptions.find(o => o.value == selection[1])
+
+    const myEmbed = new EmbedBuilder()
+        .setAuthor({ name: "Random Challenge", iconURL: "https://em-content.zobj.net/thumbs/120/twitter/322/game-die_1f3b2.png" })
+        .setTitle(":shopping_cart: Shop")
+        .setColor("#ED4245")
+        .setDescription("Welcome to Botto's Shop!" + (selected ? `\n\n**${selected.label}**\n${selected.info}` : ''))
+        .setFooter({ text: `Truguts: 📀${exports.currentTruguts(profile)}` })
+    return myEmbed
 }
 
 exports.playButton = function () {
@@ -1290,35 +1703,29 @@ exports.notYoursEmbed = function () {
     return noMoney
 }
 
-exports.hintEmbed = function ({ profile, name, avatar } = {}) {
-    const hintEmbed = new EmbedBuilder()
-        .setTitle(":bulb: Hints")
-        .setAuthor({ name: "Random Challenge", iconURL: "https://em-content.zobj.net/thumbs/120/twitter/322/game-die_1f3b2.png" })
-        .setColor("#ED4245")
-        .setDescription("Hints help you narrow down what challenges you need to complete for :trophy: **Achievements**. The more you pay, the better the hint.")
-        .setFooter({ text: name + " | Truguts: 📀" + exports.currentTruguts(profile), iconURL: avatar })
-    return hintEmbed
-}
+exports.hintComponents = function ({ profile, selection, player, db } = {}) {
 
-exports.hintComponents = function (achievements, profile, achievement_keys, achievement, selection) {
     const achievement_selector = new StringSelectMenuBuilder()
-        .setCustomId('challenge_random_hint_achievement')
+        .setCustomId('challenge_random_shop_2')
         .setPlaceholder("Select Achievement")
         .setMinValues(1)
         .setMaxValues(1)
-    for (let i = 0; i < achievement_keys.length; i++) {
+
+    const ach = exports.achievementProgress({ db, player })
+
+    Object.keys(ach).filter(key => !profile.achievements[key] && !['big_time_swindler', 'bounty_hunter', 'bankroller_clan', 'force_sight', 'lap_god'].includes(key)).forEach(key => {
         achievement_selector.addOptions({
-            label: achievements[achievement_keys[i]].name,
-            value: achievement_keys[i],
-            description: achievements[achievement_keys[i]].description + ": " + achievements[achievement_keys[i]].count + "/" + achievements[achievement_keys[i]].limit,
+            label: ach[key].name,
+            value: key,
+            description: ach[key].description + ": " + ach[key].count + "/" + ach[key].limit,
             emoji: {
                 name: "🏆"
             },
-            default: achievement == achievement_keys[i]
+            default: selection[1] == key
         })
-    }
+    })
     const hint_selector = new StringSelectMenuBuilder()
-        .setCustomId('challenge_random_hint_selection')
+        .setCustomId('challenge_random_shop_3')
         .setPlaceholder("Select Hint")
         .setMinValues(1)
         .setMaxValues(1)
@@ -1327,12 +1734,12 @@ exports.hintComponents = function (achievements, profile, achievement_keys, achi
             hint_selector.addOptions(
                 {
                     label: hints[i].name,
-                    value: achievement + ":" + i,
+                    value: String(i),
                     description: "📀" + tools.numberWithCommas(hints[i].price) + " | " + hints[i].description,
                     emoji: {
                         name: "💡"
                     },
-                    default: selection == i
+                    default: selection[2] == i
                 }
             )
         }
@@ -1340,32 +1747,12 @@ exports.hintComponents = function (achievements, profile, achievement_keys, achi
 
     const row1 = new ActionRowBuilder().addComponents(achievement_selector)
     const row2 = new ActionRowBuilder().addComponents(hint_selector)
-    const row3 = new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
-            .setCustomId("challenge_random_hint_purchase_" + (achievement ? achievement.replace("_", "-") + ":" + selection : ""))
-            .setLabel("Buy Hint")
-            .setStyle(ButtonStyle.Primary)
-            .setEmoji("⏱️")
-            .setDisabled([achievement, selection].includes(null) || [achievement, selection].includes('null'))
-    )
-    return [row1, row2, row3]
-
-}
-
-exports.huntEmbed = function (profile) {
-    const huntEmbed = new EmbedBuilder()
-        .setTitle(":dart: Challenge Bounty")
-        .setAuthor({ name: "Random Challenge", iconURL: "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/game-die_1f3b2.png" })
-        .setDescription("Challenge Bounty is a way to earn big truguts fast. Based on your hint selection, Botto hides a large trugut bonus on a random challenge. You have one hour to find and complete this challenge to claim your bonus.")
-        .setFooter({ text: "Truguts: 📀" + exports.currentTruguts(profile) })
-        .setColor("#ED4245")
-
-    return huntEmbed
+    return achievement_selector.options.length ? [row1, row2] : []
 }
 
 exports.huntComponents = function (profile, selection) {
     const hint_selector = new StringSelectMenuBuilder()
-        .setCustomId('challenge_random_hunt_selection')
+        .setCustomId('challenge_random_shop_2')
         .setPlaceholder("Select Bounty Type")
         .setMinValues(1)
         .setMaxValues(1)
@@ -1385,14 +1772,7 @@ exports.huntComponents = function (profile, selection) {
         }
     }
     const row1 = new ActionRowBuilder().addComponents(hint_selector)
-    const row2 = new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
-            .setCustomId("challenge_random_hunt_start_" + selection)
-            .setLabel("Start Bounty")
-            .setStyle(ButtonStyle.Danger)
-            .setDisabled(selection === null)
-    )
-    return [row1, row2]
+    return [row1]
 }
 
 exports.settingsEmbed = function ({ profile, name, avatar } = {}) {
@@ -1464,30 +1844,27 @@ exports.trackHint = function (track, count) {
     return hint_shuffle.slice(0, count + 1)
 }
 
-exports.sponsorEmbed = function (sponsorchallenge, profile, page) {
+exports.sponsorEmbed = function (sponsorchallenge, profile) {
     const sponsorEmbed = new EmbedBuilder()
         .setTitle(":loudspeaker: Sponsor")
         .setAuthor({ name: "Random Challenge", iconURL: "https://em-content.zobj.net/thumbs/120/twitter/322/game-die_1f3b2.png" })
-        .setDescription("Step 1: Select a circuit to sponsor\nStep 2: Set a custom title and time\nStep 3: Publish your challenge and get players to complete it\nStep 4: Profit")
+        .setDescription("Step 1: Set a custom title and time\nStep 2: Publish your challenge and get players to complete it\nStep 3: Profit")
         .setFooter({ text: "Truguts: 📀" + exports.currentTruguts(profile) })
         .setColor("#ED4245")
     let title = sponsorchallenge?.title ?? "No title set"
     let time = exports.validateTime(sponsorchallenge?.time) ?? "No time set"
-    if (page) {
-        sponsorEmbed.addFields(
-            { name: ":game_die: Challenge: ", value: exports.generateChallengeTitle(sponsorchallenge) },
-            { name: ":label: Custom Title: " + title, value: "This will go above the challenge title." },
-            { name: ":stopwatch: Custom Time: " + tools.timefix(time), value: "Players who beat this sponsor time will get a special bonus. Please make it achievable." }
-        )
-    }
+    sponsorEmbed.addFields(
+        { name: ":game_die: Challenge: ", value: exports.generateChallengeTitle(sponsorchallenge) },
+        { name: ":label: Custom Title: " + title, value: "This will go above the challenge title." },
+        { name: ":stopwatch: Custom Time: " + tools.timefix(time), value: "Players who beat this sponsor time will get a special bonus. Please make it achievable." }
+    )
     return sponsorEmbed
 }
 
-exports.sponsorComponents = function (profile, selection, page) {
-    const row1 = new ActionRowBuilder()
-    const row2 = new ActionRowBuilder()
+exports.sponsorShopComponents = function (profile, selection) {
+    const row = new ActionRowBuilder()
     const circuit_selector = new StringSelectMenuBuilder()
-        .setCustomId('challenge_random_sponsor_circuit')
+        .setCustomId('challenge_random_shop_2')
         .setPlaceholder("Select A Circuit")
         .setMinValues(1)
         .setMaxValues(1)
@@ -1501,38 +1878,28 @@ exports.sponsorComponents = function (profile, selection, page) {
                     emoji: {
                         name: "📢"
                     },
-                    default: selection == i
                 }
             )
         }
     }
-    if (page == 0) {
-        row1.addComponents(circuit_selector)
-        row2.addComponents(
-            new ButtonBuilder()
-                .setCustomId("challenge_random_sponsor_submit_" + selection)
-                .setLabel("Sponsor")
-                .setStyle(ButtonStyle.Primary)
-                .setEmoji('📢')
-                .setDisabled(selection === null))
-        return [row1, row2]
-    } else {
-        row1.addComponents(
-            new ButtonBuilder()
-                .setCustomId("challenge_random_sponsor_details")
-                .setLabel("Set Title & Time")
-                .setStyle(ButtonStyle.Secondary)
-                .setEmoji('🏷️'),
-            new ButtonBuilder()
-                .setCustomId("challenge_random_sponsor_publish")
-                .setLabel("Publish Challenge")
-                .setStyle(ButtonStyle.Primary)
-                .setEmoji('📢'))
-        return [row1]
-    }
+    row.addComponents(circuit_selector)
+    return [row]
+}
 
-
-
+exports.sponsorComponents = function (profile) {
+    const row1 = new ActionRowBuilder()
+    row1.addComponents(
+        new ButtonBuilder()
+            .setCustomId("challenge_random_sponsor_details")
+            .setLabel("Set Title & Time")
+            .setStyle(ButtonStyle.Secondary)
+            .setEmoji('🏷️'),
+        new ButtonBuilder()
+            .setCustomId("challenge_random_sponsor_publish")
+            .setLabel("Publish Challenge")
+            .setStyle(ButtonStyle.Primary)
+            .setEmoji('📢'))
+    return [row1]
 }
 
 exports.validateTime = function (time) {
@@ -1721,4 +2088,81 @@ exports.manageTruguts = function ({ profile, profileref, transaction, amount, pu
 
 exports.currentTruguts = function (profile) {
     return tools.numberWithCommas(profile.truguts_earned - profile.truguts_spent)
+}
+
+exports.randomChallengeItem = function ({ profile, profileref, current_challenge, db }) {
+    const challenges_completed = Object.values(db.ch.times).filter(time => time.user == profile.discordID).length
+    let item_pool = []
+    let special_items = ['coffer', 'speed boost', 'sabotage']
+    items.forEach(item => {
+        if ((item.challenges !== null && item.challenges > challenges_completed) || current_challenge.conditions[item.condition] || item.track.includes(current_challenge.track) || item.racer.includes(current_challenge.racer)) {
+            item_pool.push(item)
+        }
+    })
+
+    //item rarity roll
+    const rarity = Math.random()
+    let rarity_pool = []
+    if (rarity < 0.60) {
+        rarity_pool = item_pool.filter(i => i.rarity == 'common')
+    } else if (rarity < 0.85) {
+        rarity_pool = item_pool.filter(i => i.rarity == 'uncommon')
+    } else if (rarity < 0.95) {
+        rarity_pool = item_pool.filter(i => i.rarity == 'rare')
+    } else {
+        rarity_pool = item_pool.filter(i => i.rarity == 'legendary')
+    }
+
+    //if no items are available of rolled rarity, default to common
+    if (rarity_pool.length == 0) {
+        rarity_pool = item_pool.filter(i => i.rarity == 'common')
+    }
+
+    //get random item
+    let random_item = rarity_pool[Math.floor(Math.random() * rarity_pool.length)]
+
+    //if it's a dup, there's a chance it will be replaced with a new item
+    let owned_ids = rofile.items.map(item => item.id)
+    if (owned_ids.includes(random_item.id) && Math.random() < 0.15) {
+        let new_pool = rarity_pool.filter(item => !owned_ids.includes(item.id))
+        if (new_pool.length) {
+            random_item = new_pool[Math.floor(Math.random() * new_pool.length)]
+        } else {
+            //if there are no new items, give player a special item
+            random_item = special_items[Math.floor(Math.random() * special_items.length)]
+        }
+    }
+
+    return random_item
+}
+
+exports.openCoffer = function () {
+    let opened_items = []
+
+    for (let j = 0; j < 4; j++) {
+        const rarity = Math.random()
+        let rarity_pool = []
+        if (rarity < 0.60) {
+            rarity_pool = items.filter(i => i.rarity == 'common')
+        } else if (rarity < 0.85) {
+            rarity_pool = items.filter(i => i.rarity == 'uncommon')
+        } else if (rarity < 0.95) {
+            rarity_pool = items.filter(i => i.rarity == 'rare')
+        } else {
+            rarity_pool = items.filter(i => i.rarity == 'legendary')
+        }
+
+        let random_item = rarity_pool[Math.floor(Math.random() * rarity_pool.length)]
+
+        let owned_ids = rofile.items.map(item => item.id)
+        if (owned_ids.includes(random_item.id) && Math.random() < 0.15) {
+            let new_pool = rarity_pool.filter(item => !owned_ids.includes(item.id))
+            if (new_pool.length) {
+                random_item = new_pool[Math.floor(Math.random() * new_pool.length)]
+            }
+        }
+        opened_items.push(random_item)
+    }
+
+    return opened_items
 }

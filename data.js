@@ -398,7 +398,7 @@ exports.movieQuotes = [
     "You must have Jedi reflexes if you race Pods.",
     "They have Podracing on Malastare. Very fast, very dangerous.",
     "Has anybody ever seen a Podrace?",
-    " ... the death toll is catastrophic...we must bow to their wishes... you must contact me ...",
+    "The death toll is catastrophic...we must bow to their wishes... you must contact me...",
     "When the storm is over, I'll show you my racer.",
     "Here, you'll like these pallies... Here.",
     "Mesa haten crunchen. Dat's da last ting mesa wanten.",

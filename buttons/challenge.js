@@ -1,7 +1,7 @@
 const { truguts, hints, settings_default, about, achievement_data, swe1r_guild } = require('./challenge/data.js');
-const { getGoalTimes, initializeChallenge, initializePlayer, updateChallenge, bribeComponents, menuEmbed, menuComponents, playButton, notYoursEmbed, hintEmbed, settingsEmbed, initializeUser, isActive, checkActive, expiredEmbed, challengeWinnings, getBest, goalTimeList, predictionScore, settingsComponents, achievementProgress, hintComponents, huntEmbed, huntComponents, racerHint, trackHint, sponsorComponents, sponsorEmbed, validateTime, initializeBounty, bountyEmbed, manageTruguts, currentTruguts, predictionAchievement, sponsorAchievement, bountyAchievement, achievementEmbed } = require('./challenge/functions.js');
+const { getGoalTimes, initializeChallenge, initializePlayer, updateChallenge, bribeComponents, menuEmbed, menuComponents, playButton, notYoursEmbed, settingsEmbed, initializeUser, isActive, checkActive, expiredEmbed, challengeWinnings, getBest, goalTimeList, predictionScore, settingsComponents, achievementProgress, huntComponents, racerHint, trackHint, sponsorComponents, sponsorEmbed, validateTime, initializeBounty, bountyEmbed, manageTruguts, currentTruguts, predictionAchievement, sponsorAchievement, bountyAchievement, achievementEmbed, shopEmbed, shopComponents, profileComponents, profileEmbed, shopOptions } = require('./challenge/functions.js');
 const { postMessage, editMessage } = require('../discord_message.js');
-const { tracks, circuits } = require('../data.js')
+const { tracks, circuits, banners } = require('../data.js')
 const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } = require('discord.js');
 
 module.exports = {
@@ -353,50 +353,31 @@ module.exports = {
 
                     break
                 case 'menu':
-                    interaction.reply({ embeds: [menuEmbed()], components: menuComponents() })
+                    if (interaction.isChatInputCommand()) {
+                        interaction.reply({ embeds: [menuEmbed()], components: menuComponents() })
+                    } else {
+                        interaction.update({ embeds: [menuEmbed()], components: menuComponents() })
+                    }
                     break
-                case 'hint':
-                    //get achievement progress
-                    let achievements = achievementProgress({ db, player: member })
-                    const hEmbed = hintEmbed({ profile, name, avatar })
-                    let achievement = null
-                    let selection = null
-
-                    let achievement_keys = Object.keys(achievements).filter(a => !profile?.achievements?.[a] && !['big_time_swindler', 'bounty_hunter', 'bankroller_clan', 'force_sight', 'lap_god'].includes(a))
-
-                    if (!achievement_keys.length) {
-                        hEmbed.setDescription("Wow! You've already earned all the achievements! This means you have no use for hints, but you can still earn a large Trugut bonus from a :dart: **Challenge Bounty**.")
-
-                        interaction.reply({
-                            embeds: [hEmbed], components: [{
-                                type: 1, components: [new ButtonBuilder()
-                                    .setCustomId("challenge_random_hunt")
-                                    .setLabel("Challenge Bounty")
-                                    .setStyle(ButtonStyle.Secondary)
-                                    .setEmoji("🎯")]
-                            }], ephemeral: true
-                        })
+                case 'shop':
+                    const selection = [0, 1, 2, 3, 4].map(i => (i == interaction.customId.split("_")[3] ? interaction.values?.[0] : undefined) ?? interaction.message?.components[i]?.components[0]?.data?.options?.find(o => o.default == true)?.value ?? (interaction.message?.components[i]?.components[0]?.data?.options ? '' : null))
+                    const shoptions = shopOptions({ profile, selection, player: member, db })
+                    if (args[2] !== 'purchase') {
+                        interaction.update({ embeds: [shopEmbed({ shoptions, selection, profile })], components: shopComponents({ profile, selection, shoptions, purchased: false }) })
                         return
                     }
 
-                    if (args[2] == "achievement") {
-                        achievement = interaction.values[0]
-                        interaction.update({ embeds: [hEmbed], components: hintComponents(achievements, profile, achievement_keys, achievement, selection), ephemeral: true })
-                    } else if (args[2] == "selection") {
-                        let split = interaction.values[0].split(":")
-                        achievement = split[0]
-                        selection = Number(split[1])
-                        interaction.update({ embeds: [hEmbed], components: hintComponents(achievements, profile, achievement_keys, achievement, selection), ephemeral: true })
-                    } else if (args[2] == "purchase") {
-                        let split = args[3].split(":")
-                        achievement = split[0].replace("-", "_")
-                        selection = Number(split[1])
+                    if (selection[1] == 'hint') {
+                        //get achievement progress
+                        let achievements = achievementProgress({ db, player: member })
+                        let achievement = selection[2]
+                        let hint = selection[3]
                         const hintBuy = new EmbedBuilder()
                             .setColor("#ED4245")
-                        if (profile.truguts_earned - profile.truguts_spent < hints[selection].price) {
+                        if (profile.truguts_earned - profile.truguts_spent < hints[hint].price) {
                             hintBuy
                                 .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
-                                .setDescription("*'No money, no hint!'*\nYou do not have enough truguts to buy the selected hint.\n\nHint cost: `" + hints[selection].price + "`")
+                                .setDescription("*'No money, no hint!'*\nYou do not have enough truguts to buy the selected hint.\n\nHint cost: `" + hints[hint].price + "`")
                                 .setFooter({ text: "Truguts: 📀" + currentTruguts(profile) })
                             interaction.reply({ embeds: [hintBuy], ephemeral: true })
                             return
@@ -455,41 +436,31 @@ module.exports = {
                         } else {
                             //prepare hint
                             if (track) {
-                                hintBuy.addFields({ name: "Track Hint", value: trackHint(track, selection).map(h => "○ *" + h + "*").join("\n") })
+                                hintBuy.addFields({ name: "Track Hint", value: trackHint(track, Number(hint)).map(h => "○ *" + h + "*").join("\n") })
                             }
                             if (racer) {
-                                hintBuy.addFields({ name: "Racer Hint", value: racerHint(racer, selection).map(h => "○ *" + h + "*").join("\n") })
+                                hintBuy.addFields({ name: "Racer Hint", value: racerHint(racer, Number(hint)).map(h => "○ *" + h + "*").join("\n") })
                             }
                             // process purchase
 
-                            hintBuy.setDescription("`-📀" + tools.numberWithCommas(hints[selection].price) + "`")
-                            //profileref.update({ truguts_spent: profile.truguts_spent + hints[selection].price })
+                            hintBuy.setDescription("`-📀" + tools.numberWithCommas(hints[hint].price) + "`")
+                            //profileref.update({ truguts_spent: profile.truguts_spent + hints[hint].price })
                             profile = manageTruguts({
-                                profile, profileref, transaction: 'w', amount: hints[selection].price, purchase: {
+                                profile, profileref, transaction: 'w', amount: hints[hint].price, purchase: {
                                     date: Date.now(),
-                                    purchased_item: hints[selection].name,
+                                    purchased_item: hints[hint].name,
                                     selection: achievement
                                 }
                             })
                         }
                         hintBuy
                             .setAuthor({ name: name + "'s Random Challenge Hint", iconURL: avatar })
-                            .setTitle(":bulb: " + hints[selection].name + ": " + achievements[achievement].name)
+                            .setTitle(":bulb: " + hints[hint].name + ": " + achievements[achievement].name)
                             .setFooter({ text: "Truguts: 📀" + currentTruguts(profile) })
 
                         interaction.reply({ embeds: [hintBuy] })
-                    } else {
-                        interaction.reply({ embeds: [hEmbed], components: hintComponents(achievements, profile, achievement_keys, achievement, selection), ephemeral: true })
-                    }
-
-                    break
-                case 'hunt':
-                    let hselection = null
-                    if (args[2] == "selection") {
-                        hselection = Number(interaction.values[0])
-                        interaction.update({ embeds: [huntEmbed(profile)], components: huntComponents(profile, hselection) })
-                    } else if (args[2] == "start") {
-                        hselection = Number(args[3])
+                    } else if (selection[1] == 'bounty') {
+                        let hselection = Number(selection[2])
                         if (profile.truguts_earned - profile.truguts_spent < hints[hselection].price) {
                             const hintBuy = new EmbedBuilder()
                                 .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
@@ -507,7 +478,7 @@ module.exports = {
                             }
                         })
                         let bounty = initializeBounty('private', hselection, { name, member, user: player, avatar })
-                        let message = await interaction.reply({
+                        const message = await interaction.reply({
                             embeds: [bountyEmbed(bounty, profile)], components: [
                                 {
                                     type: 1,
@@ -519,59 +490,74 @@ module.exports = {
                         bounty.message = message.id
                         bounty.channel = message.channelId
                         bountyref.push(bounty)
-                    } else {
-                        interaction.reply({ embeds: [huntEmbed(profile)], components: huntComponents(profile, hselection), ephemeral: true })
-                    }
-                    break
-                case 'sponsor':
-                    let cselection = null
-                    if (profile.truguts_earned - profile.truguts_spent < circuits[0].sponsor) {
-                        const cantSponsor = new EmbedBuilder()
-                            .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
-                            .setDescription("*'No money, no sponsor!'*\nYou do not have enough truguts to sponsor a challenge.")
-                            .setFooter({ text: "Truguts: 📀" + currentTruguts(profile) })
-                        interaction.reply({ embeds: [cantSponsor], ephemeral: true })
-                        return
-                    }
-                    let recent = null
-                    Object.keys(db.ch.sponsors).forEach(key => {
-                        if (db.ch.sponsors[key].sponsor?.member == interaction.user.id && (!recent || db.ch.sponsors[key].created > recent.date)) {
-                            recent = { date: db.ch.sponsors[key].created, key }
-                        }
-                    })
-                    if (recent && Date.now() - 1000 * 60 * 60 * 23 < recent.date && interaction.message.id !== recent.key) {
-                        const cantSponsor = new EmbedBuilder()
-                            .setTitle("<:WhyNobodyBuy:589481340957753363> Patience Viceroy, patience.")
-                            .setDescription("Sorry, you can only sponsor one challenge per day. You can sponsor your next challenge <t:" + Math.round((recent.date + 1000 * 60 * 60 * 23) / 1000) + ":R>")
-                            .setFooter({ text: "Truguts: 📀" + currentTruguts(profile) })
-                        interaction.reply({ embeds: [cantSponsor], ephemeral: true })
-                        return
-                    }
-                    if (args[2] == 'circuit') {
-                        cselection = Number(interaction.values[0])
-                        interaction.update({ embeds: [sponsorEmbed(null, profile, 0)], components: sponsorComponents(profile, cselection, 0) })
-                    } else if (args[2] == 'submit') { //sponsorship is paid
-                        //process purchase
-                        cselection = Number(args[3])
-                        //profileref.update({ truguts_spent: profile.truguts_spent + circuits[cselection].sponsor })
+                    } else if (selection[1] == 'sponsorchallenge') {
+                        let circuit = selection[2]
 
+                        let recent = null
+                        Object.keys(db.ch.sponsors).forEach(key => {
+                            if (db.ch.sponsors[key].sponsor?.member == interaction.user.id && (!recent || db.ch.sponsors[key].created > recent.date)) {
+                                recent = { date: db.ch.sponsors[key].created, key }
+                            }
+                        })
+                        if (recent && Date.now() - 1000 * 60 * 60 * 23 < recent.date && interaction.message.id !== recent.key) {
+                            const cantSponsor = new EmbedBuilder()
+                                .setTitle("<:WhyNobodyBuy:589481340957753363> Patience Viceroy, patience.")
+                                .setDescription("Sorry, you can only sponsor one challenge per day. You can sponsor your next challenge <t:" + Math.round((recent.date + 1000 * 60 * 60 * 23) / 1000) + ":R>")
+                                .setFooter({ text: "Truguts: 📀" + currentTruguts(profile) })
+                            interaction.reply({ embeds: [cantSponsor], ephemeral: true })
+                            return
+                        }
+                        if (profile.truguts_earned - profile.truguts_spent < circuits[0].sponsor) {
+                            const cantSponsor = new EmbedBuilder()
+                                .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
+                                .setDescription("*'No money, no sponsor!'*\nYou do not have enough truguts to sponsor a challenge.")
+                                .setFooter({ text: "Truguts: 📀" + currentTruguts(profile) })
+                            interaction.reply({ embeds: [cantSponsor], ephemeral: true })
+                            return
+                        }
+
+                        //process purchase
                         profile = manageTruguts({
-                            profile, profileref, transaction: 'w', amount: circuits[cselection].sponsor, purchase: {
+                            profile, profileref, transaction: 'w', amount: circuits[circuit].sponsor, purchase: {
                                 date: Date.now(),
                                 purchased_item: 'sponsor',
-                                selection: cselection
+                                selection: circuit
                             }
                         })
                         //initialize challenge
-                        let sponsorchallenge = initializeChallenge({ profile, member, type: "private", name, avatar, user: player, circuit: cselection, db, interaction })
+                        let sponsorchallenge = initializeChallenge({ profile, member, type: "private", name, avatar, user: player, circuit: circuit, db, interaction })
                         sponsorchallenge.type = 'open'
                         sponsorchallenge.sponsor = sponsorchallenge.player
                         delete sponsorchallenge.player
-                        sponsorref.child(interaction.message.id).set(sponsorchallenge)
+
 
                         //reveal challenge
-                        interaction.update({ embeds: [sponsorEmbed(sponsorchallenge, profile, 1)], components: sponsorComponents(profile, cselection, 1) })
-                    } else if (args[2] == 'details') { //set title / time
+                        const sponsor = await interaction.reply({ embeds: [sponsorEmbed(sponsorchallenge, profile, 1)], components: sponsorComponents(profile, circuit, 1), ephemeral: true, fetchReply: true })
+
+                        sponsorref.child(sponsor.id).set(sponsorchallenge)
+
+                    } else if (selection[1] == 'shuffle_banner') {
+                        let banner = banners[Math.floor(Math.random() * banners.length)]
+                        if (Guild.id == '441839750555369474') {
+                            await Guild.edit({ banner: banner })
+                            manageTruguts({
+                                profile, profileref, transaction: 'w', amount: 12000, purchase: {
+                                    date: Date.now(),
+                                    purchased_item: 'Banner Shuffle',
+                                }
+                            })
+                        }
+                        const shuffleBuy = new EmbedBuilder()
+                            .setAuthor({ name: `${name} shuffled the server banner!`, iconURL: avatar })
+                            .setImage(banner)
+                        interaction.reply({ embeds: [shuffleBuy] })
+                    }
+
+                    editMessage(client, interaction.channel.id, interaction.message.id, { embeds: [shopEmbed({ shoptions, selection, profile })], components: shopComponents({ profile, selection, shoptions, purchased: true }) })
+
+                    break
+                case 'sponsor':
+                    if (args[2] == 'details') { //set title / time
                         sponsorchallenge = db.ch.sponsors[interaction.message.id]
                         if (interaction.isModalSubmit()) {
                             let title = interaction.fields.getTextInputValue('customTitle')
@@ -582,7 +568,7 @@ module.exports = {
 
                             profile = db.user[player].random
                             sponsorchallenge = db.ch.sponsors[interaction.message.id]
-                            interaction.update({ embeds: [sponsorEmbed(sponsorchallenge, profile, 1)], components: sponsorComponents(profile, cselection, 1) })
+                            interaction.update({ embeds: [sponsorEmbed(sponsorchallenge, profile, 1)], components: sponsorComponents(profile, 1) })
                         } else {
                             const sponsorModal = new ModalBuilder()
                                 .setCustomId('challenge_random_sponsor_details')
@@ -738,426 +724,23 @@ module.exports = {
                     }
                     break
                 case 'profile':
-                    const notAvailable = new EmbedBuilder()
-                        .setTitle("<:WhyNobodyBuy:589481340957753363> I have great faith in the boy")
-                        .setDescription("Profiles are currently unavailable. Please harass LightningPirate to get this feature updated.")
-                    interaction.reply({ embeds: [notAvailable], ephemeral: true })
-                    return
-
-                    if (args[args.length - 1].startsWith("uid")) {
-                        if (args[args.length - 1].replace("uid", "") !== member) {
-                            const holdUp = new EmbedBuilder()
-                                .setTitle("<:WhyNobodyBuy:589481340957753363> Get Your Own Profile!")
-                                .setDescription("This is someone else's profile. Get your own by clicking the button below.")
-                            client.api.interactions(interaction.id, interaction.token).callback.post({
-                                data: {
-                                    type: 4,
-                                    data: {
-                                        content: "",
-                                        embeds: [holdUp],
-                                        flags: 64,
-                                        components: [
-                                            {
-                                                type: 1,
-                                                components: [
-                                                    {
-                                                        type: 2,
-                                                        custom_id: "challenge_random_profile_stats_new",
-                                                        style: 4,
-                                                        label: "Settings",
-                                                        emoji: {
-                                                            name: "📊"
-                                                        }
-                                                    },
-                                                    {
-                                                        type: 2,
-                                                        style: 2,
-                                                        custom_id: "challenge_random_menu_new",
-                                                        emoji: {
-                                                            name: "menu",
-                                                            id: "862620287735955487"
-                                                        }
-                                                    }
-                                                ]
-                                            }
-                                        ]
-                                    }
-                                }
-                            })
-                            return
-                        }
-                    }
-                    async function sendCallback() {
-                        var type = 6
-                        if (args.includes("new")) {
-                            type = 5
-                        }
-                        const wait = client.api.interactions(interaction.id, interaction.token).callback.post({
-                            data: {
-                                type: type,
-                                data: {
-                                    content: "Coming right up..."
-                                    //embeds: [racerEmbed]
-                                }
-                            }
-                        })
-                        return wait
-                    }
-                    async function sendResponse(embed) {
-                        var stats_disabled = false, stats_style = 2, achievements_disabled = false, achievements_style = 2
-                        if (args[2] == "stats") {
-                            stats_disabled = true
-                            stats_style = 4
-                        }
-                        if (args[2] == "achievements") {
-                            achievements_disabled = true
-                            achievements_style = 4
-                        }
-                        const response = await client.api.webhooks(client.user.id, interaction.token).messages('@original').patch({
-                            data: {
-                                embeds: [embed],
-                                components: [
-                                    {
-                                        type: 1,
-                                        components: [
-                                            {
-                                                type: 2,
-                                                style: stats_style,
-                                                custom_id: "challenge_random_profile_stats_uid" + member,
-                                                label: "Stats",
-                                                //emoji: { name: "📊"},
-                                                disabled: stats_disabled
-                                            },
-                                            {
-                                                type: 2,
-                                                style: achievements_style,
-                                                custom_id: "challenge_random_profile_achievements_uid" + member,
-                                                label: "Achievements",
-                                                //emoji: {    name: "🏆"},
-                                                disabled: achievements_disabled
-                                            },
-                                            {
-                                                type: 2,
-                                                style: 2,
-                                                custom_id: "challenge_random_menu_uid" + member,
-                                                emoji: {
-                                                    name: "menu",
-                                                    id: "862620287735955487"
-                                                }
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
-                        })
-                        return response
-                    }
-                    sendCallback().then(() => {
-                        const profileEmbed = new EmbedBuilder()
-                        profileEmbed
-                            .setAuthor(client.guilds.resolve(interaction.guild_id).members.resolve(member).user.username + "'s Random Challenge Profile", client.guilds.resolve(interaction.guild_id).members.resolve(member).user.avatarURL())
-                        if (args[2] == "stats") {
-
-                            var keys = Object.keys(db.ch.challenges)
-                            var stats = {
-                                total: 0,
-                                standard: 0,
-                                skips: 0,
-                                no_upgrades: 0,
-                                non_3_lap: 0,
-                                mirrored: 0
-                            }
-                            var times = {
-                                total: 0,
-                                elite: 0,
-                                pro: 0,
-                                rookie: 0,
-                                amateur: 0,
-                                youngling: 0
-                            }
-                            var bonuses = {
-                                first: 0,
-                                opponents_beat: 0,
-                                pbs: 0,
-                                non_standard: 0,
-                                total_earnings: 0
-                            }
-                            var purchases = {
-                                rerolls: 0,
-                                track_bribes: 0,
-                                racer_bribes: 0,
-                                hints: 0,
-                                total_spending: 0
-                            }
-                            bonuses.total_earnings = profile.truguts_earned
-                            purchases.total_spending = profile.truguts_spent
-                            if (profile.purchases !== undefined) {
-                                var prchs = Object.keys(profile.purchases)
-                                for (var p = 0; p < prchs.length; p++) {
-                                    var purchase = prchs[p]
-                                    if (["Basic Hint", "Standard Hint", "Deluxe Hint"].includes(profile.purchases[purchase].purchased_item)) {
-                                        purchases.hints++
-                                    }
-                                    if (profile.purchases[purchase].purchased_item == "track bribe") {
-                                        purchases.track_bribes++
-                                    }
-                                    if (profile.purchases[purchase].purchased_item == "racer bribe") {
-                                        purchases.racer_bribes++
-                                    }
-                                    if (profile.purchases[purchase].purchased_item == "reroll") {
-                                        purchases.rerolls++
-                                    }
-                                }
-                            }
-
-                            var mostPod = {}, mostTrack = {}, mostPlanet = {}, mostCircuit = {}, likePod = {}, likeTrack = {}, dislikePod = {}, dislikeTrack = {}
-                            mostPod.most_count = 0
-                            mostPod.most_name = null
-                            mostTrack.most_count = 0
-                            mostTrack.most_name = null
-                            mostPlanet.most_count = 0
-                            mostPlanet.most_name = null
-                            mostCircuit.most_count = 0
-                            mostCircuit.most_name = null
-                            likePod.most_count = 0
-                            likePod.most_name = null
-                            likeTrack.most_count = 0
-                            likeTrack.most_name = null
-                            dislikePod.most_count = 0
-                            dislikePod.most_name = null
-                            dislikeTrack.most_count = 0
-                            dislikeTrack.most_name = null
-                            function getMost(obj, prop) {
-                                if (obj[prop] == null) {
-                                    obj[prop] = 1
-                                } else {
-                                    obj[prop]++
-                                }
-                                if (obj[prop] > obj.most_count) {
-                                    obj.most_name = prop;
-                                    obj.most_count = obj[prop];
-                                }
-                            }
-                            var hasraced = false
-                            for (var i = 0; i < keys.length; i++) {
-                                var k = keys[i];
-                                if (db.ch.challenges[k].user == member) {
-                                    stats.total++
-                                    //time stats
-                                    times.total += Number(db.ch.challenges[k].time)
-                                    var goals = getGoalTimes(db.ch.challenges[k].track, db.ch.challenges[k].racer, db.ch.challenges[k].skips, db.ch.challenges[k].nu, db.ch.challenges[k].laps)
-                                    var goal_array = ["elite", "pro", "rookie", "amateur", "youngling"]
-                                    var goal_time = null
-                                    for (var j = goals.length - 1; j > -1; j--) {
-                                        if (db.ch.challenges[k].time < goals[j]) {
-                                            goal_time = j
-                                        }
-                                    }
-                                    if (goal_time !== null) {
-                                        times[goal_array[goal_time]]++
-                                    }
-                                    //stats
-                                    if (!db.ch.challenges[k].mirror && !db.ch.challenges[k].nu && !db.ch.challenges[k].skips && db.ch.challenges[k].laps == 3) {
-                                        stats.standard++
-                                    } else {
-                                        if (db.ch.challenges[k].skips) {
-                                            stats.skips++
-                                            bonuses.non_standard++
-                                        }
-                                        if (db.ch.challenges[k].nu) {
-                                            stats.no_upgrades++
-                                            bonuses.non_standard++
-                                        }
-                                        if (db.ch.challenges[k].laps !== 3) {
-                                            stats.non_3_lap++
-                                            bonuses.non_standard++
-                                        }
-                                        if (db.ch.challenges[k].mirror) {
-                                            stats.mirrored++
-                                            bonuses.non_standard++
-                                        }
-                                    }
-                                    hasraced = true
-                                    getMost(mostPod, db.ch.challenges[k].racer)
-                                    getMost(mostTrack, db.ch.challenges[k].track)
-                                    getMost(mostPlanet, tracks[db.ch.challenges[k].track].planet)
-                                    getMost(mostCircuit, tracks[db.ch.challenges[k].track].circuit)
-                                    var first = true
-                                    var pb = false
-                                    var beat = []
-                                    for (var p = 0; p < keys.length; p++) {
-                                        var n = keys[p]
-                                        if (db.ch.challenges[n].track == db.ch.challenges[k].track && db.ch.challenges[n].racer == db.ch.challenges[k].racer && db.ch.challenges[n].skips == db.ch.challenges[k].skips && db.ch.challenges[n].nu == db.ch.challenges[k].nu && db.ch.challenges[n].laps == db.ch.challenges[k].laps && db.ch.challenges[n].mirror == db.ch.challenges[k].mirror) {
-                                            if (db.ch.challenges[n].date < db.ch.challenges[k].date) {
-                                                first = false
-                                                if (db.ch.challenges[n].user == member) {
-                                                    pb = true
-                                                    if (db.ch.challenges[n].time < db.ch.challenges[k].time) {
-                                                        pb = false
-                                                    }
-                                                }
-                                            }
-                                            if (db.ch.challenges[n].user !== member && db.ch.challenges[n].time > db.ch.challenges[k].time && db.ch.challenges[n].date < db.ch.challenges[k].date && !beat.includes(db.ch.challenges[n].user)) {
-                                                beat.push(db.ch.challenges[n].user)
-                                            }
-                                        }
-                                    }
-                                    bonuses.opponents_beat += beat.length
-                                    if (first) {
-                                        bonuses.first++
-                                    }
-                                    if (pb) {
-                                        bonuses.pbs++
-                                    }
-                                }
-                            }
-                            var keys = Object.keys(feedbackdata)
-                            var hasliked = false
-                            var hasdisliked = false
-                            for (var i = 0; i < keys.length; i++) {
-                                var k = keys[i];
-                                if (feedbackdata[k].user == member) {
-                                    if (feedbackdata[k].feedback == "👍") {
-                                        hasliked = true
-                                        getMost(likePod, feedbackdata[k].racer)
-                                        getMost(likeTrack, feedbackdata[k].track)
-                                    } else if (feedbackdata[k].feedback == "👎") {
-                                        hasdisliked = true
-                                        getMost(dislikePod, feedbackdata[k].racer)
-                                        getMost(dislikeTrack, feedbackdata[k].track)
-                                    }
-
-                                }
-                            }
-                            profileEmbed
-                                .setTitle("Statistics")
-                                .setDescription("Current trugut balance: `📀" + currentTruguts(profile) + "`")
-                            //add goal times achieved for the stat section
-                            if (hasraced) {
-                                profileEmbed
-                                    .addField(":bar_chart: Challenge Stats", "Total: `" + stats.total + "`\nStandard: `" + stats.standard + "`\nSkips: `" + stats.skips + "`\nNo Upgrades: `" + stats.no_upgrades + "`\nNon 3-Lap: `" + stats.non_3_lap + "`\nMirrored: `" + stats.mirrored + "`", true)
-                                    .addField(":chart_with_upwards_trend: Gameplay Trends", "**Most Played Pod:** \n" + racers[mostPod.most_name].flag + " " + racers[mostPod.most_name].name + " `" + mostPod.most_count + "`" +
-                                        "\n**Most Played Track:**\n" + tracks[mostTrack.most_name].name + " `" + mostTrack.most_count + "`" +
-                                        "\n**Most Played Planet:**\n" + planets[mostPlanet.most_name].name + " `" + mostPlanet.most_count + "`" +
-                                        "\n**Most Played Circuit:**\n" + circuits[mostCircuit.most_name].name + " `" + mostCircuit.most_count + "`", true)
-                            } else {
-                                profileEmbed
-                                    .addField(":bar_chart: Challenge Stats", "No challenge data", true)
-                                    .addField(":chart_with_upwards_trend: Gameplay Trends", "No gameplay data", true)
-                            }
-                            var feedbacktrend = ""
-                            if (hasliked) {
-                                feedbacktrend += "**Most Liked Pod:** \n" + racers[likePod.most_name].flag + " " + racers[likePod.most_name].name + " `👍" + likePod.most_count + "`" +
-                                    "\n**Most Liked Track:**\n" + tracks[likeTrack.most_name].name + " `👍" + likeTrack.most_count + "`\n"
-                            }
-                            if (hasdisliked) {
-                                feedbacktrend += "**Most Disliked Pod:**\n" + racers[dislikePod.most_name].flag + " " + racers[dislikePod.most_name].name + " `👎" + dislikePod.most_count + "`" +
-                                    "\n**Most Disliked Track:**\n" + tracks[dislikeTrack.most_name].name + " `👎" + dislikeTrack.most_count + "`"
-                            }
-                            if (feedbacktrend == "") {
-                                feedbacktrend = "No feedback data"
-                            }
-                            profileEmbed
-                                .addField(":pencil: Feedback Trends", feedbacktrend, true)
-                                .addField(":stopwatch: Time Stats", "Total time: `" + tools.timefix(times.total) + "`\n" +
-                                    "Elite: `" + times.elite + "`\n" +
-                                    "Pro: `" + times.pro + "`\n" +
-                                    "Rookie: `" + times.rookie + "`\n" +
-                                    "Amateur: `" + times.amateur + "`\n" +
-                                    "Youngling: `" + times.youngling + "`", true)
-                                .addField(":moneybag: Bonus Stats", "Firsts: `" + bonuses.first + "`\n" +
-                                    "Opponents Beat: `" + bonuses.opponents_beat + "`\n" +
-                                    "Personal Bests: `" + bonuses.pbs + "`\n" +
-                                    "Non-Standard: `" + bonuses.non_standard + "`\n" +
-                                    "Total Earnings: `📀" + tools.numberWithCommas(bonuses.total_earnings) + "`", true)
-                                .addField(":shopping_cart: Purchase Stats", "Rerolls: `" + purchases.rerolls + "`\n" +
-                                    "Track Bribes: `" + purchases.track_bribes + "`\n" +
-                                    "Racer Bribes: `" + purchases.racer_bribes + "`\n" +
-                                    "Hints: `" + purchases.hints + "`\n" +
-                                    "Total Spending: `📀" + tools.numberWithCommas(purchases.total_spending) + "`", true)
-                        } else if (args[2] == "achievements") {
-                            var keys = Object.keys(db.ch.challenges)
-                            for (var i = 0; i < keys.length; i++) {
-                                var k = keys[i];
-                                if (db.ch.challenges[k].user == member) {
-                                    achievements.galaxy_famous.collection[String(db.ch.challenges[k].track)] = 1
-                                    achievements.pod_champ.collection[String(db.ch.challenges[k].racer)] = 1
-                                    if (db.ch.challenges[k].skips) {
-                                        achievements.light_skipper.collection[String(db.ch.challenges[k].track)] = 1
-                                    }
-                                    if (db.ch.challenges[k].nu) {
-                                        achievements.slow_steady.collection[String(db.ch.challenges[k].racer)] = 1
-                                    }
-                                    if (db.ch.challenges[k].mirror) {
-                                        achievements.mirror_dimension.collection[String(db.ch.challenges[k].track)] = 1
-                                    }
-                                    if (db.ch.challenges[k].racer == tracks[String(db.ch.challenges[k].track)].favorite) {
-                                        achievements.crowd_favorite.collection[String(db.ch.challenges[k].track)] = 1
-                                    }
-                                    achievements.true_jedi.collection[String(db.ch.challenges[k].track + " " + db.ch.challenges[k].racer)] = 1
-                                }
-                            }
-                            if (member == interaction.member.user.id) {
-                                //award achievement if gotten
-                                if (profile.achievements == undefined) {
-                                    var ach = {
-                                        galaxy_famous: false,
-                                        pod_champ: false,
-                                        light_skipper: false,
-                                        slow_steady: false,
-                                        mirror_dimension: false,
-                                        crowd_favorite: false,
-                                        true_jedi: false,
-                                        big_time_swindler: false
-                                    }
-                                    profileref.child("achievements").set(ach)
-                                }
-                                var achvs = Object.keys(achievements)
-                                for (var i = 0; i < achvs.length; i++) {
-                                    var a = achvs[i]
-                                    achievements[a].count = Object.keys(achievements[a].collection).length
-                                    if (achievements[a].name == "Big-Time Swindler") {
-                                        achievements[a].count = profile.truguts_spent + profile.truguts_earned
-                                    }
-                                    if (achievements[a].count >= achievements[a].limit && profile.achievements[a] == false) {
-                                        profileref.child("achievements").child(a).set(true)
-                                        const congratsEmbed = new EmbedBuilder()
-                                            .setAuthor(interaction.member.user.username + " got an achievement!", client.guilds.resolve(interaction.guild_id).members.resolve(interaction.member.user.id).user.avatarURL())
-                                            .setDescription(achievements[a].description) //+ " `" + String(Object.keys(achievements[a].collection).length) + "/" + String(achievements[a].limit)) + "`"
-                                            .setColor("FFB900")
-                                            .setTitle(":trophy: " + achievements[a].name)
-                                        if (interaction.guild_id == "441839750555369474") {
-                                            congratsEmbed.setDescription("**<@&" + achievements[a].role + ">** - " + achievements[a].description)
-                                            Member.roles.add(achievements[a].role).catch(error => console.log(error))
-                                        }
-                                        client.channels.cache.get(interaction.channel_id).send(congratsEmbed)
-                                    }
-                                }
-                            }
-                            var achvs = Object.keys(achievements)
-                            var achievement_count = 0
-                            for (var i = 0; i < achvs.length; i++) {
-                                var a = achvs[i]
-                                achievements[a].count = Object.keys(achievements[a].collection).length
-                                if (achievements[a].name == "Big-Time Swindler") {
-                                    achievements[a].count = profile.truguts_spent + profile.truguts_earned
-                                }
-                                var achievement_title = ""
-                                var achievement_text = ""
-                                if (achievements[a].count >= achievements[a].limit) {
-                                    achievement_title += ":white_check_mark: "
-                                    achievement_count++
-                                } else {
-                                    achievement_title += ":trophy: "
-                                }
-                                achievement_title += achievements[a].name + "  `" + tools.numberWithCommas(achievements[a].count) + "/" + tools.numberWithCommas(achievements[a].limit) + "`"
-                                achievement_text = achievements[a].description
-                                profileEmbed.addField(achievement_title, achievement_text, false)
-                            }
-                            profileEmbed.setTitle("Achievements (" + achievement_count + "/8)")
-                        }
-                        return profileEmbed
-                    }).then((embed) => sendResponse(embed))
+                    // if (args[args.length - 1].startsWith("uid") && args[args.length - 1].replace("uid", "") !== member) {
+                    //     const holdUp = new EmbedBuilder()
+                    //         .setTitle("<:WhyNobodyBuy:589481340957753363> Get Your Own Profile!")
+                    //         .setDescription("This is someone else's profile. Get your own by clicking the button below.")
+                    //     const row1 = new ActionRowBuilder()
+                    //         .addComponents(
+                    //             new ButtonBuilder()
+                    //                 .setCustomId("challenge_random_profile_stats")
+                    //                 .setLabel("Profile")
+                    //                 .setStyle(ButtonStyle.Secondary)
+                    //                 .setEmoji('👤')
+                    //         )
+                    //     interaction.reply({ embeds: [holdUp], ephemeral: true, components: [row1]})
+                    //     return
+                    // }
+                    await interaction.deferUpdate()
+                    interaction.editReply({ embeds: [profileEmbed({ db, player: member, page: args[2], name, avatar })], components: profileComponents({ member, page: args[2] }) })
                     break
                 case 'about':
                     let aselection = interaction.values?.[0] ?? 'rchallenge'
