@@ -54,7 +54,6 @@ exports.shoplines = [
     'No? This option no good for you, huh?',
     'You want to buy this option, huh?',
     'Leta me see...',
-    "You don't have enough money for that option",
     'No money. No parts. No deal.',
     "Mind tricks don't work on me. Only money!",
     "Ehhh, maybe you find what you need out back in the junkyard, huh?",
