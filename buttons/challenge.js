@@ -364,7 +364,6 @@ module.exports = {
                 case 'shop':
                     const selection = [0, 1, 2, 3, 4].map(i => (i == interaction.customId.split("_")[3] ? interaction.values : undefined) ?? interaction.message?.components[i]?.components[0]?.data?.options?.filter(o => o.default).map(o => o.value) ?? (interaction.message?.components[i]?.components[0]?.data?.options ? '' : null))
                     const shoptions = shopOptions({ profile, selection, player: member, db })
-                    console.log('selection', selection)
                     if (args[2] !== 'purchase') {
                         interaction.update({ embeds: [shopEmbed({ shoptions, selection, profile })], components: shopComponents({ profile, selection, shoptions, purchased: false }) })
                         return
@@ -439,6 +438,7 @@ module.exports = {
                                 }
                             }
                         }
+                        console.log(achievements.true_jedi.missing)
                         //get random missing challenge
                         let racer = null, track = null
                         if (["galaxy_famous", "light_skipper", "mirror_dimension", "crowd_favorite", 'backwards_compatible'].includes(achievement)) {

@@ -696,7 +696,6 @@ exports.achievementProgress = function ({ db, player } = {}) {
     achievements.bounty_hunter.count = exports.bountyAchievement(db, player)
     achievements.bankroller_clan.count = exports.sponsorAchievement(db, player)
     achievements.force_sight.count = exports.predictionAchievement(db, player)
-    console.log(player)
     let profile = Object.values(db.user).find(u => u.discordID == player)
     achievements.big_time_swindler.count = profile.random.truguts_earned + profile.random.truguts_spent
 
@@ -1430,7 +1429,6 @@ exports.shopComponents = function ({ profile, selection, shoptions, purchased })
     )
 
     comp.push(purchase)
-    console.log(comp)
     return comp
 }
 
@@ -2027,8 +2025,6 @@ exports.dailyChallenge = async function ({ client, challengesref, db } = {}) {
         challengesref.child(cotdmessage.id).set(current_challenge)
         cotdmessage.pin()
     }
-
-    console.log('daily', recent, exports.easternTime().dayOfYear())
 }
 
 exports.dailyBounty = async function ({ client, db, bountyref } = {}) {
