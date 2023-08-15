@@ -1954,6 +1954,7 @@ exports.monthlyChallenge = async function ({ client, challengesref, db } = {}) {
 exports.dailyChallenge = async function ({ client, challengesref, db } = {}) {
     let recent = null
     let lastfive = []
+    
     if (db.ch.challenges) {
         Object.values(db.ch.challenges).filter(c => c.type == 'cotd').sort((a, b) => b.created - a.created).slice(0, 5).forEach(challenge => {
             lastfive.push(challenge)
@@ -2002,6 +2003,8 @@ exports.dailyChallenge = async function ({ client, challengesref, db } = {}) {
         challengesref.child(cotdmessage.id).set(current_challenge)
         cotdmessage.pin()
     }
+
+    console.log('daily', recent, exports.easternTime().dayOfYear())
 }
 
 exports.dailyBounty = async function ({ client, db, bountyref } = {}) {
