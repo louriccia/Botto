@@ -1599,7 +1599,7 @@ exports.getStats = function ({ db, member, profile } = {}) {
             obj.most_count = obj[prop];
         }
     }
-    Object.values(db.ch.times).forEach(challenge => {
+    Object.values(db.ch.times).filter(challenge => !Array.isArray(challenge.track)).forEach(challenge => {
         if (challenge.user == member) {
             stats.totals.total++
             //time stats
