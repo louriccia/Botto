@@ -1436,7 +1436,8 @@ exports.profileEmbed = function ({ db, player, page, name, avatar } = {}) {
                     "`\nSkips: `" + stats.totals.skips +
                     "`\nNo Upgrades: `" + stats.totals.no_upgrades +
                     "`\nNon 3-Lap: `" + stats.totals.non_3_lap +
-                    "`\nMirrored: `" + stats.totals.mirrored + "`",
+                    "`\nMirrored: `" + stats.totals.mirrored + "`" +
+                    "`\nBackwarsd: `" + stats.totals.backwards + "`",
                 inline: true
             })
             .addFields({
@@ -1516,7 +1517,8 @@ exports.getStats = function ({ db, member, profile } = {}) {
             skips: 0,
             no_upgrades: 0,
             non_3_lap: 0,
-            mirrored: 0
+            mirrored: 0,
+            backwards: 0
         },
         times: {
             total: 0,
@@ -1619,21 +1621,25 @@ exports.getStats = function ({ db, member, profile } = {}) {
             if (!challenge.mirror && !challenge.nu && !challenge.skips && challenge.laps == 3) {
                 stats.totals.standard++
             } else {
-                if (challenge.skips) {
+                if (challenge.conditions.skips) {
                     stats.totals.skips++
                     stats.bonuses.non_standard++
                 }
-                if (challenge.nu) {
+                if (challenge.conditions.nu) {
                     stats.totals.no_upgrades++
                     stats.bonuses.non_standard++
                 }
-                if (challenge.laps !== 3) {
+                if (challenge.conditions.laps !== 3) {
                     challenge
                     stats.totals.non_3_lap++
                     stats.bonuses.non_standard++
                 }
-                if (challenge.mirror) {
+                if (challenge.conditions.mirror) {
                     stats.totals.mirrored++
+                    stats.bonuses.non_standard++
+                }
+                if (challenge.conditions.backwards) {
+                    stats.totals.backwards++
                     stats.bonuses.non_standard++
                 }
             }
