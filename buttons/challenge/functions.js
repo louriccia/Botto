@@ -1436,8 +1436,8 @@ exports.profileEmbed = function ({ db, player, page, name, avatar } = {}) {
                     "`\nSkips: `" + stats.totals.skips +
                     "`\nNo Upgrades: `" + stats.totals.no_upgrades +
                     "`\nNon 3-Lap: `" + stats.totals.non_3_lap +
-                    "`\nMirrored: `" + stats.totals.mirrored + "`" +
-                    "`\nBackwarsd: `" + stats.totals.backwards + "`",
+                    "`\nMirrored: `" + stats.totals.mirrored +
+                    "`\nBackwards: `" + stats.totals.backwards + "`",
                 inline: true
             })
             .addFields({
