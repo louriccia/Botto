@@ -1604,7 +1604,7 @@ exports.getStats = function ({ db, member, profile } = {}) {
             stats.totals.total++
             //time stats
             stats.times.total += Number(challenge.time)
-            var goals = exports.getGoalTimes({ ...challenge, best: Object.values(db.ch.times).filter(c => exports.matchingChallenge(c, challenge) && c.date < challenge.date) })
+            var goals = exports.getGoalTimes({ racer: challenge.racer, track: challenge.track, skips: challenge.conditions.skips, nu: challenge.conditions.nu, laps: challenge.conditions.laps, backwards: challenge.conditions.backwards, best: Object.values(db.ch.times).filter(c => exports.matchingChallenge(c, challenge) && c.date < challenge.date) })
             var goal_array = ["elite", "pro", "rookie", "amateur", "youngling"]
             var goal_time = null
             for (var j = goals.length - 1; j > -1; j--) {
