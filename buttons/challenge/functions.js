@@ -1017,7 +1017,7 @@ exports.checkActive = function (db, member, current_challenge) {
 
 exports.challengeEmbed = async function ({ current_challenge, profile, profileref, best, name, member, avatar, db, client } = {}) {
     let submitted_time = db.ch.times[current_challenge?.submissions?.[member]?.id] ?? {}
-    let achs = exports.achievementProgress({ db, player: member })
+    let achs = current_challenge.type == 'private' ? exports.achievementProgress({ db, player: member }) : null
     let desc = exports.generateChallengeDescription(current_challenge, best, profile, name, db) + (current_challenge.type == 'private' ? "\n" + exports.challengeAchievementProgress({ client, current_challenge, profile, profileref, achievements: achs, name, avatar, member }) : '')
     let title = exports.generateChallengeTitle(current_challenge)
     const challengeEmbed = new EmbedBuilder()
