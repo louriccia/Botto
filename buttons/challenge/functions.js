@@ -368,7 +368,7 @@ exports.generateChallengeTitle = function (current_challenge) {
     return title.slice(0, 255)
 }
 
-exports.generateChallengeDescription = function (current_challenge, best, profile, name, db) {
+exports.generateChallengeDescription = function ({ current_challenge, db }) {
     let desc = ''
 
     let duration = ['abandoned', 'multiplayer', 'private'].includes(current_challenge.type) ? 1000 * 60 * 15 : current_challenge.type == 'cotm' ? 1000 * 60 * 60 * 24 * exports.easternTime().daysInMonth() : 1000 * 60 * 60 * 24
@@ -378,6 +378,12 @@ exports.generateChallengeDescription = function (current_challenge, best, profil
     }
 
     desc = [exports.getFeedbackTally(db, current_challenge), (!current_challenge.completed && !current_challenge.rerolled ? expiration : ''), (current_challenge.sponsors ? exports.getSponsors(current_challenge) : ''), (current_challenge.predictions && !current_challenge.completed ? exports.getPredictors(current_challenge) : "")].filter(d => ![null, undefined, ''].includes(d)).join(" | ")
+
+    let formercotd = Object.values(db.ch.challenges).find(c => c.created < current_challenge.created && c.type == 'cotd' && exports.matchingChallenge(c, current_challenge)) ?? null
+    if (formercotd) {
+        desc += `\n Former :game_die: *Random Challenge of the Day*`
+    }
+
     if (current_challenge.conditions.backwards) {
         desc += '\n [Backwards tracks mod](https://www.speedrun.com/resourceasset/1aada)'
     }
@@ -1018,7 +1024,7 @@ exports.checkActive = function (db, member, current_challenge) {
 exports.challengeEmbed = async function ({ current_challenge, profile, profileref, best, name, member, avatar, db, client } = {}) {
     let submitted_time = db.ch.times[current_challenge?.submissions?.[member]?.id] ?? {}
     let achs = current_challenge.type == 'private' ? exports.achievementProgress({ db, player: member }) : null
-    let desc = exports.generateChallengeDescription(current_challenge, best, profile, name, db) + (current_challenge.type == 'private' ? "\n" + exports.challengeAchievementProgress({ client, current_challenge, profile, profileref, achievements: achs, name, avatar, member }) : '')
+    let desc = exports.generateChallengeDescription({ current_challenge, db }) + (current_challenge.type == 'private' ? "\n" + exports.challengeAchievementProgress({ client, current_challenge, profile, profileref, achievements: achs, name, avatar, member }) : '')
     let title = exports.generateChallengeTitle(current_challenge)
     const challengeEmbed = new EmbedBuilder()
 
@@ -1048,11 +1054,11 @@ exports.challengeEmbed = async function ({ current_challenge, profile, profilere
             iconURL: 'https://em-content.zobj.net/thumbs/120/twitter/322/game-die_1f3b2.png'
         },
         cotd: {
-            name: 'Random Challenge of the Day',
+            name: `Random Challenge of the Day #${Object.values(db.ch.challenges).filter(challenge => challenge.type == 'cotd' && challenge.created < current_challenge.created).length}`,
             iconURL: 'https://em-content.zobj.net/thumbs/120/twitter/322/game-die_1f3b2.png'
         },
         cotm: {
-            name: 'Random Challenge of the Month',
+            name: `Random Challenge of the Month #${Object.values(db.ch.challenges).filter(challenge => challenge.type == 'cotm' && challenge.created < current_challenge.created).length}`,
             iconURL: 'https://em-content.zobj.net/thumbs/120/twitter/322/game-die_1f3b2.png'
         }
     }
@@ -1181,14 +1187,13 @@ exports.challengeComponents = function (current_challenge, profile) {
     return row
 }
 
-exports.bribeComponents = function (current_challenge) {
-    const trackBribeRow = new ActionRowBuilder()
-    const racerBribeRow = new ActionRowBuilder()
+exports.trackSelector = function ({ customid, placeholder, min, max } = {}) {
+    const trackSelectRow = new ActionRowBuilder()
     const track_selector = new StringSelectMenuBuilder()
-        .setCustomId('challenge_random_bribe_track')
-        .setPlaceholder("Bribe Track (📀" + tools.numberWithCommas(truguts.bribe_track) + ")")
-        .setMinValues(1)
-        .setMaxValues(1)
+        .setCustomId(customid)
+        .setPlaceholder(placeholder)
+        .setMinValues(min)
+        .setMaxValues(max)
     for (let i = 0; i < 25; i++) {
         track_selector.addOptions({
             label: tracks[i].name,
@@ -1200,11 +1205,17 @@ exports.bribeComponents = function (current_challenge) {
             }
         })
     }
+    trackSelectRow.addComponents(track_selector)
+    return [trackSelectRow]
+}
+
+exports.racerSelector = function ({ customid, placeholder, min, max } = {}) {
+    const racerSelectRow = new ActionRowBuilder()
     const racer_selector = new StringSelectMenuBuilder()
-        .setCustomId('challenge_random_bribe_racer')
-        .setPlaceholder("Bribe Racer (📀" + tools.numberWithCommas(truguts.bribe_racer) + ")")
-        .setMinValues(1)
-        .setMaxValues(1)
+        .setCustomId(customid)
+        .setPlaceholder(placeholder)
+        .setMinValues(min)
+        .setMaxValues(max)
 
     for (var i = 0; i < 23; i++) {
         racer_selector.addOptions({
@@ -1217,14 +1228,17 @@ exports.bribeComponents = function (current_challenge) {
             }
         })
     }
-    trackBribeRow.addComponents(track_selector)
-    racerBribeRow.addComponents(racer_selector)
+    racerSelectRow.addComponents(racer_selector)
+    return [racerSelectRow]
+}
+
+exports.bribeComponents = function (current_challenge) {
     let components = []
     if (!current_challenge.track_bribe) {
-        components.push(trackBribeRow)
+        components.push(...exports.trackSelector({ customid: 'challenge_random_bribe_track', placeholder: "Bribe Track (📀" + tools.numberWithCommas(truguts.bribe_track) + ")", min: 1, max: 1 }))
     }
     if (!current_challenge.racer_bribe) {
-        components.push(racerBribeRow)
+        components.push(...exports.racerSelector({ customid: 'challenge_random_bribe_racer', placeholder: "Bribe Racer (📀" + tools.numberWithCommas(truguts.bribe_racer) + ")", min: 1, max: 1 }))
     }
     return components
 }
@@ -1288,27 +1302,37 @@ exports.menuComponents = function () {
     return [row1, row2]
 }
 
-exports.shopOptions = function ({ profile, selection, player, db } = {}) {
+exports.shopOptions = function ({ profile, player, db } = {}) {
     return [
         {
-            label: `Hint (📀${tools.numberWithCommas(Math.min(truguts.hint_basic, truguts.hint_standard, truguts.hint_deluxe))} - 📀${tools.numberWithCommas(Math.max(truguts.hint_basic, truguts.hint_standard, truguts.hint_deluxe))})`,
+            label: `Hint (📀${tools.numberWithCommas(Math.min(truguts.hint.basic, truguts.hint.standard, truguts.hint.deluxe))} - 📀${tools.numberWithCommas(Math.max(truguts.hint.basic, truguts.hint.standard, truguts.hint.deluxe))})`,
             value: 'hint',
             description: "Get a hint for incomplete achievements",
             info: "Hints help you narrow down what challenges you need to complete for :trophy: **Achievements**. The more you pay, the better the hint.",
             emoji: {
                 name: "💡"
             },
-            options: exports.hintComponents({ db, profile, selection, player })
+            options: exports.hintComponents({ db, profile, player })
         },
         {
-            label: `Bounty (📀${tools.numberWithCommas(Math.min(truguts.hint_basic, truguts.hint_standard, truguts.hint_deluxe))} - 📀${tools.numberWithCommas(Math.max(truguts.hint_basic, truguts.hint_standard, truguts.hint_deluxe))})`,
+            label: `Bounty (📀${tools.numberWithCommas(Math.min(truguts.hint.basic, truguts.hint.standard, truguts.hint.deluxe))} - 📀${tools.numberWithCommas(Math.max(truguts.hint.basic, truguts.hint.standard, truguts.hint.deluxe))})`,
             value: 'bounty',
             description: "Take on a challenge bounty, find it, and claim your prize!",
             info: "Challenge Bounty is a way to earn big truguts fast. Based on your hint selection, Botto hides a large trugut bonus on a random challenge.",
             emoji: {
                 name: "🎯"
             },
-            options: exports.huntComponents(profile, selection)
+            options: exports.huntComponents(profile)
+        },
+        {
+            label: `Botto Lotto Ticket (📀200)`,
+            value: 'lotto',
+            description: "Guess the lucky tracks for the monthly challenge and win big",
+            info: "Every month, a random multi-track challenge is generated with 4 - 10 tracks. Enter a Botto Lotto ticket with 7 track guesses.\n• For each track you get correct, earn `📀20,000`.\n• If all tracks on your ticket are in the monthly or vice versa, earn a grand prize of `📀1,000,000!`\n• Only one ticket per user per month.",
+            emoji: {
+                name: "🎫"
+            },
+            options: exports.trackSelector({ customid: 'challenge_random_shop_2', placeholder: 'Select Tracks', min: 7, max: 7 })
         },
         {
             label: `Sponsor Challenge (📀2,200 - 📀5,500)`,
@@ -1318,10 +1342,10 @@ exports.shopOptions = function ({ profile, selection, player, db } = {}) {
             emoji: {
                 name: "📣"
             },
-            options: exports.sponsorShopComponents(profile, selection)
+            options: exports.sponsorShopComponents(profile)
         },
         {
-            label: `Shuffle Banner (📀12,000)`,
+            label: `Shuffle Banner (📀${tools.numberWithCommas(truguts.shuffle)})`,
             value: 'shuffle_banner',
             description: "Set a new random banner for the server",
             info: "Tired of the current banner? Give us a new one!",
@@ -1331,6 +1355,8 @@ exports.shopOptions = function ({ profile, selection, player, db } = {}) {
         }
     ]
 }
+
+
 
 exports.shopComponents = function ({ profile, selection, shoptions, purchased }) {
     const row1 = new ActionRowBuilder()
@@ -1377,7 +1403,7 @@ exports.shopComponents = function ({ profile, selection, shoptions, purchased })
 
     const comp = [row1, row2]
 
-    let options = shoptions.find(s => s.value == [selection[1]])?.options
+    let options = shoptions.find(s => s.value == [selection[1]?.[0]])?.options
     if (options) {
         comp.push(...options)
     }
@@ -1386,11 +1412,12 @@ exports.shopComponents = function ({ profile, selection, shoptions, purchased })
     comp.forEach((row, i) => {
         row.components.filter(c => c.options).forEach(c => {
             c.options?.forEach(o => {
-                if (o.data.value == selection[i]) {
+                if (o.data.value == selection[i] || selection[i]?.includes(o.data.value)) {
                     o.setDefault(true)
                 }
             })
-            selectable.push(c.options.map(o => o.data.default).includes(true))
+            let selectmap = c.options.map(o => o.data.default)
+            selectable.push(selectmap.includes(true) && selectmap.filter(f => f)?.length >= c.data.min_values)
         })
     })
 
@@ -1403,7 +1430,7 @@ exports.shopComponents = function ({ profile, selection, shoptions, purchased })
     )
 
     comp.push(purchase)
-
+    console.log(comp)
     return comp
 }
 
@@ -1683,7 +1710,7 @@ exports.getStats = function ({ db, member, profile } = {}) {
 }
 
 exports.shopEmbed = function ({ shoptions, selection, profile }) {
-    const selected = shoptions.find(o => o.value == selection[1])
+    const selected = shoptions.find(o => o.value == selection[1]?.[0])
 
     const myEmbed = new EmbedBuilder()
         .setAuthor({ name: "Random Challenge", iconURL: "https://em-content.zobj.net/thumbs/120/twitter/322/game-die_1f3b2.png" })
@@ -1709,7 +1736,7 @@ exports.notYoursEmbed = function () {
     return noMoney
 }
 
-exports.hintComponents = function ({ profile, selection, player, db } = {}) {
+exports.hintComponents = function ({ profile, player, db } = {}) {
 
     const achievement_selector = new StringSelectMenuBuilder()
         .setCustomId('challenge_random_shop_2')
@@ -1726,8 +1753,7 @@ exports.hintComponents = function ({ profile, selection, player, db } = {}) {
             description: ach[key].description + ": " + ach[key].count + "/" + ach[key].limit,
             emoji: {
                 name: "🏆"
-            },
-            default: selection[1] == key
+            }
         })
     })
     const hint_selector = new StringSelectMenuBuilder()
@@ -1744,8 +1770,7 @@ exports.hintComponents = function ({ profile, selection, player, db } = {}) {
                     description: "📀" + tools.numberWithCommas(hints[i].price) + " | " + hints[i].description,
                     emoji: {
                         name: "💡"
-                    },
-                    default: selection[2] == i
+                    }
                 }
             )
         }
@@ -1756,7 +1781,7 @@ exports.hintComponents = function ({ profile, selection, player, db } = {}) {
     return achievement_selector.options.length ? [row1, row2] : []
 }
 
-exports.huntComponents = function (profile, selection) {
+exports.huntComponents = function (profile) {
     const hint_selector = new StringSelectMenuBuilder()
         .setCustomId('challenge_random_shop_2')
         .setPlaceholder("Select Bounty Type")
@@ -1771,8 +1796,7 @@ exports.huntComponents = function (profile, selection) {
                     description: "Price: 📀" + tools.numberWithCommas(hints[i].price) + " | " + hints[i].description + " | Bonus: 📀" + tools.numberWithCommas(hints[i].bonus),
                     emoji: {
                         name: "🎯"
-                    },
-                    default: selection == i
+                    }
                 }
             )
         }
@@ -1867,7 +1891,7 @@ exports.sponsorEmbed = function (sponsorchallenge, profile) {
     return sponsorEmbed
 }
 
-exports.sponsorShopComponents = function (profile, selection) {
+exports.sponsorShopComponents = function (profile) {
     const row = new ActionRowBuilder()
     const circuit_selector = new StringSelectMenuBuilder()
         .setCustomId('challenge_random_shop_2')
@@ -1954,7 +1978,7 @@ exports.monthlyChallenge = async function ({ client, challengesref, db } = {}) {
 exports.dailyChallenge = async function ({ client, challengesref, db } = {}) {
     let recent = null
     let lastfive = []
-    
+
     if (db.ch.challenges) {
         Object.values(db.ch.challenges).filter(c => c.type == 'cotd').sort((a, b) => b.created - a.created).slice(0, 5).forEach(challenge => {
             lastfive.push(challenge)

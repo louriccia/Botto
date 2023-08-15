@@ -3,6 +3,8 @@ const { getGoalTimes, initializeChallenge, initializePlayer, updateChallenge, br
 const { postMessage, editMessage } = require('../discord_message.js');
 const { tracks, circuits, banners } = require('../data.js')
 const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } = require('discord.js');
+const moment = require('moment');
+require('moment-timezone')
 
 module.exports = {
     name: 'challenge',
@@ -360,28 +362,52 @@ module.exports = {
                     }
                     break
                 case 'shop':
-                    const selection = [0, 1, 2, 3, 4].map(i => (i == interaction.customId.split("_")[3] ? interaction.values?.[0] : undefined) ?? interaction.message?.components[i]?.components[0]?.data?.options?.find(o => o.default == true)?.value ?? (interaction.message?.components[i]?.components[0]?.data?.options ? '' : null))
+                    const selection = [0, 1, 2, 3, 4].map(i => (i == interaction.customId.split("_")[3] ? interaction.values : undefined) ?? interaction.message?.components[i]?.components[0]?.data?.options?.filter(o => o.default).map(o => o.value) ?? (interaction.message?.components[i]?.components[0]?.data?.options ? '' : null))
                     const shoptions = shopOptions({ profile, selection, player: member, db })
+                    console.log('selection', selection)
                     if (args[2] !== 'purchase') {
                         interaction.update({ embeds: [shopEmbed({ shoptions, selection, profile })], components: shopComponents({ profile, selection, shoptions, purchased: false }) })
+                        return
+                    }
+
+                    const selectionmap = {
+                        hint: {
+                            selection: [selection[2], selection[3]],
+                            price: Object.values(truguts.hint)[selection[3]?.[0]]
+                        },
+                        bounty: {
+                            selection: selection[2],
+                            price: Object.values(truguts.hint)[selection[2]?.[0]]
+                        },
+                        sponsorchallenge: {
+                            selection: selection[2],
+                            price: circuits[selection[2]?.[0]]?.sponsor
+                        },
+                        shuffle_banner: {
+                            price: truguts.shuffle
+                        },
+                        lotto: {
+                            price: truguts.lotto,
+                        }
+                    }
+
+                    //can't afford
+                    if (currentTruguts(profile) < selectionmap[selection[1]].price) {
+                        const noTruguts = new EmbedBuilder()
+                            .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
+                            .setDescription("*'No money, no parts, no deal!'*\nYou do not have enough truguts to buy the selected option.\nCost: `📀" + numberWithCommas(selectionmap[selection[1]].price) + "`")
+                            .setFooter({ text: "Truguts: 📀" + currentTruguts(profile) })
+                        interaction.reply({ embeds: [noTruguts], ephemeral: true })
                         return
                     }
 
                     if (selection[1] == 'hint') {
                         //get achievement progress
                         let achievements = achievementProgress({ db, player: member })
-                        let achievement = selection[2]
-                        let hint = selection[3]
+                        let achievement = selection[2][0]
+                        let hint = selection[3][0]
                         const hintBuy = new EmbedBuilder()
                             .setColor("#ED4245")
-                        if (profile.truguts_earned - profile.truguts_spent < hints[hint].price) {
-                            hintBuy
-                                .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
-                                .setDescription("*'No money, no hint!'*\nYou do not have enough truguts to buy the selected hint.\n\nHint cost: `" + hints[hint].price + "`")
-                                .setFooter({ text: "Truguts: 📀" + currentTruguts(profile) })
-                            interaction.reply({ embeds: [hintBuy], ephemeral: true })
-                            return
-                        }
                         //figure out missing
                         for (let j = 0; j < 25; j++) {
                             if (j < 23) {
@@ -408,7 +434,7 @@ module.exports = {
                                 achievements.backwards_compatible.missing.push(j)
                             }
                             for (let l = 0; l < 23; l++) {
-                                if (!Object.keys(achievements.true_jedi.collection).includes(j + "," + l)) {
+                                if (!Object.keys(achievements.true_jedi.collection).includes(j + " " + l)) {
                                     achievements.true_jedi.missing.push(j + "," + l)
                                 }
                             }
@@ -445,13 +471,6 @@ module.exports = {
 
                             hintBuy.setDescription("`-📀" + tools.numberWithCommas(hints[hint].price) + "`")
                             //profileref.update({ truguts_spent: profile.truguts_spent + hints[hint].price })
-                            profile = manageTruguts({
-                                profile, profileref, transaction: 'w', amount: hints[hint].price, purchase: {
-                                    date: Date.now(),
-                                    purchased_item: hints[hint].name,
-                                    selection: achievement
-                                }
-                            })
                         }
                         hintBuy
                             .setAuthor({ name: name + "'s Random Challenge Hint", iconURL: avatar })
@@ -460,23 +479,7 @@ module.exports = {
 
                         interaction.reply({ embeds: [hintBuy] })
                     } else if (selection[1] == 'bounty') {
-                        let hselection = Number(selection[2])
-                        if (profile.truguts_earned - profile.truguts_spent < hints[hselection].price) {
-                            const hintBuy = new EmbedBuilder()
-                                .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
-                                .setDescription("*'No money, no bounty!'*\nYou do not have enough truguts to buy the selected bounty.\n\nBounty cost: `" + hints[hselection].price + "`")
-                            interaction.reply({ embeds: [hintBuy], ephemeral: true })
-                            return
-                        }
-
-                        //process purchase
-                        profile = manageTruguts({
-                            profile, profileref, transaction: 'w', amount: hints[hselection].price, purchase: {
-                                date: Date.now(),
-                                purchased_item: hints[hselection].name,
-                                selection: "challenge_hunt"
-                            }
-                        })
+                        let hselection = Number(selection[2][0])
                         let bounty = initializeBounty('private', hselection, { name, member, user: player, avatar })
                         const message = await interaction.reply({
                             embeds: [bountyEmbed(bounty, profile)], components: [
@@ -491,7 +494,7 @@ module.exports = {
                         bounty.channel = message.channelId
                         bountyref.push(bounty)
                     } else if (selection[1] == 'sponsorchallenge') {
-                        let circuit = selection[2]
+                        let circuit = selection[2][0]
 
                         let recent = null
                         Object.keys(db.ch.sponsors).forEach(key => {
@@ -507,29 +510,12 @@ module.exports = {
                             interaction.reply({ embeds: [cantSponsor], ephemeral: true })
                             return
                         }
-                        if (profile.truguts_earned - profile.truguts_spent < circuits[0].sponsor) {
-                            const cantSponsor = new EmbedBuilder()
-                                .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
-                                .setDescription("*'No money, no sponsor!'*\nYou do not have enough truguts to sponsor a challenge.")
-                                .setFooter({ text: "Truguts: 📀" + currentTruguts(profile) })
-                            interaction.reply({ embeds: [cantSponsor], ephemeral: true })
-                            return
-                        }
 
-                        //process purchase
-                        profile = manageTruguts({
-                            profile, profileref, transaction: 'w', amount: circuits[circuit].sponsor, purchase: {
-                                date: Date.now(),
-                                purchased_item: 'sponsor',
-                                selection: circuit
-                            }
-                        })
                         //initialize challenge
                         let sponsorchallenge = initializeChallenge({ profile, member, type: "private", name, avatar, user: player, circuit: circuit, db, interaction })
                         sponsorchallenge.type = 'open'
                         sponsorchallenge.sponsor = sponsorchallenge.player
                         delete sponsorchallenge.player
-
 
                         //reveal challenge
                         const sponsor = await interaction.reply({ embeds: [sponsorEmbed(sponsorchallenge, profile, 1)], components: sponsorComponents(profile, circuit, 1), ephemeral: true, fetchReply: true })
@@ -538,23 +524,48 @@ module.exports = {
 
                     } else if (selection[1] == 'shuffle_banner') {
                         let banner = banners[Math.floor(Math.random() * banners.length)]
+
                         if (Guild.id == '441839750555369474') {
                             await Guild.edit({ banner: banner })
-                            manageTruguts({
-                                profile, profileref, transaction: 'w', amount: 12000, purchase: {
-                                    date: Date.now(),
-                                    purchased_item: 'Banner Shuffle',
-                                }
-                            })
                         }
                         const shuffleBuy = new EmbedBuilder()
                             .setAuthor({ name: `${name} shuffled the server banner!`, iconURL: avatar })
                             .setImage(banner)
                         interaction.reply({ embeds: [shuffleBuy] })
+                    } else if (selection[1] == 'lotto') {
+                        //check if user already has ticket
+                        let existing = (Object.values(db.ch.lotto).find(t => t.user == interaction.user.id && moment(t.date).tz('America/New_York').month() == moment().tz('America/New_York').month()) ?? null)
+                        if (existing) {
+                            const noTruguts = new EmbedBuilder()
+                                .setTitle("<:WhyNobodyBuy:589481340957753363> A Botto Lotto ticket you have. Impossible, to take on a second.")
+                                .setDescription(`You've already purchased a Botto Lotto ticket this month. Your lucky tracks are:\n${existing.tracks.map(t => tools.getTrackName(t)).join("\n")}`)
+                                .setFooter({ text: "Truguts: 📀" + currentTruguts(profile) })
+                            interaction.reply({ embeds: [noTruguts], ephemeral: true })
+                            return
+                        }
+                        const ticket = {
+                            user: interaction.user.id,
+                            date: Date.now(),
+                            tracks: selection[2]
+                        }
+                        database.ref('challenge/lotto').push(ticket)
+                        const shuffleBuy = new EmbedBuilder()
+                            .setAuthor({ name: `${name} purchased a 🎫 Botto Lotto Ticket!`, iconURL: avatar })
+                            .setDescription(`For the next monthly challenge, they're predicting the following tracks:\n${ticket.tracks.map(t => tools.getTrackName(t)).join("\n")}`)
+                        interaction.reply({ embeds: [shuffleBuy] })
                     }
 
-                    editMessage(client, interaction.channel.id, interaction.message.id, { embeds: [shopEmbed({ shoptions, selection, profile })], components: shopComponents({ profile, selection, shoptions, purchased: true }) })
+                    //process purchase
+                    profile = manageTruguts({
+                        profile, profileref, transaction: 'w', amount: selectionmap[selection[1]].price, purchase: {
+                            date: Date.now(),
+                            purchased_item: selection[1][0],
+                            selection: selectionmap[selection[1][0]]?.selection ?? "",
+                            cost: selectionmap[selection[1][0]]?.price ?? ""
+                        }
+                    })
 
+                    editMessage(client, interaction.channel.id, interaction.message.id, { embeds: [shopEmbed({ shoptions, selection, profile })], components: shopComponents({ profile, selection, shoptions, purchased: true }) })
                     break
                 case 'sponsor':
                     if (args[2] == 'details') { //set title / time

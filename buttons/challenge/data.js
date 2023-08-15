@@ -31,21 +31,28 @@ exports.truguts = {
     rated: 50,
     bribe_track: 5000,
     bribe_racer: 5000,
-    hint_basic: 100,
-    hint_standard: 500,
-    hint_deluxe: 1200,
+    hint: {
+        basic: 100,
+        standard: 500,
+        deluxe: 1200
+    },
     reroll: 1200,
     reroll_discount: 600,
-    bonus_basic: 20000,
-    bonus_standard: 10000,
-    bonus_deluxe: 5000,
+    bonus: {
+        basic: 20000,
+        standard: 10000,
+        deluxe: 5000
+    },
     long: 200,
     extra_long: 400,
     prediction_max: 500,
     streak: 25,
     beat_sponsor: 1200,
     sponsor_cut: 0.20,
-    abandoned: 0.5
+    abandoned: 0.5,
+    shuffle: 1200,
+    lotto: 200
+
 }
 
 exports.shoplines = [
@@ -100,9 +107,9 @@ exports.shoplines = [
 ]
 
 exports.hints = [
-    { name: "Basic Hint", price: exports.truguts.hint_basic, bonus: exports.truguts.bonus_basic, description: "Single-part hint", hunt: "Force-Intuitive" },
-    { name: "Standard Hint", price: exports.truguts.hint_standard, bonus: exports.truguts.bonus_standard, description: "Two-part hint", hunt: "Force-Attuned" },
-    { name: "Deluxe Hint", price: exports.truguts.hint_deluxe, bonus: exports.truguts.bonus_deluxe, description: "Three-part hint", hunt: "Force-Sensitive" }
+    { name: "Basic Hint", price: exports.truguts.hint.basic, bonus: exports.truguts.bonus.basic, description: "Single-part hint", hunt: "Force-Intuitive" },
+    { name: "Standard Hint", price: exports.truguts.hint.standard, bonus: exports.truguts.bonus.standard, description: "Two-part hint", hunt: "Force-Attuned" },
+    { name: "Deluxe Hint", price: exports.truguts.hint.deluxe, bonus: exports.truguts.bonus.deluxe, description: "Three-part hint", hunt: "Force-Sensitive" }
 ]
 
 exports.tips = [
