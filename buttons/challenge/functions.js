@@ -1326,7 +1326,7 @@ exports.shopOptions = function ({ profile, player, db } = {}) {
         {
             label: `Botto Lotto Ticket (📀200)`,
             value: 'lotto',
-            description: "Guess the lucky tracks for the monthly challenge and win big",
+            description: "Guess the tracks for the monthly challenge and win big",
             info: "Every month, a random multi-track challenge is generated with 4 - 10 tracks. Enter a Botto Lotto ticket with 7 track guesses.\n• For each track you get correct, earn `📀20,000`.\n• If all tracks on your ticket are in the monthly or vice versa, earn a grand prize of `📀1,000,000!`\n• Only one ticket per user per month.",
             emoji: {
                 name: "🎫"
@@ -1970,6 +1970,28 @@ exports.monthlyChallenge = async function ({ client, challengesref, db } = {}) {
         current_challenge.url = cotmmessage.url
         challengesref.child(cotmmessage.id).set(current_challenge)
         cotmmessage.pin()
+
+        function trackMatch(a, b) {
+            return a.map(i => b.includes(i)).filter(i => i).length
+        }
+
+
+
+        let tickets = Object.values(db.ch.lotto).filter(t => moment(t.date).tz('America/New_York').month() == recent.month && trackMatch(t.tracks, current_challenge.track) > 0).sort((a, b) => trackMatch(a.tracks, current_challenge.track) - trackMatch(b.tracks, current_challenge.track))
+        tickets.forEach(t => {
+            trackMatch(t.tracks, current_challenge.track)
+        })
+        function winner(count, tracks) {
+            return count >= Math.min(7, tracks.length)
+        }
+        const winnersEmbed = new EmbedBuilder()
+            .setTitle('Botto Lotto Winners')
+            .setDescription(
+                tickets.map(t =>
+                    `${Object.values(db.user).find(u => u.discordID == t.user)} - ${winner(trackMatch(t.tracks, current_challenge.track), current_challenge.track) ?
+                        ('WINNER <a:sparks:672640526444527647> `+📀1,000,000`') :
+                        trackMatch(t.tracks, current_challenge.track) + ' Correct `+📀' + tools.numberWithCommas(trackMatch(t.tracks, current_challenge.track) * 20000) + "`"}`).join("\n"))
+        postMessage(client, '551786988861128714', { embeds: [winnersEmbed] })
     }
 }
 

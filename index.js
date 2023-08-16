@@ -83,7 +83,8 @@ let db = {
         challenges: null,
         feedback: null,
         bounties: null,
-        sponsors: null
+        sponsors: null,
+        lotto: null
     },
     ty: {
         bets: null,
@@ -119,6 +120,10 @@ fetchData(database.ref('challenge/feedback'), function (data) {
 
 fetchData(database.ref('challenge/bounties'), function (data) {
     db.ch.bounties = data;
+});
+
+fetchData(database.ref('challenge/lotto'), function (data) {
+    db.ch.lotto = data;
 });
 
 fetchData(database.ref('challenge/sponsorships'), function (data) {
@@ -680,7 +685,7 @@ async function fetchMessageContent(message) {
 client.on(Events.MessageCreate, async function (message) {
     if (message.author.bot) return; //trumps any command from executing from a bot message
 
-    if (message.mentions.users.has('545798436105224203')) {
+    if (message.mentions.users.has('545798436105224203') && !testing) {
         const previous = await fetchMessageContent(message);
         console.log(`${previous}\n\n${message.content}`);
         try {
