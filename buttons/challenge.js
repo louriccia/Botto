@@ -1,5 +1,5 @@
 const { truguts, hints, settings_default, about, achievement_data, swe1r_guild } = require('./challenge/data.js');
-const { getGoalTimes, initializeChallenge, initializePlayer, updateChallenge, bribeComponents, menuEmbed, menuComponents, playButton, notYoursEmbed, settingsEmbed, initializeUser, isActive, checkActive, expiredEmbed, challengeWinnings, getBest, goalTimeList, predictionScore, settingsComponents, achievementProgress, huntComponents, racerHint, trackHint, sponsorComponents, sponsorEmbed, validateTime, initializeBounty, bountyEmbed, manageTruguts, currentTruguts, predictionAchievement, sponsorAchievement, bountyAchievement, achievementEmbed, shopEmbed, shopComponents, profileComponents, profileEmbed, shopOptions } = require('./challenge/functions.js');
+const { getGoalTimes, initializeChallenge, initializePlayer, updateChallenge, bribeComponents, menuEmbed, menuComponents, playButton, notYoursEmbed, settingsEmbed, initializeUser, isActive, checkActive, expiredEmbed, challengeWinnings, getBest, goalTimeList, predictionScore, settingsComponents, achievementProgress, huntComponents, racerHint, trackHint, sponsorComponents, sponsorEmbed, validateTime, initializeBounty, bountyEmbed, manageTruguts, currentTruguts, predictionAchievement, sponsorAchievement, bountyAchievement, achievementEmbed, shopEmbed, shopComponents, profileComponents, profileEmbed, shopOptions, randomChallengeItem, inventoryComponents, inventoryEmbed } = require('./challenge/functions.js');
 const { postMessage, editMessage } = require('../discord_message.js');
 const { tracks, circuits, banners } = require('../data.js')
 const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } = require('discord.js');
@@ -361,6 +361,30 @@ module.exports = {
                         interaction.update({ embeds: [menuEmbed()], components: menuComponents() })
                     }
                     break
+                case 'inventory':
+                    let row = interaction.customId.split("_")[3]
+                    row = Number(row)
+                    let iselection = [0, 1, 2, 3, 4].map(i => {
+                        let sel, page = null
+                        let val = interaction.message?.components[i]?.components[0]?.data?.options?.filter(o => o.default).map(o => o.value) ??
+                            (interaction.message?.components[i]?.components[0]?.data?.options ? '' : null)
+                        if (i == row) {
+                            val = interaction.values
+                        }
+                        if (val?.[0]?.includes(":")) {
+                            sel = val[0].split(":")[0]
+                            if ("<>".includes(sel)) {
+                                sel = null
+                            }
+                            page = Number(val[0].split(":")[1])
+                        } else {
+                            sel = val
+                        }
+                        return ({ sel, page })
+                    })
+
+                    interaction.update({ embeds: [inventoryEmbed({ profile, selection: iselection })], components: inventoryComponents({ profile, selection: iselection }) })
+                    break
                 case 'shop':
                     const selection = [0, 1, 2, 3, 4].map(i => (i == interaction.customId.split("_")[3] ? interaction.values : undefined) ?? interaction.message?.components[i]?.components[0]?.data?.options?.filter(o => o.default).map(o => o.value) ?? (interaction.message?.components[i]?.components[0]?.data?.options ? '' : null))
                     const shoptions = shopOptions({ profile, selection, player: member, db })
@@ -438,7 +462,6 @@ module.exports = {
                                 }
                             }
                         }
-                        console.log(achievements.true_jedi.missing)
                         //get random missing challenge
                         let racer = null, track = null
                         if (["galaxy_famous", "light_skipper", "mirror_dimension", "crowd_favorite", 'backwards_compatible'].includes(achievement)) {
@@ -1196,7 +1219,7 @@ module.exports = {
                     let time = tools.timetoSeconds(subtime)
                     let rta = tools.timetoSeconds(subrta)
                     let platform = subplatform.toLowerCase()
-                    if ((challengeend - current_challenge.created) < time * 1000 && !current_challenge.rescue) { //submitted time is impossible
+                    if ((challengeend - current_challenge.created) < time * 1000 && !current_challenge.rescue && !current_challenge.guild == '1135800421290627112') { //submitted time is impossible
                         current_challengeref.update({ completed: true, funny_business: true })
                         profileref.update({ funny_business: (profile.funny_business ?? 0) + 1 })
                         const holdUp = new EmbedBuilder()
@@ -1272,9 +1295,19 @@ module.exports = {
 
                     //award winnings for this submission
                     let winnings = challengeWinnings({ current_challenge, submitted_time: submissiondata, profile, best: getBest(db, current_challenge), goals: goalTimeList(current_challenge, profile), member })
-                    //profileref.update({ truguts_earned: profile.truguts_earned + winnings.earnings })
+                    let earned_item = randomChallengeItem({ profile, profileref, current_challenge, db, member })
                     profile = manageTruguts({ profile, profileref, transaction: 'd', amount: winnings.earnings })
-                    current_challengeref.child("earnings").child(member).set({ truguts_earned: winnings.earnings, player: member })
+                    if (!profile.items) {
+                        console.log('no profile items')
+                        profileref.child('items').set('test')
+                    }
+                    let eitem = { id: earned_item.id, challenge: interaction.message.id }
+                    if (earned_item.upgrade) {
+                        eitem = { ...eitem, health: earned_item.health, upgrade: earned_item.upgrade }
+                    }
+                    console.log(eitem)
+                    profileref.child('items').push(eitem)
+                    current_challengeref.child("earnings").child(member).set({ truguts_earned: winnings.earnings, player: member, item: eitem.id })
                     total_revenue += winnings.earnings
 
                     //award prediction winnings for this submission
