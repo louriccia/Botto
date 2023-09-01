@@ -1,7 +1,7 @@
 const { racers, tracks, planets, playerPicks, movieQuotes, circuits, multipliers, racer_hints, track_hints, mpQuotes, emojimap, console_emojis } = require('../../data.js')
 const tools = require('../../tools.js')
-const { truguts, swe1r_guild, tips, goal_symbols, settings_default, achievement_data, winnings_map, hints, shoplines } = require('./data.js')
-const { items, collections } = require('./items.js')
+const { truguts, swe1r_guild, tips, goal_symbols, settings_default, achievement_data, winnings_map, hints, shoplines, level_symbols } = require('./data.js')
+const { items, collections, levels, raritysymbols } = require('./items.js')
 const { postMessage } = require('../../discord_message.js')
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } = require('discord.js');
 const moment = require('moment');
@@ -172,12 +172,12 @@ exports.initializePlayer = function (ref, name) {
     return data
 }
 
-exports.initializeUser = function (ref, id, name) {
+exports.initializeUser = async function (ref, id, name) {
     let data = {
         discordID: id,
         name: name
     }
-    const push = ref.push(data)
+    const push = await ref.push(data)
     return push.key
 }
 
@@ -288,21 +288,24 @@ exports.initializeChallenge = function ({ profile, member, type, name, avatar, u
 }
 
 exports.getSponsor = function (challenge, db) {
-    Object.keys(db.ch.sponsors).forEach(key => {
-        if (!challenge.submissions) {
-            challenge.sponsors = {}
-            challenge.sponsor_title = ''
-            challenge.sponsor_time = ''
-            if (exports.matchingChallenge(db.ch.sponsors[key], challenge)) {
-                if (!challenge.sponsors[db.ch.sponsors[key].sponsor?.member]) {
-                    challenge.sponsors[db.ch.sponsors[key].sponsor.member] = db.ch.sponsors[key].sponsor
-                    challenge.sponsors[db.ch.sponsors[key].sponsor.member].multiplier = 1
-                } else {
-                    challenge.sponsors[db.ch.sponsors[key].sponsor.member].multiplier++
-                }
-                challenge.sponsor_title = db.ch.sponsors[key].title
-                challenge.sponsor_time = db.ch.sponsors[key].time
-            }
+    if (challenge.submissions) {
+        return challenge
+    }
+    challenge.sponsors = {}
+    challenge.sponsor_title = ''
+    challenge.sponsor_time = ''
+    Object.values(db.ch.sponsors).filter(sponsor => exports.matchingChallenge(sponsor, challenge)).forEach(sponsor => {
+        if (!challenge.sponsors[sponsor.sponsor?.member]) {
+            challenge.sponsors[sponsor.sponsor.member] = sponsor.sponsor
+            challenge.sponsors[sponsor.sponsor.member].multiplier = 1
+        } else {
+            challenge.sponsors[sponsor.sponsor.member].multiplier++
+        }
+        if (sponsor.title) {
+            challenge.sponsor_title = sponsor.title
+        }
+        if (sponsor.time) {
+            challenge.sponsor_time = sponsor.time
         }
     })
     return challenge
@@ -334,11 +337,11 @@ exports.expiredEmbed = function () {
     return holdUp
 }
 
-exports.isActive = function (current_challenge) {
+exports.isActive = function (current_challenge, profile) {
     if (current_challenge.rescue) {
         return true
     }
-    let intime = Date.now() - 15 * 60 * 1000 < current_challenge.created
+    let intime = Date.now() - (current_challenge.type == 'private' && profile?.effects?.extended_timer ? 30 : 15) * 60 * 1000 < current_challenge.created
     let intime_day = Date.now() - 24 * 60 * 60 * 1000 < current_challenge.created
     let intime_month = exports.easternTime().month() == moment(current_challenge.created).tz('America/New_York').month()
     return ((current_challenge.type == 'abandoned' && !current_challenge.submissions) ||
@@ -369,10 +372,10 @@ exports.generateChallengeTitle = function (current_challenge) {
     return title.slice(0, 255)
 }
 
-exports.generateChallengeDescription = function ({ current_challenge, db }) {
+exports.generateChallengeDescription = function ({ current_challenge, db, profile }) {
     let desc = ''
-
-    let duration = ['abandoned', 'multiplayer', 'private'].includes(current_challenge.type) ? 1000 * 60 * 15 : current_challenge.type == 'cotm' ? 1000 * 60 * 60 * 24 * exports.easternTime().daysInMonth() : 1000 * 60 * 60 * 24
+    let extended = profile?.effects?.extended_timer ? 30 : 15
+    let duration = current_challenge.type == 'private' ? 1000 * 60 * extended : ['abandoned', 'multiplayer', 'private'].includes(current_challenge.type) ? 1000 * 60 * 15 : current_challenge.type == 'cotm' ? 1000 * 60 * 60 * 24 * exports.easternTime().daysInMonth() : 1000 * 60 * 60 * 24
     let expiration = ''
     if (current_challenge.type !== 'abandoned') {
         expiration = "Expires <t:" + Math.round((current_challenge.created + duration) / 1000) + ":R>"
@@ -525,7 +528,7 @@ exports.goalTimeList = function (current_challenge, profile, best) {
     let goal_earnings = []
     for (let i = 0; i < 4; i++) {
         let earning = current_challenge.type == 'cotm' ? current_challenge.track.map(t => circuits[tracks[t].circuit].winnings[1][i]).reduce((a, b) => a + b) :
-            Math.round(circuits[tracks[current_challenge.track].circuit].winnings[current_challenge.type == 'private' ? profile.settings.winnings : 1][i] * (current_challenge.type == 'abandoned' ? truguts.abandoned : 1))
+            Math.round(circuits[tracks[current_challenge.track].circuit].winnings[current_challenge.type == 'private' ? profile?.settings?.winnings : 1][i] * (current_challenge.type == 'abandoned' ? (profile.effects?.always_move ? 1 : truguts.abandoned) : 1))
         goal_earnings.push(earning)
     }
     goal_earnings.push(0)
@@ -622,7 +625,7 @@ exports.generateLeaderboard = function (best, member, current_challenge) {
             if (best[i].prediction || !already.includes(best[i].user) || (best[i].user == member && current_challenge.type == 'private') || best[i].date == current_challenge.created) {
                 let bold = ((best[i].user == member && current_challenge.type == 'private') || best[i].date == current_challenge.created) ? "**" : ""
                 besttimes += (best[i].goal ? `*${best[i].name} ` : best[i].prediction ? "🔮 *" : best[i].sponsor ? "📢 " : pos[0]) + bold + (best[i].proof ? "[" : "") + tools.timefix(best[i].time) + (best[i].proof ? "](" + best[i].proof + ")" : "") +
-                    (best[i].goal ? '*' : " - " + best[i].name) + bold +
+                    (best[i].goal ? '*' : bold ? ` <@${best[i].user}>` : ` ${best[i].name}`) + bold +
                     (console_emojis[best[i].platform] ? ` ${console_emojis[best[i].platform]}` : '') +
                     (best[i].notes ? " `" + best[i].notes + "`" : "") +
                     (best[i].prediction ? " `+📀" + exports.predictionScore(best[i].time, submission) + "`*" : "") +
@@ -819,19 +822,20 @@ exports.achievementEmbed = function (name, avatar, achievement, guild) {
     return congratsEmbed
 }
 
-exports.challengeWinnings = function ({ current_challenge, submitted_time, profile, best, goals, member } = {}) {
+exports.goalTimeRank = function ({ submitted_time, goals }) {
+    return goals.times.filter(g => Number(submitted_time.time) - Number(g) > 0).length
+}
+
+exports.challengeWinnings = function ({ current_challenge, submitted_time, profile, best, goals, member, db } = {}) {
     if (!Object.keys(submitted_time).length) {
         return { earnings: 0, receipt: "Sorry, could not calculate earnings." }
     }
-    let earnings = "", earnings_total = 0, winnings_text = null
-    for (let i = 4; i > -1; i--) {
-        if (submitted_time.time < goals.times[i]) {
-            winnings_text = i
-        }
-    }
-    if (goals.earnings[winnings_text] > 0) {
-        earnings += "`+📀" + tools.numberWithCommas(goals.earnings[winnings_text]) + "` " + goal_symbols[winnings_text] + "\n"
-        earnings_total += goals.earnings[winnings_text]
+    let earnings = "", earnings_subtotal = 0, earnings_total = 0
+    let medal = exports.goalTimeRank({ submitted_time, goals })
+
+    if (goals.earnings[medal] > 0) {
+        earnings += "`+📀" + tools.numberWithCommas(goals.earnings[medal]) + "` " + goal_symbols[medal] + "\n"
+        earnings_subtotal += goals.earnings[medal]
     }
 
     if (current_challenge.bounties) {
@@ -840,17 +844,17 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, profi
             bounty_total += bounty.bonus
         })
         earnings += "`+📀" + tools.numberWithCommas(bounty_total) + "` :dart:\n"
-        earnings_total += bounty_total
+        earnings_subtotal += bounty_total
     }
     if (current_challenge.sponsor_time && Number(submitted_time.time) - Number(current_challenge.sponsor_time) < 0) {
         earnings += "`+📀" + tools.numberWithCommas(truguts.beat_sponsor) + "` 📢\n"
-        earnings_total += truguts.beat_sponsor
+        earnings_subtotal += truguts.beat_sponsor
     }
     if (profile.streak_start) {
         let streak = Math.floor((profile.streak_end - profile.streak_start) / (1000 * 60 * 60 * 24))
         if (streak > 0) {
             earnings += "`+📀" + tools.numberWithCommas(truguts.streak * streak) + "` " + streak + "-Day Streak\n"
-            earnings_total += truguts.streak * streak
+            earnings_subtotal += truguts.streak * streak
         }
     }
     let first = true, pb = false, beat = []
@@ -861,13 +865,13 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, profi
                 pb = true
             }
         }
-        if (best[i].user !== member && Number(submitted_time.time) - Number(best[i].time) < 0 && !beat.includes(String(best[i].user))) {
-            beat.push(String(best[i].user))
+        if (best[i].user !== member && Number(submitted_time.time) - Number(best[i].time) < 0 && !beat.map(b => String(b.user)).includes(String(best[i].user))) {
+            beat.push(best[i])
         }
     }
     if (first) {
         earnings += "`+📀" + tools.numberWithCommas(truguts.first) + "` :snowflake:\n"
-        earnings_total += truguts.first
+        earnings_subtotal += truguts.first
     }
 
     let winnings_non_standard = 0
@@ -888,43 +892,91 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, profi
     }
     if (winnings_non_standard) {
         earnings += "`+📀" + tools.numberWithCommas(truguts.non_standard) + " × " + winnings_non_standard + "` Non-Standard\n"
-        earnings_total += truguts.non_standard * winnings_non_standard
+        earnings_subtotal += truguts.non_standard * winnings_non_standard
     }
 
     if (current_challenge.type !== 'cotm' && tracks[current_challenge.track].lengthclass == 'Long' && !current_challenge.conditions.skips) {
         earnings += "`+📀" + tools.numberWithCommas(truguts.long) + "` Long\n"
-        earnings_total += truguts.long
+        earnings_subtotal += truguts.long
     }
     if (current_challenge.type !== 'cotm' && tracks[current_challenge.track].lengthclass == 'Extra Long' && !current_challenge.conditions.skips) {
         earnings += "`+📀" + tools.numberWithCommas(truguts.extra_long) + "` Extra Long\n"
-        earnings_total += truguts.extra_long
+        earnings_subtotal += truguts.extra_long
     }
     if (beat.length) {
         earnings += "`+📀" + tools.numberWithCommas(truguts.beat_opponent) + " × " + beat.length + "` Bop\n"
-        earnings_total += truguts.beat_opponent * beat.length
+        earnings_subtotal += truguts.beat_opponent * beat.length
     }
+
+    //rival, bitter_rivalry
+    let rival = profile.rival ? Object.values(profile.rival).pop() : null
+    if (rival && beat.map(b => String(b.user)).includes(rival.player)) {
+        if (profile.effects?.bitter_rivalry) {
+            let rival_winnings = ({ current_challenge, submitted_time: beat.find(b => b.user == rival.player)?.time, profile: Object.values(db.user).find(u => u.discordID == rival.player)?.random, best, goals, member: rival.player, db })
+            earnings += "`+📀" + tools.numberWithCommas(rival_winnings.earnings) + "` *Bitter Rivalry*\n"
+            earnings_subtotal += rival_winnings.earnings
+        } else {
+            earnings += "`+📀" + tools.numberWithCommas(truguts.rival) + "` Beat Rival\n"
+            earnings_subtotal += truguts.rival
+        }
+    }
+
     if (pb) {
         earnings += "`+📀" + tools.numberWithCommas(truguts.personal_best) + "` PB\n"
-        earnings_total += truguts.personal_best
+        earnings_subtotal += truguts.personal_best
     }
 
     if (current_challenge?.ratings?.[member]) {
-        earnings += "`+📀" + tools.numberWithCommas(truguts.rated) + "` Rated\n"
-        earnings_total += truguts.rated
+        earnings += "`+📀" + tools.numberWithCommas(truguts.rated * (profile.effects?.vote_confidence ? 2 : 1)) + "` Rated\n"
+        earnings_subtotal += (truguts.rated * (profile.effects?.vote_confidence ? 2 : 1))
     }
-    earnings += "▬▬▬▬▬▬▬\n**`+📀" + tools.numberWithCommas(earnings_total) + "` Total**"
 
-    const raritysymbols = {
-        common: ':green_square:',
-        uncommon: ':blue_square:',
-        rare: ':purple_square:',
-        legendary: ':yellow_square:'
+    //multipliers
+    let multipliers = ""
+    earnings_total = earnings_subtotal
+    //speed boost in effect
+    //doubled powers
+
+    if (current_challenge.racer == tracks[current_challenge.track].favorite && profile.effects?.fame_fortune) {
+        multipliers += "`×2` *Fame and Fortune*\n"
+        earnings_total *= 2
     }
-    if (![undefined, ""].includes(current_challenge.earnings?.[member]?.item)) {
-        let item = items.find(i => i.id == current_challenge.earnings[member].item)
-        earnings += `\n${raritysymbols[item.rarity]} ${item.name}` + (item.health ? ` [${Math.round(item.health * 100 / 255)}%]` : '')
+    if (Object.values(db.user).find(u => u.discordID == member)?.discord?.roles?.includes(racers[current_challenge.racer].fan) && profile.effects?.fan_service) {
+        multipliers += "`×2` *Fan Service*\n"
+        earnings_total *= 2
     }
+
+    if (profile.effects?.trugut_cloner) {
+        let cloner = 1
+        Object.values(profile.effects.trugut_cloner).forEach(m => {
+            earnings_total *= Number(m.multiplier)
+            cloner *= Number(m.multiplier)
+        })
+        multipliers += `\`×${cloner}\` *Trugut Cloner*\n`
+    }
+
+
+
+    //sabotage, only one can be triggered
+    let sabotagekey = profile.effects?.sabotage ? (Object.keys(profile.effects.sabotage).find(k => profile.effects.sabotage[k].millisecond == String(submitted_time.time)[String(submitted_time.time).length - 1] && (!profile.effects.sabotage[k].used || profile.effects.sabotage[k].challenge == current_challenge.message)) ?? null) : null
+    let sabotage = '', dp = null, s = null
+    if (sabotagekey) {
+        s = profile.effects.sabotage[sabotagekey]
+        dp = db.user[s.player].random?.effects?.doubled_powers
+        sabotage += `\`-📀${tools.numberWithCommas(earnings_total * (dp ? 1 : 0.5))}\` 💥Sabotaged by <@${db.user[s.player].discordID}>!\n`
+        sabotage += `<@${db.user[s.player].discordID}> \`+📀${tools.numberWithCommas(earnings_total * (dp ? 1 : 0.5))}\`\n`
+    }
+    const line = "▬▬▬▬▬▬▬▬▬▬▬"
+    if (multipliers || sabotage) {
+        earnings += `${line}\n**\`📀${tools.numberWithCommas(earnings_subtotal)}\` Sub-Total**\n${multipliers}${sabotage}${line}\n**\`📀${tools.numberWithCommas(earnings_total * (s ? (dp ? 0 : 0.5) : 1))}\` Total**`
+    } else {
+        earnings += `${line}\n**\`📀${tools.numberWithCommas(earnings_total)}\` Total**`
+    }
+
     let winnings = { earnings: earnings_total, receipt: earnings }
+    if (sabotage) {
+        winnings.sabotage = sabotagekey
+    }
     return winnings
 }
 
@@ -989,7 +1041,11 @@ exports.updateChallenge = async function ({ client, db, profile, current_challen
     }
 
     let flavor_text = ''
-    if (Math.random() < 0.20 && best.length > 0) {
+    if (Math.random() < 0.20 && current_challenge?.player?.name) {
+        let quotes = Object.values(db.ch.quotes)
+        let quote = quotes[Math.floor(Math.random() * quotes.length)]
+        flavor_text = `${quote.quote.replaceAll('$player', current_challenge.player.name)}\n(submitted by ${db.user[quote.player].name})`
+    } else if (Math.random() < 0.20 && best.length > 0) {
         flavor_text = "The current record-holder for this challenge is... " + best[0].name + "!"
     } else if (Math.random() < 0.50 && current_challenge.player) {
         flavor_text = playerPicks[Math.floor(Math.random() * playerPicks.length)].replace("replaceme", current_challenge.player.name)
@@ -1008,11 +1064,12 @@ exports.updateChallenge = async function ({ client, db, profile, current_challen
     return data
 }
 
-exports.rerollReceipt = function (current_challenge) {
+exports.rerollReceipt = function (current_challenge, profile) {
     let reroll_cost = current_challenge.reroll_cost
+    let free = profile.effects?.free_rerolls
     return {
-        receipt: reroll_cost == 'discount' ? "-📀" + tools.numberWithCommas(truguts.reroll_discount) + " (discounted)" : (reroll_cost == 'free' ? "(no charge for record holders)" : "-📀" + tools.numberWithCommas(truguts.reroll)),
-        cost: reroll_cost == 'discount' ? truguts.reroll_discount : (reroll_cost == 'free' ? 0 : truguts.reroll)
+        receipt: free ? 'FREE REROLLS FOR LIFE' : reroll_cost == 'discount' ? "-📀" + tools.numberWithCommas(truguts.reroll_discount) + " (discounted)" : (reroll_cost == 'free' ? "(no charge for record holders)" : "-📀" + tools.numberWithCommas(truguts.reroll)),
+        cost: free ? 0 : reroll_cost == 'discount' ? truguts.reroll_discount : (reroll_cost == 'free' ? 0 : truguts.reroll)
     }
 }
 
@@ -1021,7 +1078,8 @@ exports.checkActive = function (db, member, current_challenge) {
     let result = null
     Object.keys(db.ch.challenges).forEach(key => {
         let challenge = db.ch.challenges[key]
-        if (challenge.player?.member == member && challenge.type == 'private' && exports.isActive(challenge) && ((current_challenge && current_challenge.message !== challenge.message) || !current_challenge)) {
+        let profile = Object.values(db.user).find(u => u.discordID == member)?.random
+        if (challenge.player?.member == member && challenge.type == 'private' && exports.isActive(challenge, profile) && ((current_challenge && current_challenge.message !== challenge.message) || !current_challenge)) {
             challenge.message = key
             occupied = challenge
         }
@@ -1038,7 +1096,7 @@ exports.checkActive = function (db, member, current_challenge) {
 exports.challengeEmbed = async function ({ current_challenge, profile, profileref, best, name, member, avatar, db, client } = {}) {
     let submitted_time = db.ch.times[current_challenge?.submissions?.[member]?.id] ?? {}
     let achs = current_challenge.type == 'private' ? exports.achievementProgress({ db, player: member }) : null
-    let desc = exports.generateChallengeDescription({ current_challenge, db }) + (current_challenge.type == 'private' ? "\n" + exports.challengeAchievementProgress({ client, current_challenge, profile, profileref, achievements: achs, name, avatar, member }) : '')
+    let desc = exports.generateChallengeDescription({ current_challenge, db, profile }) + (current_challenge.type == 'private' ? "\n" + exports.challengeAchievementProgress({ client, current_challenge, profile, profileref, achievements: achs, name, avatar, member }) : '')
     let title = exports.generateChallengeTitle(current_challenge)
     const challengeEmbed = new EmbedBuilder()
 
@@ -1086,11 +1144,15 @@ exports.challengeEmbed = async function ({ current_challenge, profile, profilere
     }
 
     let goals = exports.goalTimeList(current_challenge, profile, best)
+
     if (current_challenge.rerolled) {
-        let reroll = exports.rerollReceipt(current_challenge)
+        let reroll = exports.rerollReceipt(current_challenge, profile)
         challengeEmbed.setFooter({ text: reroll.receipt + "\nTruguts: 📀" + exports.currentTruguts(profile) })
-    } else if (current_challenge.completed && ['private', 'abandoned'].includes(current_challenge.type)) {
-        let winnings = exports.challengeWinnings({ current_challenge, profile, profileref, submitted_time, best, goals, member })
+        return challengeEmbed
+    }
+
+    if (current_challenge.completed && ['private', 'abandoned'].includes(current_challenge.type)) {
+        let winnings = exports.challengeWinnings({ current_challenge, profile, profileref, submitted_time, best, goals, member, db })
         challengeEmbed
             .addFields({ name: "Winnings", value: winnings.receipt.slice(0, 1024), inline: true })
     } else {
@@ -1105,18 +1167,82 @@ exports.challengeEmbed = async function ({ current_challenge, profile, profilere
     if (image) {
         challengeEmbed.setImage(image)
     }
-    if (!current_challenge.rerolled) {
-        challengeEmbed.addFields({ name: "Best Times", value: exports.generateLeaderboard(best, member, current_challenge).slice(0, 1024), inline: true })
+    challengeEmbed.addFields({ name: "Best Times", value: exports.generateLeaderboard(best, member, current_challenge).slice(0, 1024), inline: true })
+    if (current_challenge.completed && ['private', 'abandoned'].includes(current_challenge.type)) {
+        let progression = exports.challengeProgression({ current_challenge, submitted_time, goals, profile })
+        //item
+
+
+        challengeEmbed
+            .addFields({ name: tools.getRacerName(progression.racer), value: progression.summary, inline: true })
+
+        if (![undefined, ""].includes(current_challenge.earnings?.[member]?.item)) {
+            let item = items.find(i => i.id == current_challenge.earnings[member].item)
+            challengeEmbed.addFields({ name: `${raritysymbols[item.rarity]} ${item.name}` + (item.health ? ` [${Math.round(item.health * 100 / 255)}%]` : ''), value: `*${item.description}*`, inline: true })
+        }
+
     }
     return challengeEmbed
+}
+
+exports.challengeProgression = function ({ current_challenge, submitted_time, goals, profile }) {
+    if (!profile.progression) {
+        return {
+            racer: current_challenge.racer,
+            summary: 'Check your profile to enable racer progression'
+        }
+    }
+    let rank = exports.goalTimeRank({ submitted_time, goals })
+    let medal = goal_symbols[rank] ?? ""
+    let points = Math.max(5 - rank, 0)
+    let previous_level = exports.convertLevel(profile.progression[current_challenge.racer] - points)
+    let level = exports.convertLevel(profile.progression[current_challenge.racer])
+    let levelup = previous_level.level !== level.level
+    let rewards = []
+    for (let i = previous_level.level + 1; i < level.level + 1; i++) {
+        rewards.push(exports.progressionReward({ racer: current_challenge.racer, level: level.level }))
+    }
+    let nextreward = exports.progressionReward({ racer: current_challenge.racer, level: level.level + 1 })
+    return {
+        racer: current_challenge.racer,
+        medal,
+        points,
+        summary: `${points ? `\`+${points}\` ${medal}\n\n` : ''}` +
+            `${levelup ? '<a:guidearrow:891128437354401842> **LEVEL UP** <a:guidearrow:891128437354401842>\n' : ''}` +
+            `${levelup ? `${rewards.map(r => r.string).join('\n')}\n\n` : ''}` +
+            `${level.string}\n${level_symbols[Math.min(6, Math.floor(level.level / 4))]} *${levels[Math.min(level.level, 24)]}*\n` +
+            `\nNext reward:\n${nextreward.string}`
+    }
+}
+
+exports.progressionReward = function ({ racer, level }) {
+    const levelmap = {
+        5: 'flag',
+        10: 'usable',
+        15: 'blueprint_cockpit',
+        20: 'blueprint_engine',
+        25: 'special'
+    }
+    let truguts = 0
+    for (let i = 1; i < level + 1; i++) {
+        truguts += i * 80
+    }
+    let reward = {
+        truguts,
+        item: levelmap[level] ? racers[racer].items[levelmap[level]] : null,
+    }
+
+    let item = items.find(i => i.id == reward.item)
+    reward.string = `\`+📀${tools.numberWithCommas(reward.truguts)}\`${item ? `\n${raritysymbols[item.rarity]} ${item.name}` : ''}`
+    return reward
 }
 
 exports.challengeComponents = function (current_challenge, profile) {
     //components
     const row = new ActionRowBuilder()
-    let reroll = exports.rerollReceipt(current_challenge)
+    let reroll = exports.rerollReceipt(current_challenge, profile)
 
-    if ((!current_challenge.submissions || !['abandoned', 'private'].includes(current_challenge.type)) && exports.isActive(current_challenge)) {
+    if ((!current_challenge.submissions || !['abandoned', 'private'].includes(current_challenge.type)) && exports.isActive(current_challenge, profile)) {
         row.addComponents(
             new ButtonBuilder()
                 .setCustomId("challenge_random_modal")
@@ -1201,7 +1327,7 @@ exports.challengeComponents = function (current_challenge, profile) {
     return row
 }
 
-exports.trackSelector = function ({ customid, placeholder, min, max } = {}) {
+exports.trackSelector = function ({ customid, placeholder, min, max, descriptions } = {}) {
     const trackSelectRow = new ActionRowBuilder()
     const track_selector = new StringSelectMenuBuilder()
         .setCustomId(customid)
@@ -1212,7 +1338,7 @@ exports.trackSelector = function ({ customid, placeholder, min, max } = {}) {
         track_selector.addOptions({
             label: tracks[i].name,
             value: String(i),
-            description: (circuits[tracks[i].circuit].name + " Circuit | Race " + tracks[i].cirnum + " | " + planets[tracks[i].planet].name).substring(0, 50),
+            description: descriptions ? descriptions[i].substring(0, 50) : (circuits[tracks[i].circuit].name + " Circuit | Race " + tracks[i].cirnum + " | " + planets[tracks[i].planet].name).substring(0, 50),
             emoji: {
                 name: planets[tracks[i].planet].emoji.split(":")[1],
                 id: planets[tracks[i].planet].emoji.split(":")[2].replace(">", "")
@@ -1223,7 +1349,7 @@ exports.trackSelector = function ({ customid, placeholder, min, max } = {}) {
     return [trackSelectRow]
 }
 
-exports.racerSelector = function ({ customid, placeholder, min, max } = {}) {
+exports.racerSelector = function ({ customid, placeholder, min, max, descriptions } = {}) {
     const racerSelectRow = new ActionRowBuilder()
     const racer_selector = new StringSelectMenuBuilder()
         .setCustomId(customid)
@@ -1235,7 +1361,7 @@ exports.racerSelector = function ({ customid, placeholder, min, max } = {}) {
         racer_selector.addOptions({
             label: racers[i].name,
             value: String(i),
-            description: racers[i].pod.substring(0, 50),
+            description: descriptions ? descriptions[i].substring(0, 50) : racers[i].pod.substring(0, 50),
             emoji: {
                 name: racers[i].flag.split(":")[1],
                 id: racers[i].flag.split(":")[2].replace(">", "")
@@ -1257,12 +1383,18 @@ exports.bribeComponents = function (current_challenge) {
     return components
 }
 
-exports.menuEmbed = function () {
+exports.menuEmbed = function ({ db } = {}) {
+    const typemap = {
+        cotd: ':game_die: Daily: ',
+        cotm: ':game_die: Monthly: ',
+        open: '',
+        abandoned: ''
+    }
     const myEmbed = new EmbedBuilder()
         .setAuthor({ name: "Random Challenge", iconURL: "https://em-content.zobj.net/thumbs/120/twitter/322/game-die_1f3b2.png" })
         .setTitle("<:menu:862620287735955487> Menu")
         .setColor("#ED4245")
-        .setDescription("This is the Random Challenge menu. From here, you can access all options related to random challenges. Press the **Play** button to get rollin'.\n\n*" + tips[Math.floor(Math.random() * tips.length)] + "*")
+        .setDescription(`This is the Random Challenge menu. From here, you can access all options related to random challenges. Press the **Play** button to get rollin'.\n\n**Open Challenges**\n${Object.values(db.ch.challenges).filter(c => exports.isActive(c) && c.type !== 'private' && c.channel == '551786988861128714' && c.url).map(c => `${typemap[c.type]}[${exports.generateChallengeTitle(c)}](${c.url})`).join("\n")}\n\n*${tips[Math.floor(Math.random() * tips.length)]}*`)
         .setFooter({ text: "/challenge random" })
     return myEmbed
 }
@@ -1290,56 +1422,63 @@ exports.menuComponents = function () {
                 .setStyle(ButtonStyle.Secondary)
                 .setEmoji('🎒')
         )
-
-    const row2 = new ActionRowBuilder()
         .addComponents(
             new ButtonBuilder()
-                .setCustomId("challenge_random_settings_initial")
-                .setLabel("Settings")
-                .setStyle(ButtonStyle.Secondary)
-                .setEmoji('⚙️')
-        )
-        .addComponents(
-            new ButtonBuilder()
-                .setCustomId("challenge_random_profile_stats")
+                .setCustomId("challenge_random_profile")
                 .setLabel("Profile")
                 .setStyle(ButtonStyle.Secondary)
                 .setEmoji('👤')
         )
         .addComponents(
             new ButtonBuilder()
-                .setCustomId("challenge_random_menu")
+                .setCustomId("challenge_random_about")
                 .setStyle(ButtonStyle.Secondary)
                 .setEmoji('❔')
         )
-    return [row1, row2]
+    // .addComponents(
+    //     new ButtonBuilder()
+    //         .setCustomId("challenge_random_settings_initial")
+    //         .setLabel("Settings")
+    //         .setStyle(ButtonStyle.Secondary)
+    //         .setEmoji('⚙️')
+    // )
+
+
+    return [row1]
 }
 
-exports.shopOptions = function ({ profile, player, db } = {}) {
+exports.shopOptions = function ({ profile, player, db, selection } = {}) {
     return [
         {
-            label: `Hint (📀${tools.numberWithCommas(Math.min(truguts.hint.basic, truguts.hint.standard, truguts.hint.deluxe))} - 📀${tools.numberWithCommas(Math.max(truguts.hint.basic, truguts.hint.standard, truguts.hint.deluxe))})`,
+            label: `Hint`,
             value: 'hint',
+            pricemap: true,
+            price: truguts.hint,
             description: "Get a hint for incomplete achievements",
             info: "Hints help you narrow down what challenges you need to complete for :trophy: **Achievements**. The more you pay, the better the hint.",
+            fields: [{ name: 'Additional Effect', value: "Complete the **Star Wars Episode I: Racer: The Movie** collection to get an additional clue: *Movie Buff - Get an additional clue on all your Hints and Bounties*" }],
             emoji: {
                 name: "💡"
             },
             options: exports.hintComponents({ db, profile, player })
         },
         {
-            label: `Bounty (📀${tools.numberWithCommas(Math.min(truguts.hint.basic, truguts.hint.standard, truguts.hint.deluxe))} - 📀${tools.numberWithCommas(Math.max(truguts.hint.basic, truguts.hint.standard, truguts.hint.deluxe))})`,
+            label: `Bounty`,
             value: 'bounty',
+            pricemap: true,
+            price: truguts.hint,
             description: "Take on a challenge bounty, find it, and claim your prize!",
             info: "Challenge Bounty is a way to earn big truguts fast. Based on your hint selection, Botto hides a large trugut bonus on a random challenge.",
+            fields: [{ name: 'Additional Effect', value: "Complete the **Star Wars Episode I: Racer: The Movie** collection to get an additional clue: *Movie Buff - Get an additional clue on all your Hints and Bounties*" }],
             emoji: {
                 name: "🎯"
             },
             options: exports.huntComponents(profile)
         },
         {
-            label: `Botto Lotto Ticket (📀200)`,
+            label: `Botto Lotto Ticket`,
             value: 'lotto',
+            price: truguts.lotto,
             description: "Guess the tracks for the monthly challenge and win big",
             info: "Every month, a random multi-track challenge is generated with 4 - 10 tracks. Enter a Botto Lotto ticket with 7 track guesses.\n• For each track you get correct, earn `📀20,000`.\n• If all tracks on your ticket are in the monthly or vice versa, earn a grand prize of `📀1,000,000!`\n• Only one ticket per user per month.",
             emoji: {
@@ -1348,24 +1487,252 @@ exports.shopOptions = function ({ profile, player, db } = {}) {
             options: exports.trackSelector({ customid: 'challenge_random_shop_2', placeholder: 'Select Tracks', min: 7, max: 7 })
         },
         {
-            label: `Sponsor Challenge (📀2,200 - 📀5,500)`,
+            label: `Sponsor Challenge`,
             value: 'sponsorchallenge',
+            pricemap: true,
+            price: { "0": circuits[0].sponsor, "1": circuits[1].sponsor, "2": circuits[2].sponsor, "3": circuits[3].sponsor },
             description: "Sponsor a random challenge and earn truguts!",
             info: "Invest in a random challenge and make truguts on all its earnings. Select a circuit to sponsor and generate your random challenge based on your current odds. Next, you'll get a chance to set a title and sponsor time.",
+            fields: [{ name: 'Additional Effect', value: "Complete the **Space Bar** collection to maximize your sponsor take: *Sorry About the Mess - Sponsor take is doubled*" }],
             emoji: {
                 name: "📣"
             },
             options: exports.sponsorShopComponents(profile)
         },
         {
-            label: `Shuffle Banner (📀${tools.numberWithCommas(truguts.shuffle)})`,
+            label: `Shuffle Banner`,
             value: 'shuffle_banner',
+            price: truguts.shuffle,
             description: "Set a new random banner for the server",
             info: "Tired of the current banner? Give us a new one!",
             emoji: {
                 name: "🚩"
             }
-        }
+        },
+        {
+            label: `Trendy Transmission`,
+            value: 'trendy_transmission',
+            price: 5000,
+            description: "Send a fancy embed message like Botto",
+            info: "Send your own embed message using Botto. This fancy message format is sure to catch a reader's eye.",
+            emoji: {
+                name: "✉"
+            }
+        },
+        {
+            label: `Declare Rival`,
+            value: 'rival',
+            price: 7000,
+            description: "Declare your rival and earn a bonus when you bop them",
+            info: "Select a player. When you beat their time on a challenge, you'll earn a special bonus. You can only have one rival at a time.",
+            fields: [{ name: 'Additional Effect', value: "Complete the **Grudge Matches** collection to maximize your rival bonus: *Bitter Rivalry - earn what your rival earned as a bonus*" }],
+            emoji: {
+                name: "🆚"
+            },
+            options: exports.userPicker({ selection, customid: 'challenge_random_shop_2', placeholder: 'Declare your Rival', db })
+        },
+        // {
+        //     label: `Sabotage (📀${tools.numberWithCommas(truguts.sabotage)})`,
+        //     value: 'sabotage',
+        //     description: "Sabotage a player's trugut earnings",
+        //     info: "Select a player, then pick a number 0-9. When the player you selected submits a time that ends in the given number, they lose half their winnings... to you!\n\nFor example, if you entered the number `3` and the selected player submits a time of 1:42.89__3__, the sabotage is triggered.",
+        //     fields: [{ name: 'Additional Effect', value: "Complete the **All-Terrain Podracing** collection to maximize your sabotage: *Doubled Powers - sabotaged players lose all winnings to saboteur*" }],
+        //     emoji: {
+        //         name: "💥"
+        //     },
+        //     options: exports.userPicker({ selection, customid: 'challenge_random_shop_2', placeholder: 'Select a Player to Sabotage', db })
+        // },
+        {
+            label: `Quotation Mark`,
+            value: 'quote',
+            price: 20000,
+            description: "Submit a quote",
+            info: "Submit your own quote to be randomly used at the top of a challenge.",
+            emoji: {
+                name: "✒️"
+            }
+        },
+        {
+            label: `Have a Clue`,
+            value: 'clue',
+            price: 30000,
+            description: "Submit a clue",
+            info: "Submit your own clue to be used in Hints and Bounties.",
+            emoji: {
+                name: "💡"
+            },
+            options: exports.clueComponents({ selection })
+        },
+        {
+            label: `Sponsor Player`,
+            value: 'sponsorplayer',
+            price: truguts.sponsor,
+            pricemap: true,
+            description: 'Sponsor a player and earn truguts!',
+            info: "Contribute truguts to a player of your choice and earn a percentage of their earnings every time they complete a challenge.\n`📀50,000` - 5%\n`📀100,000` - 10%\n`📀200,000` - 20%",
+            fields: [{ name: 'Additional Effect', value: "Complete the **Space Bar** collection to maximize your sponsor take: *Sorry About the Mess - Sponsor take is doubled*" }],
+            emoji: {
+                name: "📣"
+            },
+            options: exports.sponsorPlayerComponents({ selection, db })
+        },
+        {
+            label: `Daily Challenge Reroll`,
+            value: 'rerolldaily',
+            price: 80000,
+            description: 'Reroll the Random Challenge of the Day',
+            info: "Sometimes the Random Challenge of the Day is so bad or so impossible it warants a reroll. This can only be done once within one hour of the daily being posted.",
+            emoji: {
+                name: "🔄"
+            }
+        },
+        {
+            label: `Life Debt`,
+            value: 'debt',
+            price: 99999,
+            description: "Go into debt",
+            info: "This is a terrible financial decision. As long as you don't already have negative truguts, Botto will allow you to make purchases beyond what you can afford granted your balance doesn't drop below `-📀1,000,000`",
+            emoji: {
+                name: "💸"
+            }
+        },
+        {
+            label: `Botto Buddy`,
+            value: 'buddy',
+            price: 150000,
+            description: "Botto mimics your reactions to messages",
+            info: "Every time you react to a message in the Star Wars Episode I: Racer discord, Botto will react with the same emote. One-time purchase.",
+            emoji: {
+                name: "👥"
+            }
+        },
+        {
+            label: `Emoji Role Icon`,
+            value: 'roleicon',
+            price: 200000,
+            description: "Pick a server emoji to use as your role icon",
+            info: "Enter the name of a non-animated server emoji to add as an icon next to your name. Multiple icons can be purchased and equiped/unequiped in your **🎒 Inventory**. Racer flag icons are free roles in <id:customize>",
+            emoji: {
+                name: "✨"
+            }
+        },
+        {
+            label: `Change Botto's Color`,
+            value: 'bottocolor',
+            price: 300000,
+            description: "Set a new role color for the Techno-Toydarian",
+            info: "Enter a hex code and change Botto's role color.",
+            emoji: {
+                name: "🌈"
+            }
+        },
+        {
+            label: `Extended Timer`,
+            value: 'timer',
+            price: 500000,
+            description: "Extend the time limit for private challenges",
+            info: "Extend the time limit for private challenges from 15 minutes to 30 minutes. One-time purchase.",
+            emoji: {
+                name: "⏳"
+            }
+        },
+        {
+            label: `A Friend in Greed`,
+            value: 'friend',
+            price: 600000,
+            description: "Botto will be more cooperative to you in chat",
+            info: "Botto will no longer resort to chance cubes and guilting you into giving him truguts when being asked questions in chat. He'll treat you as his favorite customer.",
+            emoji: {
+                name: "💖"
+            }
+        },
+        {
+            label: `Protocol Droid`,
+            value: 'protocol',
+            price: 800000,
+            description: "Botto reacts to messages containing a given phrase",
+            info: "Enter a word/phrase and an emoji. Messages containing your input will get a reaction from Botto featuring the selected emoji.",
+            emoji: {
+                name: "💭"
+            }
+        },
+        {
+            label: `Made to Suffer`,
+            value: 'suffer',
+            price: 1000000,
+            description: "Botto replies to messages containing a given phrase",
+            info: "Enter a word/phrase and a reply. Messages containing the phrase will automatically get an automatic reply from Botto.",
+            emoji: {
+                name: "💬"
+            }
+        },
+        {
+            label: `Trugut Cloner`,
+            value: 'multiply',
+            pricemap: true,
+            price: { "2": 1000000, "4": 2000000, "6": 8000000, "8": 48000000, "10": 384000000 },
+            description: "Multiply your trugut winnings",
+            info: "Multiply your trugut winnings! Only applies to truguts earned from submitting times. Multipliers stack.",
+            emoji: {
+                name: "✖️"
+            },
+            options: exports.multiplierComponents({ selection })
+        },
+        {
+            label: `Nav Computer`,
+            value: 'homing',
+            pricemap: true,
+            price: { "1": 2000000, "2": 8000000, "3": 48000000 },
+            description: "Navigate your way through a galaxy of random challenges",
+            info: "Mid Rim Territories: Botto will only roll challenges that apply to unearned achievements.\n" +
+                "Outer Rim Territories: Botto will only roll challenges that the user has not played.\n" +
+                "Unknown Regions: Botto will only roll challenges that have no submissions.\n\nAll effects can be enabled or disabled in settings.",
+            emoji: {
+                name: "🧭"
+            },
+            options: exports.navComponents({ context: 'shop' })
+        },
+        {
+            label: `No Longer a Slave`,
+            value: 'rerolls',
+            price: 384000000,
+            description: "Never pay for rerolls again",
+            info: "Rerolls are forever free. One-time purchase.",
+            emoji: {
+                name: "🔄"
+            }
+        },
+        {
+            label: `Credits WILL Do Fine`,
+            value: 'bribes',
+            price: 384000000,
+            description: "Never pay for bribes again",
+            info: "You can go to whatever challenge of your choosing at no charge. One-time purchase.",
+            emoji: {
+                name: "💰"
+            }
+        },
+        {
+            label: `Peace Treaty`,
+            value: 'peace',
+            price: 384000000,
+            description: "Protect yourself against trugut sabotage",
+            info: "Tired of getting sabotaged by your fellow racers? Sign this peace treaty and you can never sabotage or be sabotaged again. One-time purchase.",
+            emoji: {
+                name: "🕊"
+            }
+        },
+
+        {
+            label: `Trillion Trugut Tri-Coat`,
+            value: 'paint',
+            price: 1000000000000,
+            description: "Your own custom role color",
+            info: "After years of slavery to Botto and the random challenges, you can finally afford a decent paint job. Color can be changed at any time. One-time purchase.",
+            emoji: {
+                name: "🎨"
+            }
+        },
     ]
 }
 
@@ -1395,10 +1762,18 @@ exports.shopComponents = function ({ profile, selection, shoptions, purchased })
         )
         .addComponents(
             new ButtonBuilder()
-                .setCustomId("challenge_random_menu")
+                .setCustomId("challenge_random_profile")
+                .setLabel("Profile")
                 .setStyle(ButtonStyle.Secondary)
-                .setEmoji("862620287735955487")
+                .setEmoji('👤')
         )
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId("challenge_random_about")
+                .setStyle(ButtonStyle.Secondary)
+                .setEmoji('❔')
+        )
+
     const row2 = new ActionRowBuilder()
 
     const shop_select = new StringSelectMenuBuilder()
@@ -1421,9 +1796,11 @@ exports.shopComponents = function ({ profile, selection, shoptions, purchased })
 
     comp.forEach((row, i) => {
         row.components.filter(c => c.options).forEach(c => {
+            let max = c.data.max_values
             c.options?.forEach(o => {
-                if (o.data.value == selection[i] || selection[i]?.includes(o.data.value)) {
+                if (max && (o.data.value == selection[i] || selection[i]?.includes(o.data.value))) {
                     o.setDefault(true)
+                    max--
                 }
             })
             let selectmap = c.options.map(o => o.data.default)
@@ -1448,12 +1825,7 @@ exports.inventoryEmbed = function ({ profile, selection }) {
     const selected_item = selection[2]?.sel?.[0]
     let item = items.find(i => i.id == selected_item)
     const coll = exports.collections()
-    const raritysymbols = {
-        common: ':green_square:',
-        uncommon: ':blue_square:',
-        rare: ':purple_square:',
-        legendary: ':yellow_square:'
-    }
+
     const myEmbed = new EmbedBuilder()
         .setAuthor({ name: "Random Challenge", iconURL: "https://em-content.zobj.net/thumbs/120/twitter/322/game-die_1f3b2.png" })
         .setTitle(":school_satchel: Inventory")
@@ -1500,9 +1872,16 @@ exports.inventoryComponents = function ({ profile, selection }) {
         )
         .addComponents(
             new ButtonBuilder()
-                .setCustomId("challenge_random_menu")
+                .setCustomId("challenge_random_profile")
+                .setLabel("Profile")
                 .setStyle(ButtonStyle.Secondary)
-                .setEmoji("862620287735955487")
+                .setEmoji('👤')
+        )
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId("challenge_random_about")
+                .setStyle(ButtonStyle.Secondary)
+                .setEmoji('❔')
         )
 
     let comp = [row1, ...exports.collectionComponents({ profile })]
@@ -1534,6 +1913,8 @@ exports.collections = function () {
             value: String(coll.length),
             emoji: planet.emoji.split(":")[2].replace(">", ""),
             reward: 'Citizenship Role; 📀100,000',
+            planet: true,
+            key: p,
             items: items.filter(i => i.track.map(track => tracks[track].planet == p).includes(true) && i.track.length < 25).slice(0, 25).map(i => i.id)
         })
     })
@@ -1608,106 +1989,171 @@ exports.collectionComponents = function ({ profile }) {
     return [row]
 }
 
-exports.profileEmbed = function ({ db, player, page, name, avatar } = {}) {
-    const profileEmbed = new EmbedBuilder()
-    profileEmbed
-        .setAuthor({ name: name + "'s Random Challenge Profile", iconURL: avatar })
-
-    const profile = Object.values(db.user).find(u => u.discordID == player)
-
-    if (page == 'achievements') {
-        const ach_report = exports.achievementProgress({ db, player })
-        Object.values(ach_report).forEach(ach => {
-            const achievement_title = (ach.count >= ach.limit ? ":white_check_mark: " : ":trophy: ") + ach.name + "  `" + tools.numberWithCommas(ach.count) + "/" + tools.numberWithCommas(ach.limit) + "`"
-            const achievement_text = ach.description
-            profileEmbed.addFields({ name: achievement_title, value: achievement_text, inline: false })
+exports.profileEmbed = function ({ name, avatar, ach_report, profile, stats, db, player } = {}) {
+    let bet_wins = []
+    Object.values(db.ty.bets).forEach(b => {
+        ['outcome_a', 'outcome_b'].forEach(o => {
+            if (b[o].bets && Object.values(b[o].bets).map(i => i.discordId).includes(player)) {
+                bet_wins.push(b[o].winner)
+            }
         })
-        profileEmbed.setTitle(`Achievements (${Object.values(ach_report).filter(a => a.count >= a.limit).length}/${Object.keys(ach_report).length})`)
-    } else if (page == 'stats') {
-        profileEmbed
-            .setTitle("Statistics")
-            .setDescription("Current trugut balance: `📀" + exports.currentTruguts(profile.random) + "`")
+    })
 
-        const stats = exports.getStats({ db, member: player, profile })
-        profileEmbed
-            .addFields({
-                name: ":bar_chart: Challenge Stats",
-                value: "Total: `" + stats.totals.total +
-                    "`\nStandard: `" + stats.totals.standard +
-                    "`\nSkips: `" + stats.totals.skips +
-                    "`\nNo Upgrades: `" + stats.totals.no_upgrades +
-                    "`\nNon 3-Lap: `" + stats.totals.non_3_lap +
-                    "`\nMirrored: `" + stats.totals.mirrored +
-                    "`\nBackwards: `" + stats.totals.backwards + "`",
-                inline: true
-            })
-            .addFields({
-                name: ":chart_with_upwards_trend: Gameplay Trends", value: "**Most Played Pod:** \n" + tools.getRacerName(stats.plays.mostPod.most_name) + " `" + stats.plays.mostPod.most_count + "`" +
-                    "\n**Most Played Track:**\n" + tools.getTrackName(stats.plays.mostTrack.most_name) + " `" + stats.plays.mostTrack.most_count + "`" +
-                    "\n**Most Played Planet:**\n" + tools.getPlanetName(stats.plays.mostPlanet.most_name) + " `" + stats.plays.mostPlanet.most_count + "`" +
-                    "\n**Most Played Circuit:**\n" + tools.getCircuitName(stats.plays.mostCircuit.most_name) + " `" + stats.plays.mostCircuit.most_count + "`", inline: true
-            })
-
-        var feedbacktrend = ""
-        feedbacktrend += "**Most Liked Pod:** \n" + tools.getRacerName(stats.feedback.likePod.most_name) + " `👍" + stats.feedback.likePod.most_count + "`" +
-            "\n**Most Liked Track:**\n" + tools.getTrackName(stats.feedback.likeTrack.most_name) + " `👍" + stats.feedback.likeTrack.most_count + "`\n"
-        feedbacktrend += "**Most Disliked Pod:**\n" + tools.getRacerName(stats.feedback.dislikePod.most_name) + " `👎" + stats.feedback.dislikePod.most_count + "`" +
-            "\n**Most Disliked Track:**\n" + tools.getTrackName(stats.feedback.dislikeTrack.most_name) + " `👎" + stats.feedback.dislikeTrack.most_count + "`"
-        profileEmbed
-            .addFields({ name: ":pencil: Feedback Trends", value: feedbacktrend, inline: true })
-            .addFields({
-                name: ":stopwatch: Time Stats", value: "Total time: `" + tools.timefix(stats.times.total) + "`\n" +
-                    "<:diamond:1136554333723435068> `" + stats.times.elite + "`\n" +
-                    "<:platinum:1136554336705597510> `" + stats.times.pro + "`\n" +
-                    "<:gold:1136554335426318406> `" + stats.times.rookie + "`\n" +
-                    "<:silver:1136554338895011850> `" + stats.times.amateur + "`\n" +
-                    "<:bronze:1136554332586786879> `" + stats.times.youngling + "`", inline: true
-            })
-            .addFields({
-                name: ":moneybag: Bonus Stats", value: ":snowflake: `" + stats.bonuses.first + "`\n" +
-                    "Bop `" + stats.bonuses.opponents_beat + "`\n" +
-                    "PB `" + stats.bonuses.pbs + "`\n" +
-                    "Non-Standard: `" + stats.bonuses.non_standard + "`\n" +
-                    "Total `📀" + tools.numberWithCommas(profile.random.truguts_earned) + "`", inline: true
-            })
-            .addFields({
-                name: ":shopping_cart: Purchase Stats", value: "Rerolls: `" + stats.purchases.rerolls + "`\n" +
-                    "Track Bribes: `" + stats.purchases.track_bribes + "`\n" +
-                    "Racer Bribes: `" + stats.purchases.racer_bribes + "`\n" +
-                    "Hints: `" + stats.purchases.hints + "`\n" +
-                    "Total Spending: `📀" + tools.numberWithCommas(profile.random.truguts_spent) + "`", inline: true
-            })
-    }
+    const profileEmbed = new EmbedBuilder()
+        .setAuthor({ name: name, iconURL: avatar })
+        .setFooter({ text: '/challenge random: profile' })
+        .setColor('#DA373C')
+        .setDescription(`${exports.playerLevel(Object.values(stats.racers).map(r => r.level)).string}\n\`📀${exports.currentTruguts(profile)}\``)
+        .addFields({
+            name: 'Overview',
+            value: `Challenges: \`${stats.totals.total}\`
+Playtime: \`${tools.timefix(stats.times.total)}\`
+Longest Streak: \`${Math.max(...stats.totals.streaks)} Days\`
+Achievements: \`${Object.values(ach_report).filter(a => a.count >= a.limit).length}/${Object.values(ach_report).length}\`
+Items: \`${profile.items ? [...new Set(Object.values(profile.items).map(i => i.id))].length : 0}/218\`` +
+                `${bet_wins.length ? `\nBets: \`${bet_wins.filter(b => b).length}/${bet_wins.length}\`` : ''}`,
+            inline: true
+        }, {
+            name: "Conditions",
+            value: "Standard: `" + stats.totals.standard +
+                "`\nSkips: `" + stats.totals.skips +
+                "`\nNo Upgrades: `" + stats.totals.no_upgrades +
+                "`\nNon 3-Lap: `" + stats.totals.non_3_lap +
+                "`\nMirrored: `" + stats.totals.mirrored +
+                "`\nBackwards: `" + stats.totals.backwards + "`",
+            inline: true
+        }, {
+            name: "Times",
+            value: "<:diamond:1136554333723435068> `" + stats.times.elite + "`\n" +
+                "<:platinum:1136554336705597510> `" + stats.times.pro + "`\n" +
+                "<:gold:1136554335426318406> `" + stats.times.rookie + "`\n" +
+                "<:silver:1136554338895011850> `" + stats.times.amateur + "`\n" +
+                "<:bronze:1136554332586786879> `" + stats.times.youngling + "`",
+            inline: true
+        }, {
+            name: "Bonuses",
+            value: `:snowflake: \`${stats.bonuses.first}\`
+Bop \`${stats.bonuses.opponents_beat}\`
+PB \`${stats.bonuses.pbs}\`
+Non-Standard: \`${stats.bonuses.non_standard}\``,
+            inline: true
+        }, {
+            name: "Purchases",
+            value: "Rerolls: `" + stats.purchases.rerolls + "`\n" +
+                "Track Bribes: `" + stats.purchases.track_bribes + "`\n" +
+                "Racer Bribes: `" + stats.purchases.racer_bribes + "`\n" +
+                "Hints: `" + stats.purchases.hints + "`\n",
+            inline: true
+        })
 
     return profileEmbed
 }
 
-exports.profileComponents = function ({ member, page }) {
+exports.profileComponents = function ({ stats, ach_report, profile }) {
+
     const row1 = new ActionRowBuilder()
+
         .addComponents(
             new ButtonBuilder()
-                .setCustomId("challenge_random_profile_stats_uid" + member)
-                .setLabel("Stats")
-                .setStyle(ButtonStyle.Secondary)
-                .setEmoji('📊')
-                .setDisabled(page == 'stats')
+                .setCustomId("challenge_random_play")
+                .setLabel("Play")
+                .setStyle(ButtonStyle.Danger)
+                .setEmoji('🎲')
         )
         .addComponents(
             new ButtonBuilder()
-                .setCustomId("challenge_random_profile_achievements_uid" + member)
-                .setLabel("Achievements")
+                .setCustomId("challenge_random_shop")
+                .setLabel("Shop")
                 .setStyle(ButtonStyle.Secondary)
-                .setEmoji('🏆')
-                .setDisabled(page == 'achievements')
+                .setEmoji('🛒')
+
         )
         .addComponents(
             new ButtonBuilder()
-                .setCustomId("challenge_random_menu_uid" + member)
+                .setCustomId("challenge_random_inventory")
+                .setLabel("Inventory")
                 .setStyle(ButtonStyle.Secondary)
-                .setEmoji("862620287735955487")
+                .setEmoji('🎒')
+
+        )
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId("challenge_random_profile")
+                .setLabel("Profile")
+                .setStyle(ButtonStyle.Secondary)
+                .setEmoji('👤')
+                .setDisabled(true)
+        )
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId("challenge_random_about")
+                .setStyle(ButtonStyle.Secondary)
+                .setEmoji('❔')
         )
 
-    return [row1]
+
+    const achievement_selector = new StringSelectMenuBuilder()
+        .setCustomId('challenge_random_profile_ach')
+        .setPlaceholder("View Achievement Progress")
+        .setMinValues(1)
+        .setMaxValues(1)
+
+    Object.keys(ach_report).forEach(key => {
+        achievement_selector.addOptions({
+            label: ach_report[key].name,
+            value: key,
+            description: (ach_report[key].description + ": " + tools.numberWithCommas(ach_report[key].count) + "/" + tools.numberWithCommas(ach_report[key].limit)).substring(0, 50),
+            emoji: {
+                name: ach_report[key].count >= ach_report[key].limit ? "✅" : "🏆"
+            }
+        })
+    })
+
+    const row2 = new ActionRowBuilder().addComponents(achievement_selector)
+    const row3 = exports.racerSelector({ customid: 'challenge_random_profile_racer', placeholder: 'View Racer Progression', min: 1, max: 1, descriptions: Object.values(stats.racers).map((r, i) => (`▶${r.plays} 👍${r.likes} 👎${r.dislikes} | ${exports.convertLevel(r.level).string}: ${levels[exports.convertLevel(r.level).level]}`).replaceAll("`", "")) })
+    const row4 = exports.trackSelector({ customid: 'challenge_random_profile_track', placeholder: 'View Track Stats', min: 1, max: 1, descriptions: Object.values(stats.tracks).map(r => `▶${r.plays} 👍${r.likes} 👎${r.dislikes}`) })
+    const row5 = new ActionRowBuilder()
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId("challenge_random_settings_initial")
+                .setLabel("Settings")
+                .setStyle(ButtonStyle.Secondary)
+                .setEmoji('⚙️')
+        )
+    return [row1, row2, row3, row4, row5].flat()
+}
+
+exports.playerLevel = function (progression) {
+    function average(array) {
+        return array.reduce((x, y) => x + y) / array.length
+    }
+    let level = Math.floor(average(Object.values(progression).map(r => {
+        let level = exports.convertLevel(r)
+        return level?.level
+    })))
+    return {
+        level: level + 1,
+        string: `${level_symbols[Math.min(Math.floor(level / 4), 6)]} *${levels[Math.min(level, 24)]}*`
+    }
+}
+
+exports.convertLevel = function (int) {
+    let acc = 0
+    let level = { level: 0, nextlevel: 0, sublevel: 0 }
+    if (int > 324) {
+        let l = 25 + Math.floor((int - 325) / 25)
+        level = { level: l, nextlevel: l + 1, sublevel: (int - 325) % 25 }
+        level.string = `Level ${level.level + 1} \`${level.sublevel}/25\``
+        return level
+    }
+    for (let i = 0; i < 25; i++) {
+        if (int >= acc) {
+            level = { level: i, nextlevel: (i + 1), sublevel: int - acc }
+        }
+        acc += (i + 1)
+    }
+    level.string = `Level ${level.level + 1} \`${level.sublevel}/${level.nextlevel}\``
+    return level
 }
 
 exports.getStats = function ({ db, member, profile } = {}) {
@@ -1719,7 +2165,8 @@ exports.getStats = function ({ db, member, profile } = {}) {
             no_upgrades: 0,
             non_3_lap: 0,
             mirrored: 0,
-            backwards: 0
+            backwards: 0,
+            streaks: []
         },
         times: {
             total: 0,
@@ -1743,23 +2190,19 @@ exports.getStats = function ({ db, member, profile } = {}) {
             hints: 0,
             total_spending: 0
         },
-        plays: {
-            mostPod: {},
-            mostTrack: {},
-            mostPlanet: {},
-            mostCircuit: {}
-        },
-        feedback: {
-            likePod: {},
-            likeTrack: {},
-            dislikePod: {},
-            dislikeTrack: {}
+        racers: {},
+        tracks: {}
+    }
+    for (let i = 0; i < 25; i++) {
+        if (i < 23) {
+            stats.racers[i] = { plays: 0, likes: 0, dislikes: 0, level: 0 }
         }
+        stats.tracks[i] = { plays: 0, likes: 0, dislikes: 0 }
     }
     stats.bonuses.total_earnings = profile.truguts_earned
     stats.purchases.total_spending = profile.truguts_spent
-    if (profile.random.purchases) {
-        Object.values(profile.random.purchases).forEach(purchase => {
+    if (profile.purchases) {
+        Object.values(profile.purchases).forEach(purchase => {
             if (["Basic Hint", "Standard Hint", "Deluxe Hint"].includes(purchase.purchased_item)) {
                 stats.purchases.hints++
             }
@@ -1774,37 +2217,27 @@ exports.getStats = function ({ db, member, profile } = {}) {
             }
         })
     }
-
-    stats.plays.mostPod.most_count = 0
-    stats.plays.mostPod.most_name = null
-    stats.plays.mostTrack.most_count = 0
-    stats.plays.mostTrack.most_name = null
-    stats.plays.mostPlanet.most_count = 0
-    stats.plays.mostPlanet.most_name = null
-    stats.plays.mostCircuit.most_count = 0
-    stats.plays.mostCircuit.most_name = null
-    stats.feedback.likePod.most_count = 0
-    stats.feedback.likePod.most_name = null
-    stats.feedback.likeTrack.most_count = 0
-    stats.feedback.likeTrack.most_name = null
-    stats.feedback.dislikePod.most_count = 0
-    stats.feedback.dislikePod.most_name = null
-    stats.feedback.dislikeTrack.most_count = 0
-    stats.feedback.dislikeTrack.most_name = null
-    function getMost(obj, prop) {
-        if (obj[prop] == null) {
-            obj[prop] = 1
-        } else {
-            obj[prop]++
-        }
-        if (obj[prop] > obj.most_count) {
-            obj.most_name = prop;
-            obj.most_count = obj[prop];
-        }
+    let streak = {
+        start: null,
+        end: null
     }
     Object.values(db.ch.times).filter(challenge => !Array.isArray(challenge.track)).forEach(challenge => {
         if (challenge.user == member) {
+            if (streak.start === null) {
+                streak.start = challenge.date
+            }
+            if (streak.end === null) {
+                streak.end = challenge.date
+            } else if (challenge.date - (1000 * 60 * 60 * 36) < streak.end) { //streak continues
+                streak.end = challenge.date
+            } else { //streak broken
+                stats.totals.streaks.push(Math.floor((streak.end - streak.start) / 1000 / 60 / 60 / 24))
+                streak.start = challenge.date
+                streak.end = challenge.date
+            }
             stats.totals.total++
+            stats.racers[String(challenge.racer)].plays++
+            stats.tracks[String(challenge.track)].plays++
             //time stats
             stats.times.total += Number(challenge.time)
             var goals = exports.getGoalTimes({ racer: challenge.racer, track: challenge.track, skips: challenge.conditions.skips, nu: challenge.conditions.nu, laps: challenge.conditions.laps, backwards: challenge.conditions.backwards, best: Object.values(db.ch.times).filter(c => exports.matchingChallenge(c, challenge) && c.date < challenge.date) })
@@ -1817,6 +2250,7 @@ exports.getStats = function ({ db, member, profile } = {}) {
             }
             if (goal_time !== null) {
                 stats.times[goal_array[goal_time]]++
+                stats.racers[String(challenge.racer)].level += (5 - goal_time)
             }
             //stats
             if (!challenge.mirror && !challenge.nu && !challenge.skips && challenge.laps == 3) {
@@ -1845,10 +2279,6 @@ exports.getStats = function ({ db, member, profile } = {}) {
                 }
             }
             hasraced = true
-            getMost(stats.plays.mostPod, challenge.racer)
-            getMost(stats.plays.mostTrack, challenge.track)
-            getMost(stats.plays.mostPlanet, tracks[challenge.track].planet)
-            getMost(stats.plays.mostCircuit, tracks[challenge.track].circuit)
             var first = true
             var pb = false
             var beat = []
@@ -1875,9 +2305,15 @@ exports.getStats = function ({ db, member, profile } = {}) {
             }
         }
     })
+    stats.totals.streaks.push(Math.floor((streak.end - streak.start) / 1000 / 60 / 60 / 24))
     Object.values(db.ch.feedback).filter(f => f.user == member).forEach(f => {
-        getMost(f.feedback == "👍" ? stats.feedback.likePod : stats.feedback.dislikePod, f.racer)
-        getMost(f.feedback == "👍" ? stats.feedback.likeTrack : stats.feedback.dislikeTrack, f.track)
+        if (f.feedback == '👍') {
+            stats.racers[String(f.racer)].likes++
+            stats.tracks[String(f.track)].likes++
+        } else {
+            stats.racers[String(f.racer)].dislikes++
+            stats.tracks[String(f.track)].dislikes++
+        }
     })
 
     return stats
@@ -1888,10 +2324,14 @@ exports.shopEmbed = function ({ shoptions, selection, profile }) {
 
     const myEmbed = new EmbedBuilder()
         .setAuthor({ name: "Random Challenge", iconURL: "https://em-content.zobj.net/thumbs/120/twitter/322/game-die_1f3b2.png" })
-        .setTitle(":shopping_cart: Shop")
+        .setTitle(":shopping_cart: " + (selected ? selected.label : 'Shop'))
         .setColor("#ED4245")
-        .setDescription("Welcome to Botto's Shop!" + (selected ? `\n\n**${selected.label}**\n${selected.info}` : ''))
+        .setDescription((selected ? selected.info : "Welcome to Botto's Shop!"))
         .setFooter({ text: `Truguts: 📀${exports.currentTruguts(profile)}` })
+
+    if (selected?.fields) {
+        myEmbed.addFields(...selected.fields)
+    }
     return myEmbed
 }
 
@@ -1913,7 +2353,7 @@ exports.notYoursEmbed = function () {
 exports.hintComponents = function ({ profile, player, db } = {}) {
 
     const achievement_selector = new StringSelectMenuBuilder()
-        .setCustomId('challenge_random_shop_2')
+        .setCustomId('challenge_random_shop_3')
         .setPlaceholder("Select Achievement")
         .setMinValues(1)
         .setMaxValues(1)
@@ -1931,28 +2371,26 @@ exports.hintComponents = function ({ profile, player, db } = {}) {
         })
     })
     const hint_selector = new StringSelectMenuBuilder()
-        .setCustomId('challenge_random_shop_3')
+        .setCustomId('challenge_random_shop_2')
         .setPlaceholder("Select Hint")
         .setMinValues(1)
         .setMaxValues(1)
     for (i = 0; i < hints.length; i++) {
-        if (profile.truguts_earned - profile.truguts_spent >= hints[i].price) {
-            hint_selector.addOptions(
-                {
-                    label: hints[i].name,
-                    value: String(i),
-                    description: "📀" + tools.numberWithCommas(hints[i].price) + " | " + hints[i].description,
-                    emoji: {
-                        name: "💡"
-                    }
+        hint_selector.addOptions(
+            {
+                label: hints[i].name,
+                value: hints[i].value,
+                description: "📀" + tools.numberWithCommas(hints[i].price) + " | " + hints[i].description,
+                emoji: {
+                    name: "💡"
                 }
-            )
-        }
+            }
+        )
     }
 
     const row1 = new ActionRowBuilder().addComponents(achievement_selector)
     const row2 = new ActionRowBuilder().addComponents(hint_selector)
-    return achievement_selector.options.length ? [row1, row2] : []
+    return achievement_selector.options.length ? [row2, row1] : []
 }
 
 exports.huntComponents = function (profile) {
@@ -1962,18 +2400,16 @@ exports.huntComponents = function (profile) {
         .setMinValues(1)
         .setMaxValues(1)
     for (i = 0; i < hints.length; i++) {
-        if (profile.truguts_earned - profile.truguts_spent >= hints[i].price) {
-            hint_selector.addOptions(
-                {
-                    label: hints[i].hunt,
-                    value: String(i),
-                    description: "Price: 📀" + tools.numberWithCommas(hints[i].price) + " | " + hints[i].description + " | Bonus: 📀" + tools.numberWithCommas(hints[i].bonus),
-                    emoji: {
-                        name: "🎯"
-                    }
+        hint_selector.addOptions(
+            {
+                label: hints[i].hunt,
+                value: hints[i].value,
+                description: "Price: 📀" + tools.numberWithCommas(hints[i].price) + " | " + hints[i].description + " | Bonus: 📀" + tools.numberWithCommas(hints[i].bonus),
+                emoji: {
+                    name: "🎯"
                 }
-            )
-        }
+            }
+        )
     }
     const row1 = new ActionRowBuilder().addComponents(hint_selector)
     return [row1]
@@ -2035,32 +2471,156 @@ exports.settingsComponents = function (profile) {
         })
     }
     row2.addComponents(winnings_selector)
-    return [row1, row2]
+    let comp = [row1, row2]
+    if (profile.effects?.nav_computer) {
+        comp = [row1, row2, ...exports.navComponents({ context: 'settings', profile })]
+    }
+    return comp
 }
 
-exports.racerHint = function (racer, count) {
-    const hint_shuffle = racer_hints[racer].sort(() => 0.5 - Math.random())
+exports.racerHint = function ({ racer, count, db } = {}) {
+    let hints = racer_hints[racer]
+    let userhints = Object.values(db.ch.clues).filter(h => h.type == 'racer' && h.selection == racer).map(h => h.clue)
+    const hint_shuffle = [...hints, ...userhints].sort(() => 0.5 - Math.random())
     return hint_shuffle.slice(0, count + 1)
 }
 
-exports.trackHint = function (track, count) {
-    const hint_shuffle = track_hints[track].sort(() => 0.5 - Math.random())
+exports.trackHint = function ({ track, count, db } = {}) {
+    let hints = track_hints[track]
+    let userhints = Object.values(db.ch.clues).filter(h => h.type == 'track' && h.selection == track).map(h => h.clue)
+    const hint_shuffle = [...hints, ...userhints].sort(() => 0.5 - Math.random())
     return hint_shuffle.slice(0, count + 1)
 }
 
-exports.sponsorEmbed = function (sponsorchallenge, profile) {
+exports.sponsorPlayerComponents = function ({ selection, db }) {
+    let take_selector = new StringSelectMenuBuilder()
+        .setCustomId('challenge_random_shop_2')
+        .setPlaceholder('Select Sponsorship Level')
+        .setMinValues(1)
+        .setMaxValues(1)
+    take_selector.addOptions({
+        label: '📀50,000 Sponsorship',
+        value: '5',
+        description: '5% Kickback'
+    }, {
+        label: '📀100,000 Sponsorship',
+        value: '10',
+        description: '10% Kickback'
+    }, {
+        label: '📀200,000 Sponsorship',
+        value: '20',
+        description: '20% Kickback'
+    })
+
+    const row = new ActionRowBuilder().addComponents(take_selector)
+    return [row, ...exports.userPicker({ selection, customid: 'challenge_random_shop_3', placeholder: 'Select a Player to Sponsor', db })]
+
+}
+
+exports.clueComponents = function ({ selection }) {
+    const type_selector = new StringSelectMenuBuilder()
+        .setCustomId('challenge_random_shop_2')
+        .setPlaceholder("Select Clue Type")
+        .setMinValues(1)
+        .setMaxValues(1)
+
+    type_selector.addOptions({
+        label: 'Racer',
+        value: 'racer',
+        description: 'submit a racer clue'
+    },
+        {
+            label: 'Track',
+            value: 'track',
+            description: 'submit a track clue'
+        })
+
+    const row1 = new ActionRowBuilder().addComponents(type_selector)
+    let comp = [row1]
+    if (selection[2]?.[0] == 'track') {
+        comp.push(...exports.trackSelector({ customid: 'challenge_random_shop_3', placeholder: 'Select a Track', min: 1, max: 1 }))
+    } else if (selection[2]?.[0] == 'racer') {
+        comp.push(...exports.racerSelector({ customid: 'challenge_random_shop_3', placeholder: 'Select a Racer', min: 1, max: 1 }))
+    }
+    return comp
+}
+
+exports.multiplierComponents = function ({ selection }) {
+    const multi_selector = new StringSelectMenuBuilder()
+        .setCustomId('challenge_random_shop_2')
+        .setPlaceholder('Select a Multiplier')
+        .setMinValues(1)
+        .setMaxValues(1)
+    let titles = ['Di', 'Tetra', 'Hexa', 'Octa', 'Deca']
+    let prices = [1000000, 2000000, 8000000, 48000000, 384000000]
+    for (let i = 0; i < 5; i++) {
+        multi_selector.addOptions({
+            label: `${titles[i]}-Cloner (📀${tools.numberWithCommas(prices[i])})`,
+            value: String((i + 1) * 2),
+            description: `${(i + 1) * 2}× Multiplier | Must be level ${(i + 1) * 5} or greater`
+        })
+    }
+
+    const row1 = new ActionRowBuilder().addComponents(multi_selector)
+    return [row1]
+}
+
+exports.navComponents = function ({ context, profile } = {}) {
+    const multi_selector = new StringSelectMenuBuilder()
+        .setCustomId(context == 'shop' ? 'challenge_random_shop_2' : 'challenge_random_settings_nav')
+        .setPlaceholder('Nav Computer')
+        .setMinValues(context == 'settings' ? 0 : 1)
+        .setMaxValues(1)
+
+    let options = [{
+        label: `Mid Rim Territories${context == 'shop' ? '(📀2,000,000)' : ''}`,
+        value: "1",
+        description: `Botto will only roll challenges that apply to unearned achievements.`
+    },
+    {
+        label: `Outer Rim Territories${context == 'shop' ? '(📀8,000,000)' : ''}`,
+        value: "2",
+        description: `Botto will only roll challenges that the user has not played.`
+    },
+    {
+        label: `Unknown Regions${context == 'shop' ? '(📀48,000,000)' : ''}`,
+        value: "3",
+        description: `Botto will only roll challenges that have no submissions.`
+    }]
+
+    if (context == 'settings') {
+        options = options.filter(o => profile.effects?.nav_computer?.[o.value]).map(o => ({
+            ...o, default: profile?.settings?.nav && Object.values(profile?.settings?.nav).includes(o.value)
+        }))
+    }
+    multi_selector.addOptions(options)
+    const row1 = new ActionRowBuilder().addComponents(multi_selector)
+    return [row1]
+}
+
+exports.sponsorEmbed = function (sponsorchallenge, profile, db) {
+    let title = sponsorchallenge?.title ?? ""
     const sponsorEmbed = new EmbedBuilder()
-        .setTitle(":loudspeaker: Sponsor")
-        .setAuthor({ name: "Random Challenge", iconURL: "https://em-content.zobj.net/thumbs/120/twitter/322/game-die_1f3b2.png" })
+        .setTitle((title ? `*"${title}"*\n` : '') + exports.generateChallengeTitle(sponsorchallenge))
+        .setAuthor({ name: "Sponsored Challenge", iconURL: "https://em-content.zobj.net/thumbs/120/twitter/322/game-die_1f3b2.png" })
         .setDescription("Step 1: Set a custom title and time\nStep 2: Publish your challenge and get players to complete it\nStep 3: Profit")
         .setFooter({ text: "Truguts: 📀" + exports.currentTruguts(profile) })
         .setColor("#ED4245")
-    let title = sponsorchallenge?.title ?? "No title set"
-    let time = exports.validateTime(sponsorchallenge?.time) ?? "No time set"
+
+    let time = exports.validateTime(sponsorchallenge?.time) ?? null
+    let best = Object.values(db.ch.times).filter(t => exports.matchingChallenge(t, sponsorchallenge))
+    console.log(sponsorchallenge)
+    if (time) {
+        best.push({
+            time: time,
+            sponsor: true,
+            user: sponsorchallenge.sponsor.member,
+            name: sponsorchallenge.sponsor.name
+        })
+    }
     sponsorEmbed.addFields(
-        { name: ":game_die: Challenge: ", value: exports.generateChallengeTitle(sponsorchallenge) },
-        { name: ":label: Custom Title: " + title, value: "This will go above the challenge title." },
-        { name: ":stopwatch: Custom Time: " + tools.timefix(time), value: "Players who beat this sponsor time will get a special bonus. Please make it achievable." }
+        { name: "Goal Times", value: exports.goalTimeList(sponsorchallenge, null, best).list, inline: true },
+        { name: 'Best Times', value: exports.generateLeaderboard(best, null, sponsorchallenge) ?? 'No times', inline: true }
     )
     return sponsorEmbed
 }
@@ -2073,18 +2633,16 @@ exports.sponsorShopComponents = function (profile) {
         .setMinValues(1)
         .setMaxValues(1)
     for (i = 0; i < circuits.length; i++) {
-        if (profile.truguts_earned - profile.truguts_spent >= circuits[i].sponsor) {
-            circuit_selector.addOptions(
-                {
-                    label: circuits[i].name + " Circuit",
-                    value: String(i),
-                    description: "Cost: 📀" + tools.numberWithCommas(circuits[i].sponsor) + " | " + circuits[i].races + " Tracks",
-                    emoji: {
-                        name: "📢"
-                    },
-                }
-            )
-        }
+        circuit_selector.addOptions(
+            {
+                label: circuits[i].name + " Circuit",
+                value: String(i),
+                description: "Cost: 📀" + tools.numberWithCommas(circuits[i].sponsor) + " | " + circuits[i].races + " Tracks",
+                emoji: {
+                    name: "📢"
+                },
+            }
+        )
     }
     row.addComponents(circuit_selector)
     return [row]
@@ -2148,25 +2706,28 @@ exports.monthlyChallenge = async function ({ client, challengesref, db } = {}) {
         cotmmessage.pin()
 
         function trackMatch(a, b) {
-            return a.map(i => b.includes(i)).filter(i => i).length
+            return a.map(i => b.includes(Number(i))).filter(i => i).length
         }
 
-
-
         let tickets = Object.values(db.ch.lotto).filter(t => moment(t.date).tz('America/New_York').month() == recent.month && trackMatch(t.tracks, current_challenge.track) > 0).sort((a, b) => trackMatch(a.tracks, current_challenge.track) - trackMatch(b.tracks, current_challenge.track))
-        tickets.forEach(t => {
-            trackMatch(t.tracks, current_challenge.track)
-        })
         function winner(count, tracks) {
             return count >= Math.min(7, tracks.length)
         }
+        let winners = tickets.map(t => ({ user: t.user, count: trackMatch(t.tracks, current_challenge.track) }))
+        winners.forEach(w => w.winner = winner(w.count, current_challenge.track))
+
+        //award truguts
+        winners.forEach(w => {
+            let userkey = Object.keys(db.user).find(u => db.user[u].discordID == w.user)
+            w.winnings = w.winner ? 1000000 : w.count * 20000
+            exports.manageTruguts({ profile: db.user[userkey].random, profileref: database.ref(`users/${userkey}/random`), transaction: 'd', amount: w.winnings })
+        })
+
         const winnersEmbed = new EmbedBuilder()
-            .setTitle('Botto Lotto Winners')
+            .setTitle('🎰Botto Lotto Winners')
             .setDescription(
-                tickets.map(t =>
-                    `${Object.values(db.user).find(u => u.discordID == t.user)} - ${winner(trackMatch(t.tracks, current_challenge.track), current_challenge.track) ?
-                        ('WINNER <a:sparks:672640526444527647> `+📀1,000,000`') :
-                        trackMatch(t.tracks, current_challenge.track) + ' Correct `+📀' + tools.numberWithCommas(trackMatch(t.tracks, current_challenge.track) * 20000) + "`"}`).join("\n"))
+                winners.map(w =>
+                    `<@${w.user}> - ${w.winner ? 'WINNER <a:sparks:672640526444527647> `+📀1,000,000`' : `\`+📀${tools.numberWithCommas(w.winnings)}\``}`).join("\n"))
         postMessage(client, '551786988861128714', { embeds: [winnersEmbed] })
     }
 }
@@ -2176,7 +2737,7 @@ exports.dailyChallenge = async function ({ client, challengesref, db } = {}) {
     let lastfive = []
 
     if (db.ch.challenges) {
-        Object.values(db.ch.challenges).filter(c => c.type == 'cotd').sort((a, b) => b.created - a.created).slice(0, 5).forEach(challenge => {
+        Object.values(db.ch.challenges).filter(c => c.type == 'cotd' && !c.rerolled).sort((a, b) => b.created - a.created).slice(0, 5).forEach(challenge => {
             lastfive.push(challenge)
             if (!recent || recent.created - challenge.created < 0) {
                 recent = { ...challenge }
@@ -2184,6 +2745,9 @@ exports.dailyChallenge = async function ({ client, challengesref, db } = {}) {
         })
     }
     if (exports.easternTime().dayOfYear() !== recent.day) {
+        if (!testing) {
+            await interaction.guild.edit({ banner: banners[Math.floor(Math.random() * banners.length)] })
+        }
         let current_challenge = exports.initializeChallenge({ type: "cotd", db })
         if (lastfive.map(c => c.racer).includes(current_challenge.racer)) {
             if (Math.random() < 0.9) {
@@ -2238,7 +2802,7 @@ exports.dailyBounty = async function ({ client, db, bountyref } = {}) {
     //console.log("bounty", exports.easternHour(), moment().utc().dayOfYear(), recent.message, recent.day, exports.easternHour() == 12, moment().utc().dayOfYear() !== recent.day)
     if ((exports.easternTime() == 12 && exports.easternTime().dayOfYear() !== recent.day)) { //
         let bounty = exports.initializeBounty('botd')
-        let message = await postMessage(client, '551786988861128714', { embeds: [exports.bountyEmbed(bounty)] }) //551786988861128714
+        let message = await postMessage(client, '551786988861128714', { embeds: [exports.bountyEmbed({ bounty, profile, db })] }) //551786988861128714
         bounty.url = message.url
         bounty.message = message.id
         bounty.channel = message.channelId
@@ -2248,13 +2812,13 @@ exports.dailyBounty = async function ({ client, db, bountyref } = {}) {
 
 }
 
-exports.bountyEmbed = function (bounty, profile) {
+exports.bountyEmbed = function ({ bounty, profile, db } = {}) {
     const bEmbed = new EmbedBuilder()
         .setTitle(":dart: " + (bounty.type == 'botd' ? "Bounty of the Day" : hints[bounty.r_hints].hunt))
         .setColor("#ED4245")
         .addFields(
-            { name: "Track Leads", value: exports.trackHint(bounty.track, bounty.t_hints).map(h => "○ *" + h + "*").join("\n") },
-            { name: "Racer Leads", value: exports.racerHint(bounty.racer, bounty.r_hints).map(h => "○ *" + h + "*").join("\n") }
+            { name: "Track Leads", value: exports.trackHint({ track: bounty.track, count: bounty.t_hints, db }).map(h => "○ *" + h + "*").join("\n") },
+            { name: "Racer Leads", value: exports.racerHint({ racer: bounty.racer, count: bounty.r_hints, db }).map(h => "○ *" + h + "*").join("\n") }
         )
 
     if (bounty.type == 'private') {
@@ -2274,7 +2838,7 @@ exports.bountyEmbed = function (bounty, profile) {
     return bEmbed
 }
 
-exports.initializeBounty = function (type, h, player) {
+exports.initializeBounty = function (type, h, player, profile) {
     let bounty = {
         track: Math.floor(Math.random() * 25),
         racer: Math.floor(Math.random() * 23),
@@ -2291,14 +2855,15 @@ exports.initializeBounty = function (type, h, player) {
         bounty.bonus = Math.floor(Math.random() * 35) * 1000
     } else if (type == 'private') {
         bounty.player = player
-        bounty.r_hints = h
-        bounty.t_hints = h
+        bounty.r_hints = h + (profile.effects?.movie_buff ? 1 : 0)
+        bounty.t_hints = h + (profile.effects?.movie_buff ? 1 : 0)
         bounty.bonus = hints[h].bonus
     }
     return bounty
 }
 
 exports.manageTruguts = function ({ profile, profileref, transaction, amount, purchase } = {}) {
+    console.log(`${profile.name} ${transaction} ${amount}`)
     if (transaction == 'w') {
         profile.truguts_spent += amount
     } else if (transaction == 'd') {
@@ -2306,7 +2871,10 @@ exports.manageTruguts = function ({ profile, profileref, transaction, amount, pu
     } else if (transaction == 'r') {
         profile.truguts_spent -= amount
     }
-    profileref.update(profile)
+    profileref.update({
+        truguts_spent: transaction == 'w' ? profile.truguts_spent = Number(profile.truguts_spent) + Number(amount) : transaction == 'r' ? profile.truguts_spent = Number(profile.truguts_spent) - Number(amount) : profile.truguts_spent,
+        truguts_earned: transaction == 'd' ? profile.truguts_earned = Number(profile.truguts_earned) + Number(amount) : profile.truguts_earned
+    })
     if (transaction == 'w' && purchase) {
         profileref.child("purchases").push(purchase)
     }
@@ -2320,7 +2888,7 @@ exports.currentTruguts = function (profile) {
 exports.randomChallengeItem = function ({ profile, current_challenge, db, member }) {
     const challenges_completed = Object.values(db.ch.times).filter(time => time.user == member).length
     let item_pool = []
-    let special_items = [{ id: 'coffer' }, { id: 'speed_boost' }, { id: 'sabotage' }]
+    let special_items = [{ id: 'collectible_coffer' }, { id: 'trugut_boost' }, { id: 'sabotage_kit' }]
     items.forEach(item => {
         if ((item.challenges !== null && challenges_completed > item.challenges) || current_challenge.conditions[item.condition] || item.track.includes(current_challenge.track) || item.racer.includes(current_challenge.racer)) {
             item_pool.push(item)
@@ -2396,4 +2964,49 @@ exports.openCoffer = function () {
     }
 
     return opened_items
+}
+
+exports.userPicker = function ({ selection, customid, placeholder, db }) {
+    //let selected_user = selection[2].sel
+    const userselector = new StringSelectMenuBuilder()
+        .setCustomId(customid)
+        .setPlaceholder(placeholder)
+        .setMinValues(1)
+        .setMaxValues(1)
+    let users = Object.keys(db.user).filter(u => db.user[u].random && Object.values(db.ch.times).filter(t => t.user == db.user[u].discordID).length > 10).sort((a, b) => db.user[a].name.localeCompare(db.user[b].name)).slice(0, 25)
+
+    users.forEach(u => {
+        userselector.addOptions(
+            {
+                label: db.user[u].name,
+                value: String(u),
+                description: `${Object.values(db.ch.times).filter(t => t.user == db.user[u].discordID).length} submissions | 📀${tools.numberWithCommas(db.user[u].random.truguts_earned)} earned`,
+            }
+        )
+    })
+    const row1 = new ActionRowBuilder().addComponents(userselector)
+    return [row1]
+}
+
+exports.collectionReward = function ({ profile }) {
+    let rewards = {
+        effects: {},
+        roles: {}
+    }
+    let collections = exports.collections()
+    if (profile.items) {
+        return rewards
+    }
+    collections.forEach(collection => {
+        let items = Object.values(profile.items).map(i => i.id).filter(item => collection.items.includes(item))
+        if (collection.key == 'chance_cube' && items.filter(i => i == 95).length >= 3 && items.filter(i => i == 96).length >= 3) {
+            rewards.effects.chance_cube = true
+        } else if ([...new Set(items)].length >= collection.items.length) {
+            if (collection.planet) {
+                rewards.roles[collection.key] = true
+            } else {
+                rewards.effects[collection.key] = true
+            }
+        }
+    })
 }

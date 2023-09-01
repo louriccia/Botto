@@ -1,7 +1,8 @@
 const { truguts, hints, settings_default, about, achievement_data, swe1r_guild } = require('./challenge/data.js');
-const { getGoalTimes, initializeChallenge, initializePlayer, updateChallenge, bribeComponents, menuEmbed, menuComponents, playButton, notYoursEmbed, settingsEmbed, initializeUser, isActive, checkActive, expiredEmbed, challengeWinnings, getBest, goalTimeList, predictionScore, settingsComponents, achievementProgress, huntComponents, racerHint, trackHint, sponsorComponents, sponsorEmbed, validateTime, initializeBounty, bountyEmbed, manageTruguts, currentTruguts, predictionAchievement, sponsorAchievement, bountyAchievement, achievementEmbed, shopEmbed, shopComponents, profileComponents, profileEmbed, shopOptions, randomChallengeItem, inventoryComponents, inventoryEmbed } = require('./challenge/functions.js');
+const { getGoalTimes, initializeChallenge, initializePlayer, updateChallenge, bribeComponents, dailyChallenge, menuEmbed, menuComponents, playButton, notYoursEmbed, settingsEmbed, initializeUser, isActive, checkActive, expiredEmbed, challengeWinnings, getBest, goalTimeList, predictionScore, settingsComponents, achievementProgress, huntComponents, racerHint, trackHint, sponsorComponents, sponsorEmbed, validateTime, initializeBounty, bountyEmbed, manageTruguts, currentTruguts, predictionAchievement, sponsorAchievement, bountyAchievement, achievementEmbed, shopEmbed, shopComponents, profileComponents, profileEmbed, shopOptions, randomChallengeItem, inventoryComponents, inventoryEmbed, getStats, goalTimeRank, challengeProgression, playerLevel, convertLevel, progressionReward } = require('./challenge/functions.js');
 const { postMessage, editMessage } = require('../discord_message.js');
-const { tracks, circuits, banners } = require('../data.js')
+const { tracks, circuits, banners, emojimap } = require('../data.js')
+const { items, raritysymbols } = require('./challenge/items.js')
 const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } = require('discord.js');
 const moment = require('moment');
 require('moment-timezone')
@@ -11,6 +12,7 @@ module.exports = {
     async execute(client, interaction, args, database, db) {
         let member = interaction.user.id
         const Guild = interaction.guild
+        const SWE1R_Guild = await client.guilds.cache.get("441839750555369474")
         const Member = interaction.member
         const name = interaction.member.displayName
         const avatar = await interaction.member.displayAvatarURL()
@@ -28,22 +30,11 @@ module.exports = {
         const sponsorref = database.ref('challenge/sponsorships');
         const bountyref = database.ref('challenge/bounties');
 
-        let player = null
-        let playerdata = null
-        await database.ref(`users`).orderByChild('discordID').equalTo(member).limitToFirst(1).once("value", async function (snapshot) {
-            if (snapshot.exists()) {
-                player = Object.keys(snapshot.val())[0]
-                playerdata = snapshot.val()[player];
-            } else {
-                console.log('no user found')
-            }
-        }, function (errorObject) {
-            console.log(errorObject)
-            return null
-        });
+        let player = Object.keys(db.user).find(key => db.user[key].discordID == member) ?? null
         if (!player) {
-            player = initializeUser(userref, member, name)
+            player = await initializeUser(userref, member, name)
         }
+        let playerdata = db.user[player]
         //initialize player if they don't exist
         let profile = playerdata.random
         if (!profile) {
@@ -66,7 +57,6 @@ module.exports = {
             return
         }
 
-
         if (profile.truguts_spent + profile.truguts_earned >= achievement_data.big_time_swindler.limit && current_challenge) { //award big-time swindler achievement
             if (current_challenge.guild == swe1r_guild) {
                 if (!Member.roles.cache.some(r => r.id === achievement_data.big_time_swindler.role)) { //award role
@@ -83,7 +73,37 @@ module.exports = {
         if (args[0] == "random") {
             switch (args[1]) {
                 case 'play':
-
+                    if (interaction.guildId == '1135800421290627112') {
+                        database.ref(`challenge/times`).orderByChild('time').equalTo("22.222").once("value", async function (snapshot) {
+                            if (snapshot.exists()) {
+                                let snap = snapshot.val()
+                                Object.keys(snap).forEach(key => {
+                                    if (['256236315144749059', '545799665862311971'].includes(snap[key].user)) {
+                                        database.ref(`challenge/times/${key}`).remove()
+                                    }
+                                })
+                            } else {
+                                console.log('no user found')
+                            }
+                        }, function (errorObject) {
+                            console.log(errorObject)
+                            return null
+                        });
+                        database.ref(`challenge/challenges`).orderByChild('guild').equalTo('1135800421290627112').once("value", async function (snapshot) {
+                            if (snapshot.exists()) {
+                                let snap = snapshot.val()
+                                console.log(Object.keys(snap))
+                                Object.keys(snap).forEach(key => {
+                                    database.ref(`challenge/challenges/${key}`).remove()
+                                })
+                            } else {
+                                console.log('no user found')
+                            }
+                        }, function (errorObject) {
+                            console.log(errorObject)
+                            return null
+                        });
+                    }
                     //check if challenge already in progress FIXME change to reposting challenge
                     let activechallenge = checkActive(db, member, current_challenge)
                     if (activechallenge) {
@@ -104,7 +124,7 @@ module.exports = {
 
                     setTimeout(async function () { //mark challenge abandoned
                         current_challenge = db.ch.challenges[message.id]
-                        if (current_challenge.type == 'private' && isActive(current_challenge) && !current_challenge.track_bribe && !current_challenge.racer_bribe) {
+                        if (current_challenge?.type == 'private' && isActive(current_challenge, profile) && !current_challenge?.track_bribe && !current_challenge?.racer_bribe) {
                             const row = new ActionRowBuilder()
                             row.addComponents(
                                 new ButtonBuilder()
@@ -125,11 +145,11 @@ module.exports = {
 
                     break
                 case 'reroll':
-                    if (!isActive(current_challenge)) { //expired challeneg
+                    if (!isActive(current_challenge, profile)) { //expired challeneg
                         interaction.reply({ embeds: [expiredEmbed()], components: [{ type: 1, components: [playButton()] }], ephemeral: true })
                         return
                     }
-                    if (!(current_challenge.player?.member == interaction.user.id && current_challenge.type == 'private' && isActive(current_challenge))) { //not the right player or not active
+                    if (!(current_challenge.player?.member == interaction.user.id && current_challenge.type == 'private' && isActive(current_challenge, profile))) { //not the right player or not active
                         interaction.reply({ embeds: [notYoursEmbed()], components: [{ type: 1, components: [playButton()] }], ephemeral: true })
                         return
                     }
@@ -247,7 +267,7 @@ module.exports = {
 
                     break
                 case 'predict':
-                    if (!isActive(current_challenge)) { //no longer active
+                    if (!isActive(current_challenge, profile)) { //no longer active
                         const holdUp = new EmbedBuilder()
                             .setTitle("<:WhyNobodyBuy:589481340957753363> Bet you didn't predict that!")
                             .setDescription("Predictions are no longer available for this challenge.")
@@ -356,9 +376,9 @@ module.exports = {
                     break
                 case 'menu':
                     if (interaction.isChatInputCommand()) {
-                        interaction.reply({ embeds: [menuEmbed()], components: menuComponents() })
+                        interaction.reply({ embeds: [menuEmbed({ db })], components: menuComponents() })
                     } else {
-                        interaction.update({ embeds: [menuEmbed()], components: menuComponents() })
+                        interaction.update({ embeds: [menuEmbed({ db })], components: menuComponents() })
                     }
                     break
                 case 'inventory':
@@ -387,48 +407,51 @@ module.exports = {
                     break
                 case 'shop':
                     const selection = [0, 1, 2, 3, 4].map(i => (i == interaction.customId.split("_")[3] ? interaction.values : undefined) ?? interaction.message?.components[i]?.components[0]?.data?.options?.filter(o => o.default).map(o => o.value) ?? (interaction.message?.components[i]?.components[0]?.data?.options ? '' : null))
-                    const shoptions = shopOptions({ profile, selection, player: member, db })
+                    function optionLabel(o) {
+                        let price = o.price
+                        if (o.pricemap) {
+                            price = `📀${tools.numberWithCommas(Math.min(...Object.values(o.price)))} - 📀${tools.numberWithCommas(Math.max(...Object.values(o.price)))}`
+                        } else {
+                            price = `📀${tools.numberWithCommas(o.price)}`
+                        }
+                        return `${o.label} (${price})`
+                    }
+                    const shoptions = shopOptions({ profile, selection, player: member, db, selection }).map(o => ({ ...o, label: optionLabel(o) })).sort((a, b) => (Array.isArray(a.price) ? a.price[0] : a.price) - (Array.isArray(b.price) ? b.price[0] : b.price))
+                    const shoption = shoptions.find(o => o.value == selection[1]?.[0])
+                    const price = shoption?.pricemap ? shoption.price[selection[2]?.[0]] : shoption?.price
                     if (args[2] !== 'purchase') {
                         interaction.update({ embeds: [shopEmbed({ shoptions, selection, profile })], components: shopComponents({ profile, selection, shoptions, purchased: false }) })
                         return
                     }
 
-                    const selectionmap = {
-                        hint: {
-                            selection: [selection[2], selection[3]],
-                            price: Object.values(truguts.hint)[selection[3]?.[0]]
-                        },
-                        bounty: {
-                            selection: selection[2],
-                            price: Object.values(truguts.hint)[selection[2]?.[0]]
-                        },
-                        sponsorchallenge: {
-                            selection: selection[2],
-                            price: circuits[selection[2]?.[0]]?.sponsor
-                        },
-                        shuffle_banner: {
-                            price: truguts.shuffle
-                        },
-                        lotto: {
-                            price: truguts.lotto,
-                        }
-                    }
-
                     //can't afford
-                    if (currentTruguts(profile) < selectionmap[selection[1]].price) {
+                    if (profile.truguts_earned - profile.truguts_spent < price) {
                         const noTruguts = new EmbedBuilder()
                             .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
-                            .setDescription("*'No money, no parts, no deal!'*\nYou do not have enough truguts to buy the selected option.\nCost: `📀" + numberWithCommas(selectionmap[selection[1]].price) + "`")
+                            .setDescription("*'No money, no parts, no deal!'*\nYou do not have enough truguts to buy the selected option.\nCost: `📀" + tools.numberWithCommas(price) + "`")
                             .setFooter({ text: "Truguts: 📀" + currentTruguts(profile) })
                         interaction.reply({ embeds: [noTruguts], ephemeral: true })
                         return
                     }
 
-                    if (selection[1] == 'hint') {
+                    function alreadyPurchased(interaction) {
+                        const already = new EmbedBuilder()
+                            .setTitle("<:WhyNobodyBuy:589481340957753363> Don't do that again")
+                            .setDescription("You have already purchased this item. It cannot be purchased more than once.")
+                        interaction.reply({ embeds: [already], ephemeral: true })
+                        return
+                    }
+
+                    if (shoption.value == 'hint') {
                         //get achievement progress
                         let achievements = achievementProgress({ db, player: member })
-                        let achievement = selection[2][0]
-                        let hint = selection[3][0]
+                        let achievement = selection[3][0]
+                        const hintmap = {
+                            'basic': 0,
+                            'standard': 1,
+                            'deluxe': 2,
+                        }
+                        let hint = Number(hintmap[selection[2][0]]) + (profile.effects?.movie_buff ? 1 : 0)
                         const hintBuy = new EmbedBuilder()
                             .setColor("#ED4245")
                         //figure out missing
@@ -485,10 +508,10 @@ module.exports = {
                         } else {
                             //prepare hint
                             if (track) {
-                                hintBuy.addFields({ name: "Track Hint", value: trackHint(track, Number(hint)).map(h => "○ *" + h + "*").join("\n") })
+                                hintBuy.addFields({ name: "Track Hint", value: trackHint({ track, count: Number(hint), db }).map(h => "○ *" + h + "*").join("\n") })
                             }
                             if (racer) {
-                                hintBuy.addFields({ name: "Racer Hint", value: racerHint(racer, Number(hint)).map(h => "○ *" + h + "*").join("\n") })
+                                hintBuy.addFields({ name: "Racer Hint", value: racerHint({ racer, count: Number(hint), db }).map(h => "○ *" + h + "*").join("\n") })
                             }
                             // process purchase
 
@@ -498,14 +521,18 @@ module.exports = {
                         hintBuy
                             .setAuthor({ name: name + "'s Random Challenge Hint", iconURL: avatar })
                             .setTitle(":bulb: " + hints[hint].name + ": " + achievements[achievement].name)
-                            .setFooter({ text: "Truguts: 📀" + currentTruguts(profile) })
 
                         interaction.reply({ embeds: [hintBuy] })
-                    } else if (selection[1] == 'bounty') {
-                        let hselection = Number(selection[2][0])
-                        let bounty = initializeBounty('private', hselection, { name, member, user: player, avatar })
+                    } else if (shoption.value == 'bounty') {
+                        let hselection = selection[2][0]
+                        const hintmap = {
+                            'basic': 0,
+                            'standard': 1,
+                            'deluxe': 2,
+                        }
+                        let bounty = initializeBounty('private', hintmap[hselection], { name, member, user: player, avatar }, profile)
                         const message = await interaction.reply({
-                            embeds: [bountyEmbed(bounty, profile)], components: [
+                            embeds: [bountyEmbed({ bounty, profile, db })], components: [
                                 {
                                     type: 1,
                                     components: [playButton()]
@@ -516,7 +543,7 @@ module.exports = {
                         bounty.message = message.id
                         bounty.channel = message.channelId
                         bountyref.push(bounty)
-                    } else if (selection[1] == 'sponsorchallenge') {
+                    } else if (shoption.value == 'sponsorchallenge') {
                         let circuit = selection[2][0]
 
                         let recent = null
@@ -529,7 +556,6 @@ module.exports = {
                             const cantSponsor = new EmbedBuilder()
                                 .setTitle("<:WhyNobodyBuy:589481340957753363> Patience Viceroy, patience.")
                                 .setDescription("Sorry, you can only sponsor one challenge per day. You can sponsor your next challenge <t:" + Math.round((recent.date + 1000 * 60 * 60 * 23) / 1000) + ":R>")
-                                .setFooter({ text: "Truguts: 📀" + currentTruguts(profile) })
                             interaction.reply({ embeds: [cantSponsor], ephemeral: true })
                             return
                         }
@@ -541,11 +567,11 @@ module.exports = {
                         delete sponsorchallenge.player
 
                         //reveal challenge
-                        const sponsor = await interaction.reply({ embeds: [sponsorEmbed(sponsorchallenge, profile, 1)], components: sponsorComponents(profile, circuit, 1), ephemeral: true, fetchReply: true })
+                        const sponsor = await interaction.reply({ embeds: [sponsorEmbed(sponsorchallenge, profile, db)], components: sponsorComponents(profile, circuit, 1), ephemeral: true, fetchReply: true })
 
                         sponsorref.child(sponsor.id).set(sponsorchallenge)
 
-                    } else if (selection[1] == 'shuffle_banner') {
+                    } else if (shoption.value == 'shuffle_banner') {
                         let banner = banners[Math.floor(Math.random() * banners.length)]
 
                         if (Guild.id == '441839750555369474') {
@@ -555,14 +581,13 @@ module.exports = {
                             .setAuthor({ name: `${name} shuffled the server banner!`, iconURL: avatar })
                             .setImage(banner)
                         interaction.reply({ embeds: [shuffleBuy] })
-                    } else if (selection[1] == 'lotto') {
+                    } else if (shoption.value == 'lotto') {
                         //check if user already has ticket
                         let existing = (Object.values(db.ch.lotto).find(t => t.user == interaction.user.id && moment(t.date).tz('America/New_York').month() == moment().tz('America/New_York').month()) ?? null)
                         if (existing) {
                             const noTruguts = new EmbedBuilder()
                                 .setTitle("<:WhyNobodyBuy:589481340957753363> A Botto Lotto ticket you have. Impossible, to take on a second.")
                                 .setDescription(`You've already purchased a Botto Lotto ticket this month. Your lucky tracks are:\n${existing.tracks.map(t => tools.getTrackName(t)).join("\n")}`)
-                                .setFooter({ text: "Truguts: 📀" + currentTruguts(profile) })
                             interaction.reply({ embeds: [noTruguts], ephemeral: true })
                             return
                         }
@@ -576,19 +601,635 @@ module.exports = {
                             .setAuthor({ name: `${name} purchased a 🎫 Botto Lotto Ticket!`, iconURL: avatar })
                             .setDescription(`For the next monthly challenge, they're predicting the following tracks:\n${ticket.tracks.map(t => tools.getTrackName(t)).join("\n")}`)
                         interaction.reply({ embeds: [shuffleBuy] })
+                    } else if (shoption.value == 'sabotage') {
+                        if (selection[2] == player) {
+                            const noTruguts = new EmbedBuilder()
+                                .setTitle("<:WhyNobodyBuy:589481340957753363> You what?!")
+                                .setDescription("You can't sabotage yourself!")
+                            interaction.reply({ embeds: [noTruguts], ephemeral: true })
+                            return
+                        }
+                        if (interaction.isModalSubmit()) {
+                            let mil = Number(interaction.fields.getTextInputValue('millisecond'))
+                            if (isNaN(mil)) {
+                                const noTruguts = new EmbedBuilder()
+                                    .setTitle("<:WhyNobodyBuy:589481340957753363> That's no number")
+                                    .setDescription("Please submit a number 0-9")
+                                interaction.reply({ embeds: [noTruguts], ephemeral: true })
+                                return
+                            }
+                            if (db.user[selection[2]].random?.effects?.sabotage && Object.values(db.user[selection[2]].random.effects.sabotage).filter(u => u.player == player && !u.used).length) {
+                                const noTruguts = new EmbedBuilder()
+                                    .setTitle("<:WhyNobodyBuy:589481340957753363> You already have an active sabotage on this player.")
+                                    .setDescription("You can only have one active sabotage on a player. Wait for them to trigger your sabotage and you can hit them again.")
+                                interaction.reply({ embeds: [noTruguts], ephemeral: true })
+                                return
+                            }
+                            database.ref(`users/${selection[2]}/random/effects/sabotage`).push({
+                                player: player,
+                                millisecond: mil,
+                                used: false
+                            })
+                            const sabotageEmbed = new EmbedBuilder()
+                                .setTitle("💥 Sabotaged!")
+                                .setDescription(`You have successfully set up a sabotage on <@${db.user[selection[2]].discordID}>. When they submit a time ending in \`${mil}\`, you'll get ${profile.effects?.doubled_powers ? 'all' : 'half'} their winnings!`)
+                            interaction.reply({ embeds: [sabotageEmbed], ephemeral: true })
+
+                        } else {
+                            const sponsorModal = new ModalBuilder()
+                                .setCustomId('challenge_random_shop_purchase')
+                                .setTitle('Sabotage')
+                            const millisecond = new TextInputBuilder()
+                                .setCustomId('millisecond')
+                                .setLabel('Millisecond')
+                                .setStyle(TextInputStyle.Short)
+                                .setMaxLength(1)
+                                .setRequired(true)
+                            const ActionRow1 = new ActionRowBuilder().addComponents(millisecond)
+                            sponsorModal.addComponents(ActionRow1)
+                            await interaction.showModal(sponsorModal)
+                        }
+
+                    } else if (shoption.value == 'rival') {
+                        if (selection[2] == player) {
+                            const noTruguts = new EmbedBuilder()
+                                .setTitle("<:WhyNobodyBuy:589481340957753363> You what?!")
+                                .setDescription("You can't be your own rival!")
+                            interaction.reply({ embeds: [noTruguts], ephemeral: true })
+                            return
+                        }
+                        if (profile.rival && Object.values(profile.rival).pop().player == db.user[selection[2]]?.discordID) {
+                            const noTruguts = new EmbedBuilder()
+                                .setTitle("<:WhyNobodyBuy:589481340957753363> Don't do that again.")
+                                .setDescription(`Your current rival is already <@${db.user[selection[2]]?.discordID}>`)
+                            interaction.reply({ embeds: [noTruguts], ephemeral: true })
+                            return
+                        }
+
+                        profileref.child('rival').push({
+                            player: db.user[selection[2]].discordID,
+                            date: Date.now()
+                        })
+                        const rivalEmbed = new EmbedBuilder()
+                            .setTitle("🆚 New Rivalry!")
+                            .setColor('#F4900C')
+                            .setDescription(`${name}'s new rival is... <@${db.user[selection[2]].discordID}>! ${name} will earn extra truguts for beating their best times.`)
+                        interaction.reply({ embeds: [rivalEmbed] })
+                    } else if (shoption.value == 'quote') {
+                        if (interaction.isModalSubmit()) {
+                            let quote = interaction.fields.getTextInputValue('quote')
+                            database.ref(`challenge/quotes`).push({
+                                player,
+                                quote
+                            })
+                            const quoteEmbed = new EmbedBuilder()
+                                .setTitle("✒️ Quote Submitted")
+                                .setDescription(`You have successfully submited a quote:\n\n${quote.replaceAll('$player', name)}\n\nThis quote will randomly appear in random challenge messages.`)
+                            interaction.reply({ embeds: [quoteEmbed], ephemeral: true })
+
+                        } else {
+                            const sponsorModal = new ModalBuilder()
+                                .setCustomId('challenge_random_shop_purchase')
+                                .setTitle('Submit a Quote')
+                            const quote = new TextInputBuilder()
+                                .setCustomId('quote')
+                                .setLabel('Quote')
+                                .setStyle(TextInputStyle.Short)
+                                .setMaxLength(140)
+                                .setPlaceholder('(if desired, type $player to insert the name of the player)')
+                                .setRequired(true)
+                            const ActionRow1 = new ActionRowBuilder().addComponents(quote)
+                            sponsorModal.addComponents(ActionRow1)
+                            await interaction.showModal(sponsorModal)
+                            return
+                        }
+                    } else if (shoption.value == 'clue') {
+                        if (interaction.isModalSubmit()) {
+                            let clue = interaction.fields.getTextInputValue('clue')
+                            database.ref(`challenge/clues`).push({
+                                player,
+                                type: selection[2][0],
+                                selection: Number(selection[3]),
+                                clue
+                            })
+                            const quoteEmbed = new EmbedBuilder()
+                                .setTitle("💡 Clue Submitted")
+                                .setDescription(`You have successfully submited a clue:\n\n${clue}\n\nThis clue will randomly appear in Hints and Bounties for ${selection[2] == 'track' ? tools.getTrackName(selection[3]) : tools.getRacerName(selection[3])}.`)
+                            interaction.reply({ embeds: [quoteEmbed], ephemeral: true })
+                        } else {
+                            const sponsorModal = new ModalBuilder()
+                                .setCustomId('challenge_random_shop_purchase')
+                                .setTitle('Submit a Clue')
+                            const clue = new TextInputBuilder()
+                                .setCustomId('clue')
+                                .setLabel('Clue')
+                                .setStyle(TextInputStyle.Short)
+                                .setMaxLength(140)
+                                .setRequired(true)
+                            const ActionRow1 = new ActionRowBuilder().addComponents(clue)
+                            sponsorModal.addComponents(ActionRow1)
+                            await interaction.showModal(sponsorModal)
+                            return
+                        }
+                    } else if (shoption.value == 'sponsorplayer') {
+                        let take = Number(selection[2][0])
+                        let sponsorplayer = selection[3][0]
+                        console.log(take, sponsorplayer)
+                        if (sponsorplayer == player) {
+                            const noTruguts = new EmbedBuilder()
+                                .setTitle("<:WhyNobodyBuy:589481340957753363> You what?!")
+                                .setDescription("You can't sponsor yourself!")
+                            interaction.reply({ embeds: [noTruguts], ephemeral: true })
+                            return
+                        }
+                        let sponsored = db.user[sponsorplayer]?.random
+                        if (sponsored?.sponsors && Object.values(sponsored.sponsors).filter(s => s.player == player && s.take == take).length) {
+                            const noTruguts = new EmbedBuilder()
+                                .setTitle("<:WhyNobodyBuy:589481340957753363> Don't do that again.")
+                                .setDescription(`You have already sponsored <@${db.user[sponsorplayer]?.discordID}>!`)
+                            interaction.reply({ embeds: [noTruguts], ephemeral: true })
+                            return
+                        }
+
+                        database.ref(`users/${sponsorplayer}/random/sponsors`).push({
+                            date: Date.now(),
+                            player: player,
+                            take: take
+                        })
+                        manageTruguts({ profile: sponsored, profileref: database.ref(`users/${sponsorplayer}/random`), transaction: 'd', amount: price })
+
+                        const quoteEmbed = new EmbedBuilder()
+                            .setTitle(":loudspeaker: Player Sponsorship")
+                            .setDescription(`${name} is now sponsoring <@${db.user[selection[2]].discordID}>!\nSponsorhip amount: \`📀${tools.numberWithCommas(shoption.price)}\``)
+                        interaction.reply({ embeds: [quoteEmbed] })
+                    } else if (shoption.value == 'rerolldaily') {
+                        //check if there was a daily less than an hour ago
+                        let cotd = Object.values(db.ch.challenges).filter(c => c.type == 'cotd')
+                        let last = cotd.pop()
+                        let lastlast = cotd.pop()
+                        if (last.created < Date.now() - 1000 * 60 * 60) {
+                            const noTruguts = new EmbedBuilder()
+                                .setTitle("<:WhyNobodyBuy:589481340957753363> It's too late...")
+                                .setDescription("You can only reroll the random challenge of the day within 1 hour of its announcement.")
+                            interaction.reply({ embeds: [noTruguts], ephemeral: true })
+                            return
+                        }
+                        if (lastlast.rerolled) {
+                            const noTruguts = new EmbedBuilder()
+                                .setTitle("<:WhyNobodyBuy:589481340957753363> Don't let them send any transmissions")
+                                .setDescription("The current random challenge of the day has already been rerolled.")
+                            interaction.reply({ embeds: [noTruguts], ephemeral: true })
+                            return
+                        }
+
+                        const noTruguts = new EmbedBuilder()
+                            .setTitle(`<@${member}> rerolled the Random Challenge of the Day!`)
+                        interaction.reply({ embeds: [noTruguts] })
+                        await interaction.reply(pub_response)
+                        last.rerolled = true
+                        const pub_response = await updateChallenge({ client, current_challenge: last, current_challengeref: database.ref(`challenge/challenges/${last.message}`), interaction, db })
+                        editMessage(client, last.channel, last.message, pub_response)
+                        dailyChallenge({ client, db, challengesref: database.ref('challenge/challenges') })
+
+                    } else if (shoption.value == 'buddy') {
+                        if (profile.effects?.botto_buddy) {
+                            alreadyPurchased(interaction)
+                            return
+                        }
+                        profileref.child('effects').update({ botto_buddy: true })
+                        const noTruguts = new EmbedBuilder()
+                            .setTitle("Botto is now your emoji buddy!")
+                            .setDescription("Botto will copy your reactions to messages. Try it out!")
+                        interaction.reply({ embeds: [noTruguts], ephemeral: true })
+                    } else if (shoption.value == 'roleicon') {
+                        if (interaction.isModalSubmit()) {
+                            let emoji = interaction.fields.getTextInputValue('emoji')
+                            let emojikey = Object.keys(emojimap).find(key => key.toLowerCase() == emoji.toLowerCase())
+                            if (!emojikey) {
+                                const noTruguts = new EmbedBuilder()
+                                    .setTitle("<:WhyNobodyBuy:589481340957753363> Perhaps the archives are incomplete.")
+                                    .setDescription("The emoji you entered could not be found in the database. Please double check its name and spelling. Only SWE1R emojis are eligible. Racer flag icons are free roles in <id:customize>")
+                                interaction.reply({ embeds: [noTruguts], ephemeral: true })
+                                return
+                            }
+
+                            let role = await SWE1R_Guild.roles.cache.find(r => r.name == emojikey)
+                            if (profile.roles?.emoji && Object.values(profile.roles.emoji).includes(role.id)) {
+                                const noTruguts = new EmbedBuilder()
+                                    .setTitle("<:WhyNobodyBuy:589481340957753363> Don't do that again")
+                                    .setDescription("You already own this emoji icon. You can equip or unequip in roles in **🎒 Inventory**")
+                                interaction.reply({ embeds: [noTruguts], ephemeral: true })
+                                return
+                            }
+                            let pos = await SWE1R_Guild.roles.cache.get('1094292597478010880')
+                            let e = emojimap[emojikey].split(":")[2].replace(">", "")
+                            const m = await SWE1R_Guild.members.cache.find(m => m.id == member)
+                            if (role) {
+                                m.roles.add(role)
+                                database.ref(`users/${player}/random/roles/emoji`).push(role.id)
+                            } else {
+                                SWE1R_Guild.roles.create({ name: emojikey, icon: e, position: pos.position + 1 }).then(r => {
+                                    m.roles.add(r)
+                                    database.ref(`users/${player}/random/roles/emoji`).push(r.id)
+                                })
+                            }
+
+
+
+                            const quoteEmbed = new EmbedBuilder()
+                                .setTitle("✨Emoji Role Icon")
+                                .setDescription(`You just bought an emoji role icon ${emojimap[emojikey]}! You should see the selected emoji next to your name in the SWE1R Discord.`)
+                            interaction.reply({ embeds: [quoteEmbed], ephemeral: true })
+                        } else {
+                            const sponsorModal = new ModalBuilder()
+                                .setCustomId('challenge_random_shop_purchase')
+                                .setTitle('Emoji Role Icon')
+                            const clue = new TextInputBuilder()
+                                .setCustomId('emoji')
+                                .setLabel('Emoji Name')
+                                .setStyle(TextInputStyle.Short)
+                                .setMaxLength(100)
+                                .setPlaceholder("enter the name of a non-animated server emoji")
+                                .setRequired(true)
+                            const ActionRow1 = new ActionRowBuilder().addComponents(clue)
+                            sponsorModal.addComponents(ActionRow1)
+                            await interaction.showModal(sponsorModal)
+                            return
+                        }
+                        //
+
+                        // if (role) {
+                        //     console.log(role)
+                        // } else {
+                        //     SWE1R_Guild.roles.create({ name: 'role', position: 21 })
+                        // }
+                        //check if a role already exists
+
+                    } else if (shoption.value == 'bottocolor') {
+                        if (interaction.isModalSubmit()) {
+                            let color = interaction.fields.getTextInputValue('color')
+
+                            function isValidHexCode(hexCode) {
+                                const hexRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+                                return hexRegex.test(hexCode);
+                            }
+
+                            if (!isValidHexCode(color)) {
+                                const noTruguts = new EmbedBuilder()
+                                    .setTitle("<:WhyNobodyBuy:589481340957753363> I'm afraid that color doesn't exist")
+                                    .setDescription("Please enter a valid hex code `#FFFFFF`")
+                                interaction.reply({ embeds: [noTruguts], ephemeral: true })
+                                return
+                            }
+
+                            let role = await SWE1R_Guild.roles.cache.get('1144077932021686272')
+                            role.edit({ color: color })
+
+                            const quoteEmbed = new EmbedBuilder()
+                                .setTitle("✨New Botto Color")
+                                .setDescription(`<@${member}> just changed <@545798436105224203>'s color!`)
+                                .setColor(color)
+                            interaction.reply({ embeds: [quoteEmbed] })
+
+                        } else {
+                            const sponsorModal = new ModalBuilder()
+                                .setCustomId('challenge_random_shop_purchase')
+                                .setTitle('New Botto Color')
+                            const color = new TextInputBuilder()
+                                .setCustomId('color')
+                                .setLabel('Color (Hex Code)')
+                                .setStyle(TextInputStyle.Short)
+                                .setMaxLength(7)
+                                .setMinLength(7)
+                                .setPlaceholder("#FFFFFF")
+                                .setRequired(true)
+                            const ActionRow1 = new ActionRowBuilder().addComponents(color)
+                            sponsorModal.addComponents(ActionRow1)
+                            await interaction.showModal(sponsorModal)
+                            return
+                        }
+                    } else if (shoption.value == 'timer') {
+                        if (profile.effects?.extended_timer) {
+                            alreadyPurchased(interaction)
+                            return
+                        }
+                        await database.ref(`users/${player}/random/effects`).update({ extended_timer: true })
+                        const quoteEmbed = new EmbedBuilder()
+                            .setTitle("⏳Extended Timer")
+                            .setDescription(`You now have 30 minutes to complete personal random challenges!`)
+                        interaction.reply({ embeds: [quoteEmbed], ephemeral: true })
+                    } else if (shoption.value == 'friend') {
+                        if (profile.effects?.friend_greed) {
+                            alreadyPurchased(interaction)
+                            return
+                        }
+                        await database.ref(`users/${player}/random/effects`).update({ friend_greed: true })
+                        const quoteEmbed = new EmbedBuilder()
+                            .setTitle("💖Friend in Greed")
+                            .setDescription(`Botto will now treat you as his favorite customer when interacting with him in chat.`)
+                        interaction.reply({ embeds: [quoteEmbed], ephemeral: true })
+                    } else if (['protocol', 'suffer'].includes(shoption.value)) {
+                        let title = shoption.value == 'protocol' ? "💭Protocol Droid" : '💬Made to Suffer'
+                        if (interaction.isModalSubmit()) {
+                            let phrase = interaction.fields.getTextInputValue('phrase')
+                            let emoji = '', reply = '', selected_emoji = ''
+                            if (shoption.value == 'protocol') {
+                                emoji = interaction.fields.getTextInputValue('emoji') ?? ""
+                                selected_emoji = Object.keys(emojimap).find(e => e.toLowerCase() == emoji.toLowerCase())
+                            } else {
+                                reply = interaction.fields.getTextInputValue('reply') ?? ""
+                            }
+                            if (!selected_emoji && shoption.value == 'protocol') {
+                                const noTruguts = new EmbedBuilder()
+                                    .setTitle("<:WhyNobodyBuy:589481340957753363> I'm afraid that emoji doesn't exist.")
+                                    .setDescription("Please double check its name and spelling. Only SWE1R Server emotes are eligible.")
+                                interaction.reply({ embeds: [noTruguts], ephemeral: true })
+                                return
+                            }
+
+                            database.ref(`challenge/auto`).push({
+                                player,
+                                type: shoption.value == 'protocol' ? 'react' : 'reply',
+                                phrase: phrase,
+                                reply: reply,
+                                emoji: selected_emoji ? tools.extractEmojiID(emojimap[selected_emoji]) : ""
+                            })
+                            const quoteEmbed = new EmbedBuilder()
+                                .setTitle(title)
+                                .setDescription(`Botto will now automatically ${shoption.value == 'protocol' ? 'react' : 'reply'} to messages containing "${phrase}" with ${shoption.value == 'protocol' ? emojimap[selected_emoji] : `: *${reply}*`}`)
+                            interaction.reply({ embeds: [quoteEmbed], ephemeral: true })
+                        } else {
+                            const sponsorModal = new ModalBuilder()
+                                .setCustomId('challenge_random_shop_purchase')
+                                .setTitle('Protocol Droid')
+                            const clue = new TextInputBuilder()
+                                .setCustomId('phrase')
+                                .setLabel('Phrase')
+                                .setStyle(TextInputStyle.Short)
+                                .setPlaceholder('Enter a word/phrase')
+                                .setMinLength(5)
+                                .setMaxLength(140)
+                                .setRequired(true)
+                            console.log(shoption.value, shoption.value == 'protocol')
+                            const emoji = new TextInputBuilder()
+                                .setCustomId(shoption.value == 'protocol' ? 'emoji' : 'reply')
+                                .setLabel(shoption.value == 'protocol' ? 'Emoji' : 'Reply')
+                                .setStyle(TextInputStyle.Short)
+                                .setPlaceholder(`Enter ${shoption.value == 'protocol' ? 'an emoji' : 'a response'} that Botto will use to ${shoption.value == 'protocol' ? 'react' : 'reply'}`)
+                                .setMaxLength(140)
+                                .setRequired(true)
+                            const ActionRow1 = new ActionRowBuilder().addComponents(clue)
+                            const ActionRow2 = new ActionRowBuilder().addComponents(emoji)
+                            sponsorModal.addComponents(ActionRow1, ActionRow2)
+                            await interaction.showModal(sponsorModal)
+                            return
+                        }
+                    } else if (shoption.value == 'multiply') {
+                        let multiplier = Number(selection[2][0])
+                        if (!profile.progression) {
+                            const noTruguts = new EmbedBuilder()
+                                .setTitle("<:WhyNobodyBuy:589481340957753363> Your midi-chlorian count is off the charts!")
+                                .setDescription(`Please open your profile to calculate your progression.`)
+                            interaction.reply({ embeds: [noTruguts], ephemeral: true })
+                            return
+                        }
+                        if (profile.effects?.trugut_cloner && Object.values(profile.effects.trugut_cloner).map(m => m.multiplier).includes(multiplier)) {
+                            alreadyPurchased(interaction)
+                            return
+                        }
+                        let playerlevel = playerLevel(profile.progression).level
+                        const levelmap = {
+                            2: 5,
+                            4: 10,
+                            6: 15,
+                            8: 20,
+                            10: 25
+                        }
+                        let requiredlevel = levelmap[multiplier]
+                        console.log(playerlevel, requiredlevel)
+                        if (playerlevel < requiredlevel) {
+                            const noTruguts = new EmbedBuilder()
+                                .setTitle("<:WhyNobodyBuy:589481340957753363> Stay in that cockpit!")
+                                .setDescription(`You need to level up to purchase this item.\nCurrent level: ${playerlevel}\nRequired level: ${requiredlevel}`)
+                            interaction.reply({ embeds: [noTruguts], ephemeral: true })
+                            return
+                        }
+                        database.ref(`users/${player}/random/effects/trugut_cloner`).push({
+                            date: Date.now(),
+                            multiplier: multiplier
+                        })
+
+                        const quoteEmbed = new EmbedBuilder()
+                            .setTitle("✖️Trugut Cloner")
+                            .setDescription(`You just purchased a ${multiplier}× Trugut Multiplier!`)
+                        interaction.reply({ embeds: [quoteEmbed], ephemeral: true })
+                    } else if (shoption.value == 'homing') {
+                        let level = selection[2][0]
+                        if (profile.effects?.nav_computer?.[level]) {
+                            alreadyPurchased(interaction)
+                            return
+                        }
+                        profileref.child('effects').child('nav_computer').child(level).set(true)
+                        const noTruguts = new EmbedBuilder()
+                            .setTitle("You upgraded your 🧭Nav Computer")
+                            .setDescription("New options are available to enable/disable in your settings.")
+                        interaction.reply({ embeds: [noTruguts], ephemeral: true })
+                    } else if (shoption.value == 'rerolls') {
+                        if (profile.effects?.free_rerolls) {
+                            alreadyPurchased(interaction)
+                            return
+                        }
+                        profileref.child('effects').update({ free_rerolls: true })
+                        const noTruguts = new EmbedBuilder()
+                            .setTitle("🔄FREE REROLLS FOR LIFE!")
+                            .setDescription("You have the power to deny whatever challenge of your choosing at no charge. In a world of RNG you have unlocked the ultimate weapon: choice.")
+                        interaction.reply({ embeds: [noTruguts], ephemeral: true })
+                    } else if (shoption.value == 'paint') {
+                        if (profile.roles?.custom) {
+                            alreadyPurchased(interaction)
+                            return
+                        }
+
+                        if (interaction.isModalSubmit()) {
+                            let color = interaction.fields.getTextInputValue('color')
+
+                            function isValidHexCode(hexCode) {
+                                const hexRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+                                return hexRegex.test(hexCode);
+                            }
+
+                            if (!isValidHexCode(color)) {
+                                const noTruguts = new EmbedBuilder()
+                                    .setTitle("<:WhyNobodyBuy:589481340957753363> I'm afraid that color doesn't exist")
+                                    .setDescription("Please enter a valid hex code `#FFFFFF`")
+                                interaction.reply({ embeds: [noTruguts], ephemeral: true })
+                                return
+                            }
+
+                            let pos = await SWE1R_Guild.roles.cache.get('541297572401250316')
+                            const m = await SWE1R_Guild.members.cache.find(m => m.id == member)
+                            SWE1R_Guild.roles.create({ name: 'Trillion Trugut Tri-Coat', color: color, position: pos.position + 1 }).then(r => {
+                                m.roles.add(r)
+                                database.ref(`users/${player}/random/roles/custom`).set(r.id)
+                            })
+
+                            const quoteEmbed = new EmbedBuilder()
+                                .setTitle("🎨Trillion Trugut Tri-Coat")
+                                .setDescription(`<@${member}> just bought a custom role color for \`📀1,000,000,000,000\` Truguts!`)
+                                .setColor(color)
+                            interaction.reply({ embeds: [quoteEmbed] })
+                        } else {
+                            const sponsorModal = new ModalBuilder()
+                                .setCustomId('challenge_random_shop_purchase')
+                                .setTitle('🎨Trillion Trugut Tri-Coat')
+                            const color = new TextInputBuilder()
+                                .setCustomId('color')
+                                .setLabel('Color (Hex Code)')
+                                .setStyle(TextInputStyle.Short)
+                                .setMaxLength(7)
+                                .setMinLength(7)
+                                .setPlaceholder("#FFFFFF")
+                                .setRequired(true)
+                            const ActionRow1 = new ActionRowBuilder().addComponents(color)
+                            sponsorModal.addComponents(ActionRow1)
+                            await interaction.showModal(sponsorModal)
+                            return
+                        }
+                    } else if (shoption.value == 'trendy_transmission') {
+                        if (interaction.isModalSubmit()) {
+                            let title = interaction.fields.getTextInputValue('title')
+                            let url = interaction.fields.getTextInputValue('url')
+                            let desc = interaction.fields.getTextInputValue('desc')
+                            let image = interaction.fields.getTextInputValue('image')
+                            let color = interaction.fields.getTextInputValue('color')
+
+                            function isValidHexCode(hexCode) {
+                                const hexRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+                                return hexRegex.test(hexCode);
+                            }
+
+                            if (color && !isValidHexCode(color)) {
+                                const noTruguts = new EmbedBuilder()
+                                    .setTitle("<:WhyNobodyBuy:589481340957753363> I'm afraid that color doesn't exist")
+                                    .setDescription("Please enter a valid hex code `#FFFFFF`")
+                                interaction.reply({ embeds: [noTruguts], ephemeral: true })
+                                return
+                            }
+
+                            const customEmbed = new EmbedBuilder()
+                            if (title) {
+                                customEmbed.setTitle(title)
+                            }
+                            if (url) {
+                                customEmbed.setURL(url)
+                            }
+                            if (desc) {
+                                customEmbed.setDescription(desc)
+                            }
+                            if (image) {
+                                customEmbed.setImage(image)
+                            }
+                            if (color) {
+                                customEmbed.setColor(color)
+                            }
+                            if (![title, desc].filter(f => f).length) {
+                                const noTruguts = new EmbedBuilder()
+                                    .setTitle("<:WhyNobodyBuy:589481340957753363> It's a trick. Send no reply.")
+                                    .setDescription("You cannot send a blank embed.")
+                                interaction.reply({ embeds: [noTruguts], ephemeral: true })
+                                return
+                            }
+                            interaction.update({ embeds: [customEmbed], content: '', components: [] })
+
+                        } else {
+                            const sponsorModal = new ModalBuilder()
+                                .setCustomId('challenge_random_shop_purchase')
+                                .setTitle('Embed Builder')
+                            const title = new TextInputBuilder()
+                                .setCustomId('title')
+                                .setLabel('Title')
+                                .setStyle(TextInputStyle.Short)
+                                .setMaxLength(256)
+                                .setRequired(false)
+                            const url = new TextInputBuilder()
+                                .setCustomId('url')
+                                .setLabel('URL')
+                                .setStyle(TextInputStyle.Short)
+                                .setMaxLength(256)
+                                .setRequired(false)
+                                .setPlaceholder('This sets a hyperlink for the title')
+                            const desc = new TextInputBuilder()
+                                .setCustomId('desc')
+                                .setLabel('Description')
+                                .setStyle(TextInputStyle.Paragraph)
+                                .setMaxLength(4000)
+                                .setRequired(false)
+                            const image = new TextInputBuilder()
+                                .setCustomId('image')
+                                .setLabel('Image URL')
+                                .setStyle(TextInputStyle.Short)
+                                .setMaxLength(256)
+                                .setRequired(false)
+                            const color = new TextInputBuilder()
+                                .setCustomId('color')
+                                .setLabel('Color')
+                                .setStyle(TextInputStyle.Short)
+                                .setPlaceholder("#FFFFFF")
+                                .setMaxLength(7)
+                                .setMinLength(7)
+                                .setRequired(false)
+                            const ActionRow1 = new ActionRowBuilder().addComponents(title)
+                            const ActionRow2 = new ActionRowBuilder().addComponents(url)
+                            const ActionRow3 = new ActionRowBuilder().addComponents(desc)
+                            const ActionRow4 = new ActionRowBuilder().addComponents(image)
+                            const ActionRow5 = new ActionRowBuilder().addComponents(color)
+                            sponsorModal.addComponents(ActionRow1, ActionRow2, ActionRow3, ActionRow4, ActionRow5)
+                            await interaction.showModal(sponsorModal)
+                            return
+                        }
+                    } else if (shoption.value == 'debt') {
+                        if (profile.effects?.life_debt) {
+                            alreadyPurchased(interaction)
+                            return
+                        }
+                        profileref.child('effects').update({ life_debt: true })
+                        const noTruguts = new EmbedBuilder()
+                            .setTitle("💸Life Debt")
+                            .setDescription("You now have the power to buy things before you can afford them.")
+                        interaction.reply({ embeds: [noTruguts], ephemeral: true })
+                    } else if (shoption.value == 'bribes') {
+                        if (profile.effects?.free_bribes) {
+                            alreadyPurchased(interaction)
+                            return
+                        }
+                        profileref.child('effects').update({ free_bribes: true })
+                        const noTruguts = new EmbedBuilder()
+                            .setTitle("FREE BRIBES FOR LIFE!")
+                            .setDescription("You have the power to bribe whatever challenge of your choosing at no charge. In a world of RNG you have unlocked the ultimate weapon: choice.")
+                        interaction.reply({ embeds: [noTruguts], ephemeral: true })
+                    } else if (shoption.value == 'peace') {
+                        if (profile.effects?.peace_treaty) {
+                            alreadyPurchased(interaction)
+                            return
+                        }
+                        profileref.child('effects').update({ peace_treaty: true })
+                        const noTruguts = new EmbedBuilder()
+                            .setTitle("🕊Peace Treaty")
+                            .setDescription("You can no longer sabotage nor be sabotaged.")
+                        interaction.reply({ embeds: [noTruguts], ephemeral: true })
                     }
 
                     //process purchase
-                    profile = manageTruguts({
-                        profile, profileref, transaction: 'w', amount: selectionmap[selection[1]].price, purchase: {
+                    manageTruguts({
+                        profile, profileref, transaction: 'w', amount: price, purchase: {
                             date: Date.now(),
-                            purchased_item: selection[1][0],
-                            selection: selectionmap[selection[1][0]]?.selection ?? "",
-                            cost: selectionmap[selection[1][0]]?.price ?? ""
+                            purchased_item: shoption.value,
+                            selection: shoption.pricemap ? selection[2]?.[0] ?? "" : "",
+                            cost: price
                         }
                     })
 
-                    editMessage(client, interaction.channel.id, interaction.message.id, { embeds: [shopEmbed({ shoptions, selection, profile })], components: shopComponents({ profile, selection, shoptions, purchased: true }) })
+                    editMessage(client, interaction.channel.id, interaction.message.id, { embeds: [shopEmbed({ shoptions, selection, profile })], components: shopComponents({ profile, selection, shoptions }) })
                     break
                 case 'sponsor':
                     if (args[2] == 'details') { //set title / time
@@ -602,7 +1243,7 @@ module.exports = {
 
                             profile = db.user[player].random
                             sponsorchallenge = db.ch.sponsors[interaction.message.id]
-                            interaction.update({ embeds: [sponsorEmbed(sponsorchallenge, profile, 1)], components: sponsorComponents(profile, 1) })
+                            interaction.update({ embeds: [sponsorEmbed(sponsorchallenge, profile, db)], components: sponsorComponents(profile, 1) })
                         } else {
                             const sponsorModal = new ModalBuilder()
                                 .setCustomId('challenge_random_sponsor_details')
@@ -639,6 +1280,10 @@ module.exports = {
                         }
                         const pub_response = await updateChallenge({ client, profile, current_challenge: sponsorchallenge, current_challengeref, profileref, member, name, avatar, interaction, db })
                         let publishmessage = await interaction.reply(pub_response)
+                        if (interaction.guildId == swe1r_guild) {
+                            publishmessage.pin()
+                        }
+
                         sponsorchallenge.message = publishmessage.id
                         sponsorchallenge.url = publishmessage.url
                         sponsorref.child(interaction.message.id).update({ published: true, url: publishmessage.url })
@@ -656,18 +1301,21 @@ module.exports = {
                             }
                         }
                     } else {
-                        interaction.reply({ embeds: [sponsorEmbed(null, profile, 0)], components: sponsorComponents(profile, cselection, 0), ephemeral: true })
+                        interaction.reply({ embeds: [sponsorEmbed(null, profile, db)], components: sponsorComponents(profile, cselection, 0), ephemeral: true })
                     }
                     break
                 case 'settings':
+                    if (args[2] == 'initial') {
+                        profile = db.user[player].random
+                        interaction.reply({ embeds: [settingsEmbed({ profile, name, avatar })], components: settingsComponents(profile), ephemeral: true })
+                        return
+                    }
                     if (args[2] == "winnings") {
                         profileref.child("settings").update({ winnings: Number(interaction.values[0]) })
-                        profile = db.user[player].random
-                        interaction.update({ embeds: [settingsEmbed({ profile, name, avatar })], components: settingsComponents(profile) })
                     } else if (args[2] == "predictions") {
                         profileref.child("settings").update({ predictions: !profile.settings.predictions })
-                        profile = db.user[player].random
-                        interaction.update({ embeds: [settingsEmbed({ profile, name, avatar })], components: settingsComponents(profile) })
+                    } else if (args[2] == 'nav') {
+                        profileref.child('settings').update({ nav: interaction.values })
                     } else if (args[2] == "odds") {
                         if (interaction.isModalSubmit()) {
                             let odds = {
@@ -685,8 +1333,6 @@ module.exports = {
                                 }
                             })
                             profileref.child('settings').update(odds)
-                            profile = db.user[player].random
-                            interaction.update({ embeds: [settingsEmbed({ profile, name, avatar })], components: settingsComponents(profile) })
                         } else {
                             const oddsModal = new ModalBuilder()
                                 .setCustomId('challenge_random_settings_odds')
@@ -739,6 +1385,7 @@ module.exports = {
                             oddsModal.addComponents(ActionRow1, ActionRow2, ActionRow3, ActionRow4, ActionRow5)
 
                             await interaction.showModal(oddsModal)
+                            return
                         }
                     } else if (args[2] == "default") {
                         profileref.child("settings").update({
@@ -750,12 +1397,9 @@ module.exports = {
                             backwards: settings_default.backwards,
                             predictions: settings_default.predictions
                         })
-                        profile = db.user[player].random
-                        interaction.update({ embeds: [settingsEmbed({ profile, name, avatar })], components: settingsComponents(profile) })
-                    } else {
-                        profile = db.user[player].random
-                        interaction.reply({ embeds: [settingsEmbed({ profile, name, avatar })], components: settingsComponents(profile), ephemeral: true })
                     }
+                    profile = db.user[player].random
+                    interaction.update({ embeds: [settingsEmbed({ profile, name, avatar })], components: settingsComponents(profile) })
                     break
                 case 'profile':
                     // if (args[args.length - 1].startsWith("uid") && args[args.length - 1].replace("uid", "") !== member) {
@@ -774,7 +1418,33 @@ module.exports = {
                     //     return
                     // }
                     await interaction.deferUpdate()
-                    interaction.editReply({ embeds: [profileEmbed({ db, player: member, page: args[2], name, avatar })], components: profileComponents({ member, page: args[2] }) })
+                    const ach_report = achievementProgress({ db, player: member })
+                    const stats = getStats({ db, member, profile })
+                    if (!profile.progression) {
+                        let progression = Object.values(stats.racers).map(r => r.level)
+                        console.log(progression)
+                        progression.forEach((level, racer) => {
+                            for (let i = 1; i < convertLevel(level).level + 1; i++) {
+                                let reward = progressionReward({ racer, level: i })
+                                manageTruguts({ profile, profileref, transaction: 'd', amount: reward.truguts })
+                                if (reward.item) {
+                                    profileref.child('items').push({
+                                        id: reward.item,
+                                        date: Date.now(),
+                                        progression: {
+                                            racer: racer,
+                                            level: i
+                                        }
+                                    })
+                                }
+
+                            }
+                        })
+                        await profileref.child('progression').set(progression)
+                        let new_player_level = playerLevel(progression)
+                        postMessage(client, interaction.channelId, { embeds: [new EmbedBuilder().setAuthor({ name: `${name} leveled up!`, iconURL: avatar }).setDescription(new_player_level.string).setFooter({ text: `Level ${new_player_level.level}` })] })
+                    }
+                    interaction.editReply({ embeds: [profileEmbed({ db, player: member, name, avatar, ach_report, profile, stats })], components: profileComponents({ member, ach_report, stats, profile }) })
                     break
                 case 'about':
                     let aselection = interaction.values?.[0] ?? 'rchallenge'
@@ -1091,7 +1761,7 @@ module.exports = {
                         interaction.reply({ embeds: [active], ephemeral: true })
                         return
                     }
-                    if (!isActive(current_challenge) && !current_challenge.submissions?.[member]) { //expired challeneg
+                    if (!isActive(current_challenge, profile) && !current_challenge.submissions?.[member]) { //expired challeneg
                         //current_challengeref.update({ completed: true })
                         interaction.reply({
                             embeds: [expiredEmbed()], components: [
@@ -1197,7 +1867,9 @@ module.exports = {
                     let subproof = interaction.fields.getTextInputValue('challengeProof') ?? ""
                     let subplatform = interaction.fields.getTextInputValue('challengePlatform') ?? ""
                     let subrta = current_challenge.type == 'cotm' ? interaction.fields.getTextInputValue('challengeRTA') : ""
-                    if (!isActive(current_challenge) && !current_challenge.submissions?.[member]) { //challenge no longer active
+
+                    //challenge no longer active
+                    if (!isActive(current_challenge, profile) && !current_challenge.submissions?.[member]) {
                         interaction.reply({
                             embeds: [expiredEmbed()], components: [
                                 {
@@ -1208,7 +1880,9 @@ module.exports = {
                         })
                         return
                     }
-                    if (isNaN(Number(subtime.replace(":", ""))) || tools.timetoSeconds(subtime) == null) { //time doesn't make sense
+
+                    //time doesn't make sense
+                    if (isNaN(Number(subtime.replace(":", ""))) || tools.timetoSeconds(subtime) == null) {
                         const holdUp = new EmbedBuilder()
                             .setTitle("<:WhyNobodyBuy:589481340957753363> Time Does Not Compute")
                             .setDescription("Your time was submitted in an incorrect format.")
@@ -1219,7 +1893,9 @@ module.exports = {
                     let time = tools.timetoSeconds(subtime)
                     let rta = tools.timetoSeconds(subrta)
                     let platform = subplatform.toLowerCase()
-                    if ((challengeend - current_challenge.created) < time * 1000 && !current_challenge.rescue && !current_challenge.guild == '1135800421290627112') { //submitted time is impossible
+
+                    //submitted time is impossible
+                    if ((challengeend - current_challenge.created) < time * 1000 && !current_challenge.rescue && !current_challenge.guild == '1135800421290627112') {
                         current_challengeref.update({ completed: true, funny_business: true })
                         profileref.update({ funny_business: (profile.funny_business ?? 0) + 1 })
                         const holdUp = new EmbedBuilder()
@@ -1229,7 +1905,12 @@ module.exports = {
                         return
                     }
 
-                    await interaction.deferUpdate()
+                    if (current_challenge.type == 'private' || current_challenge.submissions?.[member]) {
+                        await interaction.deferUpdate()
+                    } else {
+                        await interaction.deferReply({ ephemeral: true })
+                    }
+
 
                     if (current_challenge.submissions?.[member]) {
                         challengetimeref.child(current_challenge.submissions[member].id).update(
@@ -1294,20 +1975,36 @@ module.exports = {
                     let total_revenue = 0
 
                     //award winnings for this submission
-                    let winnings = challengeWinnings({ current_challenge, submitted_time: submissiondata, profile, best: getBest(db, current_challenge), goals: goalTimeList(current_challenge, profile), member })
-                    let earned_item = randomChallengeItem({ profile, profileref, current_challenge, db, member })
+                    let goals = goalTimeList(current_challenge, profile)
+                    let winnings = challengeWinnings({ current_challenge, submitted_time: submissiondata, profile, best: getBest(db, current_challenge), goals, member, db })
                     profile = manageTruguts({ profile, profileref, transaction: 'd', amount: winnings.earnings })
+
+                    //award saboteur cut
+                    if (winnings.sabotage) {
+                        let sabotage = profile.effects.sabotage[winnings.sabotage]
+                        let dp = db.user[sabotage.player]?.random?.effects?.doubled_powers
+                        manageTruguts({ profile: db.user[sabotage.player].random, profileref: database.ref(`users/${sabotage.player}/random`), transaction: 'd', amount: dp ? winnings.earnings : winnings.earnings * .5 })
+                        winnings.earnings *= (dp ? 0 : 0.5)
+                        profileref.child('effects').child('sabotage').child(winnings.sabotage).update({ used: true, challenge: interaction.message.id })
+                    }
+
+                    //award item
+                    let earned_item = randomChallengeItem({ profile, profileref, current_challenge, db, member })
                     if (!profile.items) {
                         console.log('no profile items')
                         profileref.child('items').set('test')
                     }
-                    let eitem = { id: earned_item.id, challenge: interaction.message.id }
+                    let eitem = { id: earned_item.id, challenge: interaction.message.id, date: Date.now() }
                     if (earned_item.upgrade) {
                         eitem = { ...eitem, health: earned_item.health, upgrade: earned_item.upgrade }
                     }
-                    console.log(eitem)
                     profileref.child('items').push(eitem)
-                    current_challengeref.child("earnings").child(member).set({ truguts_earned: winnings.earnings, player: member, item: eitem.id })
+
+                    let ern = { truguts_earned: winnings.earnings, player: member, item: eitem.id }
+                    if (winnings.sabotage) {
+                        ern.sabotage = winnings.sabotage
+                    }
+                    current_challengeref.child("earnings").child(member).set(ern)
                     total_revenue += winnings.earnings
 
                     //award prediction winnings for this submission
@@ -1336,18 +2033,33 @@ module.exports = {
                         })
                     }
 
-                    //award sponsorship cut
+                    //award sponsor cuts
                     if (current_challenge.sponsors) {
-                        Object.values(current_challenge.sponsors).forEach(sponsor => {
-                            let sponsor_earnings = Math.round(total_revenue * truguts.sponsor_cut * sponsor.multiplier)
+                        Object.keys(current_challenge.sponsors).forEach(async sponsorkey => {
+                            let sponsor = current_challenge.sponsors[sponsorkey]
+
+                            let thissponsor = db.user[sponsor.user]?.random
+                            let sponsor_earnings = Math.round(total_revenue * (truguts.sponsor_cut * (thissponsor?.effects?.sorry_mess ? 2 : 1)) * sponsor.multiplier)
+                            console.log(sponsor)
                             let thissponsorref = userref.child(sponsor.user).child("random")
-                            let thissponsor = db.user[sponsor.user].random
+
                             manageTruguts({ profile: thissponsor, profileref: thissponsorref, transaction: 'd', amount: sponsor_earnings })
                             if (!current_challenge.sponsors[sponsor.member]?.earnings) {
-                                current_challenge.sponsors[sponsor.member].earnings = 0
+                                await current_challengeref.child('sponsors').child(sponsorkey).child('earnings').set(0)
                             }
-                            current_challenge.sponsors[sponsor.member].earnings += sponsor_earnings
-                            current_challengeref.update(current_challenge)
+                            await current_challengeref.child('sponsors').child(sponsorkey).child('earnings').set((current_challenge.sponsors?.[sponsor.member]?.earnings ?? 0) + sponsor_earnings)
+                        })
+                    }
+                    if (profile.sponsors) {
+                        Object.values(profile.sponsors).forEach(async sponsor => {
+                            let sponsor_profile = db.user[sponsor.player].random
+                            let id = db.user[sponsor.player].discordID
+                            let sponsor_earnings = Math.round(total_revenue * (Number(sponsor.take) * (sponsor_profile.effects?.sorry_mess ? 2 : 1) / 100))
+                            manageTruguts({ profile: sponsor_profile, profileref: userref.child(sponsor.player).child('random'), transaction: 'd', amount: sponsor_earnings })
+                            if (!current_challenge.sponsors?.[id]?.earnings) {
+                                await current_challengeref.child('sponsors').child(id).update({ earnings: 0, name: `<@${db.user[sponsor.player].discordID}>` })
+                            }
+                            await current_challengeref.child('sponsors').child(id).child('earnings').set((current_challenge?.sponsors?.[id]?.earnings ?? 0) + sponsor_earnings)
                         })
                     }
 
@@ -1382,14 +2094,90 @@ module.exports = {
                         }
                     }
 
+                    //level progression
+                    if (profile.progression) {
+                        let progression = [...profile.progression]
+                        let player_level = playerLevel(profile.progression).level
+                        let progress = challengeProgression({ current_challenge, submitted_time: time, goals, profile })
+                        let level = convertLevel(profile.progression[progress.racer]).level
+                        progression[progress.racer] += progress.points
+                        let new_player_level = playerLevel(progression)
+                        let new_level = convertLevel(progression[progress.racer]).level
+                        if (new_level !== level) {
+                            let truguts = 0
+                            let items = []
+                            for (let i = level + 1; i < new_level + 1; i++) {
+                                let reward = progressionReward({ racer: current_challenge.racer, level: new_level })
+                                truguts += reward.truguts
+                                if (reward.item) {
+                                    items.push(reward.item)
+                                }
+                            }
+
+                            manageTruguts({ profile, profileref, transaction: 'd', amount: truguts })
+                            if (items.length) {
+                                items.forEach(item => {
+                                    profileref.child('items').push({
+                                        id: item,
+                                        date: Date.now(),
+                                        progression: {
+                                            racer: current_challenge.racer,
+                                            level: new_level
+                                        }
+                                    })
+                                })
+
+                            }
+                        }
+                        if (new_player_level.level !== player_level) {
+                            postMessage(client, interaction.channelId, { embeds: [new EmbedBuilder().setAuthor({ name: `${name} leveled up!`, iconURL: avatar }).setDescription(new_player_level.string).setFooter({ text: `Level ${new_player_level.level}` })] })
+                        }
+                        await profileref.child('progression').set(progression)
+                    }
+
+
                     //update objects
                     current_challenge = db.ch.challenges[interaction.message.id]
                     profile = db.user[player].random //update profile
 
                     //update challenge
                     const submit_reply = await updateChallenge({ client, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, db })
-                    interaction.editReply(submit_reply)
 
+                    if (current_challenge.type == 'private') {
+                        interaction.editReply(submit_reply)
+                    } else {
+                        editMessage(client, current_challenge.channel, current_challenge.message, submit_reply)
+                        let progress = challengeProgression({ current_challenge, submitted_time: time, goals, profile })
+                        const receiptEmbed = new EmbedBuilder()
+                            .addFields({ name: 'Winnings', value: winnings.receipt, inline: true })
+                            .setFooter({ text: `Truguts: 📀${currentTruguts(profile)}` })
+                            .addFields({ name: tools.getRacerName(progress.racer), value: progress.summary, inline: true })
+
+                        if (![undefined, ""].includes(current_challenge.earnings?.[member]?.item)) {
+                            let item = items.find(i => i.id == current_challenge.earnings[member].item)
+                            receiptEmbed.addFields({ name: `${raritysymbols[item.rarity]} ${item.name}` + (item.health ? ` [${Math.round(item.health * 100 / 255)}%]` : ''), value: `*${item.description}*`, inline: true })
+                        }
+
+                        interaction.editReply({ embeds: [receiptEmbed], ephemeral: true })
+                    }
+
+                    break
+                case 'drop':
+                    console.log(args[2])
+                    let drop = Number(args[2])
+                    database.ref(`challenge/drops`).push({
+                        member,
+                        message: interaction.message.id,
+                        date: Date.now(),
+                        drop
+                    })
+                    let p = manageTruguts({ profile, profileref, transaction: 'd', amount: drop })
+                    interaction.reply({ components: [], content: `You snagged a \`📀${tools.numberWithCommas(drop)}\` drop\nCurrent truguts: \`📀${tools.numberWithCommas(p.truguts_earned - p.truguts_spent)}\``, ephemeral: true })
+                    try {
+                        interaction.message.delete()
+                    } catch (err) {
+                        console.log(err)
+                    }
                     break
             }
         }

@@ -1,6 +1,6 @@
 const fs = require('fs');
 const Discord = require('discord.js');
-const { Client, Events, GatewayIntentBits } = require('discord.js')
+const { Client, Events, GatewayIntentBits, Partials, ButtonStyle, ActionRowBuilder, ButtonBuilder } = require('discord.js')
 const { Configuration, OpenAIApi } = require("openai")
 
 //const { token, firebaseCon, OPENAI_API_KEY } = require('./config.json');
@@ -11,8 +11,11 @@ const client = new Client({
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.GuildPresences,
         GatewayIntentBits.GuildMembers,
-        GatewayIntentBits.GuildVoiceStates
-    ]
+        GatewayIntentBits.GuildVoiceStates,
+        GatewayIntentBits.GuildMessageReactions,
+        GatewayIntentBits.MessageContent
+    ],
+    partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
 
 var { errorMessage } = require("./data.js");
@@ -20,7 +23,7 @@ var tourneylookup = require("./tourneydata.js");
 var tools = require('./tools.js');
 const { betEmbed, betComponents } = require('./buttons/trugut_functions.js')
 var moment = require('moment');
-const { dailyChallenge, monthlyChallenge, dailyBounty } = require("./buttons/challenge/functions")
+const { dailyChallenge, monthlyChallenge, dailyBounty, isActive } = require("./buttons/challenge/functions")
 const { banners } = require('./data.js')
 client.commands = new Discord.Collection();
 client.buttons = new Discord.Collection();
@@ -84,7 +87,10 @@ let db = {
         feedback: null,
         bounties: null,
         sponsors: null,
-        lotto: null
+        lotto: null,
+        quotes: null,
+        clues: null,
+        auto: null
     },
     ty: {
         bets: null,
@@ -124,6 +130,18 @@ fetchData(database.ref('challenge/bounties'), function (data) {
 
 fetchData(database.ref('challenge/lotto'), function (data) {
     db.ch.lotto = data;
+});
+
+fetchData(database.ref('challenge/quotes'), function (data) {
+    db.ch.quotes = data;
+});
+
+fetchData(database.ref('challenge/clues'), function (data) {
+    db.ch.clues = data;
+});
+
+fetchData(database.ref('challenge/auto'), function (data) {
+    db.ch.auto = data;
 });
 
 fetchData(database.ref('challenge/sponsorships'), function (data) {
@@ -271,10 +289,6 @@ client.once(Events.ClientReady, async () => {
 
     const Guild = await client.guilds.cache.get("441839750555369474")
 
-    if (!testing) {
-        await Guild.edit({ banner: banners[Math.floor(Math.random() * banners.length)] })
-    }
-
     const updater = async () => {
 
 
@@ -282,9 +296,11 @@ client.once(Events.ClientReady, async () => {
         monthlyChallenge({ client, db, challengesref: database.ref('challenge/challenges') })
         dailyBounty({ client, db, bountyref: database.ref('challenge/bounties') })
 
-        Object.values(db.ch.challenges).forEach(challenge => {
-            if (challenge.type == 'cotd' && Date.now() - 24 * 60 * 60 * 1000 > challenge.created && challenge.channel == '551786988861128714' && challenge.message) {
+        Object.values(db.ch.challenges).filter(challenge => ['cotd', 'cotm', 'open'].includes(challenge.type) && !isActive(challenge) && Date.now() - 48 * 60 * 60 * 1000 < bounty.created && challenge.channel == '551786988861128714' && challenge.message).forEach(challenge => {
+            try {
                 client.channels.cache.get('551786988861128714').messages.fetch(challenge.message).then(msg => { if (msg.pinned) { msg.unpin().catch(console.error) } })
+            } catch (err) {
+                console.log(err)
             }
         })
 
@@ -512,7 +528,7 @@ client.on("error", (e) => {
 });
 
 client.on(Events.GuildMemberAdd, (guildMember) => { //join log
-    if (guildMember.guild.id == "441839750555369474") {
+    if (guildMember.guild.id == "441839750555369474" && !testing) {
         console.log('new join')
         let join = welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)]
         client.channels.cache.get("441839751235108875").send(join.replaceAll("replaceme", "<@" + guildMember.user + ">"));
@@ -527,6 +543,27 @@ client.on(Events.GuildBanAdd, (guildMember) => { //ban log
         client.channels.cache.get("892664227553243157").send(`*${guildMember.username} was banished because they were clumsy.*`);
     }
 })
+
+client.on(Events.MessageReactionAdd, async (reaction, user) => {
+    // When a reaction is received, check if the structure is partial
+    if (user.bot) {
+        return
+    }
+    if (reaction.partial) {
+        // If the message this reaction belongs to was removed, the fetching might result in an API error which should be handled
+        try {
+            await reaction.fetch();
+        } catch (error) {
+            console.error('Something went wrong when fetching the message:', error);
+            // Return as `reaction.message.author` may be undefined/null
+            return;
+        }
+    }
+    let profile = Object.values(db.user).find(u => u.discordID == user.id)
+    if (profile?.random?.effects?.botto_buddy) {
+        reaction.message.react(reaction.emoji)
+    }
+});
 
 client.on(Events.MessageDelete, async messageDelete => {
     if (!messageDelete.guild) return;
@@ -575,7 +612,7 @@ client.on(Events.MessageDelete, async messageDelete => {
 });
 
 client.on(Events.MessageUpdate, (oldMessage, newMessage) => {
-    if (oldMessage.author.bot == false && oldMessage.channel.type == "text" && oldMessage !== newMessage && oldMessage.guild.id == "441839750555369474") {
+    if (oldMessage?.author?.bot == false && oldMessage?.channel?.type == "text" && oldMessage !== newMessage && oldMessage?.guild?.id == "441839750555369474") {
         var channelname = ""
         for (var i = 0; i < discordchannels.length; i++) {
             if (discordchannels[i].id == newMessage.channel.id) {
@@ -685,15 +722,41 @@ async function fetchMessageContent(message) {
 client.on(Events.MessageCreate, async function (message) {
     if (message.author.bot) return; //trumps any command from executing from a bot message
 
-    if (message.mentions.users.has('545798436105224203') && !testing) {
+    const base = "You are a discord bot in the Star Wars Episode I: Racer discord called Botto who is based on the personality of Watto, the character from Star Wars Episode I: The Phantom Menace. You were created by LightningPirate. "
+    let id = message.author.id
+    let profile = Object.values(db.user).find(u => u.discordID == id)
+    let friend = profile?.random?.effects?.friend_greed ? 'You are talking to your favorite customer. You will do your best to satisfy their podracing needs. Your currency of choice is truguts, credits are no good.' : "You are incredibly greedy, addicted to gambling, and you love to swindle and cheat. Be as uncooperative as possible. If you are unable or unwilling to answer a question, say you just so happen to have a chance cube, or you have to get back to your shop, or you will only do it for some truguts (money)."
+
+    if (message.partial) {
+        // If the message this reaction belongs to was removed, the fetching might result in an API error which should be handled
+        try {
+            await message.fetch();
+        } catch (error) {
+            console.error('Something went wrong when fetching the message:', error);
+            // Return as `reaction.message.author` may be undefined/null
+            return;
+        }
+    }
+    if (message.guildId == '441839750555369474') {
+        if (Math.random() < 0.04) {
+            console.log('test')
+            let drop = Math.floor(Math.random() * 20) * 100 + 500
+
+            postMessage(client, message.channelId, { components: [new ActionRowBuilder().addComponents(new ButtonBuilder().setLabel(`📀${tools.numberWithCommas(drop)}`).setCustomId(`challenge_random_drop_${drop}`).setStyle(ButtonStyle.Secondary))] })
+        }
+    }
+
+    let autoreact = Object.values(db.ch.auto).filter(a => a.type == 'react').find(a => message.content.toLowerCase().includes(a.phrase.toLowerCase()))
+    let autoreply = Object.values(db.ch.auto).filter(a => a.type == 'reply').find(a => message.content.toLowerCase().includes(a.phrase.toLowerCase()))
+
+    if (message.mentions.users.has('545798436105224203')) {
         const previous = await fetchMessageContent(message);
-        console.log(`${previous}\n\n${message.content}`);
         try {
             const response = await openai.createChatCompletion({
                 model: "gpt-3.5-turbo",
                 messages: [
-                    { role: "system", content: "You are a discord bot in the Star Wars Episode I: Racer discord called Botto who is based on the personality of Watto, the character from Star Wars Episode I: The Phantom Menace. You were created by LightningPirate. You are incredibly greedy, addicted to gambling, and you love to swindle and cheat. Be as uncooperative as possible. If you are unable or unwilling to answer a question, say you just so happen to have a chance cube, or you have to get back to your shop, or you will only do it for some truguts (money). Add only one response to the conversation." },
-                    { role: "user", content: `${previous}\n\n${message.content}` }
+                    { role: "system", content: base + friend + " Add only one response to the conversation." },
+                    { role: "user", content: `${previous}\n\n${message.content.replaceAll('<@545798436105224203>', 'Botto')}` }
                 ],
             });
             const content = response.data.choices[0].message;
@@ -703,6 +766,18 @@ client.on(Events.MessageCreate, async function (message) {
             return message.reply(
                 errorMessage[Math.floor(Math.random() * errorMessage.length)]
             );
+        }
+    } else if (autoreact || autoreply) {
+        if (autoreact) {
+            message.react(autoreact.emoji)
+        }
+        if (autoreply) {
+            message.reply({
+                content: autoreply.reply,
+                allowedMentions: {
+                    repliedUser: false
+                }
+            });
         }
     }
 

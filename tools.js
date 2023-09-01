@@ -7,6 +7,9 @@ module.exports = {
     capitalize: function (string) {
         return string.split(" ").map(word => word[0].toUpperCase() + word.slice(1)).join(" ")
     },
+    extractEmojiID: function (string) {
+        return string.split(":")[2].replace(">", "")
+    },
     timefix: function (time) {
         if (time == "DNF") {
             return "DNF"

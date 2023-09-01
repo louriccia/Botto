@@ -14,12 +14,14 @@ exports.achievement_data = {
     big_time_swindler: { name: "Big-Time Swindler", description: "Earn or spend 1,000,000 total truguts", role: "844307520997949481", limit: 1000000, count: 0, collection: {}, array: [], missing: [] },
     bounty_hunter: { name: "Bounty Hunter", description: "Complete 25 bounties", role: "1074074050772615199", limit: 25, count: 0, collection: {}, array: [], missing: [] },
     bankroller_clan: { name: "Bankroller Clan", description: "Sponsor 25 challenges", role: "1074073925258059808", limit: 25, count: 0, collection: {}, array: [], missing: [] },
-    force_sight: { name: "Force Sight", description: "Make 10 predictions less than a second over the submitted time", role: "1074073801773559808", limit: 10, count: 0, collection: {}, array: [], missing: [] }
+    force_sight: { name: "Force Sight", description: "Make 10 predictions <1s over", role: "1074073801773559808", limit: 10, count: 0, collection: {}, array: [], missing: [] }
 }
 
 exports.swe1r_guild = "441839750555369474"
 
 exports.goal_symbols = ["<:diamond:1136554333723435068>", "<:platinum:1136554336705597510>", "<:gold:1136554335426318406>", "<:silver:1136554338895011850>", "<:bronze:1136554332586786879>"]
+
+exports.level_symbols = ["<:bronze:1136554332586786879>", "<:silver:1136554338895011850>", "<:gold:1136554335426318406>", "<:platinum:1136554336705597510>", "<:diamond:1136554333723435068>", "<:master:1145487065912447026>", "<:grandmaster:1145487067682447442>"]
 
 exports.truguts = {
     starter: 400,
@@ -43,6 +45,11 @@ exports.truguts = {
         standard: 10000,
         deluxe: 5000
     },
+    sponsor: {
+        "5": 50000,
+        "10": 100000,
+        "20": 200000
+    },
     long: 200,
     extra_long: 400,
     prediction_max: 500,
@@ -51,8 +58,9 @@ exports.truguts = {
     sponsor_cut: 0.20,
     abandoned: 0.5,
     shuffle: 1200,
-    lotto: 200
-
+    lotto: 200,
+    sabotage: 15000,
+    rival: 500
 }
 
 exports.shoplines = [
@@ -107,9 +115,9 @@ exports.shoplines = [
 ]
 
 exports.hints = [
-    { name: "Basic Hint", price: exports.truguts.hint.basic, bonus: exports.truguts.bonus.basic, description: "Single-part hint", hunt: "Force-Intuitive" },
-    { name: "Standard Hint", price: exports.truguts.hint.standard, bonus: exports.truguts.bonus.standard, description: "Two-part hint", hunt: "Force-Attuned" },
-    { name: "Deluxe Hint", price: exports.truguts.hint.deluxe, bonus: exports.truguts.bonus.deluxe, description: "Three-part hint", hunt: "Force-Sensitive" }
+    { value: 'basic', name: "Basic Hint", price: exports.truguts.hint.basic, bonus: exports.truguts.bonus.basic, description: "Single-part hint", hunt: "Force-Intuitive" },
+    { value: 'standard', name: "Standard Hint", price: exports.truguts.hint.standard, bonus: exports.truguts.bonus.standard, description: "Two-part hint", hunt: "Force-Attuned" },
+    { value: 'deluxe', name: "Deluxe Hint", price: exports.truguts.hint.deluxe, bonus: exports.truguts.bonus.deluxe, description: "Three-part hint", hunt: "Force-Sensitive" }
 ]
 
 exports.tips = [
@@ -181,9 +189,9 @@ exports.settings_default = {
     predictions: true
 }
 exports.winnings_map = [
-    { name: "Fair", text: ":gem: 36%\n:first_place: 32%\n:second_place: 27%\n:third_place: 5%\n<:bumpythumb:703107780860575875> 0%" },
-    { name: "Skilled", text: ":gem: 55%\n:first_place: 27%\n:second_place: 14%\n:third_place: 5%\n<:bumpythumb:703107780860575875> 0%" },
-    { name: "Winner Takes All", text: ":gem: 100%\n:first_place: 0%\n:second_place: 0%\n:third_place: 0%\n<:bumpythumb:703107780860575875> 0%" }
+    { name: "Fair", text: "<:diamond:1136554333723435068> 36%\n<:platinum:1136554336705597510> 32%\n<:gold:1136554335426318406> 27%\n<:silver:1136554338895011850> 5%\n<:bronze:1136554332586786879> 0%" },
+    { name: "Skilled", text: "<:diamond:1136554333723435068> 55%\n<:platinum:1136554336705597510> 27%\n<:gold:1136554335426318406> 14%\n<:silver:1136554338895011850> 5%\n<:bronze:1136554332586786879> 0%" },
+    { name: "Winner Takes All", text: "<:diamond:1136554333723435068> 100%\n<:platinum:1136554336705597510> 0%\n<:gold:1136554335426318406> 0%\n<:silver:1136554338895011850> 0%\n<:bronze:1136554332586786879> 0%" }
 ]
 
 exports.about = {
