@@ -293,7 +293,7 @@ client.once(Events.ClientReady, async () => {
 
 
         dailyChallenge({ client, db, challengesref: database.ref('challenge/challenges') })
-        monthlyChallenge({ client, db, challengesref: database.ref('challenge/challenges') })
+        monthlyChallenge({ client, db, challengesref: database.ref('challenge/challenges'), database })
         dailyBounty({ client, db, bountyref: database.ref('challenge/bounties') })
 
         Object.values(db.ch.challenges).filter(challenge => ['cotd', 'cotm', 'open'].includes(challenge.type) && !isActive(challenge) && Date.now() - 48 * 60 * 60 * 1000 < challenge.created && challenge.channel == '551786988861128714' && challenge.message).forEach(challenge => {

@@ -2676,7 +2676,7 @@ exports.easternTime = function () {
     return moment().tz('America/New_York')
 }
 
-exports.monthlyChallenge = async function ({ client, challengesref, db } = {}) {
+exports.monthlyChallenge = async function ({ client, challengesref, db, database } = {}) {
     let recent = null
     let lastfive = []
     if (db.ch.challenges) {
@@ -2704,17 +2704,18 @@ exports.monthlyChallenge = async function ({ client, challengesref, db } = {}) {
         current_challenge.url = cotmmessage.url
         challengesref.child(cotmmessage.id).set(current_challenge)
         cotmmessage.pin()
-
+    }
+    if (!recent.lotto) {
         function trackMatch(a, b) {
             return a.map(i => b.includes(Number(i))).filter(i => i).length
         }
 
-        let tickets = Object.values(db.ch.lotto).filter(t => moment(t.date).tz('America/New_York').month() == recent.month && trackMatch(t.tracks, current_challenge.track) > 0).sort((a, b) => trackMatch(a.tracks, current_challenge.track) - trackMatch(b.tracks, current_challenge.track))
+        let tickets = Object.values(db.ch.lotto).filter(t => moment(t.date).tz('America/New_York').month() == (recent.month - 1) && trackMatch(t.tracks, recent.track) > 0).sort((a, b) => trackMatch(a.tracks, recent.track) - trackMatch(b.tracks, recent.track))
         function winner(count, tracks) {
             return count >= Math.min(7, tracks.length)
         }
-        let winners = tickets.map(t => ({ user: t.user, count: trackMatch(t.tracks, current_challenge.track) }))
-        winners.forEach(w => w.winner = winner(w.count, current_challenge.track))
+        let winners = tickets.map(t => ({ user: t.user, count: trackMatch(t.tracks, recent.track) }))
+        winners.forEach(w => w.winner = winner(w.count, recent.track))
 
         //award truguts
         winners.forEach(w => {
@@ -2729,6 +2730,7 @@ exports.monthlyChallenge = async function ({ client, challengesref, db } = {}) {
                 winners.map(w =>
                     `<@${w.user}> - ${w.winner ? 'WINNER <a:sparks:672640526444527647> `+📀1,000,000`' : `\`+📀${tools.numberWithCommas(w.winnings)}\``}`).join("\n"))
         postMessage(client, '551786988861128714', { embeds: [winnersEmbed] })
+        challengesref.child(recent.message).update({ lotto: true })
     }
 }
 
