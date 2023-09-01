@@ -1066,7 +1066,7 @@ exports.updateChallenge = async function ({ client, db, profile, current_challen
 
 exports.rerollReceipt = function (current_challenge, profile) {
     let reroll_cost = current_challenge.reroll_cost
-    let free = profile.effects?.free_rerolls
+    let free = profile?.effects?.free_rerolls
     return {
         receipt: free ? 'FREE REROLLS FOR LIFE' : reroll_cost == 'discount' ? "-📀" + tools.numberWithCommas(truguts.reroll_discount) + " (discounted)" : (reroll_cost == 'free' ? "(no charge for record holders)" : "-📀" + tools.numberWithCommas(truguts.reroll)),
         cost: free ? 0 : reroll_cost == 'discount' ? truguts.reroll_discount : (reroll_cost == 'free' ? 0 : truguts.reroll)
