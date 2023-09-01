@@ -937,7 +937,7 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, profi
     //speed boost in effect
     //doubled powers
 
-    if (current_challenge.racer == tracks[current_challenge.track].favorite && profile.effects?.fame_fortune) {
+    if (current_challenge.racer == tracks[current_challenge.track]?.favorite && profile.effects?.fame_fortune) {
         multipliers += "`×2` *Fame and Fortune*\n"
         earnings_total *= 2
     }
