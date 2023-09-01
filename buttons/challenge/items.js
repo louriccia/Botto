@@ -4297,7 +4297,7 @@ exports.collections = [
     {
         name: 'All-Terrain Podracing',
         emoji: '⚠️',
-        reward: 'Doubled Powers - Speed Boost and Sabotage double in effect',
+        reward: 'Doubled Powers - Trugut Boost and Sabotage Kit double in effect',
         key: 'doubled_powers',
         items: [80, 81, 82, 83, 84, 85]
     },

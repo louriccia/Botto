@@ -1229,7 +1229,7 @@ exports.progressionReward = function ({ racer, level }) {
     }
     let reward = {
         truguts,
-        item: levelmap[level] ? racers[racer].items[levelmap[level]] : null,
+        item: level > 25 ? racers[racer].items.usable : levelmap[level] ? racers[racer].items[levelmap[level]] : null,
     }
 
     let item = items.find(i => i.id == reward.item)
@@ -1821,8 +1821,8 @@ exports.shopComponents = function ({ profile, selection, shoptions, purchased })
 }
 
 exports.inventoryEmbed = function ({ profile, selection }) {
-    const selected_collection = selection[1]?.sel?.[0]
-    const selected_item = selection[2]?.sel?.[0]
+    const selected_collection = selection[2]?.sel?.[0]
+    const selected_item = selection[3]?.sel?.[0]
     let item = items.find(i => i.id == selected_item)
     const coll = exports.collections()
 
@@ -1883,10 +1883,64 @@ exports.inventoryComponents = function ({ profile, selection }) {
                 .setStyle(ButtonStyle.Secondary)
                 .setEmoji('❔')
         )
+    const row2 = new ActionRowBuilder().addComponents(
+        new StringSelectMenuBuilder()
+            .setCustomId('challenge_random_inventory_1')
+            .setPlaceholder("Inventory")
+            .setMinValues(0)
+            .setMaxValues(1)
+            .addOptions({
+                label: 'Collections',
+                value: 'collections',
+                description: 'View your collections and track reward progress',
+                emoji: {
+                    name: '🗃'
+                }
+            },
+                {
+                    label: 'Usables',
+                    value: 'usables',
+                    description: 'Use special items',
+                    emoji: {
+                        name: '💥'
+                    }
+                },
+                {
+                    label: 'Duplicates',
+                    value: 'duplicates',
+                    description: 'Manage your duplicate items',
+                    emoji: {
+                        name: '♻'
+                    }
+                },
+                {
+                    label: 'Pit Crew',
+                    value: 'droids',
+                    description: 'Manage your droids',
+                    emoji: {
+                        name: '🤖'
+                    }
+                },
+                {
+                    label: 'Roles',
+                    value: 'roles',
+                    description: 'Equip and unequip your special roles',
+                    emoji: {
+                        name: '🏷'
+                    }
+                }
+            )
+    )
 
-    let comp = [row1, ...exports.collectionComponents({ profile })]
-    if (![null, undefined, ''].includes(selection[1])) {
-        comp.push(...exports.itemComponents({ profile, selection }))
+    const droids = [102, 103, 104, 105, 106, 107, 141, 184]
+    const specials = ['collectible_coffer', 'sabotage_kit', 'trugut_boost']
+
+    let comp = [row1, row2]
+    if (selection[1].sel[0] == 'collections') {
+        comp.push(...exports.collectionComponents({ profile }))
+        if (![null, undefined, ''].includes(selection[2])) {
+            comp.push(...exports.itemComponents({ profile, selection }))
+        }
     }
 
     let selectable = []
@@ -1923,8 +1977,8 @@ exports.collections = function () {
 }
 
 exports.itemComponents = function ({ profile, selection }) {
-    let selected_collection = selection[1].sel?.[0]
-    let page = selection[2].page ?? 0
+    let selected_collection = selection[2].sel?.[0]
+    let page = selection[3].page ?? 0
     if ([null, undefined, ""].includes(selected_collection) || isNaN(Number(selected_collection))) {
 
         return []
@@ -1951,7 +2005,7 @@ exports.itemComponents = function ({ profile, selection }) {
         ].filter(o => o)
     }
     const item_selector = new StringSelectMenuBuilder()
-        .setCustomId('challenge_random_inventory_2')
+        .setCustomId('challenge_random_inventory_3')
         .setPlaceholder("View Items")
         .setMinValues(1)
         .setMaxValues(1)
@@ -1970,7 +2024,7 @@ exports.collectionComponents = function ({ profile }) {
 
 
     const collection_selector = new StringSelectMenuBuilder()
-        .setCustomId('challenge_random_inventory_1')
+        .setCustomId('challenge_random_inventory_2')
         .setPlaceholder("View Collections")
         .setMinValues(1)
         .setMaxValues(1)
@@ -2237,7 +2291,10 @@ exports.getStats = function ({ db, member, profile } = {}) {
             }
             stats.totals.total++
             stats.racers[String(challenge.racer)].plays++
-            stats.tracks[String(challenge.track)].plays++
+            if (!Array.isArray(challenge.track)) {
+                stats.tracks[String(challenge.track)].plays++
+            }
+
             //time stats
             stats.times.total += Number(challenge.time)
             var goals = exports.getGoalTimes({ racer: challenge.racer, track: challenge.track, skips: challenge.conditions.skips, nu: challenge.conditions.nu, laps: challenge.conditions.laps, backwards: challenge.conditions.backwards, best: Object.values(db.ch.times).filter(c => exports.matchingChallenge(c, challenge) && c.date < challenge.date) })
@@ -2253,7 +2310,7 @@ exports.getStats = function ({ db, member, profile } = {}) {
                 stats.racers[String(challenge.racer)].level += (5 - goal_time)
             }
             //stats
-            if (!challenge.mirror && !challenge.nu && !challenge.skips && challenge.laps == 3) {
+            if (!challenge.conditions.mirror && !challenge.conditions.nu && !challenge.conditions.skips && challenge.conditions.laps == 3 && !challenge.conditions.backwards) {
                 stats.totals.standard++
             } else {
                 if (challenge.conditions.skips) {
@@ -2725,7 +2782,7 @@ exports.monthlyChallenge = async function ({ client, challengesref, db, database
         })
 
         const winnersEmbed = new EmbedBuilder()
-            .setTitle('🎰Botto Lotto Winners')
+            .setTitle("🎰 This Month's Botto Lotto Winners")
             .setDescription(
                 winners.map(w =>
                     `<@${w.user}> - ${w.winner ? 'WINNER <a:sparks:672640526444527647> `+📀1,000,000`' : `\`+📀${tools.numberWithCommas(w.winnings)}\``}`).join("\n"))

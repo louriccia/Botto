@@ -19,7 +19,6 @@ const client = new Client({
 });
 
 var { errorMessage } = require("./data.js");
-var tourneylookup = require("./tourneydata.js");
 var tools = require('./tools.js');
 const { betEmbed, betComponents } = require('./buttons/trugut_functions.js')
 var moment = require('moment');
