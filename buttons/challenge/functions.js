@@ -2745,9 +2745,7 @@ exports.dailyChallenge = async function ({ client, challengesref, db } = {}) {
         })
     }
     if (exports.easternTime().dayOfYear() !== recent.day) {
-        if (!testing) {
-            await interaction.guild.edit({ banner: banners[Math.floor(Math.random() * banners.length)] })
-        }
+        await interaction.guild.edit({ banner: banners[Math.floor(Math.random() * banners.length)] })
         let current_challenge = exports.initializeChallenge({ type: "cotd", db })
         if (lastfive.map(c => c.racer).includes(current_challenge.racer)) {
             if (Math.random() < 0.9) {
