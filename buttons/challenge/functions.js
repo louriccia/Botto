@@ -1,4 +1,4 @@
-const { racers, tracks, planets, playerPicks, movieQuotes, circuits, multipliers, racer_hints, track_hints, mpQuotes, emojimap, console_emojis } = require('../../data.js')
+const { racers, tracks, planets, playerPicks, movieQuotes, circuits, multipliers, racer_hints, track_hints, mpQuotes, emojimap, console_emojis, banners } = require('../../data.js')
 const tools = require('../../tools.js')
 const { truguts, swe1r_guild, tips, goal_symbols, settings_default, achievement_data, winnings_map, hints, shoplines, level_symbols } = require('./data.js')
 const { items, collections, levels, raritysymbols } = require('./items.js')
