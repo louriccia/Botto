@@ -785,7 +785,6 @@ module.exports = {
                         const noTruguts = new EmbedBuilder()
                             .setTitle(`<@${member}> rerolled the Random Challenge of the Day!`)
                         interaction.reply({ embeds: [noTruguts] })
-                        await interaction.reply(pub_response)
                         last.rerolled = true
                         const pub_response = await updateChallenge({ client, current_challenge: last, current_challengeref: database.ref(`challenge/challenges/${last.message}`), interaction, db })
                         editMessage(client, last.channel, last.message, pub_response)
