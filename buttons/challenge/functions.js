@@ -2366,10 +2366,16 @@ exports.getStats = function ({ db, member, profile } = {}) {
     Object.values(db.ch.feedback).filter(f => f.user == member).forEach(f => {
         if (f.feedback == '👍') {
             stats.racers[String(f.racer)].likes++
-            stats.tracks[String(f.track)].likes++
+            if (!Array.isArray(f.track)) {
+                stats.tracks[String(f.track)].likes++
+            }
+
         } else {
             stats.racers[String(f.racer)].dislikes++
-            stats.tracks[String(f.track)].dislikes++
+            if (!Array.isArray(f.track)) {
+                stats.tracks[String(f.track)].dislikes++
+            }
+
         }
     })
 
