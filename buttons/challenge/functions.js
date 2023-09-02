@@ -1145,7 +1145,7 @@ exports.challengeEmbed = async function ({ current_challenge, profile, profilere
 
     let goals = exports.goalTimeList(current_challenge, profile, best)
 
-    if (current_challenge.rerolled) {
+    if (current_challenge.rerolled && current_challenge.type !== 'cotd') {
         let reroll = exports.rerollReceipt(current_challenge, profile)
         challengeEmbed.setFooter({ text: reroll.receipt + "\nTruguts: 📀" + exports.currentTruguts(profile) })
         return challengeEmbed
