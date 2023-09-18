@@ -1,8 +1,8 @@
 const { truguts, hints, settings_default, about, achievement_data, swe1r_guild } = require('./challenge/data.js');
-const { getGoalTimes, initializeChallenge, initializePlayer, updateChallenge, bribeComponents, dailyChallenge, menuEmbed, menuComponents, playButton, notYoursEmbed, settingsEmbed, initializeUser, isActive, checkActive, expiredEmbed, challengeWinnings, getBest, goalTimeList, predictionScore, settingsComponents, achievementProgress, huntComponents, racerHint, trackHint, sponsorComponents, sponsorEmbed, validateTime, initializeBounty, bountyEmbed, manageTruguts, currentTruguts, predictionAchievement, sponsorAchievement, bountyAchievement, achievementEmbed, shopEmbed, shopComponents, profileComponents, profileEmbed, shopOptions, randomChallengeItem, inventoryComponents, inventoryEmbed, getStats, goalTimeRank, challengeProgression, playerLevel, convertLevel, progressionReward } = require('./challenge/functions.js');
+const { getGoalTimes, initializeChallenge, initializePlayer, updateChallenge, bribeComponents, dailyChallenge, menuEmbed, menuComponents, playButton, notYoursEmbed, settingsEmbed, initializeUser, isActive, checkActive, expiredEmbed, challengeWinnings, getBest, goalTimeList, predictionScore, settingsComponents, achievementProgress, huntComponents, racerHint, trackHint, sponsorComponents, sponsorEmbed, validateTime, initializeBounty, bountyEmbed, manageTruguts, currentTruguts, predictionAchievement, sponsorAchievement, bountyAchievement, achievementEmbed, shopEmbed, shopComponents, profileComponents, profileEmbed, shopOptions, randomChallengeItem, inventoryComponents, inventoryEmbed, getStats, goalTimeRank, challengeProgression, playerLevel, convertLevel, progressionReward, collectionReward, Collections, collectionRewardEmbed, getUsables, openCoffer, itemString, collectionRewardUpdater, tradeEmbed, tradeComponents, availableItemsforScrap } = require('./challenge/functions.js');
 const { postMessage, editMessage } = require('../discord_message.js');
-const { tracks, circuits, banners, emojimap } = require('../data.js')
-const { items, raritysymbols } = require('./challenge/items.js')
+const { tracks, circuits, banners, emojimap, planets } = require('../data.js')
+const { items, raritysymbols, collections } = require('./challenge/items.js')
 const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } = require('discord.js');
 const moment = require('moment');
 require('moment-timezone')
@@ -113,14 +113,18 @@ module.exports = {
                     let type = interaction.member.voice?.channel?.id == '441840193754890250' ? 'multiplayer' : 'private'
                     current_challenge = initializeChallenge({ profile, member, type, name, avatar, user: player, db, interaction })
                     const reply = await updateChallenge({ client, db, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction })
-                    let message = await interaction.reply(reply)
-                    current_challenge.message = message.id
-                    current_challenge.channel = interaction.message.channelId
-                    current_challenge.guild = interaction.guildId
-                    current_challenge.url = message.url
-                    challengesref.child(message.id).set(current_challenge)
-                    current_challenge = db.ch.challenges[message.id]
-                    current_challengeref = challengesref.child(message.id)
+                    try {
+                        let message = await interaction.reply(reply)
+                        current_challenge.message = message.id
+                        current_challenge.channel = interaction.message.channelId
+                        current_challenge.guild = interaction.guildId
+                        current_challenge.url = message.url
+                        challengesref.child(message.id).set(current_challenge)
+                        current_challenge = db.ch.challenges[message.id]
+                        current_challengeref = challengesref.child(message.id)
+                    } catch (err) {
+                        console.log('there was an error when posting the challenge', err)
+                    }
 
                     setTimeout(async function () { //mark challenge abandoned
                         current_challenge = db.ch.challenges[message.id]
@@ -353,7 +357,7 @@ module.exports = {
                     await current_challengeref.child('earnings').child(interaction.user.id).update({ truguts_earned: current_challenge.earnings[interaction.user.id].truguts_earned + truguts.rated })
 
                     //profileref.update({ truguts_earned: profile.truguts_earned + truguts.rated })
-                    profile = manageTruguts({ profile, profileref, transaction: 'd', amount: truguts.rated })
+                    profile = manageTruguts({ profile, profileref, transaction: 'd', amount: truguts.rated * (profile.effects?.vote_confidence ? 2 : 1) })
 
                     feedbackref.push({
                         user: member,
@@ -385,25 +389,325 @@ module.exports = {
                     let row = interaction.customId.split("_")[3]
                     row = Number(row)
                     let iselection = [0, 1, 2, 3, 4].map(i => {
-                        let sel, page = null
                         let val = interaction.message?.components[i]?.components[0]?.data?.options?.filter(o => o.default).map(o => o.value) ??
                             (interaction.message?.components[i]?.components[0]?.data?.options ? '' : null)
                         if (i == row) {
                             val = interaction.values
                         }
-                        if (val?.[0]?.includes(":")) {
-                            sel = val[0].split(":")[0]
-                            if ("<>".includes(sel)) {
-                                sel = null
-                            }
-                            page = Number(val[0].split(":")[1])
-                        } else {
-                            sel = val
-                        }
-                        return ({ sel, page })
+                        return (val)
                     })
 
-                    interaction.update({ embeds: [inventoryEmbed({ profile, selection: iselection })], components: inventoryComponents({ profile, selection: iselection }) })
+                    function NoItems() {
+                        const holdUp = new EmbedBuilder()
+                            .setTitle("<:WhyNobodyBuy:589481340957753363> We have nothing of value. That's our problem.")
+                            .setDescription("You don't have the required item. Go do some challenges to earn items!")
+                        interaction.reply({ embeds: [holdUp], ephemeral: true })
+                        return
+                    }
+
+                    const actionmap = {
+                        coffer: 'collectible_coffer',
+                        sabotage: 'sabotage_kit',
+                        boost: 'trugut_boost'
+                    }
+                    if (['coffer', 'sabotage', 'boost'].includes(args[2])) {
+                        if (!profile.items) {
+                            NoItems()
+                            return
+                        }
+                        let key = Object.keys(profile.items).find(key => profile.items[key].id == actionmap[args[2]] && !profile.items[key].used)
+                        if (!key) {
+                            NoItems()
+                            return
+                        }
+
+                        if (args[2] == 'coffer') {
+                            let new_items = openCoffer({ profile, db, member })
+                            await profileref.child('items').child(key).update({ used: Date.now() })
+                            new_items.forEach(async item => {
+                                let condensed = { coffer: key, date: Date.now(), id: item.id }
+                                if (item.upgrade) {
+                                    condensed = { ...condensed, upgrade: item.upgrade, health: item.health }
+                                }
+                                await profileref.child('items').push(condensed)
+                            })
+                            const congratsEmbed = new EmbedBuilder()
+                                .setAuthor({ name: name + " opened a 🎁Collectible Coffer", iconURL: avatar })
+                                .addFields(...new_items.map(item => ({ name: itemString({ item, profile }), value: `\`📀${tools.numberWithCommas(item.value)}\` | ${item.description}` })))
+                            postMessage(client, interaction.channelId, { embeds: [congratsEmbed] })
+                            profile = db.user[player].random
+                            collectionRewardUpdater({ profile, client, interaction, profileref, name, avatar })
+                        } else if (args[2] == 'sabotage') {
+                            let selected_player = iselection[3]?.[0]
+                            if (selected_player == player) {
+                                const noTruguts = new EmbedBuilder()
+                                    .setTitle("<:WhyNobodyBuy:589481340957753363> You what?!")
+                                    .setDescription("You can't sabotage yourself!")
+                                interaction.reply({ embeds: [noTruguts], ephemeral: true })
+                                return
+                            }
+                            if (profile.effects?.peace_treaty) {
+                                const noTruguts = new EmbedBuilder()
+                                    .setTitle("<:WhyNobodyBuy:589481340957753363> My lord, is that legal?")
+                                    .setDescription("You have entered a peace treaty and cannot sabotage other players.")
+                                interaction.reply({ embeds: [noTruguts], ephemeral: true })
+                                return
+                            }
+                            if (db.user[selected_player].random?.effects?.sabotage && Object.values(db.user[selected_player].random.effects.sabotage).find(u => u.player == player && !u.used)) {
+                                const noTruguts = new EmbedBuilder()
+                                    .setTitle("<:WhyNobodyBuy:589481340957753363> You already have an active sabotage on this player.")
+                                    .setDescription("You can only have one active sabotage on a player. Wait for them to trigger your sabotage and you can hit them again... or sabotage someone else!")
+                                interaction.reply({ embeds: [noTruguts], ephemeral: true })
+                                return
+                            }
+                            if (interaction.isModalSubmit()) {
+                                let mil = Number(interaction.fields.getTextInputValue('millisecond'))
+                                if (isNaN(mil)) {
+                                    const noTruguts = new EmbedBuilder()
+                                        .setTitle("<:WhyNobodyBuy:589481340957753363> That's no number")
+                                        .setDescription("Please submit a number 0-9")
+                                    interaction.reply({ embeds: [noTruguts], ephemeral: true })
+                                    return
+                                }
+                                database.ref(`users/${selected_player}/random/effects/sabotage`).push({
+                                    player: player,
+                                    millisecond: mil,
+                                    used: false
+                                })
+                                profileref.child('items').child(key).update({ used: Date.now() })
+                                const sabotageEmbed = new EmbedBuilder()
+                                    .setTitle("💥 Sabotaged!")
+                                    .setDescription(`You have successfully set up a sabotage on <@${db.user[selected_player].discordID}>. When they submit a time ending in \`${mil}\`, you'll get ${profile.effects?.doubled_powers ? 'all' : 'half'} their winnings!`)
+                                interaction.reply({ embeds: [sabotageEmbed], ephemeral: true })
+                                profile = db.user[player].random
+                                editMessage(client, interaction.channelId, interaction.message.id, { embeds: [inventoryEmbed({ profile, selection: iselection, name, avatar })], components: inventoryComponents({ profile, selection: iselection, db, interaction }) })
+                                return
+                            } else {
+                                const sponsorModal = new ModalBuilder()
+                                    .setCustomId('challenge_random_inventory_sabotage')
+                                    .setTitle('Sabotage')
+                                const millisecond = new TextInputBuilder()
+                                    .setCustomId('millisecond')
+                                    .setLabel('Millisecond')
+                                    .setStyle(TextInputStyle.Short)
+                                    .setMaxLength(1)
+                                    .setRequired(true)
+                                const ActionRow1 = new ActionRowBuilder().addComponents(millisecond)
+                                sponsorModal.addComponents(ActionRow1)
+                                await interaction.showModal(sponsorModal)
+                                return
+                            }
+                        } else if (args[2] == 'boost') {
+                            if (profile.effects?.trugut_boost > Date.now() - 1000 * 60 * 60 * 24) {
+                                const noTruguts = new EmbedBuilder()
+                                    .setTitle("<:WhyNobodyBuy:589481340957753363> Patience, Viceroy. Patience.")
+                                    .setDescription(`You already have an active ⚡Trugut Boost. It expires <t:${Math.round((profile.effects.trugut_boost + 1000 * 60 * 60 * 24) / 1000)}:R>\nNow do some challenges!`)
+                                interaction.reply({ embeds: [noTruguts], ephemeral: true })
+                                return
+                            }
+                            profileref.child('items').child(key).update({ used: Date.now() })
+                            profileref.child('effects').update({ trugut_boost: Date.now() })
+                            const congratsEmbed = new EmbedBuilder()
+                                .setAuthor({ name: name + " activated a ⚡Trugut Boost", iconURL: avatar })
+                                .setDescription(`They're earning ${profile.effects.doubled_powers ? '2×' : '1.5×'} Truguts for the next 24 hours!`)
+                            postMessage(client, interaction.channelId, { embeds: [congratsEmbed] })
+                            profile = db.user[player].random
+                        }
+                    }
+                    if (args[2] == 'scrap') {
+                        let scrappable = availableItemsforScrap({ profile })
+
+                        let key = iselection[2][0]
+                        let scrap_item = items.find(i => i.id == profile.items[key].id)
+                        if (scrap_item && scrappable.map(s => s.key).includes(key)) {
+                            const scrap = await profileref.child('items').push(
+                                {
+                                    id: 70,
+                                    date: Date.now()
+                                }
+                            )
+                            await profileref.child('items').child(key).update({ scrapped: scrap.key })
+                            manageTruguts({ profile, profileref, transaction: 'd', amount: Math.round(scrap_item.value * (profile.effects?.efficient_scrapper ? 1 : 0.5) * (profile.items[key].health ? (profile.items[key].health / 255) : 1)) })
+                        }
+
+
+
+                    } else if (args[2] == 'sarlacc') {
+                        let scrap_key = iselection[2][0]
+                        if ([null, undefined, ''].includes(scrap_key)) {
+                            const noTruguts = new EmbedBuilder()
+                                .setTitle("<:WhyNobodyBuy:589481340957753363> It's something... elsewhere, elusive.")
+                                .setDescription("No item selected.")
+                            interaction.reply({ embeds: [noTruguts], ephemeral: true })
+                            return
+                        }
+                        if (!profile.effects?.sarlacc_snack) {
+                            const noTruguts = new EmbedBuilder()
+                                .setTitle("<:WhyNobodyBuy:589481340957753363> Take a seat")
+                                .setDescription("You do not have this ability yet.")
+                            interaction.reply({ embeds: [noTruguts], ephemeral: true })
+                            return
+                        }
+                        if (Date.now() - 1000 * 60 * 60 * 24 < profile.effects?.sarlacc_fed) {
+                            const noTruguts = new EmbedBuilder()
+                                .setTitle("<:WhyNobodyBuy:589481340957753363> Patience, Viceroy. Patience.")
+                                .setDescription(`The Sarlacc has already been fed today! Wait for it to be hungry again <t:${Math.round((profile.effects.sarlacc_fed + 1000 * 60 * 60 * 24) / 1000)}:R>`)
+                            interaction.reply({ embeds: [noTruguts], ephemeral: true })
+                            return
+                        }
+                        let feeditem = profile.items[scrap_key]
+                        profileref.child('effects').update({ sarlacc_fed: Date.now() })
+                        const sarlaccEmbed = new EmbedBuilder()
+                            .setAuthor({ name: name + " fed the Sarlacc a " + itemString({ item: { ...items.find(i => i.id == feeditem.id), ...feeditem }, profile }), iconURL: avatar })
+                            .setImage('https://lumiere-a.akamaihd.net/v1/images/image_026c3344.gif')
+                        postMessage(client, interaction.channelId, { embeds: [sarlaccEmbed] })
+                        let new_item = randomChallengeItem({ profile, current_challenge: null, db, member, sarlacc: true })
+                        let push_item = {
+                            id: new_item.id,
+                            date: Date.now()
+                        }
+                        if (new_item.upgrade) {
+                            push_item.upgrade = new_item.upgrade
+                            push_item.health = new_item.health
+                        }
+                        const sarlacc = profileref.child('items').push(
+                            push_item
+                        )
+                        profileref.child('items').child(scrap_key).update({ fed: sarlacc.key })
+                        const itemEmbed = new EmbedBuilder()
+                            .setDescription('It burped up an item!')
+                            .addFields({ name: itemString({ item: new_item, profile }), value: new_item.description })
+                        setTimeout(async function () {
+                            postMessage(client, interaction.channelId, { embeds: [itemEmbed] })
+                        }, 2000)
+                    } else if (args[2] == 'trade') {
+                        let selected_player = iselection[2]?.[0]
+                        let selected_player_id = db.user[selected_player].discordID
+                        if (member == selected_player_id) {
+                            const holdUp = new EmbedBuilder()
+                                .setTitle("<:WhyNobodyBuy:589481340957753363> You what?")
+                                .setDescription("You cannot trade with yourself.")
+                            interaction.reply({ embeds: [holdUp], ephemeral: true })
+                            return
+                        }
+                        let trade = {
+                            completed: false,
+                            traders: []
+                        }
+                        let traders = [player, selected_player].sort((a, b) => a.localeCompare(b))
+                        traders.forEach(key => {
+                            trade.traders[key] = {
+                                agreed: false,
+                                items: '',
+                                truguts: ''
+                            }
+                        })
+                        let trademessage = await interaction.reply({ content: `<@${selected_player_id}> ${name} invites you to trade`, embeds: [tradeEmbed({ trade, db })], components: [...tradeComponents({ trade, db })], fetchReply: true })
+                        database.ref('challenge/trades').child(trademessage.id).set(trade)
+                        return
+                    } else if (args[2] == 'claim') {
+                        let selected_col = iselection[2][0]
+                        let collections = Collections()
+                        let selected_collection = collections[selected_col]
+                        let profile_items = Object.keys(profile.items).map(key => ({ ...profile.items[key], key }))
+                        selected_collection.items.forEach(async i => {
+                            let match = profile_items.find(j => j.id == i)
+                            await profileref.child('items').child(match.key).update({ locked: true })
+                        })
+                        await profileref.child('effects').child(selected_collection.key).set(true)
+                        postMessage(client, interaction.channelId, { embeds: [collectionRewardEmbed({ key: selected_collection.key, name, avatar })] })
+                        if (planets.map(p => p.name.toLowerCase().replaceAll(" ", "_")).includes(selected_collection.key)) {
+                            manageTruguts({ profile, profileref, transaction: 'd', amount: 100000 })
+                        }
+                    } else if (args[2] == 'name') {
+                        let selected_droid = iselection[2]?.[0]
+                        let droid = profile.items[selected_droid]
+                        if (interaction.isModalSubmit()) {
+                            let name = interaction.fields.getTextInputValue('name')
+
+                            await profileref.child('items').child(selected_droid).update({ nick: name })
+                        } else {
+                            const sponsorModal = new ModalBuilder()
+                                .setCustomId('challenge_random_inventory_name')
+                                .setTitle('Name')
+                            const name = new TextInputBuilder()
+                                .setCustomId('name')
+                                .setLabel(`Set a new name for your droid`)
+                                .setStyle(TextInputStyle.Short)
+                                .setMaxLength(20)
+                                .setRequired(true)
+                            if (droid.nick) {
+                                name.setValue(droid.nick)
+                            }
+                            const ActionRow1 = new ActionRowBuilder().addComponents(name)
+                            sponsorModal.addComponents(ActionRow1)
+                            await interaction.showModal(sponsorModal)
+                            return
+                        }
+                    } else if (args[2] == 'task') {
+                        let selected_droid = iselection[2]?.[0]
+                        let selected_part = iselection[3]?.[0]
+                        if ([null, undefined, ''].includes(selected_droid) || [null, undefined, ''].includes(selected_part)) {
+                            const holdUp = new EmbedBuilder()
+                                .setTitle("<:WhyNobodyBuy:589481340957753363> Mind tricks don't work on me!")
+                                .setDescription("No droid or part selected.")
+                            interaction.reply({ embeds: [holdUp], ephemeral: true })
+                            return
+                        }
+                        await profileref.child('items').child(selected_droid).update({ repairing: true })
+                        let task = { part: selected_part, complete: false }
+                        if ((profile.items[selected_droid].tasks && Object.values(profile.items[selected_droid].tasks).filter(t => !t.complete).length == 0) || !profile.items[selected_droid].tasks) {
+                            task.date = Date.now()
+                        }
+                        await profileref.child('items').child(selected_droid).child('tasks').push(task)
+                        await profileref.child('items').child(selected_part).update({ repairing: true })
+
+                    } else if (args[2] == 'tricoat') {
+                        if (interaction.isModalSubmit()) {
+                            let color = interaction.fields.getTextInputValue('color')
+
+                            function isValidHexCode(hexCode) {
+                                const hexRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+                                return hexRegex.test(hexCode);
+                            }
+
+                            if (!isValidHexCode(color)) {
+                                const noTruguts = new EmbedBuilder()
+                                    .setTitle("<:WhyNobodyBuy:589481340957753363> I'm afraid that color doesn't exist")
+                                    .setDescription("Please enter a valid hex code `#FFFFFF`")
+                                interaction.reply({ embeds: [noTruguts], ephemeral: true })
+                                return
+                            }
+
+                            let role = await SWE1R_Guild.roles.cache.get(profile.roles.custom)
+                            role.edit({ color: color })
+
+                            const quoteEmbed = new EmbedBuilder()
+                                .setTitle("✨New Role Color")
+                                .setDescription(`You just changed your custom role color!`)
+                                .setColor(color)
+                            interaction.reply({ embeds: [quoteEmbed], ephemeral: true })
+                            return
+                        } else {
+                            const sponsorModal = new ModalBuilder()
+                                .setCustomId('challenge_random_inventory_tricoat')
+                                .setTitle('New Role Color')
+                            const color = new TextInputBuilder()
+                                .setCustomId('color')
+                                .setLabel('Color (Hex Code)')
+                                .setStyle(TextInputStyle.Short)
+                                .setMaxLength(7)
+                                .setMinLength(7)
+                                .setPlaceholder("#FFFFFF")
+                                .setRequired(true)
+                            const ActionRow1 = new ActionRowBuilder().addComponents(color)
+                            sponsorModal.addComponents(ActionRow1)
+                            await interaction.showModal(sponsorModal)
+                            return
+                        }
+                    }
+                    profile = db.user[player].random
+                    interaction.update({ embeds: [inventoryEmbed({ profile, selection: iselection, name, avatar })], components: inventoryComponents({ profile, selection: iselection, db, interaction }) })
                     break
                 case 'shop':
                     const selection = [0, 1, 2, 3, 4].map(i => (i == interaction.customId.split("_")[3] ? interaction.values : undefined) ?? interaction.message?.components[i]?.components[0]?.data?.options?.filter(o => o.default).map(o => o.value) ?? (interaction.message?.components[i]?.components[0]?.data?.options ? '' : null))
@@ -425,7 +729,7 @@ module.exports = {
                     }
 
                     //can't afford
-                    if (profile.truguts_earned - profile.truguts_spent < price) {
+                    if (((!profile.effects?.life_debt && profile.truguts_earned - profile.truguts_spent < price) || (profile.effects?.life_debt && profile.truguts_earned - profile.truguts_spent - price < -1000000)) || profile.truguts_earned - profile.truguts_spent < 0) {
                         const noTruguts = new EmbedBuilder()
                             .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
                             .setDescription("*'No money, no parts, no deal!'*\nYou do not have enough truguts to buy the selected option.\nCost: `📀" + tools.numberWithCommas(price) + "`")
@@ -601,55 +905,6 @@ module.exports = {
                             .setAuthor({ name: `${name} purchased a 🎫 Botto Lotto Ticket!`, iconURL: avatar })
                             .setDescription(`For the next monthly challenge, they're predicting the following tracks:\n${ticket.tracks.map(t => tools.getTrackName(t)).join("\n")}`)
                         interaction.reply({ embeds: [shuffleBuy] })
-                    } else if (shoption.value == 'sabotage') {
-                        if (selection[2] == player) {
-                            const noTruguts = new EmbedBuilder()
-                                .setTitle("<:WhyNobodyBuy:589481340957753363> You what?!")
-                                .setDescription("You can't sabotage yourself!")
-                            interaction.reply({ embeds: [noTruguts], ephemeral: true })
-                            return
-                        }
-                        if (interaction.isModalSubmit()) {
-                            let mil = Number(interaction.fields.getTextInputValue('millisecond'))
-                            if (isNaN(mil)) {
-                                const noTruguts = new EmbedBuilder()
-                                    .setTitle("<:WhyNobodyBuy:589481340957753363> That's no number")
-                                    .setDescription("Please submit a number 0-9")
-                                interaction.reply({ embeds: [noTruguts], ephemeral: true })
-                                return
-                            }
-                            if (db.user[selection[2]].random?.effects?.sabotage && Object.values(db.user[selection[2]].random.effects.sabotage).filter(u => u.player == player && !u.used).length) {
-                                const noTruguts = new EmbedBuilder()
-                                    .setTitle("<:WhyNobodyBuy:589481340957753363> You already have an active sabotage on this player.")
-                                    .setDescription("You can only have one active sabotage on a player. Wait for them to trigger your sabotage and you can hit them again.")
-                                interaction.reply({ embeds: [noTruguts], ephemeral: true })
-                                return
-                            }
-                            database.ref(`users/${selection[2]}/random/effects/sabotage`).push({
-                                player: player,
-                                millisecond: mil,
-                                used: false
-                            })
-                            const sabotageEmbed = new EmbedBuilder()
-                                .setTitle("💥 Sabotaged!")
-                                .setDescription(`You have successfully set up a sabotage on <@${db.user[selection[2]].discordID}>. When they submit a time ending in \`${mil}\`, you'll get ${profile.effects?.doubled_powers ? 'all' : 'half'} their winnings!`)
-                            interaction.reply({ embeds: [sabotageEmbed], ephemeral: true })
-
-                        } else {
-                            const sponsorModal = new ModalBuilder()
-                                .setCustomId('challenge_random_shop_purchase')
-                                .setTitle('Sabotage')
-                            const millisecond = new TextInputBuilder()
-                                .setCustomId('millisecond')
-                                .setLabel('Millisecond')
-                                .setStyle(TextInputStyle.Short)
-                                .setMaxLength(1)
-                                .setRequired(true)
-                            const ActionRow1 = new ActionRowBuilder().addComponents(millisecond)
-                            sponsorModal.addComponents(ActionRow1)
-                            await interaction.showModal(sponsorModal)
-                        }
-
                     } else if (shoption.value == 'rival') {
                         if (selection[2] == player) {
                             const noTruguts = new EmbedBuilder()
@@ -734,7 +989,6 @@ module.exports = {
                     } else if (shoption.value == 'sponsorplayer') {
                         let take = Number(selection[2][0])
                         let sponsorplayer = selection[3][0]
-                        console.log(take, sponsorplayer)
                         if (sponsorplayer == player) {
                             const noTruguts = new EmbedBuilder()
                                 .setTitle("<:WhyNobodyBuy:589481340957753363> You what?!")
@@ -813,7 +1067,7 @@ module.exports = {
                             }
 
                             let role = await SWE1R_Guild.roles.cache.find(r => r.name == emojikey)
-                            if (profile.roles?.emoji && Object.values(profile.roles.emoji).includes(role.id)) {
+                            if (profile.roles?.emoji && Object.values(profile.roles.emoji).map(r => r.id).includes(role.id)) {
                                 const noTruguts = new EmbedBuilder()
                                     .setTitle("<:WhyNobodyBuy:589481340957753363> Don't do that again")
                                     .setDescription("You already own this emoji icon. You can equip or unequip in roles in **🎒 Inventory**")
@@ -825,11 +1079,11 @@ module.exports = {
                             const m = await SWE1R_Guild.members.cache.find(m => m.id == member)
                             if (role) {
                                 m.roles.add(role)
-                                database.ref(`users/${player}/random/roles/emoji`).push(role.id)
+                                database.ref(`users/${player}/random/roles/emoji`).push({ id: role.id, emoji_id: e })
                             } else {
                                 SWE1R_Guild.roles.create({ name: emojikey, icon: e, position: pos.position + 1 }).then(r => {
                                     m.roles.add(r)
-                                    database.ref(`users/${player}/random/roles/emoji`).push(r.id)
+                                    database.ref(`users/${player}/random/roles/emoji`).push({ id: r.id, emoji_id: e })
                                 })
                             }
 
@@ -969,7 +1223,6 @@ module.exports = {
                                 .setMinLength(5)
                                 .setMaxLength(140)
                                 .setRequired(true)
-                            console.log(shoption.value, shoption.value == 'protocol')
                             const emoji = new TextInputBuilder()
                                 .setCustomId(shoption.value == 'protocol' ? 'emoji' : 'reply')
                                 .setLabel(shoption.value == 'protocol' ? 'Emoji' : 'Reply')
@@ -1005,7 +1258,6 @@ module.exports = {
                             10: 25
                         }
                         let requiredlevel = levelmap[multiplier]
-                        console.log(playerlevel, requiredlevel)
                         if (playerlevel < requiredlevel) {
                             const noTruguts = new EmbedBuilder()
                                 .setTitle("<:WhyNobodyBuy:589481340957753363> Stay in that cockpit!")
@@ -1289,13 +1541,13 @@ module.exports = {
                         challengesref.child(publishmessage.id).set(sponsorchallenge)
 
                         if (sponsorAchievement(db, member) >= achievement_data.bankroller_clan.limit) { //award achievement
-                            if (current_challenge.guild == swe1r_guild) {
+                            if (interaction.guildId == swe1r_guild) {
                                 if (!Member.roles.cache.some(r => r.id === achievement_data.bankroller_clan.role)) { //award role
                                     Member.roles.add(achievement_data.bankroller_clan.role).catch(error => console.log(error))
                                 }
                             }
                             if (!profile.achievements.bankroller_clan) {
-                                postMessage(client, current_challenge.channel, { embeds: [achievementEmbed(p.name, p.avatar, achievement_data.bankroller_clan, current_challenge.guild)] })
+                                postMessage(client, current_challenge.channel, { embeds: [achievementEmbed(p.name, p.avatar, achievement_data.bankroller_clan, interaction.guild)] })
                                 profileref.child('achievements').child("bankroller_clan").set(true)
                             }
                         }
@@ -1421,7 +1673,6 @@ module.exports = {
                     const stats = getStats({ db, member, profile })
                     if (!profile.progression) {
                         let progression = Object.values(stats.racers).map(r => r.level)
-                        console.log(progression)
                         progression.forEach((level, racer) => {
                             for (let i = 1; i < convertLevel(level).level + 1; i++) {
                                 let reward = progressionReward({ racer, level: i })
@@ -1597,7 +1848,7 @@ module.exports = {
                         .setDescription(circuits[tracks[track].circuit].name + " Circuit | Race " + tracks[track].cirnum + " | " + planets[tracks[track].planet].name)
                         .setFooter({ text: challengefiltered.length + " Total Runs" })
                     if (user !== null) {
-                        challengeLeaderboard.setAuthor(Member.user.username + "'s Best", client.guilds.resolve(interaction.guild_id).members.resolve(user).user.avatarURL())
+                        challengeLeaderboard.setAuthor(Member.user.username + "'s Best", client.guilds.resolve(interaction.guildId).members.resolve(user).user.avatarURL())
                         showall = true
                     }
                     var pos = ["<:P1:671601240228233216>", "<:P2:671601321257992204>", "<:P3:671601364794605570>", "4th", "5th"]
@@ -1976,7 +2227,6 @@ module.exports = {
                     //award winnings for this submission
                     let goals = goalTimeList(current_challenge, profile)
                     let winnings = challengeWinnings({ current_challenge, submitted_time: submissiondata, profile, best: getBest(db, current_challenge), goals, member, db })
-                    profile = manageTruguts({ profile, profileref, transaction: 'd', amount: winnings.earnings })
 
                     //award saboteur cut
                     if (winnings.sabotage) {
@@ -1987,10 +2237,11 @@ module.exports = {
                         profileref.child('effects').child('sabotage').child(winnings.sabotage).update({ used: true, challenge: interaction.message.id })
                     }
 
+                    profile = manageTruguts({ profile, profileref, transaction: 'd', amount: winnings.earnings })
+
                     //award item
                     let earned_item = randomChallengeItem({ profile, profileref, current_challenge, db, member })
                     if (!profile.items) {
-                        console.log('no profile items')
                         profileref.child('items').set('test')
                     }
                     let eitem = { id: earned_item.id, challenge: interaction.message.id, date: Date.now() }
@@ -2039,7 +2290,6 @@ module.exports = {
 
                             let thissponsor = db.user[sponsor.user]?.random
                             let sponsor_earnings = Math.round(total_revenue * (truguts.sponsor_cut * (thissponsor?.effects?.sorry_mess ? 2 : 1)) * sponsor.multiplier)
-                            console.log(sponsor)
                             let thissponsorref = userref.child(sponsor.user).child("random")
 
                             manageTruguts({ profile: thissponsor, profileref: thissponsorref, transaction: 'd', amount: sponsor_earnings })
@@ -2095,13 +2345,14 @@ module.exports = {
 
                     //level progression
                     if (profile.progression) {
-                        let progression = [...profile.progression]
+                        let progression = JSON.parse(JSON.stringify(profile.progression))
                         let player_level = playerLevel(profile.progression).level
                         let progress = challengeProgression({ current_challenge, submitted_time: time, goals, profile })
                         let level = convertLevel(profile.progression[progress.racer]).level
                         progression[progress.racer] += progress.points
                         let new_player_level = playerLevel(progression)
                         let new_level = convertLevel(progression[progress.racer]).level
+                        console.log(new_level, level, new_player_level.level, player_level)
                         if (new_level !== level) {
                             let truguts = 0
                             let items = []
@@ -2139,6 +2390,8 @@ module.exports = {
                     current_challenge = db.ch.challenges[interaction.message.id]
                     profile = db.user[player].random //update profile
 
+                    //collectionRewardUpdater({ profile, client, interaction, profileref, name, avatar })
+
                     //update challenge
                     const submit_reply = await updateChallenge({ client, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, db })
 
@@ -2154,7 +2407,8 @@ module.exports = {
 
                         if (![undefined, ""].includes(current_challenge.earnings?.[member]?.item)) {
                             let item = items.find(i => i.id == current_challenge.earnings[member].item)
-                            receiptEmbed.addFields({ name: `${raritysymbols[item.rarity]} ${item.name}` + (item.health ? ` [${Math.round(item.health * 100 / 255)}%]` : ''), value: `*${item.description}*`, inline: true })
+                            let dup = profile.items ? Object.values(profile.items).filter(i => i.id == item.id).length > 1 ? true : false : false
+                            receiptEmbed.addFields({ name: `${raritysymbols[item.rarity]} ${item.name}` + (item.health ? `[${Math.round(item.health * 100 / 255)} %]` : '') + (dup ? " (duplicate)" : ""), value: ` * ${item.description} * `, inline: true })
                         }
 
                         interaction.editReply({ embeds: [receiptEmbed], ephemeral: true })
@@ -2162,9 +2416,8 @@ module.exports = {
 
                     break
                 case 'drop':
-                    console.log(args[2])
                     let drop = Number(args[2])
-                    database.ref(`challenge/drops`).push({
+                    database.ref(`challenge / drops`).push({
                         member,
                         message: interaction.message.id,
                         date: Date.now(),
@@ -2177,6 +2430,124 @@ module.exports = {
                     } catch (err) {
                         console.log(err)
                     }
+                    break
+                case 'trade':
+
+                    let trow = interaction.customId.split("_")[3]
+                    trow = Number(trow)
+                    let tselection = [0, 1, 2, 3, 4].map(i => {
+                        let val = interaction.message?.components[i]?.components[0]?.data?.options?.filter(o => o.default).map(o => o.value) ??
+                            (interaction.message?.components[i]?.components[0]?.data?.options ? '' : null)
+                        if (i == trow) {
+                            val = interaction.values
+                        }
+                        return (val)
+                    })
+
+
+                    let trade_id = interaction.message.id
+                    let trade = db.ch.trades[trade_id]
+                    let traders = Object.keys(trade.traders)
+                    let selected_item = interaction.values?.[0]
+
+                    if (selected_item && !selected_item.includes('page_')) {
+                        let trade_player = traders[args[2]]
+                        let trade_items = trade.traders[trade_player].items ? Object.values(trade.traders[trade_player].items) : []
+                        if (trade_items.includes(selected_item)) {
+                            trade_items.splice(trade_items.indexOf(selected_item), 1)
+                        } else {
+                            trade_items.push(selected_item)
+                        }
+                        await database.ref(`challenge/trades/${trade_id}/traders/${trade_player}/items`).set(trade_items)
+                        traders.forEach(async trader => {
+                            await database.ref(`challenge/trades/${trade_id}/traders/${trader}`).update({ agreed: false })
+                        })
+                    } else if (args[2] == 'agree') {
+
+                        await database.ref(`challenge/trades/${trade_id}/traders/${player}`).update({ agreed: !trade.traders[player].agreed })
+                        trade.traders[player].agreed = !trade.traders[player].agreed
+                        if (!Object.values(trade.traders).map(t => t.agreed).includes(false)) {
+                            //complete trade
+                            traders.forEach(async trader => {
+                                let opposite_trader = traders.filter(t => t !== trader)[0]
+                                if (trade.traders[trader].truguts) {
+                                    let trugut_trade = trade.traders[trader].truguts
+                                    manageTruguts({ profile: db.user[trader].random, profileref: database.ref(`users/${trader}/random`), transaction: 'w', amount: trugut_trade })
+                                    manageTruguts({ profile: db.user[opposite_trader].random, profileref: database.ref(`users/${opposite_trader}/random`), transaction: 'd', amount: trugut_trade })
+                                }
+                                if (trade.traders[trader].items) {
+                                    Object.values(trade.traders[trader].items).forEach(async key => {
+                                        let item = db.user[trader].random.items[key]
+                                        if (!item.trades) {
+                                            item.trades = []
+                                        }
+                                        item.trades.push(trade_id)
+                                        await database.ref(`users/${opposite_trader}/random/items`).child(key).set(item)
+                                        await database.ref(`users/${trader}/random/items/${key}`).remove()
+                                    })
+                                }
+                            })
+                            await database.ref(`challenge/trades/${trade_id}`).update({ completed: true })
+                            trade.completed = true
+                            interaction.update({ embeds: [tradeEmbed({ trade, db })], components: [], content: "" })
+                            return
+                        }
+                    } else if (args[2] == 'truguts') {
+                        if (interaction.isModalSubmit()) {
+                            traders.forEach(async trader => {
+                                let amount = Number(interaction.fields.getTextInputValue(trader).replaceAll(",", ""))
+                                if (isNaN(amount)) {
+                                    amount = 0
+                                }
+                                let current_truguts = db.user[trader].random.truguts_earned - db.user[trader].random.truguts_spent
+                                if (current_truguts < 0) {
+                                    amount = 0
+                                } else if (current_truguts - amount < 0) {
+                                    amount = current_truguts
+                                }
+                                await database.ref(`challenge/trades/${trade_id}/traders/${trader}`).update({ truguts: Math.round(amount) })
+                            })
+                        } else {
+                            const trugutModal = new ModalBuilder()
+                                .setCustomId('challenge_random_trade_truguts')
+                                .setTitle('Trade Truguts')
+                            traders.forEach(trader => {
+                                const truguts = new TextInputBuilder()
+                                    .setCustomId(trader)
+                                    .setLabel(`Truguts from ${db.user[trader].random.name}`)
+                                    .setPlaceholder(`📀${currentTruguts(db.user[trader].random)}`)
+                                    .setStyle(TextInputStyle.Short)
+                                    .setRequired(false)
+
+                                if (trade.traders[trader].truguts) {
+                                    truguts.setValue(String(trade.traders[trader].truguts))
+                                }
+                                const ActionRow1 = new ActionRowBuilder().addComponents(truguts)
+                                trugutModal.addComponents(ActionRow1)
+                            })
+
+                            await interaction.showModal(trugutModal)
+                            return
+                        }
+                    } else if (args[2] == 'cancel') {
+                        database.ref(`challenge/trades/${trade_id}`).remove()
+                        interaction.update({ embeds: [], components: [], content: `Trade offer was canceled by ${name}` })
+                        return
+                    } else if (args[2] == 'reset') {
+                        traders.forEach(trader => {
+                            database.ref(`challenge/trades/${trade_id}/traders/${trader}`).update({ agreed: false, truguts: 0, items: '' })
+                        })
+                    }
+
+                    if (!traders.includes(player)) {
+                        const holdUp = new EmbedBuilder()
+                            .setTitle("<:WhyNobodyBuy:589481340957753363> Get lost!")
+                            .setDescription("You are not a part of this trade.")
+                        interaction.reply({ embeds: [holdUp], ephemeral: true })
+                        return
+                    }
+                    trade = db.ch.trades[trade_id]
+                    interaction.update({ embeds: [tradeEmbed({ trade, db })], components: [...tradeComponents({ trade, db, selection: tselection })] })
                     break
             }
         }

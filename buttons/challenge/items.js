@@ -1673,7 +1673,10 @@ exports.items = [
     },
     {
         "id": 102,
-        "name": "Pitdroid",
+        "repair_speed": 24,
+        "display_image": "https://static.wikia.nocookie.net/starwars/images/2/21/PitDroid-AG.png/revision/latest/scale-to-width-down/193?cb=20230317021057",
+        "type": "Pit Droid",
+        "name": "Pit Droid",
         "image": "",
         "description": "Hit the nose!",
         "rarity": "common",
@@ -1711,6 +1714,9 @@ exports.items = [
     },
     {
         "id": 103,
+        "repair_speed": 36,
+        "display_image": "https://static.wikia.nocookie.net/starwars/images/6/6d/R3astromech-SWE.png/revision/latest?cb=20160913051744",
+        "type": "Astromech",
         "name": "Astromech",
         "image": "",
         "description": "How did you get so lucky?",
@@ -1749,6 +1755,9 @@ exports.items = [
     },
     {
         "id": 104,
+        "repair_speed": 54,
+        "display_image": "https://static.wikia.nocookie.net/starwars/images/3/34/ProtocolDroid-SWE.png/revision/latest?cb=20160913024356",
+        "type": "Protocol Droid",
         "name": "Protocol Droid",
         "image": "",
         "description": "Perfect for those chores Mom keeps asking you to do",
@@ -1787,6 +1796,9 @@ exports.items = [
     },
     {
         "id": 105,
+        "repair_speed": 72,
+        "display_image": "https://static.wikia.nocookie.net/starwars/images/3/31/HologlideJ57CamDroid-NEGTD.png/revision/latest?cb=20221023175723",
+        "type": "Cam Droid",
         "name": "Hologlide J57 Cam Droid",
         "image": "",
         "description": "Those 15 seconds of fame could be your last",
@@ -1825,9 +1837,12 @@ exports.items = [
     },
     {
         "id": 106,
+        "repair_speed": 30,
+        "display_image": "https://static.wikia.nocookie.net/starwars/images/8/85/Otoga222-NEGTD.png/revision/latest?cb=20221029022612",
+        "type": "Maintenance Droid",
         "name": "Otoga-222 Maintenance Droid",
         "image": "",
-        "description": "Double the price of a pitdroid for half the personality",
+        "description": "Double the price of a pit droid for half the personality",
         "rarity": "common",
         "value": 250,
         "condition": "",
@@ -1863,7 +1878,10 @@ exports.items = [
     },
     {
         "id": 107,
-        "name": "Salvage Droid",
+        "repair_speed": 48,
+        "display_image": "https://static.wikia.nocookie.net/starwars/images/d/dd/P100SalvageDroid-NEGTD.png/revision/latest?cb=20221029022845",
+        "type": "Salvage Droid",
+        "name": "P-100 Salvage Droid",
         "image": "",
         "description": "For if the Jawas don't get to your wreck first",
         "rarity": "common",
@@ -1895,7 +1913,7 @@ exports.items = [
         "id": 109,
         "name": "Sun Shade",
         "image": "",
-        "description": "Binary suns does murder to one's skin",
+        "description": "Binary suns do murder to one's skin",
         "rarity": "common",
         "value": 250,
         "condition": "",
@@ -2399,9 +2417,12 @@ exports.items = [
     },
     {
         "id": 141,
+        "repair_speed": 18,
+        "display_image": "https://static.wikia.nocookie.net/starwars/images/a/ac/DUM-series_pit_droid.png/revision/latest/scale-to-width-down/200?cb=20160910210813",
+        "type": "Advanced Pit Droid",
         "name": "DUM-4",
         "image": "",
-        "description": "One of the most dutiful little pitdroids around",
+        "description": "One of the most dutiful little pit droids around",
         "rarity": "uncommon",
         "value": 750,
         "condition": "",
@@ -3036,6 +3057,9 @@ exports.items = [
     },
     {
         "id": 184,
+        "repair_speed": 42,
+        "display_image": "https://media.discordapp.net/attachments/1135800422066556940/1152467827639459890/r5-x2.png?width=231&height=359",
+        "type": "Advanced Astromech",
         "name": "R5-X2",
         "image": "",
         "description": "A reprogrammed astromech droid filled with all the latest racing statistics.",
@@ -4283,7 +4307,7 @@ exports.collections = [
     {
         name: 'Avatar: The Last Jedi',
         emoji: '💠',
-        reward: 'Efficient Scrapper - Scrapping an item is worth more',
+        reward: 'Efficient Scrapper - Scrapping an item is worth its full value',
         key: 'efficient_scrapper',
         items: [64, 65, 66, 67, 68, 69, 70, 71, 116, 143]
     },
@@ -4320,7 +4344,7 @@ exports.collections = [
         emoji: '🟥',
         reward: "Botto's Chance Cube - Unlocks a chance cube betting minigame",
         key: 'chance_cube',
-        items: [96, 95]
+        items: [96, 96, 96, 95, 95, 95]
     },
     {
         name: 'Space Bar',
@@ -4332,7 +4356,7 @@ exports.collections = [
     {
         name: 'Droid Army',
         emoji: '🤖',
-        reward: 'Record-Setting Pitdroid Team - Pitdroids take less time to repair parts and pods',
+        reward: 'Record-Setting Pit Droid Team - Pit Droids take half as long to repair parts and pods',
         key: 'pitdroid_team',
         items: [102, 103, 104, 105, 106, 107, 141, 184]
     },
@@ -4409,8 +4433,8 @@ exports.levels = [
 ]
 
 exports.raritysymbols = {
-    common: ':green_square:',
-    uncommon: ':blue_square:',
-    rare: ':purple_square:',
-    legendary: ':yellow_square:'
+    common: '🟩',
+    uncommon: '🟦',
+    rare: '🟪',
+    legendary: '🟨'
 }

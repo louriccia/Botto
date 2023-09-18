@@ -1,12 +1,13 @@
 const { racers, tracks, planets, playerPicks, movieQuotes, circuits, multipliers, racer_hints, track_hints, mpQuotes, emojimap, console_emojis, banners } = require('../../data.js')
 const tools = require('../../tools.js')
-const { truguts, swe1r_guild, tips, goal_symbols, settings_default, achievement_data, winnings_map, hints, shoplines, level_symbols } = require('./data.js')
+const { truguts, swe1r_guild, tips, goal_symbols, settings_default, achievement_data, winnings_map, hints, shoplines, level_symbols, inventorySections } = require('./data.js')
 const { items, collections, levels, raritysymbols } = require('./items.js')
 const { postMessage } = require('../../discord_message.js')
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } = require('discord.js');
 const moment = require('moment');
 require('moment-timezone')
 const youtubeThumbnail = require('youtube-thumbnail');
+const e = require('express')
 
 const getThumbnail = async (url) => {
     try {
@@ -533,8 +534,13 @@ exports.goalTimeList = function (current_challenge, profile, best) {
     }
     goal_earnings.push(0)
     let goalTimes = ''
+    let level = current_challenge.type == 'private' ? profile.progression ? exports.convertLevel(profile.progression[current_challenge.racer]) : null : null
+    let levelup = null
+    if (level) {
+        levelup = level.nextlevel - level.sublevel
+    }
     for (let i = 0; i < 5; i++) {
-        goalTimes += goal_symbols[i] + " " + tools.timefix(goals[i]) + (goal_earnings[i] ? "  `+📀" + tools.numberWithCommas(goal_earnings[i]) + "`" : '') + "\n"
+        goalTimes += goal_symbols[i] + " " + tools.timefix(goals[i]) + (goal_earnings[i] ? "  `+📀" + tools.numberWithCommas(goal_earnings[i]) + "`" : '') + (level ? (5 - i) >= levelup ? '<a:guidearrow:891128437354401842>' : '' : '') + "\n"
     }
     return { list: goalTimes, times: goals, earnings: goal_earnings }
 }
@@ -926,16 +932,14 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, profi
         earnings_subtotal += truguts.personal_best
     }
 
-    if (current_challenge?.ratings?.[member]) {
-        earnings += "`+📀" + tools.numberWithCommas(truguts.rated * (profile.effects?.vote_confidence ? 2 : 1)) + "` Rated\n"
-        earnings_subtotal += (truguts.rated * (profile.effects?.vote_confidence ? 2 : 1))
-    }
-
     //multipliers
     let multipliers = ""
     earnings_total = earnings_subtotal
-    //speed boost in effect
-    //doubled powers
+
+    if (current_challenge.created - 1000 * 60 * 60 * 24 < profile.effects?.trugut_boost) {
+        multipliers += `${profile.effects?.doubled_powers ? '`×2`' : '`×1.5`'} *⚡Trugut Boost* (expires <t:${Math.round((profile.effects.trugut_boost + 1000 * 60 * 60 * 24) / 1000)}:R>)\n`
+        earnings_total *= (profile.effects?.doubled_powers ? 2 : 1.5)
+    }
 
     if (current_challenge.racer == tracks[current_challenge.track]?.favorite && profile.effects?.fame_fortune) {
         multipliers += "`×2` *Fame and Fortune*\n"
@@ -955,7 +959,7 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, profi
         multipliers += `\`×${cloner}\` *Trugut Cloner*\n`
     }
 
-
+    earnings_total = Math.round(earnings_total)
 
     //sabotage, only one can be triggered
     let sabotagekey = profile.effects?.sabotage ? (Object.keys(profile.effects.sabotage).find(k => profile.effects.sabotage[k].millisecond == String(submitted_time.time)[String(submitted_time.time).length - 1] && (!profile.effects.sabotage[k].used || profile.effects.sabotage[k].challenge == current_challenge.message)) ?? null) : null
@@ -963,7 +967,7 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, profi
     if (sabotagekey) {
         s = profile.effects.sabotage[sabotagekey]
         dp = db.user[s.player].random?.effects?.doubled_powers
-        sabotage += `\`-📀${tools.numberWithCommas(earnings_total * (dp ? 1 : 0.5))}\` 💥Sabotaged by <@${db.user[s.player].discordID}>!\n`
+        sabotage += `\`-📀${tools.numberWithCommas(earnings_total * (dp ? 1 : 0.5))}\` 💥Sabotaged!\n`
         sabotage += `<@${db.user[s.player].discordID}> \`+📀${tools.numberWithCommas(earnings_total * (dp ? 1 : 0.5))}\`\n`
     }
     const line = "▬▬▬▬▬▬▬▬▬▬▬"
@@ -971,6 +975,10 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, profi
         earnings += `${line}\n**\`📀${tools.numberWithCommas(earnings_subtotal)}\` Sub-Total**\n${multipliers}${sabotage}${line}\n**\`📀${tools.numberWithCommas(earnings_total * (s ? (dp ? 0 : 0.5) : 1))}\` Total**`
     } else {
         earnings += `${line}\n**\`📀${tools.numberWithCommas(earnings_total)}\` Total**`
+    }
+
+    if (current_challenge?.ratings?.[member]) {
+        earnings += "\n`+📀" + tools.numberWithCommas(truguts.rated * (profile.effects?.vote_confidence ? 2 : 1)) + "` Rated"
     }
 
     let winnings = { earnings: earnings_total, receipt: earnings }
@@ -1178,7 +1186,7 @@ exports.challengeEmbed = async function ({ current_challenge, profile, profilere
 
         if (![undefined, ""].includes(current_challenge.earnings?.[member]?.item)) {
             let item = items.find(i => i.id == current_challenge.earnings[member].item)
-            challengeEmbed.addFields({ name: `${raritysymbols[item.rarity]} ${item.name}` + (item.health ? ` [${Math.round(item.health * 100 / 255)}%]` : ''), value: `*${item.description}*`, inline: true })
+            challengeEmbed.addFields({ name: exports.itemString({ item, profile }), value: `*${item.description}*`, inline: true })
         }
 
     }
@@ -1390,11 +1398,14 @@ exports.menuEmbed = function ({ db } = {}) {
         open: '',
         abandoned: ''
     }
+
+    const abandoned_challenges = `${Object.values(db.ch.challenges).filter(c => exports.isActive(c) && c.type == 'abandoned' && c.channel == '551786988861128714' && c.url).slice(-10).map(c => `${typemap[c.type]}[${exports.generateChallengeTitle(c)}](${c.url})`).join("\n")}`
+    const open_challenges = `${Object.values(db.ch.challenges).filter(c => exports.isActive(c) && ['open', 'cotd', 'cotm'].includes(c.type) && c.channel == '551786988861128714' && c.url).map(c => `${typemap[c.type]}[${exports.generateChallengeTitle(c)}](${c.url})`).join("\n")}`
     const myEmbed = new EmbedBuilder()
         .setAuthor({ name: "Random Challenge", iconURL: "https://em-content.zobj.net/thumbs/120/twitter/322/game-die_1f3b2.png" })
         .setTitle("<:menu:862620287735955487> Menu")
         .setColor("#ED4245")
-        .setDescription(`This is the Random Challenge menu. From here, you can access all options related to random challenges. Press the **Play** button to get rollin'.\n\n**Open Challenges**\n${Object.values(db.ch.challenges).filter(c => exports.isActive(c) && c.type !== 'private' && c.channel == '551786988861128714' && c.url).map(c => `${typemap[c.type]}[${exports.generateChallengeTitle(c)}](${c.url})`).join("\n")}\n\n*${tips[Math.floor(Math.random() * tips.length)]}*`)
+        .setDescription(`This is the Random Challenge menu. From here, you can access all options related to random challenges. Press the **Play** button to get rollin'.\n\n${abandoned_challenges.length ? `**Abandoned Challenges**\n${abandoned_challenges}\n\n` : ""}**Open Challenges**\n${open_challenges}\n\n*${tips[Math.floor(Math.random() * tips.length)]}*`)
         .setFooter({ text: "/challenge random" })
     return myEmbed
 }
@@ -1529,7 +1540,7 @@ exports.shopOptions = function ({ profile, player, db, selection } = {}) {
             emoji: {
                 name: "🆚"
             },
-            options: exports.userPicker({ selection, customid: 'challenge_random_shop_2', placeholder: 'Declare your Rival', db })
+            options: exports.userPicker({ selection, row: 2, customid: 'challenge_random_shop_2', placeholder: 'Declare your Rival', db })
         },
         // {
         //     label: `Sabotage (📀${tools.numberWithCommas(truguts.sabotage)})`,
@@ -1820,31 +1831,71 @@ exports.shopComponents = function ({ profile, selection, shoptions, purchased })
     return comp
 }
 
-exports.inventoryEmbed = function ({ profile, selection }) {
-    const selected_collection = selection[2]?.sel?.[0]
-    const selected_item = selection[3]?.sel?.[0]
-    let item = items.find(i => i.id == selected_item)
-    const coll = exports.collections()
-
+exports.inventoryEmbed = function ({ profile, selection, name, avatar }) {
+    let section = selection[1]?.[0]
+    let s_selection = selection[2]?.[0]
+    let collections = exports.Collections()
+    section = inventorySections.find(s => s.value == section)
+    let in_repairs = exports.getProfileItems({ profile }).filter(i => exports.isDroid({ item: i }) && i.repairing)
     const myEmbed = new EmbedBuilder()
-        .setAuthor({ name: "Random Challenge", iconURL: "https://em-content.zobj.net/thumbs/120/twitter/322/game-die_1f3b2.png" })
+        .setAuthor({ name: `${name}'s Inventory`, iconURL: avatar })
         .setTitle(":school_satchel: Inventory")
+        .setDescription("You've got a-lots of junk!")
         .setColor("#ED4245")
-        .setDescription("This is your inventory. Here you can admire your collections and manage your items.")
-        .setFooter({ text: `Truguts: 📀${exports.currentTruguts(profile)}` })
-    if (![null, undefined, ''].includes(coll[selected_collection])) {
-        myEmbed.addFields({ name: `Collection: ${coll[selected_collection].name}`, value: `Items: ${coll[selected_collection].items.length}\nReward: *${coll[selected_collection].reward}*` })
-    }
-    if (![null, undefined, ""].includes(item)) {
-        let discovered = profile.items ? (Object.values(profile.items).map(i => i.id).includes(Number(selected_item)) ? true : false) : false
-        myEmbed.addFields({ name: `Item: ${discovered ? item.name : '???'}`, value: `*${item.description}*\n\nRarity: ${raritysymbols[item.rarity]} ${item.rarity}\nValue: \`📀${tools.numberWithCommas(item.value)}\`\nQuantity: ${profile.items ? Object.values(profile.items).filter(i => i.id == selected_item).length : 0}` })
+
+    if (section) {
+        myEmbed
+            .setTitle(`${section.emoji.name} ${section.label}`)
+            .setDescription(section.info)
+        if (section.value == 'droids' && in_repairs.length) {
+            myEmbed.addFields({
+                name: 'Current Tasks',
+                value: in_repairs.map(droid => {
+                    return ({
+                        name: droid.nick ? droid.nick : items.find(i => i.id == droid.id).name,
+                        tasks: droid.tasks ? Object.values(droid.tasks).filter(t => !t.complete).map(t => {
+                            let profile_item = profile.items[t.part]
+                            let part = items.find(i => i.id == profile_item.id)
+                            let part_obj = { ...part, ...profile_item }
+                            if (t.date) {
+                                let complete_date = t.date + exports.repairDuration({ repair_speed: exports.repairAbility({ droid, profile }).speed, health: profile_item.health })
+                                part_obj.end_date = complete_date
+                            }
+                            return (
+                                part_obj
+                            )
+                        }) : []
+                    })
+                }).map(droid => `**${droid.name}**\n${droid.tasks.map(t => `<a:sparks:672640526444527647> ${t.name}${t.end_date ? ` <t:${Math.round(t.end_date / 1000)}:R>` : ''}`).join("\n")}`).join("\n")
+            })
+        }
+        if (section.value == 'duplicates') {
+            myEmbed.setFooter({ text: `Scrap: ${Object.values(profile.items).filter(i => exports.usableItem({ item: i }) && !i.locked && i.id == 70).length}\nTruguts: 📀${tools.numberWithCommas(exports.currentTruguts(profile))}\n♦ indicates an item is needed for a collection` })
+        }
+        if (section.value == 'droids') {
+            let droid_key = s_selection
+            let droid_item = profile.items[droid_key]
+            let droid = { ...items.find(i => i.id == droid_item?.id), ...droid_item }
+            if (droid) {
+                myEmbed.setThumbnail(droid.display_image)
+            }
+
+        }
+        if (section.abilities.length) {
+            myEmbed.addFields({
+                name: 'Additional Effects', value: section.abilities.map(a => {
+                    let col = collections.find(c => c.key == a)
+                    return (`${profile.effects[col.key] ? ':white_check_mark:' : '❌'} ${col.reward}`)
+                }).join('\n')
+            })
+        }
     }
 
 
     return myEmbed
 }
 
-exports.inventoryComponents = function ({ profile, selection }) {
+exports.inventoryComponents = function ({ profile, selection, db, interaction }) {
 
     const row1 = new ActionRowBuilder()
         .addComponents(
@@ -1887,67 +1938,284 @@ exports.inventoryComponents = function ({ profile, selection }) {
         new StringSelectMenuBuilder()
             .setCustomId('challenge_random_inventory_1')
             .setPlaceholder("Inventory")
-            .setMinValues(0)
+            .setMinValues(1)
             .setMaxValues(1)
-            .addOptions({
-                label: 'Collections',
-                value: 'collections',
-                description: 'View your collections and track reward progress',
-                emoji: {
-                    name: '🗃'
-                }
-            },
-                {
-                    label: 'Usables',
-                    value: 'usables',
-                    description: 'Use special items',
-                    emoji: {
-                        name: '💥'
-                    }
-                },
-                {
-                    label: 'Duplicates',
-                    value: 'duplicates',
-                    description: 'Manage your duplicate items',
-                    emoji: {
-                        name: '♻'
-                    }
-                },
-                {
-                    label: 'Pit Crew',
-                    value: 'droids',
-                    description: 'Manage your droids',
-                    emoji: {
-                        name: '🤖'
-                    }
-                },
-                {
-                    label: 'Roles',
-                    value: 'roles',
-                    description: 'Equip and unequip your special roles',
-                    emoji: {
-                        name: '🏷'
-                    }
-                }
-            )
+            .addOptions(...inventorySections)
     )
-
-    const droids = [102, 103, 104, 105, 106, 107, 141, 184]
-    const specials = ['collectible_coffer', 'sabotage_kit', 'trugut_boost']
-
     let comp = [row1, row2]
-    if (selection[1].sel[0] == 'collections') {
+    if (selection[1]?.[0] == 'collections') {
         comp.push(...exports.collectionComponents({ profile }))
         if (![null, undefined, ''].includes(selection[2])) {
             comp.push(...exports.itemComponents({ profile, selection }))
         }
+        let collections = exports.Collections()
+        let selected_collection = collections[Number(selection[2])]
+        let rewards = exports.collectionReward({ profile })
+        let claimable = !rewards[selected_collection?.key]
+        let already_claimed = profile.effects[selected_collection?.key]
+        claimable = claimable || (already_claimed ? true : false)
+        if (!profile.effects[selected_collection?.key]) {
+            comp.push(new ActionRowBuilder().addComponents(new ButtonBuilder()
+                .setCustomId('challenge_random_inventory_claim')
+                .setLabel(already_claimed ? 'Already Claimed' : 'Claim Reward')
+                .setStyle(ButtonStyle.Success)
+                .setDisabled(claimable)))
+        }
+    } else if (selection[1]?.[0] == 'usables') {
+        const usables = new StringSelectMenuBuilder()
+            .setCustomId('challenge_random_inventory_2')
+            .setPlaceholder("Select a usable item")
+            .setMinValues(1)
+            .setMaxValues(1)
+
+        let usable_items = exports.getUsables({ profile })
+        if (usable_items.length) {
+            usables.addOptions(...usable_items)
+            comp.push(new ActionRowBuilder().addComponents(usables))
+        }
+        let selected_usable = selection[2]?.[0] ?? null
+        if (selected_usable == 'collectible_coffer') {
+            const OpenButton = new ButtonBuilder()
+                .setCustomId("challenge_random_inventory_coffer")
+                .setStyle(ButtonStyle.Primary)
+                .setLabel('Open')
+            comp.push(new ActionRowBuilder().addComponents(OpenButton))
+        } else if (selected_usable == 'sabotage_kit') {
+            const OpenButton = new ButtonBuilder()
+                .setCustomId("challenge_random_inventory_sabotage")
+                .setStyle(ButtonStyle.Danger)
+                .setLabel('Sabotage')
+                .setDisabled([null, undefined, ""].includes(selection[3]?.[0]))
+            comp.push(...exports.userPicker({ selection, row: 3, customid: 'challenge_random_inventory_3', placeholder: 'Select a Player to Sabotage', db }), new ActionRowBuilder().addComponents(OpenButton))
+        } else if (selected_usable == 'trugut_boost') {
+            const OpenButton = new ButtonBuilder()
+                .setCustomId("challenge_random_inventory_boost")
+                .setStyle(ButtonStyle.Primary)
+                .setLabel('Use')
+            comp.push(new ActionRowBuilder().addComponents(OpenButton))
+        }
+    } else if (selection[1]?.[0] == 'duplicates') {
+        let scrappable_items = exports.availableItemsforScrap({ profile })
+        let collectible_items = exports.collectibleItems({ profile })
+        let selected_item = selection[2]?.[0]
+        scrappable_items = scrappable_items.map(item => {
+            return ({
+                label: `${item.name} ${item.health ? `(${Math.round(item.health * 100 / 255)}%)` : ''}${collectible_items.map(c => c.key).includes(item.key) ? ' ♦' : ''}`,
+                value: item.key,
+                description: (`📀${tools.numberWithCommas(exports.itemValue({ item }))} | ${item.description}`).slice(0, 100),
+                emoji: { name: raritysymbols[item.rarity] },
+                id: item.id
+            })
+        }).sort((a, b) => a.id - b.id)
+
+        let dup_options = exports.paginator({ value: selected_item, array: scrappable_items })
+        const dups = new StringSelectMenuBuilder()
+            .setCustomId('challenge_random_inventory_2')
+            .setPlaceholder("Select an item")
+            .setMinValues(1)
+            .setMaxValues(1)
+            .addOptions(...dup_options)
+
+        comp.push(new ActionRowBuilder().addComponents(dups))
+        function getScrapValue(item) {
+            return Math.round(items.find(i => i.id == item?.id)?.value * (profile.effects?.efficient_scrapper ? 1 : 0.5) * (item?.health ? (item?.health / 255) : 1))
+        }
+        let scrap_value = getScrapValue(profile.items[selected_item])
+        const ScrapButton = new ButtonBuilder()
+            .setCustomId("challenge_random_inventory_scrap")
+            .setStyle(ButtonStyle.Danger)
+            .setLabel(`Scrap ${scrap_value ? `(+📀${tools.numberWithCommas(scrap_value)})` : ''}`)
+            .setDisabled([null, undefined, ""].includes(selected_item))
+        const SarlaccButton = new ButtonBuilder()
+            .setCustomId('challenge_random_inventory_sarlacc')
+            .setStyle(ButtonStyle.Secondary)
+            .setLabel('Feed to Sarlacc')
+            .setDisabled([null, undefined, ""].includes(selected_item) || !profile.effects?.sarlacc_snack)
+
+        const buttonRow = new ActionRowBuilder()
+        buttonRow.addComponents(ScrapButton, SarlaccButton)
+        comp.push(buttonRow)
+    } else if (selection[1]?.[0] == 'trade') {
+
+        let selected_user = selection[2]?.[0]
+        let main_user_items = exports.availableItemsforTrade({ profile })
+        let main_user_needed = exports.getNeededItems({ profile })
+        let users = Object.keys(db.user).filter(u => db.user[u].random && Object.values(db.ch.times).filter(t => t.user == db.user[u].discordID).length > 0).sort((a, b) => db.user[a].name.localeCompare(db.user[b].name))
+        let descriptions = {}
+        let selected_user_tradable = [{
+            label: 'No Items',
+            description: 'This user has no items you need for a collection. However, you can still trade with them.',
+            value: 'no'
+        }]
+        users = users.filter(u => db.user[u].random?.items).forEach(u => {
+            let user_items = exports.availableItemsforTrade({ profile: db.user[u].random })
+            let user_needed = exports.getNeededItems({ profile: db.user[u].random })
+            let user_tradable = []
+            let main_user_tradable = []
+            main_user_needed.forEach(id => {
+                let needed = user_items.find(i => i.id == id && !user_tradable.map(t => t.key).includes(i.key))
+                if (needed) {
+                    user_tradable.push(needed)
+                }
+            })
+            user_needed.forEach(id => {
+                let needed = main_user_items.find(i => i.id == id && !main_user_tradable.map(t => t.key).includes(i.key))
+                if (needed) {
+                    main_user_tradable.push(needed)
+                }
+            })
+            if (u == selected_user && user_tradable.length) {
+                selected_user_tradable = user_tradable
+            }
+            descriptions[u] = `[${user_items.length} items] has ${user_tradable.length} item${user_tradable.length !== 1 ? 's' : ''} you need - needs ${main_user_tradable.length} item${main_user_tradable.length !== 1 ? 's' : ''} you have`
+        })
+
+        comp.push(...exports.userPicker({ selection, row: 2, customid: 'challenge_random_inventory_2', placeholder: 'Select a Player to Trade', db, descriptions }))
+        if (![null, undefined, ''].includes(selected_user)) {
+            comp.push(
+                new ActionRowBuilder().addComponents(new StringSelectMenuBuilder()
+                    .setCustomId('challenge_random_inventory_3')
+                    .setPlaceholder("Browse tradable items")
+                    .setMinValues(1)
+                    .setMaxValues(1)
+                    .addOptions(...exports.paginator({
+                        value: selection[3]?.[0], array: selected_user_tradable.map(i => {
+                            if (i.value == 'no') {
+                                return i
+                            }
+                            return (
+                                {
+                                    label: i.name,
+                                    description: i.description,
+                                    value: String(i.key),
+                                    emoji: { name: raritysymbols[i.rarity] }
+                                }
+                            )
+                        })
+                    }))),
+                new ActionRowBuilder().addComponents(
+                    new ButtonBuilder()
+                        .setCustomId("challenge_random_inventory_trade")
+                        .setStyle(ButtonStyle.Primary)
+                        .setLabel(`Invite to Trade`)
+                        .setDisabled([null, undefined, ""].includes(selected_user)))
+            )
+        }
+    } else if (selection[1]?.[0] == 'droids') {
+        let selected_droid = selection[2]?.[0]
+        let selected_part = selection[3]?.[0]
+        let repairable_items = exports.availableItemsforRepairs({ profile })
+        let droids = repairable_items.filter(i => i.repair_speed)
+        let parts = repairable_items.filter(i => i.upgrade && i.health < 255)
+        droids = droids.map(droid => (
+            { ...droid, ...exports.repairAbility({ droid, profile }), level: exports.droidLevel({ droid }) }
+        ))
+
+        const droid_select = new StringSelectMenuBuilder()
+            .setCustomId('challenge_random_inventory_2')
+            .setPlaceholder("Select a droid")
+            .setMinValues(1)
+            .setMaxValues(1)
+            .addOptions(...exports.paginator({
+                value: selected_droid, array: droids.sort((a, b) => a.repair_speed - b.repair_speed).map(d => ({
+                    label: `${d.nick ? d.nick : d.name}`,
+                    value: d.key,
+                    description: `Level ${d.level + 1} ${d.type} - ${(100 / d.speed).toFixed(1)}%/hr - ${d.tasks ? Object.values(d.tasks).filter(t => !t.complete).length : 0}/${d.parts} parts`,
+                    emoji: {
+                        name: raritysymbols[d.rarity]
+                    }
+                }))
+            }))
+        comp.push(new ActionRowBuilder().addComponents(droid_select))
+        const part_select = new StringSelectMenuBuilder()
+            .setCustomId('challenge_random_inventory_3')
+            .setPlaceholder("Select a part")
+            .setMinValues(1)
+            .setMaxValues(1)
+            .addOptions(...exports.paginator({
+                value: selected_part, array: parts.sort((a, b) => a.health - b.health).map(p => ({
+                    label: `${p.name} [${Math.round(100 * p.health / 255)}%]`,
+                    value: p.key,
+                    description: p.description,
+                    emoji: {
+                        name: raritysymbols[p.rarity]
+                    }
+                }))
+            }))
+        comp.push(new ActionRowBuilder().addComponents(part_select))
+        const TaskButton = new ButtonBuilder()
+            .setCustomId("challenge_random_inventory_task")
+            .setStyle(ButtonStyle.Primary)
+            .setLabel(`Task Repairs`)
+            .setDisabled([null, undefined, ""].includes(selected_droid) || [null, undefined, ""].includes(selected_part))
+        const NameButton = new ButtonBuilder()
+            .setCustomId('challenge_random_inventory_name')
+            .setStyle(ButtonStyle.Secondary)
+            .setLabel('Name Droid')
+            .setDisabled([null, undefined, ""].includes(selected_droid))
+        comp.push(new ActionRowBuilder().addComponents(TaskButton, NameButton))
+    } else if (selection[1]?.[0] == 'roles') {
+        const citizen_select = new StringSelectMenuBuilder()
+            .setCustomId('challenge_random_inventory_2')
+            .setPlaceholder("Citizen roles")
+            .setMinValues(0)
+            .setMaxValues(1)
+            .addOptions(planets.map(p => {
+                let id = p.name.toLowerCase().replaceAll(" ", "_")
+                return ({
+                    label: `${p.citizen}`,
+                    value: p.role,
+                    description: profile.effects[id] ? `Free bribes and rerolls on ${p.name} tracks` : `Unlocked by completing the ${p.name} Collection`,
+                    emoji: {
+                        id: p.emoji.split(":")[2].replace(">", "")
+                    },
+                    default: interaction.member.roles.cache.some(r => r.id === p.role)
+                })
+            }))
+        comp.push(new ActionRowBuilder().addComponents(citizen_select))
+        let emoji_roles = profile.roles?.emoji ? Object.values(profile.roles.emoji).map(role => {
+            let emoji = Object.values(emojimap).find(e => e.includes(role.emoji_id))
+            let emoji_name = emoji.split(":")[1]
+            return ({
+                label: emoji_name,
+                value: role.id,
+                emoji: {
+                    id: role.emoji_id
+                },
+                default: interaction.member.roles.cache.some(r => r.id === role.id)
+            })
+        }) : [
+            {
+                label: 'No emoji roles',
+                value: 'no',
+                description: "You haven't bought an emoji icon role",
+                emoji: {
+                    id: '589481340957753363'
+                }
+            }
+        ]
+        const emoji_role_select = new StringSelectMenuBuilder()
+            .setCustomId('challenge_random_inventory_3')
+            .setPlaceholder("Emoji icon roles")
+            .setMinValues(0)
+            .setMaxValues(1)
+            .addOptions(emoji_roles)
+        comp.push(new ActionRowBuilder().addComponents(emoji_role_select))
+        const ColorButton = new ButtonBuilder()
+            .setCustomId('challenge_random_inventory_tricoat')
+            .setStyle(ButtonStyle.Secondary)
+            .setLabel('Role Color')
+        if (profile.roles.custom) {
+            comp.push(new ActionRowBuilder().addComponents(ColorButton))
+        }
+
     }
 
     let selectable = []
     comp.forEach((row, i) => {
         row.components.filter(c => c.options).forEach(c => {
             c.options?.forEach(o => {
-                if (o.data.value.split(":")[0] == selection[i].sel) {
+                if (o.data.value.split(":")[0] == selection[i]?.[0]) {
                     o.setDefault(true)
                 }
             })
@@ -1959,7 +2227,9 @@ exports.inventoryComponents = function ({ profile, selection }) {
     return comp
 }
 
-exports.collections = function () {
+
+
+exports.Collections = function () {
     const coll = [...collections].sort((a, b) => a.items.length - b.items.length)
     planets.forEach((planet, p) => {
         coll.push({
@@ -1968,7 +2238,7 @@ exports.collections = function () {
             emoji: planet.emoji.split(":")[2].replace(">", ""),
             reward: 'Citizenship Role; 📀100,000',
             planet: true,
-            key: p,
+            key: planet.name.toLowerCase().replaceAll(" ", "_"),
             items: items.filter(i => i.track.map(track => tracks[track].planet == p).includes(true) && i.track.length < 25).slice(0, 25).map(i => i.id)
         })
     })
@@ -1977,51 +2247,40 @@ exports.collections = function () {
 }
 
 exports.itemComponents = function ({ profile, selection }) {
-    let selected_collection = selection[2].sel?.[0]
-    let page = selection[3].page ?? 0
+    let selected_collection = selection[2]?.[0]
     if ([null, undefined, ""].includes(selected_collection) || isNaN(Number(selected_collection))) {
-
         return []
     }
-    let coll = exports.collections()
+    let coll = exports.Collections()
     const raritymap = {
         common: { score: 0, emoji: '🟢' },
         uncommon: { score: 1, emoji: '🔵' },
         rare: { score: 2, emoji: '🟪' },
         legendary: { score: 3, emoji: '🟡' }
     }
-    let options = items.filter(i => coll[selected_collection]?.items.includes(i.id)).sort((a, b) => raritymap[a.rarity].score - raritymap[b.rarity].score).map(i => ({ label: profile.items ? Object.values(profile.items).map(i => i.id).includes(i.id) ? i.name : '???' : '???', value: String(i.id), emoji: raritymap[i.rarity].emoji, description: `📀${tools.numberWithCommas(i.value)} (${i.rarity}) ` }))
-    if (options.length > 25) {
-        options = [
-            (page == 0 ? null : {
-                label: `Page ${Math.max(page - 1, 0) + 1}`,
-                value: `<:${Math.max(page - 1, 0)}`
-            }),
-            ...options.slice(23 * page, 23 * (page + 1)).map(o => ({ ...o, value: `${o.value}:${page}` })),
-            (options.length > 23 * (page + 1) ? {
-                label: `Page ${page + 2}`,
-                value: `>:${page + 1}`
-            } : null)
-        ].filter(o => o)
-    }
+    let options = items.filter(i => coll[selected_collection]?.items.includes(i.id))
+        .sort((a, b) => raritymap[a.rarity].score - raritymap[b.rarity].score)
+        .map(i => (
+            {
+                label: profile.items ? Object.values(profile.items).map(i => i.id).includes(i.id) ? i.name : '???' : '???',
+                value: String(i.id),
+                emoji: raritymap[i.rarity].emoji,
+                description: `📀${tools.numberWithCommas(i.value)} (${i.rarity}) `
+            }))
     const item_selector = new StringSelectMenuBuilder()
         .setCustomId('challenge_random_inventory_3')
         .setPlaceholder("View Items")
         .setMinValues(1)
         .setMaxValues(1)
-    options.forEach((option, i) => {
-        item_selector.addOptions(
-            option
-        )
-    })
+        .addOptions(...exports.paginator({ value: selection[3]?.[0], array: options }))
     const row = new ActionRowBuilder().addComponents(item_selector)
     return [row]
 }
 
 exports.collectionComponents = function ({ profile }) {
 
-    let coll = exports.collections()
-
+    let coll = exports.Collections()
+    let rewards = exports.collectionReward({ profile })
 
     const collection_selector = new StringSelectMenuBuilder()
         .setCustomId('challenge_random_inventory_2')
@@ -2029,18 +2288,26 @@ exports.collectionComponents = function ({ profile }) {
         .setMinValues(1)
         .setMaxValues(1)
 
+    let collectible_items = exports.availableItemsforCollection({ profile })
+
     coll.forEach((collection, i) => {
-        const owned = profile.items ? [...new Set(Object.values(profile.items).map(i => i.id))].filter(i => collection.items.includes(i)).length : 0
+        const owned = collection.key == 'chance_cube' ? Math.min(3, collectible_items.filter(i => i.id == 95).length) + Math.min(3, collectible_items.filter(i => i.id == 96).length) : [...new Set(Object.values(collectible_items).map(i => i.id))].filter(i => collection.items.includes(i)).length
         const option = new StringSelectMenuOptionBuilder()
-            .setLabel(collection.name)
+            .setLabel(`${rewards[collection.key] && !profile.effects[collection.key] ? '[CLAIM REWARD] ' : ''}${collection.name}`)
             .setValue(String(i))
-            .setDescription(`Items: ${owned}/${collection.items.length} | Reward: ${collection.reward.split(" - ")[0]}`)
-            .setEmoji(collection.emoji)
+            .setEmoji(profile.effects[collection.key] ? '✅' : collection.emoji)
+        if (!profile.effects[collection.key]) {
+            option.setDescription(`Items: ${owned}/${collection.key == 'chance_cube' ? 6 : collection.items.length} | Reward: ${collection.reward.split(" - ")[0]}`)
+        }
         collection_selector.addOptions(option)
     })
 
     const row = new ActionRowBuilder().addComponents(collection_selector)
     return [row]
+}
+
+exports.usableItem = function ({ item } = {}) {
+    return ![item.used ? true : false, item.fed ? true : false, item.scrapped ? true : false].includes(true)
 }
 
 exports.profileEmbed = function ({ name, avatar, ach_report, profile, stats, db, player } = {}) {
@@ -2576,7 +2843,7 @@ exports.sponsorPlayerComponents = function ({ selection, db }) {
     })
 
     const row = new ActionRowBuilder().addComponents(take_selector)
-    return [row, ...exports.userPicker({ selection, customid: 'challenge_random_shop_3', placeholder: 'Select a Player to Sponsor', db })]
+    return [row, ...exports.userPicker({ selection, row: 3, customid: 'challenge_random_shop_3', placeholder: 'Select a Player to Sponsor', db })]
 
 }
 
@@ -2672,7 +2939,6 @@ exports.sponsorEmbed = function (sponsorchallenge, profile, db) {
 
     let time = exports.validateTime(sponsorchallenge?.time) ?? null
     let best = Object.values(db.ch.times).filter(t => exports.matchingChallenge(t, sponsorchallenge))
-    console.log(sponsorchallenge)
     if (time) {
         best.push({
             time: time,
@@ -2936,8 +3202,8 @@ exports.manageTruguts = function ({ profile, profileref, transaction, amount, pu
         profile.truguts_spent -= amount
     }
     profileref.update({
-        truguts_spent: transaction == 'w' ? profile.truguts_spent = Number(profile.truguts_spent) + Number(amount) : transaction == 'r' ? profile.truguts_spent = Number(profile.truguts_spent) - Number(amount) : profile.truguts_spent,
-        truguts_earned: transaction == 'd' ? profile.truguts_earned = Number(profile.truguts_earned) + Number(amount) : profile.truguts_earned
+        truguts_spent: profile.truguts_spent,
+        truguts_earned: profile.truguts_earned
     })
     if (transaction == 'w' && purchase) {
         profileref.child("purchases").push(purchase)
@@ -2949,12 +3215,12 @@ exports.currentTruguts = function (profile) {
     return tools.numberWithCommas(profile.truguts_earned - profile.truguts_spent)
 }
 
-exports.randomChallengeItem = function ({ profile, current_challenge, db, member }) {
+exports.randomChallengeItem = function ({ profile, current_challenge, db, member, coffer, sarlacc } = {}) {
     const challenges_completed = Object.values(db.ch.times).filter(time => time.user == member).length
     let item_pool = []
     let special_items = [{ id: 'collectible_coffer' }, { id: 'trugut_boost' }, { id: 'sabotage_kit' }]
     items.forEach(item => {
-        if ((item.challenges !== null && challenges_completed > item.challenges) || current_challenge.conditions[item.condition] || item.track.includes(current_challenge.track) || item.racer.includes(current_challenge.racer)) {
+        if (coffer || sarlacc || (item.challenges !== null && challenges_completed > item.challenges) || current_challenge.conditions[item.condition] || item.track.includes(current_challenge.track) || item.racer.includes(current_challenge.racer)) {
             item_pool.push(item)
         }
     })
@@ -2982,7 +3248,7 @@ exports.randomChallengeItem = function ({ profile, current_challenge, db, member
 
     //if it's a dup, there's a chance it will be replaced with a new item
     let owned_ids = profile.items ? Object.values(profile.items).map(item => item.id) : []
-    if (owned_ids.includes(random_item.id) && Math.random() < 0.15) {
+    if (owned_ids.includes(random_item.id) && Math.random() < (sarlacc || profile.effects?.favor_ancients ? 0.85 : 0.15)) {
         let new_pool = rarity_pool.filter(item => !owned_ids.includes(item.id))
         if (new_pool.length) {
             random_item = new_pool[Math.floor(Math.random() * new_pool.length)]
@@ -2999,78 +3265,401 @@ exports.randomChallengeItem = function ({ profile, current_challenge, db, member
     return random_item
 }
 
-exports.openCoffer = function () {
-    let opened_items = []
+exports.openCoffer = function ({ profile, db, member } = {}) {
+    let coffer_items = []
 
     for (let j = 0; j < 4; j++) {
-        const rarity = Math.random()
-        let rarity_pool = []
-        if (rarity < 0.60) {
-            rarity_pool = items.filter(i => i.rarity == 'common')
-        } else if (rarity < 0.85) {
-            rarity_pool = items.filter(i => i.rarity == 'uncommon')
-        } else if (rarity < 0.95) {
-            rarity_pool = items.filter(i => i.rarity == 'rare')
-        } else {
-            rarity_pool = items.filter(i => i.rarity == 'legendary')
-        }
-
-        let random_item = rarity_pool[Math.floor(Math.random() * rarity_pool.length)]
-
-        let owned_ids = rofile.items.map(item => item.id)
-        if (owned_ids.includes(random_item.id) && Math.random() < 0.15) {
-            let new_pool = rarity_pool.filter(item => !owned_ids.includes(item.id))
-            if (new_pool.length) {
-                random_item = new_pool[Math.floor(Math.random() * new_pool.length)]
-            }
-        }
-        opened_items.push(random_item)
+        coffer_items.push(exports.randomChallengeItem({ profile, current_challenge: null, db, member, coffer: true }))
     }
 
-    return opened_items
+    return coffer_items
 }
 
-exports.userPicker = function ({ selection, customid, placeholder, db }) {
+exports.userPicker = function ({ selection, row, customid, placeholder, db, descriptions } = {}) {
     //let selected_user = selection[2].sel
     const userselector = new StringSelectMenuBuilder()
         .setCustomId(customid)
         .setPlaceholder(placeholder)
         .setMinValues(1)
         .setMaxValues(1)
-    let users = Object.keys(db.user).filter(u => db.user[u].random && Object.values(db.ch.times).filter(t => t.user == db.user[u].discordID).length > 10).sort((a, b) => db.user[a].name.localeCompare(db.user[b].name)).slice(0, 25)
+    let users = Object.keys(db.user).filter(u => db.user[u].random && Object.values(db.ch.times).filter(t => t.user == db.user[u].discordID).length > 0).sort((a, b) => db.user[a].name.localeCompare(db.user[b].name))
 
-    users.forEach(u => {
-        userselector.addOptions(
+
+    users = users.filter(u => descriptions ? descriptions[u] : true).map(u => {
+        return (
             {
                 label: db.user[u].name,
                 value: String(u),
-                description: `${Object.values(db.ch.times).filter(t => t.user == db.user[u].discordID).length} submissions | 📀${tools.numberWithCommas(db.user[u].random.truguts_earned)} earned`,
+                description: descriptions ? descriptions[u] : `${Object.values(db.ch.times).filter(t => t.user == db.user[u].discordID).length} submissions | 📀${tools.numberWithCommas(db.user[u].random.truguts_earned)} earned`,
+                emoji: db.user[u].random.progression ?
+                    {
+                        id: level_symbols[Math.min(Math.floor(exports.playerLevel(db.user[u].random.progression).level / 4), 6)].split(":")[2].replace(">", "")
+                    } :
+                    {
+                        name: '◼'
+                    }
             }
         )
     })
+
+    userselector.addOptions(
+        ...exports.paginator({
+            value: selection[row]?.[0], array: users
+        })
+    )
+
     const row1 = new ActionRowBuilder().addComponents(userselector)
     return [row1]
 }
 
 exports.collectionReward = function ({ profile }) {
-    let rewards = {
-        effects: {},
-        roles: {}
-    }
-    let collections = exports.collections()
-    if (profile.items) {
+    let rewards = {}
+    let collections = exports.Collections()
+    if (!profile.items) {
         return rewards
     }
     collections.forEach(collection => {
-        let items = Object.values(profile.items).map(i => i.id).filter(item => collection.items.includes(item))
-        if (collection.key == 'chance_cube' && items.filter(i => i == 95).length >= 3 && items.filter(i => i == 96).length >= 3) {
-            rewards.effects.chance_cube = true
-        } else if ([...new Set(items)].length >= collection.items.length) {
-            if (collection.planet) {
-                rewards.roles[collection.key] = true
-            } else {
-                rewards.effects[collection.key] = true
+        let collection_items = Object.values(profile.items).filter(i => ![i.scrapped, i.fed, i.used, i.locked].includes(true)).map(i => i.id).filter(item => collection.items.includes(item))
+        if (collection.key == 'chance_cube') {
+            if (collection_items.filter(i => i == 95).length >= 3 && collection_items.filter(i => i == 96).length >= 3) {
+                rewards.chance_cube = true
             }
+        } else if ([...new Set(collection_items)].length >= collection.items.length) {
+            rewards[collection.key] = true
+        }
+    })
+    return rewards
+}
+
+exports.collectionRewardEmbed = function ({ key, name, avatar }) {
+    let collection = exports.Collections().find(c => c.key == key)
+    const congratsEmbed = new EmbedBuilder()
+        .setAuthor({ name: name + " completed a collection!", iconURL: avatar })
+        .setDescription(`Reward: ${collection.reward}`)
+        .setColor("FFB900")
+        .setTitle(`${collection.emoji} ${collection.name}`)
+    return congratsEmbed
+}
+
+exports.itemString = function ({ item, profile }) {
+    let dup = (profile?.items ? Object.values(profile.items).filter(i => i.id == item.id).length > 1 ? true : false : false) && !['collectible_coffer', 'trugut_boost', 'sabotage_kit'].includes(item.id)
+    return `${raritysymbols[item.rarity]} ${item.name}` + (item.health ? ` [${Math.round(item.health * 100 / 255)}%]` : '') + (dup ? " (duplicate)" : "")
+}
+
+exports.collectionRewardUpdater = function ({ profile, client, interaction, profileref, name, avatar } = {}) {
+    //collection rewards
+    let collection_rewards = exports.collectionReward({ profile })
+    let planet_keys = planets.map(p => p.name.toLowerCase().replaceAll(" ", "_"))
+    Object.keys(collection_rewards).forEach(key => {
+        if (!profile[key]) {
+            postMessage(client, interaction.channelId, { embeds: [exports.collectionRewardEmbed({ key, name, avatar })] })
+            if (planet_keys.includes(key)) {
+                exports.manageTruguts({ profile, profileref, transaction: 'd', amount: 100000 })
+            }
+        }
+    })
+    profileref.child('effects').update(collection_rewards)
+}
+
+exports.paginator = function ({ value, array } = {}) {
+    if (array.length < 25) {
+        return array
+    } else {
+        let index = array.map(a => a.value).indexOf(value) ?? 0
+        let page_length = 21
+        let page = Math.max(0, value?.includes('page_') ? Number(value.replace('page_', '')) : Math.floor(index / page_length))
+        let max_pages = Math.floor(array.length / page_length)
+
+        return [
+            page > 1 ? {
+                label: `Page 1`,
+                value: `page_${0}`,
+                emoji: {
+                    name: '⏮'
+                }
+            } : null,
+            page > 0 ? {
+                label: `Page ${page}`,
+                value: `page_${page - 1}`,
+                emoji: {
+                    name: '◀'
+                }
+            } : null,
+            ...array.slice(page_length * page, page_length * (page + 1)),
+            page < max_pages ? {
+                label: `Page ${page + 2}`,
+                value: `page_${page + 1}`,
+                emoji: {
+                    name: '▶'
+                }
+            } : null,
+            page < max_pages - 1 ? {
+                label: `Page ${max_pages + 1}`,
+                value: `page_${max_pages}`,
+                emoji: {
+                    name: '⏭'
+                }
+            } : null,
+        ].filter(o => o !== null)
+
+    }
+}
+
+exports.tradeEmbed = function ({ trade, db } = {}) {
+    let traders = Object.keys(trade.traders)
+    const tradeEmbed = new EmbedBuilder()
+        .setTitle(trade.completed ? ':handshake: Successful Trade :handshake:' : ':warning: Trade Offer :warning:')
+        .setColor("#ED4245")
+
+    if (!trade.completed) {
+        tradeEmbed
+            .setFooter({ text: '♦ indicates item is needed for a collection by its current owner' })
+            .setImage("https://media.discordapp.net/attachments/1135800422066556940/1152866985391161384/trade_image.png")
+    }
+    traders.forEach(key => {
+        let other = traders.filter(k => k !== key)
+        let other_name = db.user[other].name
+        let trade_items = (trade.traders[key].items ? Object.values(trade.traders[key].items).map(i => {
+            let item = db.user[trade.completed ? other : key].random.items[i]
+            let enriched_item = { ...items.find(j => j.id == item.id), ...item }
+            return (
+                {
+                    string: exports.itemString({ item: enriched_item }),
+                    value: exports.itemValue({ item: enriched_item })
+                }
+            )
+        }) : null)
+        tradeEmbed.addFields({
+            name: `${other_name} receive${trade.completed ? 'd' : 's'}:`,
+            value: (trade.traders[key].truguts ? `\`📀${tools.numberWithCommas(trade.traders[key].truguts)}\`\n` : '') +
+                (trade_items ? `${trade_items.map(i => i.string).join("\n")}\n\nTotal value: \`📀${tools.numberWithCommas(trade_items.reduce((a, b) => a + Number(b.value), 0) + trade.traders[key].truguts)}\`` : '') +
+                (!trade.traders[key].truguts && !trade.traders[key].items ? 'nothing' : ''), inline: true
+        })
+    })
+    return tradeEmbed
+}
+
+exports.tradeComponents = function ({ trade, db, selection } = {}) {
+    let comp = []
+    let traders = Object.keys(trade.traders)
+    let tradables = {}
+    let collections = exports.Collections()
+    traders.forEach(key => {
+        let player_items = db.user[key].random.items
+        tradables[key] = {
+            name: db.user[key].name,
+            selected: trade.traders[key].items ? Object.values(trade.traders[key].items) : [],
+            items: Object.keys(player_items).map(k => ({ ...items.find(i => i.id == player_items[k].id), ...items[k], key: k })).filter(i => exports.usableItem({ item: i })),
+        }
+    })
+
+    traders.forEach(key => {
+        let other_player = traders.filter(k => k !== key)[0]
+        let other_items = tradables[other_player].items
+        tradables[key].tradable = tradables[key].items.filter(i => !other_items.map(j => j.id).includes(i.id) || (['trugut_boost', 'sabotage_kit', 'collectible_coffer'].includes(i.id)))
+        let collectible = []
+        collections.filter(c => !db.user[key].random.effects?.[c.key]).forEach(c => {
+            c.items.forEach(i => {
+                let collect = tradables[key].tradable.find(j => j.id == i && !collectible.includes(j.key))
+                if (collect) {
+                    collectible.push(collect.key)
+                }
+            })
+        })
+        tradables[key].tradable = tradables[key].tradable.map(i => ({ ...i, collectible: collectible.includes(i.key) }))
+    })
+    const raritymap = {
+        'common': 0,
+        'uncommon': 1,
+        'rare': 2,
+        'legendary': 3
+    }
+    traders.forEach((key, index) => {
+        comp.push(new ActionRowBuilder().addComponents(new StringSelectMenuBuilder()
+            .setCustomId(`challenge_random_trade_${index}`)
+            .setPlaceholder(`Select items from ${tradables[key].name}`)
+            .setMinValues(0)
+            .addOptions(...exports.paginator({
+                value: selection?.[index]?.[0], array: tradables[key].tradable.sort((a, b) => a.rarity == b.rarity ? a.name == b.name ? a.date - b.date : a.name.localeCompare(b.name) : raritymap[b.rarity] - raritymap[a.rarity]).map(t => (
+                    {
+                        label: `${tradables[key].selected.includes(t.key) ? '[TRADING] ' : ''}${t.name} ${t.health ? `(${Math.round(t.health * 100 / 255)}%)` : ``}${t.collectible ? ' ♦' : ''}`,
+                        value: t.key,
+                        description: (`📀${tools.numberWithCommas(exports.itemValue({ item: t }))} | ${tradables[key].selected.includes(t.key) ? 'Select to remove' : t.description}`).slice(0, 100),
+                        emoji: { name: tradables[key].selected.includes(t.key) ? '↔' : raritysymbols[t.rarity] },
+                    }
+                ))
+            }))))
+    })
+
+    const TrugutButton = new ButtonBuilder()
+        .setCustomId("challenge_random_trade_truguts")
+        .setStyle(ButtonStyle.Secondary)
+        .setLabel(`Truguts`)
+    const AgreeButton = new ButtonBuilder()
+        .setCustomId("challenge_random_trade_agree")
+        .setStyle(ButtonStyle.Success)
+        .setLabel(`Agree to Trade [${Object.values(trade.traders).map(t => t.agreed).filter(t => t).length}/2]`)
+        .setDisabled(!Object.values(trade.traders).map(t => t.truguts > 0).includes(true) && !Object.values(trade.traders).map(t => t.items ? true : false).includes(true))
+    const ResetButton = new ButtonBuilder()
+        .setCustomId("challenge_random_trade_reset")
+        .setStyle(ButtonStyle.Secondary)
+        .setLabel(`Reset`)
+
+    const CancelButton = new ButtonBuilder()
+        .setCustomId("challenge_random_trade_cancel")
+        .setStyle(ButtonStyle.Danger)
+        .setLabel(`Cancel`)
+
+    comp.push(new ActionRowBuilder().addComponents(AgreeButton, TrugutButton, ResetButton, CancelButton))
+    return comp
+}
+
+exports.itemValue = function ({ item } = {}) {
+    return Math.round(item.value * (item.health ? (item.health / 255) : 1))
+}
+
+exports.getProfileItems = function ({ profile } = {}) {
+    return profile.items ? Object.keys(profile.items).map(key => {
+        let item = items.find(i => i.id == profile.items[key].id)
+        return ({ ...item, ...profile.items[key], key })
+    }
+    ).filter(i => exports.usableItem({ item: i })) : []
+}
+
+exports.availableItemsforCollection = function ({ profile } = {}) {
+    return exports.getProfileItems({ profile }).filter(i => !i.locked)
+}
+
+exports.collectibleItems = function ({ profile } = {}) {
+    let profile_items = exports.availableItemsforCollection({ profile })
+    let collections = exports.Collections()
+    let collectible_items = []
+    collections.filter(c => !profile.effects?.[c.key]).forEach(c => {
+        c.items.forEach(i => {
+            let collectible = profile_items.find(p => p.id == i && !collectible_items.map(c => c.key).includes(p.key))
+            if (collectible) {
+                collectible_items.push(collectible)
+            }
+        })
+    })
+    return collectible_items
+}
+
+exports.availableItemsforTrade = function ({ profile } = {}) {
+    return exports.getProfileItems({ profile }).filter(i => ![i.locked ? true : false, i.repairing ? true : false].includes(true))
+}
+
+exports.availableItemsforScrap = function ({ profile } = {}) {
+    return exports.getProfileItems({ profile }).filter(i => ![i.locked ? true : false, i.repairing ? true : false].includes(true) && !['trugut_boost', 'sabotage_kit', 'collectible_coffer', 70].includes(i.id))
+}
+
+exports.availableItemsforRepairs = function ({ profile } = {}) {
+    return exports.getProfileItems({ profile }).filter(i => !(i.upgrade && i.repairing) && !(exports.isDroid({ item: i }) && (i.tasks ? Object.values(i.tasks).filter(t => !t.complete).length : 0) >= exports.repairAbility({ droid: i, profile }).parts))
+}
+
+exports.getUsables = function ({ profile } = {}) {
+    let usables = exports.getProfileItems({ profile })
+    const specials = [
+        {
+            value: 'collectible_coffer',
+            emoji: {
+                name: '🎁'
+            }
+        },
+        {
+            value: 'sabotage_kit',
+            emoji: {
+                name: '💥'
+            }
+        },
+        {
+            value: 'trugut_boost',
+            emoji: {
+                name: '⚡'
+            }
+        }
+    ]
+    return [...specials].map(i => ({ ...i, label: `${items.find(j => j.id == i.value).name} (${usables.filter(j => j.id == i.value).length})`, description: items.find(j => j.id == i.value).description }))
+}
+
+exports.isDroid = function ({ item } = {}) {
+    return [102, 103, 104, 105, 106, 107, 141, 184].includes(item.id)
+}
+
+exports.getNeededItems = function ({ profile } = {}) {
+    let collections = exports.Collections()
+    let profile_items = exports.availableItemsforTrade({ profile })
+    let needed = []
+    collections.filter(c => !profile.effects?.[c.key]).forEach(c => {
+        c.items.forEach(i => {
+            if (!profile_items.map(j => j.id).includes(i)) {
+                needed.push(i)
+            }
+        })
+    })
+    return needed
+}
+
+exports.droidLevel = function ({ droid } = {}) {
+    let raw_level = droid.level ?? 0
+    let level = Math.floor(raw_level / 255)
+    return level
+}
+
+exports.repairAbility = function ({ droid, profile } = {}) {
+    let repair_speed = droid.repair_speed * (profile.effects.pitdroid_team ? 0.5 : 1)
+    let droid_level = exports.droidLevel({ droid })
+    for (let i = 0; i < droid_level; i++) {
+        repair_speed *= 0.9
+    }
+    return {
+        speed: repair_speed,
+        parts: Math.floor(droid_level / 5) + 1
+    }
+}
+
+exports.repairDuration = function ({ repair_speed, health } = {}) {
+    return 1000 * 60 * 60 * repair_speed * (255 - health) / 255
+}
+
+exports.completeRepairs = function ({ profile, profileref, client, member } = {}) {
+    if (!profile.items) {
+        return
+    }
+    let repairing_droids = Object.keys(profile.items).filter(i => exports.isDroid({ item: profile.items[i] }) && profile.items[i].repairing)
+    repairing_droids.forEach(key => {
+        let droid = profile.items[key]
+        let droid_info = items.find(i => i.id == droid.id)
+        let repair_ability = exports.repairAbility({ droid: { ...droid_info, ...droid }, profile })
+        if (droid.tasks) {
+            let task_key = Object.keys(droid.tasks).find(t => !droid.tasks[t].complete && droid.tasks[t].date)
+            if (task_key) {
+                let task = droid.tasks[task_key]
+                let repaired_health = 255 - profile.items[task.part].health
+                let task_finished = task.date + exports.repairDuration({ repair_speed: repair_ability.speed, health: profile.items[task.part].health })
+                if (Date.now() > task_finished) {
+                    //update task
+                    task.complete = true
+                    profileref.child('items').child(key).child('tasks').child(task_key).update({ complete: true, date: false })
+
+                    //update part health
+                    profileref.child('items').child(task.part).update({ health: 255, repairing: false })
+
+                    //level up pitdroid
+                    profileref.child('items').child(key).update({ level: (profile.items[key].level ?? 0) + repaired_health })
+
+                    //start next task
+                    let next_task = Object.keys(droid.tasks).find(t => !droid.tasks[t].complete && !droid.tasks[t].date)
+                    if (next_task) {
+                        profileref.child('items').child(key).child('tasks').child(next_task).update({ date: Date.now() })
+                    } else {
+                        profileref.child('items').child(key).update({ repairing: false })
+                    }
+
+                    postMessage(client, '551786988861128714', { content: `<@${member}> your ${droid.nick ? droid.nick : items.find(i => i.id == droid.id).name} finished repairing a ${items.find(i => i.id == profile.items[task.part].id).name}!` })
+                }
+            }
+
         }
     })
 }
