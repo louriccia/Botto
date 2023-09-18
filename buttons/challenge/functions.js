@@ -937,7 +937,7 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, profi
     earnings_total = earnings_subtotal
 
     if (current_challenge.created - 1000 * 60 * 60 * 24 < profile.effects?.trugut_boost) {
-        multipliers += `${profile.effects?.doubled_powers ? '`×2`' : '`×1.5`'} *⚡Trugut Boost* (expires <t:${Math.round((profile.effects.trugut_boost + 1000 * 60 * 60 * 24) / 1000)}:R>)\n`
+        multipliers += `${profile.effects?.doubled_powers ? '`×2`' : '`×1.5`'} *⚡Trugut Boost* (expires <t:${Math.round((profile.effects?.trugut_boost + 1000 * 60 * 60 * 24) / 1000)}:R>)\n`
         earnings_total *= (profile.effects?.doubled_powers ? 2 : 1.5)
     }
 
@@ -952,7 +952,7 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, profi
 
     if (profile.effects?.trugut_cloner) {
         let cloner = 1
-        Object.values(profile.effects.trugut_cloner).forEach(m => {
+        Object.values(profile.effects?.trugut_cloner).forEach(m => {
             earnings_total *= Number(m.multiplier)
             cloner *= Number(m.multiplier)
         })
@@ -1885,7 +1885,7 @@ exports.inventoryEmbed = function ({ profile, selection, name, avatar }) {
             myEmbed.addFields({
                 name: 'Additional Effects', value: section.abilities.map(a => {
                     let col = collections.find(c => c.key == a)
-                    return (`${profile.effects[col.key] ? ':white_check_mark:' : '❌'} ${col.reward}`)
+                    return (`${profile.effects?.[col.key] ? ':white_check_mark:' : '❌'} ${col.reward}`)
                 }).join('\n')
             })
         }
@@ -3607,7 +3607,7 @@ exports.droidLevel = function ({ droid } = {}) {
 }
 
 exports.repairAbility = function ({ droid, profile } = {}) {
-    let repair_speed = droid.repair_speed * (profile.effects.pitdroid_team ? 0.5 : 1)
+    let repair_speed = droid.repair_speed * (profile.effects?.pitdroid_team ? 0.5 : 1)
     let droid_level = exports.droidLevel({ droid })
     for (let i = 0; i < droid_level; i++) {
         repair_speed *= 0.9
