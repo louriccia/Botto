@@ -2295,7 +2295,7 @@ exports.collectionComponents = function ({ profile }) {
         const option = new StringSelectMenuOptionBuilder()
             .setLabel(`${rewards[collection.key] && !profile.effects[collection.key] ? '[CLAIM REWARD] ' : ''}${collection.name}`)
             .setValue(String(i))
-            .setEmoji(profile.effects[collection.key] ? '✅' : collection.emoji)
+            .setEmoji(profile.effects?.[collection.key] ? '✅' : collection.emoji)
         if (!profile.effects[collection.key]) {
             option.setDescription(`Items: ${owned}/${collection.key == 'chance_cube' ? 6 : collection.items.length} | Reward: ${collection.reward.split(" - ")[0]}`)
         }
