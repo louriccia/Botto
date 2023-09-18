@@ -1952,9 +1952,9 @@ exports.inventoryComponents = function ({ profile, selection, db, interaction })
         let selected_collection = collections[Number(selection[2])]
         let rewards = exports.collectionReward({ profile })
         let claimable = !rewards[selected_collection?.key]
-        let already_claimed = profile.effects[selected_collection?.key]
+        let already_claimed = profile.effects?.[selected_collection?.key]
         claimable = claimable || (already_claimed ? true : false)
-        if (!profile.effects[selected_collection?.key]) {
+        if (!profile.effects?.[selected_collection?.key]) {
             comp.push(new ActionRowBuilder().addComponents(new ButtonBuilder()
                 .setCustomId('challenge_random_inventory_claim')
                 .setLabel(already_claimed ? 'Already Claimed' : 'Claim Reward')
@@ -2165,7 +2165,7 @@ exports.inventoryComponents = function ({ profile, selection, db, interaction })
                 return ({
                     label: `${p.citizen}`,
                     value: p.role,
-                    description: profile.effects[id] ? `Free bribes and rerolls on ${p.name} tracks` : `Unlocked by completing the ${p.name} Collection`,
+                    description: profile.effects?.[id] ? `Free bribes and rerolls on ${p.name} tracks` : `Unlocked by completing the ${p.name} Collection`,
                     emoji: {
                         id: p.emoji.split(":")[2].replace(">", "")
                     },
@@ -2293,10 +2293,10 @@ exports.collectionComponents = function ({ profile }) {
     coll.forEach((collection, i) => {
         const owned = collection.key == 'chance_cube' ? Math.min(3, collectible_items.filter(i => i.id == 95).length) + Math.min(3, collectible_items.filter(i => i.id == 96).length) : [...new Set(Object.values(collectible_items).map(i => i.id))].filter(i => collection.items.includes(i)).length
         const option = new StringSelectMenuOptionBuilder()
-            .setLabel(`${rewards[collection.key] && !profile.effects[collection.key] ? '[CLAIM REWARD] ' : ''}${collection.name}`)
+            .setLabel(`${rewards[collection.key] && !profile.effects?.[collection.key] ? '[CLAIM REWARD] ' : ''}${collection.name}`)
             .setValue(String(i))
             .setEmoji(profile.effects?.[collection.key] ? '✅' : collection.emoji)
-        if (!profile.effects[collection.key]) {
+        if (!profile.effects?.[collection.key]) {
             option.setDescription(`Items: ${owned}/${collection.key == 'chance_cube' ? 6 : collection.items.length} | Reward: ${collection.reward.split(" - ")[0]}`)
         }
         collection_selector.addOptions(option)
