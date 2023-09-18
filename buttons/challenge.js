@@ -122,30 +122,30 @@ module.exports = {
                         challengesref.child(message.id).set(current_challenge)
                         current_challenge = db.ch.challenges[message.id]
                         current_challengeref = challengesref.child(message.id)
+                        setTimeout(async function () { //mark challenge abandoned
+                            current_challenge = db.ch.challenges[message.id]
+                            if (current_challenge && current_challenge?.type == 'private' && isActive(current_challenge, profile) && !current_challenge?.track_bribe && !current_challenge?.racer_bribe) {
+                                const row = new ActionRowBuilder()
+                                row.addComponents(
+                                    new ButtonBuilder()
+                                        .setCustomId("challenge_random_modal")
+                                        .setLabel("Submit")
+                                        .setStyle(ButtonStyle.Primary)
+                                        .setEmoji("⏱️")
+                                )
+                                if (!current_challenge.completed && !current_challenge.rerolled) {
+                                    current_challengeref.update({ type: 'abandoned', players: [], predictions: [] })
+                                    current_challenge = db.ch.challenges[message.id]
+                                }
+                                const aba_response = await updateChallenge({ client, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, db })
+                                interaction.editReply(aba_response)
+                            }
+                        }, 1000 * 60 * 15 - 50000)
                     } catch (err) {
                         console.log('there was an error when posting the challenge', err)
                     }
 
-                    setTimeout(async function () { //mark challenge abandoned
-                        current_challenge = db.ch.challenges[message.id]
-                        if (current_challenge?.type == 'private' && isActive(current_challenge, profile) && !current_challenge?.track_bribe && !current_challenge?.racer_bribe) {
-                            const row = new ActionRowBuilder()
-                            row.addComponents(
-                                new ButtonBuilder()
-                                    .setCustomId("challenge_random_modal")
-                                    .setLabel("Submit")
-                                    .setStyle(ButtonStyle.Primary)
-                                    .setEmoji("⏱️")
-                            )
-                            if (!current_challenge.completed && !current_challenge.rerolled) {
-                                current_challengeref.update({ type: 'abandoned', players: [], predictions: [] })
-                                current_challenge = db.ch.challenges[message.id]
-                            }
-                            const aba_response = await updateChallenge({ client, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, db })
-                            interaction.editReply(aba_response)
 
-                        }
-                    }, 1000 * 60 * 15 - 50000)
 
                     break
                 case 'reroll':
