@@ -1848,25 +1848,32 @@ exports.inventoryEmbed = function ({ profile, selection, name, avatar }) {
             .setTitle(`${section.emoji.name} ${section.label}`)
             .setDescription(section.info)
         if (section.value == 'droids' && in_repairs.length) {
+            let additional = ''
+            let repair_map = in_repairs.map(droid => {
+                return ({
+                    name: droid.nick ? droid.nick : items.find(i => i.id == droid.id).name,
+                    tasks: droid.tasks ? Object.values(droid.tasks).filter(t => !t.complete).map(t => {
+                        let profile_item = profile.items[t.part]
+                        let part = items.find(i => i.id == profile_item.id)
+                        let part_obj = { ...part, ...profile_item }
+                        if (t.date) {
+                            let complete_date = t.date + exports.repairDuration({ repair_speed: exports.repairAbility({ droid, profile }).speed, health: profile_item.health })
+                            part_obj.end_date = complete_date
+                        }
+                        return (
+                            part_obj
+                        )
+                    }) : []
+                })
+            }).sort((a, b) => a.tasks?.[0]?.end_date - b.tasks?.[0]?.end_date)
+            if (repair_map.length > 5) {
+                additional = `\n\n+${repair_map.slice(5).map(r => r.tasks).length} additional tasks`
+                repair_map = repair_map.slice(0, 5)
+            }
+            repair_map = repair_map.map(droid => `**${droid.name}**\n${droid.tasks.map(t => `<a:sparks:672640526444527647> ${t.name}${t.end_date ? ` <t:${Math.round(t.end_date / 1000)}:R>` : ''}`).join("\n")}`).join("\n")
             myEmbed.addFields({
                 name: 'Current Tasks',
-                value: in_repairs.map(droid => {
-                    return ({
-                        name: droid.nick ? droid.nick : items.find(i => i.id == droid.id).name,
-                        tasks: droid.tasks ? Object.values(droid.tasks).filter(t => !t.complete).map(t => {
-                            let profile_item = profile.items[t.part]
-                            let part = items.find(i => i.id == profile_item.id)
-                            let part_obj = { ...part, ...profile_item }
-                            if (t.date) {
-                                let complete_date = t.date + exports.repairDuration({ repair_speed: exports.repairAbility({ droid, profile }).speed, health: profile_item.health })
-                                part_obj.end_date = complete_date
-                            }
-                            return (
-                                part_obj
-                            )
-                        }) : []
-                    })
-                }).map(droid => `**${droid.name}**\n${droid.tasks.map(t => `<a:sparks:672640526444527647> ${t.name}${t.end_date ? ` <t:${Math.round(t.end_date / 1000)}:R>` : ''}`).join("\n")}`).join("\n")
+                value: repair_map + additional
             })
         }
         if (section.value == 'duplicates') {
@@ -2111,12 +2118,14 @@ exports.inventoryComponents = function ({ profile, selection, db, interaction })
             { ...droid, ...exports.repairAbility({ droid, profile }), level: exports.droidLevel({ droid }) }
         ))
 
+
         const droid_select = new StringSelectMenuBuilder()
             .setCustomId('challenge_random_inventory_2')
             .setPlaceholder("Select a droid")
             .setMinValues(1)
             .setMaxValues(1)
-            .addOptions(...exports.paginator({
+        if (droids.length) {
+            droid_select.addOptions(...exports.paginator({
                 value: selected_droid, array: droids.sort((a, b) => a.repair_speed - b.repair_speed).map(d => ({
                     label: `${d.nick ? d.nick : d.name}`,
                     value: d.key,
@@ -2126,13 +2135,24 @@ exports.inventoryComponents = function ({ profile, selection, db, interaction })
                     }
                 }))
             }))
+        } else {
+            droid_select.addOptions({
+                value: 'no',
+                label: 'No droids available',
+                emoji: {
+                    id: '589481340957753363'
+                }
+            })
+        }
+
         comp.push(new ActionRowBuilder().addComponents(droid_select))
         const part_select = new StringSelectMenuBuilder()
             .setCustomId('challenge_random_inventory_3')
             .setPlaceholder("Select a part")
             .setMinValues(1)
             .setMaxValues(1)
-            .addOptions(...exports.paginator({
+        if (parts.length) {
+            part_select.addOptions(...exports.paginator({
                 value: selected_part, array: parts.sort((a, b) => a.health - b.health).map(p => ({
                     label: `${p.name} [${Math.round(100 * p.health / 255)}%]`,
                     value: p.key,
@@ -2142,12 +2162,22 @@ exports.inventoryComponents = function ({ profile, selection, db, interaction })
                     }
                 }))
             }))
+        } else {
+            part_select.addOptions({
+                label: 'No parts available',
+                value: 'no',
+                emoji: {
+                    id: '589481340957753363'
+                }
+            })
+        }
+
         comp.push(new ActionRowBuilder().addComponents(part_select))
         const TaskButton = new ButtonBuilder()
             .setCustomId("challenge_random_inventory_task")
             .setStyle(ButtonStyle.Primary)
             .setLabel(`Task Repairs`)
-            .setDisabled([null, undefined, ""].includes(selected_droid) || [null, undefined, ""].includes(selected_part))
+            .setDisabled([null, undefined, "", 'no'].includes(selected_droid) || [null, undefined, "", 'no'].includes(selected_part))
         const NameButton = new ButtonBuilder()
             .setCustomId('challenge_random_inventory_name')
             .setStyle(ButtonStyle.Secondary)

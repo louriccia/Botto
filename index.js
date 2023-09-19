@@ -23,13 +23,14 @@ var tools = require('./tools.js');
 const { betEmbed, betComponents } = require('./buttons/trugut_functions.js')
 var moment = require('moment');
 const { dailyChallenge, monthlyChallenge, dailyBounty, isActive, completeRepairs } = require("./buttons/challenge/functions")
-const { banners } = require('./data.js')
 client.commands = new Discord.Collection();
 client.buttons = new Discord.Collection();
 client.selects = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 const buttonFiles = fs.readdirSync('./buttons').filter(file => file.endsWith('.js'));
+
 const testing = false
+
 const openai = new OpenAIApi(new Configuration({
     apiKey: testing ? OPENAI_API_KEY : process.env.OPENAI_API_KEY,
 }));
