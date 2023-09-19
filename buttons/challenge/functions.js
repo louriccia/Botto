@@ -2235,7 +2235,7 @@ exports.inventoryComponents = function ({ profile, selection, db, interaction })
             .setCustomId('challenge_random_inventory_tricoat')
             .setStyle(ButtonStyle.Secondary)
             .setLabel('Role Color')
-        if (profile.roles.custom) {
+        if (profile?.roles?.custom) {
             comp.push(new ActionRowBuilder().addComponents(ColorButton))
         }
 
