@@ -3451,7 +3451,7 @@ exports.tradeEmbed = function ({ trade, db } = {}) {
         let other_name = db.user[other].name
         let trade_items = (trade.traders[key].items ? Object.values(trade.traders[key].items).map(i => {
             let item = db.user[trade.completed ? other : key].random.items[i]
-            let enriched_item = { ...items.find(j => j.id == item.id), ...item }
+            let enriched_item = { ...items.find(j => j.id == item?.id), ...item }
             return (
                 {
                     string: exports.itemString({ item: enriched_item }),
