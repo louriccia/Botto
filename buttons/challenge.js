@@ -436,7 +436,7 @@ module.exports = {
                                 .addFields(...new_items.map(item => ({ name: itemString({ item, profile }), value: `\`📀${tools.numberWithCommas(item.value)}\` | ${item.description}` })))
                             postMessage(client, interaction.channelId, { embeds: [congratsEmbed] })
                             profile = db.user[player].random
-                            collectionRewardUpdater({ profile, client, interaction, profileref, name, avatar })
+                            //collectionRewardUpdater({ profile, client, interaction, profileref, name, avatar })
                         } else if (args[2] == 'sabotage') {
                             let selected_player = iselection[3]?.[0]
                             if (selected_player == player) {
@@ -1014,7 +1014,7 @@ module.exports = {
 
                         const quoteEmbed = new EmbedBuilder()
                             .setTitle(":loudspeaker: Player Sponsorship")
-                            .setDescription(`${name} is now sponsoring <@${db.user[selection[2]].discordID}>!\nSponsorhip amount: \`📀${tools.numberWithCommas(shoption.price)}\``)
+                            .setDescription(`${name} is now sponsoring <@${db.user[selection[2][0]].discordID}>!\nSponsorhip amount: \`📀${tools.numberWithCommas(shoption.price)}\``)
                         interaction.reply({ embeds: [quoteEmbed] })
                     } else if (shoption.value == 'rerolldaily') {
                         //check if there was a daily less than an hour ago
