@@ -1014,7 +1014,7 @@ module.exports = {
 
                         const quoteEmbed = new EmbedBuilder()
                             .setTitle(":loudspeaker: Player Sponsorship")
-                            .setDescription(`${name} is now sponsoring <@${db.user[selection[2][0]].discordID}>!\nSponsorhip amount: \`📀${tools.numberWithCommas(shoption.price)}\``)
+                            .setDescription(`${name} is now sponsoring <@${db.user[sponsorplayer]?.discordID}>!\nSponsorhip amount: \`📀${tools.numberWithCommas(shoption.price)}\``)
                         interaction.reply({ embeds: [quoteEmbed] })
                     } else if (shoption.value == 'rerolldaily') {
                         //check if there was a daily less than an hour ago
