@@ -2432,13 +2432,7 @@ module.exports = {
                     }
                     break
                 case 'trade':
-                    if (!traders.includes(player)) {
-                        const holdUp = new EmbedBuilder()
-                            .setTitle("<:WhyNobodyBuy:589481340957753363> Get lost!")
-                            .setDescription("You are not a part of this trade.")
-                        interaction.reply({ embeds: [holdUp], ephemeral: true })
-                        return
-                    }
+
                     let trow = interaction.customId.split("_")[3]
                     trow = Number(trow)
                     let tselection = [0, 1, 2, 3, 4].map(i => {
@@ -2455,6 +2449,14 @@ module.exports = {
                     let trade = db.ch.trades[trade_id]
                     let traders = Object.keys(trade.traders)
                     let selected_item = interaction.values?.[0]
+
+                    if (!traders.includes(player)) {
+                        const holdUp = new EmbedBuilder()
+                            .setTitle("<:WhyNobodyBuy:589481340957753363> Get lost!")
+                            .setDescription("You are not a part of this trade.")
+                        interaction.reply({ embeds: [holdUp], ephemeral: true })
+                        return
+                    }
 
                     if (selected_item && !selected_item.includes('page_')) {
                         let trade_player = traders[args[2]]
