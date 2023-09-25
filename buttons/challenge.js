@@ -1014,7 +1014,7 @@ module.exports = {
 
                         const quoteEmbed = new EmbedBuilder()
                             .setTitle(":loudspeaker: Player Sponsorship")
-                            .setDescription(`${name} is now sponsoring <@${db.user[sponsorplayer]?.discordID}>!\nSponsorhip amount: \`📀${tools.numberWithCommas(Number(take) * 10000)}\``)
+                            .setDescription(`${name} is now sponsoring <@${db.user[sponsorplayer]?.discordID}>!\nSponsorship amount: \`📀${tools.numberWithCommas(Number(take) * 10000)}\``)
                         interaction.reply({ embeds: [quoteEmbed] })
                     } else if (shoption.value == 'rerolldaily') {
                         //check if there was a daily less than an hour ago
@@ -2425,11 +2425,15 @@ module.exports = {
                     })
                     let p = manageTruguts({ profile, profileref, transaction: 'd', amount: drop })
                     interaction.reply({ components: [], content: `You snagged a \`📀${tools.numberWithCommas(drop)}\` drop\nCurrent truguts: \`📀${tools.numberWithCommas(p.truguts_earned - p.truguts_spent)}\``, ephemeral: true })
-                    try {
-                        interaction.message.delete()
-                    } catch (err) {
-                        console.log(err)
-                    }
+                    client.channels.fetch(interaction.channelId).then(channel => {
+                        channel.messages.fetch(interaction.message.id).then((ffetch => {
+                            ffetch.delete()
+                        })).catch((err) => {
+                            console.log(err)
+                        })
+                    })
+
+
                     break
                 case 'trade':
 
