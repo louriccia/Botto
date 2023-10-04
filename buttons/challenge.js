@@ -116,7 +116,7 @@ module.exports = {
                     try {
                         let message = await interaction.reply(reply)
                         current_challenge.message = message.id
-                        current_challenge.channel = interaction.message.channelId
+                        current_challenge.channel = interaction.channelId
                         current_challenge.guild = interaction.guildId
                         current_challenge.url = message.url
                         challengesref.child(message.id).set(current_challenge)
@@ -354,7 +354,7 @@ module.exports = {
                         return
                     }
                     await current_challengeref.child('ratings').child(interaction.user.id).set({ user: player })
-                    await current_challengeref.child('earnings').child(interaction.user.id).update({ truguts_earned: current_challenge.earnings[interaction.user.id].truguts_earned + truguts.rated })
+                    await current_challengeref.child('earnings').child(interaction.user.id).update({ truguts_earned: (current_challenge.earnings[interaction.user.id]?.truguts_earned ?? 0) + truguts.rated })
 
                     //profileref.update({ truguts_earned: profile.truguts_earned + truguts.rated })
                     profile = manageTruguts({ profile, profileref, transaction: 'd', amount: truguts.rated * (profile.effects?.vote_confidence ? 2 : 1) })
@@ -386,7 +386,7 @@ module.exports = {
                     }
                     break
                 case 'inventory':
-                    let row = interaction.customId.split("_")[3]
+                    let row = interaction.customId?.split("_")[3] ?? 0
                     row = Number(row)
                     let iselection = [0, 1, 2, 3, 4].map(i => {
                         let val = interaction.message?.components[i]?.components[0]?.data?.options?.filter(o => o.default).map(o => o.value) ??
@@ -707,10 +707,16 @@ module.exports = {
                         }
                     }
                     profile = db.user[player].random
-                    interaction.update({ embeds: [inventoryEmbed({ profile, selection: iselection, name, avatar })], components: inventoryComponents({ profile, selection: iselection, db, interaction }) })
+                    if (interaction.isChatInputCommand()) {
+                        interaction.reply({ embeds: [inventoryEmbed({ profile, selection: iselection, name, avatar })], components: inventoryComponents({ profile, selection: iselection, db, interaction }) })
+
+                    } else {
+                        interaction.update({ embeds: [inventoryEmbed({ profile, selection: iselection, name, avatar })], components: inventoryComponents({ profile, selection: iselection, db, interaction }) })
+
+                    }
                     break
                 case 'shop':
-                    const selection = [0, 1, 2, 3, 4].map(i => (i == interaction.customId.split("_")[3] ? interaction.values : undefined) ?? interaction.message?.components[i]?.components[0]?.data?.options?.filter(o => o.default).map(o => o.value) ?? (interaction.message?.components[i]?.components[0]?.data?.options ? '' : null))
+                    const selection = [0, 1, 2, 3, 4].map(i => (i == interaction.customId?.split("_")[3] ? interaction.values : undefined) ?? interaction.message?.components[i]?.components[0]?.data?.options?.filter(o => o.default).map(o => o.value) ?? (interaction.message?.components[i]?.components[0]?.data?.options ? '' : null))
                     function optionLabel(o) {
                         let price = o.price
                         if (o.pricemap) {
@@ -724,7 +730,11 @@ module.exports = {
                     const shoption = shoptions.find(o => o.value == selection[1]?.[0])
                     const price = shoption?.pricemap ? shoption.price[selection[2]?.[0]] : shoption?.price
                     if (args[2] !== 'purchase') {
-                        interaction.update({ embeds: [shopEmbed({ shoptions, selection, profile })], components: shopComponents({ profile, selection, shoptions, purchased: false }) })
+                        if (interaction.isChatInputCommand()) {
+                            interaction.reply({ embeds: [shopEmbed({ shoptions, selection, profile })], components: shopComponents({ profile, selection, shoptions, purchased: false }) })
+                        } else {
+                            interaction.update({ embeds: [shopEmbed({ shoptions, selection, profile })], components: shopComponents({ profile, selection, shoptions, purchased: false }) })
+                        }
                         return
                     }
 
@@ -1529,6 +1539,12 @@ module.exports = {
                             interaction.reply({ embeds: [cantSponsor], ephemeral: true })
                             return
                         }
+                        sponsorchallenge.sponsor = {
+                            avatar,
+                            member,
+                            name,
+                            user: player
+                        }
                         const pub_response = await updateChallenge({ client, profile, current_challenge: sponsorchallenge, current_challengeref, profileref, member, name, avatar, interaction, db })
                         let publishmessage = await interaction.reply(pub_response)
                         if (interaction.guildId == swe1r_guild) {
@@ -1668,7 +1684,12 @@ module.exports = {
                     //     interaction.reply({ embeds: [holdUp], ephemeral: true, components: [row1]})
                     //     return
                     // }
-                    await interaction.deferUpdate()
+                    if (interaction.isChatInputCommand()) {
+                        await interaction.deferReply()
+                    } else {
+                        await interaction.deferUpdate()
+                    }
+
                     const ach_report = achievementProgress({ db, player: member })
                     const stats = getStats({ db, member, profile })
                     if (!profile.progression) {
@@ -1695,6 +1716,7 @@ module.exports = {
                         postMessage(client, interaction.channelId, { embeds: [new EmbedBuilder().setAuthor({ name: `${name} leveled up!`, iconURL: avatar }).setDescription(new_player_level.string).setFooter({ text: `Level ${new_player_level.level}` })] })
                     }
                     interaction.editReply({ embeds: [profileEmbed({ db, player: member, name, avatar, ach_report, profile, stats })], components: profileComponents({ member, ach_report, stats, profile }) })
+
                     break
                 case 'about':
                     let aselection = interaction.values?.[0] ?? 'rchallenge'
@@ -2284,33 +2306,38 @@ module.exports = {
                     }
 
                     //award sponsor cuts
-                    if (current_challenge.sponsors) {
-                        Object.keys(current_challenge.sponsors).forEach(async sponsorkey => {
-                            let sponsor = current_challenge.sponsors[sponsorkey]
-
-                            let thissponsor = db.user[sponsor.user]?.random
-                            let sponsor_earnings = Math.round(total_revenue * (truguts.sponsor_cut * (thissponsor?.effects?.sorry_mess ? 2 : 1)) * sponsor.multiplier)
-                            let thissponsorref = userref.child(sponsor.user).child("random")
-
-                            manageTruguts({ profile: thissponsor, profileref: thissponsorref, transaction: 'd', amount: sponsor_earnings })
-                            if (!current_challenge.sponsors[sponsor.member]?.earnings) {
-                                await current_challengeref.child('sponsors').child(sponsorkey).child('earnings').set(0)
-                            }
-                            await current_challengeref.child('sponsors').child(sponsorkey).child('earnings').set((current_challenge.sponsors?.[sponsor.member]?.earnings ?? 0) + sponsor_earnings)
-                        })
-                    }
+                    let earning_update = current_challenge.sponsor_earnings ?? {}
                     if (profile.sponsors) {
+                        //player sponsors
                         Object.values(profile.sponsors).forEach(async sponsor => {
                             let sponsor_profile = db.user[sponsor.player].random
                             let id = db.user[sponsor.player].discordID
-                            let sponsor_earnings = Math.round(total_revenue * (Number(sponsor.take) * (sponsor_profile.effects?.sorry_mess ? 2 : 1) / 100))
+                            let sponsor_earnings = Math.round(total_revenue * ((Number(sponsor.take) / 100) * (sponsor_profile.effects?.sorry_mess ? 2 : 1)))
                             manageTruguts({ profile: sponsor_profile, profileref: userref.child(sponsor.player).child('random'), transaction: 'd', amount: sponsor_earnings })
-                            if (!current_challenge.sponsors?.[id]?.earnings) {
-                                await current_challengeref.child('sponsors').child(id).update({ earnings: 0, name: `<@${db.user[sponsor.player].discordID}>` })
+
+                            if (!earning_update[id]) {
+                                earning_update[id] = 0
                             }
-                            await current_challengeref.child('sponsors').child(id).child('earnings').set((current_challenge?.sponsors?.[id]?.earnings ?? 0) + sponsor_earnings)
+                            earning_update[id] += sponsor_earnings
                         })
                     }
+                    if (current_challenge.sponsors) {
+                        //challenge sponsors
+                        Object.keys(current_challenge.sponsors).forEach(async sponsor_id => {
+                            let sponsor = current_challenge.sponsors[sponsor_id]
+
+                            let thissponsor = db.user[sponsor.user]?.random
+                            let sponsor_earnings = Math.round(total_revenue * ((thissponsor?.effects?.sorry_mess ? 2 : 1)) * sponsor.take)
+                            let thissponsorref = userref.child(sponsor.user).child("random")
+                            manageTruguts({ profile: thissponsor, profileref: thissponsorref, transaction: 'd', amount: sponsor_earnings })
+
+                            if (!earning_update[sponsor_id]) {
+                                earning_update[sponsor_id] = 0
+                            }
+                            earning_update[sponsor_id] += sponsor_earnings
+                        })
+                    }
+                    await current_challengeref.child('sponsor_earnings').update(earning_update)
 
                     //close bounties
                     if (current_challenge.bounties) {
@@ -2408,7 +2435,7 @@ module.exports = {
                         if (![undefined, ""].includes(current_challenge.earnings?.[member]?.item)) {
                             let item = items.find(i => i.id == current_challenge.earnings[member].item)
                             let dup = profile.items ? Object.values(profile.items).filter(i => i.id == item.id).length > 1 ? true : false : false
-                            receiptEmbed.addFields({ name: `${raritysymbols[item.rarity]} ${item.name}` + (item.health ? `[${Math.round(item.health * 100 / 255)} %]` : '') + (dup ? " (duplicate)" : ""), value: ` * ${item.description} * `, inline: true })
+                            receiptEmbed.addFields({ name: `${raritysymbols[item.rarity]} ${item.name}` + (item.health ? `[${Math.round(item.health * 100 / 255)} %]` : '') + (dup ? " (duplicate)" : ""), value: `*${item.description}*`, inline: true })
                         }
 
                         interaction.editReply({ embeds: [receiptEmbed], ephemeral: true })

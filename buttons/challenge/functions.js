@@ -275,7 +275,7 @@ exports.initializeChallenge = function ({ profile, member, type, name, avatar, u
     }
     if (type == 'private') {
         challenge.player = { member: member, name: name, avatar: avatar, user: user }
-        challenge.channel = interaction.message.channelId
+        challenge.channel = interaction.channelId
         challenge.guild = interaction.guildId
     } else if (type == 'cotd') {
         challenge.day = exports.easternTime().dayOfYear()
@@ -283,30 +283,34 @@ exports.initializeChallenge = function ({ profile, member, type, name, avatar, u
         challenge.month = exports.easternTime().month()
     }
 
-    challenge = exports.getSponsor(challenge, db)
+    challenge = exports.getSponsors(challenge, db)
 
     return challenge
 }
 
-exports.getSponsor = function (challenge, db) {
-    if (challenge.submissions) {
-        return challenge
-    }
+exports.getSponsors = function (challenge, db) {
+    // if (challenge.submissions) {
+    //     return challenge
+    // }
     challenge.sponsors = {}
-    challenge.sponsor_title = ''
-    challenge.sponsor_time = ''
+    if (!challenge.sponsor) {
+        challenge.sponsor = {}
+    }
+    console.log('getting sponsors')
     Object.values(db.ch.sponsors).filter(sponsor => exports.matchingChallenge(sponsor, challenge)).forEach(sponsor => {
+        console.log(sponsor)
         if (!challenge.sponsors[sponsor.sponsor?.member]) {
-            challenge.sponsors[sponsor.sponsor.member] = sponsor.sponsor
-            challenge.sponsors[sponsor.sponsor.member].multiplier = 1
+            challenge.sponsors[sponsor.sponsor.member] = { ...sponsor.sponsor, take: truguts.sponsor_cut, earnings: 0 }
         } else {
-            challenge.sponsors[sponsor.sponsor.member].multiplier++
+            challenge.sponsors[sponsor.sponsor.member].take += truguts.sponsor_cut
         }
+
         if (sponsor.title) {
-            challenge.sponsor_title = sponsor.title
+            challenge.sponsor.title = sponsor.title
         }
         if (sponsor.time) {
-            challenge.sponsor_time = sponsor.time
+            challenge.sponsor.time = sponsor.time
+            challenge.sponsor.user = sponsor.sponsor
         }
     })
     return challenge
@@ -365,7 +369,7 @@ exports.generateChallengeTitle = function (current_challenge) {
     let racer_flag = current_challenge.racer_bribe ? ":moneybag:" : racers[current_challenge.racer]?.flag
     let track_flag = current_challenge.track_bribe ? ":moneybag:" : planets[tracks[current_challenge.track]?.planet]?.emoji
     let status = current_challenge.rerolled ? ":arrows_counterclockwise: Rerolled: " : current_challenge.completed ? ":white_check_mark: Completed: " : ''
-    let sponsortitle = current_challenge.sponsor_title ? `*"${current_challenge.sponsor_title}"*\n` : ""
+    let sponsortitle = current_challenge.sponsor?.title ? `*"${current_challenge.sponsor?.title}"*\n` : ""
     let title = sponsortitle + status + prefix + (current_challenge.rerolled ? "~~" : "") + "Race as **" + bribed_racer + racer_flag + " " + racers[current_challenge.racer].name + bribed_racer + "**" + nutext + " on **" + bribed_track + track_flag + " " + tracks[current_challenge.track]?.name + bribed_track + "**" + laptext + skipstext + mirrortext + backwardstext + (current_challenge.rerolled ? "~~" : "")
     if (current_challenge.type == 'cotm') {
         title = Object.values(emojimap)[Math.floor(Math.random() * Object.values(emojimap).length)] + " Multi-track Challenge: Race as **" + racer_flag + " " + racers[current_challenge.racer].name + "**" + nutext + laptext + skipstext + mirrortext + backwardstext
@@ -382,7 +386,7 @@ exports.generateChallengeDescription = function ({ current_challenge, db, profil
         expiration = "Expires <t:" + Math.round((current_challenge.created + duration) / 1000) + ":R>"
     }
 
-    desc = [exports.getFeedbackTally(db, current_challenge), (!current_challenge.completed && !current_challenge.rerolled ? expiration : ''), (current_challenge.sponsors ? exports.getSponsors(current_challenge) : ''), (current_challenge.predictions && !current_challenge.completed ? exports.getPredictors(current_challenge) : "")].filter(d => ![null, undefined, ''].includes(d)).join(" | ")
+    desc = [exports.getFeedbackTally(db, current_challenge), (!current_challenge.completed && !current_challenge.rerolled ? expiration : ''), (current_challenge.sponsors ? exports.getSponsorsString(current_challenge) : ''), (current_challenge.predictions && !current_challenge.completed ? exports.getPredictors(current_challenge) : "")].filter(d => ![null, undefined, ''].includes(d)).join(" | ")
 
     let formercotd = Object.values(db.ch.challenges).find(c => c.created < current_challenge.created && c.type == 'cotd' && exports.matchingChallenge(c, current_challenge)) ?? null
     if (formercotd) {
@@ -428,8 +432,8 @@ exports.getPredictors = function (current_challenge) {
     return current_challenge.predictions ? "🔮 " + Object.values(current_challenge.predictions).map(p => p.name).join(", ") : ""
 }
 
-exports.getSponsors = function (current_challenge) {
-    return current_challenge.sponsors && Object.values(current_challenge.sponsors).length ? "📢 " + Object.values(current_challenge.sponsors).map(p => p.name + (p.earnings ? " `+📀" + tools.numberWithCommas(p.earnings) + "`" : "")).join(", ") : ""
+exports.getSponsorsString = function (current_challenge) {
+    return current_challenge.sponsor_earnings && Object.values(current_challenge.sponsor_earnings).length ? "📢 " + Object.keys(current_challenge.sponsor_earnings).map(key => `<@${key}> \`+📀${tools.numberWithCommas(current_challenge.sponsor_earnings[key])}\``).join(", ") : ""
 }
 
 exports.predictionScore = function (predicted_time, actual_time) {
@@ -596,10 +600,10 @@ exports.generateLeaderboard = function (best, member, current_challenge) {
                 })
             })
         }
-        if (current_challenge.sponsor_time) {
+        if (current_challenge.sponsor?.time) {
             best.push({
-                time: current_challenge.sponsor_time,
-                name: current_challenge.sponsor.name,
+                time: current_challenge.sponsor.time,
+                name: current_challenge.sponsor.user.name,
                 sponsor: true
             })
         }
@@ -852,7 +856,7 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, profi
         earnings += "`+📀" + tools.numberWithCommas(bounty_total) + "` :dart:\n"
         earnings_subtotal += bounty_total
     }
-    if (current_challenge.sponsor_time && Number(submitted_time.time) - Number(current_challenge.sponsor_time) < 0) {
+    if (current_challenge.sponsor?.time && Number(submitted_time.time) - Number(current_challenge.sponsor?.time) < 0) {
         earnings += "`+📀" + tools.numberWithCommas(truguts.beat_sponsor) + "` 📢\n"
         earnings_subtotal += truguts.beat_sponsor
     }
@@ -1004,11 +1008,11 @@ exports.getBest = function (db, current_challenge) {
 }
 
 exports.updateChallenge = async function ({ client, db, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction } = {}) {
-    record_holder = false
     let player = member
     let player_name = name
     let player_profile = profile
     let player_avatar = avatar
+
     if (current_challenge.type == 'private') {
         player = current_challenge.player.member
         player_name = current_challenge.player.name
@@ -1019,9 +1023,7 @@ exports.updateChallenge = async function ({ client, db, profile, current_challen
 
     let best = exports.getBest(db, current_challenge)
     let played = best.map(b => b.user).includes(player)
-    if (best.length > 0 && best[0].user == player) {
-        record_holder = true
-    }
+    let record_holder = best.length > 0 && best[0].user == player
 
     //refund bribe
     if (!current_challenge.refunded && current_challenge.bounties) {
@@ -1037,11 +1039,11 @@ exports.updateChallenge = async function ({ client, db, profile, current_challen
     }
 
     //get sponsor/bounties
+    current_challenge = exports.getSponsors(current_challenge, db)
 
-    current_challenge = exports.getSponsor(current_challenge, db)
     if (current_challenge.type == 'private') {
         current_challenge = exports.getBounty(current_challenge, db)
-        current_challenge.reroll_cost = current_challenge.sponsors?.[player] || record_holder ? "free" : played ? "discount" : "full price"
+        current_challenge.reroll_cost = (player_profile.effects?.free_rerolls || current_challenge.sponsors?.[player] || record_holder) ? "free" : played ? "discount" : "full price"
     }
 
     if (current_challengeref) {

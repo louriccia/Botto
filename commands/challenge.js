@@ -1,5 +1,3 @@
-const { filter } = require('../tourneydata.js');
-const tourney = require('./tourney.js');
 const { SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
@@ -8,12 +6,27 @@ module.exports = {
         .setDescription('randomly generated challenges')
         .addSubcommand(subcommand =>
             subcommand
-                .setName('random')
+                .setName('play')
                 .setDescription('get a random pod/track challenge, submit your time, earn truguts')
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('menu')
+                .setDescription('access all options related to random challenges')
+        ).addSubcommand(subcommand =>
+            subcommand
+                .setName('shop')
+                .setDescription('Take a look around! I\'ve got a-lots of junk!')
+        ).addSubcommand(subcommand =>
+            subcommand
+                .setName('inventory')
+                .setDescription('Manage your item rewards')
+        ).addSubcommand(subcommand =>
+            subcommand
+                .setName('profile')
+                .setDescription('Check out your challenge career stats')
         ),
     execute(interaction, database, db) {
-        if (interaction.options.getSubcommand() == "random") {
-            interaction.client.buttons.get("challenge").execute(interaction.client, interaction, ["random", "menu", "new"], database, db)
-        }
+        interaction.client.buttons.get("challenge").execute(interaction.client, interaction, ["random", interaction.options.getSubcommand()], database, db)
     }
 }
