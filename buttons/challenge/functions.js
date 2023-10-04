@@ -296,9 +296,7 @@ exports.getSponsors = function (challenge, db) {
     if (!challenge.sponsor) {
         challenge.sponsor = {}
     }
-    console.log('getting sponsors')
     Object.values(db.ch.sponsors).filter(sponsor => exports.matchingChallenge(sponsor, challenge)).forEach(sponsor => {
-        console.log(sponsor)
         if (!challenge.sponsors[sponsor.sponsor?.member]) {
             challenge.sponsors[sponsor.sponsor.member] = { ...sponsor.sponsor, take: truguts.sponsor_cut, earnings: 0 }
         } else {
@@ -860,13 +858,51 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, profi
         earnings += "`+📀" + tools.numberWithCommas(truguts.beat_sponsor) + "` 📢\n"
         earnings_subtotal += truguts.beat_sponsor
     }
-    if (profile.streak_start) {
-        let streak = Math.floor((profile.streak_end - profile.streak_start) / (1000 * 60 * 60 * 24))
-        if (streak > 0) {
-            earnings += "`+📀" + tools.numberWithCommas(truguts.streak * streak) + "` " + streak + "-Day Streak\n"
-            earnings_subtotal += truguts.streak * streak
+
+    //calculate streak
+    let challengehistory = Object.values(db.ch.times).filter(c => c.user == member && c.date < current_challenge.created).sort((a, b) => b.date - a.date)
+    let streak = {
+        day: {
+            streak: 0,
+            last: current_challenge.created
+        },
+        challenge: {
+            streak: 0,
+            last: current_challenge.created
         }
     }
+    let day_streaking = true
+    let challenge_streaking = true
+    for (let i = 0; i < challengehistory.length; i++) {
+        let date = challengehistory[i].date
+        if (date > streak.day.last - 1000 * 60 * 60 * 36) {
+            streak.day.last = date
+            streak.day.streak++
+        } else {
+            day_streaking = false
+        }
+        if (date > streak.challenge.last - 1000 * 60 * 30) {
+            streak.challenge.last = date
+            streak.challenge.streak++
+        } else {
+            challenge_streaking = false
+        }
+        if (!day_streaking && !challenge_streaking) {
+            i = challengehistory.length
+        }
+    }
+    let day_streak = Math.floor((current_challenge.created - streak.day.last) / (1000 * 60 * 60 * 24))
+    let challenge_streak = streak.challenge.streak
+
+    if (day_streak) {
+        earnings += "`+📀" + tools.numberWithCommas(truguts.day_streak * day_streak) + "` " + day_streak + "-Day Streak\n"
+        earnings_subtotal += truguts.day_streak * day_streak
+    }
+    if (challenge_streak) {
+        earnings += "`+📀" + tools.numberWithCommas(truguts.challenge_streak * challenge_streak) + "` " + challenge_streak + "-Challenge Streak\n"
+        earnings_subtotal += truguts.challenge_streak * challenge_streak
+    }
+
     let first = true, pb = false, beat = []
     for (let i = 0; i < best.length; i++) {
         if (best[i].date < submitted_time.date) {

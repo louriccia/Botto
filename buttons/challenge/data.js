@@ -53,7 +53,8 @@ exports.truguts = {
     long: 200,
     extra_long: 400,
     prediction_max: 500,
-    streak: 25,
+    day_streak: 25,
+    challenge_streak: 10,
     beat_sponsor: 1200,
     sponsor_cut: 0.20,
     abandoned: 0.5,
@@ -264,7 +265,7 @@ exports.inventorySections = [
         emoji: {
             name: '↔'
         },
-        info: "Trade items and truguts with other players!" ,
+        info: "Trade items and truguts with other players!",
         abilities: []
     },
     {

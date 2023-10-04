@@ -2379,7 +2379,6 @@ module.exports = {
                         progression[progress.racer] += progress.points
                         let new_player_level = playerLevel(progression)
                         let new_level = convertLevel(progression[progress.racer]).level
-                        console.log(new_level, level, new_player_level.level, player_level)
                         if (new_level !== level) {
                             let truguts = 0
                             let items = []
