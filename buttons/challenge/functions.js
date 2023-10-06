@@ -892,14 +892,14 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, profi
         }
     }
     let day_streak = Math.floor((current_challenge.created - streak.day.last) / (1000 * 60 * 60 * 24))
-    let challenge_streak = streak.challenge.streak
+    let challenge_streak = streak.challenge.streak + 1
 
     if (day_streak) {
         earnings += "`+📀" + tools.numberWithCommas(truguts.day_streak * day_streak) + "` " + day_streak + "-Day Streak\n"
         earnings_subtotal += truguts.day_streak * day_streak
     }
-    if (challenge_streak) {
-        earnings += "`+📀" + tools.numberWithCommas(truguts.challenge_streak * challenge_streak) + "` " + challenge_streak + "-Challenge Streak\n"
+    if (challenge_streak > 1) {
+        earnings += "`+📀" + tools.numberWithCommas(truguts.challenge_streak * challenge_streak) + "` " + (challenge_streak) + "-Challenge Streak\n"
         earnings_subtotal += truguts.challenge_streak * challenge_streak
     }
 
