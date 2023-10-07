@@ -2223,7 +2223,7 @@ exports.inventoryComponents = function ({ profile, selection, db, interaction })
             .setDisabled([null, undefined, ""].includes(selected_droid))
         comp.push(new ActionRowBuilder().addComponents(TaskButton, NameButton))
     } else if (selection[1]?.[0] == 'roles') {
-        
+
         const citizen_select = new StringSelectMenuBuilder()
             .setCustomId('challenge_random_inventory_2')
             .setPlaceholder("Citizen roles")
@@ -2252,16 +2252,29 @@ exports.inventoryComponents = function ({ profile, selection, db, interaction })
                     id: role.emoji_id
                 }
             })
-        }) : [
-            {
-                label: 'No emoji roles',
-                value: 'no',
-                description: "You haven't bought an emoji icon role",
-                emoji: {
-                    id: '589481340957753363'
+        }) : []
+        if (emoji_roles.length) {
+            emoji_roles.push(
+                {
+                    label: 'No icon',
+                    value: 'no',
+                    description: "Clear your role icon",
                 }
-            }
-        ]
+            )
+        } else {
+            emoji_roles.push(
+                {
+                    label: 'No emoji roles',
+                    value: 'no',
+                    description: "You haven't bought an emoji icon role",
+                    emoji: {
+                        id: '589481340957753363'
+                    }
+                }
+            )
+        }
+
+
         const emoji_role_select = new StringSelectMenuBuilder()
             .setCustomId('challenge_random_inventory_icon')
             .setPlaceholder("Emoji icon roles")

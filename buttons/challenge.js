@@ -1095,6 +1095,11 @@ module.exports = {
                             let pos = await SWE1R_Guild.roles.cache.get('1094292597478010880')
                             let e = emojimap[emojikey].split(":")[2].replace(">", "")
                             const m = await SWE1R_Guild.members.cache.find(m => m.id == member)
+                            if (profile?.roles?.emoji && interaction.guild.id == swe1r_guild) {
+                                Object.values(profile.roles.emoji).forEach(role => {
+                                    Member.roles.remove(role.id)
+                                })
+                            }
                             if (role) {
                                 m.roles.add(role)
                                 database.ref(`users/${player}/random/roles/emoji`).push({ id: role.id, emoji_id: e })
@@ -1109,7 +1114,7 @@ module.exports = {
 
                             const quoteEmbed = new EmbedBuilder()
                                 .setTitle("✨Emoji Role Icon")
-                                .setDescription(`You just bought an emoji role icon ${emojimap[emojikey]}! You should see the selected emoji next to your name in the SWE1R Discord.`)
+                                .setDescription(`You just bought an emoji role icon ${emojimap[emojikey]}! You can equip it from your inventory.`)
                             interaction.reply({ embeds: [quoteEmbed], ephemeral: true })
                         } else {
                             const sponsorModal = new ModalBuilder()
