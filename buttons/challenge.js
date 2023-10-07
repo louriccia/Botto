@@ -3,8 +3,10 @@ const { getGoalTimes, initializeChallenge, initializePlayer, updateChallenge, br
 const { postMessage, editMessage } = require('../discord_message.js');
 const { tracks, circuits, banners, emojimap, planets } = require('../data.js')
 const { items, raritysymbols, collections } = require('./challenge/items.js')
-const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } = require('discord.js');
+const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, AttachmentBuilder } = require('discord.js');
 const moment = require('moment');
+const Jimp = require('jimp');
+const fs = require('fs');
 require('moment-timezone')
 
 module.exports = {
@@ -1161,11 +1163,31 @@ module.exports = {
                             let role = await SWE1R_Guild.roles.cache.get('1144077932021686272')
                             role.edit({ color: color })
 
+                            const avatarColorURL = 'https://cdn.discordapp.com/attachments/1135800422066556940/1160326500957028422/botto_color.png';
+                            const avatarWhiteURL = 'https://cdn.discordapp.com/attachments/1135800422066556940/1160326538324103228/botto_white.png'
+                            const avatarColor = await Jimp.read(avatarColorURL);
+                            const avatarWhite = await Jimp.read(avatarWhiteURL)
+
+                            avatarColor.color([{ apply: 'mix', params: [color, 100] }]);
+
+                            avatarColor.composite(avatarWhite, 0, 0, {
+                                mode: Jimp.BLEND_DESTINATION_OVER
+                            });
+
+                            const modifiedAvatarPath = 'modified_avatar.png';
+                            await avatarColor.writeAsync(modifiedAvatarPath);
+
+                            // Set the bot's avatar to the modified image
+                            const newAvatarBuffer = fs.readFileSync(modifiedAvatarPath);
+                            await client.user.setAvatar(newAvatarBuffer);
+                            const file = new AttachmentBuilder(modifiedAvatarPath);
+                                
                             const quoteEmbed = new EmbedBuilder()
                                 .setTitle("✨New Botto Color")
                                 .setDescription(`<@${member}> just changed <@545798436105224203>'s color!`)
                                 .setColor(color)
-                            interaction.reply({ embeds: [quoteEmbed] })
+                                .setImage(`attachment://${modifiedAvatarPath}`);
+                            interaction.reply({ embeds: [quoteEmbed], files: [file] })
 
                         } else {
                             const sponsorModal = new ModalBuilder()

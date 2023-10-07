@@ -307,8 +307,8 @@ exports.getSponsors = function (challenge, db) {
             challenge.sponsor.title = sponsor.title
         }
         if (sponsor.time) {
+            challenge.sponsor = JSON.parse(JSON.stringify(sponsor.sponsor))
             challenge.sponsor.time = sponsor.time
-            challenge.sponsor.user = sponsor.sponsor
         }
     })
     return challenge
