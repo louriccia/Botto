@@ -13,7 +13,7 @@ module.exports = {
         let member = interaction.user.id
         const Guild = interaction.guild
         const SWE1R_Guild = await client.guilds.cache.get("441839750555369474")
-        const Member = interaction.member
+        const Member = await Guild.members.fetch(member)
         const name = interaction.member.displayName
         const avatar = await interaction.member.displayAvatarURL()
         var tools = require('./../tools.js');
@@ -529,9 +529,6 @@ module.exports = {
                             await profileref.child('items').child(key).update({ scrapped: scrap.key })
                             manageTruguts({ profile, profileref, transaction: 'd', amount: Math.round(scrap_item.value * (profile.effects?.efficient_scrapper ? 1 : 0.5) * (profile.items[key].health ? (profile.items[key].health / 255) : 1)) })
                         }
-
-
-
                     } else if (args[2] == 'sarlacc') {
                         let scrap_key = iselection[2][0]
                         if ([null, undefined, ''].includes(scrap_key)) {
@@ -704,6 +701,17 @@ module.exports = {
                             sponsorModal.addComponents(ActionRow1)
                             await interaction.showModal(sponsorModal)
                             return
+                        }
+                    } else if (args[2] == 'icon') {
+                        console.log(interaction.values[0])
+                        if (profile?.roles?.emoji && interaction.guild.id == swe1r_guild) {
+                            Object.values(profile.roles.emoji).forEach(role => {
+                                if (interaction.values.includes(role.id)) {
+                                    Member.roles.add(role.id)
+                                } else {
+                                    Member.roles.remove(role.id)
+                                }
+                            })
                         }
                     }
                     profile = db.user[player].random
@@ -1077,7 +1085,7 @@ module.exports = {
                             }
 
                             let role = await SWE1R_Guild.roles.cache.find(r => r.name == emojikey)
-                            if (profile.roles?.emoji && Object.values(profile.roles.emoji).map(r => r.id).includes(role.id)) {
+                            if (profile.roles?.emoji && Object.values(profile.roles.emoji).map(r => r.id).includes(role?.id)) {
                                 const noTruguts = new EmbedBuilder()
                                     .setTitle("<:WhyNobodyBuy:589481340957753363> Don't do that again")
                                     .setDescription("You already own this emoji icon. You can equip or unequip in roles in **🎒 Inventory**")

@@ -2223,6 +2223,7 @@ exports.inventoryComponents = function ({ profile, selection, db, interaction })
             .setDisabled([null, undefined, ""].includes(selected_droid))
         comp.push(new ActionRowBuilder().addComponents(TaskButton, NameButton))
     } else if (selection[1]?.[0] == 'roles') {
+        
         const citizen_select = new StringSelectMenuBuilder()
             .setCustomId('challenge_random_inventory_2')
             .setPlaceholder("Citizen roles")
@@ -2249,8 +2250,7 @@ exports.inventoryComponents = function ({ profile, selection, db, interaction })
                 value: role.id,
                 emoji: {
                     id: role.emoji_id
-                },
-                default: interaction.member.roles.cache.some(r => r.id === role.id)
+                }
             })
         }) : [
             {
@@ -2263,7 +2263,7 @@ exports.inventoryComponents = function ({ profile, selection, db, interaction })
             }
         ]
         const emoji_role_select = new StringSelectMenuBuilder()
-            .setCustomId('challenge_random_inventory_3')
+            .setCustomId('challenge_random_inventory_icon')
             .setPlaceholder("Emoji icon roles")
             .setMinValues(0)
             .setMaxValues(1)
