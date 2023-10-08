@@ -3,7 +3,7 @@ const Discord = require('discord.js');
 const { Client, Events, GatewayIntentBits, Partials, ButtonStyle, ActionRowBuilder, ButtonBuilder } = require('discord.js')
 const { Configuration, OpenAIApi } = require("openai")
 
-//const { token, firebaseCon, OPENAI_API_KEY } = require('./config.json');
+//const { token, firebaseCon, OPENAI_API_KEY, twitch } = require('./config.json');
 const { welcomeMessages } = require('./data.js')
 const client = new Client({
     intents: [
@@ -18,6 +18,10 @@ const client = new Client({
     partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
 
+const TwitchApi = require("node-twitch").default;
+
+
+
 var { errorMessage } = require("./data.js");
 var tools = require('./tools.js');
 const { betEmbed, betComponents } = require('./buttons/trugut_functions.js')
@@ -30,6 +34,11 @@ const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('
 const buttonFiles = fs.readdirSync('./buttons').filter(file => file.endsWith('.js'));
 
 const testing = false
+
+const Twitch = new TwitchApi({
+    client_id: testing ? twitch.id : process.env.TWITCH_ID,
+    client_secret: testing ? twitch.token : process.env.TWITCH_SECRET
+});
 
 const openai = new OpenAIApi(new Configuration({
     apiKey: testing ? OPENAI_API_KEY : process.env.OPENAI_API_KEY,
@@ -48,6 +57,8 @@ for (const file of buttonFiles) {
     const button = require(`./buttons/${file}`);
     client.buttons.set(button.name, button);
 }
+
+let streamers = {}
 
 var firebase = require("firebase/app");
 require('firebase/auth');
@@ -294,6 +305,37 @@ client.once(Events.ClientReady, async () => {
 
     const Guild = await client.guilds.cache.get("441839750555369474")
 
+    async function getStream() {
+        const response = await Twitch.getStreams({ game_id: "12415" });
+        const streams = response.data;
+        const channel = client.channels.cache.get('515311630100463656');
+        if (streams.length > 0) {
+            // Create an array of stream links
+            let stream_condensed = streams.filter(stream => !streamers[stream.user_name] || (streamers[stream.user_name] && Date.now() > streamers[stream.user_name] + 1000 * 60 * 60)).slice(0, 10)
+            stream_condensed.forEach(stream => {
+                streamers[stream.user_name] = Date.now()
+            })
+            stream_condensed.forEach(async (stream) => {
+                const s = await Twitch.getUsers(stream.user_login);
+                const profile = s?.data?.[0]?.profile_image_url
+                const streamEmbed = new Discord.EmbedBuilder()
+                    .setAuthor({ name: `${stream.user_name} is streaming Star Wars Episode I: Racer on Twitch!`, iconURL: 'https://assets.stickpng.com/images/580b57fcd9996e24bc43c540.png' })
+                    .setURL(`https://www.twitch.tv/${stream.user_login}`)
+                    .setDescription(`Started streaming <t:${Math.round(Date.parse(stream.started_at) / 1000)}:R>`)
+                    .setColor("#6440A5")
+                    .setThumbnail(profile)
+                    .setImage(stream.getThumbnailUrl())//stream.thumbnail_url.replace("{width}", "400").replace("{height}", "225"))
+                if (stream.tags) {
+                    streamEmbed.setFooter({ text: stream.tags.join(" • ") })
+                }
+                if (stream.title) {
+                    streamEmbed.setTitle(stream.title)
+                }
+                channel.send({ embeds: [streamEmbed] });
+            })
+        }
+    }
+
     const updater = async () => {
         Object.keys(db.user).filter(key => db.user[key]?.random?.items).forEach(key => completeRepairs({ profile: db.user[key].random, profileref: database.ref(`users/${key}/random`), client, member: db.user[key].discordID }))
 
@@ -301,7 +343,7 @@ client.once(Events.ClientReady, async () => {
             dailyChallenge({ client, db, challengesref: database.ref('challenge/challenges') })
             monthlyChallenge({ client, db, challengesref: database.ref('challenge/challenges'), database })
             dailyBounty({ client, db, bountyref: database.ref('challenge/bounties') })
-
+            getStream();
             Object.values(db.ch.challenges).filter(challenge => ['cotd', 'cotm', 'open'].includes(challenge.type) && !isActive(challenge) && Date.now() - 48 * 60 * 60 * 1000 < challenge.created && challenge.channel == '551786988861128714' && challenge.message).forEach(challenge => {
                 try {
                     client.channels.cache.get('551786988861128714').messages.fetch(challenge.message).then(msg => { if (msg.pinned) { msg.unpin().catch(console.error) } })
