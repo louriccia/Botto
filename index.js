@@ -1,9 +1,10 @@
 const fs = require('fs');
 const Discord = require('discord.js');
-const { Client, Events, GatewayIntentBits, Partials, ButtonStyle, ActionRowBuilder, ButtonBuilder } = require('discord.js')
+const axios = require('axios');
+//const { Client, Events, GatewayIntentBits, Partials, ButtonStyle, ActionRowBuilder, ButtonBuilder } = require('discord.js')
 const { Configuration, OpenAIApi } = require("openai")
-
-//const { token, firebaseCon, OPENAI_API_KEY, twitch } = require('./config.json');
+const { tracks } = require('./data')
+const { token, firebaseCon, OPENAI_API_KEY, twitch } = require('./config.json');
 const { welcomeMessages } = require('./data.js')
 const client = new Client({
     intents: [
@@ -25,7 +26,6 @@ const TwitchApi = require("node-twitch").default;
 var { errorMessage } = require("./data.js");
 var tools = require('./tools.js');
 const { betEmbed, betComponents } = require('./buttons/trugut_functions.js')
-var moment = require('moment');
 const { dailyChallenge, monthlyChallenge, dailyBounty, isActive, completeRepairs } = require("./buttons/challenge/functions")
 client.commands = new Discord.Collection();
 client.buttons = new Discord.Collection();
@@ -247,6 +247,8 @@ async function getCommands() {
 client.once(Events.ClientReady, async () => {
     console.log('Ready!')
 
+
+
     //set bot activity
     client.user.setActivity("/help");
     if (!testing) {
@@ -259,7 +261,89 @@ client.once(Events.ClientReady, async () => {
         })
             .catch(console.error);
     }
-    client.channels.cache.get(testing ? "1135800422066556940" : "444208252541075476").send("Deployed <t:" + Math.round(Date.now() / 1000) + ":R>");
+    const notif_channel = client.channels.cache.get(testing ? "1135800422066556940" : "444208252541075476")
+    try {
+        // Make a request to the Papertrail API to fetch logs
+        const response = await axios.get(
+            'https://papertrailapp.com/api/v1/events/search.json',
+            {
+                headers: {
+                    'X-Papertrail-Token': 'GDSf9IvFN02rrTIfrKPE',
+                },
+                params: {
+                    //q: 'error', // Customize the search query
+                    limit: 5,    // Limit to the last log entry
+                },
+            }
+        );
+
+        // Extract the log message from the response
+        let events = response.data.events.map(event => `${event.display_received_at} ${event.message}`)
+        events = events.filter(e => !e.includes('[WARNING]') && !e.includes('Ready!'))
+
+        // Send the log message to the Discord channel
+        notif_channel.send(`Deployed <t:${Math.round(Date.now() / 1000)}:R>\n\`\`\`${events.join("\n")}\`\`\``);
+    } catch (error) {
+        console.error('Error fetching logs:', error);
+        notif_channel.send('Error fetching logs from Papertrail.');
+    }
+
+    const apiKey = 'AIzaSyCEJX5k_LmFjPxV-1IQYZNESC3apL62onM';
+
+    // Define the search query (e.g., a game or topic)
+    const searchQuery = `star wars episode i racer, star wars racer, podracer, podracing, botto, ${tracks.map(t => t.name).join(", ")}`//'Star Wars Episode I: Racer';
+
+    async function searchYouTubeStreams() {
+        const channel = client.channels.cache.get('1135800422066556940');
+        try {
+            // Make a request to the YouTube Data API to search for live streams
+            const response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
+                params: {
+                    key: apiKey,
+                    part: 'snippet',
+                    type: 'video',
+                    eventType: 'live',
+                    q: searchQuery,
+                },
+            });
+            console.log(response.data.items)
+            const liveStreams = response.data.items;
+
+            if (liveStreams.length > 0) {
+                liveStreams.forEach(async stream => {
+                    const streamResponse = await axios.get('https://www.googleapis.com/youtube/v3/videos', {
+                        params: {
+                            key: apiKey,
+                            part: 'snippet',
+                            id: stream.id.videoId,
+                        },
+                    })
+                    const stream_info = streamResponse.data.items?.[0]
+                    // Extract video IDs and construct stream links
+
+                    if (stream_info.snippet.categoryId == '20') {
+                        const streamEmbed = new Discord.EmbedBuilder()
+                            .setAuthor({ name: `${stream.snippet.channelTitle} is podracing on YouTube!`, iconURL: 'https://www.iconpacks.net/icons/2/free-youtube-logo-icon-2431-thumb.png' })
+                            .setURL(`https://www.youtube.com/watch?v=${stream.id.videoId}`)
+                            .setTitle(stream.snippet.title)
+                            .setColor("#FF0000")
+                            .setImage(stream.snippet.thumbnails.medium.url)//stream.thumbnail_url.replace("{width}", "400").replace("{height}", "225"))
+                        if (stream_info.snippet.tags) {
+                            streamEmbed.setFooter({ text: stream_info.snippet.tags?.join(" • ") })
+                        }
+                        //.setThumbnail(profile)
+
+                        channel.send({ embeds: [streamEmbed] });
+                    }
+                })
+            }
+        } catch (error) {
+            console.error('Error fetching YouTube streams:', error);
+        }
+    }
+
+    // Call the function to search for YouTube streams
+    searchYouTubeStreams();
 
     database.ref('users').once("value", function (snapshot) {
         if (!testing) {
@@ -311,7 +395,7 @@ client.once(Events.ClientReady, async () => {
         const channel = client.channels.cache.get('515311630100463656');
         if (streams.length > 0) {
             // Create an array of stream links
-            let stream_condensed = streams.filter(stream => !streamers[stream.user_name] || (streamers[stream.user_name] && Date.now() > streamers[stream.user_name] + 1000 * 60 * 60)).slice(0, 10)
+            let stream_condensed = streams.filter(stream => !streamers[stream.user_name] || (streamers[stream.user_name] && Date.now() > streamers[stream.user_name] + 1000 * 60 * 60 * 4)).slice(0, 10)
             stream_condensed.forEach(stream => {
                 streamers[stream.user_name] = Date.now()
             })
@@ -789,7 +873,6 @@ client.on(Events.MessageCreate, async function (message) {
     }
     if (message.guildId == '441839750555369474' && !testing) {
         if (Math.random() < 0.04) {
-            console.log('test')
             let drop = Math.floor(Math.random() * 20) * 100 + 500
 
             postMessage(client, message.channelId, { components: [new ActionRowBuilder().addComponents(new ButtonBuilder().setLabel(`📀${tools.numberWithCommas(drop)}`).setCustomId(`challenge_random_drop_${drop}`).setStyle(ButtonStyle.Secondary))] })
