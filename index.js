@@ -290,13 +290,10 @@ client.once(Events.ClientReady, async () => {
 
     const apiKey = testing ? YOUTUBE_KEY : process.env.YOUTUBE_KEY;
 
-    // Define the search query (e.g., a game or topic)
-    const searchQuery = `star wars episode i racer, star wars racer, podracer, podracing, botto, ${tracks.map(t => t.name).join(", ")}`//'Star Wars Episode I: Racer';
-
+    const searchQuery = testing ? 'overwatch 2' : `star wars episode i racer, star wars racer, podracer, podracing, botto, ${tracks.map(t => t.name).join(", ")}`
+    const stream_channel = client.channels.cache.get(testing ? '1135800422066556940' : '515311630100463656');
     async function searchYouTubeStreams() {
-        const channel = client.channels.cache.get('1135800422066556940');
         try {
-            // Make a request to the YouTube Data API to search for live streams
             const response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
                 params: {
                     key: apiKey,
@@ -306,7 +303,6 @@ client.once(Events.ClientReady, async () => {
                     q: searchQuery,
                 },
             });
-            console.log(response.data.items)
             const liveStreams = response.data.items;
 
             if (liveStreams.length > 0) {
@@ -319,21 +315,18 @@ client.once(Events.ClientReady, async () => {
                         },
                     })
                     const stream_info = streamResponse.data.items?.[0]
-                    // Extract video IDs and construct stream links
-
-                    if (stream_info.snippet.categoryId == '20') {
+                    if (stream_info.snippet.categoryId == '20' && (!streamers[stream.snippet.channelTitle] || (streamers[stream.snippet.channelTitle] && Date.now() > streamers[stream.snippet.channelTitle] + 1000 * 60 * 60 * 4))) {
                         const streamEmbed = new Discord.EmbedBuilder()
                             .setAuthor({ name: `${stream.snippet.channelTitle} is podracing on YouTube!`, iconURL: 'https://www.iconpacks.net/icons/2/free-youtube-logo-icon-2431-thumb.png' })
                             .setURL(`https://www.youtube.com/watch?v=${stream.id.videoId}`)
                             .setTitle(stream.snippet.title)
                             .setColor("#FF0000")
-                            .setImage(stream.snippet.thumbnails.medium.url)//stream.thumbnail_url.replace("{width}", "400").replace("{height}", "225"))
+                            .setImage(stream.snippet.thumbnails.medium.url)
                         if (stream_info.snippet.tags) {
                             streamEmbed.setFooter({ text: stream_info.snippet.tags?.join(" • ") })
                         }
-                        //.setThumbnail(profile)
-
-                        channel.send({ embeds: [streamEmbed] });
+                        stream_channel.send({ embeds: [streamEmbed] });
+                        streamers[stream.snippet.channelTitle] = Date.now()
                     }
                 })
             }
@@ -342,8 +335,35 @@ client.once(Events.ClientReady, async () => {
         }
     }
 
-    // Call the function to search for YouTube streams
-    searchYouTubeStreams();
+    async function getStream() {
+        const response = await Twitch.getStreams({ game_id: testing ? "515025" : "12415" });
+        const streams = response.data;
+        if (streams.length > 0) {
+            // Create an array of stream links
+            let stream_condensed = streams.filter(stream => !streamers[stream.user_name] || (streamers[stream.user_name] && Date.now() > streamers[stream.user_name] + 1000 * 60 * 60 * 4)).slice(0, 10)
+            stream_condensed.forEach(stream => {
+                streamers[stream.user_name] = Date.now()
+            })
+            stream_condensed.forEach(async (stream) => {
+                const s = await Twitch.getUsers(stream.user_login);
+                const profile = s?.data?.[0]?.profile_image_url
+                const streamEmbed = new Discord.EmbedBuilder()
+                    .setAuthor({ name: `${stream.user_name} is streaming Star Wars Episode I: Racer on Twitch!`, iconURL: 'https://assets.stickpng.com/images/580b57fcd9996e24bc43c540.png' })
+                    .setURL(`https://www.twitch.tv/${stream.user_login}`)
+                    .setDescription(`Started streaming <t:${Math.round(Date.parse(stream.started_at) / 1000)}:R>`)
+                    .setColor("#6440A5")
+                    .setThumbnail(profile)
+                    .setImage(stream.getThumbnailUrl())
+                if (stream.tags) {
+                    streamEmbed.setFooter({ text: stream.tags.join(" • ") })
+                }
+                if (stream.title) {
+                    streamEmbed.setTitle(stream.title)
+                }
+                stream_channel.send({ embeds: [streamEmbed] });
+            })
+        }
+    }
 
     database.ref('users').once("value", function (snapshot) {
         if (!testing) {
@@ -389,45 +409,17 @@ client.once(Events.ClientReady, async () => {
 
     const Guild = await client.guilds.cache.get("441839750555369474")
 
-    async function getStream() {
-        const response = await Twitch.getStreams({ game_id: "12415" });
-        const streams = response.data;
-        const channel = client.channels.cache.get('515311630100463656');
-        if (streams.length > 0) {
-            // Create an array of stream links
-            let stream_condensed = streams.filter(stream => !streamers[stream.user_name] || (streamers[stream.user_name] && Date.now() > streamers[stream.user_name] + 1000 * 60 * 60 * 4)).slice(0, 10)
-            stream_condensed.forEach(stream => {
-                streamers[stream.user_name] = Date.now()
-            })
-            stream_condensed.forEach(async (stream) => {
-                const s = await Twitch.getUsers(stream.user_login);
-                const profile = s?.data?.[0]?.profile_image_url
-                const streamEmbed = new Discord.EmbedBuilder()
-                    .setAuthor({ name: `${stream.user_name} is streaming Star Wars Episode I: Racer on Twitch!`, iconURL: 'https://assets.stickpng.com/images/580b57fcd9996e24bc43c540.png' })
-                    .setURL(`https://www.twitch.tv/${stream.user_login}`)
-                    .setDescription(`Started streaming <t:${Math.round(Date.parse(stream.started_at) / 1000)}:R>`)
-                    .setColor("#6440A5")
-                    .setThumbnail(profile)
-                    .setImage(stream.getThumbnailUrl())//stream.thumbnail_url.replace("{width}", "400").replace("{height}", "225"))
-                if (stream.tags) {
-                    streamEmbed.setFooter({ text: stream.tags.join(" • ") })
-                }
-                if (stream.title) {
-                    streamEmbed.setTitle(stream.title)
-                }
-                channel.send({ embeds: [streamEmbed] });
-            })
-        }
-    }
-
     const updater = async () => {
         Object.keys(db.user).filter(key => db.user[key]?.random?.items).forEach(key => completeRepairs({ profile: db.user[key].random, profileref: database.ref(`users/${key}/random`), client, member: db.user[key].discordID }))
-
+        searchYouTubeStreams();
+        dailyBounty({ client, db, bountyref: database.ref('challenge/bounties') })
+        getStream();
+        console.log(streamers)
         if (!testing) {
             dailyChallenge({ client, db, challengesref: database.ref('challenge/challenges') })
             monthlyChallenge({ client, db, challengesref: database.ref('challenge/challenges'), database })
-            dailyBounty({ client, db, bountyref: database.ref('challenge/bounties') })
-            getStream();
+
+
             Object.values(db.ch.challenges).filter(challenge => ['cotd', 'cotm', 'open'].includes(challenge.type) && !isActive(challenge) && Date.now() - 48 * 60 * 60 * 1000 < challenge.created && challenge.channel == '551786988861128714' && challenge.message).forEach(challenge => {
                 try {
                     client.channels.cache.get('551786988861128714').messages.fetch(challenge.message).then(msg => { if (msg.pinned) { msg.unpin().catch(console.error) } })
