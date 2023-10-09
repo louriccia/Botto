@@ -331,7 +331,7 @@ client.once(Events.ClientReady, async () => {
                 })
             }
         } catch (error) {
-            console.error('Error fetching YouTube streams:', error);
+            console.error('Error fetching YouTube streams');
         }
     }
 
