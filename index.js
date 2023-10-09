@@ -1,10 +1,10 @@
 const fs = require('fs');
 const Discord = require('discord.js');
 const axios = require('axios');
-//const { Client, Events, GatewayIntentBits, Partials, ButtonStyle, ActionRowBuilder, ButtonBuilder } = require('discord.js')
+const { Client, Events, GatewayIntentBits, Partials, ButtonStyle, ActionRowBuilder, ButtonBuilder } = require('discord.js')
 const { Configuration, OpenAIApi } = require("openai")
 const { tracks } = require('./data')
-const { token, firebaseCon, OPENAI_API_KEY, twitch } = require('./config.json');
+//const { token, firebaseCon, OPENAI_API_KEY, twitch, YOUTUBE_KEY, PAPERTRAIL_KEY } = require('./config.json');
 const { welcomeMessages } = require('./data.js')
 const client = new Client({
     intents: [
@@ -268,11 +268,11 @@ client.once(Events.ClientReady, async () => {
             'https://papertrailapp.com/api/v1/events/search.json',
             {
                 headers: {
-                    'X-Papertrail-Token': 'GDSf9IvFN02rrTIfrKPE',
+                    'X-Papertrail-Token': testing ? PAPERTRAIL_KEY : process.env.PAPERTRAIL_KEY,
                 },
                 params: {
                     //q: 'error', // Customize the search query
-                    limit: 5,    // Limit to the last log entry
+                    limit: 10,    // Limit to the last log entry
                 },
             }
         );
@@ -288,7 +288,7 @@ client.once(Events.ClientReady, async () => {
         notif_channel.send('Error fetching logs from Papertrail.');
     }
 
-    const apiKey = 'AIzaSyCEJX5k_LmFjPxV-1IQYZNESC3apL62onM';
+    const apiKey = testing ? YOUTUBE_KEY : process.env.YOUTUBE_KEY;
 
     // Define the search query (e.g., a game or topic)
     const searchQuery = `star wars episode i racer, star wars racer, podracer, podracing, botto, ${tracks.map(t => t.name).join(", ")}`//'Star Wars Episode I: Racer';
