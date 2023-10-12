@@ -1553,7 +1553,7 @@ exports.shopOptions = function ({ profile, player, db, selection } = {}) {
             value: 'shuffle_banner',
             price: truguts.shuffle,
             description: "Set a new random banner for the server",
-            info: "Tired of the current banner? Give us a new one!",
+            info: "Tired of the current banner? Give us a new one!\nFree to <@&586060902453739530> (server boosters)",
             emoji: {
                 name: "🚩"
             }
@@ -1660,7 +1660,7 @@ exports.shopOptions = function ({ profile, player, db, selection } = {}) {
             value: 'roleicon',
             price: 200000,
             description: "Pick a server emoji to use as your role icon",
-            info: "Enter the name of a non-animated server emoji to add as an icon next to your name. Multiple icons can be purchased and equiped/unequiped in your **🎒 Inventory**. Racer flag icons are free roles in <id:customize>",
+            info: "Enter the name of a non-animated server emoji to add as an icon next to your name. Multiple icons can be purchased and equiped/unequiped in your **🎒 Inventory**. Racer flag icons are free roles in <id:customize>\nFree to <@&586060902453739530> (server boosters)",
             emoji: {
                 name: "✨"
             }
