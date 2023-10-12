@@ -748,14 +748,18 @@ module.exports = {
                         return
                     }
 
+                    let afterblasterperk = playerdata.discord?.roles && Object.values(playerdata.discord.roles).includes("586060902453739530") && ['shuffle_banner', 'roleicon'].includes(shoption.value)
+
                     //can't afford
                     if (((!profile.effects?.life_debt && profile.truguts_earned - profile.truguts_spent < price) || (profile.effects?.life_debt && profile.truguts_earned - profile.truguts_spent - price < -1000000)) || profile.truguts_earned - profile.truguts_spent < 0) {
-                        const noTruguts = new EmbedBuilder()
-                            .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
-                            .setDescription("*'No money, no parts, no deal!'*\nYou do not have enough truguts to buy the selected option.\nCost: `📀" + tools.numberWithCommas(price) + "`")
-                            .setFooter({ text: "Truguts: 📀" + currentTruguts(profile) })
-                        interaction.reply({ embeds: [noTruguts], ephemeral: true })
-                        return
+                        if (!afterblasterperk) {
+                            const noTruguts = new EmbedBuilder()
+                                .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
+                                .setDescription("*'No money, no parts, no deal!'*\nYou do not have enough truguts to buy the selected option.\nCost: `📀" + tools.numberWithCommas(price) + "`")
+                                .setFooter({ text: "Truguts: 📀" + currentTruguts(profile) })
+                            interaction.reply({ embeds: [noTruguts], ephemeral: true })
+                            return
+                        }
                     }
 
                     function alreadyPurchased(interaction) {
@@ -1181,7 +1185,7 @@ module.exports = {
                             const newAvatarBuffer = fs.readFileSync(modifiedAvatarPath);
                             await client.user.setAvatar(newAvatarBuffer);
                             const file = new AttachmentBuilder(modifiedAvatarPath);
-                                
+
                             const quoteEmbed = new EmbedBuilder()
                                 .setTitle("✨New Botto Color")
                                 .setDescription(`<@${member}> just changed <@545798436105224203>'s color!`)
@@ -1516,14 +1520,16 @@ module.exports = {
                     }
 
                     //process purchase
-                    manageTruguts({
-                        profile, profileref, transaction: 'w', amount: price, purchase: {
-                            date: Date.now(),
-                            purchased_item: shoption.value,
-                            selection: shoption.pricemap ? selection[2]?.[0] ?? "" : "",
-                            cost: price
-                        }
-                    })
+                    if (!afterblasterperk) {
+                        manageTruguts({
+                            profile, profileref, transaction: 'w', amount: price, purchase: {
+                                date: Date.now(),
+                                purchased_item: shoption.value,
+                                selection: shoption.pricemap ? selection[2]?.[0] ?? "" : "",
+                                cost: price
+                            }
+                        })
+                    }
 
                     editMessage(client, interaction.channel.id, interaction.message.id, { embeds: [shopEmbed({ shoptions, selection, profile })], components: shopComponents({ profile, selection, shoptions }) })
                     break
