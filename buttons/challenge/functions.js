@@ -302,13 +302,12 @@ exports.getSponsors = function (challenge, db) {
         } else {
             challenge.sponsors[sponsor.sponsor.member].take += truguts.sponsor_cut
         }
-
-        if (sponsor.title) {
-            challenge.sponsor.title = sponsor.title
-        }
         if (sponsor.time) {
             challenge.sponsor = JSON.parse(JSON.stringify(sponsor.sponsor))
             challenge.sponsor.time = sponsor.time
+        }
+        if (sponsor.title) {
+            challenge.sponsor.title = sponsor.title
         }
     })
     return challenge
@@ -601,7 +600,7 @@ exports.generateLeaderboard = function (best, member, current_challenge) {
         if (current_challenge.sponsor?.time) {
             best.push({
                 time: current_challenge.sponsor.time,
-                name: current_challenge.sponsor.user.name,
+                name: current_challenge.sponsor.name,
                 sponsor: true
             })
         }
@@ -3530,7 +3529,7 @@ exports.tradeComponents = function ({ trade, db, selection } = {}) {
         tradables[key] = {
             name: db.user[key].name,
             selected: trade.traders[key].items ? Object.values(trade.traders[key].items) : [],
-            items: Object.keys(player_items).map(k => ({ ...items.find(i => i.id == player_items[k].id), ...items[k], key: k })).filter(i => exports.usableItem({ item: i })),
+            items: Object.keys(player_items).map(k => ({ ...items.find(i => i.id == player_items[k].id), ...items[k], key: k })).filter(i => exports.usableItem({ item: i }) && !i.locked),
         }
     })
 
