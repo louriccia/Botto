@@ -2622,6 +2622,85 @@ module.exports = {
                     trade = db.ch.trades[trade_id]
                     interaction.update({ embeds: [tradeEmbed({ trade, db })], components: [...tradeComponents({ trade, db, selection: tselection })] })
                     break
+                case 'map':
+                    await interaction.deferReply()
+                    const width = 10 * 23
+                    const height = 8 * 25
+
+                    const image = new Jimp(width, height);
+                    for (let i = 0; i < width; i++) {
+                        for (let j = 0; j < height; j++) {
+                            image.setPixelColor(Jimp.cssColorToHex('#000000'), i, j)
+                        }
+                    }
+                    let unique_challenges = (tracks.filter(t => t.skips).length * 8 * 23 * 10) + (tracks.filter(t => !t.skips).length * 8 * 23 * 5)
+                    let challenge_times = {}
+                    function challengekey(challenge) {
+                        return `${challenge.track}_${challenge.racer}_${challenge.conditions.laps}_${challenge.conditions.skips}_${challenge.conditions.nu}_${challenge.conditions.mirror}_${challenge.conditions.backwards}`
+                    }
+                    const times = Object.values(db.ch.times).filter(t => !Array.isArray(t.track))
+                    times.filter(time => time.user !== member).forEach(time => {
+                        let x = (10 * time.racer) + ((time.conditions.laps - 1) * 2) + (time.conditions.skips ? 1 : 0)
+                        let y = (8 * time.track) + (time.conditions.nu ? 4 : 0) + (time.conditions.mirror ? 2 : 0) + (time.conditions.backwards ? 1 : 0)
+                        const color = Jimp.cssColorToHex('#444444');
+                        image.setPixelColor(color, x, y);
+                        if (!challenge_times[challengekey(time)] || time.time - challenge_times[challengekey(time)] < 0) {
+                            challenge_times[challengekey(time)] = Number(time.time)
+                        }
+                    })
+                    let player_challenges = {}
+                    let record_holder = {}
+                    times.filter(time => time.user == member).sort((a, b) => b.time - a.time).forEach(time => {
+                        let x = (10 * time.racer) + ((time.conditions.laps - 1) * 2) + (time.conditions.skips ? 1 : 0)
+                        let y = (8 * time.track) + (time.conditions.nu ? 4 : 0) + (time.conditions.mirror ? 2 : 0) + (time.conditions.backwards ? 1 : 0)
+                        let recordholder = time.time - challenge_times[challengekey(time)] < 0 || !challenge_times[challengekey(time)]
+                        const color = Jimp.cssColorToHex(recordholder ? '#00FF00' : '#FFFFFF');
+                        if (recordholder) {
+                            record_holder[challengekey(time)] = true
+                        }
+                        player_challenges[challengekey(time)] = true
+                        if (!challenge_times[challengekey(time)]) {
+                            challenge_times[challengekey(time)] = Number(time.time)
+                        }
+                        image.setPixelColor(color, x, y);
+                    })
+                    tracks.forEach((track, index) => {
+                        if (!track.skips) {
+                            for (let i = 0; i < 23; i++) {
+                                for (let lap = 0; lap < 5; lap++) {
+                                    for (let j = 0; j < 8; j++) {
+                                        let x = (10 * i) + (lap * 2) + 1
+                                        let y = (8 * index) + j
+                                        const color = Jimp.cssColorToHex('#111111');
+                                        image.setPixelColor(color, x, y);
+                                    }
+                                }
+                            }
+                        }
+                    })
+
+
+                    // Double the size of the image
+                    const doubledImage = image.clone().resize(width * 6, height * 6, Jimp.RESIZE_NEAREST_NEIGHBOR);
+
+                    // Save the generated doubled-size image as a file
+
+                    const imageFileName = 'map.png';
+                    await doubledImage.writeAsync(imageFileName);
+
+                    // Set the bot's avatar to the modified image
+                    const file = new AttachmentBuilder(imageFileName);
+
+                    const quoteEmbed = new EmbedBuilder()
+                        .setTitle("Random Challenge Map")
+                        .setDescription(`${tools.numberWithCommas(unique_challenges)} unique challenges\n${tools.numberWithCommas(Object.keys(challenge_times).length)} unique played challenges\n${tools.numberWithCommas(Object.keys(player_challenges).length)} unique played challenges (<@${member}>)\n${tools.numberWithCommas(Object.keys(record_holder).length)} unique record-holder challenges (<@${member}>)`)
+                        .setColor("#ED4245")
+                        .setFooter({ text: '⬛ unplayed, ⬜ played, 🟩 record-holder' })
+                        .setImage(`attachment://${imageFileName}`);
+                    interaction.editReply({ embeds: [quoteEmbed], files: [file] })
+
+                    //interaction.editReply({ content: 'Generated Image', files: [imageFileName] })
+                    break
             }
         }
     }

@@ -25,6 +25,11 @@ module.exports = {
             subcommand
                 .setName('profile')
                 .setDescription('Check out your challenge career stats')
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('map')
+                .setDescription('Visualize a map of every possible challenge')
         ),
     execute(interaction, database, db) {
         interaction.client.buttons.get("challenge").execute(interaction.client, interaction, ["random", interaction.options.getSubcommand()], database, db)

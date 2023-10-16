@@ -124,6 +124,13 @@ function fetchData(ref, callback) {
     });
 }
 
+fetchData(database.ref('users'), function (data) {
+    if (!db.user) {
+        console.log('user db ready')
+    }
+    db.user = data;
+});
+
 fetchData(database.ref('challenge/times'), function (data) {
     db.ch.times = data;
 });
@@ -193,9 +200,7 @@ fetchData(database.ref('tourney/bets'), function (data) {
     db.ty.bets = data;
 });
 
-fetchData(database.ref('users'), function (data) {
-    db.user = data;
-});
+
 
 client.on(Events.InteractionCreate, async interaction => {
 
@@ -307,31 +312,20 @@ client.once(Events.ClientReady, async () => {
 
             if (liveStreams.length > 0) {
                 liveStreams.forEach(async stream => {
-                    const streamResponse = await axios.get('https://www.googleapis.com/youtube/v3/videos', {
-                        params: {
-                            key: apiKey,
-                            part: 'snippet',
-                            id: stream.id.videoId,
-                        },
-                    })
-                    const stream_info = streamResponse.data.items?.[0]
-                    if (stream_info.snippet.categoryId == '20' && (!streamers[stream.snippet.channelTitle] || (streamers[stream.snippet.channelTitle] && Date.now() > streamers[stream.snippet.channelTitle] + 1000 * 60 * 60 * 4))) {
+                    if ((!streamers[stream.snippet.channelTitle] || (streamers[stream.snippet.channelTitle] && Date.now() > streamers[stream.snippet.channelTitle] + 1000 * 60 * 60 * 4))) {
                         const streamEmbed = new Discord.EmbedBuilder()
                             .setAuthor({ name: `${stream.snippet.channelTitle} is podracing on YouTube!`, iconURL: 'https://www.iconpacks.net/icons/2/free-youtube-logo-icon-2431-thumb.png' })
                             .setURL(`https://www.youtube.com/watch?v=${stream.id.videoId}`)
                             .setTitle(stream.snippet.title)
                             .setColor("#FF0000")
                             .setImage(stream.snippet.thumbnails.medium.url)
-                        if (stream_info.snippet.tags) {
-                            streamEmbed.setFooter({ text: stream_info.snippet.tags?.join(" • ") })
-                        }
                         stream_channel.send({ embeds: [streamEmbed] });
                         streamers[stream.snippet.channelTitle] = Date.now()
                     }
                 })
             }
         } catch (error) {
-            console.error('Error fetching YouTube streams');
+            //console.error('Error fetching YouTube streams', error);
         }
     }
 
@@ -411,11 +405,11 @@ client.once(Events.ClientReady, async () => {
 
     const updater = async () => {
         Object.keys(db.user).filter(key => db.user[key]?.random?.items).forEach(key => completeRepairs({ profile: db.user[key].random, profileref: database.ref(`users/${key}/random`), client, member: db.user[key].discordID }))
-        searchYouTubeStreams();
-        dailyBounty({ client, db, bountyref: database.ref('challenge/bounties') })
-        getStream();
-        console.log(streamers)
+
         if (!testing) {
+            //searchYouTubeStreams();
+            dailyBounty({ client, db, bountyref: database.ref('challenge/bounties') })
+            getStream();
             dailyChallenge({ client, db, challengesref: database.ref('challenge/challenges') })
             monthlyChallenge({ client, db, challengesref: database.ref('challenge/challenges'), database })
 
