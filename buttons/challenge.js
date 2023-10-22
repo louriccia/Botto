@@ -1710,21 +1710,69 @@ module.exports = {
                     interaction.update({ embeds: [settingsEmbed({ profile, name, avatar })], components: settingsComponents(profile) })
                     break
                 case 'profile':
-                    // if (args[args.length - 1].startsWith("uid") && args[args.length - 1].replace("uid", "") !== member) {
-                    //     const holdUp = new EmbedBuilder()
-                    //         .setTitle("<:WhyNobodyBuy:589481340957753363> Get Your Own Profile!")
-                    //         .setDescription("This is someone else's profile. Get your own by clicking the button below.")
-                    //     const row1 = new ActionRowBuilder()
-                    //         .addComponents(
-                    //             new ButtonBuilder()
-                    //                 .setCustomId("challenge_random_profile_stats")
-                    //                 .setLabel("Profile")
-                    //                 .setStyle(ButtonStyle.Secondary)
-                    //                 .setEmoji('👤')
-                    //         )
-                    //     interaction.reply({ embeds: [holdUp], ephemeral: true, components: [row1]})
-                    //     return
-                    // }
+                    if (args[2] == 'bio') {
+                        function isValidHexCode(hexCode) {
+                            const hexRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+                            return hexRegex.test(hexCode);
+                        }
+                        if (interaction.isModalSubmit()) {
+
+                            let name = interaction.fields.getTextInputValue("name")
+                            let bio = interaction.fields.getTextInputValue("bio")
+                            let color = interaction.fields.getTextInputValue("color")
+                            if (!isValidHexCode(color)) {
+                                color = ""
+                            }
+                            profile.name = name
+                            profile.bio = bio
+                            profile.color = color
+                            await profileref.update(profile)
+                        } else {
+                            const profileModal = new ModalBuilder()
+                                .setCustomId('challenge_random_profile_bio')
+                                .setTitle('Customize Profile')
+                            const name = new TextInputBuilder()
+                                .setCustomId('name')
+                                .setLabel(`Name`)
+                                .setMinLength(2)
+                                .setMaxLength(16)
+                                .setStyle(TextInputStyle.Short)
+                                .setRequired(true)
+                            const bio = new TextInputBuilder()
+                                .setCustomId('bio')
+                                .setLabel(`Bio`)
+                                .setMinLength(0)
+                                .setMaxLength(140)
+                                .setStyle(TextInputStyle.Paragraph)
+                                .setRequired(false)
+                            const color = new TextInputBuilder()
+                                .setCustomId('color')
+                                .setLabel(`Color`)
+                                .setPlaceholder("#FFFFFF")
+                                .setMinLength(7)
+                                .setMaxLength(7)
+                                .setStyle(TextInputStyle.Short)
+                                .setRequired(false)
+
+                            if (profile.name) {
+                                name.setValue(profile.name)
+                            }
+                            if (profile.bio) {
+                                bio.setValue(profile.bio)
+                            }
+                            if (profile.color) {
+                                color.setValue(profile.color)
+                            }
+                            const ActionRow1 = new ActionRowBuilder().addComponents(name)
+                            const ActionRow2 = new ActionRowBuilder().addComponents(bio)
+                            const ActionRow3 = new ActionRowBuilder().addComponents(color)
+                            profileModal.addComponents(ActionRow1, ActionRow2, ActionRow3)
+
+                            await interaction.showModal(profileModal)
+                            return
+                        }
+                    }
+
                     if (interaction.isChatInputCommand()) {
                         await interaction.deferReply()
                     } else {

@@ -2399,12 +2399,12 @@ exports.profileEmbed = function ({ name, avatar, ach_report, profile, stats, db,
             }
         })
     })
-
+    let level = exports.playerLevel(Object.values(stats.racers).map(r => r.level))
     const profileEmbed = new EmbedBuilder()
-        .setAuthor({ name: name, iconURL: avatar })
+        .setAuthor({ name: profile.name, iconURL: avatar })
         .setFooter({ text: '/challenge random: profile' })
-        .setColor('#DA373C')
-        .setDescription(`${exports.playerLevel(Object.values(stats.racers).map(r => r.level)).string}\n\`📀${exports.currentTruguts(profile)}\``)
+        .setColor(profile.color ? profile.color : '#DA373C')
+        .setDescription(`${profile.bio ? `${profile.bio}\n\n` : ""}**Level ${level.level}**\n${level.string}\n\`📀${exports.currentTruguts(profile)}\``)
         .addFields({
             name: 'Overview',
             value: `Challenges: \`${stats.totals.total}\`
@@ -2519,7 +2519,12 @@ exports.profileComponents = function ({ stats, ach_report, profile }) {
                 .setCustomId("challenge_random_settings_initial")
                 .setLabel("Settings")
                 .setStyle(ButtonStyle.Secondary)
-                .setEmoji('⚙️')
+                .setEmoji('⚙️'),
+            new ButtonBuilder()
+                .setCustomId("challenge_random_profile_bio")
+                .setLabel("Customize Profile")
+                .setStyle(ButtonStyle.Secondary)
+                .setEmoji('🏷')
         )
     return [row1, row2, row3, row4, row5].flat()
 }
