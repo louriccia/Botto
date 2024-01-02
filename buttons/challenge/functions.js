@@ -3137,6 +3137,7 @@ exports.monthlyChallenge = async function ({ client, challengesref, db, database
             w.winnings = w.winner ? 1000000 : w.count * 20000
             exports.manageTruguts({ profile: db.user[userkey].random, profileref: database.ref(`users/${userkey}/random`), transaction: 'd', amount: w.winnings })
         })
+        challengesref.child(recent.message).update({ lotto: true })
         if (winners.length == 0){
             return
         }
@@ -3146,7 +3147,6 @@ exports.monthlyChallenge = async function ({ client, challengesref, db, database
                 winners.map(w =>
                     `<@${w.user}> - ${w.winner ? 'WINNER <a:sparks:672640526444527647> `+📀1,000,000`' : `\`+📀${tools.numberWithCommas(w.winnings)}\``}`).join("\n"))
         postMessage(client, '551786988861128714', { embeds: [winnersEmbed] })
-        challengesref.child(recent.message).update({ lotto: true })
     }
 }
 
