@@ -3137,7 +3137,7 @@ exports.monthlyChallenge = async function ({ client, challengesref, db, database
             w.winnings = w.winner ? 1000000 : w.count * 20000
             exports.manageTruguts({ profile: db.user[userkey].random, profileref: database.ref(`users/${userkey}/random`), transaction: 'd', amount: w.winnings })
         })
-        if (winners.length = 0){
+        if (winners.length == 0){
             return
         }
         const winnersEmbed = new EmbedBuilder()
