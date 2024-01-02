@@ -583,7 +583,7 @@ exports.bountyAchievement = function (db, member) {
     return count
 }
 
-exports.generateLeaderboard = function (best, member, current_challenge) {
+exports.generateLeaderboard = function ({ best, member, current_challenge, db } = {}) {
     let besttimes = ":snowflake: `+📀" + tools.numberWithCommas(truguts.first) + "`"
     let pos = ["<:P1:671601240228233216> ", "<:P2:671601321257992204> ", "<:P3:671601364794605570> ", "4th ", "5th ", "6th ", "7th ", "8th ", "9th ", "10th "]
 
@@ -1212,7 +1212,7 @@ exports.challengeEmbed = async function ({ current_challenge, profile, profilere
     if (image) {
         challengeEmbed.setImage(image)
     }
-    challengeEmbed.addFields({ name: "Best Times", value: exports.generateLeaderboard(best, member, current_challenge).slice(0, 1024), inline: true })
+    challengeEmbed.addFields({ name: "Best Times", value: exports.generateLeaderboard({ best, member, current_challenge, db }).slice(0, 1024), inline: true })
     if (current_challenge.completed && ['private', 'abandoned'].includes(current_challenge.type)) {
         let progression = exports.challengeProgression({ current_challenge, submitted_time, goals, profile })
         //item
@@ -3034,7 +3034,7 @@ exports.sponsorEmbed = function (sponsorchallenge, profile, db) {
     }
     sponsorEmbed.addFields(
         { name: "Goal Times", value: exports.goalTimeList(sponsorchallenge, null, best).list, inline: true },
-        { name: 'Best Times', value: exports.generateLeaderboard(best, null, sponsorchallenge) ?? 'No times', inline: true }
+        { name: 'Best Times', value: exports.generateLeaderboard({ best, member: null, sponsorchallenge, db }) ?? 'No times', inline: true }
     )
     return sponsorEmbed
 }
@@ -3137,7 +3137,9 @@ exports.monthlyChallenge = async function ({ client, challengesref, db, database
             w.winnings = w.winner ? 1000000 : w.count * 20000
             exports.manageTruguts({ profile: db.user[userkey].random, profileref: database.ref(`users/${userkey}/random`), transaction: 'd', amount: w.winnings })
         })
-
+        if (winners.length = 0){
+            return
+        }
         const winnersEmbed = new EmbedBuilder()
             .setTitle("🎰 This Month's Botto Lotto Winners")
             .setDescription(
