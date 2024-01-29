@@ -16,6 +16,10 @@ for (const file of commandFiles) {
 
 }
 
+const clientID = '545798436105224203'
+const SWE1R_Guild = '441839750555369474'
+const Botto_Guild = '1135800421290627112'
+
 // Construct and prepare an instance of the REST module
 const rest = new REST({ version: '10' }).setToken(token);
 
@@ -25,17 +29,22 @@ const rest = new REST({ version: '10' }).setToken(token);
 		console.log(`Started refreshing ${commands.length} application (/) commands.`);
 
 		// The put method is used to fully refresh all commands in the guild with the current set
-		const data = await rest.put(
-			Routes.applicationCommands('545798436105224203'),
-			{ body: commands },
-		);
+		// const data = await rest.put(
+		// 	Routes.applicationCommands('545798436105224203'),
+		// 	{ body: commands },
+		// );
 
-		const cdata = await rest.put(
-			Routes.applicationGuildCommands('545798436105224203', '1135800421290627112'),
-			{ body: commands },
-		);
+		//delete
+		await rest.put(Routes.applicationGuildCommands(clientID, SWE1R_Guild), { body: [] })
+			.then(() => console.log('Successfully deleted all guild commands.'))
+			.catch(console.error);
 
-		console.log(`Successfully reloaded ${data.length} application (/) commands.`);
+		// await rest.put(
+		// 	Routes.applicationGuildCommands(clientID, Botto_Guild),
+		// 	{ body: commands },
+		// );
+
+		//console.log(`Successfully reloaded ${data.length} application (/) commands.`);
 	} catch (error) {
 		// And of course, make sure you catch and log any errors!
 		console.error(error);

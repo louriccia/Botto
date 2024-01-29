@@ -217,6 +217,7 @@ exports.banners = [
     'https://web.archive.org/web/20220131140446im_/https://starwarsblog.starwars.com/wp-content/uploads/2022/01/anakin-s-podracer.jpg',
     'https://web.archive.org/web/20220131140446im_/https://starwarsblog.starwars.com/wp-content/uploads/2022/01/anakin-s-podracer-flight.jpg',
     'https://web.archive.org/web/20220131140446im_/https://starwarsblog.starwars.com/wp-content/uploads/2021/12/podrace-boonta-eve-classic.jpg',
+    'https://instagram.fhio3-1.fna.fbcdn.net/v/t51.2885-15/60230189_2251250048470214_6149946849270212363_n.jpg?stp=dst-jpg_e35&efg=eyJ2ZW5jb2RlX3RhZyI6ImltYWdlX3VybGdlbi4xNDQweDc3Ny5zZHIifQ&_nc_ht=instagram.fhio3-1.fna.fbcdn.net&_nc_cat=102&_nc_ohc=wE8QtMS-lvwAX-xXKQ5&edm=ALQROFkBAAAA&ccb=7-5&ig_cache_key=MjA1MTMzNzE0NzgxNDUyMDEwOQ%3D%3D.2-ccb7-5&oh=00_AfAfBmyuDK1MZdzTqzycnRxlSRAZm1iwNI7kyJeU7j2aRQ&oe=65B77ED6&_nc_sid=fc8dfb',
 
 ]
 
@@ -315,6 +316,17 @@ exports.multipliers = [
     { "goal": "Rookie", "ft_multiplier": 1.15, "skips_multiplier": 1.30 },
     { "goal": "Amateur", "ft_multiplier": 1.3, "skips_multiplier": 1.40 },
     { "goal": "Youngling", "ft_multiplier": 1.5, "skips_multiplier": 1.50 }
+]
+
+exports.funFacts = [
+    'Tatooine, Oovo IV, and Malastare were also featured in Star Wars: Bounty Hunter',
+    'The game was originally titled Star Wars: Podracer until LucasArts learned that another company owned the trademark for games with "Pod" in the title.',
+    'A podrace that is broadcasted in the Outlander Club in Attack of the Clones may be on Ando Prime',
+    
+]
+
+exports.gameTips = [
+    
 ]
 
 exports.movieQuotes = [

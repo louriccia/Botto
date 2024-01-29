@@ -102,7 +102,8 @@ let db = {
         quotes: null,
         clues: null,
         auto: null,
-        trades: null
+        trades: null,
+        scavenger: null,
     },
     ty: {
         bets: null,
@@ -200,6 +201,9 @@ fetchData(database.ref('tourney/bets'), function (data) {
     db.ty.bets = data;
 });
 
+fetchData(database.ref('challenge/scavenger'), function (data) {
+    db.ch.scavenger = data;
+});
 
 
 client.on(Events.InteractionCreate, async interaction => {
