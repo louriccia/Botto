@@ -3034,7 +3034,7 @@ exports.sponsorEmbed = function (sponsorchallenge, profile, db) {
     }
     sponsorEmbed.addFields(
         { name: "Goal Times", value: exports.goalTimeList(sponsorchallenge, null, best).list, inline: true },
-        { name: 'Best Times', value: exports.generateLeaderboard({ best, member: null, sponsorchallenge, db }) ?? 'No times', inline: true }
+        { name: 'Best Times', value: exports.generateLeaderboard({ best, member: null, current_challenge: sponsorchallenge, db }) ?? 'No times', inline: true }
     )
     return sponsorEmbed
 }
