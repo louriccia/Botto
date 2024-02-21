@@ -385,9 +385,9 @@ exports.generateChallengeDescription = function ({ current_challenge, db, profil
 
     desc = [exports.getFeedbackTally(db, current_challenge), (!current_challenge.completed && !current_challenge.rerolled ? expiration : ''), (current_challenge.sponsors ? exports.getSponsorsString(current_challenge) : ''), (current_challenge.predictions && !current_challenge.completed ? exports.getPredictors(current_challenge) : "")].filter(d => ![null, undefined, ''].includes(d)).join(" | ")
 
-    let formercotd = Object.values(db.ch.challenges).find(c => c.created < current_challenge.created && c.type == 'cotd' && exports.matchingChallenge(c, current_challenge)) ?? null
+    let formercotd = Object.values(db.ch.challenges).map((c, i)=> {return {index: i, ...c}}).filter(c => c.created < current_challenge.created && c.type == 'cotd' && exports.matchingChallenge(c, current_challenge)) ?? null
     if (formercotd) {
-        desc += `\n Former :game_die: *Random Challenge of the Day*`
+        desc += `\n Former :game_die: *Random Challenge of the Day*\n${formercotd.map(c => `[COTD #${c.index}](<${c.url}>)`)}`
     }
 
     if (current_challenge.conditions.backwards) {
@@ -1086,7 +1086,9 @@ exports.updateChallenge = async function ({ client, db, profile, current_challen
     }
 
     let flavor_text = ''
-    if (Math.random() < 0.20 && current_challenge?.player?.name) {
+    if (current_challenge.type == 'cotd'){
+        flavor_text = "COTD: " + exports.generateChallengeTitle(current_challenge)
+    } else if (Math.random() < 0.20 && current_challenge?.player?.name) {
         let quotes = Object.values(db.ch.quotes)
         let quote = quotes[Math.floor(Math.random() * quotes.length)]
         flavor_text = `${quote.quote.replaceAll('$player', current_challenge.player.name)}\n(submitted by ${db.user[quote.player].name})`
@@ -1579,26 +1581,26 @@ exports.shopOptions = function ({ profile, player, db, selection } = {}) {
             },
             options: exports.userPicker({ selection, row: 2, customid: 'challenge_random_shop_2', placeholder: 'Declare your Rival', db })
         },
-        // {
-        //     label: `Sabotage (📀${tools.numberWithCommas(truguts.sabotage)})`,
-        //     value: 'sabotage',
-        //     description: "Sabotage a player's trugut earnings",
-        //     info: "Select a player, then pick a number 0-9. When the player you selected submits a time that ends in the given number, they lose half their winnings... to you!\n\nFor example, if you entered the number `3` and the selected player submits a time of 1:42.89__3__, the sabotage is triggered.",
-        //     fields: [{ name: 'Additional Effect', value: "Complete the **All-Terrain Podracing** collection to maximize your sabotage: *Doubled Powers - sabotaged players lose all winnings to saboteur*" }],
-        //     emoji: {
-        //         name: "💥"
-        //     },
-        //     options: exports.userPicker({ selection, customid: 'challenge_random_shop_2', placeholder: 'Select a Player to Sabotage', db })
-        // },
         {
-            label: `Quotation Mark`,
+            label: `Flavor Text`,
             value: 'quote',
-            price: 20000,
-            description: "Submit a quote",
-            info: "Submit your own quote to be randomly used at the top of a challenge.",
+            price: 10000,
+            description: "Submit a quote, game tip, or fun fact",
+            info: "Submit your own quote, game tip, or fun fact to be randomly used at the top of a challenge.",
             emoji: {
                 name: "✒️"
-            }
+            },
+            options: [] //TODO make flavortext options
+        },
+        {
+            label: `Submit a Banner`,
+            value: 'quote',
+            price: 20000,
+            description: "Submit a banner",
+            info: "Submit your own image to be randomly used as the daily banner.",
+            emoji: {
+                name: "🚩"
+            },
         },
         {
             label: `Have a Clue`,
@@ -1741,35 +1743,47 @@ exports.shopOptions = function ({ profile, player, db, selection } = {}) {
             options: exports.navComponents({ context: 'shop' })
         },
         {
-            label: `No Longer a Slave`,
-            value: 'rerolls',
-            price: 384000000,
-            description: "Never pay for rerolls again",
-            info: "Rerolls are forever free. One-time purchase.",
+            label: `Mind Tricks`,
+            value: 'tricks',
+            pricemap: true,
+            price: { "1": 2000000, "2": 8000000, "3": 48000000 },
+            description: "Wave your hand like a Jedi",
+            info: "free rerolls\n free bribes\n\n no sabotage\n no sponsorships",
             emoji: {
-                name: "🔄"
-            }
+                name: "🧠"
+            },
+            options: exports.navComponents({ context: 'shop' })
         },
-        {
-            label: `Credits WILL Do Fine`,
-            value: 'bribes',
-            price: 384000000,
-            description: "Never pay for bribes again",
-            info: "You can go to whatever challenge of your choosing at no charge. One-time purchase.",
-            emoji: {
-                name: "💰"
-            }
-        },
-        {
-            label: `Peace Treaty`,
-            value: 'peace',
-            price: 384000000,
-            description: "Protect yourself against trugut sabotage",
-            info: "Tired of getting sabotaged by your fellow racers? Sign this peace treaty and you can never sabotage or be sabotaged again. One-time purchase.",
-            emoji: {
-                name: "🕊"
-            }
-        },
+        // {
+        //     label: `No Longer a Slave`,
+        //     value: 'rerolls',
+        //     price: 384000000,
+        //     description: "Never pay for rerolls again",
+        //     info: "Rerolls are forever free. One-time purchase.",
+        //     emoji: {
+        //         name: "🔄"
+        //     }
+        // },
+        // {
+        //     label: `Credits WILL Do Fine`,
+        //     value: 'bribes',
+        //     price: 384000000,
+        //     description: "Never pay for bribes again",
+        //     info: "You can go to whatever challenge of your choosing at no charge. One-time purchase.",
+        //     emoji: {
+        //         name: "💰"
+        //     }
+        // },
+        // {
+        //     label: `Peace Treaty`,
+        //     value: 'peace',
+        //     price: 384000000,
+        //     description: "Protect yourself against trugut sabotage",
+        //     info: "Tired of getting sabotaged by your fellow racers? Sign this peace treaty and you can never sabotage or be sabotaged again. One-time purchase.",
+        //     emoji: {
+        //         name: "🕊"
+        //     }
+        // },
 
         {
             label: `Trillion Trugut Tri-Coat`,
