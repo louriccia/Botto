@@ -928,10 +928,10 @@ module.exports = {
                                 approved: false
                             })
                             const quoteEmbed = new EmbedBuilder()
-                                .setTitle('🚩 Banner Submitted!')
+                                .setTitle(`${botto_name} submitted a 🚩 Banner!`)
                                 .setDescription(`${desc}\nCourtesy of: ${source}`)
                                 .setImage(url)
-                            interaction.reply({ embeds: [quoteEmbed], ephemeral: true })
+                            interaction.reply({ embeds: [quoteEmbed] })
 
                         } else {
                             const sponsorModal = new ModalBuilder()
