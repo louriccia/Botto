@@ -4,7 +4,7 @@ const axios = require('axios');
 const { Client, Events, GatewayIntentBits, Partials, ButtonStyle, ActionRowBuilder, ButtonBuilder } = require('discord.js')
 const { Configuration, OpenAIApi } = require("openai")
 const { tracks } = require('./data')
-const { token, firebaseCon, OPENAI_API_KEY, twitch, YOUTUBE_KEY, PAPERTRAIL_KEY } = require('./config.json');
+//const { token, firebaseCon, OPENAI_API_KEY, twitch, YOUTUBE_KEY, PAPERTRAIL_KEY } = require('./config.json');
 const { welcomeMessages } = require('./data.js')
 const client = new Client({
     intents: [
@@ -33,7 +33,7 @@ client.selects = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 const buttonFiles = fs.readdirSync('./buttons').filter(file => file.endsWith('.js'));
 
-const testing = true
+const testing = false
 
 const Twitch = new TwitchApi({
     client_id: testing ? twitch.id : process.env.TWITCH_ID,
