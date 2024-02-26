@@ -23,6 +23,24 @@ exports.goal_symbols = ["<:diamond:1136554333723435068>", "<:platinum:1136554336
 
 exports.level_symbols = ["<:bronze:1136554332586786879>", "<:silver:1136554338895011850>", "<:gold:1136554335426318406>", "<:platinum:1136554336705597510>", "<:diamond:1136554333723435068>", "<:master:1145487065912447026>", "<:grandmaster:1145487067682447442>"]
 
+exports.flavormap = {
+    quote: {
+        label: 'Quote',
+        emoji: '<:quotes:1211508813824524380>',
+        placeholder: '(if desired, type $player to insert the name of the player)'
+    },
+    tip: {
+        label: 'Game Tip',
+        emoji: '💡',
+        placeholder: 'write a gameplay tip to help players race better'
+    },
+    fact: {
+        label: 'Fun Fact',
+        emoji: '💬',
+        placeholder: 'write a fun fact about the game or movie'
+    },
+}
+
 exports.truguts = {
     starter: 400,
     mp: 100,
@@ -187,7 +205,8 @@ exports.settings_default = {
     non_3_lap: 5,
     mirror_mode: 5,
     backwards: 5,
-    predictions: true
+    predictions: true,
+    flavor: true
 }
 exports.winnings_map = [
     { name: "Fair", text: "<:diamond:1136554333723435068> 36%\n<:platinum:1136554336705597510> 32%\n<:gold:1136554335426318406> 27%\n<:silver:1136554338895011850> 5%\n<:bronze:1136554332586786879> 0%" },
