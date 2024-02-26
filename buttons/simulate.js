@@ -7,16 +7,18 @@ module.exports = {
     execute(client, interaction, args) {
         const myEmbed = new EmbedBuilder()
         //set defaults
-        let track = null
+        let track = Math.floor(Math.random()*25)
         let upgrades = 5
         let fps = 60
         let laps = 3
+
         //get input
         if (interaction.isChatInputCommand()) {
-            track = interaction.options.getString('track')
-            upgrades = interaction.options.getInteger('upgrades') ?? 5
-            fps = interaction.options.getInteger('fps') ?? 60
-            laps = interaction.options.getInteger('laps') ?? 3
+            track = interaction.options.getString('track') ?? track
+            upgrades = interaction.options.getString('upgrades') ?? upgrades
+            upgrades = Number(upgrades)
+            fps = interaction.options.getInteger('fps') ?? fps
+            laps = interaction.options.getInteger('laps') ?? laps
         } else {
             interaction.message.components[0].components[0].options.forEach(option => { //track
                 if (option.default) {
@@ -68,14 +70,13 @@ module.exports = {
         myEmbed
             .setTitle(planets[tracks[track].planet].emoji + " " + tracks[track].name) //track
             .setColor(planets[tracks[track].planet].color)
-            .setAuthor({ name: "Simulate" })
-            .setDescription("Simulation using " + upgradeName[upgrades] + " at " + fps + "fps for " + laps + " laps") //upgrades & fps //"Max Upgrades, 60fps"
+            .setDescription("Simulation* using " + upgradeName[upgrades] + " at " + fps + "fps for " + laps + " laps") //upgrades & fps //"Max Upgrades, 60fps"
             .addFields(
                 { name: "Racer", value: postColumn1, inline: true },
                 { name: "Speed", value: postColumn2, inline: true },
                 { name: "Est. Time", value: postColumn3, inline: true },
-                { name: "Note:", value: "*This simulation assumes the track is a straight line, and ignores hills and fast/slow terrain. The estimated times might also be off by as much as 0.1s from pod to pod due to boost timing error.*", inline: false },
             )
+            .setFooter({text: "* This simulation assumes the track is a straight line, and ignores hills and fast/slow terrain. The estimated times might also be off by as much as 0.1s from pod to pod due to boost timing error."})
         //construct components
         const row1 = new ActionRowBuilder()
         const row2 = new ActionRowBuilder()
