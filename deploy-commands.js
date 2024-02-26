@@ -9,7 +9,7 @@ let commands = []
 // Grab the SlashCommandBuilder#toJSON() output of each command's data for deployment
 for (const file of commandFiles) {
 	const command = require(`./commands/${file}`);
-	if (command.data && command.data.name !== 'scrape') {
+	if (command.data && !['scrape', 'scavenger'].includes(command.data.name)) {
 		console.log(command.data)
 		commands.push(command.data.toJSON());
 	}
@@ -28,16 +28,16 @@ const rest = new REST({ version: '10' }).setToken(token);
 	try {
 		console.log(`Started refreshing ${commands.length} application (/) commands.`);
 
-		// The put method is used to fully refresh all commands in the guild with the current set
-		// const data = await rest.put(
-		// 	Routes.applicationCommands('545798436105224203'),
-		// 	{ body: commands },
-		// );
+		//The put method is used to fully refresh all commands in the guild with the current set
+		const data = await rest.put(
+			Routes.applicationCommands('545798436105224203'),
+			{ body: commands },
+		);
 
 		//delete
-		await rest.put(Routes.applicationGuildCommands(clientID, SWE1R_Guild), { body: [] })
-			.then(() => console.log('Successfully deleted all guild commands.'))
-			.catch(console.error);
+		// await rest.put(Routes.applicationGuildCommands(clientID, Botto_Guild), { body: [] })
+		// 	.then(() => console.log('Successfully deleted all guild commands.'))
+		// 	.catch(console.error);
 
 		// await rest.put(
 		// 	Routes.applicationGuildCommands(clientID, Botto_Guild),

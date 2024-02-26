@@ -4,38 +4,87 @@ const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInpu
 
 const clues = [
     {
-        title: 'test1',
+        title: 'Clue 1',
         text: 'test1',
         image: '',
         answer: 'test1'
     },
     {
-        title: 'test2',
+        title: 'Clue 2',
         text: 'test2',
         image: '',
         answer: 'test2'
     },
     {
-        title: 'test3',
+        title: 'Clue 3',
         text: 'test3',
         image: '',
         answer: 'test3'
     },
     {
-        title: 'test4',
+        title: 'Clue 4',
         text: 'test4',
         image: '',
         answer: 'test4'
     },
     {
-        title: 'test5',
+        title: 'Clue 5',
         text: 'test5',
         image: '',
         answer: 'test5'
     }
 ]
 
+function cluecomponents(clue) {
+    const DropRow = new ActionRowBuilder()
+        .addComponents(new StringSelectMenuBuilder()
+            .setCustomId(`scavenger_${clue}_dropdown`)
+            .setPlaceholder('Clue Menu')
+            .addOptions(
+                {
+                    label: 'Instructions',
+                    value: 'intro'
+                },
+                ...clues.map((clue, i) => { return { label: `Clue ${i + 1}`, value: String(i) } })
+            )
+        )
+    if (clue == 'intro') {
+        return [DropRow]
+    }
+    const ClueButton = new ButtonBuilder()
+        .setCustomId(`scavenger_${clue}_guess`)
+        .setStyle(ButtonStyle.Primary)
+        .setLabel(`Answer`)
+    const ButtonRow = new ActionRowBuilder()
+        .addComponents(ClueButton)
+    return [DropRow, ButtonRow]
+}
+
 function cluembed(clue) {
+
+    if (clue == 'intro'){
+        const IntroEmbed = new EmbedBuilder()
+        .setTitle('Welcome to the Scavenger Hunt')
+        .setDescription(`This scavenger hunt is a series of 25 puzzles and challenges. To solve each puzzle, you will need to provide a password that unlocks the next clue. You are encouraged to work together in #25th anniversary, but please use spoiler text when confirming or denying answers.\n 
+        \n
+        Some important things to know before you start:\n
+        * Every time you use this command, you can resume your progress and access all solved clues.\n
+        * All answers are in English and all numeric answers should be written as digits “0123456789”\n
+        * You don’t need to worry about casing, special characters, or whitespace in your answers.\n
+         * Submitting “This is my answer!!!” is the same as “thisismyanswer”\n
+         * There is no penalty for submitting a repeat guess\n
+        * For each incorrect answer, you are timed out from making another guess for an increasing amount of time.\n
+         * 1st incorrect guess - 6 minutes\n
+         * 2nd incorrect guess - 30 minutes\n
+         * 3rd incorrect guess - 2 hours\n
+         * 4th incorrect guess - 6 hours\n
+         * 5th or more incorrect guess - 12 hours\n
+        \n
+        Use the drop down 👇 to access your first clue!`)
+        .setColor('#5865F2')
+        return IntroEmbed
+    }
+
     const ClueEmbed = new EmbedBuilder()
         .setTitle(clues[clue].title)
         .setDescription(clues[clue].text)
@@ -45,14 +94,11 @@ function cluembed(clue) {
         ClueEmbed.setImage(clues[clue].image)
     }
 
-    const ClueButton = new ButtonBuilder()
-        .setCustomId(`scavenger_${clue}`)
-        .setStyle(ButtonStyle.Primary)
-        .setLabel(`Answer`)
+    return ClueEmbed
+}
 
-    const ActionRow = new ActionRowBuilder()
-        .addComponents(ClueButton)
-    return { embeds: [ClueEmbed], components: [ActionRow], ephemeral: true }
+function cluemessage(clue) {
+    return { embeds: [cluembed(clue)], components: cluecomponents(clue), ephemeral: true }
 }
 
 module.exports = {
@@ -100,19 +146,19 @@ module.exports = {
 
         //scavenger hunt completed
         if (db.ch.scavenger[member]?.solved) {
-            interaction.reply({ content: `**Congradtulations! You win!**`, ephemeral: true })
+            interaction.reply({ content: `**Congratulations! You win!**`, ephemeral: true })
             return
         }
 
         //slash command
         if (interaction.isChatInputCommand()) {
-            interaction.reply(cluembed(clue))
+            interaction.reply(cluemessage(clue))
             return
         }
 
         //clicking an old button
         if (Number(interaction.customId.split('_')?.[1]) != clue) {
-            interaction.reply(cluembed(clue))
+            interaction.reply(cluemessage(clue))
             return
         }
 
@@ -155,7 +201,7 @@ module.exports = {
                 interaction.reply({ content: `**Congradtulations! You win!**`, ephemeral: true })
                 return
             }
-            interaction.reply(cluembed(clue))
+            interaction.reply(cluemessage(clue))
         } else if (guesses.includes(answer)) {
             interaction.reply({ content: ` **You already made that guess!**\nPlease try again.\n\nYour guesses so far:\n${guesses.map(guess => `* ${guess}`).join("\n")}`, ephemeral: true })
         } else {

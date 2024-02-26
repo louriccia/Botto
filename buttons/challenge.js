@@ -1,4 +1,4 @@
-const { truguts, hints, settings_default, about, achievement_data, swe1r_guild } = require('./challenge/data.js');
+const { truguts, hints, settings_default, about, achievement_data, swe1r_guild, flavormap } = require('./challenge/data.js');
 const { getGoalTimes, initializeChallenge, initializePlayer, updateChallenge, bribeComponents, dailyChallenge, menuEmbed, menuComponents, playButton, notYoursEmbed, settingsEmbed, initializeUser, isActive, checkActive, expiredEmbed, challengeWinnings, getBest, goalTimeList, predictionScore, settingsComponents, achievementProgress, huntComponents, racerHint, trackHint, sponsorComponents, sponsorEmbed, validateTime, initializeBounty, bountyEmbed, manageTruguts, currentTruguts, predictionAchievement, sponsorAchievement, bountyAchievement, achievementEmbed, shopEmbed, shopComponents, profileComponents, profileEmbed, shopOptions, randomChallengeItem, inventoryComponents, inventoryEmbed, getStats, goalTimeRank, challengeProgression, playerLevel, convertLevel, progressionReward, collectionReward, Collections, collectionRewardEmbed, getUsables, openCoffer, itemString, collectionRewardUpdater, tradeEmbed, tradeComponents, availableItemsforScrap } = require('./challenge/functions.js');
 const { postMessage, editMessage } = require('../discord_message.js');
 const { tracks, circuits, banners, emojimap, planets } = require('../data.js')
@@ -16,7 +16,7 @@ module.exports = {
         const Guild = interaction.guild
         const SWE1R_Guild = await client.guilds.cache.get("441839750555369474")
         const Member = await Guild.members.fetch(member)
-        const name = interaction.member.displayName
+        const discord_name = interaction.member.displayName
         const avatar = await interaction.member.displayAvatarURL()
         var tools = require('./../tools.js');
 
@@ -34,15 +34,16 @@ module.exports = {
 
         let player = Object.keys(db.user).find(key => db.user[key].discordID == member) ?? null
         if (!player) {
-            player = await initializeUser(userref, member, name)
+            player = await initializeUser(userref, member, discord_name)
         }
         let playerdata = db.user[player]
         //initialize player if they don't exist
         let profile = playerdata.random
         if (!profile) {
-            profile = initializePlayer(userref.child(player).child('random'), name)
+            profile = initializePlayer(userref.child(player).child('random'), discord_name)
         }
 
+        const botto_name = profile.name
         let profileref = userref.child(player).child('random')
         let current_challenge = null
         let current_challengeref = null
@@ -66,7 +67,7 @@ module.exports = {
                 }
             }
             if (!profile.achievements.big_time_swindler) {
-                postMessage(client, current_challenge.channel, { embeds: [achievementEmbed(name, avatar, achievement_data.big_time_swindler, current_challenge.guild)] })
+                postMessage(client, current_challenge.channel, { embeds: [achievementEmbed(botto_name, avatar, achievement_data.big_time_swindler, current_challenge.guild)] })
                 profileref.child('achievements').child("big_time_swindler").set(true)
                 profile = db.user[player]?.random
             }
@@ -113,8 +114,8 @@ module.exports = {
                         return
                     }
                     let type = interaction.member.voice?.channel?.id == '441840193754890250' ? 'multiplayer' : 'private'
-                    current_challenge = initializeChallenge({ profile, member, type, name, avatar, user: player, db, interaction })
-                    const reply = await updateChallenge({ client, db, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction })
+                    current_challenge = initializeChallenge({ profile, member, type, name: botto_name, avatar, user: player, db, interaction })
+                    const reply = await updateChallenge({ client, db, profile, current_challenge, current_challengeref, profileref, member, name: botto_name, avatar, interaction })
                     try {
                         let message = await interaction.reply(reply)
                         current_challenge.message = message.id
@@ -199,13 +200,13 @@ module.exports = {
                     //clean up old challenge
                     challengesref.child(interaction.message.id).update({ completed: true, rerolled: true })
                     current_challenge = db.ch.challenges[interaction.message.id]
-                    const edit_message = await updateChallenge({ client, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, db })
+                    const edit_message = await updateChallenge({ client, profile, current_challenge, current_challengeref, profileref, member, name: botto_name, avatar, interaction, db })
                     editMessage(client, interaction.channel.id, interaction.message.id, edit_message)
 
                     //prepare new challenge
                     let rerolltype = 'private'
-                    current_challenge = initializeChallenge({ profile, member, type: rerolltype, name, avatar, user: player, db, interaction })
-                    const reroll_reply = await updateChallenge({ client, profile, current_challenge, profileref, member, name, avatar, interaction, db })
+                    current_challenge = initializeChallenge({ profile, member, type: rerolltype, name: botto_name, avatar, user: player, db, interaction })
+                    const reroll_reply = await updateChallenge({ client, profile, current_challenge, profileref, member, name: botto_name, avatar, interaction, db })
                     let rerollmessage = await interaction.reply(reroll_reply)
                     current_challenge.message = rerollmessage.id
                     current_challenge.channel = interaction.message.channelId
@@ -265,7 +266,7 @@ module.exports = {
 
                     current_challenge = db.ch.challenges[current_challenge.message]
                     //populate options
-                    let adata = await updateChallenge({ client, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, db })
+                    let adata = await updateChallenge({ client, profile, current_challenge, current_challengeref, profileref, member, name: botto_name, avatar, interaction, db })
                     if (!bribed) {
                         adata.components = [adata.components, bribeComponents(current_challenge)].flat()
                     }
@@ -293,14 +294,14 @@ module.exports = {
                         //log time 
                         let predictiondata = {
                             member: member,
-                            name: name,
+                            name: botto_name,
                             time: time,
                             user: player
                         }
                         await current_challengeref.child("predictions").child(member).set(predictiondata);
                         let playeruser = current_challenge.player.user
                         current_challenge = db.ch.challenges[interaction.message.id]
-                        const pd_response = await updateChallenge({ client, profile: db.user?.[playeruser]?.random, current_challenge, current_challengeref, profileref: userref.child(playeruser).child('random'), member, name, avatar, interaction, db })
+                        const pd_response = await updateChallenge({ client, profile: db.user?.[playeruser]?.random, current_challenge, current_challengeref, profileref: userref.child(playeruser).child('random'), member, name: botto_name, avatar, interaction, db })
                         interaction.update(pd_response)
                     } else {
                         if (current_challenge.player && current_challenge.player.member == member) { //trying to predict own challenge
@@ -376,7 +377,7 @@ module.exports = {
                         }
                     });
                     current_challenge = db.ch.challenges[interaction.message.id]
-                    const feedback_reply = await updateChallenge({ client, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, db })
+                    const feedback_reply = await updateChallenge({ client, profile, current_challenge, current_challengeref, profileref, member, name: botto_name, avatar, interaction, db })
                     interaction.update(feedback_reply)
 
                     break
@@ -434,7 +435,7 @@ module.exports = {
                                 await profileref.child('items').push(condensed)
                             })
                             const congratsEmbed = new EmbedBuilder()
-                                .setAuthor({ name: name + " opened a 🎁Collectible Coffer", iconURL: avatar })
+                                .setAuthor({ name: botto_name + " opened a 🎁Collectible Coffer", iconURL: avatar })
                                 .addFields(...new_items.map(item => ({ name: itemString({ item, profile }), value: `\`📀${tools.numberWithCommas(item.value)}\` | ${item.description}` })))
                             postMessage(client, interaction.channelId, { embeds: [congratsEmbed] })
                             profile = db.user[player].random
@@ -482,7 +483,7 @@ module.exports = {
                                     .setDescription(`You have successfully set up a sabotage on <@${db.user[selected_player].discordID}>. When they submit a time ending in \`${mil}\`, you'll get ${profile.effects?.doubled_powers ? 'all' : 'half'} their winnings!`)
                                 interaction.reply({ embeds: [sabotageEmbed], ephemeral: true })
                                 profile = db.user[player].random
-                                editMessage(client, interaction.channelId, interaction.message.id, { embeds: [inventoryEmbed({ profile, selection: iselection, name, avatar })], components: inventoryComponents({ profile, selection: iselection, db, interaction }) })
+                                editMessage(client, interaction.channelId, interaction.message.id, { embeds: [inventoryEmbed({ profile, selection: iselection, name: botto_name, avatar })], components: inventoryComponents({ profile, selection: iselection, db, interaction }) })
                                 return
                             } else {
                                 const sponsorModal = new ModalBuilder()
@@ -510,7 +511,7 @@ module.exports = {
                             profileref.child('items').child(key).update({ used: Date.now() })
                             profileref.child('effects').update({ trugut_boost: Date.now() })
                             const congratsEmbed = new EmbedBuilder()
-                                .setAuthor({ name: name + " activated a ⚡Trugut Boost", iconURL: avatar })
+                                .setAuthor({ name: botto_name + " activated a ⚡Trugut Boost", iconURL: avatar })
                                 .setDescription(`They're earning ${profile.effects.doubled_powers ? '2×' : '1.5×'} Truguts for the next 24 hours!`)
                             postMessage(client, interaction.channelId, { embeds: [congratsEmbed] })
                             profile = db.user[player].random
@@ -557,7 +558,7 @@ module.exports = {
                         let feeditem = profile.items[scrap_key]
                         profileref.child('effects').update({ sarlacc_fed: Date.now() })
                         const sarlaccEmbed = new EmbedBuilder()
-                            .setAuthor({ name: name + " fed the Sarlacc a " + itemString({ item: { ...items.find(i => i.id == feeditem.id), ...feeditem }, profile }), iconURL: avatar })
+                            .setAuthor({ name: botto_name + " fed the Sarlacc a " + itemString({ item: { ...items.find(i => i.id == feeditem.id), ...feeditem }, profile }), iconURL: avatar })
                             .setImage('https://lumiere-a.akamaihd.net/v1/images/image_026c3344.gif')
                         postMessage(client, interaction.channelId, { embeds: [sarlaccEmbed] })
                         let new_item = randomChallengeItem({ profile, current_challenge: null, db, member, sarlacc: true })
@@ -601,7 +602,7 @@ module.exports = {
                                 truguts: ''
                             }
                         })
-                        let trademessage = await interaction.reply({ content: `<@${selected_player_id}> ${name} invites you to trade`, embeds: [tradeEmbed({ trade, db })], components: [...tradeComponents({ trade, db })], fetchReply: true })
+                        let trademessage = await interaction.reply({ content: `<@${selected_player_id}> ${botto_name} invites you to trade`, embeds: [tradeEmbed({ trade, db })], components: [...tradeComponents({ trade, db })], fetchReply: true })
                         database.ref('challenge/trades').child(trademessage.id).set(trade)
                         return
                     } else if (args[2] == 'claim') {
@@ -614,7 +615,7 @@ module.exports = {
                             await profileref.child('items').child(match.key).update({ locked: true })
                         })
                         await profileref.child('effects').child(selected_collection.key).set(true)
-                        postMessage(client, interaction.channelId, { embeds: [collectionRewardEmbed({ key: selected_collection.key, name, avatar })] })
+                        postMessage(client, interaction.channelId, { embeds: [collectionRewardEmbed({ key: selected_collection.key, name: botto_name, avatar })] })
                         if (planets.map(p => p.name.toLowerCase().replaceAll(" ", "_")).includes(selected_collection.key)) {
                             manageTruguts({ profile, profileref, transaction: 'd', amount: 100000 })
                         }
@@ -718,10 +719,10 @@ module.exports = {
                     }
                     profile = db.user[player].random
                     if (interaction.isChatInputCommand()) {
-                        interaction.reply({ embeds: [inventoryEmbed({ profile, selection: iselection, name, avatar })], components: inventoryComponents({ profile, selection: iselection, db, interaction }) })
+                        interaction.reply({ embeds: [inventoryEmbed({ profile, selection: iselection, name: botto_name, avatar })], components: inventoryComponents({ profile, selection: iselection, db, interaction }) })
 
                     } else {
-                        interaction.update({ embeds: [inventoryEmbed({ profile, selection: iselection, name, avatar })], components: inventoryComponents({ profile, selection: iselection, db, interaction }) })
+                        interaction.update({ embeds: [inventoryEmbed({ profile, selection: iselection, name: botto_name, avatar })], components: inventoryComponents({ profile, selection: iselection, db, interaction }) })
 
                     }
                     break
@@ -847,7 +848,7 @@ module.exports = {
                             //profileref.update({ truguts_spent: profile.truguts_spent + hints[hint].price })
                         }
                         hintBuy
-                            .setAuthor({ name: name + "'s Random Challenge Hint", iconURL: avatar })
+                            .setAuthor({ name: botto_name + "'s Random Challenge Hint", iconURL: avatar })
                             .setTitle(":bulb: " + hints[hint].name + ": " + achievements[achievement].name)
 
                         interaction.reply({ embeds: [hintBuy] })
@@ -858,7 +859,7 @@ module.exports = {
                             'standard': 1,
                             'deluxe': 2,
                         }
-                        let bounty = initializeBounty('private', hintmap[hselection], { name, member, user: player, avatar }, profile)
+                        let bounty = initializeBounty('private', hintmap[hselection], { name: botto_name, member, user: player, avatar }, profile)
                         const message = await interaction.reply({
                             embeds: [bountyEmbed({ bounty, profile, db })], components: [
                                 {
@@ -889,7 +890,7 @@ module.exports = {
                         }
 
                         //initialize challenge
-                        let sponsorchallenge = initializeChallenge({ profile, member, type: "private", name, avatar, user: player, circuit: circuit, db, interaction })
+                        let sponsorchallenge = initializeChallenge({ profile, member, type: "private", name: botto_name, avatar, user: player, circuit: circuit, db, interaction })
                         sponsorchallenge.type = 'open'
                         sponsorchallenge.sponsor = sponsorchallenge.player
                         delete sponsorchallenge.player
@@ -906,9 +907,63 @@ module.exports = {
                             await Guild.edit({ banner: banner })
                         }
                         const shuffleBuy = new EmbedBuilder()
-                            .setAuthor({ name: `${name} shuffled the server banner!`, iconURL: avatar })
+                            .setAuthor({ name: `${botto_name} shuffled the server banner!`, iconURL: avatar })
                             .setImage(banner)
                         interaction.reply({ embeds: [shuffleBuy] })
+                    } else if (shoption.value == 'submit_banner') {
+                        if (interaction.isModalSubmit()) {
+                            let url = interaction.fields.getTextInputValue('url')
+                            let desc = interaction.fields.getTextInputValue('desc')
+                            let source = interaction.fields.getTextInputValue('source')
+
+                            if(url.includes("discordapp.")){
+                                interaction.reply({content: "Your image url cannot be a discord link.\n[Discord CDN links are temporary](<https://www.bleepingcomputer.com/news/security/discord-will-switch-to-temporary-file-links-to-block-malware-delivery/>)", ephemeral: true})
+                                return
+                            }
+
+                            database.ref(`challenge/banners`).push({
+                                url,
+                                desc,
+                                source,
+                                approved: false
+                            })
+                            const quoteEmbed = new EmbedBuilder()
+                                .setTitle(`${botto_name} submitted a 🚩 Banner!`)
+                                .setDescription(`${desc}\nCourtesy of: ${source}`)
+                                .setImage(url)
+                            interaction.reply({ embeds: [quoteEmbed] })
+
+                        } else {
+                            const sponsorModal = new ModalBuilder()
+                                .setCustomId('challenge_random_shop_purchase')
+                                .setTitle(`Submit a Banner`)
+                            const url = new TextInputBuilder()
+                                .setCustomId('url')
+                                .setLabel("Image URL")
+                                .setStyle(TextInputStyle.Short)
+                                .setPlaceholder("This cannot be a Discord URL")
+                                .setRequired(true)
+                            const desc = new TextInputBuilder()
+                                .setCustomId('desc')
+                                .setMaxLength(200)
+                                .setLabel("Caption")
+                                .setStyle(TextInputStyle.Short)
+                                .setPlaceholder("Caption this image")
+                                .setRequired(true)
+                            const source = new TextInputBuilder()
+                                .setCustomId('source')
+                                .setMaxLength(40)
+                                .setLabel("Source")
+                                .setStyle(TextInputStyle.Short)
+                                .setPlaceholder("What user or site provided this image?")
+                                .setRequired(true)
+                            const ActionRow1 = new ActionRowBuilder().addComponents(url)
+                            const ActionRow2 = new ActionRowBuilder().addComponents(desc)
+                            const ActionRow3 = new ActionRowBuilder().addComponents(source)
+                            sponsorModal.addComponents(ActionRow1, ActionRow2, ActionRow3)
+                            await interaction.showModal(sponsorModal)
+                            return
+                        }
                     } else if (shoption.value == 'lotto') {
                         //check if user already has ticket
                         let existing = (Object.values(db.ch.lotto).find(t => t.user == interaction.user.id && moment(t.date).tz('America/New_York').month() == moment().tz('America/New_York').month()) ?? null)
@@ -926,7 +981,7 @@ module.exports = {
                         }
                         database.ref('challenge/lotto').push(ticket)
                         const shuffleBuy = new EmbedBuilder()
-                            .setAuthor({ name: `${name} purchased a 🎫 Botto Lotto Ticket!`, iconURL: avatar })
+                            .setAuthor({ name: `${botto_name} purchased a 🎫 Botto Lotto Ticket!`, iconURL: avatar })
                             .setDescription(`For the next monthly challenge, they're predicting the following tracks:\n${ticket.tracks.map(t => tools.getTrackName(t)).join("\n")}`)
                         interaction.reply({ embeds: [shuffleBuy] })
                     } else if (shoption.value == 'rival') {
@@ -952,30 +1007,32 @@ module.exports = {
                         const rivalEmbed = new EmbedBuilder()
                             .setTitle("🆚 New Rivalry!")
                             .setColor('#F4900C')
-                            .setDescription(`${name}'s new rival is... <@${db.user[selection[2]].discordID}>! ${name} will earn extra truguts for beating their best times.`)
+                            .setDescription(`${botto_name}'s new rival is... <@${db.user[selection[2]].discordID}>! ${botto_name} will earn extra truguts for beating their best times.`)
                         interaction.reply({ embeds: [rivalEmbed] })
-                    } else if (shoption.value == 'quote') {
+                    } else if (shoption.value == 'flavor') {
+                        let type = selection[2][0]
                         if (interaction.isModalSubmit()) {
-                            let quote = interaction.fields.getTextInputValue('quote')
-                            database.ref(`challenge/quotes`).push({
-                                player,
-                                quote
+                            let text = interaction.fields.getTextInputValue('text')
+                            database.ref(`challenge/flavor`).push({
+                                user: player,
+                                text,
+                                type
                             })
                             const quoteEmbed = new EmbedBuilder()
-                                .setTitle("✒️ Quote Submitted")
-                                .setDescription(`You have successfully submited a quote:\n\n${quote.replaceAll('$player', name)}\n\nThis quote will randomly appear in random challenge messages.`)
+                                .setTitle(`${flavormap[type].emoji} ${tools.capitalize(type)} Submitted`)
+                                .setDescription(`You have successfully submited a ${type}:\n\n${text.replaceAll('$player', botto_name)}\n\nThis ${type} will randomly appear in random challenge messages.`)
                             interaction.reply({ embeds: [quoteEmbed], ephemeral: true })
 
                         } else {
                             const sponsorModal = new ModalBuilder()
                                 .setCustomId('challenge_random_shop_purchase')
-                                .setTitle('Submit a Quote')
+                                .setTitle(`Submit a ${tools.capitalize(type)}`)
                             const quote = new TextInputBuilder()
-                                .setCustomId('quote')
-                                .setLabel('Quote')
+                                .setCustomId('text')
+                                .setLabel(tools.capitalize(type))
                                 .setStyle(TextInputStyle.Short)
                                 .setMaxLength(140)
-                                .setPlaceholder('(if desired, type $player to insert the name of the player)')
+                                .setPlaceholder(flavormap[type].placeholder)
                                 .setRequired(true)
                             const ActionRow1 = new ActionRowBuilder().addComponents(quote)
                             sponsorModal.addComponents(ActionRow1)
@@ -1038,7 +1095,7 @@ module.exports = {
 
                         const quoteEmbed = new EmbedBuilder()
                             .setTitle(":loudspeaker: Player Sponsorship")
-                            .setDescription(`${name} is now sponsoring <@${db.user[sponsorplayer]?.discordID}>!\nSponsorship amount: \`📀${tools.numberWithCommas(Number(take) * 10000)}\``)
+                            .setDescription(`${botto_name} is now sponsoring <@${db.user[sponsorplayer]?.discordID}>!\nSponsorship amount: \`📀${tools.numberWithCommas(Number(take) * 10000)}\``)
                         interaction.reply({ embeds: [quoteEmbed] })
                     } else if (shoption.value == 'rerolldaily') {
                         //check if there was a daily less than an hour ago
@@ -1061,7 +1118,7 @@ module.exports = {
                         }
 
                         const noTruguts = new EmbedBuilder()
-                            .setTitle(`🔄 ${name} rerolled the Random Challenge of the Day!`)
+                            .setTitle(`🔄 ${botto_name} rerolled the Random Challenge of the Day!`)
                         interaction.reply({ embeds: [noTruguts] })
                         last.rerolled = true
                         const pub_response = await updateChallenge({ client, current_challenge: last, current_challengeref: database.ref(`challenge/challenges/${last.message}`), interaction, db })
@@ -1583,10 +1640,10 @@ module.exports = {
                         sponsorchallenge.sponsor = {
                             avatar,
                             member,
-                            name,
+                            name: botto_name,
                             user: player
                         }
-                        const pub_response = await updateChallenge({ client, profile, current_challenge: sponsorchallenge, current_challengeref, profileref, member, name, avatar, interaction, db })
+                        const pub_response = await updateChallenge({ client, profile, current_challenge: sponsorchallenge, current_challengeref, profileref, member, name: botto_name, avatar, interaction, db })
                         let publishmessage = await interaction.reply(pub_response)
                         if (interaction.guildId == swe1r_guild) {
                             publishmessage.pin()
@@ -1615,13 +1672,18 @@ module.exports = {
                 case 'settings':
                     if (args[2] == 'initial') {
                         profile = db.user[player].random
-                        interaction.reply({ embeds: [settingsEmbed({ profile, name, avatar })], components: settingsComponents(profile), ephemeral: true })
+                        interaction.reply({ embeds: [settingsEmbed({ profile, name: botto_name, avatar })], components: settingsComponents(profile), ephemeral: true })
                         return
                     }
                     if (args[2] == "winnings") {
                         profileref.child("settings").update({ winnings: Number(interaction.values[0]) })
-                    } else if (args[2] == "predictions") {
-                        profileref.child("settings").update({ predictions: !profile.settings.predictions })
+                    } else if (args[2] == "other") {
+                        let update = {}
+                        let other_options = ['predictions', 'flavor']
+                        other_options.forEach(value => {
+                            update[value] = interaction.values.includes(value)
+                        })
+                        profileref.child("settings").update(update)
                     } else if (args[2] == 'nav') {
                         profileref.child('settings').update({ nav: interaction.values })
                     } else if (args[2] == "odds") {
@@ -1703,11 +1765,12 @@ module.exports = {
                             non_3_lap: settings_default.non_3_lap,
                             mirror_mode: settings_default.mirror_mode,
                             backwards: settings_default.backwards,
-                            predictions: settings_default.predictions
+                            predictions: settings_default.predictions,
+                            flavor: settings_default.flavor
                         })
                     }
                     profile = db.user[player].random
-                    interaction.update({ embeds: [settingsEmbed({ profile, name, avatar })], components: settingsComponents(profile) })
+                    interaction.update({ embeds: [settingsEmbed({ profile, name: botto_name, avatar })], components: settingsComponents(profile) })
                     break
                 case 'profile':
                     if (args[2] == 'bio') {
@@ -1802,9 +1865,9 @@ module.exports = {
                         })
                         await profileref.child('progression').set(progression)
                         let new_player_level = playerLevel(progression)
-                        postMessage(client, interaction.channelId, { embeds: [new EmbedBuilder().setAuthor({ name: `${name} leveled up!`, iconURL: avatar }).setDescription(new_player_level.string).setFooter({ text: `Level ${new_player_level.level}` })] })
+                        postMessage(client, interaction.channelId, { embeds: [new EmbedBuilder().setAuthor({ name: `${botto_name} leveled up!`, iconURL: avatar }).setDescription(new_player_level.string).setFooter({ text: `Level ${new_player_level.level}` })] })
                     }
-                    interaction.editReply({ embeds: [profileEmbed({ db, player: member, name, avatar, ach_report, profile, stats })], components: profileComponents({ member, ach_report, stats, profile }) })
+                    interaction.editReply({ embeds: [profileEmbed({ db, player: member, name: botto_name, avatar, ach_report, profile, stats })], components: profileComponents({ member, ach_report, stats, profile }) })
 
                     break
                 case 'about':
@@ -2289,7 +2352,7 @@ module.exports = {
                         profile = db.user[player].random //update profile
 
                         //update challenge
-                        const edit_reply = await updateChallenge({ client, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, db })
+                        const edit_reply = await updateChallenge({ client, profile, current_challenge, current_challengeref, profileref, member, name: botto_name, avatar, interaction, db })
                         await interaction.editReply(edit_reply)
                         return
                     }
@@ -2297,7 +2360,7 @@ module.exports = {
                     //log time
                     let submissiondata = {
                         user: member,
-                        name: name,
+                        name: botto_name,
                         time: time,
                         rta: rta,
                         platform: platform,
@@ -2431,7 +2494,7 @@ module.exports = {
                     //close bounties
                     if (current_challenge.bounties) {
                         Object.values(current_challenge.bounties).forEach(bounty => {
-                            bountyref.child(bounty.key).update({ completed: true, player: { avatar, member, name, user: player } })
+                            bountyref.child(bounty.key).update({ completed: true, player: { avatar, member, name: botto_name, user: player } })
                         })
                         if (bountyAchievement(db, member) >= achievement_data.bounty_hunter.limit) {
                             if (current_challenge.guild == swe1r_guild) {
@@ -2495,7 +2558,7 @@ module.exports = {
                             }
                         }
                         if (new_player_level.level !== player_level) {
-                            postMessage(client, interaction.channelId, { embeds: [new EmbedBuilder().setAuthor({ name: `${name} leveled up!`, iconURL: avatar }).setDescription(new_player_level.string).setFooter({ text: `Level ${new_player_level.level}` })] })
+                            postMessage(client, interaction.channelId, { embeds: [new EmbedBuilder().setAuthor({ name: `${botto_name} leveled up!`, iconURL: avatar }).setDescription(new_player_level.string).setFooter({ text: `Level ${new_player_level.level}` })] })
                         }
                         await profileref.child('progression').set(progression)
                     }
@@ -2508,7 +2571,7 @@ module.exports = {
                     //collectionRewardUpdater({ profile, client, interaction, profileref, name, avatar })
 
                     //update challenge
-                    const submit_reply = await updateChallenge({ client, profile, current_challenge, current_challengeref, profileref, member, name, avatar, interaction, db })
+                    const submit_reply = await updateChallenge({ client, profile, current_challenge, current_challengeref, profileref, member, name: botto_name, avatar, interaction, db })
 
                     if (current_challenge.type == 'private') {
                         interaction.editReply(submit_reply)
@@ -2658,7 +2721,7 @@ module.exports = {
                         }
                     } else if (args[2] == 'cancel') {
                         database.ref(`challenge/trades/${trade_id}`).remove()
-                        interaction.update({ embeds: [], components: [], content: `Trade offer was canceled by ${name}` })
+                        interaction.update({ embeds: [], components: [], content: `Trade offer was canceled by ${botto_name}` })
                         return
                     } else if (args[2] == 'reset') {
                         traders.forEach(trader => {

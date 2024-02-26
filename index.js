@@ -4,7 +4,7 @@ const axios = require('axios');
 const { Client, Events, GatewayIntentBits, Partials, ButtonStyle, ActionRowBuilder, ButtonBuilder } = require('discord.js')
 const { Configuration, OpenAIApi } = require("openai")
 const { tracks } = require('./data')
-//const { token, firebaseCon, OPENAI_API_KEY, twitch, YOUTUBE_KEY, PAPERTRAIL_KEY } = require('./config.json');
+const { token, firebaseCon, OPENAI_API_KEY, twitch, YOUTUBE_KEY, PAPERTRAIL_KEY } = require('./config.json');
 const { welcomeMessages } = require('./data.js')
 const client = new Client({
     intents: [
@@ -33,7 +33,7 @@ client.selects = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 const buttonFiles = fs.readdirSync('./buttons').filter(file => file.endsWith('.js'));
 
-const testing = false
+const testing = true
 
 const Twitch = new TwitchApi({
     client_id: testing ? twitch.id : process.env.TWITCH_ID,
@@ -99,11 +99,12 @@ let db = {
         bounties: null,
         sponsors: null,
         lotto: null,
-        quotes: null,
+        flavor: null,
         clues: null,
         auto: null,
         trades: null,
         scavenger: null,
+        banners: null
     },
     ty: {
         bets: null,
@@ -152,8 +153,8 @@ fetchData(database.ref('challenge/lotto'), function (data) {
     db.ch.lotto = data;
 });
 
-fetchData(database.ref('challenge/quotes'), function (data) {
-    db.ch.quotes = data;
+fetchData(database.ref('challenge/flavor'), function (data) {
+    db.ch.flavor = data;
 });
 
 fetchData(database.ref('challenge/clues'), function (data) {
@@ -168,6 +169,9 @@ fetchData(database.ref('challenge/trades'), function (data) {
     db.ch.trades = data;
 });
 
+fetchData(database.ref('challenge/banners'), function (data) {
+    db.ch.banners = data;
+});
 
 fetchData(database.ref('challenge/sponsorships'), function (data) {
     db.ch.sponsors = data;
