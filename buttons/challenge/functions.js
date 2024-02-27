@@ -1115,7 +1115,7 @@ exports.updateChallenge = async function ({ client, db, profile, current_challen
         current_challengeref.update(current_challenge)
     }
 
-    let flavor_text = player_profile.settings.flavor === false ? '' : exports.flavorText({ current_challenge, db, best })
+    let flavor_text = player_profile?.settings?.flavor === false ? '' : exports.flavorText({ current_challenge, db, best })
 
     const cembed = await exports.challengeEmbed({ client, current_challenge, profile: player_profile, profileref, best, name: player_name, member: player, avatar: player_avatar, interaction, db })
 
