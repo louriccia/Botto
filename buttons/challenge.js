@@ -706,7 +706,6 @@ module.exports = {
                             return
                         }
                     } else if (args[2] == 'icon') {
-                        console.log(interaction.values[0])
                         if (profile?.roles?.emoji && interaction.guild.id == swe1r_guild) {
                             Object.values(profile.roles.emoji).forEach(role => {
                                 if (interaction.values.includes(role.id)) {

@@ -584,79 +584,87 @@ exports.bountyAchievement = function (db, member) {
 }
 
 exports.generateLeaderboard = function ({ best, member, current_challenge, db } = {}) {
-    let besttimes = ":snowflake: `+📀" + tools.numberWithCommas(truguts.first) + "`"
+    if (!best.length) {
+        return `:snowflake: \`📀 ${tools.numberWithCommas(truguts.first)}\``
+    }
     let pos = ["<:P1:671601240228233216> ", "<:P2:671601321257992204> ", "<:P3:671601364794605570> ", "4th ", "5th ", "6th ", "7th ", "8th ", "9th ", "10th "]
+    let leaderboard = []
+    let already = []
 
-    if (best.length > 0) {
-        if (current_challenge.completed && current_challenge.predictions) {
-            Object.values(current_challenge.predictions).forEach(p => {
-                best.push({
-                    time: p.time,
-                    name: p.name,
-                    prediction: true
-                })
-            })
-        }
-        if (current_challenge.sponsor?.time) {
-            console.log(current_challenge.sponsor)
-            best.push({
-                time: current_challenge.sponsor.time,
-                name: current_challenge.sponsor.name,
-                sponsor: true,
-                user: current_challenge.sponsor.member
-            })
-        }
-        if (current_challenge.completed && current_challenge.type == 'private') {
-            let times = exports.getGoalTimes({
-                track: current_challenge.track,
-                racer: current_challenge.racer,
-                skips: current_challenge.conditions.skips,
-                nu: current_challenge.conditions.nu,
-                laps: current_challenge.conditions.laps,
-                backwards: current_challenge.conditions.backwards,
-                best: best.filter(b => b.date !== current_challenge.created)
-            })
-            times.forEach((time, i) => {
-                best.push({
-                    time: time,
-                    name: goal_symbols[i],
-                    goal: true
-                })
-            })
-        }
-        best.sort(function (a, b) {
-            return a.time - b.time;
-        })
-        besttimes = ""
-        let already = []
-        function getUserName(id){
-            let user = Object.values(db.user).find(u => u.discordID == id)
-            return user?.random?.name ?? user?.name ?? 'no name'
-        }
-        let submission = current_challenge.submissions && current_challenge.type == 'private' ? current_challenge.submissions[current_challenge.player.member].time : null
-        for (let i = 0; i < best.length; i++) {
-            if (best[i].prediction || !already.includes(best[i].user) || (best[i].user == member && current_challenge.type == 'private') || best[i].date == current_challenge.created) {
-                let bold = ((best[i].user == member && current_challenge.type == 'private') || best[i].date == current_challenge.created) ? "**" : ""
-                besttimes += (best[i].goal ? `*${getUserName(best[i].user)} ` : best[i].prediction ? "🔮 *" : best[i].sponsor ? "📢 " : pos[0]) + bold + (best[i].proof ? "[" : "") + tools.timefix(best[i].time) + (best[i].proof ? "](" + best[i].proof + ")" : "") +
-                    (best[i].goal ? '*' : bold ? ` <@${best[i].user}>` : ` ${getUserName(best[i].user)}`) + bold +
-                    (console_emojis[best[i].platform] ? ` ${console_emojis[best[i].platform]}` : '') +
-                    (best[i].notes ? " `" + best[i].notes + "`" : "") +
-                    (best[i].prediction ? " `+📀" + exports.predictionScore(best[i].time, submission) + "`*" : "") +
-                    (!['private', 'abandoned'].includes(current_challenge.type) && current_challenge?.earnings?.[best[i].user] ? " `+📀" + tools.numberWithCommas(current_challenge.earnings?.[best[i].user]?.truguts_earned) + "`" : "") +
-                    (best[i].date == current_challenge.created ? " <a:newrecord:672640831882133524>" : "") + "\n"
-                if (!best[i].prediction && !best[i].sponsor && !best[i].goal) {
-                    pos.splice(0, 1)
-                    already.push(best[i].user)
+    function getUserName(id) {
+        let user = Object.values(db.user).find(u => u.discordID == id)
+        return user?.random?.name ?? user?.name ?? 'no name'
+    }
+
+    let submission = current_challenge.submissions && current_challenge.type == 'private' ? current_challenge.submissions[current_challenge.player.member].time : null
+    //runs
+    best.forEach(run => {
+        if (!already.includes(run.user) || (run.user == member && current_challenge.type == 'private') || run.date == current_challenge.created) {
+            let bold = (run.user == member && current_challenge.type == 'private') || run.date == current_challenge.created
+            let name = bold ? `<@${run.user}>` : ` ${getUserName(run?.user)}`
+            let time = run.proof ? `[${tools.timefix(run.time)}](<${run.proof}>)` : tools.timefix(run.time)
+            let platform = console_emojis[run.platform] ? ` ${console_emojis[run.platform]}` : ''
+            let notes = run.notes ?? ""
+            let record = run.date == current_challenge.created ? " <a:newrecord:672640831882133524>" : ""
+            let earnings = !['private', 'abandoned'].includes(current_challenge.type) && current_challenge?.earnings?.[run.user] ? " `+📀" + tools.numberWithCommas(current_challenge.earnings?.[run.user]?.truguts_earned) + "`" : ""
+            leaderboard.push(
+                {
+                    time: run.time,
+                    string: [pos[0], name, time, platform, notes, record, earnings].filter(e => e).join(" ")
                 }
-
+            )
+            if (run.user) {
+                already.push(run.user)
             }
+            pos.splice(0, 1)
             if (pos.length == 0) {
                 i = best.length
             }
         }
+    })
+
+    //predictions
+    if (current_challenge.completed && current_challenge.predictions) {
+        Object.values(current_challenge.predictions).forEach(p => {
+            leaderboard.push({
+                time: p.time,
+                string: `🔮 *${tools.timefix(p.time)} ${p.name}* +📀 ${exports.predictionScore(p.time, submission)}`
+            })
+        })
     }
-    return besttimes
+
+    //sponsor time
+    if (current_challenge.sponsor?.time) {
+        leaderboard.push({
+            time: current_challenge.sponsor.time,
+            string: `📢 ${current_challenge.sponsor.name} ${tools.timefix(current_challenge.sponsor.time)}`
+        })
+    }
+
+    //goal times
+    if (current_challenge.completed && current_challenge.type == 'private') {
+        let times = exports.getGoalTimes({
+            track: current_challenge.track,
+            racer: current_challenge.racer,
+            skips: current_challenge.conditions.skips,
+            nu: current_challenge.conditions.nu,
+            laps: current_challenge.conditions.laps,
+            backwards: current_challenge.conditions.backwards,
+            best: best.filter(b => b.date !== current_challenge.created)
+        })
+        times.forEach((time, i) => {
+            leaderboard.push({
+                time: time,
+                string: `${goal_symbols[i]} ${tools.timefix(time)}`
+            })
+        })
+    }
+
+    return leaderboard.sort((a, b) => a.time - b.time).map(r => r.string).join("\n")
+
+
 }
+
 
 exports.achievementProgress = function ({ db, player } = {}) {
     let achievements = { ...achievement_data }

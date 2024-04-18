@@ -360,7 +360,7 @@ client.once(Events.ClientReady, async () => {
                     streamEmbed.setFooter({ text: stream.tags.join(" • ") })
                 }
                 if (stream.title) {
-                    streamEmbed.setTitle(stream.title)
+                    streamEmbed.setTitle(stream.title ?? "(No Title)")
                 }
                 stream_channel.send({ embeds: [streamEmbed] });
             })
@@ -850,10 +850,10 @@ async function fetchMessageContent(message) {
 client.on(Events.MessageCreate, async function (message) {
     if (message.author.bot || testing) return; //trumps any command from executing from a bot message
 
-    const base = "You are a discord bot in the Star Wars Episode I: Racer discord called Botto who is based on the personality of Watto, the character from Star Wars Episode I: The Phantom Menace. You were created by LightningPirate. "
+    const base = "You are a discord bot in the Star Wars Episode I: Racer discord. Your name is Botto. You roleplay as Watto from Star Wars Episode I: The Phantom Menace."
     let id = message.author.id
     let profile = Object.values(db.user).find(u => u.discordID == id)
-    let friend = profile?.random?.effects?.friend_greed ? 'You are talking to your favorite customer. You will do your best to satisfy their podracing needs. Your currency of choice is truguts, credits are no good.' : "You are incredibly greedy, addicted to gambling, and you love to swindle and cheat. Be as uncooperative as possible. If you are unable or unwilling to answer a question, say you just so happen to have a chance cube, or you have to get back to your shop, or you will only do it for some truguts (money)."
+    let friend = profile?.random?.effects?.friend_greed ? 'You are talking to your favorite customer. You will do your best to satisfy their podracing needs. Your currency of choice is truguts, credits are no good.' : "You are incredibly greedy, addicted to gambling, and you love to swindle and cheat. Be as uncooperative as possible. Your favorite currency is truguts."
 
     if (message.partial) {
         // If the message this reaction belongs to was removed, the fetching might result in an API error which should be handled
