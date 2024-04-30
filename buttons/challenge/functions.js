@@ -989,6 +989,8 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, profi
     let multipliers = ""
     earnings_total = earnings_subtotal
 
+
+
     if (current_challenge.created - 1000 * 60 * 60 * 24 < profile.effects?.trugut_boost) {
         multipliers += `${profile.effects?.doubled_powers ? '`×2`' : '`×1.5`'} *⚡Trugut Boost* (expires <t:${Math.round((profile.effects?.trugut_boost + 1000 * 60 * 60 * 24) / 1000)}:R>)\n`
         earnings_total *= (profile.effects?.doubled_powers ? 2 : 1.5)
@@ -1010,6 +1012,11 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, profi
             cloner *= Number(m.multiplier)
         })
         multipliers += `\`×${cloner}\` *Trugut Cloner*\n`
+    }
+
+    if (exports.anniversaryMonth()) {
+        multipliers += "`×2` *<:swr:671547869118988328> Anniversary Month*\n"
+        earnings_total *= 2
     }
 
     earnings_total = Math.round(earnings_total)
@@ -3260,8 +3267,29 @@ exports.dailyChallenge = async function ({ client, challengesref, db } = {}) {
     }
     if (exports.easternTime().dayOfYear() !== recent.day) {
         const SWE1R_Guild = await client.guilds.cache.get("441839750555369474")
-        await SWE1R_Guild.edit({ banner: banners[Math.floor(Math.random() * banners.length)] })
+        if (exports.anniversaryMonth()) {
+            await SWE1R_Guild.edit({ banner: 'https://drive.usercontent.google.com/download?id=12A6WQBQCPRFVvUkdpMjT4noQGIn9hpdR' })
+        } else {
+            await SWE1R_Guild.edit({ banner: banners[Math.floor(Math.random() * banners.length)] })
+        }
         let current_challenge = exports.initializeChallenge({ type: "cotd", db })
+
+        if (exports.anniversaryMonth() && exports.easternTime().date() < 26) {
+            let day = exports.easternTime().date() - 1
+            current_challenge = {
+                ...current_challenge,
+                racer: tracks[day].favorite,
+                track: day,
+                conditions: {
+                    laps: 3,
+                    nu: false,
+                    skips: false,
+                    mirror: false,
+                    backwards: false,
+                },
+            }
+        }
+
         if (lastfive.map(c => c.racer).includes(current_challenge.racer)) {
             if (Math.random() < 0.9) {
                 let leftoverracers = []
@@ -3767,6 +3795,10 @@ exports.getUsables = function ({ profile } = {}) {
 
 exports.isDroid = function ({ item } = {}) {
     return [102, 103, 104, 105, 106, 107, 141, 184].includes(item.id)
+}
+
+exports.anniversaryMonth = function () {
+    return exports.easternTime().month() == 4
 }
 
 exports.getNeededItems = function ({ profile } = {}) {

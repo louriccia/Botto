@@ -4,7 +4,7 @@ const axios = require('axios');
 const { Client, Events, GatewayIntentBits, Partials, ButtonStyle, ActionRowBuilder, ButtonBuilder } = require('discord.js')
 const { Configuration, OpenAIApi } = require("openai")
 const { tracks } = require('./data')
-//const { token, firebaseCon, OPENAI_API_KEY, twitch, YOUTUBE_KEY, PAPERTRAIL_KEY } = require('./config.json');
+//const { token, firebaseCon, OPENAI_API_KEY, twitch, YOUTUBE_KEY, PAPERTRAIL_KEY, SCAVENGER } = require('./config.json');
 const { welcomeMessages } = require('./data.js')
 const client = new Client({
     intents: [
@@ -26,7 +26,7 @@ const TwitchApi = require("node-twitch").default;
 var { errorMessage } = require("./data.js");
 var tools = require('./tools.js');
 const { betEmbed, betComponents } = require('./buttons/trugut_functions.js')
-const { dailyChallenge, monthlyChallenge, dailyBounty, isActive, completeRepairs } = require("./buttons/challenge/functions")
+const { dailyChallenge, monthlyChallenge, dailyBounty, isActive, completeRepairs, anniversaryMonth } = require("./buttons/challenge/functions")
 client.commands = new Discord.Collection();
 client.buttons = new Discord.Collection();
 client.selects = new Discord.Collection();
@@ -866,8 +866,19 @@ client.on(Events.MessageCreate, async function (message) {
         }
     }
     if (message.guildId == '441839750555369474' && !testing) {
-        if (Math.random() < 0.04) {
+
+        let drop_odds = 0.03
+
+        if (anniversaryMonth()){
+            drop_odds = 0.02
+        }
+
+        if (Math.random() < drop_odds) {
             let drop = Math.floor(Math.random() * 20) * 100 + 500
+
+            if (anniversaryMonth()){
+                drop *= 100
+            }
 
             postMessage(client, message.channelId, { components: [new ActionRowBuilder().addComponents(new ButtonBuilder().setLabel(`📀${tools.numberWithCommas(drop)}`).setCustomId(`challenge_random_drop_${drop}`).setStyle(ButtonStyle.Secondary))] })
         }
