@@ -21,7 +21,7 @@ const client = new Client({
 
 const TwitchApi = require("node-twitch").default;
 
-const SCAVENGER_CLUES = testing ? SCAVENGER : process.env.SCAVENGER
+
 
 var { errorMessage } = require("./data.js");
 var tools = require('./tools.js');
@@ -34,6 +34,8 @@ const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('
 const buttonFiles = fs.readdirSync('./buttons').filter(file => file.endsWith('.js'));
 
 const testing = false
+
+const SCAVENGER_CLUES = testing ? SCAVENGER : process.env.SCAVENGER
 
 const Twitch = new TwitchApi({
     client_id: testing ? twitch.id : process.env.TWITCH_ID,
