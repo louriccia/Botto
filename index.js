@@ -21,7 +21,7 @@ const client = new Client({
 
 const TwitchApi = require("node-twitch").default;
 
-
+const SCAVENGER_CLUES = testing ? SCAVENGER : process.env.SCAVENGER
 
 var { errorMessage } = require("./data.js");
 var tools = require('./tools.js');

@@ -1,5 +1,7 @@
 const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, AttachmentBuilder } = require('discord.js');
 
+let clues = SCAVENGER_CLUES
+
 const endEmbed = new EmbedBuilder()
     .setTitle('The End')
     .setDescription(clues[25].text)
@@ -101,7 +103,7 @@ function clueMessage(clue, progress, desc) {
     return { embeds: [clueEmbed(clue, progress, desc)], components: clueComponents(clue, progress), ephemeral: true }
 }
 
-clues = process.env.SCAVENGER
+
 
 module.exports = {
     name: 'scavenger',
