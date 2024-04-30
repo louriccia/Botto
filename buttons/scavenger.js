@@ -2,6 +2,8 @@ const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInpu
 
 let clues = process.env.SCAVENGER
 
+console.log(clues)
+
 const endEmbed = new EmbedBuilder()
     .setTitle('The End')
     .setDescription(clues[25].text)
