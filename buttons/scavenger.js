@@ -1,6 +1,6 @@
 const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, AttachmentBuilder } = require('discord.js');
 
-let clues = SCAVENGER_CLUES
+let clues = process.env.SCAVENGER
 
 const endEmbed = new EmbedBuilder()
     .setTitle('The End')

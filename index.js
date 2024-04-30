@@ -35,8 +35,6 @@ const buttonFiles = fs.readdirSync('./buttons').filter(file => file.endsWith('.j
 
 const testing = false
 
-const SCAVENGER_CLUES = testing ? SCAVENGER : process.env.SCAVENGER
-
 const Twitch = new TwitchApi({
     client_id: testing ? twitch.id : process.env.TWITCH_ID,
     client_secret: testing ? twitch.token : process.env.TWITCH_SECRET
