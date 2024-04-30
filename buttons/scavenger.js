@@ -1,6 +1,6 @@
 const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, AttachmentBuilder } = require('discord.js');
 
-let clues = process.env.SCAVENGER
+let clues = JSON.parse(process.env.SCAVENGER)
 
 console.log(clues)
 
