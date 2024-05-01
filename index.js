@@ -104,7 +104,8 @@ let db = {
         auto: null,
         trades: null,
         scavenger: null,
-        banners: null
+        banners: null,
+        drops: null,
     },
     ty: {
         bets: null,
@@ -207,6 +208,10 @@ fetchData(database.ref('tourney/bets'), function (data) {
 
 fetchData(database.ref('challenge/scavenger'), function (data) {
     db.ch.scavenger = data;
+});
+
+fetchData(database.ref('challenge/drops'), function (data) {
+    db.ch.drops = data;
 });
 
 

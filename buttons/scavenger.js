@@ -1,10 +1,14 @@
 const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, AttachmentBuilder } = require('discord.js');
 
-let clues = JSON.parse(process.env.SCAVENGER)
+let clues = process.env.SCAVENGER ? JSON.parse(process.env.SCAVENGER) : []
+
+if (!clues.length){
+    return
+}
 
 const endEmbed = new EmbedBuilder()
     .setTitle('The End')
-    .setDescription(clues[25].text)
+    .setDescription(clues[25]?.text)
     .setFooter({text: 'Congratulations! You beat the scavenger hunt!'})
     .setColor("#FFFFFF")
 

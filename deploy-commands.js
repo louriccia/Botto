@@ -11,7 +11,7 @@ let other_commands = []
 for (const file of commandFiles) {
 	const command = require(`./commands/${file}`);
 	if (command.data) {
-		if (!['scrape'].includes(command.data.name)) {
+		if (!['scrape', 'raffle'].includes(command.data.name)) {
 			console.log(command.data)
 			commands.push(command.data.toJSON());
 		} else {
@@ -38,20 +38,20 @@ const rest = new REST({ version: '10' }).setToken(token);
 		console.log(`Started refreshing ${commands.length} application (/) commands.`);
 
 		//application commands
-		const data = await rest.put(
-			Routes.applicationCommands('545798436105224203'),
-			{ body: commands },
-		);
+		// const data = await rest.put(
+		// 	Routes.applicationCommands('545798436105224203'),
+		// 	{ body: commands },
+		// );
 
 		// delete
 		// await rest.put(Routes.applicationGuildCommands(clientID, SWE1R_Guild), { body: [] })
 		// 	.then(() => console.log('Successfully deleted all guild commands.'))
 		// 	.catch(console.error);
 
-		// await rest.put(
-		// 	Routes.applicationGuildCommands(clientID, secret_guild),
-		// 	{ body: other_commands },
-		// );
+		await rest.put(
+			Routes.applicationGuildCommands(clientID, SWE1R_Guild),
+			{ body: other_commands },
+		);
 
 		//console.log(`Successfully reloaded ${data.length} application (/) commands.`);
 	} catch (error) {
