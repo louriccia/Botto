@@ -59,7 +59,7 @@ module.exports = {
         myEmbed
             .setTitle("<a:chance_cube:1235055236138270760> Raffle Leaderboard")
             .setColor("Blurple")
-            .setDescription(Object.keys(tally).sort((a,b) => tally[a] - tally[b]).map(user => (`<@${user}> **${tally[user]}** (${((tally[user]/total)*100).toFixed(0)}%)`)).join("\n"))
+            .setDescription(Object.keys(tally).sort((a,b) => tally[b] - tally[a]).map(user => (`<@${user}> **${tally[user]}** (${((tally[user]/total)*100).toFixed(0)}%)`)).join("\n"))
             .setFooter({text: `${total} tickets awarded`})
         interaction.reply({ embeds: [myEmbed] })
     }
