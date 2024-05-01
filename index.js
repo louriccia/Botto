@@ -4,7 +4,7 @@ const axios = require('axios');
 const { Client, Events, GatewayIntentBits, Partials, ButtonStyle, ActionRowBuilder, ButtonBuilder } = require('discord.js')
 const { Configuration, OpenAIApi } = require("openai")
 const { tracks } = require('./data')
-//const { token, firebaseCon, OPENAI_API_KEY, twitch, YOUTUBE_KEY, PAPERTRAIL_KEY, SCAVENGER } = require('./config.json');
+//const { token, firebaseCon, OPENAI_API_KEY, twitch, YOUTUBE_KEY, PAPERTRAIL_KEY } = require('./config.json');
 const { welcomeMessages } = require('./data.js')
 const client = new Client({
     intents: [
@@ -866,21 +866,61 @@ client.on(Events.MessageCreate, async function (message) {
         }
     }
     if (message.guildId == '441839750555369474' && !testing) {
+        let whitelist = [
+            '442087812007985174',
+            '441842584592056320',
+            '602412114363154432',
+            '778759239379582976',
+            '1101233984106668042',
+            '536455290091077652',
+            '551786988861128714',
+            '444627151858171934',
+            '449375461886132235',
+            '449375389081403413',
+            '449375331208658965',
+            '449375302502711297',
+            '725066951185137776',
+            '441858905014927361',
+            '848941048218779668',
+            '1135800422066556940',
+            '1235050189153370183',
+            '1235050393021579296'
+        ]
 
-        let drop_odds = 0.03
+        let drop_odds = 0.035
 
-        if (anniversaryMonth()){
-            drop_odds = 0.02
-        }
+        let random_number = Math.random()
 
-        if (Math.random() < drop_odds) {
+        if (random_number < drop_odds && whitelist.includes(message.channelId)) {
             let drop = Math.floor(Math.random() * 20) * 100 + 500
 
-            if (anniversaryMonth()){
+            if (anniversaryMonth()) {
                 drop *= 100
             }
 
-            postMessage(client, message.channelId, { components: [new ActionRowBuilder().addComponents(new ButtonBuilder().setLabel(`📀${tools.numberWithCommas(drop)}`).setCustomId(`challenge_random_drop_${drop}`).setStyle(ButtonStyle.Secondary))] })
+            postMessage(client, message.channelId, {
+                components: [
+                    new ActionRowBuilder().addComponents(
+                        new ButtonBuilder()
+                            .setLabel(`📀${tools.numberWithCommas(drop)}`)
+                            .setCustomId(`challenge_random_drop_${drop}`)
+                            .setStyle(ButtonStyle.Secondary)
+                    )
+                ]
+            })
+        }
+
+        if (Math.random() < 0.01 && whitelist.includes(message.channelId)) {
+            postMessage(client, message.channelId, {
+                components: [
+                    new ActionRowBuilder().addComponents(
+                        new ButtonBuilder()
+                            .setEmoji('🎟️')
+                            .setCustomId(`challenge_random_drop_ticket`)
+                            .setStyle(ButtonStyle.Secondary)
+                    )
+                ]
+            })
         }
     }
 

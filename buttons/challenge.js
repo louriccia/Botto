@@ -2593,8 +2593,20 @@ module.exports = {
 
                     break
                 case 'drop':
+
+                    if (args[2]  =='ticket'){
+                        interaction.update({ components: [], content: `*${discord_name} snagged a :tickets: raffle ticket!*`})
+                        database.ref(`challenge/drops`).push({
+                            member,
+                            message: interaction.message.id,
+                            date: Date.now(),
+                            drop: 'ticket'
+                        })
+                        return
+                    }
+
                     let drop = Number(args[2])
-                    database.ref(`challenge / drops`).push({
+                    database.ref(`challenge/drops`).push({
                         member,
                         message: interaction.message.id,
                         date: Date.now(),
