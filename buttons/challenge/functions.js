@@ -3276,18 +3276,17 @@ exports.dailyChallenge = async function ({ client, challengesref, db } = {}) {
 
         if (exports.anniversaryMonth() && exports.easternTime().date() < 26) {
             let day = exports.easternTime().date() - 1
-            current_challenge = {
-                ...current_challenge,
-                racer: tracks[day].favorite,
-                track: day,
-                conditions: {
-                    laps: 3,
-                    nu: false,
-                    skips: false,
-                    mirror: false,
-                    backwards: false,
-                },
+            console.log(day)
+            current_challenge.racer = tracks[day].favorite,
+                current_challenge.track = day
+            current_challenge.conditions = {
+                laps: 3,
+                nu: false,
+                skips: false,
+                mirror: false,
+                backwards: false,
             }
+
         }
 
         if (lastfive.map(c => c.racer).includes(current_challenge.racer)) {

@@ -36,6 +36,12 @@ exports.postMessage = async function (client, channel, message) {
     }
 }
 
+exports.createPoll = function (client, channel, poll){
+    if (channel) {
+        const messageFetch = client.channels.cache.get(channel).send({poll})
+    }
+}
+
 exports.editMessage = function (client, channel, message, new_message) {
     client.channels.cache.get(channel).messages.fetch(message).then(msg => msg.edit(new_message))
 }

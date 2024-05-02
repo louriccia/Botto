@@ -11,7 +11,7 @@ let other_commands = []
 for (const file of commandFiles) {
 	const command = require(`./commands/${file}`);
 	if (command.data) {
-		if (!['scrape', 'raffle'].includes(command.data.name)) {
+		if (!['scrape', 'raffle', 'trivia'].includes(command.data.name)) {
 			console.log(command.data)
 			commands.push(command.data.toJSON());
 		} else {
@@ -49,7 +49,7 @@ const rest = new REST({ version: '10' }).setToken(token);
 		// 	.catch(console.error);
 
 		await rest.put(
-			Routes.applicationGuildCommands(clientID, SWE1R_Guild),
+			Routes.applicationGuildCommands(clientID, Botto_Guild),
 			{ body: other_commands },
 		);
 
