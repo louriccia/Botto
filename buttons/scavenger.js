@@ -2,14 +2,15 @@ const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInpu
 
 let clues = process.env.SCAVENGER ? JSON.parse(process.env.SCAVENGER) : []
 
-if (!clues.length){
-    return
+if (!clues.length) {
+    clues_export = require('../clues.js')
+    clues = clues_export.clues
 }
 
 const endEmbed = new EmbedBuilder()
     .setTitle('The End')
     .setDescription(clues[25]?.text)
-    .setFooter({text: 'Congratulations! You beat the scavenger hunt!'})
+    .setFooter({ text: 'Congratulations! You beat the scavenger hunt!' })
     .setColor("#FFFFFF")
 
 function clueComponents(clue, progress) {
@@ -55,12 +56,12 @@ function clueComponents(clue, progress) {
     return [DropRow, ButtonRow]
 }
 
-function clueEmbed(clue, progress, desc) {
+function clueEmbed(clue, progress, desc, footer) {
     if (clue == 'help') {
         const IntroEmbed = new EmbedBuilder()
             .setTitle('Welcome to the Scavenger Hunt')
             .setDescription(
-                `This scavenger hunt is a series of 25 puzzles and challenges. To solve each puzzle, you need to provide a password that unlocks the next clue. You are encouraged to work together in #25th anniversary, but please use spoiler text when confirming or denying answers.
+                `This scavenger hunt is a series of 25 puzzles and challenges. To solve each puzzle, you need to provide a password that unlocks the next clue. You are encouraged to work together in <#1235050393021579296>, but please use spoiler text when confirming or denying answers.
                 
         Some important things to know:
 * Every time you use this command, you can resume your progress and access all solved clues.
@@ -100,11 +101,15 @@ function clueEmbed(clue, progress, desc) {
         ClueEmbed.setImage(clues[clue].image)
     }
 
+    if (footer) {
+        ClueEmbed.setFooter({ text: footer })
+    }
+
     return ClueEmbed
 }
 
-function clueMessage(clue, progress, desc) {
-    return { embeds: [clueEmbed(clue, progress, desc)], components: clueComponents(clue, progress), ephemeral: true }
+function clueMessage(clue, progress, desc, footer) {
+    return { embeds: [clueEmbed(clue, progress, desc, footer)], components: clueComponents(clue, progress), ephemeral: true }
 }
 
 
@@ -115,6 +120,8 @@ module.exports = {
         let member = interaction.user.id
 
         let desc = ''
+        let footer = ''
+
 
         if (!database) {
             interaction.reply({ content: 'Impossible, the archives must be... down?', ephemeral: true })
@@ -122,6 +129,8 @@ module.exports = {
         }
 
         let progress = db.ch.scavenger?.[member]
+
+
 
         //initialize progress
         if (!progress) {
@@ -148,9 +157,40 @@ module.exports = {
             }
         }
 
+        function scavengerProgress(clue) {
+            //get other players' progress
+            let made_it = 0
+            let solved_it = 0
+            let total_guesses = 0
+            let other_players = Object.keys(db.ch.scavenger).filter(u => u !== member)
+            other_players.forEach(p => {
+                let prog = db.ch.scavenger[p]
+                if (clue == 0 || prog[clue - 1].solved) {
+                    made_it++
+                }
+                if (prog[clue].solved) {
+                    solved_it++
+                    total_guesses += (prog[clue].guesses ? Object.keys(prog[clue].guesses).length + 1 : 1)
+                }
+            })
+            footer = made_it ? `${made_it}/${other_players.length} other scavengers made it this far` : "You're the first scavenger to make it this far"
+            if (solved_it) {
+                footer += `\n${solved_it}/${made_it} solved this clue`
+                if (total_guesses) {
+                    footer += `\nAverage guesses: ${(total_guesses / solved_it).toFixed(1)}`
+                }
+            } else if (made_it) {
+                footer += '\nNo one has solved this clue yet'
+            }
+            console.log(clue, made_it, solved_it, total_guesses)
+            return footer
+        }
+
+
+
         //help
-        if (args.length > 1 && args[1] == 'help'){
-            interaction.reply(clueMessage('help', progress, desc))
+        if (args.length > 1 && args[1] == 'help') {
+            interaction.reply(clueMessage('help', progress, desc, scavengerProgress(clue)))
             return
         }
 
@@ -162,20 +202,20 @@ module.exports = {
 
         //slash command
         if (interaction.isChatInputCommand()) {
-            interaction.reply(clueMessage(clue, progress, desc))
+            interaction.reply(clueMessage(clue, progress, desc, scavengerProgress(clue)))
             return
         }
 
         //changing clue
         if (interaction.isStringSelectMenu()) {
             clue = interaction.values[0]
-            await interaction.update(clueMessage(clue, progress, desc))
+            await interaction.update(clueMessage(clue, progress, desc, scavengerProgress(clue)))
             return
         }
 
         //clicking an old button
         if (Number(interaction.customId.split('_')?.[1]) != clue) {
-            interaction.reply(clueMessage(clue, progress, desc))
+            interaction.reply(clueMessage(clue, progress, desc, scavengerProgress(clue)))
             return
         }
 
@@ -206,14 +246,13 @@ module.exports = {
         answer = answer.toLowerCase().replace(/[^a-zA-Z0-9]/g, '')
 
         if (to && to > Date.now()) {
-            console.log(guesses)
             desc = `:lock: **You are currently locked out of making a guess**.\nYou can submit your next guess <t:${Math.round(to / 1000)}:R>`
         } else if (answer === clues[clue].answer) {
             await database.ref(`challenge/scavenger/${member}/${clue}/solved`).set(true)
             clue++
             if (clue >= clues.length - 1) {
                 await database.ref(`challenge/scavenger/${member}/solved`).set(true)
-                interaction.reply({embeds: [endEmbed], ephemeral: true})
+                interaction.reply({ embeds: [endEmbed], ephemeral: true })
                 return
             }
             progress = db.ch.scavenger?.[member]
@@ -239,6 +278,9 @@ module.exports = {
             await database.ref(`challenge/scavenger/${member}/${clue}/guesses`).push(answer)
             desc = `**Sorry, that's incorrect!**\nYou can submit your next guess <t:${Math.round(timeout / 1000)}:R>`
         }
-        interaction.update(clueMessage(clue, progress, desc))
+
+
+
+        interaction.update(clueMessage(clue, progress, desc, scavengerProgress(clue)))
     }
 }
