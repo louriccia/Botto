@@ -3274,21 +3274,8 @@ exports.dailyChallenge = async function ({ client, challengesref, db } = {}) {
         }
         let current_challenge = exports.initializeChallenge({ type: "cotd", db })
 
-        if (exports.anniversaryMonth() && exports.easternTime().date() < 26) {
-            let day = exports.easternTime().date() - 1
-            console.log(day)
-            current_challenge.racer = tracks[day].favorite,
-                current_challenge.track = day
-            current_challenge.conditions = {
-                laps: 3,
-                nu: false,
-                skips: false,
-                mirror: false,
-                backwards: false,
-            }
-
-        }
-
+        
+        //check for last five
         if (lastfive.map(c => c.racer).includes(current_challenge.racer)) {
             if (Math.random() < 0.9) {
                 let leftoverracers = []
@@ -3319,6 +3306,22 @@ exports.dailyChallenge = async function ({ client, challengesref, db } = {}) {
                 current_challenge.conditions[con] = false
             }
         })
+
+        if (exports.anniversaryMonth() && exports.easternTime().date() < 26) {
+            let day = exports.easternTime().date() - 1
+            console.log(day)
+            current_challenge.racer = tracks[day].favorite,
+                current_challenge.track = day
+            current_challenge.conditions = {
+                laps: 3,
+                nu: false,
+                skips: false,
+                mirror: false,
+                backwards: false,
+            }
+
+        }
+
         let cotdmessage = await postMessage(client, '551786988861128714', await exports.updateChallenge({ client, current_challenge, db })) //551786988861128714
         current_challenge.message = cotdmessage.id
         current_challenge.guild = cotdmessage.guildId
