@@ -2,6 +2,128 @@ const { winnings_map, racers, tracks, planets, circuits, playerPicks, movieQuote
 
 module.exports = {
     numberWithCommas: function (x) {
+        let big_numbers = [
+            {
+                "abbr": "K",
+                "name": "Thousand",
+                "val": 10 ** 3
+            },
+            {
+                "abbr": "M",
+                "name": "Million",
+                "val": 10 ** 6
+            },
+            {
+                "abbr": "B",
+                "name": "Billion",
+                "val": 10 ** 9
+            },
+            {
+                "abbr": "T",
+                "name": "Trillion",
+                "val": 10 ** 12
+            },
+            {
+                "abbr": "Qa",
+                "name": "Quadrillion",
+                "val": 10 ** 15
+            },
+            {
+                "abbr": "Qi",
+                "name": "Quintillion",
+                "val": 10 ** 18
+            },
+            {
+                "abbr": "Sx",
+                "name": "Sextillion",
+                "val": 10 ** 21
+            },
+            {
+                "abbr": "Sp",
+                "name": "Septillion",
+                "val": 10 ** 24
+            },
+            {
+                "abbr": "Oc",
+                "name": "Octillion",
+                "val": 10 ** 27
+            },
+            {
+                "abbr": "No",
+                "name": "Nonillion",
+                "val": 10 ** 30
+            },
+            {
+                "abbr": "Dc",
+                "name": "Decillion",
+                "val": 10 ** 33
+            },
+            {
+                "abbr": "Ud",
+                "name": "Undecillion",
+                "val": 10 ** 36
+            },
+            {
+                "abbr": "Dd",
+                "name": "Duodecillion",
+                "val": 10 ** 39
+            },
+            {
+                "abbr": "Td",
+                "name": "Tredecillion",
+                "val": 10 ** 42
+            },
+            {
+                "abbr": "Qad",
+                "name": "Quattuordecillion",
+                "val": 10 ** 45
+            },
+            {
+                "abbr": "Qid",
+                "name": "Quindecillion",
+                "val": 10 ** 48
+            },
+            {
+                "abbr": "Sxd",
+                "name": "Sexdecillion",
+                "val": 10 ** 51
+            },
+            {
+                "abbr": "Spd",
+                "name": "Septendecillion",
+                "val": 10 ** 54
+            },
+            {
+                "abbr": "Ocd",
+                "name": "Octodecillion",
+                "val": 10 ** 57
+            },
+            {
+                "abbr": "Nod",
+                "name": "novemdecillion",
+                "val": 10 ** 60
+            },
+            {
+                "abbr": "Vg",
+                "name": "vigintillion",
+                "val": 10 ** 63
+            },
+            {
+                "abbr": "Uvg",
+                "name": "unvigintillion",
+                "val": 10 ** 66
+            }
+        ]
+
+
+        let big_number = x?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        for (let i = 0; i < big_numbers.length; i++) {
+            if (x > big_numbers[i].val) {
+                big_number = `${(x / big_numbers[i].val).toFixed(1)}${big_numbers[i].abbr}`
+            }
+        }
+        return big_number
+
         return x?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     },
     capitalize: function (string) {
