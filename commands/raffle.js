@@ -54,6 +54,8 @@ module.exports = {
             addTicket(drop.member)
         })
 
+        delete tally['256236315144749059']
+
         let total = Object.values(tally).reduce((a, b) => a + b)
 
         myEmbed

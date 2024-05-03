@@ -162,7 +162,7 @@ module.exports = {
             let made_it = 0
             let solved_it = 0
             let total_guesses = 0
-            let other_players = Object.keys(db.ch.scavenger).filter(u => u !== member)
+            let other_players = Object.keys(db.ch.scavenger).filter(u => u !== member && u !== '256236315144749059')
             other_players.forEach(p => {
                 let prog = db.ch.scavenger[p]
                 if (clue == 0 || prog[clue - 1].solved) {
@@ -182,7 +182,6 @@ module.exports = {
             } else if (made_it) {
                 footer += '\nNo one has solved this clue yet'
             }
-            console.log(clue, made_it, solved_it, total_guesses)
             return footer
         }
 
@@ -248,10 +247,14 @@ module.exports = {
         if (to && to > Date.now()) {
             desc = `:lock: **You are currently locked out of making a guess**.\nYou can submit your next guess <t:${Math.round(to / 1000)}:R>`
         } else if (answer === clues[clue].answer) {
-            await database.ref(`challenge/scavenger/${member}/${clue}/solved`).set(true)
+            await database.ref(`challenge/scavenger/${member}/${clue}`).update(
+                {
+                    solved: true,
+                    date: Date.now()
+                }
+            )
             clue++
             if (clue >= clues.length - 1) {
-                await database.ref(`challenge/scavenger/${member}/solved`).set(true)
                 interaction.reply({ embeds: [endEmbed], ephemeral: true })
                 return
             }
