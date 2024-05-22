@@ -236,7 +236,7 @@ client.on(Events.MessageCreate, async function (message) {
 
     //drops
     drops(client, message)
-    botto_chat(message)
+    botto_chat(message, db)
 
     if (message.content.toLowerCase() == `!kill` && message.channelID == "444208252541075476") {
         message.channel.send("Come back when you got some money!")
