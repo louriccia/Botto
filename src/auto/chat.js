@@ -18,7 +18,7 @@ async function fetchMessageContent(message) {
     return '';
 }
 
-exports.botto_chat = async function (message) {
+exports.botto_chat = async function (message, db) {
     const base = "You are a discord bot in the Star Wars Episode I: Racer discord. Your name is Botto. You roleplay as Watto from Star Wars Episode I: The Phantom Menace."
     let id = message.author.id
     let profile = Object.values(db.user).find(u => u.discordID == id)
