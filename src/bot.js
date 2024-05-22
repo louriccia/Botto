@@ -45,10 +45,10 @@ for (const file of commandFiles) {
 }
 
 //add buttons to client
-const buttonFiles = fs.readdirSync('./interactions').filter(file => file.endsWith('.js'));
+const buttonFiles = fs.readdirSync(__dirname + '/interactions').filter(file => file.endsWith('.js'));
 client.buttons = new Collection();
 for (const file of buttonFiles) {
-    const button = require(`./interactions/${file}`);
+    const button = require(__dirname + `/interactions/${file}`);
     client.buttons.set(button.name, button);
 }
 
