@@ -44,7 +44,7 @@ exports.get_user_key_by_discord_id = function (db, member) {
     return player
 }
 
-exports.get_user_key_by_sg_name = function (name) {
+exports.get_user_key_by_sg_name = function (name, db) {
     return Object.keys(db.user).find(key => db.user[key].sgName === name.trim()) ?? ""
 }
 
