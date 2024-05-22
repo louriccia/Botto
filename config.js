@@ -1,4 +1,4 @@
 module.exports = {
-    testing: true,
+    testing: false,
     clientId: process.env.clientId,
 };
