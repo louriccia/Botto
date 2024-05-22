@@ -157,10 +157,10 @@ client.once(Events.ClientReady, async () => {
         if (!testing) {
             //searchYouTubeStreams();
             dailyBounty({ client, db, bountyref: database.ref('challenge/bounties') })
-            scan_streams();
+            scan_streams(client);
             dailyChallenge({ client, db, challengesref: database.ref('challenge/challenges') })
             monthlyChallenge({ client, db, challengesref: database.ref('challenge/challenges'), database })
-            scrape_sg_events()
+            scrape_sg_events(client)
         }
 
     }

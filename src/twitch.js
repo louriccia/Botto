@@ -1,5 +1,7 @@
 const TwitchApi = require("node-twitch").default;
-const {testing} = require('../config.js')
+const { testing } = require('../config.js');
+const { streams_channel } = require("./data/discord/channel.js");
+const { postMessage } = require("./discord.js");
 
 const Twitch = new TwitchApi({
     client_id: process.env.TWITCH_ID,
@@ -8,7 +10,7 @@ const Twitch = new TwitchApi({
 
 let streamers = {}
 
-exports.scan_streams = async function() {
+exports.scan_streams = async function (client) {
     const response = await Twitch.getStreams({ game_id: testing ? "515025" : "12415" });
     const streams = response.data;
     if (streams.length > 0) {
@@ -33,7 +35,7 @@ exports.scan_streams = async function() {
             if (stream.title) {
                 streamEmbed.setTitle(stream.title ?? "(No Title)")
             }
-            stream_channel.send({ embeds: [streamEmbed] });
+            postMessage(client, stream_channel, { embeds: [streamEmbed] })
         })
     }
 }
