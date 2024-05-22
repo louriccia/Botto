@@ -17,7 +17,7 @@ function matchTitle(match) {
     return (round ? `${round.bracket} ${round.round}: ` : '') + (match.players ? Object.keys(match.players).map(id => db.user[id].name).join(" vs ") : 'Unknown Players')
 }
 
-exports.scrape_sg_events = async function (client) {
+exports.scrape_sg_events = async function (client, db, database) {
 
     const Guild = await client.guilds.cache.get(swe1r_guild)
 

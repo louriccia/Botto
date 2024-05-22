@@ -160,7 +160,7 @@ client.once(Events.ClientReady, async () => {
             scan_streams(client);
             dailyChallenge({ client, db, challengesref: database.ref('challenge/challenges') })
             monthlyChallenge({ client, db, challengesref: database.ref('challenge/challenges'), database })
-            scrape_sg_events(client)
+            scrape_sg_events(client, db, database)
         }
 
     }
