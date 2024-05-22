@@ -5,6 +5,7 @@ const { betEmbed, betComponents } = require('../interactions/trugut_functions.js
 const { get_user_key_by_sg_name, get_user_name_by_discord_id } = require('../user.js');
 const { swe1r_guild } = require('../data/discord/guild.js');
 const { streams_channel, tournaments_channel, tournament_live_channel } = require('../data/discord/channel.js');
+const { postMessage } = require('../discord.js');
 
 function matchDesc(match, db) {
     return (match.commentators && Object.keys(match.commentators).length > 0 ? "🎙️ " + Object.keys(match.commentators).map(id => db.user[id].name).join(", ") : "Sign up for commentary: https://speedgaming.org/swe1racer/crew/") +
