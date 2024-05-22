@@ -116,7 +116,7 @@ function clueMessage(clue, progress, desc, footer) {
 
 module.exports = {
     name: 'scavenger',
-    async execute(client, interaction, args, database, db) {
+    async execute({ client, interaction, args, database, db } = {}) {
         let member = interaction.user.id
 
         let desc = ''

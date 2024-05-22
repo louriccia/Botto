@@ -9,7 +9,7 @@ const { time_fix } = require('../generic.js')
 
 module.exports = {
     name: 'simulate',
-    execute(client, interaction, args) {
+    execute({ client, interaction, args } = {}) {
         const myEmbed = new EmbedBuilder()
         //set defaults
         let track = Math.floor(Math.random() * 25)
