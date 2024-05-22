@@ -6,13 +6,13 @@ const { get_user_key_by_sg_name, get_user_name_by_discord_id } = require('../use
 const { swe1r_guild } = require('../data/discord/guild.js');
 const { streams_channel, tournaments_channel, tournament_live_channel } = require('../data/discord/channel.js');
 
-function matchDesc(match) {
+function matchDesc(match, db) {
     return (match.commentators && Object.keys(match.commentators).length > 0 ? "🎙️ " + Object.keys(match.commentators).map(id => db.user[id].name).join(", ") : "Sign up for commentary: https://speedgaming.org/swe1racer/crew/") +
         (match.tourney ? `\n${db.ty.tournaments[match.tourney]?.name ?? ""}` : "") +
         (!match.url ? "\n(Channel to be determined)" : "")
 }
 
-function matchTitle(match) {
+function matchTitle(match, db) {
     let round = db.ty.tournaments[match.tourney]?.stages[match.bracket] ?? null
     return (round ? `${round.bracket} ${round.round}: ` : '') + (match.players ? Object.keys(match.players).map(id => db.user[id].name).join(" vs ") : 'Unknown Players')
 }
@@ -91,8 +91,8 @@ exports.scrape_sg_events = async function (client, db, database) {
                         if (event.status == 1) {
                             try {
                                 Guild.scheduledEvents.fetch(event.id).then(event => event.edit({
-                                    name: matchTitle(match),
-                                    description: matchDesc(match),
+                                    name: matchTitle(match, db),
+                                    description: matchDesc(match, db),
                                     entityType: 3,
                                     entityMetadata: { location: (match.url == "" ? "https://twitch.tv/SpeedGaming" : match.url) }
                                 }))
@@ -104,11 +104,11 @@ exports.scrape_sg_events = async function (client, db, database) {
                 })
                 if (!eventdup && match.current && match.datetime > Date.now()) {
                     Guild.scheduledEvents.create({
-                        name: matchTitle(match),
+                        name: matchTitle(match, db),
                         scheduledStartTime: match.datetime,
                         scheduledEndTime: match.datetime + 1000 * 60 * 60,
                         entityType: 3,
-                        description: matchDesc(match),
+                        description: matchDesc(match, db),
                         entityMetadata: { location: (match.url == "" ? "https://twitch.tv/SpeedGaming" : match.url) },
                         privacyLevel: 2
                     })
@@ -129,7 +129,7 @@ exports.scrape_sg_events = async function (client, db, database) {
                             id: '',
                             discordId: '545798436105224203'
                         },
-                        title: matchTitle(match),
+                        title: matchTitle(match, db),
                         status: "open",
                         type: 'tourney',
                         close: match.datetime,
