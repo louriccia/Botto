@@ -33,10 +33,10 @@ const client = new Client({
 
 
 //add commands to client
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+const commandFiles = fs.readdirSync(__dirname + '/commands/').filter(file => file.endsWith('.js'));
 client.commands = new Collection();
 for (const file of commandFiles) {
-    const command = require(`./commands/${file}`);
+    const command = require(__dirname + `/commands/${file}`);
     if ('data' in command && 'execute' in command) {
         client.commands.set(command.data.name, command);
     } else {
