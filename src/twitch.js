@@ -36,7 +36,7 @@ exports.scan_streams = async function (client) {
             if (stream.title) {
                 streamEmbed.setTitle(stream.title ?? "(No Title)")
             }
-            postMessage(client, stream_channel, { embeds: [streamEmbed] })
+            postMessage(client, streams_channel, { embeds: [streamEmbed] })
         })
     }
 }
