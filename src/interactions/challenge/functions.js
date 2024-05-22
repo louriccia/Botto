@@ -3864,7 +3864,8 @@ exports.completeRepairs = function ({ user_profile, profile_ref, client, member 
                     }
 
                     postMessage(client, '551786988861128714', {
-                        content: `@silent <@${member}> ${droid.nick ? droid.nick : 'your ' + items.find(i => i.id == droid.id).name} finished repairing a ${items.find(i => i.id == user_profile.items[task.part].id).name}`
+                        content: `<@${member}> ${droid.nick ? droid.nick : 'your ' + items.find(i => i.id == droid.id).name} finished repairing a ${items.find(i => i.id == user_profile.items[task.part].id).name}`,
+                        flags: [4096]
                     })
                 }
             }

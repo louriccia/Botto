@@ -1,5 +1,4 @@
 const { EmbedBuilder, ActionRowBuilder, StringSelectMenuBuilder } = require('discord.js');
-const tools = require('../generic.js');
 const { racers } = require('../data/sw_racer/racer.js')
 const { tracks } = require('../data/sw_racer/track.js')
 const { planets } = require('../data/sw_racer/planet.js')

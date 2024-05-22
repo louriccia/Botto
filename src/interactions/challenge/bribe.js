@@ -2,6 +2,7 @@ const { updateChallenge, bribeComponents, playButton, notYoursEmbed, isActive, e
 const { tracks } = require('../../data/sw_racer/track.js')
 const { EmbedBuilder } = require('discord.js');
 const { truguts } = require('../../data/challenge/trugut.js');
+const { number_with_commas } = require('../../generic.js');
 exports.bribe = async function ({ current_challenge, current_challenge_ref, interaction, user_profile, args, profile_ref, member_avatar, db, member_id, botto_name } = {}) {
 
     //expired challenge
@@ -35,7 +36,7 @@ exports.bribe = async function ({ current_challenge, current_challenge_ref, inte
         if (user_profile.truguts_earned - user_profile.truguts_spent < bribe_cost) { //can't afford bribe
             let noMoney = new EmbedBuilder()
                 .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
-                .setDescription("*'No money, no bribe!'*\nYou do not have enough truguts to make this bribe.\n\nBribe cost: `" + tools.numberWithCommas(bribe_cost) + "`")
+                .setDescription("*'No money, no bribe!'*\nYou do not have enough truguts to make this bribe.\n\nBribe cost: `" + number_with_commas(bribe_cost) + "`")
             interaction.reply({ embeds: [noMoney], ephemeral: true })
             return
         }

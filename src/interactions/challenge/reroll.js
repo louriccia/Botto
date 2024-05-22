@@ -3,6 +3,7 @@ const { editMessage } = require('../../discord.js');
 
 const { EmbedBuilder } = require('discord.js');
 const { truguts } = require('../../data/challenge/trugut.js');
+const { number_with_commas } = require('../../generic.js');
 
 exports.reroll = async function ({ interaction, current_challenge, current_challenge_ref, user_profile, member_id, profile_ref, database, db, botto_name, member_avatar, user_key } = {}) {
 
@@ -27,7 +28,7 @@ exports.reroll = async function ({ interaction, current_challenge, current_chall
     if (user_profile.truguts_earned - user_profile.truguts_spent < cost) { //player doesn't have enough truguts to reroll
         let noMoney = new EmbedBuilder()
             .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
-            .setDescription("*'No money, no challenge, no reroll!'*\nYou do not have enough truguts to reroll this challenge.\n\nReroll cost: `📀" + tools.numberWithCommas(truguts.reroll) + "`")
+            .setDescription("*'No money, no challenge, no reroll!'*\nYou do not have enough truguts to reroll this challenge.\n\nReroll cost: `📀" + number_with_commas(truguts.reroll) + "`")
         interaction.reply({ embeds: [noMoney], ephemeral: true })
         return
     }

@@ -3,6 +3,7 @@ const { ActionRowBuilder, ButtonBuilder } = require('discord.js')
 const { anniversaryMonth } = require('../interactions/challenge/functions')
 const { postMessage } = require('../discord')
 const { testing } = require('../../config')
+const { number_with_commas } = require('../generic')
 
 const whitelist = [
     '442087812007985174',
@@ -40,7 +41,7 @@ exports.drops = function (client, message) {
                 components: [
                     new ActionRowBuilder().addComponents(
                         new ButtonBuilder()
-                            .setLabel(`📀${tools.numberWithCommas(drop)}`)
+                            .setLabel(`📀${number_with_commas(drop)}`)
                             .setCustomId(`challenge_random_drop_${drop}`)
                             .setStyle(ButtonStyle.Secondary)
                     )
