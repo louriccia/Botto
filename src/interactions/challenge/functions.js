@@ -3233,7 +3233,7 @@ exports.dailyChallenge = async function ({ client, challengesref, db } = {}) {
     let lastfive = []
 
     //unpin last
-    Object.values(db.ch.challenges).filter(challenge => ['cotd', 'cotm', 'open'].includes(challenge.type) && !isActive(challenge) && Date.now() - 48 * 60 * 60 * 1000 < challenge.created && challenge.channel == '551786988861128714' && challenge.message).forEach(challenge => {
+    Object.values(db.ch.challenges).filter(challenge => ['cotd', 'cotm', 'open'].includes(challenge.type) && !exports.isActive(challenge) && Date.now() - 48 * 60 * 60 * 1000 < challenge.created && challenge.channel == '551786988861128714' && challenge.message).forEach(challenge => {
         try {
             client.channels.cache.get('551786988861128714').messages.fetch(challenge.message).then(msg => { if (msg.pinned) { msg.unpin().catch(console.error) } })
         } catch (err) {
