@@ -6,7 +6,7 @@ exports.join_message = function (client, guildMember) {
     if (guildMember.guild.id == swe1r_guild && !testing) {
         //send random welcome message
         let random_join_message = welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)]
-        random_join_message = random_join_message.replaceAll("replaceme", "@silent <@" + guildMember.user + ">")
+        random_join_message = "@silent " + random_join_message.replaceAll("replaceme", "<@" + guildMember.user + ">")
 
         //assign role
         client.channels.cache.get("441839751235108875").send(random_join_message);
