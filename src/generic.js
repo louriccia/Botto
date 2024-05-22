@@ -136,6 +136,21 @@ exports.big_number = function (x) {
     return big_number
 }
 
+exports.truncateString = function (str, maxLength) {
+    if (str.length <= maxLength) {
+        return str;
+    }
+
+    const ellipsis = '...';
+    const truncatedLength = maxLength - ellipsis.length;
+
+    if (truncatedLength <= 0) {
+        return ellipsis;  // if maxLength is less than or equal to the length of ellipsis
+    }
+
+    return str.slice(0, truncatedLength) + ellipsis;
+}
+
 exports.number_with_commas = function (x) {
     return x?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }

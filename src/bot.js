@@ -153,10 +153,11 @@ client.once(Events.ClientReady, async () => {
     const updater = async () => {
         Object.keys(db.user).filter(key => db.user[key]?.random?.items).forEach(key => completeRepairs({ user_profile: db.user[key].random, profile_ref: database.ref(`users/${key}/random`), client, member: db.user[key].discordID }))
 
+        scan_streams(client);
+
         if (!testing) {
             //searchYouTubeStreams();
             dailyBounty({ client, db, bountyref: database.ref('challenge/bounties') })
-            scan_streams(client);
             dailyChallenge({ client, db, challengesref: database.ref('challenge/challenges') })
             monthlyChallenge({ client, db, challengesref: database.ref('challenge/challenges'), database })
             scrape_sg_events(client, db, database)
