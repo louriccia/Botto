@@ -58,7 +58,7 @@ const { db, database } = require('./firebase.js')
 //interactions
 client.on(Events.InteractionCreate, async interaction => {
     if (interaction.isAutocomplete()) return;
-
+    console.log(testing, interaction)
     if ((testing && interaction.guildId == test_guild) || (!testing && interaction.guildId !== swe1r_guild)) {
         //log command
         console.log(interaction.isChatInputCommand() ? 'slash' :
