@@ -1,3 +1,4 @@
+const { errorMessage } = require("../data/flavor/error.js");
 const openai = require("../openai.js")
 
 async function fetchMessageContent(message) {

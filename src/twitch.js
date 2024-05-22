@@ -1,4 +1,5 @@
 const TwitchApi = require("node-twitch").default;
+const { EmbedBuilder } = require("discord.js");
 const { testing } = require('../config.js');
 const { streams_channel } = require("./data/discord/channel.js");
 const { postMessage } = require("./discord.js");
@@ -22,7 +23,7 @@ exports.scan_streams = async function (client) {
         stream_condensed.forEach(async (stream) => {
             const s = await Twitch.getUsers(stream.user_login);
             const profile = s?.data?.[0]?.profile_image_url
-            const streamEmbed = new Discord.EmbedBuilder()
+            const streamEmbed = new EmbedBuilder()
                 .setAuthor({ name: `${stream.user_name} is streaming Star Wars Episode I: Racer on Twitch!`, iconURL: 'https://assets.stickpng.com/images/580b57fcd9996e24bc43c540.png' })
                 .setURL(`https://www.twitch.tv/${stream.user_login}`)
                 .setDescription(`Started streaming <t:${Math.round(Date.parse(stream.started_at) / 1000)}:R>`)
