@@ -1,0 +1,23 @@
+exports.playerPicks = [
+    `May the force be with you, replaceme`,
+    `And you, young replaceme. We will watch your career with great interest.`,
+    `The chosen one replaceme may be.`,
+    `I'm betting heavily on replaceme.`,
+    `You have been well trained, replaceme. They will be no match for you.`,
+    `That's a nice pod you have there, replaceme. I hope you didn't kill anyone I know for it.`,
+    `The force is unusually strong with you, replaceme. That much is clear.`,
+    `replaceme's midi-chlorian count is off the chart. Over 20,000!`,
+    `I warn you, replaceme. No funny business.`,
+    `You won't walk away from this one, replaceme, you slave scum.`,
+    `Come on, let's go and play ball. Keep racing, replaceme. You're gonna be bug squash!`,
+    `I don't want you to race replaceme, it's awful. I die every time Botto makes you do it.`,
+    `I believe replaceme may have been conceived by the midichlorians.`,
+    `I sense much fear in you, replaceme.`,
+    `I have great faith in you, replaceme. You're a credit to your race.`,
+    `Don't center on your anxieties, replaceme. Keep your concentration here and now where it belongs.`,
+    `This is so wizard replaceme! I'm sure you'll do it this time.`,
+    `The Chosen One replaceme may be; nevertheless, grave danger I fear in their training.`,
+    `It is possible replaceme was conceived by the midi-chlorians.`,
+    `replaceme smashed up my Pod in the last race. It will take some time to fix it.`,
+    `Oh, me bones are aching ... storm's coming up, replaceme. You'd better get home quick.`
+]
