@@ -2,7 +2,7 @@ const { WhyNobodyBuy } = require('../../data/discord/emoji.js');
 const { number_with_commas } = require('../../generic.js');
 const { manageTruguts } = require('./functions.js');
 
-exports.drop = async function ({ interaction, user_profile, user_profile_ref, args } = {}) {
+exports.drop = async function ({ interaction, user_profile, user_profile_ref, args, db, database } = {}) {
 
     //already claimed
     let already_claimed = db.ch.drops ? Object.values(db.ch.drops).find(drop => drop.message == interaction.message.id) : false
