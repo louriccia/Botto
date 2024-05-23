@@ -29,7 +29,7 @@ exports.drop = async function ({ interaction, user_profile, profile_ref, args, d
 
     const DROP = Number(args[2])
     await database.ref(`challenge/drops`).push({
-        member_id,
+        member: member_id,
         message: interaction.message.id,
         date: Date.now(),
         drop: DROP
