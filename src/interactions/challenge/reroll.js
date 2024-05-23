@@ -7,6 +7,8 @@ const { number_with_commas } = require('../../generic.js');
 
 exports.reroll = async function ({ interaction, current_challenge, current_challenge_ref, user_profile, member_id, profile_ref, database, db, botto_name, member_avatar, user_key } = {}) {
 
+    const userref = database.ref("users")
+
     //expired challenge
     if (!isActive(current_challenge, user_profile)) {
         interaction.reply({ embeds: [expiredEmbed()], components: [{ type: 1, components: [playButton()] }], ephemeral: true })
