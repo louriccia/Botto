@@ -2,7 +2,7 @@ const { WhyNobodyBuy } = require('../../data/discord/emoji.js');
 const { number_with_commas } = require('../../generic.js');
 const { manageTruguts } = require('./functions.js');
 
-exports.drop = async function ({ interaction, user_profile, profile_ref, args, db, database, member_id } = {}) {
+exports.drop = async function ({ interaction, user_profile, profile_ref, args, db, database, member_id, botto_name } = {}) {
 
     //already claimed
     let already_claimed = db.ch.drops ? Object.values(db.ch.drops).find(drop => drop.message == interaction.message.id) : false
@@ -17,7 +17,7 @@ exports.drop = async function ({ interaction, user_profile, profile_ref, args, d
     }
 
     if (args[2] == 'ticket') {
-        interaction.update({ components: [], content: `*${discord_name} snagged a :tickets: raffle ticket!*` })
+        interaction.update({ components: [], content: `*${botto_name} snagged a :tickets: raffle ticket!*` })
         database.ref(`challenge/drops`).push({
             member: member_id,
             message: interaction.message.id,

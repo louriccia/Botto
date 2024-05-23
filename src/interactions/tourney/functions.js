@@ -1,6 +1,6 @@
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder } = require('discord.js');
 
-const { methods, trackgroups, firsts, condition_names } = require('./data.js')
+const { methods, trackgroups, firsts, condition_names, choices, events } = require('./data.js')
 
 const { racers } = require('../../data/sw_racer/racer.js')
 const { tracks } = require('../../data/sw_racer/track.js')
@@ -9,7 +9,7 @@ const { circuits } = require('../../data/sw_racer/circuit.js')
 const { difficulties } = require('../../data/difficulty.js')
 
 
-const { capitalize, time_fix } = require('../../generic.js')
+const { capitalize, time_fix, getTrackName } = require('../../generic.js')
 const { postMessage } = require('../../discord.js');
 const { avgSpeed, upgradeCooling, upgradeTopSpeed } = require('../../data/sw_racer/part.js');
 
@@ -42,14 +42,31 @@ exports.countDown = function (interaction) {
 }
 
 exports.setupEmbed = function ({ livematch, db } = {}) {
+    const match_data = livematch.data
+    const match_tourney = db.ty.tournaments[match_data.tourney]
+    const match_rules = livematch.rules
+
+    let tourney_name = ""
+    if (match_data.tourney == "practice") {
+        "`Practice Mode`"
+    } else if (match_data.tourney) {
+        `\`${match_tourney.name}\``
+    }
+
+    let round_desc = ""
+    if (match_data.tourney !== "practice" && match_data.tourney && match_data.bracket) {
+        round_desc = `${match_tourney?.stages[match_data.bracket].bracket} ${match_tourney?.stages[match_data.bracket].round}`
+    }
+
     const matchMaker = new EmbedBuilder()
         .setTitle("Match Setup")
-        .setDescription("🏆 Tournament: " + (livematch.tourney == "" ? "" : livematch.tourney == "practice" ? "`Practice Mode`" : "`" + db.ty.tournaments[livematch.tourney]?.name + "`") + "\n" +
-            (livematch.tourney == "practice" ? "" : "⭕ Bracket/Round: " + (livematch.bracket == "" || livematch.tourney == "practice" ? "" : "`" + db.ty.tournaments[livematch.tourney]?.stages[livematch.bracket].bracket + " " + db.ty.tournaments[livematch.tourney]?.stages[livematch.bracket].round + "`") + "\n") +
-            "📜 Ruleset: " + (livematch.ruleset == "" ? "" : "`" + db.ty.rulesets?.saved[livematch.ruleset]?.general?.name + "`") + "\n" +
-            "👥 Players: " + ([null, undefined, ""].includes(livematch.players) ? "" : Object.values(livematch.players).map(id => "<@" + id + "> ")) + "\n" +
-            "🎙️ Commentators/Trackers: " + ([null, undefined, ""].includes(livematch.commentators) ? "" : Object.values(livematch.commentators).map(id => "<@" + id + "> ")) + "\n" +
-            "📺 Stream: " + livematch.stream
+        .setDescription(
+            `🏆 Tournament: ${tourney_name}` +
+            (round_desc ? `\n⭕ Bracket/Round: ${round_desc}` : '') +
+            `\n📜 Ruleset: ${(match_data.ruleset ? "`" + match_rules?.general?.name + "`" : '')}` +
+            `\n👥 Players: ${(match_data.players ? Object.values(match_data.players).map(id => `<@${id}> `) : '')}` +
+            `\n🎙️ Commentators/Trackers: ${(match_data.commentators ? Object.values(match_data.commentators).map(id => `<@${id}> `) : '')}` +
+            `\n📺 Stream: ${match_data.stream}`
         )
         .setColor("#3BA55D")
 
@@ -57,18 +74,22 @@ exports.setupEmbed = function ({ livematch, db } = {}) {
 }
 
 exports.firstEmbed = function (livematch) {
+    const match_data = livematch.data
     const embed = new EmbedBuilder()
         .setAuthor({ name: "First Track" })
         .setTitle("How would you like to determine the first track?")
-        .setDescription("*If players do not agree on a method, the default option will be used.*\n" + ([undefined, null].includes(livematch.firstvote) ? "" : Object.keys(livematch.firstvote).map(key => "<@" + key + "> voted for **" + methods[livematch.firstvote[key]] + "**").join("\n")))
+        .setDescription(`*If players do not agree on a method, the default option will be used.*` +
+            `\n${match_data.firstvote ? Object.keys(match_data.firstvote).map(key => `<@${key}> voted for **${methods[match_data.firstvote[key]]}**`).join("\n") : ''
+            }`)
     return embed
 }
 
 exports.colorEmbed = function (livematch) {
+    const match_data = livematch.data
     const embed = new EmbedBuilder()
-        .setAuthor({ name: "First Track: " + methods[livematch.firstmethod] })
+        .setAuthor({ name: `First Track: ${methods[match_data.firstmethod]}` })
         .setTitle("Pick a color")
-    let desc = "" + ([undefined, null].includes(livematch.firstcolors) ? "" : Object.keys(livematch.firstcolors).map(key => ":" + livematch.firstcolors[key] + "_square: - <@" + key + ">").join("\n"))
+    let desc = "" + (match_data.firstcolors ? Object.keys(match_data.firstcolors).map(key => ":" + match_data.firstcolors[key] + "_square: - <@" + key + ">").join("\n") : '')
     if (desc) {
         embed.setDescription(desc)
     }
@@ -76,12 +97,13 @@ exports.colorEmbed = function (livematch) {
 }
 
 exports.firstbanEmbed = function ({ livematch }) {
+    const match_data = livematch.data
     const embed = new EmbedBuilder()
-        .setAuthor({ name: "First Track: " + methods[livematch.firstmethod] })
-    let desc = "" + ([undefined, null].includes(livematch.firstbans) ? "" :
-        Object.keys(livematch.firstbans).map(key =>
-            "<@" + livematch.firstbans[key].player + "> banned **" +
-            ([undefined, null].includes(trackgroups[livematch.firstbans[key].ban]) ? planets[tracks[Number(livematch.firstbans[key].ban)].planet].emoji + " " + tracks[Number(livematch.firstbans[key].ban)].name : trackgroups[livematch.firstbans[key].ban].name) + "**"
+        .setAuthor({ name: "First Track: " + methods[match_data.firstmethod] })
+    let desc = "" + ([undefined, null].includes(match_data.firstbans) ? "" :
+        Object.keys(match_data.firstbans).map(key =>
+            `<@${match_data.firstbans[key].player}> banned **` +
+            (trackgroups[match_data.firstbans[key].ban] ? trackgroups[match_data.firstbans[key].ban].name : getTrackName(match_data.firstbans[key].ban)) + "**"
         ).join("\n"))
     if (desc) {
         embed.setDescription(desc)
@@ -128,25 +150,27 @@ exports.getLeaderboard = function ({ track, conditions, db, podbans } = {}) {
     return unique
 }
 
-exports.raceEmbed = function ({ race, livematch, liverules, db } = {}) {
-    let repeat = false
-    let events = Object.values(livematch.races[race].events)
-    let conditions = exports.getConditions(liverules, livematch.races[race], race)
-    let track = exports.getTrack(livematch.races[race])
-    let podbans = livematch.races[race].events ? Object.values(livematch.races[race].events).filter(e => e.event == 'tempban' && e.type == 'racer').map(e => e.selection).flat().map(s => String(s)) : []
+exports.raceEmbed = function ({ race, livematch, db } = {}) {
+    const liverules = livematch.rules
+    const match_data = livematch.data
+    let events = Object.values(match_data.races[race].events)
+    let conditions = exports.getConditions(liverules, match_data.races[race], race)
+    let track = exports.getTrack(match_data.races[race])
+    let podbans = match_data.races[race].events ? Object.values(match_data.races[race].events).filter(e => e.event == 'tempban' && e.type == 'racer').map(e => e.selection).flat().map(s => String(s)) : []
     let forces = events.filter(event => event.event == 'override' && event.type == 'condition').map(event => capitalize(condition_names[event.selection]))
-    let players = Object.values(livematch.players)
+    let players = Object.values(match_data.players)
+
     if (events.map(e => e.repeat).includes(true)) {
         forces.push('Runback')
     }
-    if (livematch.races[race].gents?.agreed) {
+    if (match_data.races[race].gents?.agreed) {
         forces.push("🎩 Gentleman's Agreement")
     }
     let conmap = Object.values(conditions).filter(c => !['um', 'fp', 'tt'].includes(c)).map(con => "`" + condition_names[con] + "`").join(" ")
     const embed = new EmbedBuilder()
-        .setTitle((repeat ? "🔁" : planets[tracks[track].planet].emoji) + " " + tracks[track].name + (forces.length > 0 ? " (" + forces.join(", ") + ")" : ""))
+        .setTitle((planets[tracks[track].planet].emoji) + " " + tracks[track].name + (forces.length > 0 ? " (" + forces.join(", ") + ")" : ""))
         .setThumbnail(tracks[track].preview)
-        .setDescription(conmap + ([null, undefined, ""].includes(livematch.races[race].gents) ? "" : "\n🎩 " + livematch.races[race].gents.terms))
+        .setDescription(conmap + ([null, undefined, ""].includes(match_data.races[race].gents) ? "" : "\n🎩 " + match_data.races[race].gents.terms))
 
     function resultFormat(run, winner, leaderboard) {
         if (!run || !run.time) {
@@ -161,40 +185,40 @@ exports.raceEmbed = function ({ race, livematch, liverules, db } = {}) {
     let leaderboard = exports.getLeaderboard({ track, conditions, db, podbans }).filter(r => r.record || r.trecord || players.includes(r.player))
     embed.addFields({ name: 'Best Times', value: leaderboard.map(r => resultFormat(r, false, true)).join("\n"), inline: false })
 
-    if (Object.values(livematch.races[race].ready).filter(r => r == false).length > 0 || livematch.races[race].countdown) {
+    if (Object.values(match_data.races[race].ready).filter(r => r == false).length > 0 || match_data.races[race].countdown) {
         embed
             .setAuthor({ name: "Race " + (race + 1) + " - Setup" })
             .setColor("#FAA81A")
-            .setDescription(conmap + ([null, undefined, ""].includes(livematch.races[race].gents) ? "" : "\n🎩 " + livematch.races[race].gents.terms) + (livematch.races[race].live ? "" : "\n" + (livematch.races[race].countdown ? "\nCountdown starts <t:" + livematch.races[race].countdown + ":R>" : "Countdown starts when both players have readied.")))
+            .setDescription(conmap + ([null, undefined, ""].includes(match_data.races[race].gents) ? "" : "\n🎩 " + match_data.races[race].gents.terms) + (match_data.races[race].live ? "" : "\n" + (match_data.races[race].countdown ? "\nCountdown starts <t:" + match_data.races[race].countdown + ":R>" : "Countdown starts when both players have readied.")))
 
-        Object.values(livematch.players).map(player => embed.addFields({
+        Object.values(match_data.players).map(player => embed.addFields({
             name: exports.getUsername({ member: player, db }),
-            value: ([undefined, null, ""].includes(livematch.races[race].runs[player].pod) ?
+            value: ([undefined, null, ""].includes(match_data.races[race].runs[player].pod) ?
                 ":red_circle: Racer not selected" :
-                ":green_circle: Racer selected " + (livematch.races[race].reveal[player] ?
-                    "\n**" + racers[livematch.races[race].runs[player].pod].flag + " " + racers[Number(livematch.races[race].runs[player].pod)].name + "**" : "(hidden)")) + "\n" +
-                (livematch.races[race].countdown ? "" : (livematch.races[race].ready[player] ? ":green_circle: Ready" : ":red_circle: Not Ready")),
+                ":green_circle: Racer selected " + (match_data.races[race].reveal[player] ?
+                    "\n**" + racers[match_data.races[race].runs[player].pod].flag + " " + racers[Number(match_data.races[race].runs[player].pod)].name + "**" : "(hidden)")) + "\n" +
+                (match_data.races[race].countdown ? "" : (match_data.races[race].ready[player] ? ":green_circle: Ready" : ":red_circle: Not Ready")),
             inline: true
         }
         ))
 
-        //embed.addFields({ name: "🎙️ Commentators/Trackers", value: (livematch.races[race].ready.commentators ? ":green_circle: Ready" : ":red_circle: Not Ready") })
+        //embed.addFields({ name: "🎙️ Commentators/Trackers", value: (match_data.races[race].ready.commentators ? ":green_circle: Ready" : ":red_circle: Not Ready") })
         if (forces.includes("No Upgrades")) {
             embed.addFields({ name: "🕹️ Players", value: ":orange_circle: Don't forget to show your parts to verify upgrades", inline: false })
         }
         if (forces.includes("Fastest Lap")) {
             embed.addFields({ name: "🕹️ Players", value: ":orange_circle: Don't forget to delete your `tgdf.dat` file or set your laps to 4", inline: false })
         }
-    } else if (livematch.races[race].live) {
+    } else if (match_data.races[race].live) {
         embed
             .setAuthor({ name: "Race " + (race + 1) + " - In Progress" })
             .setColor("#DD2E44")
-        Object.values(livematch.players).map(player => embed.addFields({
+        Object.values(match_data.players).map(player => embed.addFields({
             name: exports.getUsername({ member: player, db }),
-            value: livematch.races[race].runs[player].time == "" ? ":red_circle: Awaiting submission" : ":green_circle: Results Submitted\n||" + resultFormat(livematch.races[race].runs[player], false) + "||",
+            value: match_data.races[race].runs[player].time == "" ? ":red_circle: Awaiting submission" : ":green_circle: Results Submitted\n||" + resultFormat(match_data.races[race].runs[player], false) + "||",
             inline: true
         }))
-        if (Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length == 0) {
+        if (Object.values(match_data.races[race].runs).map(run => run.time).filter(time => time == "").length == 0) {
             embed.addFields({ name: "🎙️ Commentators/Trackers", value: ":red_circle: Awaiting Verification", inline: false })
         }
 
@@ -202,11 +226,11 @@ exports.raceEmbed = function ({ race, livematch, liverules, db } = {}) {
         embed
             .setAuthor({ name: "Race " + (race + 1) + " - Results" })
             .setColor("#2D7D46")
-        if (![null, undefined, ""].includes(livematch.races[race].runs) && Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length == 0) {
+        if (![null, undefined, ""].includes(match_data.races[race].runs) && Object.values(match_data.races[race].runs).map(run => run.time).filter(time => time == "").length == 0) {
             let winner = exports.getWinner({ race, livematch })
-            Object.values(livematch.players).map(player => embed.addFields({
+            Object.values(match_data.players).map(player => embed.addFields({
                 name: exports.getUsername({ member: player, db }) + (player == winner ? " 👑" : ""),
-                value: resultFormat(livematch.races[race].runs[player], winner == player),
+                value: resultFormat(match_data.races[race].runs[player], winner == player),
                 inline: true
             }
             ))
@@ -350,8 +374,8 @@ exports.raceEventEmbed = function ({ race, livematch, liverules } = {}) {
 exports.adminEmbed = function ({ livematch, db } = {}) {
     const embed = new EmbedBuilder()
         .setAuthor({ name: 'Match Manager' })
-        .setTitle((livematch.tourney == "practice" ? "`Practice Mode`" : db.ty.tournaments[livematch?.tourney]?.nickname) + ": " + db.ty.tournaments[livematch.tourney]?.stages[livematch.bracket]?.bracket + " " + db.ty.tournaments[livematch.tourney]?.stages[livematch.bracket]?.round + " - " + (livematch.players ? Object.values(livematch.players).map(p => exports.getUsername({ member: p, db, short: true })).join(" vs ") : ""))
-        .setDescription("This menu is for resetting the match to a previous point in the event of an error. Please make a selection.\nCurrent Race: `" + livematch.current_race + "`\nCurrent Stage: `" + livematch.status + "`")
+        .setTitle((livematch.data.tourney == "practice" ? "`Practice Mode`" : db.ty.tournaments[livematch.data?.tourney]?.nickname) + ": " + db.ty.tournaments[livematch.data.tourney]?.stages[livematch.data.bracket]?.bracket + " " + db.ty.tournaments[livematch.data.tourney]?.stages[livematch.data.bracket]?.round + " - " + (livematch.data.players ? Object.values(livematch.data.players).map(p => exports.getUsername({ member: p, db, short: true })).join(" vs ") : ""))
+        .setDescription("This menu is for resetting the match to a previous point in the event of an error. Please make a selection.\nCurrent Race: `" + livematch.data.current_race + "`\nCurrent Stage: `" + livematch.data.status + "`")
     return embed
 }
 
@@ -764,7 +788,8 @@ exports.setupComponents = function ({ livematch, db } = {}) {
     return components
 }
 
-exports.raceComponents = function ({ race, liverules, livematch }) {
+exports.raceComponents = function ({ race, livematch }) {
+    const liverules = livematch.rules
     let events = Object.values(livematch.races[race].events)
     let podbans = []
     let podoptions = []
@@ -948,7 +973,8 @@ exports.colorComponents = function () {
     return [ColorRow]
 }
 
-exports.firstbanComponents = function ({ livematch, liverules } = {}) {
+exports.firstbanComponents = function ({ livematch } = {}) {
+    const liverules = livematch.rules
     const FirstBan = new ActionRowBuilder()
     let circuitoptions = [undefined, null].includes(livematch.firstbans) ? Object.values(liverules.general.firsttrack.options) : Object.values(liverules.general.firsttrack.options).filter(option => !Object.values(livematch.firstbans).map(ban => ban.ban).includes(option))
     let planetoptions = [undefined, null].includes(livematch.firstbans) ? ["and", "tat", "oov", "ord", "bar", "mon", "aqu", "mal"] : ["and", "tat", "oov", "ord", "bar", "mon", "aqu", "mal"].filter(option => !Object.values(livematch.firstbans).map(ban => ban.ban).includes(option))
@@ -1022,40 +1048,7 @@ exports.permabanComponents = function ({ permaban, livematch, liverules } = {}) 
 }
 
 exports.rulesetOverview = function (ruleset) {
-    let conditions = {
-        mu: "Upgrades Allowed",
-        nu: "No Upgrades",
-        ft: "Full Track",
-        sk: "Skips",
-        tt: "Total Time",
-        fl: "Fastest Lap",
-        um: "Unmirrored",
-        mi: "Mirrored",
-        l1: "1 Lap",
-        l2: "2 Laps",
-        l3: "3 Laps",
-        l4: "4 Laps",
-        l5: "5 Laps",
-    }
-    let methods = {
-        poe_c: "Process of Elimination by Circuit",
-        poe_p: "Process of Elimination by Planet",
-        poe_t: "Process of Elimination by Track",
-        random: "Random"
-    }
-    let choices = {
-        firstloser: "🇱 Loser of first race",
-        firstwinner: "👑 Winner of first race",
-        both: "👥 Both players",
-        lastloser: "🇱 Loser of last race",
-        lastwinner: "👑 Winner of last race",
-        player: "👥 Each player"
-    }
-    let events = {
-        tempban: "❌ Temporarily Bans",
-        selection: "👆 Selects",
-        override: "✳️ Overrides"
-    }
+
     let fields = []
     if (ruleset.general && ruleset.general.type == "1v1") {
         let genfield = { name: "General", value: "", inline: false }

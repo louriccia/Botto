@@ -1,4 +1,5 @@
+
 module.exports = {
-    testing: false,
+    testing: process.env.USERNAME == 'louri',
     clientId: process.env.clientId,
 };

@@ -45,3 +45,18 @@ exports.condition_names = {
     tt: "Total Time",
     fl: "Fastest Lap"
 }
+
+exports.choices = {
+    firstloser: "🇱 Loser of first race",
+    firstwinner: "👑 Winner of first race",
+    both: "👥 Both players",
+    lastloser: "🇱 Loser of last race",
+    lastwinner: "👑 Winner of last race",
+    player: "👥 Each player"
+}
+
+exports.events = {
+    tempban: "❌ Temporarily Bans",
+    selection: "👆 Selects",
+    override: "✳️ Overrides"
+}

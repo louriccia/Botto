@@ -1,6 +1,7 @@
 
 
 exports.WhyNobodyBuy = "<:WhyNobodyBuy:589481340957753363>"
+exports.ChanceCube = "<a:chance_cube:1235055236138270760>"
 
 exports.emoji_id = function (string) {
     return string.split(":")[2].replace(">", "")
