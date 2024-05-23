@@ -1,3 +1,5 @@
+const { time_fix } = require("../../generic")
+
 const tourneyMatches = new EmbedBuilder()
                 .setTitle("Tournament Matches")
                 .setColor("#3BA55D")
@@ -427,7 +429,7 @@ const tourneyMatches = new EmbedBuilder()
                     })
                     Object.values(race.runs).forEach(run => {
                         field += "**" + getUsername(run.player) + "** " + (run.player == winner.player ? ":crown:" : "") + "\n" +
-                            (run.pod ? racers[run.pod].flag : "") + " " + (String(run.time).toLowerCase() == 'dnf' ? "DNF" : "`" + tools.timefix(run.time) + "`") + " " + (run.deaths > 0 ? ":skull:" + (run.deaths > 1 ? "×" + run.deaths : "") : "")
+                            (run.pod ? racers[run.pod].flag : "") + " " + (String(run.time).toLowerCase() == 'dnf' ? "DNF" : "`" + time_fix(run.time) + "`") + " " + (run.deaths > 0 ? ":skull:" + (run.deaths > 1 ? "×" + run.deaths : "") : "")
                         if (thematch.bracket !== "Qualifying") {
                             if (Number(run.time) - Number(best_times[thetrack].best[Object.values(conditions).join("")]) < 0 && run.player == winner.player) {
                                 field += "<a:newrecord:672640831882133524>"
@@ -479,11 +481,11 @@ const tourneyMatches = new EmbedBuilder()
                             totals += ":crown:"
                         }
                         totals += "\n"
-                        totals += "`" + tools.timefix(igt[player].time) + " [IGT]`\n"
+                        totals += "`" + time_fix(igt[player].time) + " [IGT]`\n"
                         if (![null, undefined, ""].includes(thematch.rta)) {
                             Object.values(thematch.rta).forEach(rta => {
                                 if (rta.player == player) {
-                                    totals += "`" + tools.timefix(rta.total) + " [RTA]`\n"
+                                    totals += "`" + time_fix(rta.total) + " [RTA]`\n"
                                 }
                             })
                         }

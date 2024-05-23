@@ -11,7 +11,7 @@ module.exports = {
         ),
     execute({ interaction, database, db, member_id, member_name, member_avatar, user_key, user_profile } = {}) {
         if (interaction.options.getSubcommand() == "play") {
-            interaction.client.buttons.get("tourney").execute(interaction.client, interaction, ["play", "menu", "new"], database, db)
+            interaction.client.buttons.get("tourney").execute({ client: interaction.client, interaction, args: ["play", "menu", "new"], database, db, member_id, member_name, member_avatar, user_key, user_profile })
         }
     }
 }

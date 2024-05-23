@@ -43,7 +43,7 @@ exports.drop = async function ({ interaction, user_profile, profile_ref, args, d
             ephemeral: true
         })
 
-    client.channels.fetch(interaction.channelId).then(channel => {
+    interaction.client.channels.fetch(interaction.channelId).then(channel => {
         channel.messages.fetch(interaction.message.id).then((ffetch => {
             ffetch.delete()
         })).catch((err) => {

@@ -1,3 +1,5 @@
+const { time_fix } = require("../../generic")
+
 let type = 7
             if (args.includes("initial")) {
                 type = 4
@@ -396,8 +398,8 @@ let type = 7
                         field.value = planets[tracks[Number(ruleset.races[i].track)].planet].emoji + " **" + tracks[Number(ruleset.races[i].track)].name + "**\n"
 
                         if (ruleset.type == "Qualifier") {
-                            field.value += "`" + tools.timefix(ruleset.races[i].time).replace(".000", "") + " Time Limit`\n"
-                            field.value += "`" + tools.timefix(ruleset.races[i].penalty).replace(".000", "") + " Penalty Time`"
+                            field.value += "`" + time_fix(ruleset.races[i].time).replace(".000", "") + " Time Limit`\n"
+                            field.value += "`" + time_fix(ruleset.races[i].penalty).replace(".000", "") + " Penalty Time`"
                         }
                         field.inline = true
                         fields.push(field)

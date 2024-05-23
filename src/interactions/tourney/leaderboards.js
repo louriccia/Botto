@@ -1,3 +1,5 @@
+const { time_fix } = require("../../generic")
+
 const tourneyReport = new EmbedBuilder()
             let type = 7
             if (args.includes("initial")) {
@@ -260,7 +262,7 @@ const tourneyReport = new EmbedBuilder()
                                     (runs[i].opponents.length > 3 ?
                                         " vs " + runs[i].opponents.length + " players" :
                                         " vs " + runs[i].opponents.map(op => getUsername(op)).join(", ")) : "") + "](" + runs[i].vod + ")", true)
-                            .addField(runs[i].time == "DNF" ? "DNF" : tools.timefix(Number(runs[i].time).toFixed(3)),
+                            .addField(runs[i].time == "DNF" ? "DNF" : time_fix(Number(runs[i].time).toFixed(3)),
                                 " " + racers[runs[i].pod].flag + " " + runs[i].platform.toUpperCase() + (runs[i].deaths > 0 ? runs[i].deaths > 1 ? " :skull:×" + runs[i].deaths : " :skull:" : "") + "\n" +
                                 [runs[i].conditions.filter(con => !['um', 'l3', 'tt', 'mu', 'ft', 'qual', 'de', 'dl'].includes(con)).map(con => "`" + conditionmap[con] + "`").join(" "), (runs[i].podbans.length > 0 ? ":x:" + runs[i].podbans.map(ban => racers[ban].flag).join(" ") : "")].filter(t => t !== "").join(" "), true)
                             .addField('\u200B', '\u200B', true)

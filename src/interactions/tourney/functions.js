@@ -9,8 +9,9 @@ const { circuits } = require('../../data/sw_racer/circuit.js')
 const { difficulties } = require('../../data/difficulty.js')
 
 
-const { avgSpeed, upgradeCooling, upgradeTopSpeed, timefix, capitalize } = require('../../generic.js')
+const { capitalize, time_fix } = require('../../generic.js')
 const { postMessage } = require('../../discord.js');
+const { avgSpeed, upgradeCooling, upgradeTopSpeed } = require('../../data/sw_racer/part.js');
 
 exports.initializeMatch = function (livematchref) {
     let match = {
@@ -51,7 +52,6 @@ exports.setupEmbed = function ({ livematch, db } = {}) {
             "📺 Stream: " + livematch.stream
         )
         .setColor("#3BA55D")
-        .setAuthor({ name: "Tournaments", iconURL: "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png" })
 
     return matchMaker
 }
@@ -153,7 +153,7 @@ exports.raceEmbed = function ({ race, livematch, liverules, db } = {}) {
             return ''
         }
         return [(run.pod == "" ? '❔' : racers[run.pod].flag),
-        (String(run.time).toLowerCase() == 'dnf' ? 'DNF' : (winner ? "__" : "") + timefix(run.time) + (winner ? "__" : "")),
+        (String(run.time).toLowerCase() == 'dnf' ? 'DNF' : (winner ? "__" : "") + time_fix(run.time) + (winner ? "__" : "")),
         (leaderboard ? ` - ${exports.getUsername({ member: run.player, db, short: true })}` : ''),
         ([null, undefined, 0].includes(run.deaths) ? '' : "`" + `💀×${run.deaths == "" ? "?" : Number(run.deaths)}` + "`"),
         (run.notes == "" || leaderboard ? "" : "\n📝 " + run.notes), (run.trecord ? '`Tourney Record`' : run.record ? '`Best Available Pod`' : '')].filter(f => f !== "").join(" ")
@@ -288,7 +288,7 @@ exports.matchSummaryEmbed = function ({ liverules, livematch, db } = {}) {
         value: [
             "👑" + summary[player].wins, '💠' + summary[player].forcepoints,
             (liverules.match.repeattrack ? '🔁' + summary[player].runbacks : "")
-        ].filter(a => a !== '').map(a => '`' + a + '`').join(" ") + '\n`⏱️' + timefix(summary[player].time) + (summary[player].timetrue ? "" : "+") + '`' +
+        ].filter(a => a !== '').map(a => '`' + a + '`').join(" ") + '\n`⏱️' + time_fix(summary[player].time) + (summary[player].timetrue ? "" : "+") + '`' +
             ' `💀' + summary[player].deaths + (summary[player].deathtrue ? "" : "+") + '`',
         inline: true
     }))

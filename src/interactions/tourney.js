@@ -3,7 +3,7 @@ const { } = require('./tourney/functions.js');
 const { play } = require('./tourney/play.js')
 module.exports = {
     name: 'tourney',
-    async execute({ client, interaction, args, database, db } = {}) {
+    async execute({ client, interaction, args, database, db, member_id, member_name, member_avatar, user_key, user_profile } = {}) {
         if (args[0] == "matches") {
 
         } else if (args[0] == "schedule") {
@@ -15,7 +15,7 @@ module.exports = {
         } else if (args[0] == "stats") {
 
         } else if (args[0] == "play") {
-            play(args, interaction, database, db)
+            play({ client, interaction, args, database, db, member_id, member_name, member_avatar, user_key, user_profile })
         }
     }
 }
