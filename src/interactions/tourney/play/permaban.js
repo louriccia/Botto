@@ -3,6 +3,10 @@ const { getOpponent, getWinner, permabanEmbed, permabanComponents, raceEventEmbe
 
 
 exports.permaban = async function ({ interaction, args, member_id, livematch, liverules, livematchref } = {}) {
+    const match_data = db.ty.live[interaction.channelId]
+
+
+    
     if (!Object.values(livematch.players).includes(member_id)) {
         interaction.reply({ content: `You're not a player! ${WhyNobodyBuy}`, ephemeral: true })
     }

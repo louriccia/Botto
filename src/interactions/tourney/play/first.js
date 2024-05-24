@@ -2,11 +2,11 @@ const { colorEmbed, firstEmbed, firstComponents, firstbanComponents, colorCompon
 const { tracks } = require('../../../data/sw_racer/track.js')
 const { planets } = require('../../../data/sw_racer/planet.js')
 const { trackgroups } = require('../data.js')
-const { livematch_setup } = require('./livematch.js')
 const { ChanceCube } = require('../../../data/discord/emoji.js')
 
 
 exports.first = async function ({ interaction, args, db, member_id } = {}) {
+    const match_data = db.ty.live[interaction.channelId]
 
     const livematch = livematch_setup({ db, database, interaction })
 

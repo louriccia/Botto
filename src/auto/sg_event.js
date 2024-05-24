@@ -120,7 +120,7 @@ exports.scrape_sg_events = async function (client, db, database) {
                 let match = db.ty.scheduled[key]
 
                 //truguts
-                if (match.current && !match.bet && match.datetime <= Date.now() + 1000 * 60 * 60 * 48 && Date.now() <= match.datetime + 1000 * 60 * 10 && Object.values(match.players).length == 2) {
+                if (match.current && !match.bet && match.datetime <= Date.now() + 1000 * 60 * 60 * 48 && Date.now() <= match.datetime + 1000 * 60 * 10 && match.players && Object.values(match.players).length == 2) {
                     //post bet
                     let players = Object.keys(match.players)
                     let bet = {

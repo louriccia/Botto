@@ -6,6 +6,7 @@ const { editMessage } = require('../../../discord.js');
 const { betEmbed, betComponents } = require('../../trugut_functions.js')
 
 exports.race = async function ({ client, interaction, args, database, db, member_id, livematch, liverules, livematchref } = {}) {
+    const match_data = db.ty.live[interaction.channelId]
 
     const userref = database.ref('users')
 

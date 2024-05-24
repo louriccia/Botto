@@ -56,7 +56,7 @@ module.exports = {
 
                 let tuser = get_user_key_by_discord_id(db, receiving_user.id)
                 if (!tuser) {
-                    tuser = initializeUser(database.ref('user'), receiving_user.id, receiving_user.username)
+                    tuser = initializeUser(database.ref('users'), receiving_user.id, receiving_user.username)
                 }
                 let tprofile = db.user[tuser]?.random
                 if (!tprofile) {

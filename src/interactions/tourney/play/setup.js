@@ -1,6 +1,9 @@
+const { database, db } = require('../../../firebase.js')
 const { setupEmbed, setupComponents } = require('../functions.js')
 
-exports.setup = async function ({ interaction, args, db, member_id, livematch, livematchref, user_key } = {}) {
+exports.setup = async function ({ interaction, args, member_id, user_key, livematch } = {}) {
+    const livematchref = database.ref(`tourney/live/${interaction.channelId}`)
+    const match_data = db.ty.live[interaction.channelId]
 
     await livematchref.child("status").set("setup")
 
@@ -10,32 +13,32 @@ exports.setup = async function ({ interaction, args, db, member_id, livematch, l
         await livematchref.update(
             {
                 bracket: interaction.values[0],
-                ruleset: db.ty.tournaments[livematch.tourney]?.stages[interaction.values[0]]?.ruleset ?? ""
+                ruleset: db.ty.tournaments[match_data.tourney]?.stages[interaction.values[0]]?.ruleset ?? ""
             }
         )
     } else if (args[2] == "ruleset") {
         await livematchref.update({ ruleset: interaction.values[0] })
     } else if (args[2] == "player") {
-        if (!livematch.players || (livematch.players && !Object.values(livematch.players).includes(member_id))) {
+        if (!match_data.players || (match_data.players && !Object.values(match_data.players).includes(member_id))) {
             await livematchref.child("players").child(user_key).set(member_id)
         }
     } else if (args[2] == "comm") {
-        if (!livematch.commentators || (livematch.commentators && !Object.values(livematch.commentators).includes(member_id))) {
+        if (!match_data.commentators || (match_data.commentators && !Object.values(match_data.commentators).includes(member_id))) {
             await livematchref.child("commentators").push(member_id)
         }
     } else if (args[2] == "leave") {
-        if (livematch.commentators) {
-            let comms = Object.keys(livematch.commentators)
+        if (match_data.commentators) {
+            let comms = Object.keys(match_data.commentators)
             comms.forEach(async key => {
-                if (livematch.commentators[key] == member_id) {
+                if (match_data.commentators[key] == member_id) {
                     await livematchref.child("commentators").child(key).remove()
                 }
             })
         }
-        if (livematch.players) {
-            let players = Object.keys(livematch.players)
+        if (match_data.players) {
+            let players = Object.keys(match_data.players)
             players.forEach(async key => {
-                if (livematch.players[key] == member_id) {
+                if (match_data.players[key] == member_id) {
                     await livematchref.child("players").child(key).remove()
                 }
             })
@@ -47,11 +50,9 @@ exports.setup = async function ({ interaction, args, db, member_id, livematch, l
         return
     }
 
-    livematch = db.ty.live[interaction.channelId]
-
     if (interaction.isChatInputCommand()) {
-        interaction.reply({ embeds: [setupEmbed({ livematch, db })], components: setupComponents({ livematch, db }) })
+        interaction.reply({ embeds: [setupEmbed({ interaction })], components: setupComponents({ interaction }) })
     } else {
-        interaction.update({ embeds: [setupEmbed({ livematch, db })], components: setupComponents({ livematch, db }) })
+        interaction.update({ embeds: [setupEmbed({ interaction })], components: setupComponents({ interaction }) })
     }
 }

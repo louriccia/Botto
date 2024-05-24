@@ -8,7 +8,7 @@ module.exports = {
 
         let betdata = db.ty.bets
         let betref = database.ref('tourney/bets')
-        const userref = database.ref('user')
+        const userref = database.ref('users')
 
         if (args[0] == "bet") {
             if (args[1] == 'new') {

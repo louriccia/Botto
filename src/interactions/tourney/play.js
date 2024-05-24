@@ -1,18 +1,17 @@
 const { initializeMatch, adminEmbed, adminComponents } = require('./functions.js')
-const { livematch_setup } = require('./play/livematch.js')
 
 exports.play = async function ({ interaction, args, database, db, member_id, member_avatar, user_key, user_profile } = {}) {
 
-    const livematch = livematch_setup({ database, db, interaction })
+    const match_data = db.ty.live[interaction.channelId]
+    const livematch_ref = database.ref(`tourney/live/${interaction.channelId}`)
 
     //if no match, assert setup
-    if (!livematch) {
+    if (!match_data) {
         args[1] = "setup"
-        initializeMatch(livematchref)
+        initializeMatch(livematch_ref)
     } else if (interaction.isChatInputCommand()) {
         args[1] = 'admin'
-        type = 4
-        interaction.reply({ embeds: [adminEmbed({ livematch, db })], components: adminComponents({ livematch }), ephemeral: true })
+        interaction.reply({ embeds: [adminEmbed({ interaction })], components: adminComponents({ interaction }), ephemeral: true })
         return
     }
 
@@ -26,8 +25,5 @@ exports.play = async function ({ interaction, args, database, db, member_id, mem
 
     //process command
     const tourney_command = require(`./play/${command}.js`)
-    tourney_command[command]({ interaction, args, db, database, member_id, member_avatar, user_key, user_profile, livematch })
-
-    //turn off listener
-    livematch.ref.off()
+    tourney_command[command]({ interaction, args, db, database, member_id, member_avatar, user_key, user_profile })
 }

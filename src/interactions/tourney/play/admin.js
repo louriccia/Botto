@@ -1,18 +1,19 @@
 const { firstEmbed, firstComponents, getOpponent, raceEmbed, raceComponents, getWinner, permabanEmbed, permabanComponents, raceEventEmbed, raceEventComponents } = require('../functions.js')
-const { livematch_setup } = require('./livematch.js')
 
 exports.admin = async function ({ interaction, db, member_id, database } = {}) {
 
-    const livematch = livematch_setup({database, db, interaction})
+    const match_data = db.ty.live[interaction.channelId]
+    const livematch_ref = database.ref(`tourney/live/${interaction.channelId}`)
 
     let status = interaction.values[0]
-    if (!((livematch.data.commentators && Object.values(livematch.data.commentators).includes(member_id)) || (interaction.guild.id == '441839750555369474' && (Member.roles.cache.some(r => r.id == '862810190072381471')) && !Object.values(livematch.data.players).includes(member_id)))) {
+    if (member_id !== "256236315144749059" || (match_data.commentators && !Object.values(match_data.commentators).includes(member_id)) || (interaction.guild.id == '441839750555369474' && !(interaction.member.roles.cache.some(r => r.id == '862810190072381471')) || (match_data.players && !Object.values(match_data.players).includes(member_id)))) {
         interaction.reply({ content: "Only trackers/tourney staff have permission to use this. <:WhyNobodyBuy:589481340957753363>", ephemeral: true })
-
+        return
     }
 
+
     //delete last bot message
-    let race = livematch.data.current_race
+    let race = match_data.current_race
     interaction.client.channels.cache.get(interaction.channel.id).messages.fetch({ limit: 20 }).then(messages => {
         let lastMessage = messages.filter(m => m.author.bot && m.id !== interaction.message.id).first();
         if (lastMessage) {
@@ -22,7 +23,7 @@ exports.admin = async function ({ interaction, db, member_id, database } = {}) {
 
     switch (status) {
         case 'first':
-            livematch.ref.update({
+            livematch_ref.update({
                 races: "",
                 firstbans: "",
                 firstvote: "",
@@ -33,25 +34,25 @@ exports.admin = async function ({ interaction, db, member_id, database } = {}) {
             })
 
             interaction.reply({
-                content: Object.values(livematch.data.players).map(player => "<@" + player + ">").join(", "),
-                embeds: [firstEmbed(livematch.data)],
-                components: firstComponents({ livematch })
+                content: Object.values(match_data.players).map(player => "<@" + player + ">").join(", "),
+                embeds: [firstEmbed(match_data)],
+                components: firstComponents({ interaction })
             })
 
-            livematch.ref.child("status").set("first")
+            livematch_ref.child("status").set("first")
             break
         case 'permaban':
-            livematch.ref.child('races').child('1').update({
+            livematch_ref.child('races').child('1').update({
                 events: "",
                 eventstart: 0,
                 eventend: 0,
                 live: false
             })
 
-            Object.values(livematch.data.players).map(async player => {
-                livematch.ref.child('races').child(livematch.data.current_race).child('ready').child(player).set(false)
-                livematch.ref.child('races').child(livematch.data.current_race).child('reveal').child(player).set(false)
-                livematch.ref.child('races').child(livematch.data.current_race).child('runs').child(player).set({
+            Object.values(match_data.players).map(async player => {
+                livematch_ref.child('races').child(match_data.current_race).child('ready').child(player).set(false)
+                livematch_ref.child('races').child(match_data.current_race).child('reveal').child(player).set(false)
+                livematch_ref.child('races').child(match_data.current_race).child('runs').child(player).set({
                     deaths: "",
                     notes: "",
                     platform: "pc",
@@ -69,31 +70,31 @@ exports.admin = async function ({ interaction, db, member_id, database } = {}) {
 
             break
         case 'prevrace':
-            let current_race = livematch.data.current_race
-            livematch.ref.child('races').child(livematch.data.current_race).remove()
-            livematch.ref.child('current_race').set(current_race - 1)
-            livematch.ref.child('races').child(current_race - 1).child('live').set(true)
+            let current_race = match_data.current_race
+            livematch_ref.child('races').child(match_data.current_race).remove()
+            livematch_ref.child('current_race').set(current_race - 1)
+            livematch_ref.child('races').child(current_race - 1).child('live').set(true)
 
             interaction.reply(
                 {
-                    content: Object.values(livematch.data.players).filter(player => !livematch.data.races[current_race - 1]?.ready[player]).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.data.commentators).map(comm => "<@" + comm + ">").join(" "),
-                    embeds: [raceEmbed({ race: current_race - 1, livematch,  db })],
-                    components: raceComponents({ race: current_race - 1,  livematch })
+                    content: Object.values(match_data.players).filter(player => !match_data.races[current_race - 1]?.ready[player]).map(player => "<@" + player + ">").join(" ") + " " + Object.values(match_data.commentators).map(comm => "<@" + comm + ">").join(" "),
+                    embeds: [raceEmbed({ race: current_race - 1, livematch, db })],
+                    components: raceComponents({ race: current_race - 1, livematch })
                 })
             break
         case 'events':
             let events = Object.values(livematch.rules.race)
-            livematch.ref.child('races').child(livematch.data.current_race).update({
+            livematch_ref.child('races').child(match_data.current_race).update({
                 events: "",
                 eventstart: 0,
                 eventend: 0,
                 live: false
             })
 
-            Object.values(livematch.data.players).map(player => {
-                livematch.ref.child('races').child(livematch.data.current_race).child('ready').child(player).set(false)
-                livematch.ref.child('races').child(livematch.data.current_race).child('reveal').child(player).set(false)
-                livematch.ref.child('races').child(livematch.data.current_race).child('runs').child(player).set({
+            Object.values(match_data.players).map(player => {
+                livematch_ref.child('races').child(match_data.current_race).child('ready').child(player).set(false)
+                livematch_ref.child('races').child(match_data.current_race).child('reveal').child(player).set(false)
+                livematch_ref.child('races').child(match_data.current_race).child('runs').child(player).set({
                     deaths: "",
                     notes: "",
                     platform: "pc",
@@ -102,7 +103,7 @@ exports.admin = async function ({ interaction, db, member_id, database } = {}) {
                     time: ""
                 })
             })
-            if (livematch.data.current_race == 1 && Object.values(livematch.rules.match.permabans).length > 0) {
+            if (match_data.current_race == 1 && Object.values(livematch.rules.match.permabans).length > 0) {
                 interaction.reply({
                     content: "<@" + (livematch.rules.match.permabans[0].choice == "firstloser" ? getOpponent({ livematch, player: getWinner({ race: 0, livematch }) }) : getWinner({ race: 0, livematch })) + "> please select a permanent ban",
                     embeds: [permabanEmbed({ livematch })],
@@ -117,11 +118,11 @@ exports.admin = async function ({ interaction, db, member_id, database } = {}) {
             }
             break
         case 'prerace':
-            livematch.ref.child('races').child(livematch.data.current_race).update({ live: false })
-            Object.values(livematch.data.players).map(player => {
-                livematch.ref.child('races').child(livematch.data.current_race).child('ready').child(player).set(false)
-                livematch.ref.child('races').child(livematch.data.current_race).child('reveal').child(player).set(false)
-                livematch.ref.child('races').child(livematch.data.current_race).child('runs').child(player).set({
+            livematch_ref.child('races').child(match_data.current_race).update({ live: false })
+            Object.values(match_data.players).map(player => {
+                livematch_ref.child('races').child(match_data.current_race).child('ready').child(player).set(false)
+                livematch_ref.child('races').child(match_data.current_race).child('reveal').child(player).set(false)
+                livematch_ref.child('races').child(match_data.current_race).child('runs').child(player).set({
                     deaths: "",
                     notes: "",
                     platform: "pc",
@@ -131,13 +132,13 @@ exports.admin = async function ({ interaction, db, member_id, database } = {}) {
                 })
             })
             interaction.reply({
-                content: Object.values(livematch.data.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(livematch.data.commentators).map(player => "<@" + player + ">").join(" "),
+                content: Object.values(match_data.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(match_data.commentators).map(player => "<@" + player + ">").join(" "),
                 embeds: [raceEmbed({ race, livematch, livematch, db })],
                 components: raceComponents({ race, livematch, livematch })
             })
             break
         case 'delete':
-            livematch.ref.remove()
+            livematch_ref.remove()
             interaction.reply({
                 content: "Match was cancelled"
             })
