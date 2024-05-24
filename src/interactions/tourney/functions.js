@@ -9,13 +9,14 @@ const { circuits } = require('../../data/sw_racer/circuit.js')
 const { difficulties } = require('../../data/difficulty.js')
 
 
-const { capitalize, time_fix, getTrackName } = require('../../generic.js')
+const { capitalize, time_fix, getTrackName, getRacerName } = require('../../generic.js')
 const { postMessage } = require('../../discord.js');
 const { avgSpeed, upgradeCooling, upgradeTopSpeed } = require('../../data/sw_racer/part.js');
-const { database, db } = require('../../firebase.js')
+const { database, db } = require('../../firebase.js');
+const { blurple_color } = require('../../colors.js');
 
 
-exports.initializeMatch = function (livematchref) {
+exports.initializeMatch = function (match_ref) {
     let match = {
         status: "setup",
         tourney: "",
@@ -28,7 +29,7 @@ exports.initializeMatch = function (livematchref) {
         firstvote: "",
         current_race: 0
     }
-    livematchref.set(match)
+    match_ref.set(match)
     return match
 }
 
@@ -200,10 +201,35 @@ exports.firstEmbed = function ({ interaction } = {}) {
     const embed = new EmbedBuilder()
         .setAuthor({ name: "First Track" })
         .setTitle("How would you like to determine the first track?")
+        .setColor(blurple_color)
         .setDescription(`*If players do not agree on a method, the default option will be used.*` +
             `\n${match_data.firstvote ? Object.keys(match_data.firstvote).map(key => `<@${key}> voted for **${methods[match_data.firstvote[key]]}**`).join("\n") : ''
             }`)
     return embed
+}
+
+
+exports.firstComponents = function ({ interaction } = {}) {
+    const match_data = db.ty.live[interaction.channelId]
+    const match_rules = db.ty.rulesets.saved?.[match_data.ruleset]
+
+    const FirstVote = new ActionRowBuilder()
+    const FirstPlay = new ActionRowBuilder()
+    const first_vote_selector = new StringSelectMenuBuilder()
+        .setCustomId('tourney_play_first_vote')
+        .setPlaceholder("Select Options")
+        .setMinValues(1)
+        .setMaxValues(1)
+        .setOptions(exports.getFirstOptions({ interaction }))
+    FirstVote.addComponents(first_vote_selector)
+    FirstPlay.addComponents(
+        new ButtonBuilder()
+            .setCustomId("tourney_play_first_start")
+            .setLabel((match_data.firstmethod ? methods[match_data.firstmethod] : methods[match_rules.general.firsttrack.primary] + " (Default)"))
+            .setStyle(ButtonStyle.Primary)
+            .setDisabled([undefined, null].includes(match_data.firstvote) || Object.keys(match_data.firstvote).length < 2)
+    )
+    return [FirstVote, FirstPlay]
 }
 
 exports.colorEmbed = function ({ interaction } = {}) {
@@ -272,14 +298,13 @@ exports.getLeaderboard = function ({ track, conditions, podbans } = {}) {
     return unique
 }
 
-exports.raceEmbed = function ({ race, livematch, interaction } = {}) {
+exports.raceEmbed = function ({ race, interaction } = {}) {
     const match_data = db.ty.live[interaction.channelId]
     const match_tourney = db.ty.tournaments[match_data.tourney]
     const match_rules = db.ty.rulesets.saved?.[match_data.ruleset]
-    const liverules = livematch.rules
     const race_data = match_data.races[race]
     let events = Object.values(race_data.events)
-    let conditions = exports.getConditions(liverules, race_data, race)
+    let conditions = exports.getConditions(match_rules, race_data, race)
     let track = exports.getTrack(race_data)
     let podbans = race_data.events ? Object.values(race_data.events).filter(e => e.event == 'tempban' && e.type == 'racer').map(e => e.selection).flat().map(s => String(s)) : []
     let forces = events.filter(event => event.event == 'override' && event.type == 'condition').map(event => capitalize(condition_names[event.selection]))
@@ -311,7 +336,7 @@ exports.raceEmbed = function ({ race, livematch, interaction } = {}) {
     }
 
     //leaderboard
-    const leaderboard = exports.getLeaderboard({ track, conditions, db, podbans }).filter(r => r.record || r.trecord || players.includes(r.player))
+    const leaderboard = exports.getLeaderboard({ track, conditions, podbans }).filter(r => r.record || r.trecord || players.includes(r.player))
     embed.addFields({ name: 'Best Times', value: leaderboard.map(r => resultFormat(r, false, true)).join("\n"), inline: false })
 
     //setup
@@ -360,7 +385,7 @@ exports.raceEmbed = function ({ race, livematch, interaction } = {}) {
             .setAuthor({ name: "Race " + (race + 1) + " - Results" })
             .setColor("#2D7D46")
         if (![null, undefined, ""].includes(race_data.runs) && Object.values(race_data.runs).map(run => run.time).filter(time => time == "").length == 0) {
-            let winner = exports.getWinner({ race, livematch })
+            let winner = exports.getWinner({ race, interaction })
             Object.values(match_data.players).map(player => embed.addFields({
                 name: exports.getUsername({ member: player, db }) + (player == winner ? " 👑" : ""),
                 value: resultFormat(race_data.runs[player], winner == player),
@@ -375,27 +400,29 @@ exports.raceEmbed = function ({ race, livematch, interaction } = {}) {
     return embed
 }
 
-exports.matchSummaryEmbed = function ({ livematch } = {}) {
+exports.matchSummaryEmbed = function ({ interaction } = {}) {
 
-    const liverules = livematch.rules
+    const match_data = db.ty.live[interaction.channelId]
+    const match_rules = db.ty.rulesets.saved?.[match_data.ruleset]
+    const match_tourney = db.ty.tournaments[match_data.tourney]
 
-    //livematch = tourney_live_data[interaction.channel_id]
+    //match_data = tourney_live_data[interaction.channel_id]
     let summary = {}
-    Object.values(livematch.players).forEach(player => {
+    Object.values(match_data.players).forEach(player => {
         summary[player] = {
             wins: 0,
-            forcepoints: liverules.match.forcepoints.start,
-            runbacks: liverules.match.repeattrack.limit,
+            forcepoints: match_rules.match.forcepoints.start,
+            runbacks: match_rules.match.repeattrack.limit,
             deaths: 0,
             deathtrue: true,
             time: 0,
             timetrue: true
         }
     })
-    Object.values(livematch.races).forEach((race, index) => {
+    Object.values(match_data.races).forEach((race, index) => {
         if (!race.live) {
-            if (exports.getWinner({ race: index, livematch })) {
-                summary[exports.getWinner({ race: index, livematch })].wins++
+            if (exports.getWinner({ race: index, interaction })) {
+                summary[exports.getWinner({ race: index, interaction })].wins++
             }
             if (![null, undefined, ""].includes(race.events)) {
                 Object.values(race.events).forEach(event => {
@@ -438,16 +465,16 @@ exports.matchSummaryEmbed = function ({ livematch } = {}) {
     const embed = new EmbedBuilder()
         .setAuthor({ name: 'Match Summary' })
         .setColor("#FFFFFF")
-        .setDescription('First to ' + liverules.general.winlimit + ' wins.')
+        .setDescription('First to ' + match_rules.general.winlimit + ' wins.')
         .setTitle(
             leader.player == "tie" ?
                 "Tied Match " + leader.wins + " to " + leader.wins :
-                exports.getUsername({ member: leader.player, db, short: true }) + " " + (leader.wins == liverules.general.winlimit ? "wins" : "leads") + " " + leader.wins + " to " + summary[exports.getOpponent({ livematch, player: leader.player })].wins + (leader.wins == liverules.general.winlimit - 1 ? " (Match Point)" : ""))
-    Object.values(livematch.players).forEach(player => embed.addFields({
+                exports.getUsername({ member: leader.player, db, short: true }) + " " + (leader.wins == match_rules.general.winlimit ? "wins" : "leads") + " " + leader.wins + " to " + summary[exports.getOpponent({ interaction, player: leader.player })].wins + (leader.wins == match_rules.general.winlimit - 1 ? " (Match Point)" : ""))
+    Object.values(match_data.players).forEach(player => embed.addFields({
         name: exports.getUsername({ member: player, db }),
         value: [
             "👑" + summary[player].wins, '💠' + summary[player].forcepoints,
-            (liverules.match.repeattrack ? '🔁' + summary[player].runbacks : "")
+            (match_rules.match.repeattrack ? '🔁' + summary[player].runbacks : "")
         ].filter(a => a !== '').map(a => '`' + a + '`').join(" ") + '\n`⏱️' + time_fix(summary[player].time) + (summary[player].timetrue ? "" : "+") + '`' +
             ' `💀' + summary[player].deaths + (summary[player].deathtrue ? "" : "+") + '`',
         inline: true
@@ -456,15 +483,15 @@ exports.matchSummaryEmbed = function ({ livematch } = {}) {
     return embed
 }
 
-exports.raceEventEmbed = function ({ race, interaction, liverules } = {}) {
+exports.raceEventEmbed = function ({ race, interaction } = {}) {
     const match_data = db.ty.live[interaction.channelId]
     const match_tourney = db.ty.tournaments[match_data.tourney]
     const match_rules = db.ty.rulesets.saved?.[match_data.ruleset]
     let races = Object.values(match_data.races)
     let events = races[race].events
     let eventstart = match_data.races[race].eventstart
-    let ruleevents = Object.values(liverules.race)
-    let player = (ruleevents[eventstart].choice == "lastwinner" ? exports.getWinner({ race: race - 1, match_data }) : exports.getOpponent({ match_data, player: exports.getWinner({ race: race - 1, match_data }) }))
+    let ruleevents = Object.values(match_rules.race)
+    let player = (ruleevents[eventstart].choice == "lastwinner" ? exports.getWinner({ race: race - 1, interaction }) : exports.getOpponent({ interaction, player: exports.getWinner({ race: race - 1, interaction }) }))
     let actions = {
         permaban: "🚫 perma-banned",
         tempban: "❌ temp-banned",
@@ -476,12 +503,10 @@ exports.raceEventEmbed = function ({ race, interaction, liverules } = {}) {
         .setColor("#FAA81A")
     let desc = "" + ([undefined, null, ""].includes(events) ? "" :
         Object.values(events).map(e =>
-            "<@" + e.player + "> " + actions[e.event] + " a " + e.type + ": **" + (e.type == "track" ?
-                (e.repeat ? "🔁" : planets[tracks[e.selection].planet].emoji) + " " + tracks[e.selection].name :
-                e.type == "racer" ?
-                    Array.isArray(e.selection) ?
-                        e.selection.map(racer => racers[racer].flag + " " + racers[racer].name).join(", ") :
-                        racers[e.selection].flag + " " + racers[e.selection].name :
+            `<@${e.player}> ${actions[e.event]} a ${e.type}: **` +
+            (e.type == "track" ?
+                getTrackName(e.selection) + (e.repeat ? " (🔁Runback)" : "") :
+                e.type == "racer" ? getRacerName(e.selection) :
                     condition_names[e.selection]) + "**" + ([null, undefined, "", 0].includes(e.cost) ? "" : " for " + e.cost + "💠 forcepoint" + (e.cost == 1 ? "" : "s"))
         ).join("\n"))
     if (desc) {
@@ -497,13 +522,13 @@ exports.raceEventEmbed = function ({ race, interaction, liverules } = {}) {
     })
     Object.values(match_data.races).forEach((race, index) => {
         if (index + 1 < Object.values(match_data.races).length) {
-            summary[exports.getWinner({ race: index, match_data })].wins++
+            summary[exports.getWinner({ race: index, interaction })].wins++
         }
     })
-    if (exports.getForcePoints({ player, liverules, match_data }) > 0 && summary[exports.getOpponent({ match_data, player })].wins == liverules.general.winlimit - 1) {
-        embed.setFooter({ text: "Last chance to use " + exports.getForcePoints({ player, liverules, match_data }) + " 💠 forcepoint" + (exports.getForcePoints({ player, liverules, match_data }) !== 1 ? "s" : "") + " and " + exports.getRunbacks({ player, match_data, liverules }) + " 🔁 runback" + (exports.getRunbacks({ player, match_data, liverules }) !== 1 ? "s" : "") })
+    if (exports.getForcePoints({ player, interaction }) > 0 && summary[exports.getOpponent({ interaction, player })].wins == match_rules.general.winlimit - 1) {
+        embed.setFooter({ text: "Last chance to use " + exports.getForcePoints({ player, interaction }) + " 💠 forcepoint" + (exports.getForcePoints({ player, interaction }) !== 1 ? "s" : "") + " and " + exports.getRunbacks({ player, interaction }) + " 🔁 runback" + (exports.getRunbacks({ player, interaction }) !== 1 ? "s" : "") })
     } else {
-        embed.setFooter({ text: "You have " + exports.getForcePoints({ player, liverules, match_data }) + " 💠 forcepoint" + (exports.getForcePoints({ player, liverules, match_data }) !== 1 ? "s" : "") + " and " + exports.getRunbacks({ player, match_data, liverules }) + " 🔁 runback" + (exports.getRunbacks({ player, match_data, liverules }) !== 1 ? "s" : "") + " remaining" })
+        embed.setFooter({ text: "You have " + exports.getForcePoints({ player, interaction }) + " 💠 forcepoint" + (exports.getForcePoints({ player, interaction }) !== 1 ? "s" : "") + " and " + exports.getRunbacks({ player, interaction }) + " 🔁 runback" + (exports.getRunbacks({ player, interaction }) !== 1 ? "s" : "") + " remaining" })
     }
 
     return embed
@@ -592,27 +617,35 @@ exports.adminComponents = function ({ interaction } = {}) {
     ]
 }
 
-exports.raceEventComponents = function ({ race,  interaction } = {}) {
+exports.raceEventComponents = function ({ race, interaction } = {}) {
     const match_data = db.ty.live[interaction.channelId]
-    const match_tourney = db.ty.tournaments[match_data.tourney]
     const match_rules = db.ty.rulesets.saved?.[match_data.ruleset]
 
     let components = []
-    let eventstart = match_data.races[race].eventstart
-    let eventend = match_data.races[race].eventend
-    let events = Object.values(liverules.race)
+    const event_start = match_data.races[race].eventstart
+    const event_end = match_data.races[race].eventend
+    let events = Object.values(match_rules.race)
     let fptotal = 0
-    let player = (events[eventstart].choice == "lastwinner" ? exports.getWinner({ race: race - 1, match_data }) : exports.getOpponent({ match_data, player: exports.getWinner({ race: race - 1, match_data }) }))
+
+    const last_winner = exports.getWinner({ race: race - 1, interaction })
+    const last_loser = exports.getOpponent({ interaction, player: last_winner })
+
+    const chosing_player = (events[event_start].choice == "lastwinner" ? last_winner : last_loser)
     let notrack = false
+    let track = null
+    let racer_ban = false
+    let racer_force = false
     let oddselect = false
     let repeat = false
     let upg = 5
-    for (let i = eventstart; i <= eventend; i++) {
+
+    //construct components
+    for (let i = event_start; i <= event_end && i < events.length; i++) {
         let event = events[i]
         let options = []
         let default_stuff = []
         //get defaults
-        interaction.message.components.forEach(component => {
+        interaction.message.components.filter(component => component.components[0].data.type == 3).forEach(component => {
             let this_args = component.components[0].data.custom_id.split("_")
             if (this_args.length > 3) {
                 if (Number(this_args[3].replace("event", "")) == i) {
@@ -626,14 +659,21 @@ exports.raceEventComponents = function ({ race,  interaction } = {}) {
                 default_stuff = interaction.values.map(value => String(value).replace("repeat", ""))
             }
         }
-        if (![null, undefined, ""].includes(event.count) && default_stuff.length % event.count !== 0) {
+
+        if (event.count && default_stuff.length % event.count !== 0) {
             oddselect = true
         }
-        if ([null, undefined, ""].includes(event.cost) || exports.getForcePoints({ player, liverules, match_data }) >= event.cost) {
+
+        if ([null, undefined, ""].includes(event.cost) || exports.getForcePoints({ player: chosing_player, interaction }) >= event.cost) {
             if (![null, undefined, ""].includes(event.cost)) {
                 fptotal += (default_stuff.length / event.count) * event.cost
             }
             if (event.type == "racer") {
+
+                if (event.event == 'tempban' && event.cost && default_stuff.length) {
+                    racer_ban = true
+                }
+
                 let permabanned_racers = Object.values(match_data.races[1].events).filter(event => event.event == "permaban" && event.type == "racer").map(event => Number(event.selection))
                 let tempbanned_racers = Object.values(match_data.races[race].events).filter(event => event.event == "tempban" && event.type == "racer").map(event => Number(event.selection))
                 for (let i = 0; i < 25; i++) {
@@ -685,9 +725,9 @@ exports.raceEventComponents = function ({ race,  interaction } = {}) {
                         if (event.event == 'selection' && event.type == 'track') {
                             if (already_played[event.selection]) {
                                 already_played[event.selection].played++
-                                already_played[event.selection].loser = exports.getOpponent({ match_data, player: exports.getWinner({ race: index, match_data }) })
+                                already_played[event.selection].loser = exports.getOpponent({ interaction, player: exports.getWinner({ race: index, interaction }) })
                             } else {
-                                already_played[event.selection] = { played: 1, loser: exports.getOpponent({ match_data, player: exports.getWinner({ race: index, match_data }) }) }
+                                already_played[event.selection] = { played: 1, loser: exports.getOpponent({ interaction, player: exports.getWinner({ race: index, interaction }) }) }
                             }
                         }
                     })
@@ -699,6 +739,8 @@ exports.raceEventComponents = function ({ race,  interaction } = {}) {
                 }
                 if (event.event == "selection" && default_stuff.length == 0) {
                     notrack = true
+                } else {
+                    track = default_stuff[0]?.replace("ban", "")
                 }
                 for (let i = 0; i < 25; i++) {
                     let option = exports.getTrackOption(i)
@@ -721,10 +763,10 @@ exports.raceEventComponents = function ({ race,  interaction } = {}) {
                         option.value += "ban"
                         option.description = "Cannot be selected for the current race"
                         options.push(option)
-                    } else if (event.event !== 'selection' && already_played[i] && saltmap[liverules.match.repeattrack.condition] <= already_played[i].played && already_played[i].loser == exports.getOpponent({ match_data, player }) && exports.getRunbacks({ player: exports.getOpponent({ match_data, player }), match_data, liverules }) > 0) { //not selecting the track but opponent could still runback
+                    } else if (event.event !== 'selection' && already_played[i] && saltmap[match_rules.match.repeattrack.condition] <= already_played[i].played && already_played[i].loser == exports.getOpponent({ interaction, player: chosing_player }) && exports.getRunbacks({ player: exports.getOpponent({ interaction, player: chosing_player }), interaction }) > 0) { //not selecting the track but opponent could still runback
                         option.description = "Already played but your opponent could run it back"
                         options.push(option)
-                    } else if (event.event == 'selection' && already_played[i] && saltmap[liverules.match.repeattrack.condition] <= already_played[i].played && already_played[i].loser == player && exports.getRunbacks({ player, match_data, liverules }) > 0) { //selecting the track and it can be runback
+                    } else if (event.event == 'selection' && already_played[i] && saltmap[match_rules.match.repeattrack.condition] <= already_played[i].played && already_played[i].loser == chosing_player && exports.getRunbacks({ player: chosing_player, interaction }) > 0) { //selecting the track and it can be runback
                         option.emoji = {
                             name: "🔁"
                         }
@@ -765,6 +807,40 @@ exports.raceEventComponents = function ({ race,  interaction } = {}) {
                         }
                     )
                 })
+            } else if (event.type == 'racerpick') {
+                if (event.cost && default_stuff.length) {
+                    racer_force = true
+                }
+                options = []
+                Object.values(event.options).forEach(option => {
+                    if (option == 'favorite_2024') {
+
+                        if (![null, undefined, ""].includes(track)) {
+                            let track_favorite = tracks[track].favorite
+                            let option = exports.getRacerOption(track_favorite)
+                            option.label += " (Track Favorite)"
+                            option.description = "Players must play this pod"
+                            option.default = default_stuff.includes(String(track_favorite))
+                            options.push(option)
+                            if (["0", "20"].includes(track)) {
+                                let alt_option = exports.getRacerOption(0)
+                                alt_option.description = "Players must play this pod"
+                                alt_option.label += " (Track Favorite Alt)"
+                                alt_option.default = default_stuff.includes("0")
+                                options.push(alt_option)
+                            }
+                        } else {
+
+                            options.push({
+                                label: "Track Favorite",
+                                description: "Players must play this pod",
+                                value: "fav",
+                                default: default_stuff.includes("fav")
+                            })
+
+                        }
+                    }
+                })
             }
             let component = {
                 type: 1,
@@ -773,7 +849,7 @@ exports.raceEventComponents = function ({ race,  interaction } = {}) {
                         type: 3,
                         custom_id: "tourney_play_race" + race + "_event" + i,
                         options: options,
-                        placeholder: capitalize([event.event.replace("selection", "select"), event.type].join(" ")) + ([null, undefined, ""].includes(event.cost) ? "" : " (" + (event.cost == 0 ? "free" : event.cost + "💠/" + (event.count == 1 ? event.type : event.count + " " + event.type + "s")) + ")") + (oddselect ? " (select in sets of " + event.count : ""),
+                        placeholder: capitalize([event.event.replace("selection", "select"), event.type.replace("racerpick", "racer pick")].join(" ")) + ([null, undefined, ""].includes(event.cost) ? "" : " (" + (event.cost == 0 ? "free" : event.cost + "💠/" + (event.count == 1 ? event.type : event.count + " " + event.type + "s")) + ")") + (oddselect ? " (select in sets of " + event.count : ""),
                         min_values: [undefined, null, ""].includes(event.count) ? 1 : 0,
                         max_values: [undefined, null, ""].includes(event.count) ? 1 : [undefined, null, ""].includes(event.limit) ? options.length : event.limit == 0 ? options.length : event.count * event.limit
                     }
@@ -782,27 +858,31 @@ exports.raceEventComponents = function ({ race,  interaction } = {}) {
             components.push(component)
         }
     }
-    if (components.length > 1) {
-        components.push(
-            {
-                type: 1,
-                components: [
-                    {
-                        type: 2,
-                        label: notrack ? "No Track Selected" : (exports.getForcePoints({ player, liverules, match_data }) - fptotal < 0) ? "Not enough forcepoints" : oddselect ? "Too many or too few selections" : "Submit" + (fptotal == 0 ? "" : " (" + fptotal + "💠)") + (repeat ? " (🔁)" : ""),
-                        style: 1,
-                        custom_id: "tourney_play_race" + race + "_event_submit",
-                        disabled: (exports.getForcePoints({ player, liverules, match_data }) - fptotal < 0) || notrack || oddselect
-                    },
-                ]
-            }
-        )
-    }
+
+    components.push(
+        {
+            type: 1,
+            components: [
+                {
+                    type: 2,
+                    label: notrack ? "No Track Selected" : (exports.getForcePoints({ player: chosing_player, interaction }) - fptotal < 0) ? "Not enough forcepoints" : oddselect ? "Too many or too few selections" : "Submit" + (fptotal == 0 ? "" : " (" + fptotal + "💠)") + (repeat ? " (🔁)" : ""),
+                    style: 1,
+                    custom_id: "tourney_play_race" + race + "_event_submit",
+                    disabled: (exports.getForcePoints({ player: chosing_player, interaction }) - fptotal < 0) || notrack || oddselect || (racer_force && racer_ban)
+                },
+            ]
+        }
+    )
+
     return components
 }
 
-exports.permabanEmbed = function ({ livematch } = {}) {
-    let races = Object.values(livematch.races)
+exports.permabanEmbed = function ({ interaction } = {}) {
+    const match_data = db.ty.live[interaction.channelId]
+    const match_rules = db.ty.rulesets.saved?.[match_data.ruleset]
+    const match_tourney = db.ty.tournaments[match_data.tourney]
+
+    let races = Object.values(match_data.races)
     let events = races[1].events
     const embed = new EmbedBuilder()
         .setAuthor({ name: "Permanent Bans" })
@@ -817,15 +897,18 @@ exports.permabanEmbed = function ({ livematch } = {}) {
     return embed
 }
 
+exports.raceComponents = function ({ race, interaction }) {
 
-exports.raceComponents = function ({ race, livematch }) {
-    const liverules = livematch.rules
-    let events = Object.values(livematch.races[race].events)
+    const match_data = db.ty.live[interaction.channelId]
+    const match_rules = db.ty.rulesets.saved?.[match_data.ruleset]
+    const match_tourney = db.ty.tournaments[match_data.tourney]
+
+    let events = Object.values(match_data.races[race].events)
     let podbans = []
     let podoptions = []
     let upg = 5
     events.forEach(event => {
-        if (Object.values(liverules.general.default).includes('nu') || (event.event == 'override' && event.type == 'condition' && event.selection == 'nu')) {
+        if (Object.values(match_rules.general.default).includes('nu') || (event.event == 'override' && event.type == 'condition' && event.selection == 'nu')) {
             upg = 0
         }
         if (event.event == "tempban" && event.type == "racer") {
@@ -876,7 +959,7 @@ exports.raceComponents = function ({ race, livematch }) {
     RacerRow.addComponents(racer_select)
 
     const ButtonRow = new ActionRowBuilder()
-    if (livematch.races[race].gents?.agreed == "?") {
+    if (match_data.races[race].gents?.agreed == "?") {
         ButtonRow.addComponents(
             new ButtonBuilder()
                 .setCustomId("tourney_play_race" + race + "_gents_true")
@@ -889,8 +972,8 @@ exports.raceComponents = function ({ race, livematch }) {
         )
         return [ButtonRow]
     }
-    if (!livematch.races[race].live) {
-        if (livematch.races[race].countdown) {
+    if (!match_data.races[race].live) {
+        if (match_data.races[race].countdown) {
             ButtonRow
                 .addComponents(
                     new ButtonBuilder()
@@ -909,7 +992,7 @@ exports.raceComponents = function ({ race, livematch }) {
                 .addComponents(
                     new ButtonBuilder()
                         .setCustomId("tourney_play_race" + race + "_ready")
-                        .setLabel(Object.values(livematch.races[race].ready).filter(v => v === false).length == 1 ? "Start Countdown" : "Ready")
+                        .setLabel(Object.values(match_data.races[race].ready).filter(v => v === false).length == 1 ? "Start Countdown" : "Ready")
                         .setStyle(ButtonStyle.Success)
                 )
                 .addComponents(
@@ -925,7 +1008,7 @@ exports.raceComponents = function ({ race, livematch }) {
                         .setStyle(ButtonStyle.Secondary)
                 )
         }
-        if (liverules.general.gents) {
+        if (match_rules.general.gents) {
             ButtonRow.addComponents(
                 new ButtonBuilder()
                     .setCustomId("tourney_play_race" + race + "_gents")
@@ -942,7 +1025,7 @@ exports.raceComponents = function ({ race, livematch }) {
                     .setStyle(ButtonStyle.Primary)
                     .setLabel("Submit Results")
             )
-        if (Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time !== "").length == 0) {
+        if (Object.values(match_data.races[race].runs).map(run => run.time).filter(time => time !== "").length == 0) {
             ButtonRow
                 .addComponents(
                     new ButtonBuilder()
@@ -950,7 +1033,7 @@ exports.raceComponents = function ({ race, livematch }) {
                         .setStyle(ButtonStyle.Secondary)
                         .setLabel("Restart")
                 )
-        } else if (Object.values(livematch.races[race].runs).map(run => run.time).filter(time => time == "").length == 0) {
+        } else if (Object.values(match_data.races[race].runs).map(run => run.time).filter(time => time == "").length == 0) {
             ButtonRow
                 .addComponents(
                     new ButtonBuilder()
@@ -963,26 +1046,6 @@ exports.raceComponents = function ({ race, livematch }) {
     }
 
 
-}
-
-exports.firstComponents = function ({ liverules, livematch } = {}) {
-    const FirstVote = new ActionRowBuilder()
-    const FirstPlay = new ActionRowBuilder()
-    const first_vote_selector = new StringSelectMenuBuilder()
-        .setCustomId('tourney_play_first_vote')
-        .setPlaceholder("Select Options")
-        .setMinValues(1)
-        .setMaxValues(1)
-        .setOptions(exports.getFirstOptions({ liverules }))
-    FirstVote.addComponents(first_vote_selector)
-    FirstPlay.addComponents(
-        new ButtonBuilder()
-            .setCustomId("tourney_play_first_start")
-            .setLabel(([undefined, null].includes(livematch.firstmethod) ? methods[liverules.general.firsttrack.primary] + " (Default)" : methods[livematch.firstmethod]))
-            .setStyle(ButtonStyle.Primary)
-            .setDisabled([undefined, null].includes(livematch.firstvote) || Object.keys(livematch.firstvote).length < 2)
-    )
-    return [FirstVote, FirstPlay]
 }
 
 exports.colorComponents = function () {
@@ -1003,11 +1066,12 @@ exports.colorComponents = function () {
     return [ColorRow]
 }
 
-exports.firstbanComponents = function ({ livematch } = {}) {
-    const liverules = livematch.rules
+exports.firstbanComponents = function ({ interaction } = {}) {
+    const match_data = db.ty.live[interaction.channelId]
+    const match_rules = db.ty.rulesets.saved?.[match_data.ruleset]
     const FirstBan = new ActionRowBuilder()
-    let circuitoptions = [undefined, null].includes(livematch.firstbans) ? Object.values(liverules.general.firsttrack.options) : Object.values(liverules.general.firsttrack.options).filter(option => !Object.values(livematch.firstbans).map(ban => ban.ban).includes(option))
-    let planetoptions = [undefined, null].includes(livematch.firstbans) ? ["and", "tat", "oov", "ord", "bar", "mon", "aqu", "mal"] : ["and", "tat", "oov", "ord", "bar", "mon", "aqu", "mal"].filter(option => !Object.values(livematch.firstbans).map(ban => ban.ban).includes(option))
+    let circuitoptions = [undefined, null].includes(match_data.firstbans) ? Object.values(match_rules.general.firsttrack.options) : Object.values(match_rules.general.firsttrack.options).filter(option => !Object.values(match_data.firstbans).map(ban => ban.ban).includes(option))
+    let planetoptions = [undefined, null].includes(match_data.firstbans) ? ["and", "tat", "oov", "ord", "bar", "mon", "aqu", "mal"] : ["and", "tat", "oov", "ord", "bar", "mon", "aqu", "mal"].filter(option => !Object.values(match_data.firstbans).map(ban => ban.ban).includes(option))
     let trackoptions = []
     circuitoptions.forEach(circuit => {
         tracks.forEach((track, index) => {
@@ -1016,17 +1080,17 @@ exports.firstbanComponents = function ({ livematch } = {}) {
             }
         })
     })
-    trackoptions = [undefined, null].includes(livematch.firstbans) ? trackoptions : trackoptions.filter(option => !Object.values(livematch.firstbans).map(ban => Number(ban.ban)).includes(option) && planetoptions.map(option => trackgroups[option].code).includes(Number(tracks[option].planet)))
+    trackoptions = [undefined, null].includes(match_data.firstbans) ? trackoptions : trackoptions.filter(option => !Object.values(match_data.firstbans).map(ban => Number(ban.ban)).includes(option) && planetoptions.map(option => trackgroups[option].code).includes(Number(tracks[option].planet)))
     let selectoptions = []
-    if (livematch.firstmethod == "poe_c" && circuitoptions.length > 1) {
+    if (match_data.firstmethod == "poe_c" && circuitoptions.length > 1) {
         selectoptions = circuitoptions.map(option => { return ({ label: trackgroups[option].name, value: String(option), description: trackgroups[option].count + " tracks" }) })
-    } else if (livematch.firstmethod == "poe_p" && planetoptions.length > 1) {
+    } else if (match_data.firstmethod == "poe_p" && planetoptions.length > 1) {
         selectoptions = planetoptions.map(option => { return ({ label: trackgroups[option].name, value: String(option), description: trackgroups[option].count + " tracks" }) })
     } else {
         selectoptions = trackoptions.map(option => exports.getTrackOption(option))
     }
     const first_ban_selector = new StringSelectMenuBuilder()
-        .setCustomId("tourney_play_first_" + (livematch.firstmethod.includes("poe") ? "ban" : "pick"))
+        .setCustomId("tourney_play_first_" + (match_data.firstmethod.includes("poe") ? "ban" : "pick"))
         .setPlaceholder("Select Option")
         .setMinValues(1)
         .setMaxValues(1)
@@ -1035,12 +1099,16 @@ exports.firstbanComponents = function ({ livematch } = {}) {
     return [FirstBan]
 }
 
-exports.permabanComponents = function ({ permaban, livematch, liverules } = {}) {
-    let pban = liverules.match.permabans[permaban]
-    //livematch = tourney_live_data[interaction.channel_id]
+exports.permabanComponents = function ({ permaban, interaction } = {}) {
+    const match_data = db.ty.live[interaction.channelId]
+    const match_rules = db.ty.rulesets.saved?.[match_data.ruleset]
+    const match_tourney = db.ty.tournaments[match_data.tourney]
+
+    let pban = match_rules.match.permabans[permaban]
+    //match_data = tourney_live_data[interaction.channel_id]
     let selectoptions = []
     if (pban.type == "track") {
-        let permatrackbans = Object.values(livematch.races[1].events).filter(event => event.event == "permaban").filter(event => event.type == "track").map(event => Number(event.selection))
+        let permatrackbans = Object.values(match_data.races[1].events).filter(event => event.event == "permaban").filter(event => event.type == "track").map(event => Number(event.selection))
         for (let i = 0; i < 25; i++) {
             if (!permatrackbans.includes(i)) {
                 selectoptions.push(
@@ -1049,7 +1117,7 @@ exports.permabanComponents = function ({ permaban, livematch, liverules } = {}) 
             }
         }
     } else if (pban.type == "racer") {
-        let permaracerbans = Object.values(livematch.races[1].events).filter(event => event.event == "permaban").filter(event => event.type == "track").map(event => event.selection)
+        let permaracerbans = Object.values(match_data.races[1].events).filter(event => event.event == "permaban").filter(event => event.type == "track").map(event => event.selection)
         for (let i = 0; i < 25; i++) {
             if (!permaracerbans.includes(i)) {
                 selectoptions.push(
@@ -1077,26 +1145,29 @@ exports.permabanComponents = function ({ permaban, livematch, liverules } = {}) 
     ]
 }
 
-exports.rulesetOverview = function (ruleset) {
+exports.rulesetOverview = function ({ interaction }) {
+    const match_data = db.ty.live[interaction.channelId]
+    const match_rules = db.ty.rulesets.saved?.[match_data.ruleset]
+    const match_tourney = db.ty.tournaments[match_data.tourney]
 
     let fields = []
-    if (ruleset.general && ruleset.general.type == "1v1") {
+    if (match_rules.general && match_rules.general.type == "1v1") {
         let genfield = { name: "General", value: "", inline: false }
-        genfield.value = "👑 First to **" + ruleset.general.winlimit + " Wins**" + "\n" +
-            "**⚙️ Default Conditions**: " + Object.values(ruleset.general.default).map(con => "`" + condition_names[con] + "`").join(", ") + "\n" +
-            "**🎩 Gentleman's Agreement** is " + (ruleset.general.gents == true ? "" : "*not* ") + "permitted" + "\n" +
-            "**⭐ Elo Rating** is " + (ruleset.general.ranked == true ? "" : "*not* ") + "affected" + "\n" +
-            "**1️⃣ First Track** can be " + (Object.values(ruleset.general.firsttrack.options).length == 4 ? "any track" : "a track from " + Object.values(ruleset.general.firsttrack.options).map(circuit => "`" + circuit.toUpperCase() + "` ")) + "\n" +
-            "**1️⃣ First Track** will be selected by " + methods[ruleset.general.firsttrack.primary] + "\n" +
-            ([undefined, null].includes(ruleset.general.firsttrack.secondary) ? "" : "◉ Alternatively, players may agree to select the **1️⃣ First Track** by " + Object.values(ruleset.general.firsttrack.secondary).map(method => "`" + methods[method] + "` "))
+        genfield.value = "👑 First to **" + match_rules.general.winlimit + " Wins**" + "\n" +
+            "**⚙️ Default Conditions**: " + Object.values(match_rules.general.default).map(con => "`" + condition_names[con] + "`").join(", ") + "\n" +
+            "**🎩 Gentleman's Agreement** is " + (match_rules.general.gents == true ? "" : "*not* ") + "permitted" + "\n" +
+            "**⭐ Elo Rating** is " + (match_rules.general.ranked == true ? "" : "*not* ") + "affected" + "\n" +
+            "**1️⃣ First Track** can be " + (Object.values(match_rules.general.firsttrack.options).length == 4 ? "any track" : "a track from " + Object.values(match_rules.general.firsttrack.options).map(circuit => "`" + circuit.toUpperCase() + "` ")) + "\n" +
+            "**1️⃣ First Track** will be selected by " + methods[match_rules.general.firsttrack.primary] + "\n" +
+            ([undefined, null].includes(match_rules.general.firsttrack.secondary) ? "" : "◉ Alternatively, players may agree to select the **1️⃣ First Track** by " + Object.values(match_rules.general.firsttrack.secondary).map(method => "`" + methods[method] + "` "))
 
         let matchfield = { name: "Every Match", value: "", inline: false }
-        matchfield.value = (ruleset.match.forcepoints.start > 0 && "👥 Both players start with `" + ruleset.match.forcepoints.start + "` **💠 Force Points** (`" + ruleset.match.forcepoints.max + " max`)" + "\n") +
-            (ruleset.match.permabans && Object.values(ruleset.match.permabans).map(ban => choices[ban.choice] + " **🚫 Permanently Bans** " + ban.limit + " " + ban.type + " (`" + (ban.cost == 0 ? "free" : ban.cost + "💠") + "`)\n").join("")) +
-            (ruleset.match.repeattrack && ("👥 Both players can use `" + ruleset.match.repeattrack.limit + "` " + ruleset.match.repeattrack.condition + " **🔁 Runback** " + (ruleset.match.repeattrack.style == "soft" ? "(`resets to default conditions, " : "(`must be same conditions, ") + (ruleset.match.repeattrack.cost == 0 ? "free" : ruleset.match.repeattrack.cost + "💠") + "`)"))
+        matchfield.value = (match_rules.match.forcepoints.start > 0 && "👥 Both players start with `" + match_rules.match.forcepoints.start + "` **💠 Force Points** (`" + match_rules.match.forcepoints.max + " max`)" + "\n") +
+            (match_rules.match.permabans && Object.values(match_rules.match.permabans).map(ban => choices[ban.choice] + " **🚫 Permanently Bans** " + ban.limit + " " + ban.type + " (`" + (ban.cost == 0 ? "free" : ban.cost + "💠") + "`)\n").join("")) +
+            (match_rules.match.repeattrack && ("👥 Both players can use `" + match_rules.match.repeattrack.limit + "` " + match_rules.match.repeattrack.condition + " **🔁 Runback** " + (match_rules.match.repeattrack.style == "soft" ? "(`resets to default conditions, " : "(`must be same conditions, ") + (match_rules.match.repeattrack.cost == 0 ? "free" : match_rules.match.repeattrack.cost + "💠") + "`)"))
 
         let racefield = { name: "Every Race", value: "", inline: false }
-        racefield.value = Object.values(ruleset.race).map(
+        racefield.value = Object.values(match_rules.race).map(
             race => choices[race.choice] + " **" + events[race.event] + "** " +
                 ([undefined, null].includes(race.limit) || race.limit == 1 ? "a " :
                     (race.limit == 0 ? "any number of " : "up to `" + race.limit + "` ")) +
@@ -1154,7 +1225,10 @@ exports.getRacerOption = function (i) {
     )
 }
 
-exports.getFirstOptions = function ({ liverules }) {
+exports.getFirstOptions = function ({ interaction }) {
+    const match_data = db.ty.live[interaction.channelId]
+    const match_rules = db.ty.rulesets.saved?.[match_data.ruleset]
+    const match_tourney = db.ty.tournaments[match_data.tourney]
 
     let firstoptions = [
         {
@@ -1163,13 +1237,13 @@ exports.getFirstOptions = function ({ liverules }) {
             value: "already"
         },
         {
-            label: firsts[liverules?.general?.firsttrack?.primary]?.label + " (Default)",
-            value: liverules?.general?.firsttrack?.primary,
-            description: firsts[liverules?.general?.firsttrack?.primary]?.description
+            label: firsts[match_rules?.general?.firsttrack?.primary]?.label + " (Default)",
+            value: match_rules?.general?.firsttrack?.primary,
+            description: firsts[match_rules?.general?.firsttrack?.primary]?.description
         }
     ]
-    if (![undefined, null, ""].includes(liverules.general.firsttrack.secondary)) {
-        Object.values(liverules.general.firsttrack.secondary).forEach(first => firstoptions.push(
+    if (!match_rules?.general?.firsttrack?.secondary) {
+        Object.values(match_rules.general.firsttrack.secondary).forEach(first => firstoptions.push(
             {
                 label: firsts[first].label,
                 description: firsts[first].description,
@@ -1180,33 +1254,44 @@ exports.getFirstOptions = function ({ liverules }) {
     return (firstoptions)
 }
 
-exports.getOpponent = function ({ livematch, player } = {}) {
-    let opponent = Object.values(livematch.players).filter(p => p != player)
+exports.getOpponent = function ({ interaction, player } = {}) {
+    const match_data = db.ty.live[interaction.channelId]
+    const match_rules = db.ty.rulesets.saved?.[match_data.ruleset]
+    const match_tourney = db.ty.tournaments[match_data.tourney]
+    let opponent = Object.values(match_data.players).filter(p => p != player)
     return opponent[0]
 }
 
-exports.getWinner = function ({ race, livematch } = {}) {
+exports.getWinner = function ({ race, interaction } = {}) {
+    const match_data = db.ty.live[interaction.channelId]
+    const match_rules = db.ty.rulesets.saved?.[match_data.ruleset]
+    const match_tourney = db.ty.tournaments[match_data.tourney]
+
     let winner = null
-    if (!livematch) {
+    if (!match_data) {
         return null
     }
-    let players = livematch.players ? Object.values(livematch.players) : []
-    if (livematch.races[race].runs[players[0]].time.toLowerCase() == "dnf") {
+    let players = match_data.players ? Object.values(match_data.players) : []
+    if (match_data.races[race].runs[players[0]].time.toLowerCase() == "dnf") {
         winner = players[1]
-    } else if (livematch.races[race].runs[players[1]].time.toLowerCase() == "dnf") {
+    } else if (match_data.races[race].runs[players[1]].time.toLowerCase() == "dnf") {
         winner = players[0]
-    } else if (Number(livematch.races[race].runs[players[0]].time) < Number(livematch.races[race].runs[players[1]].time)) {
+    } else if (Number(match_data.races[race].runs[players[0]].time) < Number(match_data.races[race].runs[players[1]].time)) {
         winner = players[0]
-    } else if (Number(livematch.races[race].runs[players[1]].time) < Number(livematch.races[race].runs[players[0]].time)) {
+    } else if (Number(match_data.races[race].runs[players[1]].time) < Number(match_data.races[race].runs[players[0]].time)) {
         winner = players[1]
     }
     return winner
 }
 
-exports.getForcePoints = function ({ player, liverules, livematch } = {}) {
-    //livematch = tourney_live_data[interaction.channel_id]
-    let forcepoints = Number(liverules.match.forcepoints.start)
-    let races = Object.values(livematch.races)
+exports.getForcePoints = function ({ player, interaction } = {}) {
+    const match_data = db.ty.live[interaction.channelId]
+    const match_rules = db.ty.rulesets.saved?.[match_data.ruleset]
+    const match_tourney = db.ty.tournaments[match_data.tourney]
+
+
+    let forcepoints = Number(match_rules.match.forcepoints.start)
+    let races = Object.values(match_data.races)
     races.forEach(race => {
         if (![null, undefined, ""].includes(race.events)) {
             let events = Object.values(race.events)
@@ -1220,10 +1305,14 @@ exports.getForcePoints = function ({ player, liverules, livematch } = {}) {
     return forcepoints
 }
 
-exports.getRunbacks = function ({ player, livematch, liverules }) {
-    //livematch = tourney_live_data[interaction.channel_id]
-    let runbacks = liverules.match.repeattrack.limit
-    Object.values(livematch.races).forEach((race) => {
+exports.getRunbacks = function ({ player, interaction }) {
+    const match_data = db.ty.live[interaction.channelId]
+    const match_rules = db.ty.rulesets.saved?.[match_data.ruleset]
+    const match_tourney = db.ty.tournaments[match_data.tourney]
+
+    //match_data = tourney_live_data[interaction.channel_id]
+    let runbacks = match_rules.match.repeattrack.limit
+    Object.values(match_data.races).forEach((race) => {
         if (![null, undefined, ""].includes(race.events)) {
             Object.values(race.events).forEach(event => {
                 if (event.player == player && event.event == 'selection' && event.type == 'track' && event.repeat == true) {
@@ -1237,12 +1326,14 @@ exports.getRunbacks = function ({ player, livematch, liverules }) {
 
 exports.matchMakerEmbed = function ({ interaction }) {
     const match_data = db.ty.live[interaction.channelId]
+    const match_rules = db.ty.rulesets.saved?.[match_data.ruleset]
+    const match_tourney = db.ty.tournaments[match_data.tourney]
 
     const matchmaker = new EmbedBuilder()
-        .setAuthor({ name: match_data.tourney == "practice" ? "`Practice Mode`" : db.ty.tournaments[match_data.tourney].name, iconURL: "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/trophy_1f3c6.png" })
-        .setTitle((match_data.tourney == "practice" ? "" : db.ty.tournaments[match_data.tourney].stages[match_data.bracket].bracket + " " + db.ty.tournaments[match_data.tourney].stages[match_data.bracket].round) + " - " + Object.values(match_data.players).map(player => exports.getUsername({ member: player, db })).join(" vs "))
-        .setDescription("📜 " + db.ty.rulesets.saved[match_data.ruleset].general.name + "\n" +
-            "🎙️ " + ([null, undefined, ""].includes(match_data.commentators) ? "" : Object.values(match_data.commentators).map(id => "<@" + id + "> ")) + "\n" +
+        .setAuthor({ name: match_data.tourney == "practice" ? "`Practice Mode`" : match_tourney.name })
+        .setTitle((match_data.tourney == "practice" ? "" : match_tourney.stages[match_data.bracket].bracket + " " + match_tourney.stages[match_data.bracket].round) + " - " + Object.values(match_data.players).map(player => exports.getUsername({ member: player, db })).join(" vs "))
+        .setDescription("📜 " + match_rules.general.name + "\n" +
+            "🎙️ " + ([null, undefined, ""].includes(match_data.commentators) ? "" : Object.values(match_data.commentators).map(id => `<@${id}> `)) + "\n" +
             "📺 " + match_data.stream
         )
         .setColor("#3BA55D")
@@ -1295,7 +1386,7 @@ exports.rulesetOverviewEmbed = function ({ interaction } = {}) {
         .setAuthor({ name: "Ruleset Overview" })
         .setTitle("📜 " + match_rules?.general?.name)
         .setDescription(match_rules?.general?.description)
-        .addFields(exports.rulesetOverview(match_rules))
+        .addFields(exports.rulesetOverview({ interaction }))
     return ruleset
 }
 

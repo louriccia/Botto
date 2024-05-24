@@ -270,6 +270,9 @@ exports.ordinalSuffix = function (i) {
 }
 
 exports.getRacerName = function (index) {
+    if (Array.isArray(index)) {
+        return index.map(i => exports.getRacerName(i)).join(", ")
+    }
     return [null, undefined, ""].includes(index) ? '--' : `${racers[index]?.flag} ${racers[index]?.name}`
 }
 exports.getRacerEmbed = function (numb) {
@@ -298,6 +301,9 @@ exports.getRacerEmbed = function (numb) {
     return racerEmbed
 }
 exports.getTrackName = function (index) {
+    if (Array.isArray(index)) {
+        return index.map(i => exports.getTrackName(i)).join(", ")
+    }
     return [null, undefined, ""].includes(index) ? '--' : `${planets[tracks[index]?.planet]?.emoji} ${tracks[index]?.name}`
 }
 exports.getCircuitName = function (index) {

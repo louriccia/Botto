@@ -3,12 +3,12 @@ const { initializeMatch, adminEmbed, adminComponents } = require('./functions.js
 exports.play = async function ({ interaction, args, database, db, member_id, member_avatar, user_key, user_profile } = {}) {
 
     const match_data = db.ty.live[interaction.channelId]
-    const livematch_ref = database.ref(`tourney/live/${interaction.channelId}`)
+    const match_ref = database.ref(`tourney/live/${interaction.channelId}`)
 
     //if no match, assert setup
     if (!match_data) {
         args[1] = "setup"
-        initializeMatch(livematch_ref)
+        initializeMatch(match_ref)
     } else if (interaction.isChatInputCommand()) {
         args[1] = 'admin'
         interaction.reply({ embeds: [adminEmbed({ interaction })], components: adminComponents({ interaction }), ephemeral: true })

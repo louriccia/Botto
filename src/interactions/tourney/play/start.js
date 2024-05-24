@@ -3,10 +3,10 @@ const { matchMakerEmbed, rulesetOverviewEmbed, reminderEmbed, firstEmbed, firstC
 
 exports.start = async function ({ interaction } = {}) {
     const match_data = db.ty.live[interaction.channelId]
-    const livematch_ref = database.ref(`tourney/live/${interaction.channelId}`)
+    const match_ref = database.ref(`tourney/live/${interaction.channelId}`)
 
     if (match_data.datetime) {
-        livematch_ref.child('datetime').set(Date.now())
+        match_ref.child('datetime').set(Date.now())
     }
 
     await interaction.update({
@@ -25,5 +25,5 @@ exports.start = async function ({ interaction } = {}) {
         components: firstComponents({ interaction })
     })
 
-    livematch_ref.child("status").set("first")
+    match_ref.child("status").set("first")
 }

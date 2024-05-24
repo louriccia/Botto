@@ -43,7 +43,8 @@ exports.condition_names = {
     l4: "4 Laps",
     l5: "5 Laps",
     tt: "Total Time",
-    fl: "Fastest Lap"
+    fl: "Fastest Lap",
+    favorite_2024: "Track Favorite"
 }
 
 exports.choices = {
