@@ -1,3 +1,6 @@
+const { database, db } = require("./firebase")
+
+
 exports.initializePlayer = function (ref, name) {
     let data = {
         settings: {
