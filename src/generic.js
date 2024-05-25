@@ -187,7 +187,7 @@ exports.time_fix = function (time) {
 exports.time_to_seconds = function (time) {
     if (time !== undefined) {
         if (String(time).includes(":")) {
-            var split = time.split(/[.,\- :]/)
+            var split = time.split(':')
             if (split.length = 2) {
                 var out = Number(split[0] * 60) + Number(split[1])
                 if (Number(split[1]) >= 60) {
