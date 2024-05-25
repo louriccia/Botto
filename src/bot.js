@@ -64,7 +64,7 @@ client.on(Events.InteractionCreate, async interaction => {
             interaction.isButton() ? 'button' :
                 interaction.isMessageComponent() ? 'message_component' :
                     interaction.isModalSubmit() ? 'modal_submit' :
-                        'other', interaction.isChatInputCommand() ? interaction?.commandName?.toLowerCase() : interaction.customId, interaction.member.displayName)
+                        'other', interaction.isChatInputCommand() ? interaction?.commandName?.toLowerCase() : interaction.customId, interaction.member?.displayName)
 
         //prepare profile
         const member_id = interaction.member.id

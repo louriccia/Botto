@@ -51,8 +51,8 @@ exports.trade = async function ({ interaction, database,  db, botto_name, user_k
                 let opposite_trader = traders.filter(t => t !== trader)[0]
                 if (trade.traders[trader].truguts) {
                     let trugut_trade = trade.traders[trader].truguts
-                    manageTruguts({ profile: db.user[trader].random, profileref: database.ref(`users/${trader}/random`), transaction: 'w', amount: trugut_trade })
-                    manageTruguts({ profile: db.user[opposite_trader].random, profileref: database.ref(`users/${opposite_trader}/random`), transaction: 'd', amount: trugut_trade })
+                    manageTruguts({ user_profile: db.user[trader].random, profile_ref: database.ref(`users/${trader}/random`), transaction: 'w', amount: trugut_trade })
+                    manageTruguts({ user_profile: db.user[opposite_trader].random, profile_ref: database.ref(`users/${opposite_trader}/random`), transaction: 'd', amount: trugut_trade })
                 }
                 if (trade.traders[trader].items) {
                     Object.values(trade.traders[trader].items).forEach(async key => {

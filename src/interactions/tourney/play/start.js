@@ -1,5 +1,5 @@
 const { database, db } = require('../../../firebase.js')
-const { matchMakerEmbed, rulesetOverviewEmbed, reminderEmbed, firstEmbed, firstComponents, profileComponents } = require('../functions.js')
+const { matchMakerEmbed, rulesetOverviewEmbed, firstEmbed, firstComponents, profileComponents } = require('../functions.js')
 
 exports.start = async function ({ interaction } = {}) {
     const match_data = db.ty.live[interaction.channelId]
@@ -10,7 +10,7 @@ exports.start = async function ({ interaction } = {}) {
     }
 
     await interaction.update({
-        embeds: [rulesetOverviewEmbed({ interaction }), reminderEmbed()],
+        embeds: [rulesetOverviewEmbed({ interaction })],
         components: []
     })
 

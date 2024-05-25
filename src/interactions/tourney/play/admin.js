@@ -10,7 +10,12 @@ exports.admin = async function ({ interaction, member_id, database } = {}) {
 
 
     let status = interaction.values[0]
-    if (member_id !== "256236315144749059" || (match_data.commentators && !Object.values(match_data.commentators).includes(member_id)) || (interaction.guild.id == '441839750555369474' && !(interaction.member.roles.cache.some(r => r.id == '862810190072381471')) || (match_data.players && !Object.values(match_data.players).includes(member_id)))) {
+
+    const admin_perms = member_id == "256236315144749059" ||
+        (match_data.commentators && !Object.values(match_data.commentators).includes(member_id)) ||
+        (interaction.guild.id == '441839750555369474' && !(interaction.member.roles.cache.some(r => r.id == '862810190072381471')))
+
+    if (!admin_perms) {
         interaction.reply({ content: "Only trackers/tourney staff have permission to use this. <:WhyNobodyBuy:589481340957753363>", ephemeral: true })
         return
     }

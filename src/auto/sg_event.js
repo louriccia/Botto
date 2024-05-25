@@ -2,11 +2,11 @@ const rp = require('request-promise');
 const cheerio = require('cheerio').default;
 const url = 'http://speedgaming.org/swe1racer/';
 const { betEmbed, betComponents } = require('../interactions/trugut_functions.js');
-const { get_user_key_by_sg_name, get_user_name_by_discord_id } = require('../user.js');
+const { get_user_key_by_sg_name } = require('../user.js');
 const { swe1r_guild } = require('../data/discord/guild.js');
-const { streams_channel, tournaments_channel, tournament_live_channel } = require('../data/discord/channel.js');
-const { postMessage } = require('../discord.js');
-const { database, db } = require('../firebase.js');
+const { postMessage, editMessage } = require('../discord.js');
+const { setup } = require('../interactions/tourney/setup.js');
+
 
 function matchDesc(match, db) {
     return (match.commentators && Object.keys(match.commentators).length > 0 ? "🎙️ " + Object.keys(match.commentators).map(id => db.user[id].name).join(", ") : "Sign up for commentary: https://speedgaming.org/swe1racer/crew/") +
@@ -30,7 +30,7 @@ exports.scrape_sg_events = async function (client, db, database) {
             let events = guildevents.toJSON()
             let values = []
             Object.keys(db.ty.scheduled).forEach(key => {
-                database.ref('tourney/scheduled').child(key).update({ current: false })
+                database.ref(`tourney/scheduled/${key}`).update({ current: false })
             })
             cheerio('tr', table).each((i, elem) => { //for each row
                 let match = { commentators: {}, players: {} }
@@ -159,61 +159,7 @@ exports.scrape_sg_events = async function (client, db, database) {
 
                 // match setup 
                 if (match.current && match.notification == false && match.datetime <= Date.now() + 1000 * 60 * 30 && Date.now() <= match.datetime + 1000 * 60 * 10) {
-                    database.ref(`tourney/scheduled/${key}/notification`).set(true)
-                    //add roles
-                    let everybody = Object.values(match.players).concat(Object.values(match.commentators))
-                    everybody.forEach(async function (player) {
-                        const thismember = await Guild.members.fetch(player)
-                        thismember.roles.add('970995237952569404').catch(error => console.log(error))
-                    })
-                    //setup match
-                    let newmatch = {
-                        status: "setup",
-                        tourney: "",
-                        bracket: "",
-                        ruleset: "",
-                        datetime: match.datetime,
-                        players: match.players,
-                        commentators: match.commentators,
-                        stream: match.url,
-                        firstvote: ""
-                    }
-                    database.ref(`tourney/live/${tournament_live_channel}`).set({ ...match, current_race: 0, bracket: "", status: 'setup', firstvote: "", tourney: "", ruleset: "", stream: match.url })
-
-                    postMessage(
-                        client,
-                        streams_channel,
-                        `<@&841059665474617353>\n**${Object.values(match.players).map(p => get_user_name_by_discord_id(p)).join(" vs. ")
-                        }**\n:microphone2: ${Object.values(match.commentators).map(comm => get_user_name_by_discord_id(comm)).join(", ")
-                        }\n ${match.url}`
-                    )
-
-                    postMessage(
-                        client,
-                        tournaments_channel,
-                        `<@&841059665474617353>\n**${Object.values(match.players).map(p => get_user_name_by_discord_id(p)).join(" vs. ")
-                        }**\n:microphone2: ${Object.values(match.commentators).map(comm => get_user_name_by_discord_id(comm)).join(", ")
-                        }\n ${match.url}`
-                    )
-
-                    postMessage(client, tournament_live_channel, {
-                        content: Object.values(newmatch.commentators).map(player => "<@" + player + ">").join(" ") + " " +
-                            Object.values(newmatch.players).map(player => "<@" + player + ">").join(" ") + "\n**" +
-                            Object.values(match.players).map(player => get_user_name_by_discord_id(player)).join(" vs. ") + "** is about to begin!",
-                        components: [
-                            {
-                                type: 1,
-                                components: [
-                                    {
-                                        type: 2,
-                                        label: "Set Up Match",
-                                        style: 1,
-                                        custom_id: "tourney_play_setup",
-                                    }
-                                ]
-                            }
-                        ]
-                    })
+                    setup({ key })
                 }
             })
         })

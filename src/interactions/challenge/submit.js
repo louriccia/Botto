@@ -170,7 +170,7 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
             //award achievements
             if (predictionAchievement(db, p.member) >= achievement_data.force_sight.limit) {
                 if (current_challenge.guild == swe1r_guild) {
-                    let pmember = Guild.members.cache.get(p.member)
+                    let pmember = interaction.guild.members.cache.get(p.member)
                     if (pmember.roles.cache.some(r => r.id === achievement_data.force_sight.role)) { //award role
                         pmember.roles.add(achievement_data.force_sight.role).catch(error => console.log(error))
                     }

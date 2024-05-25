@@ -185,13 +185,9 @@ exports.time_fix = function (time) {
     }
 }
 exports.time_to_seconds = function (time) {
-    var myformat = new Intl.NumberFormat('en-US', {
-        minimumIntegerDigits: 2,
-        minimumFractionDigits: 3
-    });
     if (time !== undefined) {
         if (String(time).includes(":")) {
-            var split = time.split(':')
+            var split = time.split(/[.,\- :]/)
             if (split.length = 2) {
                 var out = Number(split[0] * 60) + Number(split[1])
                 if (Number(split[1]) >= 60) {

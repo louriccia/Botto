@@ -1,5 +1,5 @@
 const { database, db } = require("./firebase")
-
+const { settings_default } = require("./interactions/challenge/data")
 
 exports.initializePlayer = function (ref, name) {
     let data = {

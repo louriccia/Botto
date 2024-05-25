@@ -1154,21 +1154,21 @@ exports.rulesetOverview = function ({ interaction }) {
     if (match_rules.general && match_rules.general.type == "1v1") {
         let genfield = { name: "General", value: "", inline: false }
         genfield.value = "👑 First to **" + match_rules.general.winlimit + " Wins**" + "\n" +
-            "**⚙️ Default Conditions**: " + Object.values(match_rules.general.default).map(con => "`" + condition_names[con] + "`").join(", ") + "\n" +
-            "**🎩 Gentleman's Agreement** is " + (match_rules.general.gents == true ? "" : "*not* ") + "permitted" + "\n" +
-            "**⭐ Elo Rating** is " + (match_rules.general.ranked == true ? "" : "*not* ") + "affected" + "\n" +
-            "**1️⃣ First Track** can be " + (Object.values(match_rules.general.firsttrack.options).length == 4 ? "any track" : "a track from " + Object.values(match_rules.general.firsttrack.options).map(circuit => "`" + circuit.toUpperCase() + "` ")) + "\n" +
-            "**1️⃣ First Track** will be selected by " + methods[match_rules.general.firsttrack.primary] + "\n" +
-            ([undefined, null].includes(match_rules.general.firsttrack.secondary) ? "" : "◉ Alternatively, players may agree to select the **1️⃣ First Track** by " + Object.values(match_rules.general.firsttrack.secondary).map(method => "`" + methods[method] + "` "))
+            "* **⚙️ Default Conditions**: " + Object.values(match_rules.general.default).map(con => "`" + condition_names[con] + "`").join(", ") + "\n" +
+            "* **🎩 Gentleman's Agreement** is " + (match_rules.general.gents == true ? "" : "*not* ") + "permitted" + "\n" +
+            "* **⭐ Elo Rating** is " + (match_rules.general.ranked == true ? "" : "*not* ") + "affected" + "\n" +
+            "* **1️⃣ First Track** can be " + (Object.values(match_rules.general.firsttrack.options).length == 4 ? "any track" : "a track from " + Object.values(match_rules.general.firsttrack.options).map(circuit => "`" + circuit.toUpperCase() + "` ")) + "\n" +
+            "* **1️⃣ First Track** will be selected by " + methods[match_rules.general.firsttrack.primary] + "\n" +
+            ([undefined, null].includes(match_rules.general.firsttrack.secondary) ? "" : " * ◉ Alternatively, players may agree to select the **1️⃣ First Track** by " + Object.values(match_rules.general.firsttrack.secondary).map(method => "`" + methods[method] + "` "))
 
         let matchfield = { name: "Every Match", value: "", inline: false }
-        matchfield.value = (match_rules.match.forcepoints.start > 0 && "👥 Both players start with `" + match_rules.match.forcepoints.start + "` **💠 Force Points** (`" + match_rules.match.forcepoints.max + " max`)" + "\n") +
-            (match_rules.match.permabans && Object.values(match_rules.match.permabans).map(ban => choices[ban.choice] + " **🚫 Permanently Bans** " + ban.limit + " " + ban.type + " (`" + (ban.cost == 0 ? "free" : ban.cost + "💠") + "`)\n").join("")) +
-            (match_rules.match.repeattrack && ("👥 Both players can use `" + match_rules.match.repeattrack.limit + "` " + match_rules.match.repeattrack.condition + " **🔁 Runback** " + (match_rules.match.repeattrack.style == "soft" ? "(`resets to default conditions, " : "(`must be same conditions, ") + (match_rules.match.repeattrack.cost == 0 ? "free" : match_rules.match.repeattrack.cost + "💠") + "`)"))
+        matchfield.value = (match_rules.match.forcepoints.start > 0 && "* 👥 Both players start with `" + match_rules.match.forcepoints.start + "` **💠 Force Points** (`" + match_rules.match.forcepoints.max + " max`)" + "\n") +
+            (match_rules.match.permabans && Object.values(match_rules.match.permabans).map(ban => `* ${choices[ban.choice]} **🚫 Permanently Bans** ${ban.limit} ${ban.type} (\`${(ban.cost == 0 ? "free" : ban.cost + "💠")}\`)\n`).join("")) +
+            (match_rules.match.repeattrack && (`* 👥 Both players can use \`${match_rules.match.repeattrack.limit}\` ${match_rules.match.repeattrack.condition} **🔁 Runback** ${(match_rules.match.repeattrack.style == "soft" ? "(\`resets to default conditions, " : "(\`must be same conditions, ") + (match_rules.match.repeattrack.cost == 0 ? "free" : match_rules.match.repeattrack.cost + "💠")}\`)`))
 
         let racefield = { name: "Every Race", value: "", inline: false }
         racefield.value = Object.values(match_rules.race).map(
-            race => choices[race.choice] + " **" + events[race.event] + "** " +
+            race => `* ${choices[race.choice]} **${events[race.event]}** ` +
                 ([undefined, null].includes(race.limit) || race.limit == 1 ? "a " :
                     (race.limit == 0 ? "any number of " : "up to `" + race.limit + "` ")) +
                 race.type +
@@ -1373,8 +1373,8 @@ exports.profileComponents = function () {
 exports.reminderEmbed = function () {
     const reminder = new EmbedBuilder()
         .setTitle("Responsibilities")
-        .addFields({ name: "🕹️ Player Responsibilities", value: "○ Verify all pods/tracks/upgrades are unlocked\n○ Check that stream is running smoothly\n○ Disable game music\n○ Limit stream quality to 720p\n○ Wait until the results screen to report your times\n○ Be attentive to this chat", inline: false })
-        .addFields({ name: "🎙️ Commentator Responsibilities", value: "○ Use SG interface to conduct a sound check!\n○ Enable all voice related settings in Discord including Krisp noise supression, advanced voice activity, etc.\n○  Open stream on Twitch to respond to chat\n○ Verify race results/update score\n○ Sync streams (avoid decreasing delay mid-race)", inline: false })
+        .addFields({ name: "🕹️ Player Responsibilities", value: "* Verify all pods/tracks/upgrades are unlocked\n* Check that stream is running smoothly\n* Disable game music\n* Limit stream quality to 720p\n* Wait until the results screen to report your times\n* Be attentive to this chat", inline: false })
+        .addFields({ name: "🎙️ Commentator Responsibilities", value: "* Use SG interface to conduct a sound check!\n* Enable all voice related settings in Discord including Krisp noise supression, advanced voice activity, etc.\n*  Open stream on Twitch to respond to chat\n* Verify race results/update score\n* Sync streams (avoid decreasing delay mid-race)", inline: false })
     return reminder
 }
 

@@ -53,10 +53,10 @@ module.exports = {
                             outcome.bets.forEach(b => {
                                 if (outcome.winner) {
                                     let take = Math.round((b.amount / totals[x]) * totals[opposite])
-                                    manageTruguts({ profile: db.user[b.id].random, profileref: userref.child(b.id).child('random'), transaction: 'd', amount: take })
+                                    manageTruguts({ user_profile: db.user[b.id].random, profile_ref: userref.child(b.id).child('random'), transaction: 'd', amount: take })
                                     b.take = take
                                 } else {
-                                    manageTruguts({ profile: db.user[b.id].random, profileref: userref.child(b.id).child('random'), transaction: 'w', amount: b.amount })
+                                    manageTruguts({ user_profile: db.user[b.id].random, profile_ref: userref.child(b.id).child('random'), transaction: 'w', amount: b.amount })
                                 }
                             })
                         }

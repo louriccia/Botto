@@ -52,8 +52,9 @@ exports.verify = async function ({ interaction, args, member_id } = {}) {
 
         //check win condition
         let scoreboard = {}
+        let winner = null
         Object.keys(match_data.races).forEach(race => {
-            let winner = getWinner({ race, interaction })
+            winner = getWinner({ race, interaction })
             if (winner) {
                 if ([null, undefined, ""].includes(scoreboard[winner])) {
                     scoreboard[winner] = 1
@@ -69,7 +70,7 @@ exports.verify = async function ({ interaction, args, member_id } = {}) {
             const postRef = await database.ref('tourney/matches').push(match_data)
             const winEmbed = new EmbedBuilder()
                 .setAuthor({ name: "Match Concluded" })
-                .setTitle(getUsername({ member: player, db, short: true }) + " Wins!")
+                .setTitle(getUsername({ member: winner, db, short: true }) + " Wins!")
                 .setDescription("GGs, racers! The match has been saved.\nCheck out the full match summary [here](https://botto-efbfd.web.app/tournaments/matches/" + postRef.key + ")\n<@&970995237952569404> role will be automatically removed in 15 minutes")
                 .addFields({ name: ":microphone2: Commentators/Trackers", value: ":orange_circle: Don't forget to click 'Episode Finished' after the interviews" })
             interaction.followUp({ embeds: [winEmbed] })
@@ -112,7 +113,7 @@ exports.verify = async function ({ interaction, args, member_id } = {}) {
             if (interaction.guild.id == '441839750555369474') {
                 setTimeout(async function () {
                     everybody.forEach(async function (p) {
-                        const thisMember = await Guild.members.fetch(p)
+                        const thisMember = await interaction.guild.members.fetch(p)
                         if (thisMember && thisMember.roles.cache.some(r => r.id == '970995237952569404')) {
                             thisMember.roles.remove('970995237952569404').catch(console.error)
                         }
