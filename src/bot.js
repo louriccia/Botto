@@ -64,12 +64,12 @@ client.on(Events.InteractionCreate, async interaction => {
             interaction.isButton() ? 'button' :
                 interaction.isMessageComponent() ? 'message_component' :
                     interaction.isModalSubmit() ? 'modal_submit' :
-                        'other', interaction.isChatInputCommand() ? interaction?.commandName?.toLowerCase() : interaction.customId, interaction.member?.displayName)
+                        'other', interaction.isChatInputCommand() ? interaction?.commandName?.toLowerCase() : interaction.customId, interaction.member?.displayName ?? interaction.user.displayName)
 
         //prepare profile
-        const member_id = interaction.member.id
-        const member_name = interaction.member.displayName
-        const member_avatar = await interaction.member.displayAvatarURL()
+        const member_id = interaction.member?.id ?? interaction.user.id
+        const member_name = interaction.member?.displayName
+        const member_avatar = await interaction.member?.displayAvatarURL() ?? await interaction.user.displayAvatarURL()
 
         //database might be down
         if (!database) {
