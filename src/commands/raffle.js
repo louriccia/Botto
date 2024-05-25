@@ -1,71 +1,22 @@
-const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder } = require('discord.js');
-const moment = require('moment');
+const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { getRaffleTally } = require('../data/raffle/functions');
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('raffle')
         .setDescription('raffle ticket leaderboard'),
-    execute({ interaction, db } = {}) {
+    execute({ interaction } = {}) {
         const myEmbed = new EmbedBuilder
 
-        let tally = {}
-
-        function addTicket(user) {
-            if (!tally[user]) {
-                tally[user] = 0
-            }
-            tally[user]++
-        }
-
-        if (!db.ch) {
-            return
-        }
-
-
-        //get challenge points
-        let challenge_map = {}
-        Object.values(db.ch.times).filter(time => moment(time.date).month() == 4 && moment(time.date).year() == 2024).forEach(time => {
-            let user = time.user
-            let day = moment(time.date).date()
-            if (!challenge_map[user]) {
-                challenge_map[user] = []
-            }
-            if (!challenge_map[user].includes(day)) {
-                challenge_map[user].push(day)
-                addTicket(user)
-            }
-        })
-
-        console.log(challenge_map)
-
-
-        //get scavenger
-        Object.keys(db.ch.scavenger).forEach(player => {
-            for (let i = 0; i < 25; i++) {
-                if (db.ch.scavenger[player]?.[i]?.solved) {
-                    addTicket(player)
-                }
-            }
-        })
-
-        //get trivia
-
-
-        //award bonus
-        tally["596517467740962845"] += 10
-
-        //get drops
-        Object.values(db.ch.drops).filter(drop => drop.drop == 'ticket').forEach(drop => {
-            addTicket(drop.member)
-        })
-
-        delete tally['256236315144749059']
+        let tally = getRaffleTally()
 
         let total = Object.values(tally).reduce((a, b) => a + b)
 
         const row1 = new ActionRowBuilder().addComponents(
             new ButtonBuilder()
-            .setCustomId("raffle_test")
+                .setCustomId("raffle")
+                .setLabel("Raffle")
+                .setStyle(ButtonStyle.Primary)
         )
 
         myEmbed
@@ -73,7 +24,7 @@ module.exports = {
             .setColor("Blurple")
             .setDescription(Object.keys(tally).sort((a, b) => tally[b] - tally[a]).map(user => (`<@${user}> **${tally[user]}** (${((tally[user] / total) * 100).toFixed(0)}%)`)).join("\n"))
             .setFooter({ text: `${total} tickets awarded` })
-        interaction.reply({ embeds: [myEmbed] })
+        interaction.reply({ embeds: [myEmbed], components: [row1] })
     }
 
 }
