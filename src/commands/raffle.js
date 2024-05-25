@@ -1,11 +1,11 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder } = require('discord.js');
 const moment = require('moment');
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('raffle')
         .setDescription('raffle ticket leaderboard'),
-    execute({ interaction, database, db, member_id, member_name, member_avatar, user_key, user_profile } = {}) {
+    execute({ interaction, db } = {}) {
         const myEmbed = new EmbedBuilder
 
         let tally = {}
@@ -36,6 +36,8 @@ module.exports = {
             }
         })
 
+        console.log(challenge_map)
+
 
         //get scavenger
         Object.keys(db.ch.scavenger).forEach(player => {
@@ -47,7 +49,10 @@ module.exports = {
         })
 
         //get trivia
-        
+
+
+        //award bonus
+        tally["596517467740962845"] += 10
 
         //get drops
         Object.values(db.ch.drops).filter(drop => drop.drop == 'ticket').forEach(drop => {
@@ -58,11 +63,16 @@ module.exports = {
 
         let total = Object.values(tally).reduce((a, b) => a + b)
 
+        const row1 = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+            .setCustomId("raffle_test")
+        )
+
         myEmbed
             .setTitle("<a:chance_cube:1235055236138270760> Raffle Leaderboard")
             .setColor("Blurple")
-            .setDescription(Object.keys(tally).sort((a,b) => tally[b] - tally[a]).map(user => (`<@${user}> **${tally[user]}** (${((tally[user]/total)*100).toFixed(0)}%)`)).join("\n"))
-            .setFooter({text: `${total} tickets awarded`})
+            .setDescription(Object.keys(tally).sort((a, b) => tally[b] - tally[a]).map(user => (`<@${user}> **${tally[user]}** (${((tally[user] / total) * 100).toFixed(0)}%)`)).join("\n"))
+            .setFooter({ text: `${total} tickets awarded` })
         interaction.reply({ embeds: [myEmbed] })
     }
 

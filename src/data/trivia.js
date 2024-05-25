@@ -163,10 +163,10 @@ exports.questions = [
         "category": ":speaking_head: **Voicelines**",
         "question": "Which actor from the movie does not reprise their role in the game?",
         "answers": [
+            "Ahmed Best",
             "Andy Secombe",
             "Jake Lloyd",
-            "Lewis Macleod",
-            "Ahmed Best"
+            "Lewis Macleod"
         ]
     },
     {

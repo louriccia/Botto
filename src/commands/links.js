@@ -95,7 +95,10 @@ module.exports = {
 
         myEmbed
             .setTitle(title)
-            .setDescription(desc)
+        if (desck) {
+            myEmbed.setDescription(desc)
+        }
+
         if (link) {
             myEmbed.setURL(link)
         }
