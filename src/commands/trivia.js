@@ -14,12 +14,12 @@ module.exports = {
     async execute({ interaction, database, db } = {}) {
 
         //map questions to include their indices
-        let question_map = questions.map((question, index) => ({ ...question, id: index }))
+        let question_map = questions
 
         //filter out recently used ones
         if (db.ch.trivia) {
             let last_25 = Object.values(db.ch.trivia).sort((a, b) => b.date - a.date).map(q => q.id).slice(0, 75)
-            question_map = question_map.filter(q => !last_25.includes(q.id))
+            question_map = question_map.filter(q => (!last_25.includes(q.id)))
         }
 
         //get random question
@@ -86,7 +86,7 @@ module.exports = {
         let question_data = {
             bets_open: true,
             bet_message: betMessage.id,
-            id: random_question_index,
+            id: random_question.id,
             date: Date.now()
         }
 
