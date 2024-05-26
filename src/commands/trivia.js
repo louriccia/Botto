@@ -18,8 +18,7 @@ module.exports = {
 
         //filter out recently used ones
         if (db.ch.trivia) {
-            let last_25 = Object.values(db.ch.trivia).sort((a, b) => b.date - a.date).map(q => q.id).slice(0, 25)
-            console.log(last_25)
+            let last_25 = Object.values(db.ch.trivia).sort((a, b) => b.date - a.date).map(q => q.id).slice(0, 75)
             question_map = question_map.filter(q => !last_25.includes(q.id))
         }
 

@@ -1,7 +1,7 @@
 const { getRaffleTally } = require('../data/raffle/functions');
 module.exports = {
     name: 'raffle',
-    async execute({ client, interaction, args, database, db, member_id, member_name, member_avatar, user_key, user_profile } = {}) {
+    async execute({ interaction } = {}) {
 
         let tally = getRaffleTally()
 
