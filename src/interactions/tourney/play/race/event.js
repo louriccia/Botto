@@ -44,14 +44,12 @@ exports.event = async function ({ client, interaction, args, member_id } = {}) {
         let e = events[event_start + i]
         let options = component.components[0].data.options.filter(option => option.default)
 
-        if (!e.count) {
-            e.count = 1
-        }
+        let count = e.count ? e.count: 1
 
         let loops = options.length //this value needs to be stored in a variable otherwise you'll be a dumbass and have the loop be cut short as the array shrinks
-        for (let i = 0; i < loops / e.count; i++) {
-            let option = options.slice(0, e.count)
-            options = options.slice(e.count)
+        for (let i = 0; i < loops / count; i++) {
+            let option = options.slice(0, count)
+            options = options.slice(count)
 
             if (option.length == 1) {
                 option = option[0].value

@@ -64,7 +64,11 @@ exports.getRaffleTally = function () {
     })
 
     //award bonus
+    //radiant challenge
     tally["596517467740962845"] += 10
+    //du trivia
+    tally["410925667060809738"] += 10
+    //gale
 
     //get drops
     Object.values(db.ch.drops).filter(drop => drop.drop == 'ticket').forEach(drop => {

@@ -1,10 +1,20 @@
 const { colorEmbed, firstEmbed, firstComponents, firstbanComponents, colorComponents, firstbanEmbed, getOpponent, raceEmbed, raceComponents } = require('../functions.js')
 const { tracks } = require('../../../data/sw_racer/track.js')
-const { planets } = require('../../../data/sw_racer/planet.js')
 const { trackgroups } = require('../data.js')
-const { ChanceCube } = require('../../../data/discord/emoji.js')
+const { ChanceCube, WhyNobodyBuy } = require('../../../data/discord/emoji.js')
 const { database, db } = require('../../../firebase.js')
+const { getTrackName } = require('../../../generic.js')
 
+function atPlayers({ match_data, exclude = [], comms = false } = {}) {
+    let players = Object.values(match_data.players)
+    if (comms) {
+        players = [...players, ...Object.values(match_data.commentators)]
+    }
+    if (exclude?.length) {
+        players = players.filter(player => !exclude.includes(player))
+    }
+    return players.map(player => `<@${player}>`).join(" ")
+}
 
 exports.first = async function ({ interaction, args, member_id } = {}) {
     let match_data = db.ty.live[interaction.channelId]
@@ -13,7 +23,7 @@ exports.first = async function ({ interaction, args, member_id } = {}) {
 
 
     if (!Object.values(match_data.players).includes(member_id)) {
-        interaction.reply({ content: "You're not a player! <:WhyNobodyBuy:589481340957753363>", ephemeral: true })
+        interaction.reply({ content: `You're not a player! ${WhyNobodyBuy}`, ephemeral: true })
         return
     }
 
@@ -53,25 +63,53 @@ exports.first = async function ({ interaction, args, member_id } = {}) {
     switch (args[2]) {
         case 'start':
             if (!match_data.firstmethod) {
-                let content = "" + ([undefined, null].includes(match_data.firstvote) ? Object.values(match_data.players).map(player => "<@" + player + ">").join(" ") : Object.values(match_data.players).map(player => Object.keys(match_data.firstvote).includes(player) ? "" : "<@" + player + ">").join(" "))
-                interaction.update({ content: content, embeds: [firstEmbed({ interaction })], components: firstComponents({ interaction }) })
+                interaction.update({
+                    content: "" + atPlayers({ match_data, exclude: Object.keys(match_data.firstvote) }),
+                    embeds: [firstEmbed({ interaction })],
+                    components: firstComponents({ interaction })
+                })
+
+                //process of elimination
             } else if (match_data.firstmethod.includes("poe")) {
-                interaction.update({ content: Object.values(match_data.players).map(player => "<@" + player + ">").join(" ") + "\n*I just happen to have a chancecube here...*", embeds: [colorEmbed({ interaction })], components: colorComponents() })
+                interaction.update({
+                    content: `${atPlayers({ match_data })}\n*I just happen to have a chance cube here...*`,
+                    embeds: [colorEmbed({ interaction })],
+                    components: colorComponents()
+                })
+
+                //random
             } else if (match_data.firstmethod == 'random') {
-                await interaction.update({ content: `The first track will be... ${ChanceCube}`, embeds: [], components: [] })
+                await interaction.update({
+                    content: `The first track will be... ${ChanceCube}`,
+                    embeds: [],
+                    components: []
+                })
+
                 setTimeout(async function () {
                     let randomtrack = Math.floor(Math.random() * 25)
                     setRace(randomtrack)
-                    interaction.followUp("**" + planets[tracks[randomtrack].planet].emoji + " " + tracks[randomtrack].name + "**")
+                    interaction.followUp(`**${getTrackName(randomtrack)}**`)
                 }, 2000)
+
                 setTimeout(async function () {
-                    interaction.followUp({ content: Object.values(match_data.players).map(player => "<@" + player + ">").join(" ") + "❗ Countown starts as soon as both players ready", embeds: [raceEmbed({ race: 0, interaction })], components: raceComponents({ race: 0, interaction }) })
+                    interaction.followUp({
+                        content: `${atPlayers({ match_data })} Countown begins as soon as both players ready`,
+                        embeds: [raceEmbed({ race: 0, interaction })],
+                        components: raceComponents({ race: 0, interaction })
+                    })
                 }, 3000)
+
+                //already
             } else {
-                interaction.update({ content: 'Please select a track', components: firstbanComponents({ interaction }) })
+                interaction.update({
+                    content: 'Please select a track',
+                    components: firstbanComponents({ interaction })
+                })
             }
+
             break
         case 'vote':
+            //collect vote
             await match_ref.child("firstvote").child(member_id).set(interaction.values[0])
             match_data = db.ty.live[interaction.channelId]
 
@@ -83,14 +121,15 @@ exports.first = async function ({ interaction, args, member_id } = {}) {
 
             interaction.update(
                 {
-                    content: "" + ([undefined, null].includes(match_data.firstvote) ? Object.values(match_data.players).map(player => "<@" + player + ">").join(" ") : Object.values(match_data.players).map(player => Object.keys(match_data.firstvote).includes(player) ? "" : "<@" + player + ">").join(" ")),
+                    content: "" + atPlayers({ match_data, exclude: Object.keys(match_data.firstvote) }),
                     embeds: [firstEmbed({ interaction })],
                     components: firstComponents({ interaction })
                 }
             )
             break
         case 'color':
-            content = Object.values(match_data.players).map(player => "<@" + player + ">").join(" ") + "\n*I just happen to have a chancecube here...*"
+            content = atPlayers({ match_data }) + "\n*I just happen to have a chancecube here...*"
+
             if (["red", "blue"].includes(args[3])) {
                 Object.values(match_data.players).forEach(async player => {
                     await match_ref.child("firstcolors").child(player).set(player == member_id ? args[3] : args[3] == "red" ? "blue" : "red")
@@ -99,16 +138,19 @@ exports.first = async function ({ interaction, args, member_id } = {}) {
                 match_data = db.ty.live[interaction.channelId]
 
                 await interaction.update({ content: `Rolling a chance cube... ${ChanceCube}`, embeds: [colorEmbed({ interaction })], components: [] })
+
                 setTimeout(async function () {
                     let players = Object.keys(match_data.firstcolors)
                     let firstplayer = Math.floor(Math.random() * 2) == 1 ? players[1] : players[0]
                     await match_ref.child("firstplayer").set(firstplayer)
-
-                    interaction.followUp(":" + match_data.firstcolors[firstplayer] + "_square:")
+                    match_data = db.ty.live[interaction.channelId]
+                    interaction.followUp(`:${match_data.firstcolors[firstplayer]}_square:`)
                 }, 1000)
+
                 setTimeout(async function () {
-                    interaction.followUp({ content: "<@" + (match_data.firstmethod == "poe_t" ? getOpponent({ interaction }) : match_data.firstplayer) + "> goes first!", embeds: [firstbanEmbed({ interaction })], components: firstbanComponents({ interaction }) })
+                    interaction.followUp({ content: "<@" + (match_data.firstmethod == "poe_t" ? getOpponent({ interaction, player: match_data.firstplayer }) : match_data.firstplayer) + "> goes first!", embeds: [firstbanEmbed({ interaction })], components: firstbanComponents({ interaction }) })
                 }, 2000)
+
                 return
             }
 
@@ -117,7 +159,7 @@ exports.first = async function ({ interaction, args, member_id } = {}) {
         case 'ban':
             function whoseTurn() {
                 let first = match_data.firstplayer
-                let circuitoptions = [undefined, null].includes(match_data.firstbans) ? Object.values(match_rules.general.firsttrack.options) : Object.values(match_data.rules.general.firsttrack.options).filter(option => !Object.values(match_data.firstbans).map(ban => ban.ban).includes(option))
+                let circuitoptions = [undefined, null].includes(match_data.firstbans) ? Object.values(match_rules.general.firsttrack.options) : Object.values(match_rules.general.firsttrack.options).filter(option => !Object.values(match_data.firstbans).map(ban => ban.ban).includes(option))
                 let planetoptions = [undefined, null].includes(match_data.firstbans) ? ["and", "tat", "oov", "ord", "bar", "mon", "aqu", "mal"] : ["and", "tat", "oov", "ord", "bar", "mon", "aqu", "mal"].filter(option => !Object.values(match_data.firstbans).map(ban => ban.ban).includes(option))
                 let trackoptions = []
                 circuitoptions.forEach(circuit => {
@@ -174,16 +216,22 @@ exports.first = async function ({ interaction, args, member_id } = {}) {
                     return
                 }
                 match_ref.child("firstbans").push({ player: member_id, ban: interaction.values[0] })
+                match_data = db.ty.live[interaction.channelId]
                 if (turn.options.length == 2) {
                     turn.options = turn.options.filter(t => Number(t) !== Number(interaction.values[0]))
                     await setRace(turn.options[0])
                     match_data = db.ty.live[interaction.channelId]
                     await interaction.update({ content: "", embeds: [firstbanEmbed({ interaction })], components: [] })
-                    interaction.followUp({ content: Object.values(match_data.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(match_data.commentators).map(player => "<@" + player + ">").join(" "), embeds: [raceEmbed({ race: 0, interaction })], components: raceComponents({ race: 0, interaction }) })
+                    interaction.followUp({
+                        content: atPlayers({ match_data, comms: true }),
+                        embeds: [raceEmbed({ race: 0, interaction })],
+                        components: raceComponents({ race: 0, interaction })
+                    })
+
                 } else {
                     let turn = whoseTurn()
 
-                    interaction.update({ content: "<@" + turn.current_turn + "> please make a selection", embeds: [firstbanEmbed({ interaction })], components: firstbanComponents({ interaction }) })
+                    interaction.update({ content: `<@${turn.current_turn}> please make a selection`, embeds: [firstbanEmbed({ interaction })], components: firstbanComponents({ interaction }) })
                 }
             }
             break
@@ -194,7 +242,7 @@ exports.first = async function ({ interaction, args, member_id } = {}) {
             match_data = db.ty.live[interaction.channelId]
 
             interaction.update({
-                content: Object.values(match_data.players).map(player => "<@" + player + ">").join(" ") + " " + Object.values(match_data.commentators).map(player => "<@" + player + ">").join(" "),
+                content: atPlayers({ match_data, comms: true }),
                 embeds: [raceEmbed({ race: 0, interaction })],
                 components: raceComponents({ race: 0, interaction })
             })

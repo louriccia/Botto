@@ -13,7 +13,7 @@ const { capitalize, time_fix, getTrackName, getRacerName } = require('../../gene
 const { postMessage } = require('../../discord.js');
 const { avgSpeed, upgradeCooling, upgradeTopSpeed } = require('../../data/sw_racer/part.js');
 const { database, db } = require('../../firebase.js');
-const { blurple_color } = require('../../colors.js');
+const { blurple_color, ping_color } = require('../../colors.js');
 
 
 exports.initializeMatch = function (match_ref) {
@@ -201,7 +201,7 @@ exports.firstEmbed = function ({ interaction } = {}) {
     const embed = new EmbedBuilder()
         .setAuthor({ name: "First Track" })
         .setTitle("How would you like to determine the first track?")
-        .setColor(blurple_color)
+        .setColor(ping_color)
         .setDescription(`*If players do not agree on a method, the default option will be used.*` +
             `\n${match_data.firstvote ? Object.keys(match_data.firstvote).map(key => `<@${key}> voted for **${methods[match_data.firstvote[key]]}**`).join("\n") : ''
             }`)
@@ -237,6 +237,7 @@ exports.colorEmbed = function ({ interaction } = {}) {
     const embed = new EmbedBuilder()
         .setAuthor({ name: `First Track: ${methods[match_data.firstmethod]}` })
         .setTitle("Pick a color")
+        .setColor(blurple_color)
     let desc = "" + (match_data.firstcolors ? Object.keys(match_data.firstcolors).map(key => ":" + match_data.firstcolors[key] + "_square: - <@" + key + ">").join("\n") : '')
     if (desc) {
         embed.setDescription(desc)
@@ -248,6 +249,7 @@ exports.firstbanEmbed = function ({ interaction } = {}) {
     const match_data = db.ty.live[interaction.channelId]
     const embed = new EmbedBuilder()
         .setAuthor({ name: "First Track: " + methods[match_data.firstmethod] })
+        .setColor(ping_color)
     let desc = "" + ([undefined, null].includes(match_data.firstbans) ? "" :
         Object.keys(match_data.firstbans).map(key =>
             `<@${match_data.firstbans[key].player}> banned **` +
@@ -343,7 +345,7 @@ exports.raceEmbed = function ({ race, interaction } = {}) {
     if (Object.values(race_data.ready).filter(r => r == false).length > 0 || race_data.countdown) {
         embed
             .setAuthor({ name: `Race ${(race + 1)} - Setup` })
-            .setColor("#FAA81A")
+            .setColor(ping_color)
             .setDescription(
                 conmap +
                 (race_data.gents ? "\n🎩 " + race_data.gents.terms : "") +
@@ -500,7 +502,7 @@ exports.raceEventEmbed = function ({ race, interaction } = {}) {
     }
     const embed = new EmbedBuilder()
         .setAuthor({ name: "Race " + (race + 1) + " - Ban Phase" })
-        .setColor("#FAA81A")
+        .setColor(ping_color)
     let desc = "" + ([undefined, null, ""].includes(events) ? "" :
         Object.values(events).map(e =>
             `<@${e.player}> ${actions[e.event]} a ${e.type}: **` +
@@ -541,6 +543,7 @@ exports.adminEmbed = function ({ interaction } = {}) {
 
     const embed = new EmbedBuilder()
         .setAuthor({ name: 'Match Manager' })
+        .setColor(blurple_color)
         .setTitle((match_data.tourney == "practice" ? "`Practice Mode`" : db.ty.tournaments[match_data?.tourney]?.nickname) + ": " + db.ty.tournaments[match_data.tourney]?.stages[match_data.bracket]?.bracket + " " + db.ty.tournaments[match_data.tourney]?.stages[match_data.bracket]?.round + " - " + (match_data.players ? Object.values(match_data.players).map(p => exports.getUsername({ member: p, db, short: true })).join(" vs ") : ""))
         .setDescription("This menu is for resetting the match to a previous point in the event of an error. Please make a selection.\nCurrent Race: `" + match_data.current_race + "`\nCurrent Stage: `" + match_data.status + "`")
     return embed
@@ -638,6 +641,8 @@ exports.raceEventComponents = function ({ race, interaction } = {}) {
     let oddselect = false
     let repeat = false
     let upg = 5
+
+    console.log(events)
 
     //construct components
     for (let i = event_start; i <= event_end && i < events.length; i++) {
@@ -855,6 +860,7 @@ exports.raceEventComponents = function ({ race, interaction } = {}) {
                     }
                 ]
             }
+            console.log(event, component)
             components.push(component)
         }
     }
@@ -879,16 +885,15 @@ exports.raceEventComponents = function ({ race, interaction } = {}) {
 
 exports.permabanEmbed = function ({ interaction } = {}) {
     const match_data = db.ty.live[interaction.channelId]
-    const match_rules = db.ty.rulesets.saved?.[match_data.ruleset]
-    const match_tourney = db.ty.tournaments[match_data.tourney]
 
     let races = Object.values(match_data.races)
     let events = races[1].events
     const embed = new EmbedBuilder()
         .setAuthor({ name: "Permanent Bans" })
+        .setColor(ping_color)
     let desc = "" + ([undefined, null, ""].includes(events) ? "" :
         Object.values(events).filter(event => event.event == "permaban").map(ban =>
-            "<@" + ban.player + "> 🚫 perma-banned a " + (ban.type == "track" ? "track: **" + planets[tracks[ban.selection].planet].emoji + " " + tracks[ban.selection].name : "racer: " + racers[ban.selection].flag + " " + racers[ban.selection].name) + "**"
+            `<@${ban.player}> 🚫 perma-banned a ${ban.type}: **${(ban.type == "track" ? getTrackName(ban.selection) : getRacerName(ban.selection))}**`
         ).join("\n"))
     if (desc) {
         embed.setDescription(desc)
@@ -1159,7 +1164,7 @@ exports.rulesetOverview = function ({ interaction }) {
             "* **⭐ Elo Rating** is " + (match_rules.general.ranked == true ? "" : "*not* ") + "affected" + "\n" +
             "* **1️⃣ First Track** can be " + (Object.values(match_rules.general.firsttrack.options).length == 4 ? "any track" : "a track from " + Object.values(match_rules.general.firsttrack.options).map(circuit => "`" + circuit.toUpperCase() + "` ")) + "\n" +
             "* **1️⃣ First Track** will be selected by " + methods[match_rules.general.firsttrack.primary] + "\n" +
-            ([undefined, null].includes(match_rules.general.firsttrack.secondary) ? "" : " * ◉ Alternatively, players may agree to select the **1️⃣ First Track** by " + Object.values(match_rules.general.firsttrack.secondary).map(method => "`" + methods[method] + "` "))
+            ([undefined, null].includes(match_rules.general.firsttrack.secondary) ? "" : " * Alternatively, players may agree to select the **1️⃣ First Track** by " + Object.values(match_rules.general.firsttrack.secondary).map(method => "`" + methods[method] + "` "))
 
         let matchfield = { name: "Every Match", value: "", inline: false }
         matchfield.value = (match_rules.match.forcepoints.start > 0 && "* 👥 Both players start with `" + match_rules.match.forcepoints.start + "` **💠 Force Points** (`" + match_rules.match.forcepoints.max + " max`)" + "\n") +
@@ -1242,7 +1247,7 @@ exports.getFirstOptions = function ({ interaction }) {
             description: firsts[match_rules?.general?.firsttrack?.primary]?.description
         }
     ]
-    if (!match_rules?.general?.firsttrack?.secondary) {
+    if (match_rules?.general?.firsttrack?.secondary) {
         Object.values(match_rules.general.firsttrack.secondary).forEach(first => firstoptions.push(
             {
                 label: firsts[first].label,
