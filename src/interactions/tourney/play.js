@@ -1,11 +1,8 @@
+const { db } = require('../../firebase.js')
 const { initializeMatch, adminEmbed, adminComponents } = require('./functions.js')
 
-exports.play = async function ({ interaction, args, database, db, member_id, member_avatar, user_key, user_profile } = {}) {
 
-    if (!interaction) {
-        console.log("uhhh")
-        return
-    }
+exports.play = async function ({ interaction, args, database, member_id, member_avatar, user_key, user_profile } = {}) {
 
     const match_data = db.ty.live[interaction.channelId]
     const match_ref = database.ref(`tourney/live/${interaction.channelId}`)
