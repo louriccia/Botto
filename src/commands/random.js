@@ -45,7 +45,6 @@ module.exports = {
                     }
                 }
             }
-            console.log(canon, tier)
             var pool = []
             for (let i = 0; i < racers.length; i++) {
                 if (tier === "" || tier === "any") {
@@ -180,7 +179,6 @@ module.exports = {
                     }
                 }
             }
-            console.log(circuit, planet)
             var pool = []
             for (var i = 0; i < tracks.length; i++) {
                 pool.push(i)

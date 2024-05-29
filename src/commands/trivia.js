@@ -137,12 +137,10 @@ module.exports = {
                         //handle bets
                         let bet_results = []
                         let bet_data = db.ch.trivia[question_push.key].bets
-                        console.log(bet_data, responses)
                         if (bet_data) {
                             Object.values(bet_data).forEach(bet => {
                                 let better_vote = responses[bet.better]
                                 let profile_key = Object.keys(db.user).find(key => db.user[key].discordID == bet.better)
-                                console.log(profile_key)
                                 let profile = db.user[profile_key]?.random
 
                                 if (profile) {

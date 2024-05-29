@@ -74,8 +74,8 @@ exports.sponsor = async function ({ interaction, args, db, member_id, botto_name
 
         if (sponsorAchievement(db, member_id) >= achievement_data.bankroller_clan.limit) { //award achievement
             if (interaction.guildId == swe1r_guild) {
-                if (!Member.roles.cache.some(r => r.id === achievement_data.bankroller_clan.role)) { //award role
-                    Member.roles.add(achievement_data.bankroller_clan.role).catch(error => console.log(error))
+                if (!interaction.member.roles.cache.some(r => r.id === achievement_data.bankroller_clan.role)) { //award role
+                    interaction.member.roles.add(achievement_data.bankroller_clan.role).catch(error => console.log(error))
                 }
             }
             if (!user_profile.achievements.bankroller_clan) {

@@ -16,7 +16,6 @@ module.exports = {
         ),
     execute({ interaction, database, db, member_id, member_name, member_avatar, user_key, user_profile } = {}) {
         const helpEmbed = new EmbedBuilder()
-        console.log(interaction.options.getSubcommand())
         if (interaction.options.getSubcommand() == "abbreviations") {
             helpEmbed
                 .setTitle("SWE1R Abbreviations")

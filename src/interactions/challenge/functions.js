@@ -30,6 +30,8 @@ require('moment-timezone')
 const { achievement_data } = require('../../data/challenge/achievement.js')
 const { getGoalTime } = require('../simulate/botto_simulator.js')
 const { get_thumbnail } = require('../../youtube.js')
+const { db, database } = require('../../firebase.js')
+
 
 exports.getGoalTimes = function ({ track, racer, skips, nu, laps, backwards, best } = {}) {
     let upg = nu ? 0 : 5
@@ -822,7 +824,7 @@ exports.goalTimeRank = function ({ submitted_time, goals }) {
     return goals.times.filter(g => Number(submitted_time.time) - Number(g) > 0).length
 }
 
-exports.challengeWinnings = function ({ current_challenge, submitted_time, user_profile, best, goals, member, db } = {}) {
+exports.challengeWinnings = function ({ current_challenge, submitted_time, user_profile, best, goals, member } = {}) {
     if (!Object.keys(submitted_time).length) {
         return { earnings: 0, receipt: "Sorry, could not calculate earnings." }
     }
@@ -830,7 +832,7 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, user_
     let medal = exports.goalTimeRank({ submitted_time, goals })
 
     if (goals.earnings[medal] > 0) {
-        earnings += "`+📀" + number_with_commas(goals.earnings[medal]) + "` " + goal_symbols[medal] + "\n"
+        earnings += `\`+📀${number_with_commas(goals.earnings[medal])}\` ${goal_symbols[medal]}\n`
         earnings_subtotal += goals.earnings[medal]
     }
 
@@ -839,15 +841,15 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, user_
         Object.values(current_challenge.bounties).forEach(bounty => {
             bounty_total += bounty.bonus
         })
-        earnings += "`+📀" + number_with_commas(bounty_total) + "` :dart:\n"
+        earnings += `\`+📀${number_with_commas(bounty_total)}\` :dart:\n`
         earnings_subtotal += bounty_total
     }
     if (current_challenge.sponsor?.time && Number(submitted_time.time) - Number(current_challenge.sponsor?.time) < 0) {
-        earnings += "`+📀" + number_with_commas(truguts.beat_sponsor) + "` 📢\n"
+        earnings += `\`+📀${number_with_commas(truguts.beat_sponsor)}\` 📢\n`
         earnings_subtotal += truguts.beat_sponsor
     }
 
-    //calculate streak
+    //streak bonus
     let challengehistory = Object.values(db.ch.times).filter(c => c.user == member && c.date < current_challenge.created).sort((a, b) => b.date - a.date)
     let streak = {
         day: {
@@ -883,11 +885,11 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, user_
     let challenge_streak = streak.challenge.streak + 1
 
     if (day_streak) {
-        earnings += "`+📀" + number_with_commas(truguts.day_streak * day_streak) + "` " + day_streak + "-Day Streak\n"
+        earnings += `\`+📀${number_with_commas(truguts.day_streak * day_streak)}\` ${day_streak}-Day Streak\n`
         earnings_subtotal += truguts.day_streak * day_streak
     }
     if (challenge_streak > 1) {
-        earnings += "`+📀" + number_with_commas(truguts.challenge_streak * challenge_streak) + "` " + (challenge_streak) + "-Challenge Streak\n"
+        earnings += `\`+📀${number_with_commas(truguts.challenge_streak * challenge_streak)}\` ${(challenge_streak)}-Challenge Streak\n`
         earnings_subtotal += truguts.challenge_streak * challenge_streak
     }
 
@@ -904,10 +906,11 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, user_
         }
     }
     if (first) {
-        earnings += "`+📀" + number_with_commas(truguts.first) + "` :snowflake:\n"
+        earnings += `\`+📀${number_with_commas(truguts.first)}\` :snowflake:\n`
         earnings_subtotal += truguts.first
     }
 
+    //non standard bonus
     let winnings_non_standard = 0
     if (submitted_time.conditions.skips && submitted_time.settings.skips <= 25) {
         winnings_non_standard++
@@ -925,20 +928,21 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, user_
         winnings_non_standard++
     }
     if (winnings_non_standard) {
-        earnings += "`+📀" + number_with_commas(truguts.non_standard) + " × " + winnings_non_standard + "` Non-Standard\n"
+        earnings += `\`+📀${number_with_commas(truguts.non_standard)} × ${winnings_non_standard}\` Non-Standard\n`
         earnings_subtotal += truguts.non_standard * winnings_non_standard
     }
 
+    //misc bonuses
     if (current_challenge.type !== 'cotm' && tracks[current_challenge.track].lengthclass == 'Long' && !current_challenge.conditions.skips) {
-        earnings += "`+📀" + number_with_commas(truguts.long) + "` Long\n"
+        earnings += `\`+📀${number_with_commas(truguts.long)}\` Long\n`
         earnings_subtotal += truguts.long
     }
     if (current_challenge.type !== 'cotm' && tracks[current_challenge.track].lengthclass == 'Extra Long' && !current_challenge.conditions.skips) {
-        earnings += "`+📀" + number_with_commas(truguts.extra_long) + "` Extra Long\n"
+        earnings += `\`+📀${number_with_commas(truguts.extra_long)}\` Extra Long\n`
         earnings_subtotal += truguts.extra_long
     }
     if (beat.length) {
-        earnings += "`+📀" + number_with_commas(truguts.beat_opponent) + " × " + beat.length + "` Bop\n"
+        earnings += `\`+📀${number_with_commas(truguts.beat_opponent)} × ${beat.length}\` Bop\n`
         earnings_subtotal += truguts.beat_opponent * beat.length
     }
 
@@ -3293,7 +3297,6 @@ exports.dailyChallenge = async function ({ client, challengesref, db } = {}) {
 
         if (exports.anniversaryMonth() && exports.easternTime().date() < 26) {
             let day = exports.easternTime().date() - 1
-            console.log(day)
             current_challenge.racer = tracks[day].favorite,
                 current_challenge.track = day
             current_challenge.conditions = {

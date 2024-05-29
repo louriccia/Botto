@@ -7,8 +7,12 @@ const { EmbedBuilder } = require('discord.js');
 const { time_to_seconds, getRacerName } = require('../../generic.js');
 const { achievement_data } = require('../../data/challenge/achievement.js');
 const { swe1r_guild } = require('../../data/discord/guild.js');
+const { WhyNobodyBuy } = require('../../data/discord/emoji.js');
 
-exports.submit = async function ({ current_challenge, current_challenge_ref, interaction, db, database, member_id, member_avatar, user_key, user_profile, profile_ref, botto_name } = {}) {
+const { database, db } = require('../../firebase.js')
+
+exports.submit = async function ({ current_challenge, current_challenge_ref, interaction, member_id, member_avatar, user_key, user_profile, profile_ref, botto_name } = {}) {
+    //get inputs
     let subtime = interaction.fields.getTextInputValue('challengeTime')
     let subnotes = interaction.fields.getTextInputValue('challengeNotes').replace(/[^a-zA-Z0-9 ]/g, '')
     let subproof = interaction.fields.getTextInputValue('challengeProof') ?? ""
@@ -22,12 +26,9 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
     //challenge no longer active
     if (!isActive(current_challenge, user_profile) && !current_challenge.submissions?.[member_id]) {
         interaction.reply({
-            embeds: [expiredEmbed()], components: [
-                {
-                    type: 1,
-                    components: [playButton()]
-                }
-            ], ephemeral: true
+            embeds: [expiredEmbed()],
+            components: [{ type: 1, components: [playButton()] }],
+            ephemeral: true
         })
         return
     }
@@ -35,7 +36,7 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
     //time doesn't make sense
     if (isNaN(Number(subtime.replace(":", ""))) || time_to_seconds(subtime) == null) {
         const holdUp = new EmbedBuilder()
-            .setTitle("<:WhyNobodyBuy:589481340957753363> Time Does Not Compute")
+            .setTitle(`${WhyNobodyBuy} Time Does Not Compute`)
             .setDescription("Your time was submitted in an incorrect format.")
         await interaction.reply({ embeds: [holdUp], ephemeral: true })
         return
@@ -50,7 +51,7 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
         current_challenge_ref.update({ completed: true, funny_business: true })
         profile_ref.update({ funny_business: (user_profile.funny_business ?? 0) + 1 })
         const holdUp = new EmbedBuilder()
-            .setTitle("<:WhyNobodyBuy:589481340957753363> I warn you. No funny business.")
+            .setTitle(`${WhyNobodyBuy} I warn you. No funny business.`)
             .setDescription("You submitted a time that was impossible to achieve in the given timeframe.")
         await interaction.reply({ embeds: [holdUp], ephemeral: true })
         return
@@ -62,7 +63,7 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
         await interaction.deferReply({ ephemeral: true })
     }
 
-
+    //user has already submitted a time
     if (current_challenge.submissions?.[member_id]) {
         challengetimeref.child(current_challenge.submissions[member_id].id).update(
             {
@@ -79,7 +80,18 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
         user_profile = db.user[user_key].random //update user_profile
 
         //update challenge
-        const edit_reply = await updateChallenge({ client: interaction.client, user_profile, current_challenge, current_challengeref: current_challenge_ref, profile_ref, member_id, name: botto_name, avatar: member_avatar, interaction, db })
+        const edit_reply = await updateChallenge({
+            client: interaction.client,
+            user_profile,
+            current_challenge,
+            current_challengeref: current_challenge_ref,
+            profile_ref,
+            member_id,
+            name: botto_name,
+            avatar: member_avatar,
+            interaction,
+            db
+        })
         await interaction.editReply(edit_reply)
         return
     }

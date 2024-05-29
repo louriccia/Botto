@@ -265,7 +265,7 @@ exports.getLeaderboard = function ({ track, conditions, podbans } = {}) {
     let leaderboard = []
     Object.values(db.ty.matches).forEach(match => {
         let ruleset = db.ty.rulesets.saved[match.ruleset]
-        if (match.races && ruleset.general.type !== 'Qualifier') {
+        if (match.races && ruleset.general.type !== 'Qualifier' && match.tourney !== "practice") {
             Object.values(match.races).forEach(race => {
                 let thistrack = exports.getTrack(race)
                 let thisconditions = exports.getConditions(ruleset, race)
@@ -642,7 +642,6 @@ exports.raceEventComponents = function ({ race, interaction } = {}) {
     let repeat = false
     let upg = 5
 
-    console.log(events)
 
     //construct components
     for (let i = event_start; i <= event_end && i < events.length; i++) {
@@ -860,7 +859,6 @@ exports.raceEventComponents = function ({ race, interaction } = {}) {
                     }
                 ]
             }
-            console.log(event, component)
             components.push(component)
         }
     }
