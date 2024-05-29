@@ -95,7 +95,7 @@ module.exports = {
 
         myEmbed
             .setTitle(title)
-        if (desck) {
+        if (desc) {
             myEmbed.setDescription(desc)
         }
 

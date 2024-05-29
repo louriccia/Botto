@@ -139,7 +139,7 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
 
     //award winnings for this submission
     let goals = goalTimeList(current_challenge, user_profile)
-    let winnings = challengeWinnings({ current_challenge, submitted_time: submissiondata, user_profile, best: getBest(db, current_challenge), goals, member_id, db })
+    let winnings = challengeWinnings({ current_challenge, submitted_time: submissiondata, user_profile, best: getBest(db, current_challenge), goals, member: member_id, db })
 
     //award saboteur cut
     if (winnings.sabotage) {
