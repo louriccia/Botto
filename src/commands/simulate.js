@@ -1,6 +1,6 @@
 const { tracks } = require("../data/sw_racer/track");
 const { SlashCommandBuilder } = require('discord.js');
-const track_options = tracks.map((track, index) => {return { name: track.name, value: String(index) }})
+const track_options = tracks.map((track, index) => { return { name: track.name, value: String(index) } })
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('simulate')
@@ -25,7 +25,7 @@ module.exports = {
                     { name: "No Upgrades", value: "0" }
                 )),
     execute({ interaction, database, db, member_id, member_name, member_avatar, user_key, user_profile } = {}) {
-        interaction.client.buttons.get("simulate").execute(interaction.client, interaction, []);
+        interaction.client.buttons.get("simulate").execute({ client: interaction.client, interaction, args: [] });
     }
 
 }

@@ -14,7 +14,6 @@ const { get_user_key_by_discord_id, initializePlayer, initializeUser } = require
 
 const fs = require('fs');
 const { Client, Events, GatewayIntentBits, Partials, Collection } = require('discord.js')
-const { welcomeMessages } = require('./data/flavor/welcome.js')
 const { errorMessage } = require('./data/flavor/error.js')
 const { log_preview } = require('./papertrail.js')
 const client = new Client({

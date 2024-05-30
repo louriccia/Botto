@@ -159,7 +159,7 @@ exports.scrape_sg_events = async function (client, db, database) {
 
                 // match setup 
                 if (match.current && match.notification == false && match.datetime <= Date.now() + 1000 * 60 * 30 && Date.now() <= match.datetime + 1000 * 60 * 10) {
-                    setup({ key })
+                    setup({ key, client })
                 }
             })
         })

@@ -6,7 +6,7 @@ const { reminderEmbed } = require('../../interactions/tourney/functions.js');
 const { ActionRowBuilder, ButtonStyle, ButtonBuilder } = require('discord.js');
 const { get_user_name_by_discord_id } = require('../../user.js');
 
-exports.setup = async function ({ key } = {}) {
+exports.setup = async function ({ key, client } = {}) {
     const Guild = await client.guilds.cache.get(swe1r_guild)
     let match = db.ty.scheduled[key]
 
