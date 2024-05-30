@@ -261,11 +261,12 @@ exports.firstbanEmbed = function ({ interaction } = {}) {
     return embed
 }
 
-exports.getLeaderboard = function ({ track, conditions, podbans } = {}) {
+exports.getLeaderboard = function ({ track, conditions, podbans, pod_override } = {}) {
     let leaderboard = []
     Object.values(db.ty.matches).forEach(match => {
         let ruleset = db.ty.rulesets.saved[match.ruleset]
         if (match.races && ruleset.general.type !== 'Qualifier' && match.tourney !== "practice") {
+
             Object.values(match.races).forEach(race => {
                 let thistrack = exports.getTrack(race)
                 let thisconditions = exports.getConditions(ruleset, race)
@@ -282,6 +283,7 @@ exports.getLeaderboard = function ({ track, conditions, podbans } = {}) {
                     }
                 }
             })
+
         }
     })
     leaderboard = leaderboard.sort((a, b) => a.time - b.time)
@@ -290,7 +292,7 @@ exports.getLeaderboard = function ({ track, conditions, podbans } = {}) {
     if (podbans.includes(String(leaderboard[0].pod))) {
         unique.push(leaderboard[0])
     }
-    leaderboard = leaderboard.filter(r => !r.podban)
+    leaderboard = leaderboard.filter(r => !r.podban && (!pod_override || pod_override == r.pod))
     leaderboard[0].record = true
     leaderboard.forEach(r => {
         if (!unique.map(u => u.player).includes(r.player)) {
@@ -308,6 +310,7 @@ exports.raceEmbed = function ({ race, interaction } = {}) {
     let events = Object.values(race_data.events)
     let conditions = exports.getConditions(match_rules, race_data, race)
     let track = exports.getTrack(race_data)
+    let pod_override = events.find(event => event.event == 'override' && event.type == 'racerpick')?.selection
     let podbans = race_data.events ? Object.values(race_data.events).filter(e => e.event == 'tempban' && e.type == 'racer').map(e => e.selection).flat().map(s => String(s)) : []
     let forces = events.filter(event => event.event == 'override' && event.type == 'condition').map(event => capitalize(condition_names[event.selection]))
     let players = Object.values(match_data.players)
@@ -319,12 +322,13 @@ exports.raceEmbed = function ({ race, interaction } = {}) {
         forces.push("🎩 Gentleman's Agreement")
     }
     let conmap = Object.values(conditions).filter(c => !['um', 'fp', 'tt'].includes(c)).map(con => "`" + condition_names[con] + "`").join(" ")
+    let banmap = podbans.map(ban => getRacerName(ban)).join(", ")
 
     //set up embed
     const embed = new EmbedBuilder()
-        .setTitle(getTrackName(track) + (forces.length ? ` (${forces.join(", ")})` : ""))
+        .setTitle(getTrackName(track) + (pod_override ? ` as ${getRacerName(pod_override)}` : "") + (forces.length ? ` (${forces.join(", ")})` : ""))
         .setThumbnail(tracks[track].preview)
-        .setDescription(conmap + ([null, undefined, ""].includes(race_data.gents) ? "" : "\n🎩 " + race_data.gents.terms))
+        .setDescription(conmap + (banmap && !pod_override ? `\n❌${banmap}\n` : '') + ([null, undefined, ""].includes(race_data.gents) ? "" : "\n🎩 " + race_data.gents.terms))
 
     function resultFormat(run, winner, leaderboard) {
         if (!run || !run.time) {
@@ -338,7 +342,7 @@ exports.raceEmbed = function ({ race, interaction } = {}) {
     }
 
     //leaderboard
-    const leaderboard = exports.getLeaderboard({ track, conditions, podbans }).filter(r => r.record || r.trecord || players.includes(r.player))
+    const leaderboard = exports.getLeaderboard({ track, conditions, podbans, pod_override }).filter(r => r.record || r.trecord || players.includes(r.player))
     embed.addFields({ name: 'Best Times', value: leaderboard.map(r => resultFormat(r, false, true)).join("\n"), inline: false })
 
     //setup
@@ -348,6 +352,7 @@ exports.raceEmbed = function ({ race, interaction } = {}) {
             .setColor(ping_color)
             .setDescription(
                 conmap +
+                (banmap && !pod_override ? `\n❌${banmap}\n` : '') +
                 (race_data.gents ? "\n🎩 " + race_data.gents.terms : "") +
                 (race_data.live ? "" : "\n" + (race_data.countdown ? "\nCountdown starts <t:" + race_data.countdown + ":R>" : "Countdown starts when both players have readied.")))
 
@@ -628,6 +633,8 @@ exports.raceEventComponents = function ({ race, interaction } = {}) {
     const event_start = match_data.races[race].eventstart
     const event_end = match_data.races[race].eventend
     let events = Object.values(match_rules.race)
+    const race_events = Object.values(match_data.races[race].events)
+    let podbans = race_events.filter(event => event.type == 'racer' && event.event == 'tempban').map(event => event.selection).flat()
     let fptotal = 0
 
     const last_winner = exports.getWinner({ race: race - 1, interaction })
@@ -639,6 +646,7 @@ exports.raceEventComponents = function ({ race, interaction } = {}) {
     let racer_ban = false
     let racer_force = false
     let oddselect = false
+    let bad_racer_override = false
     let repeat = false
     let upg = 5
 
@@ -833,6 +841,9 @@ exports.raceEventComponents = function ({ race, interaction } = {}) {
                                 alt_option.default = default_stuff.includes("0")
                                 options.push(alt_option)
                             }
+                            if (default_stuff.filter(d => podbans.includes(d)).length) {
+                                bad_racer_override = true
+                            }
                         } else {
 
                             options.push({
@@ -872,7 +883,7 @@ exports.raceEventComponents = function ({ race, interaction } = {}) {
                     label: notrack ? "No Track Selected" : (exports.getForcePoints({ player: chosing_player, interaction }) - fptotal < 0) ? "Not enough forcepoints" : oddselect ? "Too many or too few selections" : "Submit" + (fptotal == 0 ? "" : " (" + fptotal + "💠)") + (repeat ? " (🔁)" : ""),
                     style: 1,
                     custom_id: "tourney_play_race" + race + "_event_submit",
-                    disabled: (exports.getForcePoints({ player: chosing_player, interaction }) - fptotal < 0) || notrack || oddselect || (racer_force && racer_ban)
+                    disabled: (exports.getForcePoints({ player: chosing_player, interaction }) - fptotal < 0) || notrack || oddselect || (racer_force && racer_ban) || bad_racer_override
                 },
             ]
         }
@@ -904,12 +915,13 @@ exports.raceComponents = function ({ race, interaction }) {
 
     const match_data = db.ty.live[interaction.channelId]
     const match_rules = db.ty.rulesets.saved?.[match_data.ruleset]
-    const match_tourney = db.ty.tournaments[match_data.tourney]
 
     let events = Object.values(match_data.races[race].events)
-    let podbans = []
-    let podoptions = []
+
     let upg = 5
+
+    //get podbans
+    let podbans = []
     events.forEach(event => {
         if (Object.values(match_rules.general.default).includes('nu') || (event.event == 'override' && event.type == 'condition' && event.selection == 'nu')) {
             upg = 0
@@ -925,6 +937,9 @@ exports.raceComponents = function ({ race, interaction }) {
             podbans.push(event.selection)
         }
     })
+
+    //get pod options
+    let podoptions = []
     for (let i = 0; i < 23; i++) {
         if (!podbans.includes(String(i))) {
             podoptions.push(i)
@@ -950,6 +965,8 @@ exports.raceComponents = function ({ race, interaction }) {
     }
     ).sort(function (a, b) { return (b.avg - a.avg) })
     podoptions = podoptions.map(option => option.value)
+
+    //create racer select component
     const RacerRow = new ActionRowBuilder()
     const racer_select = new StringSelectMenuBuilder()
         .setCustomId("tourney_play_race" + race + "_racer")
@@ -961,6 +978,7 @@ exports.raceComponents = function ({ race, interaction }) {
         .setMinValues(1)
     RacerRow.addComponents(racer_select)
 
+    //gents prompt
     const ButtonRow = new ActionRowBuilder()
     if (match_data.races[race].gents?.agreed == "?") {
         ButtonRow.addComponents(
@@ -975,6 +993,8 @@ exports.raceComponents = function ({ race, interaction }) {
         )
         return [ButtonRow]
     }
+
+
     if (!match_data.races[race].live) {
         if (match_data.races[race].countdown) {
             ButtonRow
@@ -1018,6 +1038,10 @@ exports.raceComponents = function ({ race, interaction }) {
                     .setEmoji("🎩")
                     .setStyle(ButtonStyle.Secondary)
             )
+        }
+
+        if (match_data.races[race].racer_override) {
+            return [ButtonRow]
         }
         return [RacerRow, ButtonRow]
     } else {

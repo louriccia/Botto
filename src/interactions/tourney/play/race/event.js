@@ -44,7 +44,7 @@ exports.event = async function ({ client, interaction, args, member_id } = {}) {
         let e = events[event_start + i]
         let options = component.components[0].data.options.filter(option => option.default)
 
-        let count = e.count ? e.count: 1
+        let count = e.count ? e.count : 1
 
         let loops = options.length //this value needs to be stored in a variable otherwise you'll be a dumbass and have the loop be cut short as the array shrinks
         for (let i = 0; i < loops / count; i++) {
@@ -88,6 +88,18 @@ exports.event = async function ({ client, interaction, args, member_id } = {}) {
         await match_ref.child("races").child(race).child('events').push(event)
     })
 
+    //check for racer override
+    let racer_override = newevents.find(event => event.event == 'override' && event.type == 'racerpick')
+    if (racer_override) {
+        match_ref.child(`races/${race}`).update({ racer_override: true })
+        Object.values(match_data.players).forEach(player => {
+            match_ref.child(`races/${race}/reveal/${player}`).set(true)
+            match_ref.child(`races/${race}/runs/${player}`).update({ pod: racer_override.selection })
+        })
+    }
+
+    match_data = db.ty.live[interaction.channelId]
+
     if (responded) {
         return
     }
@@ -115,6 +127,8 @@ exports.event = async function ({ client, interaction, args, member_id } = {}) {
         })
         return
     }
+
+
 
     //set countdown
     let countdown = 2.5 * 60 * 1000 + (Object.values(match_data.races[race].events).map(e => e.selection).includes('sk') ? 1000 * 60 : 0)
