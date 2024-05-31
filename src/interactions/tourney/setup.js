@@ -5,6 +5,7 @@ const { database, db } = require('../../firebase.js');
 const { reminderEmbed } = require('../../interactions/tourney/functions.js');
 const { ActionRowBuilder, ButtonStyle, ButtonBuilder } = require('discord.js');
 const { get_user_name_by_discord_id } = require('../../user.js');
+const { swe1r_guild } = require('../../data/discord/guild.js');
 
 exports.setup = async function ({ key, client } = {}) {
     const Guild = await client.guilds.cache.get(swe1r_guild)
