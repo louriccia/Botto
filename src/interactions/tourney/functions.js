@@ -9,7 +9,7 @@ const { circuits } = require('../../data/sw_racer/circuit.js')
 const { difficulties } = require('../../data/difficulty.js')
 
 
-const { capitalize, time_fix, getTrackName, getRacerName } = require('../../generic.js')
+const { capitalize, time_fix, getTrackName, getRacerName, truncateString } = require('../../generic.js')
 const { postMessage } = require('../../discord.js');
 const { avgSpeed, upgradeCooling, upgradeTopSpeed } = require('../../data/sw_racer/part.js');
 const { database, db } = require('../../firebase.js');
@@ -1367,7 +1367,7 @@ exports.matchMakerEmbed = function ({ interaction }) {
     Object.keys(match_data.players).forEach(p => {
         matchmaker.addFields({
             name: (db.user[p].country ? ":flag_" + db.user[p].country + ": " : "") + db.user[p].name + (db.user[p].pronouns ? " (" + exports.joinPronouns(db.user[p].pronouns) + ")" : ""),
-            value: (db.user[p].platform ? "`" + db.user[p].platform + "`" : "No platform set") + " - " + (db.user[p].input ? "`" + db.user[p].input + "`" : 'No input set') + "\n" + ("*" + db.user[p].bio + "*" ?? "")
+            value: (db.user[p].platform ? "`" + db.user[p].platform + "`" : "No platform set") + " - " + (db.user[p].input ? "`" + db.user[p].input + "`" : 'No input set') + "\n" + ("*" + truncateString(db.user[p].bio, 200) + "*" ?? "")
         })
     })
 
