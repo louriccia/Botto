@@ -42,7 +42,7 @@ module.exports = {
             if (!user_profile.achievements?.big_time_swindler) {
                 postMessage(client, current_challenge.channel, { embeds: [achievementEmbed(botto_name, member_avatar, achievement_data.big_time_swindler, current_challenge.guild)] })
                 profile_ref.child('achievements').child("big_time_swindler").set(true)
-                user_profile = db.user[player]?.random
+                user_profile = db.user[user_key]?.random
             }
         }
 
