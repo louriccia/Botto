@@ -1,6 +1,6 @@
 const { db } = require("../../firebase")
 const moment = require('moment');
-
+require('moment-timezone')
 exports.getRaffleTally = function () {
 
     let tally = {}
@@ -20,9 +20,9 @@ exports.getRaffleTally = function () {
 
     //get challenge points
     let challenge_map = {}
-    Object.values(db.ch.times).filter(time => moment(time.date).month() == 4 && moment(time.date).year() == 2024).forEach(time => {
+    Object.values(db.ch.times).filter(time => moment(time.date).tz('America/New_York').month() == 4 && moment(time.date).tz('America/New_York').year() == 2024).forEach(time => {
         let user = time.user
-        let day = moment(time.date).date()
+        let day = moment(time.date).tz('America/New_York').date()
         if (!challenge_map[user]) {
             challenge_map[user] = []
         }
