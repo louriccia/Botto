@@ -1,7 +1,5 @@
-const { experimentalSetDeliveryMetricsExportedToBigQueryEnabled } = require("firebase/messaging/sw");
 const { db } = require("../../firebase")
 const moment = require('moment');
-
 
 exports.getRaffleTally = function () {
 
