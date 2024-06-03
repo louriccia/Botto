@@ -5,11 +5,12 @@ module.exports = {
 
         let tally = getRaffleTally()
 
-        let tickets = []
+        let ticket_pool = []
 
+        //fill with tickets
         Object.keys(tally).forEach(player => {
             for (let i = 0; i < tally[player]; i++) {
-                tickets.push(player)
+                ticket_pool.push(player)
             }
         })
 
@@ -21,14 +22,14 @@ module.exports = {
             return array;
         }
 
-        tickets = shuffleArray(tickets)
+        //shake it up
+        ticket_pool = shuffleArray(ticket_pool)
 
-        let winner = Math.floor(Math.random() * tickets.length)
-
-        winner = tickets[winner]
+        //pick a random winner
+        let winner = Math.floor(Math.random() * ticket_pool.length)
+        winner = ticket_pool[winner]
 
         interaction.reply({ content: `<@${winner}>`, ephemeral: true })
-
     }
 
 }

@@ -32,6 +32,10 @@ module.exports = {
                         .setDescription('amount to transfer from your balance')
                         .setRequired(true)
                         .setMinValue(1))
+                .addStringOption(option =>
+                    option.setName('memo')
+                        .setDescription('the reason for this transaction')
+                )
         )
     ,
     async execute({ interaction, database, db, member_id, member_name, member_avatar, user_key, user_profile } = {}) {
@@ -48,6 +52,7 @@ module.exports = {
             case "transfer":
                 let amount = interaction.options.getInteger('amount')
                 let receiving_user = interaction.options.getUser('user')
+                let memo = interaction.options.getString('memo')
 
                 if (user_profile.truguts_earned - user_profile.truguts_spent < amount) {
                     interaction.reply({ content: `Insufficient Truguts: 📀${number_with_commas(user_profile.truguts_earned - user_profile.truguts_spent)}`, ephemeral: true })
@@ -67,7 +72,7 @@ module.exports = {
                 manageTruguts({ user_profile: tprofile, profile_ref: database.ref(`user/${tuser}/random`), transaction: 'd', amount: amount })
                 const Embed = new EmbedBuilder()
                     .setColor(trugut_color)
-                    .setDescription(`<@${member_id}> sent \`📀${number_with_commas(amount)}\` truguts to <@${receiving_user.id}>`)
+                    .setDescription(`<@${member_id}> sent \`📀${number_with_commas(amount)}\` truguts to <@${receiving_user.id}> ${memo ? `*${memo}*` : ''}`)
                 interaction.reply({ embeds: [Embed] })
                 break
 

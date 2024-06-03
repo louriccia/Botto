@@ -1,3 +1,4 @@
+const { experimentalSetDeliveryMetricsExportedToBigQueryEnabled } = require("firebase/messaging/sw");
 const { db } = require("../../firebase")
 const moment = require('moment');
 
@@ -17,6 +18,7 @@ exports.getRaffleTally = function () {
         return
     }
 
+    const raffleCutOff = 1717214400000 //9pm et May 31
 
     //get challenge points
     let challenge_map = {}
@@ -26,27 +28,31 @@ exports.getRaffleTally = function () {
         if (!challenge_map[user]) {
             challenge_map[user] = []
         }
-        if (!challenge_map[user].includes(day) && challenge_map[user].length <= 25) {
+        if (!challenge_map[user].includes(day) && challenge_map[user].length < 25) {
             challenge_map[user].push(day)
             addTicket(user)
         }
     })
 
-
-
     //get scavenger
+    let scavenger_keeper = {}
     Object.keys(db.ch.scavenger).forEach(player => {
+        let solves = db.ch.scavenger[player]
         for (let i = 0; i < 25; i++) {
-            if (db.ch.scavenger[player]?.[i]?.solved) {
+            if (solves?.[i]?.solved && (!solves[i]?.date || solves[i]?.date < raffleCutOff)) {
+                if (!scavenger_keeper[player]) {
+                    scavenger_keeper[player] = 0
+                }
+                scavenger_keeper[player]++
+
                 addTicket(player)
             }
         }
     })
 
-    let trivia_keeper = {}
-
     //get trivia
-    Object.values(db.ch.trivia).forEach(question => {
+    let trivia_keeper = {}
+    Object.values(db.ch.trivia).filter(round => round.date < raffleCutOff).forEach(question => {
         if (question.responses) {
             Object.values(question.responses).forEach(response => {
                 if (response.correct) {
@@ -69,10 +75,16 @@ exports.getRaffleTally = function () {
     tally["410925667060809738"] += 10
 
     //get drops
-    Object.values(db.ch.drops).filter(drop => drop.drop == 'ticket').forEach(drop => {
+    let drop_keeper = {}
+    Object.values(db.ch.drops).filter(drop => drop.drop == 'ticket' && drop.date < raffleCutOff).forEach(drop => {
+        if (!drop_keeper[drop.member]) {
+            drop_keeper[drop.member] = 0
+        }
+        drop_keeper[drop.member]++
         addTicket(drop.member)
     })
 
+    //remove lp
     delete tally['256236315144749059']
 
     return tally

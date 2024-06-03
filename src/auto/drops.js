@@ -49,7 +49,7 @@ exports.drops = function (client, message) {
             })
         }
 
-        if (Math.random() < 0.01 && whitelist.includes(message.channelId)) {
+        if (anniversaryMonth() && Math.random() < 0.01 && whitelist.includes(message.channelId)) {
             postMessage(client, message.channelId, {
                 components: [
                     new ActionRowBuilder().addComponents(
