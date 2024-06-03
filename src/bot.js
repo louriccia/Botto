@@ -79,13 +79,12 @@ client.on(Events.InteractionCreate, async interaction => {
         //find player in userbase
         let user_key = get_user_key_by_discord_id(db, member_id)
         if (!user_key) {
-            user_key = initializeUser(database.ref('users'), member_id, member_name)
+            user_key = await initializeUser(database.ref('users'), member_id, member_name)
         }
         let user_profile = db.user[user_key]?.random
         if (!user_profile) {
             user_profile = initializePlayer(database.ref(`users/${user_key}/random`), member_name)
         }
-
         //command handler
         if (interaction.isChatInputCommand()) {
             const command = interaction.commandName.toLowerCase();

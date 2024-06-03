@@ -187,7 +187,7 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
                         pmember.roles.add(achievement_data.force_sight.role).catch(error => console.log(error))
                     }
                 }
-                if (!db.user[p.user].random.achievements.force_sight) {
+                if (!db.user[p.user].random?.achievements?.force_sight) {
                     postMessage(interaction.client, current_challenge.channel, { embeds: [achievementEmbed(p.name, p.avatar, achievement_data.force_sight, current_challenge.guild)] })
                     userref.child(p.user).child('random').child('achievements').child("force_sight").set(true)
                 }
@@ -241,7 +241,7 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
                     Member.roles.add(achievement_data.bounty_hunter.role).catch(error => console.log(error))
                 }
             }
-            if (!user_profile.achievements.bounty_hunter) {
+            if (!user_profile.achievements?.bounty_hunter) {
                 postMessage(interaction.client, current_challenge.channel, { embeds: [achievementEmbed(p.name, p.avatar, achievement_data.bounty_hunter, current_challenge.guild)] })
                 profile_ref.child('achievements').child("bounty_hunter").set(true)
             }

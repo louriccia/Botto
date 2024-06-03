@@ -800,7 +800,7 @@ exports.awardAchievements = function ({ client, achievements, current_challenge,
                     cmember.roles.add(achievements[key].role).catch(error => console.log(error))
                 }
             }
-            if (!user_profile.achievements[key]) { //send congrats
+            if (!user_profile.achievements?.[key]) { //send congrats
                 profile_ref.child("achievements").child(key).set(true)
                 postMessage(client, current_challenge.channel, { embeds: [exports.achievementEmbed(name, avatar, achievements[key], current_challenge.guild)] })
             }
@@ -2800,7 +2800,7 @@ exports.hintComponents = function ({ user_profile, player, db } = {}) {
 
     const ach = exports.achievementProgress({ db, player })
 
-    Object.keys(ach).filter(key => !user_profile.achievements[key] && !['big_time_swindler', 'bounty_hunter', 'bankroller_clan', 'force_sight', 'lap_god'].includes(key)).forEach(key => {
+    Object.keys(ach).filter(key => !user_profile.achievements?.[key] && !['big_time_swindler', 'bounty_hunter', 'bankroller_clan', 'force_sight', 'lap_god'].includes(key)).forEach(key => {
         achievement_selector.addOptions({
             label: ach[key].name,
             value: key,

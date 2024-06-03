@@ -78,7 +78,7 @@ exports.sponsor = async function ({ interaction, args, db, member_id, botto_name
                     interaction.member.roles.add(achievement_data.bankroller_clan.role).catch(error => console.log(error))
                 }
             }
-            if (!user_profile.achievements.bankroller_clan) {
+            if (!user_profile?.achievements?.bankroller_clan) {
                 postMessage(interaction.client, current_challenge.channel, { embeds: [achievementEmbed(p.name, p.avatar, achievement_data.bankroller_clan, interaction.guild)] })
                 profile_ref.child('achievements').child("bankroller_clan").set(true)
             }

@@ -38,12 +38,12 @@ exports.initializeUser = async function (ref, id, name) {
     return push.key
 }
 
-exports.get_user_key_by_discord_id = function (db, member) {
+exports.get_user_key_by_discord_id = function (db, member_id) {
     if (!db.user) {
         return null
     }
 
-    let player = Object.keys(db.user).find(key => db.user[key].discordID == member)
+    let player = Object.keys(db.user).find(key => db.user[key].discordID == member_id)
     return player
 }
 

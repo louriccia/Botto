@@ -137,6 +137,11 @@ exports.big_number = function (x) {
 }
 
 exports.truncateString = function (str, maxLength) {
+
+    if (!str) {
+        return ""
+    }
+
     if (str.length <= maxLength) {
         return str;
     }
