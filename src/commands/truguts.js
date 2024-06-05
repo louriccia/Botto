@@ -68,11 +68,11 @@ module.exports = {
                     tprofile = initializePlayer(database.ref(`user/${tuser}/random`), receiving_user.username)
                 }
 
-                manageTruguts({ user_profile: user_profile, profile_ref: database.ref(`user/${user_key}/random`), transaction: 'w', amount: amount, purchase: { date: Date.now(), purchased_item: 'transfer', amount: amount, to: tuser } })
+                manageTruguts({ user_profile: user_profile, profile_ref: database.ref(`user/${user_key}/random`), transaction: 'w', amount: amount, purchase: { date: Date.now(), purchased_item: 'transfer', amount: amount, to: tuser, memo: memo ?? "" } })
                 manageTruguts({ user_profile: tprofile, profile_ref: database.ref(`user/${tuser}/random`), transaction: 'd', amount: amount })
                 const Embed = new EmbedBuilder()
                     .setColor(trugut_color)
-                    .setDescription(`<@${member_id}> sent \`📀${number_with_commas(amount)}\` truguts to <@${receiving_user.id}> ${memo ? `*${memo}*` : ''}`)
+                    .setDescription(`<@${member_id}> sent \`📀${number_with_commas(amount)}\` truguts to <@${receiving_user.id}>${memo ? ` *${memo}*` : ''}`)
                 interaction.reply({ embeds: [Embed] })
                 break
 
