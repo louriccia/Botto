@@ -63,6 +63,16 @@ module.exports = {
                     })
                     await betref.child(interaction.message.id).update(bet)
                     interaction.update({ embeds: [betEmbed(bet)], components: [] })
+                    if (interaction.message?.pinned) {
+                        try {
+                            interaction.message.unpin()
+                        } catch (err) {
+                            console.log(err)
+                        }
+                    }
+                    if (bet.type == 'tourney') {
+                        postMessage({ content: `${bet.title} has been paid out!\nhttps://discord.com/channels/441839750555369474/${interaction.channel.id}/${interaction.message.id}` })
+                    }
                     return
                 }
                 if (interaction.isModalSubmit()) {

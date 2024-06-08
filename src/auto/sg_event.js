@@ -147,6 +147,7 @@ exports.scrape_sg_events = async function (client, db, database) {
                         max: 0
                     }
                     const betMessage = await postMessage(client, '536455290091077652', { embeds: [betEmbed(bet)], components: betComponents(bet), fetchReply: true })
+                    betMessage.pin()
                     database.ref('tourney/bets').child(betMessage.id).set(bet)
                     database.ref('tourney/scheduled').child(key).child("bet").set(betMessage.id)
                 }
