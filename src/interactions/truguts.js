@@ -71,7 +71,7 @@ module.exports = {
                         }
                     }
                     if (bet.type == 'tourney') {
-                        postMessage({ content: `${bet.title} has been paid out!\nhttps://discord.com/channels/441839750555369474/${interaction.channel.id}/${interaction.message.id}` })
+                        postMessage(interaction.client, interaction.channel.id, { content: `${bet.title} has been paid out!\nhttps://discord.com/channels/441839750555369474/${interaction.channel.id}/${interaction.message.id}` })
                     }
                     return
                 }
