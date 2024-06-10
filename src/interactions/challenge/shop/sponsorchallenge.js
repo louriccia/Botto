@@ -10,12 +10,14 @@ exports.sponsorchallenge = async function ({ interaction, db, database, member_i
             recent = { date: db.ch.sponsors[key].created, key }
         }
     })
+
+    //already sponsored today
     if (recent && Date.now() - 1000 * 60 * 60 * 23 < recent.date && interaction.message.id !== recent.key) {
         const cantSponsor = new EmbedBuilder()
             .setTitle("<:WhyNobodyBuy:589481340957753363> Patience Viceroy, patience.")
             .setDescription("Sorry, you can only sponsor one challenge per day. You can sponsor your next challenge <t:" + Math.round((recent.date + 1000 * 60 * 60 * 23) / 1000) + ":R>")
         interaction.reply({ embeds: [cantSponsor], ephemeral: true })
-        return
+        return false
     }
 
     //initialize challenge
@@ -26,6 +28,6 @@ exports.sponsorchallenge = async function ({ interaction, db, database, member_i
 
     //reveal challenge
     const sponsor = await interaction.reply({ embeds: [sponsorEmbed(sponsorchallenge, user_profile, db)], components: sponsorComponents(user_profile, circuit, 1), ephemeral: true, fetchReply: true })
-
     database.ref('challenge/sponsorships').child(sponsor.id).set(sponsorchallenge)
+    return true
 }

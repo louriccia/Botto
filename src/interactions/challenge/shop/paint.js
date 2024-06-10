@@ -6,7 +6,7 @@ exports.paint = async function ({ interaction, database, member_id, user_key, us
 
     if (user_profile.roles?.custom) {
         alreadyPurchased(interaction)
-        return
+        return false
     }
 
     if (interaction.isModalSubmit()) {
@@ -37,6 +37,7 @@ exports.paint = async function ({ interaction, database, member_id, user_key, us
             .setDescription(`<@${member_id}> just bought a custom role color for \`📀1,000,000,000,000\` Truguts!`)
             .setColor(color)
         interaction.reply({ embeds: [quoteEmbed] })
+        return true
     } else {
         const sponsorModal = new ModalBuilder()
             .setCustomId('challenge_random_shop_purchase')
@@ -52,6 +53,6 @@ exports.paint = async function ({ interaction, database, member_id, user_key, us
         const ActionRow1 = new ActionRowBuilder().addComponents(color)
         sponsorModal.addComponents(ActionRow1)
         await interaction.showModal(sponsorModal)
-        return
+        return false
     }
 }

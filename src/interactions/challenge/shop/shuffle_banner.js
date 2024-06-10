@@ -13,4 +13,5 @@ exports.shuffle_banner = async function ({ interaction, member_avatar, botto_nam
         .setAuthor({ name: `${botto_name} shuffled the server banner!`, iconURL: member_avatar })
         .setImage(banner)
     interaction.reply({ embeds: [shuffleBuy] })
+    return true
 }

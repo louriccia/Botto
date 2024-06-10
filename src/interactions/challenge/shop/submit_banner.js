@@ -8,7 +8,7 @@ exports.submit_banner = async function ({ interaction, database, botto_name } = 
 
         if (url.includes("discordapp.")) {
             interaction.reply({ content: "Your image url cannot be a discord link.\n[Discord CDN links are temporary](<https://www.bleepingcomputer.com/news/security/discord-will-switch-to-temporary-file-links-to-block-malware-delivery/>)", ephemeral: true })
-            return
+            return false
         }
 
         database.ref(`challenge/banners`).push({
@@ -22,7 +22,7 @@ exports.submit_banner = async function ({ interaction, database, botto_name } = 
             .setDescription(`${desc}\nCourtesy of: ${source}`)
             .setImage(url)
         interaction.reply({ embeds: [quoteEmbed] })
-
+        return true
     } else {
         const sponsorModal = new ModalBuilder()
             .setCustomId('challenge_random_shop_purchase')
@@ -52,6 +52,6 @@ exports.submit_banner = async function ({ interaction, database, botto_name } = 
         const ActionRow3 = new ActionRowBuilder().addComponents(source)
         sponsorModal.addComponents(ActionRow1, ActionRow2, ActionRow3)
         await interaction.showModal(sponsorModal)
-        return
+        return false
     }
 }

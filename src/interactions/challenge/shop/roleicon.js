@@ -12,14 +12,17 @@ exports.roleicon = async function ({ interaction, database, member_id, user_key,
     if (interaction.isModalSubmit()) {
         let emoji = interaction.fields.getTextInputValue('emoji')
         let emojikey = Object.keys(emojimap).find(key => key.toLowerCase() == emoji.toLowerCase())
+
+        //emoji not found
         if (!emojikey) {
             const noTruguts = new EmbedBuilder()
                 .setTitle("<:WhyNobodyBuy:589481340957753363> Perhaps the archives are incomplete.")
                 .setDescription("The emoji you entered could not be found in the database. Please double check its name and spelling. Only SWE1R emojis are eligible. Racer flag icons are free roles in <id:customize>")
             interaction.reply({ embeds: [noTruguts], ephemeral: true })
-            return
+            return false
         }
 
+        //already owned
         let role = await SWE1R_Guild.roles.cache.find(r => r.name == emojikey)
         if (user_profile.roles?.emoji && Object.values(user_profile.roles.emoji).map(r => r.id).includes(role?.id)) {
             const noTruguts = new EmbedBuilder()
@@ -28,6 +31,7 @@ exports.roleicon = async function ({ interaction, database, member_id, user_key,
             interaction.reply({ embeds: [noTruguts], ephemeral: true })
             return
         }
+
         let pos = await SWE1R_Guild.roles.cache.get('1094292597478010880')
         let e = emojimap[emojikey].split(":")[2].replace(">", "")
         const m = await SWE1R_Guild.members.cache.find(m => m.id == member_id)
@@ -50,6 +54,7 @@ exports.roleicon = async function ({ interaction, database, member_id, user_key,
             .setTitle("✨Emoji Role Icon")
             .setDescription(`You just bought an emoji role icon ${emojimap[emojikey]}! You can equip it from your inventory.`)
         interaction.reply({ embeds: [quoteEmbed], ephemeral: true })
+        return true
     } else {
         const sponsorModal = new ModalBuilder()
             .setCustomId('challenge_random_shop_purchase')
@@ -64,7 +69,7 @@ exports.roleicon = async function ({ interaction, database, member_id, user_key,
         const ActionRow1 = new ActionRowBuilder().addComponents(clue)
         sponsorModal.addComponents(ActionRow1)
         await interaction.showModal(sponsorModal)
-        return
+        return false
     }
     //
 

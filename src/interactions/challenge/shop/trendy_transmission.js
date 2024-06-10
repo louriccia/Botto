@@ -13,12 +13,13 @@ exports.trendy_transmission = async function ({ interaction } = {}) {
             return hexRegex.test(hexCode);
         }
 
+        //invalid color
         if (color && !isValidHexCode(color)) {
             const noTruguts = new EmbedBuilder()
                 .setTitle("<:WhyNobodyBuy:589481340957753363> I'm afraid that color doesn't exist")
                 .setDescription("Please enter a valid hex code `#FFFFFF`")
             interaction.reply({ embeds: [noTruguts], ephemeral: true })
-            return
+            return false
         }
 
         const customEmbed = new EmbedBuilder()
@@ -37,15 +38,17 @@ exports.trendy_transmission = async function ({ interaction } = {}) {
         if (color) {
             customEmbed.setColor(color)
         }
+
+        //improper format
         if (![title, desc].filter(f => f).length) {
             const noTruguts = new EmbedBuilder()
                 .setTitle("<:WhyNobodyBuy:589481340957753363> It's a trick. Send no reply.")
                 .setDescription("You cannot send a blank embed.")
             interaction.reply({ embeds: [noTruguts], ephemeral: true })
-            return
+            return false
         }
         interaction.update({ embeds: [customEmbed], content: '', components: [] })
-
+        return true
     } else {
         const sponsorModal = new ModalBuilder()
             .setCustomId('challenge_random_shop_purchase')
@@ -90,6 +93,6 @@ exports.trendy_transmission = async function ({ interaction } = {}) {
         const ActionRow5 = new ActionRowBuilder().addComponents(color)
         sponsorModal.addComponents(ActionRow1, ActionRow2, ActionRow3, ActionRow4, ActionRow5)
         await interaction.showModal(sponsorModal)
-        return
+        return false
     }
 }

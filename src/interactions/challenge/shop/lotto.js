@@ -12,7 +12,7 @@ exports.lotto = async function ({ interaction, db, database, member_avatar, bott
             .setTitle("<:WhyNobodyBuy:589481340957753363> A Botto Lotto ticket you have. Impossible, to take on a second.")
             .setDescription(`You've already purchased a Botto Lotto ticket this month. Your lucky tracks are:\n${existing.tracks.map(t => getTrackName(t)).join("\n")}`)
         interaction.reply({ embeds: [noTruguts], ephemeral: true })
-        return
+        return false
     }
     const ticket = {
         user: interaction.user.id,
@@ -24,4 +24,5 @@ exports.lotto = async function ({ interaction, db, database, member_avatar, bott
         .setAuthor({ name: `${botto_name} purchased a 🎫 Botto Lotto Ticket!`, iconURL: member_avatar })
         .setDescription(`For the next monthly challenge, they're predicting the following tracks:\n${ticket.tracks.map(t => getTrackName(t)).join("\n")}`)
     interaction.reply({ embeds: [shuffleBuy] })
+    return true
 }

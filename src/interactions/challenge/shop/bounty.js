@@ -20,4 +20,5 @@ exports.bounty = async function ({ interaction, db, database, member_id, member_
     bounty.message = message.id
     bounty.channel = message.channelId
     database.ref('challenge/bounties').push(bounty)
+    return true
 }

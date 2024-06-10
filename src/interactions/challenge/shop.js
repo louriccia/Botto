@@ -46,10 +46,10 @@ exports.shop = async function ({ interaction, args, db, database, member_id, mem
         shop_purchase = 'autobot'
     }
     const shop_purchase_function = require(`./shop/${shop_purchase}`)
-    shop_purchase_function[shop_purchase]({ interaction, args, db, database, member_id, member_avatar, user_key, user_profile, profile_ref, botto_name, selection })
+    const successful_purchase = shop_purchase_function[shop_purchase]({ interaction, args, db, database, member_id, member_avatar, user_key, user_profile, profile_ref, botto_name, selection })
 
     //charge user
-    if (!afterblasterperk) {
+    if (!afterblasterperk && successful_purchase) {
         manageTruguts({
             user_profile, profile_ref, transaction: 'w', amount: price, purchase: {
                 date: Date.now(),

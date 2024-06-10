@@ -2,8 +2,8 @@
 
 const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, AttachmentBuilder } = require('discord.js');
 
-exports.bottocolor = async function ({ interaction,  member_id} = {}) {
-    
+exports.bottocolor = async function ({ interaction, member_id } = {}) {
+
     const SWE1R_Guild = await interaction.client.guilds.cache.get(swe1r_guild)
     if (interaction.isModalSubmit()) {
         let color = interaction.fields.getTextInputValue('color')
@@ -49,7 +49,7 @@ exports.bottocolor = async function ({ interaction,  member_id} = {}) {
             .setColor(color)
             .setImage(`attachment://${modifiedAvatarPath}`);
         interaction.reply({ embeds: [quoteEmbed], files: [file] })
-
+        return true
     } else {
         const sponsorModal = new ModalBuilder()
             .setCustomId('challenge_random_shop_purchase')
@@ -65,6 +65,6 @@ exports.bottocolor = async function ({ interaction,  member_id} = {}) {
         const ActionRow1 = new ActionRowBuilder().addComponents(color)
         sponsorModal.addComponents(ActionRow1)
         await interaction.showModal(sponsorModal)
-        return
+        return false
     }
 }

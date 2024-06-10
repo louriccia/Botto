@@ -13,14 +13,14 @@ exports.rerolldaily = async function ({ interaction, db, database, botto_name } 
             .setTitle("<:WhyNobodyBuy:589481340957753363> It's too late...")
             .setDescription("You can only reroll the random challenge of the day within 1 hour of its announcement.")
         interaction.reply({ embeds: [noTruguts], ephemeral: true })
-        return
+        return false
     }
     if (lastlast.rerolled) {
         const noTruguts = new EmbedBuilder()
             .setTitle("<:WhyNobodyBuy:589481340957753363> Don't let them send any transmissions")
             .setDescription("The current random challenge of the day has already been rerolled.")
         interaction.reply({ embeds: [noTruguts], ephemeral: true })
-        return
+        return false
     }
 
     const noTruguts = new EmbedBuilder()
@@ -30,4 +30,5 @@ exports.rerolldaily = async function ({ interaction, db, database, botto_name } 
     const pub_response = await updateChallenge({ client: interaction.client, current_challenge: last, current_challengeref: database.ref(`challenge/challenges/${last.message}`), interaction, db })
     editMessage(interaction.client, last.channel, last.message, pub_response)
     dailyChallenge({ client: interaction.client, db, challengesref: database.ref('challenge/challenges') })
+    return true
 }

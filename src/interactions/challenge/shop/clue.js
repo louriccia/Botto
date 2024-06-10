@@ -14,6 +14,7 @@ exports.clue = async function ({ interaction, database, user_key, selection } = 
             .setTitle("💡 Clue Submitted")
             .setDescription(`You have successfully submited a clue:\n\n${clue}\n\nThis clue will randomly appear in Hints and Bounties for ${selection[2] == 'track' ? getTrackName(selection[3]) : getRacerName(selection[3])}.`)
         interaction.reply({ embeds: [quoteEmbed], ephemeral: true })
+        return true
     } else {
         const sponsorModal = new ModalBuilder()
             .setCustomId('challenge_random_shop_purchase')
@@ -27,6 +28,6 @@ exports.clue = async function ({ interaction, database, user_key, selection } = 
         const ActionRow1 = new ActionRowBuilder().addComponents(clue)
         sponsorModal.addComponents(ActionRow1)
         await interaction.showModal(sponsorModal)
-        return
+        return false
     }
 }
