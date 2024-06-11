@@ -47,21 +47,26 @@ module.exports = {
                         b: bet.outcome_b.bets ? bet.outcome_b.bets.map(b => b.amount).reduce((a, b) => a + b) : 0
                     }
                     let outcomes = ['a', 'b']
-                    outcomes.forEach(x => {
-                        let outcome = bet['outcome_' + x]
-                        let opposite = x == 'a' ? 'b' : 'a'
-                        if (outcome.bets) {
-                            outcome.bets.forEach(b => {
-                                if (outcome.winner) {
-                                    let take = Math.round((b.amount / totals[x]) * totals[opposite])
-                                    manageTruguts({ user_profile: db.user[b.id].random, profile_ref: userref.child(b.id).child('random'), transaction: 'd', amount: take })
-                                    b.take = take
-                                } else {
-                                    manageTruguts({ user_profile: db.user[b.id].random, profile_ref: userref.child(b.id).child('random'), transaction: 'w', amount: b.amount })
-                                }
-                            })
-                        }
-                    })
+
+                    if (!bet.paid) {
+                        outcomes.forEach(x => {
+                            let outcome = bet['outcome_' + x]
+                            let opposite = x == 'a' ? 'b' : 'a'
+                            if (outcome.bets) {
+                                outcome.bets.forEach(b => {
+                                    if (outcome.winner) {
+                                        let take = Math.round((b.amount / totals[x]) * totals[opposite])
+                                        manageTruguts({ user_profile: db.user[b.id].random, profile_ref: userref.child(b.id).child('random'), transaction: 'd', amount: take })
+                                        b.take = take
+                                    } else {
+                                        manageTruguts({ user_profile: db.user[b.id].random, profile_ref: userref.child(b.id).child('random'), transaction: 'w', amount: b.amount })
+                                    }
+                                })
+                            }
+                        })
+                        bet.paid = true
+                    }
+
                     await betref.child(interaction.message.id).update(bet)
                     interaction.update({ embeds: [betEmbed(bet)], components: [] })
                     if (interaction.message?.pinned) {
