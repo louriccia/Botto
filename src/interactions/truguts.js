@@ -2,6 +2,7 @@ const { ModalBuilder, ActionRowBuilder, TextInputBuilder, TextInputStyle } = req
 const { number_with_commas, big_number } = require('../generic.js');
 const { manageTruguts } = require('../interactions/challenge/functions');
 const { betEmbed, betComponents } = require('./trugut_functions.js');
+const { postMessage } = require('../discord.js');
 module.exports = {
     name: 'truguts',
     async execute({ client, interaction, args, database, db, member_id, member_name, member_avatar, user_key, user_profile } = {}) {
@@ -134,7 +135,7 @@ module.exports = {
                     betref.child(interaction.message.id).update(bet)
                     interaction.update({ embeds: [betEmbed(bet)], components: betComponents(bet) })
                 } else {
-                    if (bet.status == 'closed') {
+                    if (['closed', 'complete'].includes(bet.status)) {
                         interaction.reply({ content: "This bet has closed.", ephemeral: true })
                         return
                     }
