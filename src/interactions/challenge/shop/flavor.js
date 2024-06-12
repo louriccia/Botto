@@ -1,3 +1,4 @@
+const { capitalize } = require('../../../generic.js');
 const { flavormap } = require('../data.js');
 const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
 
