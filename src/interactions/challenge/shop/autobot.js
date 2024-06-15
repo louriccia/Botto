@@ -1,7 +1,7 @@
 const { emojimap, emoji_id } = require('../../../data/discord/emoji.js')
 const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
 
-exports.autobot = async function ({ interaction, database, user_key } = {}) {
+exports.autobot = async function ({ interaction, database, user_key, shoption } = {}) {
     let title = shoption.value == 'protocol' ? "💭Protocol Droid" : '💬Made to Suffer'
     if (interaction.isModalSubmit()) {
         let phrase = interaction.fields.getTextInputValue('phrase')

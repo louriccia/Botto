@@ -57,7 +57,7 @@ exports.scan_streams = async function (client) {
                 .setURL(`https://www.twitch.tv/${stream.user_login}`)
                 .setColor(big ? "#FFFFFF" : "#6440A5")
                 .setImage(big ? stream.getThumbnailUrl() : stream.thumbnail_url.replace("{width}", 300).replace("{height}", 160))
-                .setTitle(big ? stream.title : truncateString(stream.title ?? "(No Title)", 65))
+                .setTitle(big ? (stream.title ?? "(No Title)") : truncateString(stream.title ?? "(No Title)", 65))
             if (stream.tags && big) {
                 streamEmbed.setFooter({ text: stream.tags.join(" • ") })
             }

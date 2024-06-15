@@ -53,20 +53,32 @@ for (const file of buttonFiles) {
 
 //firebase
 const { db, database } = require('./firebase.js')
+const { WhyNobodyBuy } = require('./data/discord/emoji.js')
+
+//banned
+const banned = []
 
 //interactions
 client.on(Events.InteractionCreate, async interaction => {
     if (interaction.isAutocomplete()) return;
+    //log command
+    console.log(interaction.isChatInputCommand() ? 'slash' :
+        interaction.isButton() ? 'button' :
+            interaction.isMessageComponent() ? 'message_component' :
+                interaction.isModalSubmit() ? 'modal_submit' :
+                    'other', interaction.isChatInputCommand() ? interaction?.commandName?.toLowerCase() : interaction.customId, interaction.member?.displayName ?? interaction.user.displayName)
+
+    const member_id = interaction.member?.id ?? interaction.user.id
+
+    if (banned.includes(member_id)) {
+        interaction.reply({ content: `${WhyNobodyBuy} Get lost!`, ephemeral: true })
+        return
+    }
+
     if ((testing && interaction.guildId == test_guild) || (!testing && interaction.guildId !== test_guild)) {
-        //log command
-        console.log(interaction.isChatInputCommand() ? 'slash' :
-            interaction.isButton() ? 'button' :
-                interaction.isMessageComponent() ? 'message_component' :
-                    interaction.isModalSubmit() ? 'modal_submit' :
-                        'other', interaction.isChatInputCommand() ? interaction?.commandName?.toLowerCase() : interaction.customId, interaction.member?.displayName ?? interaction.user.displayName)
 
         //prepare profile
-        const member_id = interaction.member?.id ?? interaction.user.id
+
         const member_name = interaction.member?.displayName
         const member_avatar = await interaction.member?.displayAvatarURL() ?? await interaction.user.displayAvatarURL()
 
@@ -116,6 +128,7 @@ client.on(Events.InteractionCreate, async interaction => {
 //autocomplete
 client.on(Events.InteractionCreate, async interaction => {
     if (interaction.isAutocomplete()) {
+
         const command = interaction.client.commands.get(interaction.commandName);
 
         if (!command) {
@@ -171,7 +184,7 @@ client.on(Events.GuildMemberAdd, (guildMember) => { //join log
 
 client.on(Events.MessageReactionAdd, async (reaction, user) => {
     // When a reaction is received, check if the structure is partial
-    if (user.bot) {
+    if (user.bot || banned.includes(user.id)) {
         return
     }
     if (reaction.partial) {
@@ -219,7 +232,7 @@ client.on(Events.MessageDelete, async messageDelete => {
 
 
 client.on(Events.MessageCreate, async function (message) {
-    if (message.author.bot || testing) return; //trumps any command from executing from a bot message
+    if (message.author.bot || testing || banned.includes(message.author.id)) return; //trumps any command from executing from a bot message
 
     if (message.partial) {
         // If the message this reaction belongs to was removed, the fetching might result in an API error which should be handled
