@@ -12,7 +12,7 @@ exports.settings = async function ({ interaction, db, botto_name, user_profile, 
         profile_ref.child("settings").update({ winnings: Number(interaction.values[0]) })
     } else if (args[2] == "other") {
         let update = {}
-        let other_options = ['predictions', 'flavor']
+        let other_options = ['predictions', 'timediff', 'flavor', 'item', 'level']
         other_options.forEach(value => {
             update[value] = interaction.values.includes(value)
         })

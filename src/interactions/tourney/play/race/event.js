@@ -160,11 +160,13 @@ exports.event = async function ({ client, interaction, args, member_id } = {}) {
 
     //autocountdown
     setTimeout(async function () {
+        match_data = db.ty.live[interaction.channelId]
         if (match_data.races[race].countdown) {
             interaction.followUp({ content: `Countdown starts <t:${match_data.races[race].countdown}:R>!` })
         }
     }, countdown - 30 * 1000)
     setTimeout(async function () {
+        match_data = db.ty.live[interaction.channelId]
         if (match_data.races[race].countdown) {
             interaction.client.channels.cache.get(interaction.channel.id).messages.fetch(rE.id).then(message => message.delete())
             let cD = await interaction.followUp({

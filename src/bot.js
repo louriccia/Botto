@@ -12,6 +12,12 @@ const { botto_chat } = require('./auto/chat.js')
 const { join_message } = require('./auto/join.js')
 const { get_user_key_by_discord_id, initializePlayer, initializeUser } = require('./user.js')
 
+//openai
+const OpenAI = require("openai")
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY // This is also the default, can be omitted
+});
+
 const fs = require('fs');
 const { Client, Events, GatewayIntentBits, Partials, Collection } = require('discord.js')
 const { errorMessage } = require('./data/flavor/error.js')
@@ -229,8 +235,6 @@ client.on(Events.MessageDelete, async messageDelete => {
     }
 });
 
-
-
 client.on(Events.MessageCreate, async function (message) {
     if (message.author.bot || testing || banned.includes(message.author.id)) return; //trumps any command from executing from a bot message
 
@@ -247,7 +251,7 @@ client.on(Events.MessageCreate, async function (message) {
 
     //drops
     drops(client, message)
-    botto_chat(message, db)
+    botto_chat(message, db, openai)
 
     if (message.content.toLowerCase() == `!kill` && message.channelID == "444208252541075476") {
         message.channel.send("Come back when you got some money!")

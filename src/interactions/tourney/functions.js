@@ -338,7 +338,7 @@ exports.raceEmbed = function ({ race, interaction } = {}) {
         (String(run.time).toLowerCase() == 'dnf' ? 'DNF' : (winner ? "__" : "") + time_fix(run.time) + (winner ? "__" : "")),
         (leaderboard ? ` - ${exports.getUsername({ member: run.player, db, short: true })}` : ''),
         ([null, undefined, 0].includes(run.deaths) ? '' : "`" + `💀×${run.deaths == "" ? "?" : Number(run.deaths)}` + "`"),
-        (run.notes == "" || leaderboard ? "" : "\n📝 " + run.notes), (run.trecord ? '`Tourney Record`' : run.record ? '`Best Available Pod`' : '')].filter(f => f !== "").join(" ")
+        (run.notes == "" || leaderboard ? "" : "\n📝 " + run.notes), (run.trecord ? '`Tourney Record`' : (run.record ? '`Best Available Pod`' : ''))].filter(f => f !== "").join(" ")
     }
 
     //leaderboard

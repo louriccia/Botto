@@ -9,7 +9,7 @@ const { track_hints } = require('../../data/flavor/hints/track.js')
 const { mpQuotes } = require('../../data/flavor/multiplayer.js')
 
 const { banners } = require('../../data/discord/banner.js')
-const { number_with_commas, time_fix, capitalize, time_to_seconds, getRacerName } = require('../../generic.js')
+const { number_with_commas, time_fix, capitalize, time_to_seconds, getRacerName, big_number } = require('../../generic.js')
 
 const { winnings_map, flavormap, settings_default } = require('./data.js')
 const { inventorySections } = require('../../data/challenge/inventory.js')
@@ -408,7 +408,7 @@ exports.getPredictors = function (current_challenge) {
 }
 
 exports.getSponsorsString = function (current_challenge) {
-    return current_challenge.sponsor_earnings && Object.values(current_challenge.sponsor_earnings).length ? "📢 " + Object.keys(current_challenge.sponsor_earnings).map(key => `<@${key}> \`+📀${number_with_commas(current_challenge.sponsor_earnings[key])}\``).join(", ") : ""
+    return current_challenge.sponsor_earnings && Object.values(current_challenge.sponsor_earnings).length ? "📢 " + Object.keys(current_challenge.sponsor_earnings).map(key => `<@${key}> \`+📀${big_number(current_challenge.sponsor_earnings[key])}\``).join(", ") : ""
 }
 
 exports.predictionScore = function (predicted_time, actual_time) {
@@ -2587,7 +2587,9 @@ exports.convertLevel = function (int) {
     return level
 }
 
-exports.getStats = function ({ db, member, user_profile } = {}) {
+exports.getStats = function ({ db, member_id, user_profile } = {}) {
+
+    //initialize stat structure
     let stats = {
         totals: {
             total: 0,
@@ -2630,8 +2632,16 @@ exports.getStats = function ({ db, member, user_profile } = {}) {
         }
         stats.tracks[i] = { plays: 0, likes: 0, dislikes: 0 }
     }
+    let streak = {
+        start: null,
+        end: null
+    }
+
+    //get trugut stats
     stats.bonuses.total_earnings = user_profile.truguts_earned
     stats.purchases.total_spending = user_profile.truguts_spent
+
+    //get purchase data
     if (user_profile.purchases) {
         Object.values(user_profile.purchases).forEach(purchase => {
             if (["Basic Hint", "Standard Hint", "Deluxe Hint"].includes(purchase.purchased_item)) {
@@ -2648,99 +2658,99 @@ exports.getStats = function ({ db, member, user_profile } = {}) {
             }
         })
     }
-    let streak = {
-        start: null,
-        end: null
-    }
-    Object.values(db.ch.times).filter(challenge => !Array.isArray(challenge.track)).forEach(challenge => {
-        if (challenge.user == member) {
-            if (streak.start === null) {
-                streak.start = challenge.date
-            }
-            if (streak.end === null) {
-                streak.end = challenge.date
-            } else if (challenge.date - (1000 * 60 * 60 * 36) < streak.end) { //streak continues
-                streak.end = challenge.date
-            } else { //streak broken
-                stats.totals.streaks.push(Math.floor((streak.end - streak.start) / 1000 / 60 / 60 / 24))
-                streak.start = challenge.date
-                streak.end = challenge.date
-            }
-            stats.totals.total++
-            stats.racers[String(challenge.racer)].plays++
-            if (!Array.isArray(challenge.track)) {
-                stats.tracks[String(challenge.track)].plays++
-            }
 
-            //time stats
-            stats.times.total += Number(challenge.time)
-            var goals = exports.getGoalTimes({ racer: challenge.racer, track: challenge.track, skips: challenge.conditions.skips, nu: challenge.conditions.nu, laps: challenge.conditions.laps, backwards: challenge.conditions.backwards, best: Object.values(db.ch.times).filter(c => exports.matchingChallenge(c, challenge) && c.date < challenge.date) })
-            var goal_array = ["elite", "pro", "rookie", "amateur", "youngling"]
-            var goal_time = null
-            for (var j = goals.length - 1; j > -1; j--) {
-                if (challenge.time < goals[j]) {
-                    goal_time = j
-                }
+    const times = Object.values(db.ch.times)
+
+    times.filter(challenge => !Array.isArray(challenge.track) && challenge.user == member_id).forEach(challenge => {
+        //manage streak
+        if (streak.start === null) {
+            streak.start = challenge.date
+        }
+        if (streak.end === null) {
+            streak.end = challenge.date
+        } else if (challenge.date - (1000 * 60 * 60 * 36) < streak.end) { //streak continues
+            streak.end = challenge.date
+        } else { //streak broken
+            stats.totals.streaks.push(Math.floor((streak.end - streak.start) / 1000 / 60 / 60 / 24))
+            streak.start = challenge.date
+            streak.end = challenge.date
+        }
+
+        //generic stats
+        stats.totals.total++
+        stats.times.total += Number(challenge.time)
+
+        stats.racers[String(challenge.racer)].plays++
+        if (!Array.isArray(challenge.track)) {
+            stats.tracks[String(challenge.track)].plays++
+        }
+
+        //goal times
+        var goals = exports.getGoalTimes({ racer: challenge.racer, track: challenge.track, skips: challenge.conditions.skips, nu: challenge.conditions.nu, laps: challenge.conditions.laps, backwards: challenge.conditions.backwards, best: Object.values(db.ch.times).filter(c => exports.matchingChallenge(c, challenge) && c.date < challenge.date) })
+        var goal_array = ["elite", "pro", "rookie", "amateur", "youngling"]
+        var goal_time = null
+        for (var j = goals.length - 1; j > -1; j--) {
+            if (challenge.time < goals[j]) {
+                goal_time = j
             }
-            if (goal_time !== null) {
-                stats.times[goal_array[goal_time]]++
-                stats.racers[String(challenge.racer)].level += (5 - goal_time)
+        }
+        if (goal_time !== null) {
+            stats.times[goal_array[goal_time]]++
+            stats.racers[String(challenge.racer)].level += (5 - goal_time)
+        }
+
+        //conditions
+        if (!challenge.conditions.mirror && !challenge.conditions.nu && !challenge.conditions.skips && challenge.conditions.laps == 3 && !challenge.conditions.backwards) {
+            stats.totals.standard++
+        } else {
+            if (challenge.conditions.skips) {
+                stats.totals.skips++
+                stats.bonuses.non_standard++
             }
-            //stats
-            if (!challenge.conditions.mirror && !challenge.conditions.nu && !challenge.conditions.skips && challenge.conditions.laps == 3 && !challenge.conditions.backwards) {
-                stats.totals.standard++
-            } else {
-                if (challenge.conditions.skips) {
-                    stats.totals.skips++
-                    stats.bonuses.non_standard++
-                }
-                if (challenge.conditions.nu) {
-                    stats.totals.no_upgrades++
-                    stats.bonuses.non_standard++
-                }
-                if (challenge.conditions.laps !== 3) {
-                    challenge
-                    stats.totals.non_3_lap++
-                    stats.bonuses.non_standard++
-                }
-                if (challenge.conditions.mirror) {
-                    stats.totals.mirrored++
-                    stats.bonuses.non_standard++
-                }
-                if (challenge.conditions.backwards) {
-                    stats.totals.backwards++
-                    stats.bonuses.non_standard++
-                }
+            if (challenge.conditions.nu) {
+                stats.totals.no_upgrades++
+                stats.bonuses.non_standard++
             }
-            hasraced = true
-            var first = true
-            var pb = false
-            var beat = []
-            Object.values(db.ch.times).filter(c => exports.matchingChallenge(c, challenge)).forEach(c => {
-                if (c < challenge.date) {
-                    first = false
-                    if (c.user == member) {
-                        pb = true
-                        if (c.time < challenge.time) {
-                            pb = false
-                        }
-                    }
-                }
-                if (c.user !== member && c.time > challenge.time && c.date < challenge.date && !beat.includes(c.user)) {
-                    beat.push(c.user)
-                }
-            })
-            stats.bonuses.opponents_beat += beat.length
-            if (first) {
-                stats.bonuses.first++
+            if (challenge.conditions.laps !== 3) {
+                challenge
+                stats.totals.non_3_lap++
+                stats.bonuses.non_standard++
             }
-            if (pb) {
-                stats.bonuses.pbs++
+            if (challenge.conditions.mirror) {
+                stats.totals.mirrored++
+                stats.bonuses.non_standard++
             }
+            if (challenge.conditions.backwards) {
+                stats.totals.backwards++
+                stats.bonuses.non_standard++
+            }
+        }
+
+        hasraced = true
+        var first = true
+        var pb = false
+        var beat = []
+        times.filter(c => exports.matchingChallenge(c, challenge) && c.date < challenge.date).forEach(c => {
+            first = false
+            if (c.user == member_id) {
+                pb = true
+                if (c.time - challenge.time < 0) {
+                    pb = false
+                }
+            } else if (c.time - challenge.time > 0 && !beat.includes(c.user)) {
+                beat.push(c.user)
+            }
+        })
+        stats.bonuses.opponents_beat += beat.length
+        if (first) {
+            stats.bonuses.first++
+        }
+        if (pb) {
+            stats.bonuses.pbs++
         }
     })
     stats.totals.streaks.push(Math.floor((streak.end - streak.start) / 1000 / 60 / 60 / 24))
-    Object.values(db.ch.feedback).filter(f => f.user == member).forEach(f => {
+    Object.values(db.ch.feedback).filter(f => f.user == member_id).forEach(f => {
         if (f.feedback == '👍') {
             stats.racers[String(f.racer)].likes++
             if (!Array.isArray(f.track)) {
@@ -2914,11 +2924,43 @@ exports.settingsComponents = function (user_profile) {
             }
         },
         {
+            value: 'timediff',
+            label: 'Time Difference',
+            description: 'Display time difference on challenge leaderboard',
+            emoji: {
+                name: '⏱️'
+            }
+        },
+        {
             value: 'flavor',
             label: 'Flavor Text',
             description: 'Display flavor text on my random challenges',
             emoji: {
                 name: '✒'
+            }
+        },
+        {
+            value: 'level',
+            label: 'Level Rewards',
+            description: 'Display level rewards on my random challenges',
+            emoji: {
+                id: '891128437354401842'
+            }
+        },
+        {
+            value: 'item',
+            label: 'Item Rewards',
+            description: 'Display item rewards on my random challenges',
+            emoji: {
+                name: '🎁'
+            }
+        },
+        {
+            value: 'achievements',
+            label: 'Achievements',
+            description: 'Display achievement stats on my random challenges',
+            emoji: {
+                name: '🏆'
             }
         }
     ]
@@ -2926,7 +2968,7 @@ exports.settingsComponents = function (user_profile) {
         .setCustomId('challenge_random_settings_other')
         .setPlaceholder("Other Settings")
         .setMinValues(0)
-        .setMaxValues(2)
+        .setMaxValues(settings.length)
         .addOptions(settings.map(option => { return { ...option, default: user_profile.settings[option.value] === false ? false : true } }))
     const row3 = new ActionRowBuilder().addComponents(other_selector)
     let comp = [row1, row2, row3]

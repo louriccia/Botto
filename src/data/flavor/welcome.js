@@ -46,7 +46,7 @@ exports.welcomeMessages = [
     `*I see replaceme is just taking their place on the grid. That's a quick podracer they've got there!*`,
     `*It's the little human; born on Tatooine, uh... replaceme. Well, let's hope they can just finish the race.*`,
     `*There they are: the reigning champion of the Boonta Classic and the crowd favorite, replaceme!*`,
-    `*The famous write of Podracer Quarterly themself, replaceme is gonna give the real thing a try today. Hmm hmm, hope they can finish the race!*`,
+    `*The famous writer of Podracer Quarterly themself, replaceme is gonna give the real thing a try today. Hmm hmm, hope they can finish the race!*`,
     `*The Vulptereen racer replaceme is on the track today. Whoah, they are gonna be tough to beat.*`,
     `*Wow! Look at that! It's the galaxy famous replaceme in their custom Ord Pedrovia.*`,
     `*The track favorite is replaceme, a.k.a. "The Hitman". Boy, they sure look tough in that big Manta RamAir MARK IV podracer of theirs!*`,
