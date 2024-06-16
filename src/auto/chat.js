@@ -39,7 +39,6 @@ exports.botto_chat = async function (message, db, openai) {
             });
 
             const content = response.choices[0].message;
-            console.log(content)
             return message.reply({
                 content: content.content, allowedMentions: {
                     repliedUser: false
