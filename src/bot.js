@@ -236,7 +236,7 @@ client.on(Events.MessageDelete, async messageDelete => {
 });
 
 client.on(Events.MessageCreate, async function (message) {
-    if (message.author.bot || banned.includes(message.author.id)) return; //trumps any command from executing from a bot message
+    if (message.author.bot || testing || banned.includes(message.author.id)) return; //trumps any command from executing from a bot message
 
     if (message.partial) {
         // If the message this reaction belongs to was removed, the fetching might result in an API error which should be handled
