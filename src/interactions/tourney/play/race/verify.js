@@ -16,7 +16,7 @@ exports.verify = async function ({ interaction, args, member_id } = {}) {
     let events = Object.values(match_rules.race)
 
     //not a commentator/tracker/tourney admin
-    if (!Object.values(match_data.commentators).includes(member_id) && !(interaction.guild.id == '441839750555369474' && Member.roles.cache.some(r => r.id == '862810190072381471') && !Object.values(match_data.players).includes(member_id))) {
+    if (!Object.values(match_data.commentators).includes(member_id) && !(interaction.guild.id == '441839750555369474' && interaction.member?.roles.cache.some(r => r.id == '862810190072381471') && !Object.values(match_data.players).includes(member_id))) {
         interaction.reply({ content: `Only commentators/trackers can verify match times. ${WhyNobodyBuy}`, ephemeral: true })
         return
     }
