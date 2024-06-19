@@ -2417,13 +2417,13 @@ exports.usableItem = function ({ item } = {}) {
 
 exports.profileEmbed = function ({ name, avatar, ach_report, user_profile, stats, db, player } = {}) {
     let bet_wins = []
-    Object.values(db.ty.bets).forEach(b => {
-        ['outcome_a', 'outcome_b'].forEach(o => {
-            if (b[o].bets && Object.values(b[o].bets).map(i => i.discordId).includes(player)) {
-                bet_wins.push(b[o].winner)
-            }
-        })
-    })
+    // Object.values(db.ty.bets).forEach(b => {
+    //     ['outcome_a', 'outcome_b'].forEach(o => {
+    //         if (b[o].bets && Object.values(b[o].bets).map(i => i.discordId).includes(player)) {
+    //             bet_wins.push(b[o].winner)
+    //         }
+    //     })
+    // })
     let level = exports.playerLevel(Object.values(stats.racers).map(r => r.level))
     const profileEmbed = new EmbedBuilder()
         .setAuthor({ name: user_profile.name, iconURL: avatar })
