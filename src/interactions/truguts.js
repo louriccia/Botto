@@ -62,10 +62,6 @@ module.exports = {
                 return
             } else {
                 bet = betdata[interaction.message.id]
-
-                if (bet.outcome_a || bet.outcome_b) {
-                    bet.outcomes = [{ ...bet.outcome_a, type: 'this_or_that' }, { ...bet.outcome_b, type: 'this_or_that' }, { title: 'How many races?', type: 'number' }]
-                }
             }
 
             //guard admin actions
