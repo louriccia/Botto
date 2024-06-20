@@ -135,14 +135,20 @@ exports.scrape_sg_events = async function (client, db, database) {
                         status: "open",
                         type: 'tourney',
                         close: match.datetime,
-                        outcome_a: {
-                            title: `${db.user[players[0]].name} Wins`,
-                            id: match.players[players[0]]
-                        },
-                        outcome_b: {
-                            title: `${db.user[players[1]].name} Wins`,
-                            id: match.players[players[1]]
-                        },
+                        outcomes: [
+                            {
+                                title: `${db.user[players[0]].name} Wins`,
+                                type: 'this_or_that',
+                                id: match.players[players[0]]
+                            }, {
+                                title: `${db.user[players[1]].name} Wins`,
+                                type: 'this_or_that',
+                                id: match.players[players[1]]
+                            },
+                            {
+                                title: `How many races?`,
+                                type: 'number'
+                            }],
                         min: 10,
                         max: 0
                     }
