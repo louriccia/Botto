@@ -12,7 +12,7 @@ exports.setup = async function ({ key, client } = {}) {
     let match = db.ty.scheduled[key]
 
     //add roles
-    let everybody = Object.values(match.players).concat(Object.values(match.commentators))
+    let everybody = Object.values(match.players || {}).concat(Object.values(match.commentators || {}))
     everybody.forEach(async function (player) {
         const thismember = await Guild.members.fetch(player)
         thismember.roles.add('970995237952569404').catch(error => console.log(error))

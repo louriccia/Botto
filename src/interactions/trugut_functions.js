@@ -20,7 +20,7 @@ exports.betEmbed = function (bet) {
 
 
 
-            bet_summary += `\n\nTotal: \`📀${big_number(Object.values(outcome.bets).map(b => b.amount).reduce((a, b) => a + b))}\``
+            bet_summary += `\nTotal: \`📀${big_number(Object.values(outcome.bets).map(b => b.amount).reduce((a, b) => a + b))}\``
         }
 
 
