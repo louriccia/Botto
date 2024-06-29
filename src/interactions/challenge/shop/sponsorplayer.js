@@ -32,7 +32,6 @@ exports.sponsorplayer = async function ({ interaction, db, database, user_key, b
         player: user_key,
         take: take
     })
-    manageTruguts({ user_profile: sponsored, profile_ref: database.ref(`users/${sponsorplayer}/random`), transaction: 'd', amount: price })
 
     const quoteEmbed = new EmbedBuilder()
         .setTitle(":loudspeaker: Player Sponsorship")
