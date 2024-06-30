@@ -237,8 +237,8 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
         })
         if (bountyAchievement(db, member_id) >= achievement_data.bounty_hunter.limit) {
             if (current_challenge.guild == swe1r_guild) {
-                if (Member.roles.cache.some(r => r.id === achievement_data.bounty_hunter.role)) { //award role
-                    Member.roles.add(achievement_data.bounty_hunter.role).catch(error => console.log(error))
+                if (interaction.member.roles.cache.some(r => r.id === achievement_data.bounty_hunter.role)) { //award role
+                    interaction.member.roles.add(achievement_data.bounty_hunter.role).catch(error => console.log(error))
                 }
             }
             if (!user_profile.achievements?.bounty_hunter) {
