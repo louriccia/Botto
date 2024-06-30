@@ -346,7 +346,11 @@ exports.raceEmbed = function ({ race, interaction } = {}) {
 
     //leaderboard
     const leaderboard = exports.getLeaderboard({ track, conditions, podbans, pod_override }).filter(r => r.record || r.trecord || players.includes(r.player))
-    embed.addFields({ name: 'Best Times', value: leaderboard.map(r => resultFormat(r, false, true)).join("\n"), inline: false })
+
+    if (leaderboard.length) {
+        embed.addFields({ name: 'Best Times', value: leaderboard.map(r => resultFormat(r, false, true)).join("\n"), inline: false })
+
+    }
 
     //setup
     if (Object.values(race_data.ready).filter(r => r == false).length > 0 || race_data.countdown) {
