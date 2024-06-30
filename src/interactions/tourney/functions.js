@@ -293,7 +293,10 @@ exports.getLeaderboard = function ({ track, conditions, podbans, pod_override } 
         unique.push(leaderboard[0])
     }
     leaderboard = leaderboard.filter(r => !r.podban && (!pod_override || pod_override == r.pod))
-    leaderboard[0]?.record = true
+    if (leaderboard.length) {
+        leaderboard[0].record = true
+    }
+
     leaderboard.forEach(r => {
         if (!unique.map(u => u.player).includes(r.player)) {
             unique.push(r)
