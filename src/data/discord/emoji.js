@@ -26,7 +26,7 @@ exports.emojimap = {
     EyeYunga: "<:EyeYunga:1024168110938411050>",
     FlyGon: "<:FlyGon:1005209412899717211>",
     Fodesinbeed: "<a:Fodesinbeed:672640805055496192>",
-    FudgeSang: "<:FudgeSang:525755311265677313>",
+    FudgeSang: "<:FudgeSang:1265474461373562983>",
     GasganoHands: "<:GasganoHands:867809385102704650>",
     GlassBones: "<:GlassBones:590941053272457236>",
     HammerHead: "<a:HammerHead:965839199452430358>",
