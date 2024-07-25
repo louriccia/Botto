@@ -54,8 +54,6 @@ module.exports = {
                     max: interaction.options.getInteger('max_bet') ?? 0
                 }
 
-                console.log(bet)
-
                 //post message and save id
                 const betMessage = await interaction.reply({ embeds: [betEmbed(bet)], components: betComponents(bet), fetchReply: true })
                 betref.child(betMessage.id).set(bet)
