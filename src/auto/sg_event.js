@@ -63,7 +63,7 @@ exports.scrape_sg_events = async function (client, db, database) {
                                 match.commentators[c] = db.user[c].discordID ?? ''
                             })
                         } else if (values[j].includes("date")) {
-                            match.datetime = Date.parse(content.replace(", ", " " + new Date().getFullYear() + " ").replace(" ", " ") + (isDaylightSavingActive() ? " EST" : " EDT"))
+                            match.datetime = Date.parse(content.replace(", ", " " + new Date().getFullYear() + " ").replace(" ", " ") + (isDaylightSavingActive() ? " EDT" : " EST"))
                         } else if (values[j].includes("players")) {
                             let split = content.split(/[^A-Za-z0-9_ ]+/g).map(f => f.split(" vs ")).flat()
                             split.map(play => get_user_key_by_sg_name(play, db)).filter(p => ![null, undefined, ''].includes(p)).forEach(p => {
