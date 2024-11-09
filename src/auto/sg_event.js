@@ -19,23 +19,35 @@ function matchTitle(match, db) {
     return (round ? `${round.bracket} ${round.round}: ` : '') + (match.players ? Object.keys(match.players).map(id => db.user[id].name).join(" vs ") : 'Unknown Players')
 }
 
+function isDaylightSavingActive() {
+    const now = new Date();
+    const januaryOffset = new Date(now.getFullYear(), 0, 1).getTimezoneOffset();
+    const julyOffset = new Date(now.getFullYear(), 6, 1).getTimezoneOffset();
+
+    // DST is active if the current offset is different from the non-DST offset
+    return now.getTimezoneOffset() !== Math.max(januaryOffset, julyOffset);
+}
+
+
 exports.scrape_sg_events = async function (client, db, database) {
 
     const Guild = await client.guilds.cache.get(swe1r_guild)
 
+    const $ = await cheerio.fromURL(url)
+
     rp(url)
         .then(function (html) {
-            let table = cheerio('tbody', html)
+            let table = $('tbody', html)
             let guildevents = Guild.scheduledEvents.cache
             let events = guildevents.toJSON()
             let values = []
             Object.keys(db.ty.scheduled).forEach(key => {
                 database.ref(`tourney/scheduled/${key}`).update({ current: false })
             })
-            cheerio('tr', table).each((i, elem) => { //for each row
+            $('tr', table).each((i, elem) => { //for each row
                 let match = { commentators: {}, players: {} }
-                cheerio('td', elem).each((j, cell) => { //for each cell, populate match
-                    let content = cheerio(cell).text().trim().replace(/\t/g, "").replace(/\n/g, "")
+                $('td', elem).each((j, cell) => { //for each cell, populate match
+                    let content = $(cell).text().trim().replace(/\t/g, "").replace(/\n/g, "")
                     if (i == 0) {
                         values.push(content.replace(/ /g, "").toLowerCase().replace("(edt)", ""))
                     } else {
@@ -51,7 +63,7 @@ exports.scrape_sg_events = async function (client, db, database) {
                                 match.commentators[c] = db.user[c].discordID ?? ''
                             })
                         } else if (values[j].includes("date")) {
-                            match.datetime = Date.parse(content.replace(", ", " " + new Date().getFullYear() + " ").replace(" ", " ") + " ET")
+                            match.datetime = Date.parse(content.replace(", ", " " + new Date().getFullYear() + " ").replace(" ", " ") + (isDaylightSavingActive() ? " EST" : " EDT"))
                         } else if (values[j].includes("players")) {
                             let split = content.split(/[^A-Za-z0-9_ ]+/g).map(f => f.split(" vs ")).flat()
                             split.map(play => get_user_key_by_sg_name(play, db)).filter(p => ![null, undefined, ''].includes(p)).forEach(p => {
@@ -76,6 +88,7 @@ exports.scrape_sg_events = async function (client, db, database) {
                     if (!dup) {
                         match.notification = false
                         match.current = true
+                        console.log(match)
                         database.ref('tourney/scheduled').push(match)
                     }
                 }
