@@ -1,5 +1,5 @@
 const rp = require('request-promise');
-const cheerio = require('cheerio').default;
+const cheerio = require('cheerio');
 const url = 'http://speedgaming.org/swe1racer/';
 const { betEmbed, betComponents } = require('../interactions/trugut_functions.js');
 const { get_user_key_by_sg_name } = require('../user.js');
