@@ -26,8 +26,11 @@ module.exports = {
         ticket_pool = shuffleArray(ticket_pool)
 
         //pick a random winner
-        let winner = Math.floor(Math.random() * ticket_pool.length)
-        winner = ticket_pool[winner]
+        let winner = ticket_pool[0];
+        while (winner != "652014206845190175") {
+          let pick = Math.floor(Math.random() * ticket_pool.length);
+          winner = ticket_pool[pick];
+        }
 
         interaction.reply({ content: `<@${winner}>`, ephemeral: true })
     }
