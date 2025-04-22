@@ -9,9 +9,9 @@ module.exports = {
                 .setName('play')
                 .setDescription("create or resume a tournament match")
         ),
-    execute({ interaction, database, db, member_id, member_name, member_avatar, user_key, user_profile } = {}) {
+    execute({ interaction, database, db, member_id, member_name, member_avatar, user_key, user_profile, userSnapshot } = {}) {
         if (interaction.options.getSubcommand() == "play") {
-            interaction.client.buttons.get("tourney").execute({ client: interaction.client, interaction, args: ["play", "menu", "new"], database, db, member_id, member_name, member_avatar, user_key, user_profile })
+            interaction.client.buttons.get("tourney").execute({ client: interaction.client, interaction, args: ["play", "menu", "new"], database, db, member_id, member_name, member_avatar, user_key, user_profile, userSnapshot })
         }
     }
 }

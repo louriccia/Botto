@@ -1,118 +1,64 @@
+const axios = require('axios');
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { getRacerEmbed, getTrackEmbed, partEmbed } = require('../generic.js');
+const { racerSelector, trackSelector } = require('./challenge/functions.js');
+const { getTrackById, getTracks } = require('../services/trackService.js');
+
+axios.defaults.baseURL = 'http://localhost:3000/api/v1';
+axios.defaults.headers.common['Authorization'] = 'Bearer YOUR_ACCESS_TOKEN';
+axios.defaults.headers.post['Content-Type'] = 'application/json';
+
 module.exports = {
     name: 'lookup',
-    execute(client, interaction, args) {
-
-        const Discord = require('discord.js');
-        var myEmbed = new Discord.MessageEmbed()
-        var tools = require('../../tools.js');
-        var numb = null
-        if (args[0] == "racer") {
-            var type = 7
-            if (args.includes("initial")) {
-                type = 4
-                numb = Number(args[1])
-            } else {
-                numb = Number(interaction.data.values[0])
-            }
-            myEmbed = tools.getRacerEmbed(numb)
-            var options = []
-            for (var i = 0; i < racers.length; i++) {
-                var option = {
-                    label: racers[i].name,
-                    value: i,
-                    description: racers[i].pod.substring(0, 50),
-                    emoji: {
-                        name: racers[i].flag.split(":")[1],
-                        id: racers[i].flag.split(":")[2].replace(">", "")
-                    }
-                }
-                if (i == numb) {
-                    option.default = true
-                }
-                options.push(option)
-            }
-            client.api.interactions(interaction.id, interaction.token).callback.post({
-                data: {
-                    type: type,
-                    data: {
-                        //content: "",
-                        embeds: [myEmbed],
-                        components: [
-                            {
-                                type: 1,
-                                components: [
-                                    {
-                                        type: 3,
-                                        custom_id: "lookup_racer",
-                                        options: options,
-                                        placeholder: "Select Racer",
-                                        min_values: 1,
-                                        max_values: 1
-                                    }
-                                ]
-
-                            }
-
-                        ]
-                    }
-                }
-            })
-        } else if (args[0] == "track") {
-            var track_selections = []
-            
-            var type = 7
-            if (args.includes("initial")) {
-                type = 4
-                numb = Number(args[1])
-            } else {
-                numb = Number(interaction.data.values[0])
-            }
-            myEmbed = tools.getTrackEmbed(numb)
-
-            for (var i = 0; i < 25; i++) {
-                var track_option = {
-                    label: tracks[i].name.replace("The Boonta Training Course", "Boonta Training Course"),
-                    value: i,
-                    description: (circuits[tracks[i].circuit].name + " Circuit | Race " + tracks[i].cirnum + " | " + planets[tracks[i].planet].name).substring(0, 50),
-                    emoji: {
-                        name: planets[tracks[i].planet].emoji.split(":")[1],
-                        id: planets[tracks[i].planet].emoji.split(":")[2].replace(">", "")
-                    }
-                }
-                if(i == numb) {
-                    track_option.default = true
-                }
-                track_selections.push(track_option)
-            }
-            client.api.interactions(interaction.id, interaction.token).callback.post({
-                data: {
-                    type: type,
-                    data: {
-                        //content: "",
-                        embeds: [myEmbed],
-                        components: [
-                            {
-                                type: 1,
-                                components: [
-                                    {
-                                        type: 3,
-                                        custom_id: "lookup_track",
-                                        options: track_selections,
-                                        placeholder: "Select Track",
-                                        min_values: 1,
-                                        max_values: 1
-                                    }
-                                ]
-
-                            }
-
-                        ]
-                    }
-                }
-            })
+    async execute({ client, interaction, args, database, db, member_id, member_avatar, user_key } = {}) {
+        if (interaction.isStringSelectMenu()) {
+            args[1] = interaction.values[0]
         }
+        if (args[0] == "racer") {
+            try {
 
-
+                const response = await axios.get('/racers/' + (args[1] ?? "0"));
+                const racerEmbed = getRacerEmbed(response.data);
+                const components = racerSelector({ customid: 'lookup_racer', placeholder: "Select a racer", min: 1, max: 1, selected: [args[1]] });
+                if (interaction.isStringSelectMenu()) {
+                    interaction.update({ embeds: [racerEmbed], components })
+                    return
+                }
+                interaction.reply({ embeds: [racerEmbed], components })
+            } catch (error) {
+                console.log(error)
+                interaction.reply({ content: error, ephemeral: true })
+            }
+        } else if (args[0] == "track") {
+            try {
+                const tracks = await getTracks()
+                console.log(args[1], tracks.find(track => track.id == args[1]))
+                const trackEmbed = getTrackEmbed(tracks.find(track => track.id == args[1]) ?? tracks[0]);
+                const components = trackSelector({ tracks, customid: 'lookup_track', placeholder: "Select a track", min: 1, max: 1, selected: [args[1]] });
+                if (interaction.isStringSelectMenu()) {
+                    interaction.update({ embeds: [trackEmbed], components })
+                    return
+                }
+                interaction.reply({ embeds: [trackEmbed], components })
+            } catch (error) {
+                console.log(error)
+                interaction.reply({ content: error, ephemeral: true })
+            }
+        } else if (args[0] == "part") {
+            try {
+                const response = await axios.get('/parts');
+                const parts = response.data
+                const part = parts.filter(part => part.id == args[1]);
+                const trackEmbed = partEmbed(part);
+                if (interaction.isStringSelectMenu()) {
+                    interaction.update({ embeds: [trackEmbed] })
+                    return
+                }
+                interaction.reply({ embeds: [trackEmbed] })
+            } catch (error) {
+                console.log(error)
+                interaction.reply({ content: error, ephemeral: true })
+            }
+        }
     }
-
 }

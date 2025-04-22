@@ -35,7 +35,7 @@ const client = new Client({
     partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
 
-
+client.channelToMatch = new Map()
 
 //add commands to client
 const commandFiles = fs.readdirSync(__dirname + '/commands/').filter(file => file.endsWith('.js'));
@@ -103,6 +103,13 @@ client.on(Events.InteractionCreate, async interaction => {
         if (!user_profile) {
             user_profile = initializePlayer(database.ref(`users/${user_key}/random`), member_name)
         }
+
+        const userSnapshot = {
+            username: interaction.member?.displayName ?? interaction.user.username,
+            avatar: member_avatar,
+            discordId: member_id
+        }
+
         //command handler
         if (interaction.isChatInputCommand()) {
             const command = interaction.commandName.toLowerCase();
@@ -112,7 +119,8 @@ client.on(Events.InteractionCreate, async interaction => {
                 return;
             }
             try {
-                client.commands.get(command).execute({ interaction, database, db, member_id, member_name, member_avatar, user_key, user_profile });
+                console.log('command', userSnapshot)
+                client.commands.get(command).execute({ client, interaction, database, db, member_id, member_name, member_avatar, user_key, user_profile, userSnapshot });
             } catch (error) {
                 console.error(error);
                 await interaction.reply({ content: "`Error: Command failed to execute `\n" + errorMessage[Math.floor(Math.random() * errorMessage.length)] })
@@ -123,7 +131,7 @@ client.on(Events.InteractionCreate, async interaction => {
             const args = split.slice(1)
 
             try {
-                client.buttons.get(name).execute({ client, interaction, args, database, db, member_id, member_name, member_avatar, user_key, user_profile });
+                client.buttons.get(name).execute({ client, interaction, args, database, db, member_id, member_name, member_avatar, user_key, user_profile, userSnapshot });
             } catch (error) {
                 console.error(error);
             }

@@ -1385,35 +1385,36 @@ exports.challengeComponents = function (current_challenge, user_profile) {
     return row
 }
 
-exports.trackSelector = function ({ customid, placeholder, min, max, descriptions } = {}) {
+exports.trackSelector = function ({ tracks, customid, placeholder, min, max, descriptions, selected } = {}) {
     const trackSelectRow = new ActionRowBuilder()
     const track_selector = new StringSelectMenuBuilder()
         .setCustomId(customid)
         .setPlaceholder(placeholder)
         .setMinValues(min)
         .setMaxValues(max)
-    for (let i = 0; i < 25; i++) {
+    tracks.sort((a, b) => a.tracknum - b.tracknum).forEach((track, i) => {
         track_selector.addOptions({
-            label: tracks[i].name,
+            label: track.name,
             value: String(i),
-            description: descriptions ? descriptions[i].substring(0, 50) : (circuits[tracks[i].circuit].name + " Circuit | Race " + tracks[i].cirnum + " | " + planets[tracks[i].planet].name).substring(0, 50),
+            description: descriptions ? descriptions[i].substring(0, 50) : (track.circuit.name + " Circuit | Race " + track.cirnum + " | " + track.planet.name).substring(0, 50),
             emoji: {
-                name: planets[tracks[i].planet].emoji.split(":")[1],
-                id: planets[tracks[i].planet].emoji.split(":")[2].replace(">", "")
-            }
+                name: track.planet.emoji.split(":")[1],
+                id: track.planet.emoji.split(":")[2].replace(">", "")
+            },
+            default: selected ? selected.includes(String(i)) : false
         })
-    }
+    })
     trackSelectRow.addComponents(track_selector)
     return [trackSelectRow]
 }
 
-exports.racerSelector = function ({ customid, placeholder, min, max, descriptions } = {}) {
+exports.racerSelector = function ({ customid, placeholder, min, max, descriptions, selected } = {}) {
     const racerSelectRow = new ActionRowBuilder()
     const racer_selector = new StringSelectMenuBuilder()
-        .setCustomId(customid)
+        .setCustomId(`${customid}`)
         .setPlaceholder(placeholder)
-        .setMinValues(min)
-        .setMaxValues(max)
+        .setMinValues(min ?? 1)
+        .setMaxValues(max ?? 1)
 
     for (var i = 0; i < 23; i++) {
         racer_selector.addOptions({
@@ -1423,11 +1424,37 @@ exports.racerSelector = function ({ customid, placeholder, min, max, description
             emoji: {
                 name: racers[i].flag.split(":")[1],
                 id: racers[i].flag.split(":")[2].replace(">", "")
-            }
+            },
+            default: selected ? selected.includes(String(i)) : false
         })
     }
     racerSelectRow.addComponents(racer_selector)
     return [racerSelectRow]
+}
+
+exports.partSelector = function ({ customid, placeholder, min, max, descriptions, selected, parts } = {}) {
+    const partCategoryRow = new ActionRowBuilder()
+    const categorySelector = new StringSelectMenuBuilder()
+    const categories = Set(parts.map(p => p.stat)).sort((a, b) => a.localeCompare(b))
+    categories.forEach(category => {
+        categorySelector.addOptions({
+            label: category,
+            value: category,
+            description: `${parts.filter(p => p.stat == category).length} parts`,
+            emoji: {
+                name: "🔧"
+            }
+        })
+    })
+
+    const partSelectRow = new ActionRowBuilder()
+    const part_selector = new StringSelectMenuBuilder()
+        .setCustomId(customid)
+        .setPlaceholder(placeholder)
+        .setMinValues(min ?? 1)
+        .setMaxValues(max ?? 1)
+
+    return [partCategoryRow, partSelectRow]
 }
 
 exports.bribeComponents = function (current_challenge) {

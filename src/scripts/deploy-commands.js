@@ -41,20 +41,20 @@ const rest = new REST({ version: '10' }).setToken(token);
 		console.log(`Started refreshing ${commands.length} application (/) commands.`);
 
 		//application commands
-		const data = await rest.put(
-			Routes.applicationCommands('545798436105224203'),
-			{ body: commands },
-		);
+		// const data = await rest.put(
+		// 	Routes.applicationCommands('545798436105224203'),
+		// 	{ body: commands },
+		// );
 
 		// delete
 		await rest.put(Routes.applicationGuildCommands(clientID, Botto_Guild), { body: [] })
 			.then(() => console.log('Successfully deleted all guild commands.'))
 			.catch(console.error);
 
-		// await rest.put(
-		// 	Routes.applicationGuildCommands(clientID, Botto_Guild),
-		// 	{ body: other_commands },
-		// );
+		await rest.put(
+			Routes.applicationGuildCommands(clientID, Botto_Guild),
+			{ body: commands },
+		);
 
 		//console.log(`Successfully reloaded ${data.length} application (/) commands.`);
 	} catch (error) {

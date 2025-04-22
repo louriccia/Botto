@@ -34,7 +34,6 @@ module.exports = {
         var title = ""
         var desc = ""
         const subcommand = interaction.options.getString("resource")
-        console.log(subcommand)
         const myEmbed = new EmbedBuilder()
             .setColor("00A4C4")
         //.setThumbnail("https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/259/link_1f517.png")

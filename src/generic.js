@@ -1,7 +1,8 @@
-const { racers } = require('./data/sw_racer/racer.js')
-const { tracks } = require('./data/sw_racer/track.js')
-const { planets } = require('./data/sw_racer/planet.js')
-const { circuits } = require('./data/sw_racer/circuit.js')
+const { difficulties } = require('./data/difficulty.js');
+const { WhyNobodyBuy } = require('./data/discord/emoji.js');
+const { errorMessage } = require('./data/flavor/error.js');
+const { upgradeCooling, upgradeTopSpeed, avgSpeed } = require('./data/sw_racer/part.js')
+const { EmbedBuilder } = require('discord.js');
 
 const big_number_abbreviations = [
     {
@@ -270,69 +271,106 @@ exports.ordinalSuffix = function (i) {
     }
 }
 
-exports.getRacerName = function (index) {
-    if (Array.isArray(index)) {
+exports.getRacerName = function (racer) {
+    if (Array.isArray(racer)) {
         return index.map(i => exports.getRacerName(i)).join(", ")
     }
-    return [null, undefined, ""].includes(index) ? '--' : `${racers[index]?.flag} ${racers[index]?.name}`
+
+    if ([null, undefined, ""].includes(racer)) {
+        return '--'
+    }
+
+    return `${racer.flag} ${racer.name}`
 }
-exports.getRacerEmbed = function (numb) {
-    const Discord = require('discord.js');
+exports.getRacerEmbed = function (racer) {
     var Tier = ["Top", "High", "Mid", "Low"]
-    var boost = racers[numb].boost_thrust
-    var heatrate = racers[numb].heat_rate
-    var coolrate = this.upgradeCooling(racers[numb].cool_rate, 5)
-    var topspeed = this.upgradeTopSpeed(racers[numb].max_speed, 5)
-    var avgspeedmu = this.avgSpeed(topspeed, boost, heatrate, coolrate)
-    var avgspeednu = this.avgSpeed(racers[numb].max_speed, boost, heatrate, racers[numb].cool_rate)
-    const racerEmbed = new Discord.MessageEmbed()
+    var boost = racer.boost_thrust
+    var heatrate = racer.heat_rate
+    var coolrate = upgradeCooling(racer.cool_rate, 5)
+    var topspeed = upgradeTopSpeed(racer.max_speed, 5)
+    var avgspeedmu = avgSpeed(topspeed, boost, heatrate, coolrate)
+    var avgspeednu = avgSpeed(racer.max_speed, boost, heatrate, racer.cool_rate)
+    const racerEmbed = new EmbedBuilder()
         .setURL("https://docs.google.com/spreadsheets/d/1CPF8lfU_iDpLNIJsOWeU8Xg23BzQrxzi3-DEELAgxUA/edit#gid=0")
-        .setThumbnail(racers[numb].img)
+        .setThumbnail(racer.img)
         .setColor('#00DE45')
-        .setTitle(racers[numb].flag + " " + racers[numb].name)
-        .setDescription("(" + (numb + 1) + ") " + racers[numb].intro)
-        .addField("Pod", racers[numb].pod, false)
-        .addField("Species: " + racers[numb].species, "Homeworld: " + racers[numb].homeworld, true)
-        .addField("Favorite", planets[tracks[racers[numb].favorite].planet].emoji + " " + tracks[racers[numb].favorite].name, true)
-        .addField("Voice Actor", racers[numb].voice, true)
-        .addField("Tier", "NU: " + Tier[racers[numb].nu_tier] + "\nMU: " + Tier[racers[numb].mu_tier], true)
-        .addField("Average Speed", "NU: " + Math.round(avgspeednu) + "\nMU: " + Math.round(avgspeedmu), true)
-        .addField("Max Turn", racers[numb].max_turn_rate + "°/s", true)
-        .setImage(racers[numb].stats)
+        .setTitle(exports.getRacerName(racer))
+        .setDescription(racer.intro)
+        .addFields(
+            { name: "Pod", value: racer.pod, inline: false },
+            { name: "Species: " + racer.species, value: "Homeworld: " + racer.homeworld, inline: true },
+            { name: "Favorite", value: exports.getTrackName(racer.favorite), inline: true },
+            { name: "Voice Actor", value: racer.voice, inline: true },
+            { name: "Tier", value: "NU: " + Tier[racer.nu_tier] + "\nMU: " + Tier[racer.mu_tier], inline: true },
+            { name: "Average Speed", value: "NU: " + Math.round(avgspeednu) + "\nMU: " + Math.round(avgspeedmu), inline: true },
+            { name: "Max Turn", value: racer.max_turn_rate + "°/s", inline: true }
+        )
+        .setImage(racer.stats)
     return racerEmbed
 }
-exports.getTrackName = function (index) {
-    if (Array.isArray(index)) {
-        return index.map(i => exports.getTrackName(i)).join(", ")
+exports.getTrackName = function (track) {
+    if (Array.isArray(track)) {
+        return track.map(i => exports.getTrackName(i)).join(", ")
     }
-    return [null, undefined, ""].includes(index) ? '--' : `${planets[tracks[index]?.planet]?.emoji} ${tracks[index]?.name}`
+
+    if ([null, undefined, ""].includes(track)) {
+        return '--'
+    }
+
+    return `${track.planet.emoji} ${track.name}`
 }
-exports.getCircuitName = function (index) {
-    return [null, undefined, ""].includes(index) ? '--' : `${circuits[index]?.name}`
+exports.getCircuitName = function (circuit) {
+
+    if ([null, undefined, ""].includes(circuit)) {
+        return '--'
+    }
+
+    return `${circuit.name}`
 }
-exports.getPlanetName = function (index) {
-    return [null, undefined, ""].includes(index) ? '--' : `${planets[index]?.emoji} ${planets[index]?.name}`
+exports.getPlanetName = function (planet) {
+    if ([null, undefined, ""].includes(planet)) {
+        return '--'
+    }
+
+    return `${planet.emoji} ${planet.name}`
 }
-exports.getTrackEmbed = function (numb, client, channel, interaction) {
-    const Discord = require('discord.js');
-    const fetch = require('node-fetch');
-    const trackEmbed = new Discord.MessageEmbed()
-        //.setThumbnail(planets[tracks[numb].planet].img)
-        //.setFooter(footer)
-        .setColor(planets[tracks[numb].planet].color)
+exports.getTrackEmbed = function (track) {
+    const trackEmbed = new EmbedBuilder()
+        .setColor(track.planet.color)
         .setURL("https://docs.google.com/spreadsheets/d/1CPF8lfU_iDpLNIJsOWeU8Xg23BzQrxzi3-DEELAgxUA/edit#gid=1682683709")
-        .setImage(tracks[numb].img)
-        //.setImage('attachment://' + (numb+1) + '.png')
-        .setTitle(planets[tracks[numb].planet].emoji + " " + tracks[numb].name)
-        .setThumbnail(tracks[numb].preview)
-        .setDescription("(" + tracks[numb].nickname.join(", ") + ")")
-        .addField(circuits[tracks[numb].circuit].name + " Circuit", "Race " + tracks[numb].cirnum, true)
-        .addField("Planet", planets[tracks[numb].planet].emoji + " " + planets[tracks[numb].planet].name, true)
-        .addField("Host", planets[tracks[numb].planet].host, true)
-        .addField("Track Favorite", racers[tracks[numb].favorite].flag + " " + racers[tracks[numb].favorite].name, true)
-        .addField("Difficulty", difficulties[tracks[numb].difficulty].name, true)
-        .addField("Length", tracks[numb].lengthclass, true)
+        .setImage(track.img)
+        .setTitle(track.planet.emoji + " " + track.name)
+        .setThumbnail(track.preview)
+        .setDescription("(" + track.nickname.join(", ") + ")")
+        .addFields(
+            { name: track.circuit.name + " Circuit", value: "Race " + track.cirnum, inline: true },
+            { name: "Planet", value: exports.getPlanetName(track.planet), inline: true },
+            { name: "Host", value: track.planet.host, inline: true },
+            { name: "Track Favorite", value: exports.getRacerName(track.favorite), inline: true },
+            { name: "Difficulty", value: difficulties[track.difficulty].name, inline: true },
+            { name: "Length", value: track.lengthclass, inline: true }
+        )
     return trackEmbed
 }
+exports.partEmbed = function (part) {
+    const partEmbed = new EmbedBuilder()
+        .setColor('#00DE45')
+        .setTitle(part.name)
+        .addFields(
+            { name: "Level", value: String(part.level), inline: true },
+            { name: "Price", value: exports.number_with_commas(part.price), inline: true },
+            { name: "Stat", value: String(part.stat), inline: true },
+        )
+    return partEmbed
+}
 
+exports.getRandomElement = function (arr) {
+    if (!Array.isArray(arr) || arr.length === 0) {
+        throw new Error("Input must be a non-empty array.");
+    }
+    return arr[Math.floor(Math.random() * arr.length)];
+}
 
+exports.randomErrorMessage = function () {
+    return `${WhyNobodyBuy} ${exports.getRandomElement(errorMessage)}`
+}
