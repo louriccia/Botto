@@ -177,34 +177,7 @@ exports.verify = async function ({ interaction, args, member_id } = {}) {
     }
 
 
-    const verifyModal = new ModalBuilder()
-        .setCustomId("tourney_play_race" + race + "_verify")
-        .setTitle("Verify Race " + (race + 1) + " Results")
-    Object.keys(match_data.races[race].runs).map(key => {
-        let time = new TextInputBuilder()
-            .setCustomId("time" + key)
-            .setLabel(("⏱️ " + getUsername({ member: key, db, short: true }) + "'s Time").substring(0, 45))
-            .setStyle(TextInputStyle.Short)
-            .setPlaceholder("--:--.---")
-            .setMinLength(1)
-            .setMaxLength(10)
-            .setRequired(true)
-            .setValue(String((match_data.races[race].runs[key].time.toLowerCase() == "dnf" ? "DNF" : time_fix(match_data.races[race].runs[key].time))))
-        let deaths = new TextInputBuilder()
-            .setCustomId("deaths" + key)
-            .setLabel(("💀 " + getUsername({ member: key, db, short: true }) + "'s Deaths").substring(0, 45))
-            .setStyle(TextInputStyle.Short)
-            .setMinLength(0)
-            .setMaxLength(10)
-            .setRequired(false)
-        if (![null, undefined, ''].includes(match_data.races[race].runs[key].deaths)) {
-            deaths.setValue(String(match_data.races[race].runs[key].deaths))
-        }
 
-        let TimeRow = new ActionRowBuilder().addComponents(time)
-        let DeathRow = new ActionRowBuilder().addComponents(deaths)
-        verifyModal.addComponents(TimeRow, DeathRow)
-    })
     await interaction.showModal(verifyModal)
 
 }

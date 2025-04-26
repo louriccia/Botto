@@ -1,42 +1,42 @@
 const cacheService = require("./cacheService");
-const { axiosClient } = require("..axios");
+const { axiosClient } = require("../axios");
 const API_BASE_URL = process.env.BOTTO_API_BASE_URL
 
 const cache = new cacheService();
 
-async function getTracks() {
-    const cacheKey = "tracks";
-    let tracks = cache.get(cacheKey);
-    if (tracks) return tracks; // Return from cache if available
+async function getRacers() {
+    const cacheKey = "racers";
+    let racers = cache.get(cacheKey);
+    if (racers) return racers; // Return from cache if available
     console.log('actually fetching data')
     try {
-        const response = await axiosClient.get(`${API_BASE_URL}/tracks`);
-        tracks = response.data;
-        cache.set(cacheKey, tracks); // Store in cache
-        return tracks;
+        const response = await axiosClient.get(`${API_BASE_URL}/racers`);
+        racers = response.data;
+        cache.set(cacheKey, racers); // Store in cache
+        return racers;
     } catch (error) {
-        console.error("Error fetching tracks:", error);
+        console.error("Error fetching racers:", error);
         throw error;
     }
 }
 
-async function getTrackById(trackId) {
-    const cacheKey = `track:${trackId}`;
-    let track = cache.get(cacheKey);
-    if (track) return track;
+async function getRacerById(racerId) {
+    const cacheKey = `racer:${racerId}`;
+    let racer = cache.get(cacheKey);
+    if (racer) return racer;
 
     try {
-        const response = await axiosClient.get(`${API_BASE_URL}/tracks/${trackId}`);
-        track = response.data;
-        cache.set(cacheKey, track); // Store in cache
-        return track;
+        const response = await axiosClient.get(`${API_BASE_URL}/racers/${racerId}`);
+        racer = response.data;
+        cache.set(cacheKey, racer); // Store in cache
+        return racer;
     } catch (error) {
-        console.error(`Error fetching track ${trackId}:`, error);
+        console.error(`Error fetching racer ${racerId}:`, error);
         throw error;
     }
 }
 
 module.exports = {
-    getTracks,
-    getTrackById,
+    getRacers,
+    getRacerById,
 };

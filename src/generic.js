@@ -4,6 +4,8 @@ const { errorMessage } = require('./data/flavor/error.js');
 const { upgradeCooling, upgradeTopSpeed, avgSpeed } = require('./data/sw_racer/part.js')
 const { EmbedBuilder } = require('discord.js');
 
+const cache = require('./cache');
+
 const big_number_abbreviations = [
     {
         "abbr": "K",
@@ -117,6 +119,14 @@ const big_number_abbreviations = [
     }
 ]
 
+exports.getTrackById = function (trackId) {
+    return cache.tracks.find(track => track.id === trackId);
+}
+
+exports.getRacerById = function (racerId) {
+    return cache.racers.find(racer => racer.id === racerId);
+}
+
 exports.big_number = function (x) {
 
     let big_number = ""
@@ -162,7 +172,10 @@ exports.number_with_commas = function (x) {
 }
 
 exports.capitalize = function (string) {
-    return string.split(" ").map(word => word[0].toUpperCase() + word.slice(1)).join(" ")
+    if (!string) {
+        return ""
+    }
+    return string.split(" ").filter(word => word).map(word => word[0].toUpperCase() + word.slice(1)).join(" ")
 }
 exports.time_fix = function (time) {
     if (time == "DNF") {
@@ -271,12 +284,19 @@ exports.ordinalSuffix = function (i) {
     }
 }
 
-exports.getRacerName = function (racer) {
-    if (Array.isArray(racer)) {
-        return index.map(i => exports.getRacerName(i)).join(", ")
+exports.getRacerName = function (racerId) {
+    console.log('racerId', racerId)
+    if (Array.isArray(racerId)) {
+        return racerId.map(i => exports.getRacerName(i)).join(", ")
     }
 
-    if ([null, undefined, ""].includes(racer)) {
+    if ([null, undefined, ""].includes(racerId)) {
+        return '--'
+    }
+
+    const racer = exports.getRacerById(racerId)
+
+    if (!racer) {
         return '--'
     }
 
@@ -308,14 +328,22 @@ exports.getRacerEmbed = function (racer) {
         .setImage(racer.stats)
     return racerEmbed
 }
-exports.getTrackName = function (track) {
-    if (Array.isArray(track)) {
-        return track.map(i => exports.getTrackName(i)).join(", ")
+exports.getTrackName = function (trackId) {
+    if (Array.isArray(trackId)) {
+        return trackId.map(i => exports.getTrackName(i)).join(", ")
     }
 
-    if ([null, undefined, ""].includes(track)) {
+    if ([null, undefined, ""].includes(trackId)) {
         return '--'
     }
+
+    const track = exports.getTrackById(trackId)
+
+    if (!track) {
+        return '--'
+    }
+
+    console.log(track)
 
     return `${track.planet.emoji} ${track.name}`
 }

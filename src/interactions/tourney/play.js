@@ -1,7 +1,9 @@
-const { initializeMatch, adminEmbed, adminComponents, matchSelector, setupEmbed, raceEmbed, raceComponents, raceEventEmbed, raceEventComponents, matchSummaryEmbed, preRaceComponents, preRaceEmbed, warmupEmbed, inRaceEmbed, inRaceComponents, postRaceEmbed, warmupComponents, postRaceComponents, setupMatchEmbed, setupMatchComponents, scheduledMatchComponents, scheduledMatchEmbed } = require('./functions.js')
+const { adminEmbed, adminComponents, matchSelector, matchSummaryEmbed, preRaceComponents, preRaceEmbed, warmupEmbed, inRaceEmbed, inRaceComponents, postRaceEmbed, warmupComponents, postRaceComponents, setupMatchEmbed, setupMatchComponents, scheduledMatchComponents, scheduledMatchEmbed, submitRunModal, countDown, verifyModal, preRaceContent } = require('./functions.js')
 const { requestWithUser, axiosClient: axios } = require('../../axios.js')
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js')
-const { randomErrorMessage } = require('../../generic.js')
+const { randomErrorMessage, time_to_seconds } = require('../../generic.js')
+const { set } = require('firebase/database')
+const { WhyNobodyBuy, emojimap } = require('../../data/discord/emoji.js')
 
 const STATE_SCHEDULED = 0
 const STATE_MATCH_SETUP = 1;
@@ -12,17 +14,10 @@ const STATE_POST_RACE = 5;
 const STATE_POST_MATCH = 6;
 const STATE_CANCELLED = 99;
 
-const updateMap = {
-    'setTournament': 'tournament',
-    'setPhase': 'phaseId',
-    'setDivision': 'divisionId',
-    'setRound': 'roundId',
-    'setRuleset': 'ruleset'
-}
+
 
 exports.play = async function ({ client, interaction, args, userSnapshot } = {}) {
 
-    const memberId = userSnapshot.discordId
     let matchId = client.channelToMatch.get(interaction.channel.id)
 
     let match
@@ -87,36 +82,24 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
         return
     }
 
-    let updatedMatch = {}
-    const selection = interaction.values?.[0] ?? null
+    const selection = interaction.values ?? []
     const command = args[1]
+    let message = ""
 
     switch (command) {
-        //updates TODO: convert these to api handled commands with the side-effect of updating the ruleset id
+        case 'nextEvents':
+        case 'rewindMatch':
+        case 'abortCountdown':
+        case 'selectRacer':
+        case 'revealRacer':
+        case 'markReady':
+        case 'markUnready':
+        case 'restartRace':
         case 'setTournament':
         case 'setPhase':
         case 'setDivision':
         case 'setRound':
         case 'setRuleset':
-
-            updatedMatch[updateMap[command]] = selection
-
-            try {
-                const updateRes = await requestWithUser({
-                    method: 'patch',
-                    url: `/matches/${matchId}`,
-                    userSnapshot,
-                    data: updatedMatch,
-                })
-                console.log('updateRes', updateRes)
-                match = updateRes.data
-            } catch (err) {
-                interaction.reply({ content: `**${randomErrorMessage()}**\n❌ Failed to update match\n${err.message}`, ephemeral: true })
-                return
-            }
-            break
-
-        //setup actions
         case 'setup':
         case 'setupStart':
         case 'setupJoin':
@@ -130,22 +113,164 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
                     userSnapshot,
                     data: {
                         actions: [
-                            { name: command }
+                            {
+                                name: command,
+                                payload: selection[0]
+                            }
                         ],
                     },
                 })
 
                 match = setupRes.data
+                message = setupRes.meta.message
             } catch (err) {
                 interaction.reply({ content: `**${randomErrorMessage()}**\n❌ Failed to submit action\n${err.message}`, ephemeral: true })
                 return
             }
 
             break
+        case 'submitEvent':
+            const eventId = args[2]
+            try {
+                const eventRes = await requestWithUser({
+                    method: 'post',
+                    url: `/matches/${matchId}/submitAction`,
+                    userSnapshot,
+                    data: {
+                        actions: [
+                            {
+                                name: 'submitEvent',
+                                event: {
+                                    id: eventId,
+                                    selection: selection
+                                }
+                            }
+                        ]
+                    },
+                })
 
+                match = eventRes.data
+                message = eventRes.meta.message
+
+            } catch (err) {
+                interaction.reply({ content: `**${randomErrorMessage()}**\n❌ Failed to submit event\n${err.message}`, ephemeral: true })
+                return
+            }
+
+            break
+        case 'submitRun':
+
+            if (interaction.isModalSubmit()) {
+                const submittedTime = interaction.fields.getTextInputValue('time').trim()
+                const submittedDeaths = isNaN(Number(interaction.fields.getTextInputValue('deaths').trim())) ? '' : Number(interaction.fields.getTextInputValue('deaths'))
+                const dnf = submittedTime.toLowerCase() == 'dnf'
+
+                //validate submission
+                if (submittedTime.toLowerCase() !== 'dnf' && (isNaN(Number(submittedTime.replace(":", ""))) || time_to_seconds(submittedTime) == null)) { //time doesn't make sense
+                    const holdUp = new EmbedBuilder()
+                        .setTitle(`${WhyNobodyBuy} Time Does Not Compute`)
+                        .setDescription("Your time was submitted in an incorrect format.")
+                    interaction.reply({ embeds: [holdUp], ephemeral: true })
+                    return
+                }
+
+                //submit time
+                const run = {
+                    time: dnf ? 0 : time_to_seconds(submittedTime),
+                    deaths: submittedDeaths,
+                    notes: interaction.fields.getTextInputValue('notes').trim(),
+                    dnf: interaction.fields.getTextInputValue('time').toLowerCase() == 'dnf'
+                }
+
+                try {
+                    const eventRes = await requestWithUser({
+                        method: 'post',
+                        url: `/matches/${matchId}/submitAction`,
+                        userSnapshot,
+                        data: {
+                            actions: [
+                                {
+                                    name: 'submitRun',
+                                    run
+                                }
+                            ]
+                        },
+                    })
+
+                    match = eventRes.data
+                    message = eventRes.meta.message
+
+                } catch (err) {
+                    interaction.reply({ content: `**${randomErrorMessage()}**\n❌ Failed to submit run\n${err.message}`, ephemeral: true })
+                    return
+                }
+            } else {
+                const res = await axios.get(`/matches/${selection}`)
+                match = res.data?.data
+                // get existing run for submitting user
+                const runModal = submitRunModal({ currentRace: match.currentRace })
+                interaction.showModal(runModal)
+                return
+
+            }
+            break
+        case 'verify':
+            const res = await axios.get(`/matches/${selection}`)
+            match = res.data?.data
+
+            if (interaction.isModalSubmit()) {
+                const race = match.races[match.currentRace]
+                const runs = race.runs
+
+                match.players.forEach(player => {
+                    const run = runs.find(r => r.player.id == player.id)
+
+                    const submittedTime = interaction.fields.getTextInputValue(`${player.id}_time'`).trim()
+                    const submittedDeaths = interaction.fields.getTextInputValue(`${player.id}_deaths'`).trim()
+                    const dnf = submittedTime.toLowerCase() == 'dnf'
+
+                    run.time = dnf ? 0 : time_to_seconds(submittedTime)
+                    run.deaths = isNaN(Number(submittedDeaths)) ? '' : Number(submittedDeaths)
+                    run.dnf = dnf
+                })
+
+                try {
+                    const eventRes = await requestWithUser({
+                        method: 'post',
+                        url: `/matches/${matchId}/submitAction`,
+                        userSnapshot,
+                        data: {
+                            actions: [
+                                {
+                                    name: 'verify',
+                                    runs
+                                }
+                            ]
+                        },
+                    })
+
+                    match = eventRes.data
+                    message = eventRes.meta.message
+
+                } catch (err) {
+                    interaction.reply({ content: `**${randomErrorMessage()}**\n❌ Failed to verify run\n${err.message}`, ephemeral: true })
+                    return
+                }
+            } else {
+
+                // get existing run for submitting user
+                const verifyM = verifyModal({ match })
+                interaction.showModal(verifyM)
+                return
+            }
+            break
     }
 
-    let content = `${match?.status}`
+    if (!match) {
+        const res = await axios.get(`/matches/${matchId}`)
+        match = res.data?.data
+    }
+
     let embed = adminEmbed({ match })
     let components = []
 
@@ -163,6 +288,7 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
             components = setupMatchComponents({ match, tournaments, rulesets })
             break
         case STATE_PRE_RACE:
+            message = preRaceContent({ match })
             embed = preRaceEmbed({ match })
             components = preRaceComponents({ match })
             break
@@ -173,21 +299,33 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
         case STATE_IN_RACE:
             embed = inRaceEmbed({ match })
             components = inRaceComponents({ match })
+
+            if (command == 'markReady') {
+                interaction.update({ content: `Good luck racers! Countdown incoming ${emojimap.countdown}`, embeds: [], components: [] })
+                countDown(interaction)
+
+                setTimeout(() => {
+                    interaction.followUp({ embeds: [embed], components })
+                }, 10000)
+                return
+            }
+
             break
         case STATE_POST_RACE:
             embed = postRaceEmbed({ match })
             components = postRaceComponents({ match })
             break
         case STATE_POST_MATCH:
+
             break
         case STATE_CANCELLED:
             break
     }
 
     if (interaction.isChatInputCommand()) {
-        interaction.reply({ content, embeds: [embed], components })
+        interaction.reply({ content: message, embeds: [embed], components })
     } else {
-        interaction.update({ content, embeds: [embed], components })
+        interaction.update({ content: message, embeds: [embed], components })
     }
 
     //process command

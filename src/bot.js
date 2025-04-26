@@ -11,6 +11,7 @@ const { update_users } = require('./auto/update_users.js')
 const { botto_chat } = require('./auto/chat.js')
 const { join_message } = require('./auto/join.js')
 const { get_user_key_by_discord_id, initializePlayer, initializeUser } = require('./user.js')
+const { loadStaticData } = require('./loadStaticData');
 
 //openai
 const OpenAI = require("openai")
@@ -189,6 +190,8 @@ client.once(Events.ClientReady, async () => {
         }
 
     }
+
+    await loadStaticData();
     setInterval(updater, 1000 * 60)
 })
 
