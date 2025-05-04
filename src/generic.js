@@ -285,7 +285,6 @@ exports.ordinalSuffix = function (i) {
 }
 
 exports.getRacerName = function (racerId) {
-    console.log('racerId', racerId)
     if (Array.isArray(racerId)) {
         return racerId.map(i => exports.getRacerName(i)).join(", ")
     }
@@ -343,8 +342,6 @@ exports.getTrackName = function (trackId) {
         return '--'
     }
 
-    console.log(track)
-
     return `${track.planet.emoji} ${track.name}`
 }
 exports.getCircuitName = function (circuit) {
@@ -401,4 +398,17 @@ exports.getRandomElement = function (arr) {
 
 exports.randomErrorMessage = function () {
     return `${WhyNobodyBuy} ${exports.getRandomElement(errorMessage)}`
+}
+
+exports.arraysHaveSameElements = function (arr1, arr2) {
+    if (arr1.length !== arr2.length) return false;
+
+    const sorted1 = [...arr1].sort();
+    const sorted2 = [...arr2].sort();
+
+    for (let i = 0; i < sorted1.length; i++) {
+        if (sorted1[i] !== sorted2[i]) return false;
+    }
+
+    return true;
 }

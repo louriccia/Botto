@@ -6,14 +6,12 @@ const { planets } = require('../../data/sw_racer/planet.js')
 const { circuits } = require('../../data/sw_racer/circuit.js')
 const { difficulties } = require('../../data/difficulty.js')
 
-const { capitalize, time_fix, getTrackName, getRacerName, truncateString, getTrackById, getRacerById } = require('../../generic.js')
+const { capitalize, time_fix, getTrackName, getRacerName, truncateString, getTrackById, getRacerById, arraysHaveSameElements } = require('../../generic.js')
 const { postMessage } = require('../../discord.js');
 const { avgSpeed, upgradeCooling, upgradeTopSpeed } = require('../../data/sw_racer/part.js');
 const { blurple_color, ping_color } = require('../../colors.js');
 const axios = require('../../axios.js');
 const { racerSelector } = require('../challenge/functions.js');
-const { verifyBeforeUpdateEmail } = require('firebase/auth');
-
 
 const STATE_SCHEDULED = 0
 const STATE_MATCH_SETUP = 1;
@@ -34,6 +32,15 @@ const STATE_NAMES = {
     [STATE_POST_MATCH]: 'Post-Match',
     [STATE_CANCELLED]: 'Cancelled'
 }
+
+const conditionsMap = {
+    nu: { name: 'No Upgrades', desc: "Players must race with stock parts" },
+    sk: { name: 'Skips', desc: "Players can use skips (excluding AI and bounce skips)" },
+    fl: { name: 'Fastest Lap', desc: "winner is determined by fastest lap time of 3 laps" }
+}
+
+//TODO: show who picked the current race
+//TODO: fix leftover countdowns
 
 exports.initializeMatch = async function ({ interaction, memberId } = {}) {
     const res = await axios.post('/matches', {
@@ -105,16 +112,10 @@ exports.matchDescription = function ({ match } = {}) {
 }
 
 exports.setupMatchEmbed = function ({ match } = {}) {
-    const matchTourney = match.tournament
     const matchRules = match.ruleset
 
     let tourney_name = match.tournament?.name || "Practice Mode"
     let stream = match.stream
-
-    let round_desc = ""
-    if (match.tourney !== "practice" && match.tourney && match.bracket) {
-        round_desc = `${matchTourney?.stages[match.bracket].bracket} ${matchTourney?.stages[match.bracket].round}`
-    }
 
     const matchMaker = new EmbedBuilder()
         .setTitle("Match Setup")
@@ -131,6 +132,30 @@ exports.setupMatchEmbed = function ({ match } = {}) {
         .setColor("#3BA55D")
 
     return matchMaker
+}
+
+exports.getPoolDescription = function (pool) {
+    console.log('pool', pool)
+    const poolOption = exports.getPoolOption(pool, false)
+    return poolOption.label + (poolOption.description ? ` (${poolOption.description})` : "")
+}
+
+exports.getEventCost = function (event) {
+    if (!event || !event.cost || !event.selection?.length) {
+        return 0
+    }
+    return (event.cost ?? 0) * (event.selection.length / (event.qty ?? 1))
+
+}
+
+exports.getForcePoints = function (match, discordId) {
+    let startingPoints = match.ruleset?.forcePoints?.start ?? 0
+    match.races?.events?.forEach(event => {
+        if (event.user?.discordId == discordId) {
+            startingPoints -= exports.getEventCost(event)
+        }
+    })
+    return startingPoints
 }
 
 exports.eventDescriptor = function ({ event, present = false } = {}) {
@@ -157,24 +182,41 @@ exports.eventDescriptor = function ({ event, present = false } = {}) {
         'seedLoser': "Lower Ranked Player",
         'system': "Botto",
         'systemRandom': "Botto randomly",
-        'systemNext': "Botto"
+        'systemNext': "Botto",
+        'selectedPlayer': "Selected Player",
+        'unselectedPlayer': "Unselected Player",
     }
+
+    const typeDescriptionMap = {
+        'allyPool': " pick from their teammate's pool",
+        'enemyPool': " pick from their opponent's pool",
+        'winnerPool': " pick from the winner's pool",
+        'loserPool': " pick from the loser's pool",
+        'dynamicEvent': "n event"
+    }
+
+
 
     const selectionDescriptions = {
-        'track': getTrackName(event.selection),
-        'racer': getRacerName(event.selection),
-        'condition': condition_names[event.selection]
+        'track': getTrackName(event.selection?.map(track => track.id)),
+        'racer': getRacerName(event.selection?.map(racer => racer.id)),
+        'condition': event.selection?.map(selection => conditionsMap[selection.id]?.name).join(", "),
+        'color': event.selection?.[0]?.id == 'red' ? "🟥 Red" : "🟦 Blue",
+        'player': event.selection?.map(player => `${player.username}`).join(", "),
+        'enemyPool': event.selection?.map(selection => exports.getPoolDescription(selection)).join(", "), //TODO: This is a unique case that probably requires we enrich on the backend
     }
 
 
-    const eventPlayer = event.event == 'chanceCube' ? '<@545798436105224203>' : event.player?.id ? `<@${event.player.id}>` : choiceDescriptions[event.choice]
+    const eventPlayer = event.event == 'chanceCube' ? (present ? 'Botto' : '<@545798436105224203>') : event.user?.discordId && !present ? `<@${event.user.discordId}>` : choiceDescriptions[event.choice]
     const eventAction = actionDescriptions[event.event] || event.event
     const eventSelection = selectionDescriptions[event.type] || event.selection
-    const eventCost = event.cost ? " for " + event.cost + "💠 forcepoint" + (event.cost == 1 ? "" : "s") : ""
+    const eventCost = exports.getEventCost(event)
+    const eventCostDescription = event.cost ? " for " + eventCost + "💠 forcepoint" + (eventCost == 1 ? "" : "s") : ""
+    const eventType = typeDescriptionMap[event.type] ?? ` ${event.type}`
 
-    const eventDescription = `${eventPlayer} ${eventAction} a ${event.type}${present ? '' : `: ** ${eventSelection}**`}${eventCost}`
+    const eventDescription = `${eventPlayer} ${eventAction} a${eventType}${present ? '' : `: ** ${eventSelection}**`}${eventCostDescription}`
 
-    if (['chanceCube', 'poll'].includes(event.event)) {
+    if (['chanceCube', 'poll'].includes(event.event) && !present) {
         const pollDesc = exports.pollDescription({ event })
         return pollDesc ? `${pollDesc}\n${eventDescription}` : eventDescription
     }
@@ -183,7 +225,7 @@ exports.eventDescriptor = function ({ event, present = false } = {}) {
 }
 
 exports.pollDescription = function ({ event } = {}) {
-    const pollDescription = event.votes?.map(vote => (`*<@${vote.player.discordId}> voted for ${vote.selection.join(", ")}*`)).join("\n")
+    const pollDescription = event.votes?.map(vote => (`-# *<@${vote.player.discordId}> voted for ${vote.selection?.map(selection => selection.id).join(", ")}*`)).join("\n")
     return pollDescription
 }
 
@@ -198,25 +240,82 @@ exports.preRaceContent = function ({ match } = {}) {
     return ""
 }
 
+exports.getRaceDescription = function (race, defaultConditions) {
+    const raceDescription = {
+        title: "",
+        description: ""
+    }
+
+    const trackId = race.track
+    const conditionsTitle = exports.getConditionsDescription(race.conditions).string
+    const podOverrideName = race.racer ? getRacerName(race.racer) : ""
+    const podOverrideTitle = podOverrideName ? ` as ${podOverrideName}` : ""
+
+    raceDescription.title = getTrackName(trackId) + conditionsTitle + podOverrideTitle
+
+    const conditionsDescription = exports.getConditionsDescription({ ...defaultConditions, ...race.conditions }).list.map(item => `\`${item}\``).join(" ")
+
+    raceDescription.description = `-# ${conditionsDescription}\n` + (race.racerBans?.length ? `❌${getRacerName(race.racerBans)}` : "")
+
+    return raceDescription
+}
+
 exports.preRaceEmbed = function ({ match } = {}) {
     const race = match.races[match.currentRace]
+    let desc = ""
 
     const embed = new EmbedBuilder()
         .setAuthor({ name: "Race " + (match.currentRace + 1) + " - Event Phase" })
         .setColor(ping_color)
 
-    //event log
-    let desc = race.events.map(event => (exports.eventDescriptor({ event }))).join("\n")
+    //get forcepoints for current player
+    const currentPlayer = race.activeEvents[0]?.user?.id
+    const currentPoints = match.summary?.players?.find(player => player.id == currentPlayer)?.forcePoints ?? 0
+    if (currentPlayer) {
+        embed
+            .setFooter({ text: `💠 Force Points: ${currentPoints}` })
+    }
 
+    //event log
+
+    let groupId = ""
+    race.events.filter(event => ['chanceCube', 'poll'].includes(event.event) || event.selection?.length).forEach(event => {
+        if (event.groupId != groupId) {
+            groupId = event.groupId
+            desc += `\n`
+            if (event.groupId) {
+                desc += `-# <@${event.owner.discordId}> added to their pool: \n`
+            }
+        }
+        const indent = event.groupId ? "* " : ""
+        desc += indent + exports.eventDescriptor({ event }) + "\n"
+    })
+
+    //poll description
     race.activeEvents.forEach(event => {
         if (['chanceCube', 'poll'].includes(event.event) && event.votes?.length) {
             desc += "\n" + exports.pollDescription({ event })
         }
     })
 
+    //active events
+    if (race.activeEvents.length) {
+        desc += `\n\n-# Right now:\n${exports.eventDescriptor(
+            {
+                event: race.activeEvents[0],
+                present: true
+            })}${race.activeEvents.length > 1 ? ` +${race.activeEvents.length - 1} more events` : ""}`
+    }
+
+    //up next
+    desc += "\n\n-# Up next:\n-# "
     if (race.eventQueue?.length) {
-        desc += "\n\n-# Next Up:\n-# "
         desc += exports.eventDescriptor({ event: race.eventQueue[0], present: true })
+        if (race.eventQueue.length > 1) {
+            desc += ` +${race.eventQueue.length - 1} more events`
+        }
+    } else {
+        desc += "Warmup begins"
     }
 
     if (desc) {
@@ -226,17 +325,20 @@ exports.preRaceEmbed = function ({ match } = {}) {
     return embed
 }
 
-exports.getConditionOption = function (condition, selected) {
-    let conditions = {
-        nu: { name: 'No Upgrades', desc: "Players must race with stock parts" },
-        sk: { name: 'Skips', desc: "Players can use skips (excluding AI and bounce skips)" },
-        fl: { name: 'Fastest Lap', desc: "winner is determined by fastest lap time of 3 laps" }
+exports.getConditionOption = function (option, selected) {
+
+    const condition = option.id
+
+
+
+    if (!conditionsMap[condition]) {
+        throw new Error(`Unrecognized condition ${condition} ${conditionIds} ${conditionObject}`)
     }
 
     return (
         {
-            label: conditions[condition].name,
-            description: conditions[condition].desc,
+            label: conditionsMap[condition].name,
+            description: conditionsMap[condition].desc,
             value: condition,
             default: selected
         }
@@ -253,19 +355,80 @@ exports.getColorOption = function (option, selected) {
 
     return (
         {
-            label: colorMap[option].name,
-            value: option,
-            emoji: { name: colorMap[option].emoji },
+            label: colorMap[option.id].name,
+            value: option.id,
+            emoji: { name: colorMap[option.id].emoji },
             default: selected
         }
     )
 }
 
+exports.getConditionsDescription = function (conditions) {
+    if (!conditions) {
+        return { string: "", list: [] }
+    }
+    let descriptionString = ""
+    let descriptionList = []
+    if (conditions.laps) {
+        descriptionString += ` for ${conditions.laps} Laps`
+        descriptionList.push(`${conditions.laps} Laps`)
+    }
+    if (conditions.skips?.includes('sk')) {
+        descriptionString += ` with Skips`
+        descriptionList.push(`Skips`)
+    }
+    if (conditions.upgrades?.includes("mu")) {
+        descriptionString += ` with Upgrades`
+        descriptionList.push(`Upgrades Allowed`)
+    }
+    if (conditions.upgrades?.includes("nu")) {
+        descriptionString += ` with No Upgrades`
+        descriptionList.push(`No Upgrades`)
+    }
+    if (conditions.mirrored) {
+        descriptionString += ` Mirrored`
+        descriptionList.push(`Mirrored`)
+    }
+
+    return { string: descriptionString, list: descriptionList }
+}
+
+exports.getPoolOption = function (option, selected) {
+    const track = getTrackById(option.track)
+    const racer = getRacerById(option.racer)
+
+    const poolOption = {
+        label: `${track?.name}${this.getConditionsDescription(option.conditions).string}`,
+        emoji: {
+            name: track?.planet.emoji.split(":")[1],
+            id: track?.planet.emoji.split(":")[2].replace(">", "")
+        },
+        value: option.id,
+        default: selected
+    }
+
+    // if (option.conditions) {
+    //     poolOption.label += ` (${option.conditions?.map(condition => condition_names[condition]).join(", ")})`
+    // }
+
+    if (option.racer) {
+        poolOption.label += ` as ${racer.name}`
+    }
+
+    poolOption.label = poolOption.label?.substring(0, 100)
+
+    if (option.racerBans?.length) {
+        poolOption.description = `Bans: ${option.racerBans.map(ban => getRacerById(ban).name).join(", ")}`
+    }
+
+    return poolOption
+}
+
+
 exports.eventSelector = function ({ event } = {}) {
     const eventRow = new ActionRowBuilder()
 
-    let eventQty = (event.count == 1 ? event.type : `${event.count} ${event.type}s`)
-    console.log(event)
+    let eventQty = (event.qty == 1 ? event.type : `${event.qty} ${event.type}s`)
     let placeholder = event.name || capitalize(
         [
             event.event,
@@ -276,26 +439,33 @@ exports.eventSelector = function ({ event } = {}) {
     const event_selector = new StringSelectMenuBuilder()
         .setCustomId(`tourney_play_submitEvent_${event.id}`)
         .setPlaceholder(placeholder)
-        .setMinValues(event.count || !event.optional ? 1 : 0)
-        .setMaxValues([undefined, null, ""].includes(event.count) ? 1 : [undefined, null, ""].includes(event.limit) ? options.length : event.limit == 0 ? options.length : event.count * event.limit)
+        .setMinValues(event.optional ? 0 : event.qty ?? 1)
+        .setMaxValues(!event.qty ? 1 : event.max ?? Math.min(25, event.options.length))
 
     eventRow.addComponents(event_selector)
-
     event.options.forEach(option => {
-
+        const selected = event.selection?.some(selection => selection.id == option.id)
         switch (event.type) { //TODO: Refactor this event.selected crap
             case "color":
-                event_selector.addOptions(exports.getColorOption(option, event.selection?.includes(option)))
+                event_selector.addOptions(exports.getColorOption(option, selected))
                 break
             case "racer":
-                event_selector.addOptions(exports.getRacerOption(option, event.selection?.includes(option)))
+                event_selector.addOptions(exports.getRacerOption(option, selected))
                 break
             case "track":
-                event_selector.addOptions(exports.getTrackOption(option, event.selection?.includes(option)))
+                event_selector.addOptions(exports.getTrackOption(option, selected))
                 break
             case "condition":
-                event_selector.addOptions(exports.getConditionOption(option, event.selection?.includes(option)))
+                event_selector.addOptions(exports.getConditionOption(option, selected))
                 break
+            case "player":
+                event_selector.addOptions(exports.getPlayerOption(option, selected))
+                break
+            case "allyPool":
+            case "enemyPool":
+            case "winnerPool":
+            case "loserPool":
+                event_selector.addOptions(exports.getPoolOption(option, selected))
             case "racerpick":
                 if (option == 'favorite_2024') {
 
@@ -328,6 +498,15 @@ exports.eventSelector = function ({ event } = {}) {
                     }
                 }
                 break
+            default:
+                event_selector.addOptions(
+                    {
+                        label: option.id,
+                        value: option.id,
+                        default: selected
+                    }
+                )
+                break
         }
     })
 
@@ -354,7 +533,7 @@ exports.scheduledMatchComponents = function ({ match } = {}) {
     return [buttonRow]
 }
 
-exports.preRaceComponents = function ({ match } = {}) {
+exports.preRaceComponents = function ({ match, activeEventCost } = {}) {
     let components = []
     const race = match.races[match.currentRace]
     const events = race.activeEvents
@@ -370,7 +549,7 @@ exports.preRaceComponents = function ({ match } = {}) {
         .addComponents(
             new ButtonBuilder()
                 .setCustomId("tourney_play_nextEvents")
-                .setLabel("Submit Event") //label: notrack ? "No Track Selected" : (exports.getForcePoints({ player: chosing_player, interaction }) - fptotal < 0) ? "Not enough forcepoints" : oddselect ? "Too many or too few selections" : "Submit" + (fptotal == 0 ? "" : " (" + fptotal + "💠)") + (repeat ? " (🔁)" : ""),
+                .setLabel(`Submit Event${events.length > 1 ? "s" : ""}${activeEventCost ? ` (${activeEventCost}💠)` : ''}`) //label: notrack ? "No Track Selected" : (exports.getForcePoints({ player: chosing_player, interaction }) - fptotal < 0) ? "Not enough forcepoints" : oddselect ? "Too many or too few selections" : "Submit" + (fptotal == 0 ? "" : " (" + fptotal + "💠)") + (repeat ? " (🔁)" : ""),
                 .setStyle(ButtonStyle.Primary)
             //.setDisabled(events.filter(event => event.selection?.length || event.optional).length == 0)
         )
@@ -408,6 +587,8 @@ exports.tourneySelector = function ({ tournaments, selected } = {}) {
     return tourneyRow
 }
 
+
+
 exports.matchSelector = function ({ matches, selected } = {}) {
     const matchRow = new ActionRowBuilder()
     const match_selector = new StringSelectMenuBuilder()
@@ -424,7 +605,7 @@ exports.matchSelector = function ({ matches, selected } = {}) {
         default: selected.includes('new')
     })
 
-    matches.sort((a, b) => b.startDate - a.startDate).slice(0, 24).forEach(match => {
+    matches.sort((a, b) => b.createdAt - a.createdAt).slice(0, 24).forEach(match => {
         const matchPlayers = match.players?.length ? match.players.map(player => `${player.username}`).join(", ") : "No Players"
         const matchDescription = exports.matchDescription({ match })
         const matchTourney = match.tournament?.name || "Practice Mode"
@@ -547,8 +728,6 @@ exports.setupMatchComponents = function ({ match, tournaments, rulesets } = {}) 
 
     const tourneyRow = exports.tourneySelector({ tournaments, selected: match.tournament?.id ? [match.tournament.id] : [] })
     components.push(tourneyRow)
-
-    console.log(match)
 
     if (match.tournament == "practice") {
         const rulesetRow = exports.rulesetSelector({ rulesets, selected: [match.ruleset?.id] })
@@ -676,7 +855,7 @@ exports.resultFormat = function (run, winner, leaderboard) {
     (run.notes == "" || leaderboard ? "" : "\n📝 " + run.notes), (run.trecord ? '`Tourney Record`' : (run.record ? '`Best Available Pod`' : ''))].filter(f => f !== "").join(" ")
 }
 
-exports.playerWarmupStatus = function (playerStatus) {
+exports.playerWarmupStatus = function (playerStatus, hideReady = false) {
     const greenCircle = ":green_circle:"
     const redCircle = ":red_circle:"
 
@@ -684,8 +863,12 @@ exports.playerWarmupStatus = function (playerStatus) {
         return `${redCircle} Not Ready`
     }
 
-    const racerStatus = playerStatus.selectedRacer ? (playerStatus.racerShown ? getRacerName(racers[Number(playerStatus.selectedRacer)]) : `${greenCircle} Racer Selected (hidden)`) : `${redCircle} Racer Not Selected`
+    const racerStatus = playerStatus.selectedRacer ? (playerStatus.racerShown ? getRacerName(playerStatus.selectedRacer) : `${greenCircle} Racer Selected (hidden)`) : `${redCircle} Racer Not Selected`
     const readyStatus = playerStatus.isReady ? `${greenCircle} Ready` : `${redCircle} Not Ready`
+
+    if (hideReady) {
+        return `${racerStatus}`
+    }
 
     return `${racerStatus}\n${readyStatus}`
 }
@@ -693,16 +876,21 @@ exports.playerWarmupStatus = function (playerStatus) {
 exports.warmupEmbed = function ({ match } = {}) {
 
     const race = match.races[match.currentRace]
-    const countdownStatus = race.raceStart ? `Race begins <t:${race.raceSTart}:R>` : "Countdown starts when both players have readied."
+    const track = getTrackById(race.track)
+    const countdownStatus = race.raceStart ? `Race begins <t:${Math.round(race.raceStart / 1000)}:R>` : "Countdown starts when both players have readied."
+    const raceDescription = exports.getRaceDescription(race, match.ruleset.defaultConditions)
 
     const embed = new EmbedBuilder()
         .setAuthor({ name: `Race ${(match.currentRace + 1)} - Warmup` })
+        .setTitle(raceDescription.title)
         .setColor(ping_color)
-        .setDescription(countdownStatus)
+        .setDescription(`${raceDescription.description}\n\n${countdownStatus}\n`)
+        .setThumbnail(track?.preview)
+
 
     Object.values(match.players).map(player => embed.addFields({
         name: player.username,
-        value: exports.playerWarmupStatus(race.players[player.id]),
+        value: exports.playerWarmupStatus(race.players[player.id], race.raceStart > 0),
         inline: true
     }))
 
@@ -716,172 +904,146 @@ exports.warmupEmbed = function ({ match } = {}) {
     return embed
 }
 
+exports.racePlayerStatus = function (player, runs, hidden = true) {
+    const run = runs.find(run => run.player?.id == player?.id)
+    if (!run) {
+        return ":red_circle: Awaiting submission"
+    }
+
+    const runTime = run.dnf ? "DNF" : run.time ? time_fix(run.time) : ""
+    const runDeaths = `\n-# ${run.deaths == undefined ? '💀×?' : `💀×${run.deaths}`}`
+    const runNotes = run.notes ? `\n-# 📝 *${run.notes}*` : ""
+    const hiddenTime = hidden ? "||" : ""
+
+    return `:green_circle: Results Submitted\n**${hiddenTime}⏱${runTime}${hiddenTime}**${runDeaths}${runNotes}`
+}
+
 exports.inRaceEmbed = function ({ match } = {}) {
-    const matchRules = match.ruleset
     const race = match.races[match.currentRace]
-    const events = race.events
-    const conditions = 'conditions' // exports.getConditions(matchRules, race, race)
-    //let pod_override = events.find(event => event.event == 'override' && event.type == 'racerpick')?.selection
-    //let podbans = race.events ? Object.values(race.events).filter(e => e.event == 'tempban' && e.type == 'racer').map(e => e.selection).flat().map(s => String(s)) : []
-    //let forces = events.filter(event => event.event == 'override' && event.type == 'condition').map(event => capitalize(condition_names[event.selection]))
+    const raceDescription = exports.getRaceDescription(race, match.ruleset.defaultConditions)
+    const track = getTrackById(race.track)
 
-    // if (events.map(e => e.repeat).includes(true)) {
-    //     forces.push('Runback')
-    // }
-
-    // if (race.gents?.agreed) {
-    //     forces.push("🎩 Gentleman's Agreement")
-    // }
-
-    // let conmap = Object.values(conditions).filter(c => !['um', 'fp', 'tt'].includes(c)).map(con => "`" + condition_names[con] + "`").join(" ")
-    // let banmap = podbans.map(ban => getRacerName(ban)).join(", ")
-
-    //set up embed
-    console.log('race', race)
-    const trackId = race.track
-    const track = getTrackById(trackId)
     const embed = new EmbedBuilder()
-        .setTitle(getTrackName(trackId))  //+ (pod_override ? ` as ${getRacerName(pod_override)}` : "") + (forces.length ? ` (${forces.join(", ")})` : "")
+        .setAuthor({ name: "Race " + (match.currentRace + 1) + " - In Progress" })
+        .setTitle(raceDescription.title)
         .setThumbnail(track?.preview)
-        //.setDescription(conmap + (banmap && !pod_override ? `\n❌${banmap}\n` : '') + ([null, undefined, ""].includes(race.gents) ? "" : "\n🎩 " + race.gents.terms))
-        .setDescription("description")
-
+        .setDescription(raceDescription.description)
 
     // get leaderboard
 
-    // if (leaderboard.length) {
-    //     embed.addFields({ name: 'Best Times', value: leaderboard.map(r => resultFormat(r, false, true)).join("\n"), inline: false })
-    // }
-
     embed
-        .setAuthor({ name: "Race " + (match.currentRace + 1) + " - In Progress" })
         .setColor("#DD2E44")
     Object.values(match.players).map(player => embed.addFields({
         name: player.username,
-        value: "race status", //race.runs[player].time == "" ? ":red_circle: Awaiting submission" : ":green_circle: Results Submitted\n||" + resultFormat(race.runs[player], false) + "||"
+        value: exports.racePlayerStatus(player, race.runs), //
         inline: true
     }))
-    // if (Object.values(race.runs).map(run => run.time).filter(time => time == "").length == 0) {
-    //     embed.addFields({ name: "🎙️ Commentators/Trackers", value: ":red_circle: Awaiting Verification", inline: false })
-    // }
 
     return embed
 }
 
 exports.postRaceEmbed = function ({ match } = {}) {
+    const race = match.races[match.currentRace]
+    const track = getTrackById(race.track)
+    const raceDescription = exports.getRaceDescription(race, match.ruleset.defaultConditions)
+
     const embed = new EmbedBuilder()
         .setAuthor({ name: "Race " + (match.currentRace + 1) + " - Post Race" })
+        .setTitle(raceDescription.title)
+        .setDescription(raceDescription.description)
+        .setThumbnail(track?.preview)
         .setColor("#2D7D46")
-    let winner = ""// exports.getWinner({ race, interaction })
+
     Object.values(match.players).map(player => embed.addFields({
-        name: `${player.username}`(player.id == winner ? " 👑" : ""),
-        value: 'value', // resultFormat(race.runs[player], winner == player),
+        name: `${player.id == race.winner?.id ? "👑 " : ""}${player.username}`,
+        value: exports.racePlayerStatus(player, race.runs, false), // resultFormat(race.runs[player], winner == player),
         inline: true
+    }))
+
+    if (match.status == STATE_POST_RACE) {
+        embed.addFields({ name: "🎙️ Commentators/Trackers", value: ":red_circle: Awaiting Verification", inline: false })
     }
-    ))
-    embed.setTitle('track') //getTrackName(track) + (forces.length ? ` (${forces.join(", ")})` : "") + ` \n${(exports.getUsername({ member: winner, db, short: true }))} Wins!`)
 
     return embed
 }
 
 exports.postRaceComponents = function ({ match } = {}) {
-    const ButtonRow = ActionRowBuilder()
+    const ButtonRow = new ActionRowBuilder()
         .addComponents(
             new ButtonBuilder()
                 .setCustomId(`tourney_play_submitRun`)
-                .setStyle(ButtonStyle.Primary)
+                .setStyle(ButtonStyle.Secondary)
                 .setLabel("Submit Results")
         )
         .addComponents(
             new ButtonBuilder()
                 .setCustomId("tourney_play_verifyResults")
                 .setLabel("Verify")
+                .setStyle(ButtonStyle.Primary)
+        )
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId("tourney_play_restartRace")
                 .setStyle(ButtonStyle.Secondary)
+                .setLabel("Restart")
         )
 
     return [ButtonRow]
 }
 
-exports.matchSummaryEmbed = function ({ interaction } = {}) {
+exports.postMatchEmbed = function ({ match } = {}) {
+    const winEmbed = new EmbedBuilder()
+        .setAuthor({ name: "Match Concluded" })
+        .setTitle(`${match.winner.username} Wins!`)
+        .setDescription("GGs, racers! The match has been saved.")
+        .addFields({ name: ":microphone2: Commentators/Trackers", value: ":orange_circle: Don't forget to click 'Episode Finished' after the interviews" })
 
-    const match_data = db.ty.live[interaction.channelId]
-    const match_rules = db.ty.rulesets.saved?.[match_data.ruleset]
-    const match_tourney = db.ty.tournaments[match_data.tourney]
+    return winEmbed
+}
 
-    //match_data = tourney_live_data[interaction.channel_id]
-    let summary = {}
-    Object.values(match_data.players).forEach(player => {
-        summary[player] = {
-            wins: 0,
-            forcepoints: match_rules.match.forcepoints.start,
-            runbacks: match_rules.match.repeattrack.limit,
-            deaths: 0,
-            deathtrue: true,
-            time: 0,
-            timetrue: true
-        }
-    })
-    Object.values(match_data.races).forEach((race, index) => {
-        if (!race.live) {
-            if (exports.getWinner({ race: index, interaction })) {
-                summary[exports.getWinner({ race: index, interaction })].wins++
-            }
-            if (![null, undefined, ""].includes(race.events)) {
-                Object.values(race.events).forEach(event => {
-                    if (![null, undefined, ""].includes(event.player)) {
-                        if (![null, undefined, ""].includes(event.cost)) {
-                            summary[event.player].forcepoints -= Number(event.cost)
-                        }
-                        if (event.event == 'selection' && event.type == 'track' && event.repeat == true) {
-                            summary[event.player].runbacks--
-                        }
-                    }
-                })
-                Object.values(race.runs).forEach(run => {
-                    if (![null, undefined, ""].includes(run.deaths)) {
-                        summary[run.player].deaths += Number(run.deaths)
-                    } else {
-                        summary[run.player].deathtrue = false
-                    }
-                    if (![null, undefined, "", 'DNF'].includes(run.time)) {
-                        summary[run.player].time += Number(run.time)
-                    } else {
-                        summary[run.player].timetrue = false
-                    }
+exports.matchSummaryEmbed = function ({ match } = {}) {
 
-                })
-            }
-        }
+    const summary = match.summary
+
+    if (!summary) {
+        return null
     }
-    )
-    let leader = { player: "", wins: 0 }
-    Object.keys(summary).forEach(player => {
-        let stats = summary[player]
-        if (stats.wins > leader.wins) {
-            leader.player = player
-            leader.wins = stats.wins
-        } else if (stats.wins == leader.wins) {
-            leader.player = "tie"
-        }
-    })
+
     const embed = new EmbedBuilder()
         .setAuthor({ name: 'Match Summary' })
         .setColor("#FFFFFF")
-        .setDescription('First to ' + match_rules.general.winlimit + ' wins.')
+        .setDescription(`First to ${summary.winLimit} wins.`)
         .setTitle(
-            leader.player == "tie" ?
-                "Tied Match " + leader.wins + " to " + leader.wins :
-                exports.getUsername({ member: leader.player, db, short: true }) + " " + (leader.wins == match_rules.general.winlimit ? "wins" : "leads") + " " + leader.wins + " to " + summary[exports.getOpponent({ interaction, player: leader.player })].wins + (leader.wins == match_rules.general.winlimit - 1 ? " (Match Point)" : ""))
-    Object.values(match_data.players).forEach(player => embed.addFields({
-        name: exports.getUsername({ member: player, db }),
-        value: [
-            "👑" + summary[player].wins, '💠' + summary[player].forcepoints,
-            (match_rules.match.repeattrack ? '🔁' + summary[player].runbacks : "")
-        ].filter(a => a !== '').map(a => '`' + a + '`').join(" ") + '\n`⏱️' + time_fix(summary[player].time) + (summary[player].timetrue ? "" : "+") + '`' +
-            ' `💀' + summary[player].deaths + (summary[player].deathtrue ? "" : "+") + '`',
-        inline: true
-    }))
-    embed.addFields({ name: "🎙️ Commentators/Trackers", value: ":orange_circle: Don't forget to update the score!", inline: false })
+            summary.tied ? `Tied Match ${summary.players[0].wins} to ${summary.players[0].wins}` :
+                `${summary.players[0].username} ${(match.status == STATE_POST_MATCH ? "wins" : "leads")} ${summary.players[0].wins} to ${summary.players[1].wins}` +
+                (summary.matchPoint ? " (Match Point)" : ""))
+
+    summary.players.forEach((player, i) => {
+        embed.addFields({
+            name: player.username,
+            value: [
+                `👑 \`${player.wins}\` 💠\`${player.forcePoints}\``,
+                `⏱️ \`${time_fix(player.time) + (player.trueTime ? "" : "+")}\``,
+                `💀 \`${player.deaths + (player.trueDeaths ? "" : "+")}\``
+            ].join("\n"),
+            inline: true
+        })
+    })
+
+    if (match.status !== STATE_POST_MATCH) {
+        embed.addFields({
+            name: "🎙️ Commentators/Trackers",
+            value: ":orange_circle: Don't forget to update the score!",
+            inline: false
+        })
+    } else {
+        embed.addFields({
+            name: "🎙️ Commentators/Trackers",
+            value: ":orange_circle: Don't forget to close the match!",
+            inline: false
+        })
+    }
+
     return embed
 }
 
@@ -980,7 +1142,7 @@ exports.warmupComponents = function ({ match }) {
         )
         return [ButtonRow]
     }
-    if (race.countdown) {
+    if (race.raceStart) {
         ButtonRow
             .addComponents(
                 new ButtonBuilder()
@@ -1015,14 +1177,14 @@ exports.warmupComponents = function ({ match }) {
                     .setStyle(ButtonStyle.Secondary)
             )
     }
-    if (match.ruleset.gentlemensAgreement) {
-        ButtonRow.addComponents(
-            new ButtonBuilder()
-                .setCustomId("tourney_play_race" + race + "_gents")
-                .setEmoji("🎩")
-                .setStyle(ButtonStyle.Secondary)
-        )
-    }
+    // if (match.ruleset.gentlemensAgreement) {
+    //     ButtonRow.addComponents(
+    //         new ButtonBuilder()
+    //             .setCustomId("tourney_play_race" + race + "_gents")
+    //             .setEmoji("🎩")
+    //             .setStyle(ButtonStyle.Secondary)
+    //     )
+    // }
     // if (race.racer_override) {
     //     return [buttonRow]
     // }
@@ -1034,7 +1196,7 @@ exports.verifyModal = function ({ match }) {
     const race = match.races[match.currentRace]
 
     const verifyModal = new ModalBuilder()
-        .setCustomId("tourney_play_verify")
+        .setCustomId("tourney_play_verifyResults")
         .setTitle(`Verify Race ${match.currentRace + 1} Results`)
     race.runs.forEach(run => {
         const timeInput = new TextInputBuilder()
@@ -1174,13 +1336,12 @@ exports.getUsername = function ({ member, short } = {}) {
     return name
 }
 
-exports.getTrackOption = function (i, selected) {
-    const track = getTrackById(i)
-    console.log('tarck', track)
+exports.getTrackOption = function (option, selected) {
+    const track = getTrackById(option.id)
     return (
         {
             label: track.name,
-            value: String(i),
+            value: option.id,
             description: [track.circuit.abbreviation + " - Race " + track.cirnum, track.planet.name, difficulties[track.difficulty].name, track.lengthclass].join(" | "),
             emoji: {
                 name: track.planet.emoji.split(":")[1],
@@ -1191,14 +1352,24 @@ exports.getTrackOption = function (i, selected) {
     )
 }
 
-exports.getRacerOption = function (i, selected) {
-    const racer = getRacerById(i)
+exports.getPlayerOption = function (option, selected) {
+    return (
+        {
+            label: option.username,
+            value: option.id,
+            default: selected
+        }
+    )
+}
+
+exports.getRacerOption = function (option, selected) {
+    const racer = getRacerById(option.id)
     let muspeed = avgSpeed(upgradeTopSpeed(racer.max_speed, 5), racer.boost_thrust, racer.heat_rate, upgradeCooling(racer.cool_rate, 5)).toFixed(0)
     let nuspeed = avgSpeed(upgradeTopSpeed(racer.max_speed, 0), racer.boost_thrust, racer.heat_rate, upgradeCooling(racer.cool_rate, 0)).toFixed(0)
     return (
         {
             label: racer.name,
-            value: String(i),
+            value: String(option.id),
             description: 'Avg Speed ' + muspeed + ' (NU ' + nuspeed + "); Max Turn " + racer.max_turn_rate + "°/s",
             emoji: {
                 name: racer.flag.split(":")[1],
@@ -1207,14 +1378,6 @@ exports.getRacerOption = function (i, selected) {
             default: selected
         }
     )
-}
-
-exports.getOpponent = function ({ interaction, player } = {}) {
-    const match_data = db.ty.live[interaction.channelId]
-    const match_rules = db.ty.rulesets.saved?.[match_data.ruleset]
-    const match_tourney = db.ty.tournaments[match_data.tourney]
-    let opponent = Object.values(match_data.players).filter(p => p != player)
-    return opponent[0]
 }
 
 exports.matchMakerEmbed = function ({ interaction }) {

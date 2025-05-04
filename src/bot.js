@@ -179,7 +179,7 @@ client.once(Events.ClientReady, async () => {
     const updater = async () => {
         Object.keys(db.user).filter(key => db.user[key]?.random?.items).forEach(key => completeRepairs({ user_profile: db.user[key].random, profile_ref: database.ref(`users/${key}/random`), client, member: db.user[key].discordID }))
 
-        scan_streams(client);
+        //scan_streams(client);
 
         if (!testing) {
             //searchYouTubeStreams();
