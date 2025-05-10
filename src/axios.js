@@ -48,7 +48,6 @@ async function requestWithUser({ method, url, userSnapshot, data = {}, meta = {}
     }
 
     try {
-        console.log(config)
         const res = await axiosClient(config);
         return res.data;
     } catch (err) {

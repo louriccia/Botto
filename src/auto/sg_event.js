@@ -1,11 +1,13 @@
 const rp = require('request-promise');
 const cheerio = require('cheerio');
+const axios = require('axios')
 const url = 'http://speedgaming.org/swe1racer/';
 const { betEmbed, betComponents } = require('../interactions/trugut_functions.js');
 const { get_user_key_by_sg_name } = require('../user.js');
 const { swe1r_guild } = require('../data/discord/guild.js');
 const { postMessage, editMessage } = require('../discord.js');
 
+const sg_base_url = 'https://speedgaming.org/api/schedule/?event=swe1racer'
 
 function matchDesc(match, db) {
     return (match.commentators && Object.keys(match.commentators).length > 0 ? "🎙️ " + Object.keys(match.commentators).map(id => db.user[id].name).join(", ") : "Sign up for commentary: https://speedgaming.org/swe1racer/crew/") +
@@ -18,13 +20,24 @@ function matchTitle(match, db) {
     return (round ? `${round.bracket} ${round.round}: ` : '') + (match.players ? Object.keys(match.players).map(id => db.user[id].name).join(" vs ") : 'Unknown Players')
 }
 
-function isDaylightSavingActive() {
-    const now = new Date();
-    const januaryOffset = new Date(now.getFullYear(), 0, 1).getTimezoneOffset();
-    const julyOffset = new Date(now.getFullYear(), 6, 1).getTimezoneOffset();
+exports.get_sg_events = async function (client) {
+    const Guild = await client.guilds.cache.get(swe1r_guild)
 
-    // DST is active if the current offset is different from the non-DST offset
-    return now.getTimezoneOffset() !== Math.max(januaryOffset, julyOffset);
+    //sg api call
+    const currentDate = new Date();
+    currentDate.setMonth(currentDate.getMonth() + 1);
+    const timestamp = `${currentDate.getFullYear()}-${currentDate.getMonth() + 1}-${currentDate.getDate()}T00:00:00`;
+    try {
+        const scheduleResponse = await axios.get(`${sg_base_url}&to=${timestamp}`)
+        const events = scheduleResponse.data
+        events.forEach(match => {
+            match
+        })
+    } catch (err) {
+        console.log(err)
+    }
+
+
 }
 
 
@@ -62,7 +75,7 @@ exports.scrape_sg_events = async function (client, db, database) {
                                 match.commentators[c] = db.user[c].discordID ?? ''
                             })
                         } else if (values[j].includes("date")) {
-                            match.datetime = Date.parse(content.replace(", ", " " + new Date().getFullYear() + " ").replace(" ", " ") + (isDaylightSavingActive() ? " EDT" : " EST"))
+                            match.datetime = Date.parse(content.replace(", ", " " + new Date().getFullYear() + " ").replace(" ", " ") + " ET") // + (isDaylightSavingActive() ? " EDT" : " EST"))
                         } else if (values[j].includes("players")) {
                             let split = content.split(/[^A-Za-z0-9_ ]+/g).map(f => f.split(" vs ")).flat()
                             split.map(play => get_user_key_by_sg_name(play, db)).filter(p => ![null, undefined, ''].includes(p)).forEach(p => {

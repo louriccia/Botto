@@ -9,7 +9,7 @@ const { track_hints } = require('../../data/flavor/hints/track.js')
 const { mpQuotes } = require('../../data/flavor/multiplayer.js')
 
 const { banners } = require('../../data/discord/banner.js')
-const { number_with_commas, time_fix, capitalize, time_to_seconds, getRacerName, big_number } = require('../../generic.js')
+const { number_with_commas, time_fix, capitalize, time_to_seconds, getRacerName, big_number, getTracks } = require('../../generic.js')
 
 const { winnings_map, flavormap, settings_default } = require('./data.js')
 const { inventorySections } = require('../../data/challenge/inventory.js')
@@ -1385,7 +1385,8 @@ exports.challengeComponents = function (current_challenge, user_profile) {
     return row
 }
 
-exports.trackSelector = function ({ tracks, customid, placeholder, min, max, descriptions, selected } = {}) {
+exports.trackSelector = function ({ customid, placeholder, min, max, descriptions, selected } = {}) {
+    const tracks = getTracks()
     const trackSelectRow = new ActionRowBuilder()
     const track_selector = new StringSelectMenuBuilder()
         .setCustomId(customid)

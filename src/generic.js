@@ -126,6 +126,10 @@ exports.getTrackById = function (trackId) {
     return cache.tracks.find(track => track.id === trackId);
 }
 
+exports.getTracks = function () {
+    return cache.tracks
+}
+
 exports.getRacerById = function (racerId) {
     return cache.racers.find(racer => racer.id === racerId);
 }

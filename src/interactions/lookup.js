@@ -1,8 +1,6 @@
 const axios = require('axios');
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { getRacerEmbed, getTrackEmbed, partEmbed } = require('../generic.js');
+const { getRacerEmbed, getTrackEmbed, partEmbed, getTracks } = require('../generic.js');
 const { racerSelector, trackSelector } = require('./challenge/functions.js');
-const { getTrackById, getTracks } = require('../services/trackService.js');
 
 axios.defaults.baseURL = 'http://localhost:3000/api/v1';
 axios.defaults.headers.common['Authorization'] = 'Bearer YOUR_ACCESS_TOKEN';

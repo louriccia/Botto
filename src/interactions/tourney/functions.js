@@ -523,6 +523,16 @@ exports.eventSelector = function ({ event, options } = {}) {
         }
     })
 
+    //sort racers by avg speed
+    if (event.type == 'racer') {
+        event_selector.options.sort((a, b) => {
+            const a_racer = getRacerById(a.data.value)
+            const b_racer = getRacerById(b.data.value)
+            const a_muspeed = avgSpeed(upgradeTopSpeed(a_racer.max_speed, 5), a_racer.boost_thrust, a_racer.heat_rate, upgradeCooling(a_racer.cool_rate, 5)).toFixed(0)
+            const b_muspeed = avgSpeed(upgradeTopSpeed(b_racer.max_speed, 5), b_racer.boost_thrust, b_racer.heat_rate, upgradeCooling(b_racer.cool_rate, 5)).toFixed(0)
+            return b_muspeed - a_muspeed
+        })
+    }
     return eventRow
 }
 
@@ -1255,7 +1265,7 @@ exports.submitRunModal = function ({ currentRace, run = null }) {
 
     const submitModal = new ModalBuilder()
         .setCustomId("tourney_play_submitRun")
-        .setTitle(`Submit Race ${currentRace} Results`)
+        .setTitle(`Submit Race ${currentRace + 1} Results`)
     const Time = new TextInputBuilder()
         .setCustomId("time")
         .setLabel("⏱️ Time (write 'dnf' if forfeited)")
@@ -1279,7 +1289,6 @@ exports.submitRunModal = function ({ currentRace, run = null }) {
         .setRequired(false)
 
     if (run) {
-
         Time.setValue((String(run.time).toLowerCase() == 'dnf' ? 'DNF' : (run.time == "" ? "" : String(time_fix(run.time)))))
         Deaths.setValue(String(run.deaths))
         Notes.setValue(String(run.notes))

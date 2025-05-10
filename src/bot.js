@@ -2,9 +2,8 @@ require('dotenv').config({ path: __dirname + '/../.env' })
 
 const { testing } = require('../config.js')
 
-const { dailyChallenge, monthlyChallenge, dailyBounty, completeRepairs } = require("./interactions/challenge/functions.js")
+const { dailyChallenge, monthlyChallenge, completeRepairs } = require("./interactions/challenge/functions.js")
 const { swe1r_guild, test_guild } = require('./data/discord/guild.js')
-const { scrape_sg_events } = require('./auto/sg_event.js')
 const { scan_streams } = require('./twitch.js')
 const { drops } = require('./auto/drops.js')
 const { update_users } = require('./auto/update_users.js')
@@ -176,23 +175,18 @@ client.once(Events.ClientReady, async () => {
     log_preview(client)
     update_users(client)
 
-    const updater = async () => {
+    const minuteUpdater = async () => {
         Object.keys(db.user).filter(key => db.user[key]?.random?.items).forEach(key => completeRepairs({ user_profile: db.user[key].random, profile_ref: database.ref(`users/${key}/random`), client, member: db.user[key].discordID }))
 
-        //scan_streams(client);
-
         if (!testing) {
-            //searchYouTubeStreams();
-            dailyBounty({ client, db, bountyref: database.ref('challenge/bounties') })
+            scan_streams(client);
             dailyChallenge({ client, db, challengesref: database.ref('challenge/challenges') })
             monthlyChallenge({ client, db, challengesref: database.ref('challenge/challenges'), database })
-            scrape_sg_events(client, db, database)
         }
-
     }
 
     await loadStaticData();
-    setInterval(updater, 1000 * 60)
+    setInterval(minuteUpdater, 1000 * 60)
 })
 
 client.on(Events.GuildMemberAdd, (guildMember) => { //join log
