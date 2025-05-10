@@ -1,17 +1,13 @@
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder, ActionRow, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
 
-const { methods, trackgroups, firsts, condition_names, choices, events } = require('./data.js')
-
-const { planets } = require('../../data/sw_racer/planet.js')
-const { circuits } = require('../../data/sw_racer/circuit.js')
 const { difficulties } = require('../../data/difficulty.js')
 
-const { capitalize, time_fix, getTrackName, getRacerName, truncateString, getTrackById, getRacerById, arraysHaveSameElements } = require('../../generic.js')
+const { capitalize, time_fix, getTrackName, getRacerName, truncateString, getTrackById, getRacerById } = require('../../generic.js')
 const { postMessage } = require('../../discord.js');
 const { avgSpeed, upgradeCooling, upgradeTopSpeed } = require('../../data/sw_racer/part.js');
 const { blurple_color, ping_color } = require('../../colors.js');
-const axios = require('../../axios.js');
 const { racerSelector } = require('../challenge/functions.js');
+const axios = require('../../axios.js');
 
 const STATE_SCHEDULED = 0
 const STATE_MATCH_SETUP = 1;
@@ -37,6 +33,36 @@ const conditionsMap = {
     nu: { name: 'No Upgrades', desc: "Players must race with stock parts" },
     sk: { name: 'Skips', desc: "Players can use skips (excluding AI and bounce skips)" },
     fl: { name: 'Fastest Lap', desc: "winner is determined by fastest lap time of 3 laps" }
+}
+
+const banStatusMap = {
+    0: {
+        name: "Not banned",
+        emoji: ""
+    },
+    1: {
+        name: "Temporarily banned and cannot be played this race",
+        emoji: "❌"
+    },
+    2: {
+        name: "Permanently banned and cannot be played all match",
+        emoji: "🚫"
+    },
+}
+
+const repeatStatusMap = {
+    0: {
+        name: "Repeatable",
+        emoji: ""
+    },
+    1: {
+        name: "Unrepeatable",
+        emoji: "⭕"
+    },
+    2: {
+        name: "Repeatable with condition",
+        emoji: "*️⃣"
+    }
 }
 
 //TODO: show who picked the current race
@@ -77,7 +103,7 @@ exports.matchTitle = function ({ match } = {}) {
     if (!match) {
         return 'No Match'
     }
-    let tourney = ['practice', ''].includes(match.tourney) ? 'Practice Mode' : match.tourney?.name
+    let tourney = ['practice', ''].includes(match.tournament) ? 'Practice Mode' : match.tournament?.name
     let players = match.players?.length ? match.players.map(player => `<@${player.discordId}>`).join(", ") : "No players"
     return `${tourney} - ${players}`
 }
@@ -135,9 +161,13 @@ exports.setupMatchEmbed = function ({ match } = {}) {
 }
 
 exports.getPoolDescription = function (pool) {
-    console.log('pool', pool)
+    if (!pool) {
+        return ""
+    }
+    const track = getTrackById(pool.track)
+
     const poolOption = exports.getPoolOption(pool, false)
-    return poolOption.label + (poolOption.description ? ` (${poolOption.description})` : "")
+    return track?.planet?.emoji + " " + poolOption.label + (poolOption.description ? ` (${poolOption.description})` : "")
 }
 
 exports.getEventCost = function (event) {
@@ -158,7 +188,8 @@ exports.getForcePoints = function (match, discordId) {
     return startingPoints
 }
 
-exports.eventDescriptor = function ({ event, present = false } = {}) {
+exports.eventDescriptor = function ({ event, present = false, options } = {}) {
+    const eventOptions = options?.[event.id]
     const actionDescriptions = {
         permaBan: present ? "🚫 perma-bans" : "🚫 perma-banned",
         tempBan: present ? "❌ temp-bans" : "❌ temp-banned",
@@ -194,8 +225,6 @@ exports.eventDescriptor = function ({ event, present = false } = {}) {
         'loserPool': " pick from the loser's pool",
         'dynamicEvent': "n event"
     }
-
-
 
     const selectionDescriptions = {
         'track': getTrackName(event.selection?.map(track => track.id)),
@@ -260,7 +289,7 @@ exports.getRaceDescription = function (race, defaultConditions) {
     return raceDescription
 }
 
-exports.preRaceEmbed = function ({ match } = {}) {
+exports.preRaceEmbed = function ({ match, summary, options } = {}) {
     const race = match.races[match.currentRace]
     let desc = ""
 
@@ -270,7 +299,7 @@ exports.preRaceEmbed = function ({ match } = {}) {
 
     //get forcepoints for current player
     const currentPlayer = race.activeEvents[0]?.user?.id
-    const currentPoints = match.summary?.players?.find(player => player.id == currentPlayer)?.forcePoints ?? 0
+    const currentPoints = summary?.players?.find(player => player.id == currentPlayer)?.forcePoints ?? 0
     if (currentPlayer) {
         embed
             .setFooter({ text: `💠 Force Points: ${currentPoints}` })
@@ -288,7 +317,7 @@ exports.preRaceEmbed = function ({ match } = {}) {
             }
         }
         const indent = event.groupId ? "* " : ""
-        desc += indent + exports.eventDescriptor({ event }) + "\n"
+        desc += indent + exports.eventDescriptor({ event, present: false, options }) + "\n"
     })
 
     //poll description
@@ -303,14 +332,15 @@ exports.preRaceEmbed = function ({ match } = {}) {
         desc += `\n\n-# Right now:\n${exports.eventDescriptor(
             {
                 event: race.activeEvents[0],
-                present: true
+                present: true,
+                options
             })}${race.activeEvents.length > 1 ? ` +${race.activeEvents.length - 1} more events` : ""}`
     }
 
     //up next
     desc += "\n\n-# Up next:\n-# "
     if (race.eventQueue?.length) {
-        desc += exports.eventDescriptor({ event: race.eventQueue[0], present: true })
+        desc += exports.eventDescriptor({ event: race.eventQueue[0], present: true, options })
         if (race.eventQueue.length > 1) {
             desc += ` +${race.eventQueue.length - 1} more events`
         }
@@ -394,8 +424,14 @@ exports.getConditionsDescription = function (conditions) {
 }
 
 exports.getPoolOption = function (option, selected) {
+    console.log(option)
     const track = getTrackById(option.track)
     const racer = getRacerById(option.racer)
+
+    if (!track) {
+        console.log('no track', option, option.track)
+        return { label: "no track", value: "null" }
+    }
 
     const poolOption = {
         label: `${track?.name}${this.getConditionsDescription(option.conditions).string}`,
@@ -406,10 +442,6 @@ exports.getPoolOption = function (option, selected) {
         value: option.id,
         default: selected
     }
-
-    // if (option.conditions) {
-    //     poolOption.label += ` (${option.conditions?.map(condition => condition_names[condition]).join(", ")})`
-    // }
 
     if (option.racer) {
         poolOption.label += ` as ${racer.name}`
@@ -425,9 +457,9 @@ exports.getPoolOption = function (option, selected) {
 }
 
 
-exports.eventSelector = function ({ event } = {}) {
+exports.eventSelector = function ({ event, options } = {}) {
     const eventRow = new ActionRowBuilder()
-
+    const eventOptions = options?.[event.id]
     let eventQty = (event.qty == 1 ? event.type : `${event.qty} ${event.type}s`)
     let placeholder = event.name || capitalize(
         [
@@ -440,10 +472,10 @@ exports.eventSelector = function ({ event } = {}) {
         .setCustomId(`tourney_play_submitEvent_${event.id}`)
         .setPlaceholder(placeholder)
         .setMinValues(event.optional ? 0 : event.qty ?? 1)
-        .setMaxValues(!event.qty ? 1 : event.max ?? Math.min(25, event.options.length))
+        .setMaxValues(!event.qty ? 1 : event.max ?? Math.min(25, eventOptions?.length))
 
     eventRow.addComponents(event_selector)
-    event.options.forEach(option => {
+    eventOptions.forEach(option => {
         const selected = event.selection?.some(selection => selection.id == option.id)
         switch (event.type) { //TODO: Refactor this event.selected crap
             case "color":
@@ -466,37 +498,6 @@ exports.eventSelector = function ({ event } = {}) {
             case "winnerPool":
             case "loserPool":
                 event_selector.addOptions(exports.getPoolOption(option, selected))
-            case "racerpick":
-                if (option == 'favorite_2024') {
-
-                    if (![null, undefined, ""].includes(track)) {
-                        let track_favorite = tracks[track].favorite
-                        let option = exports.getRacerOption(track_favorite)
-                        option.label += " (Track Favorite)"
-                        option.description = "Players must play this pod"
-                        option.default = default_stuff.includes(String(track_favorite))
-                        options.push(option)
-                        if (["0", "20"].includes(track)) {
-                            let alt_option = exports.getRacerOption(0)
-                            alt_option.description = "Players must play this pod"
-                            alt_option.label += " (Track Favorite Alt)"
-                            alt_option.default = default_stuff.includes("0")
-                            options.push(alt_option)
-                        }
-                        if (default_stuff.filter(d => podbans.includes(d)).length) {
-                            bad_racer_override = true
-                        }
-                    } else {
-
-                        options.push({
-                            label: "Track Favorite",
-                            description: "Players must play this pod",
-                            value: "fav",
-                            default: default_stuff.includes("fav")
-                        })
-
-                    }
-                }
                 break
             default:
                 event_selector.addOptions(
@@ -507,6 +508,18 @@ exports.eventSelector = function ({ event } = {}) {
                     }
                 )
                 break
+        }
+    })
+
+    //overwrite description with ban / repeat status
+    event_selector.options.forEach(option => {
+        const matchingOption = eventOptions.find(o => o.id == option.data.value)
+        if (matchingOption.banStatus) {
+            option.data.description = banStatusMap[matchingOption.banStatus].name
+            option.data.emoji = { name: banStatusMap[matchingOption.banStatus].emoji }
+        } else if (matchingOption.repeatStatus) {
+            option.data.description = repeatStatusMap[matchingOption.repeatStatus].name
+            option.data.emoji = { name: repeatStatusMap[matchingOption.repeatStatus].emoji }
         }
     })
 
@@ -533,14 +546,14 @@ exports.scheduledMatchComponents = function ({ match } = {}) {
     return [buttonRow]
 }
 
-exports.preRaceComponents = function ({ match, activeEventCost } = {}) {
+exports.preRaceComponents = function ({ match, activeEventCost, options } = {}) {
     let components = []
     const race = match.races[match.currentRace]
     const events = race.activeEvents
 
     //get event components
     events.forEach(event => {
-        const eventRow = exports.eventSelector({ event })
+        const eventRow = exports.eventSelector({ event, options })
         components.push(eventRow)
     })
 
@@ -910,12 +923,12 @@ exports.racePlayerStatus = function (player, runs, hidden = true) {
         return ":red_circle: Awaiting submission"
     }
 
-    const runTime = run.dnf ? "DNF" : run.time ? time_fix(run.time) : ""
-    const runDeaths = `\n-# ${run.deaths == undefined ? '💀×?' : `💀×${run.deaths}`}`
-    const runNotes = run.notes ? `\n-# 📝 *${run.notes}*` : ""
-    const hiddenTime = hidden ? "||" : ""
+    const hiddenTime = hidden ? " || " : ""
+    const runTime = `:stopwatch:${run.dnf ? "DNF" : run.time ? time_fix(run.time) : ""}`
+    const runDeaths = `${run.deaths === undefined ? '💀×?' : `💀×${run.deaths}`}`
+    const runNotes = run.notes ? `📝 *${run.notes}*` : ""
 
-    return `:green_circle: Results Submitted\n**${hiddenTime}⏱${runTime}${hiddenTime}**${runDeaths}${runNotes}`
+    return ":green_circle: Results Submitted\n" + [runTime, runDeaths, runNotes].filter(i => i).map((thing, i) => `${i > 0 ? "-# " : ""}${hiddenTime}${thing}${hiddenTime}`).join("\n")
 }
 
 exports.inRaceEmbed = function ({ match } = {}) {
@@ -1001,10 +1014,7 @@ exports.postMatchEmbed = function ({ match } = {}) {
     return winEmbed
 }
 
-exports.matchSummaryEmbed = function ({ match } = {}) {
-
-    const summary = match.summary
-
+exports.matchSummaryEmbed = function ({ summary } = {}) {
     if (!summary) {
         return null
     }
@@ -1015,7 +1025,7 @@ exports.matchSummaryEmbed = function ({ match } = {}) {
         .setDescription(`First to ${summary.winLimit} wins.`)
         .setTitle(
             summary.tied ? `Tied Match ${summary.players[0].wins} to ${summary.players[0].wins}` :
-                `${summary.players[0].username} ${(match.status == STATE_POST_MATCH ? "wins" : "leads")} ${summary.players[0].wins} to ${summary.players[1].wins}` +
+                `${summary.players[0].username} ${(summary.status == STATE_POST_MATCH ? "wins" : "leads")} ${summary.players[0].wins} to ${summary.players[1].wins}` +
                 (summary.matchPoint ? " (Match Point)" : ""))
 
     summary.players.forEach((player, i) => {
@@ -1030,7 +1040,7 @@ exports.matchSummaryEmbed = function ({ match } = {}) {
         })
     })
 
-    if (match.status !== STATE_POST_MATCH) {
+    if (summary.status !== STATE_POST_MATCH) {
         embed.addFields({
             name: "🎙️ Commentators/Trackers",
             value: ":orange_circle: Don't forget to update the score!",
@@ -1053,67 +1063,80 @@ exports.adminEmbed = function ({ match } = {}) {
     const embed = new EmbedBuilder()
         .setAuthor({ name: 'Match Manager' })
         .setColor(blurple_color)
-        .setTitle(exports.matchTitle({ match }))
-        .setDescription("This menu is for resetting the match to a previous point in the event of an error. Please make a selection.\nCurrent Race: `" + match?.currentRace + "`\nCurrent Stage: `" + match?.status + "`")
+        .setDescription(exports.matchTitle({ match }) + "\nThis menu is for resetting the match to a previous point in the event of an error. Please make a selection.\nCurrent Race: `" + match?.currentRace + "`\nCurrent Stage: `" + match?.status + "`")
+        .setFooter({ text: `id: ${match.id}` })
     return embed
 }
 
-exports.adminComponents = function ({ match } = {}) {
-    let options = []
-    if (match.current_race == 0) {
-        options.push(
+exports.rewindComponents = function ({ match } = {}) {
+    const rewindSelector = new StringSelectMenuBuilder()
+        .setCustomId(`tourney_play_rewindMatch`)
+        .setPlaceholder("Rewind the match")
+        .setMinValues(1)
+        .setMaxValues(1)
+        .addOptions(
             {
-                label: "Reset to First Options",
-                value: "first",
-                description: "Completely reset the match to determining the first track"
-            }
-        )
-    }
-    if (match.current_race !== 0) {
-        options.push(
-            {
-                label: "Reset to Previous Race Submission",
-                value: "prevrace",
-                description: "Reset to submission of previous race results"
+                label: `Race ${match.currentRace + 1} Events`,
+                value: 'events',
+                description: `Rewinds the match to start of current race events`
             },
             {
-                label: "Reset to Ban Phase",
-                value: "events",
-                description: "Reset current race to the start of the ban phase"
-            }
-        )
-    }
-    if (['prerace', 'midrace'].includes(match.status)) {
-        options.push(
+                label: `Race ${match.currentRace + 1} Pre-Race`,
+                value: 'race',
+                description: `Rewinds the match to warmup for current race`
+            },
             {
-                label: "Reset to Race Setup",
-                value: "prerace",
-                description: "Reset current race to racer selection and setup phase"
+                label: `Last Race`,
+                value: 'lastRace',
+                description: `Rewinds the match to the end of race ${match.currentRace}`
+            },
+            {
+                label: `Start of Match`,
+                value: 'match',
+                description: `Rewinds the match to the very beginning of the match`
             }
         )
-    }
-    options.push(
-        {
-            label: "Delete Match",
-            value: "delete",
-            description: "Completely abandon match and delete any stored data"
-        }
-    )
-    return [
-        {
-            type: 1,
-            components: [
-                {
-                    type: 3,
-                    custom_id: "tourney_play_admin",
-                    options: options,
-                    placeholder: "Select Option",
-                    min_values: 1,
-                    max_values: 1
-                }
-            ]
-        }
-    ]
+
+    const rewindRow = new ActionRowBuilder().addComponents(rewindSelector)
+
+    return [rewindRow]
+}
+
+exports.adminComponents = function () {
+    const ButtonRow = new ActionRowBuilder()
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId("tourney_play_setupCommentate")
+                .setLabel("Join as Commentator/Tracker")
+                .setStyle(ButtonStyle.Success)
+        )
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId("tourney_play_rewindMatch")
+                .setLabel("Rewind Match")
+                .setStyle(ButtonStyle.Secondary)
+        )
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId("tourney_play_bindMatch")
+                .setLabel("Change Match")
+                .setStyle(ButtonStyle.Secondary)
+        )
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId("tourney_play_setupLeave")
+                .setLabel("Leave Match")
+                .setStyle(ButtonStyle.Danger)
+        )
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId("tourney_play_setupCancel")
+                .setLabel("Cancel Match")
+                .setStyle(ButtonStyle.Danger)
+        )
+
+
+    return [ButtonRow]
 }
 
 

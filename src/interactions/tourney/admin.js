@@ -1,5 +1,5 @@
-const { firstEmbed, firstComponents, getOpponent, raceEmbed, raceComponents, getWinner, permabanEmbed, permabanComponents, raceEventEmbed, raceEventComponents } = require('../functions.js')
-const { database, db } = require('../../../firebase.js')
+const { firstEmbed, firstComponents, getOpponent, raceEmbed, raceComponents, getWinner, permabanEmbed, permabanComponents, raceEventEmbed, raceEventComponents } = require('./functions.js')
+const { database, db } = require('../../firebase.js')
 
 
 exports.admin = async function ({ interaction, member_id, database } = {}) {

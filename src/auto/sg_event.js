@@ -5,7 +5,6 @@ const { betEmbed, betComponents } = require('../interactions/trugut_functions.js
 const { get_user_key_by_sg_name } = require('../user.js');
 const { swe1r_guild } = require('../data/discord/guild.js');
 const { postMessage, editMessage } = require('../discord.js');
-const { setup } = require('../interactions/tourney/setup.js');
 
 
 function matchDesc(match, db) {
@@ -178,9 +177,7 @@ exports.scrape_sg_events = async function (client, db, database) {
                 }
 
                 // match setup 
-                if (match.current && match.notification == false && match.datetime <= Date.now() + 1000 * 60 * 30 && Date.now() <= match.datetime + 1000 * 60 * 10) {
-                    setup({ key, client })
-                }
+
             })
         })
 

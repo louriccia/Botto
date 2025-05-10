@@ -120,6 +120,9 @@ const big_number_abbreviations = [
 ]
 
 exports.getTrackById = function (trackId) {
+    if (!trackId) {
+        return null
+    }
     return cache.tracks.find(track => track.id === trackId);
 }
 

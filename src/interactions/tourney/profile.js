@@ -1,6 +1,6 @@
 const { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
-const { matchMakerEmbed, profileComponents } = require('../functions.js')
-const { database, db } = require('../../../firebase.js')
+const { matchMakerEmbed, profileComponents } = require('./functions.js')
+const { database, db } = require('../../firebase.js')
 
 exports.profile = async function ({ interaction, user_key } = {}) {
 
