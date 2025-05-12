@@ -100,7 +100,6 @@ exports.scrape_sg_events = async function (client, db, database) {
                     if (!dup) {
                         match.notification = false
                         match.current = true
-                        console.log(match)
                         database.ref('tourney/scheduled').push(match)
                     }
                 }

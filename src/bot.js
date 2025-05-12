@@ -107,7 +107,7 @@ client.on(Events.InteractionCreate, async interaction => {
         const userSnapshot = {
             username: interaction.member?.displayName ?? interaction.user.username,
             avatar: member_avatar,
-            discordId: member_id
+            id: member_id
         }
 
         //command handler
@@ -119,7 +119,6 @@ client.on(Events.InteractionCreate, async interaction => {
                 return;
             }
             try {
-                console.log('command', userSnapshot)
                 client.commands.get(command).execute({ client, interaction, database, db, member_id, member_name, member_avatar, user_key, user_profile, userSnapshot });
             } catch (error) {
                 console.error(error);

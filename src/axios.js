@@ -23,7 +23,7 @@ const axiosClient = axios.create({
  */
 async function requestWithUser({ method, url, userSnapshot, data = {}, meta = {}, query }) {
     const headers = {
-        'x-user-id': userSnapshot.discordId,
+        'x-user-id': userSnapshot.id,
         'x-bot-token': process.env.BOT_API_KEY
     };
 

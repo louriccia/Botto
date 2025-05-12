@@ -290,7 +290,7 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
                 match = res.data?.data
                 // get existing run for submitting user
                 const race = match.races[match.currentRace]
-                const existingRun = race.runs.find(r => r.player.discordId == userSnapshot.discordId)
+                const existingRun = race.runs.find(r => r.player.discordId == userSnapshot.id)
                 const runModal = submitRunModal({ currentRace: match.currentRace, run: existingRun })
                 interaction.showModal(runModal)
                 return
