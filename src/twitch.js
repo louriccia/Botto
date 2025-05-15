@@ -52,12 +52,13 @@ exports.scan_streams = async function (client) {
 
             const s = await Twitch.getUsers(stream.user_login);
             const profile = s?.data?.[0]?.profile_image_url
+            const title = truncateString(stream.title || "(No Title)", big ? 256 : 65)
             const streamEmbed = new EmbedBuilder()
                 .setAuthor({ name: `${stream.user_name} is podracing on Twitch!`, iconURL: profile })
                 .setURL(`https://www.twitch.tv/${stream.user_login}`)
                 .setColor(big ? "#FFFFFF" : "#6440A5")
                 .setImage(big ? stream.getThumbnailUrl() : stream.thumbnail_url.replace("{width}", 300).replace("{height}", 160))
-                .setTitle(truncateString(big ? (stream.title ?? "(No Title)") : truncateString(stream.title ?? "(No Title)", 65), 256))
+                .setTitle(title)
             if (stream.tags && big) {
                 streamEmbed.setFooter({ text: stream.tags.join(" • ") })
             }
