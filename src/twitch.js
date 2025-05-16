@@ -41,7 +41,7 @@ exports.scan_streams = async function (client) {
             streamers[stream.user_name] = Date.now()
         })
 
-
+        //gahhh
 
         stream_condensed.forEach(async (stream) => {
 
