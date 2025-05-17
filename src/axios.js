@@ -2,7 +2,7 @@ const axios = require('axios');
 
 const axiosClient = axios.create({
     baseURL: process.env.BOTTO_API_BASE_URL, // Set your API base URL
-    timeout: 5000, // Optional: Set a request timeout
+    timeout: 10000, // Optional: Set a request timeout
     headers: {
         'Content-Type': 'application/json',
         "x-bot-token": process.env.BOT_API_KEY
