@@ -34,27 +34,85 @@ async function getMatch(matchId, userSnapshot) {
     }
 }
 
+async function errorOut(interaction, error) {
+    await interaction.editReply({ content: interaction.message?.content })
+    await interaction.followUp({ content: error, ephemeral: true })
+}
+
+async function defferInteraction(interaction, deferred, command, ephemeral = false, client, userId) {
+    if (deferred) {
+        return 0
+    }
+
+    deferred = true
+    match = client.channelToMatch.get(interaction.channel.id)
+    // handle modals up front using cached match since discord does not allow us to defer modals
+    // we need to defer interaction responses because a cold api takes too long
+    if (!interaction.isModalSubmit() && ['submitRun', 'verifyResults'].includes(command) && match) {
+        switch (command) {
+            case 'submitRun':
+                const race = match?.races?.[match.currentRace]
+                const existingRun = race?.runs?.find(r => r.player.discordId == userId)
+                console.log(race.runs, userId, existingRun)
+                const runModal = submitRunModal({ currentRace: match?.currentRace, run: existingRun })
+                interaction.showModal(runModal)
+                return 1
+            case 'verifyResults':
+                const verifyM = verifyModal({ match })
+                interaction.showModal(verifyM)
+                return 1
+        }
+    } else if (interaction.isChatInputCommand()) {
+        if (ephemeral) {
+            await interaction.deferReply({ ephemeral: true })
+        } else {
+            await interaction.deferReply()
+        }
+    } else {
+        await interaction.deferUpdate()
+    }
+
+    return 0
+}
+
+function isCountdownActive(client, interaction, raceStart) {
+    if (!raceStart) {
+        return false
+    }
+
+    const match = client.channelToMatch.get(interaction.channel.id)
+    if (!match) {
+        return false
+    }
+
+    const currentRace = match.races[match.currentRace]
+    return raceStart === currentRace?.raceStart
+}
+
 exports.play = async function ({ client, interaction, args, userSnapshot } = {}) {
+    const messageIsEphemeral = interaction.message?.flags.has(MessageFlags.Ephemeral)
+    const selection = interaction.values ?? []
+    const command = args[1]
+    let deferred = false
 
-    let matchId = client.channelToMatch.get(interaction.channel.id)
-
-    let match
+    let match = client.channelToMatch.get(interaction.channel.id)
     let meta = {
         message: ""
     }
 
-    const messageIsEphemeral = interaction.message?.flags.has(MessageFlags.Ephemeral)
+    console.log(userSnapshot)
 
     // bind match
     if (args[1] == 'bindMatch') {
         if (args[2] == 'submit') {
+            //validate match selection
             const selection = interaction.message.components[0].components[0].data.options.find(o => o.default == true)?.value
-
             if (!selection) {
                 interaction.reply({ content: '❌ Something went wrong.', ephemeral: true })
                 return
             }
 
+            //create new match
             if (selection == 'new') {
                 try {
                     const newRes = await requestWithUser({
@@ -69,31 +127,36 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
 
                     match = newRes.data
                     meta = newRes.meta ?? meta
-                    matchId = match.id
-                    client.channelToMatch.set(interaction.channel.id, match.id)
+                    client.channelToMatch.set(interaction.channel.id, match)
                 } catch (err) {
                     interaction.reply({ content: `${WhyNobodyBuy}${err.message}`, ephemeral: true })
                     return
                 }
+
+                //set match
             } else {
-                client.channelToMatch.set(interaction.channel.id, selection)
-                matchId = selection;
+                let matchId = selection;
 
                 ({ match, meta } = await getMatch(matchId, userSnapshot))
+                client.channelToMatch.set(interaction.channel.id, match)
                 if (!match) {
-                    interaction.reply({ content: `${WhyNobodyBuy} Couldn't get match`, ephemeral: true })
+                    interaction.editReply({ content: `${WhyNobodyBuy} Couldn't get match`, ephemeral: true })
                     return
                 }
             }
         } else {
-            matchId = null
+            match = null
             client.channelToMatch.set(interaction.channel.id, null)
         }
 
     }
 
     // select match when unbound
-    if (!matchId) {
+    if (!match) {
+        const d = await defferInteraction(interaction, deferred, command, false, client, userSnapshot.id)
+        if (d) {
+            return
+        }
         const res = await axios.get('/matches')
         const matches = res.data?.data
         let components = []
@@ -109,27 +172,30 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
             )
         components.push(matchRow, buttonRow)
 
-        if (interaction.isChatInputCommand() || messageIsEphemeral) {
-            interaction.reply({ content: 'Please select a match.', embeds: [], components })
-        } else {
-            interaction.update({ content: 'Please select a match.', embeds: [], components })
-        }
+        interaction.editReply({ content: 'Please select a match.', embeds: [], components })
         return
     }
 
     // admin menu
     if (interaction.isChatInputCommand()) {
-        ({ match, meta } = await getMatch(matchId, userSnapshot))
-        if (!match) {
-            interaction.reply({ content: `${WhyNobodyBuy} Couldn't get match`, ephemeral: true })
+        const d = await defferInteraction(interaction, deferred, command, false, client, userSnapshot.id); //, true
+        if (d) {
             return
         }
-        interaction.reply({ embeds: [adminEmbed({ match })], components: adminComponents({ match }), ephemeral: true })
+        ({ match, meta } = await getMatch(match.id, userSnapshot))
+        if (!match) {
+            interaction.editReply({ content: `${WhyNobodyBuy} Couldn't get match`, ephemeral: true })
+            return
+        }
+        interaction.editReply({ embeds: [adminEmbed({ match })], components: adminComponents({ match }) }) //, ephemeral: true
         return
     }
 
-    const selection = interaction.values ?? []
-    const command = args[1]
+    const d = await defferInteraction(interaction, deferred, command, false, client, userSnapshot.id)
+    if (d) {
+        return
+    }
+
 
     switch (command) {
         case 'rewindMatch':
@@ -137,7 +203,7 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
                 try {
                     const setupRes = await requestWithUser({
                         method: 'post',
-                        url: `/matches/${matchId}/submitAction`,
+                        url: `/matches/${match.id}/submitAction`,
                         userSnapshot,
                         data: {
                             actions: [
@@ -152,16 +218,16 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
                     match = setupRes.data
                     meta = setupRes.meta ?? meta
                 } catch (err) {
-                    interaction.reply({ content: `${WhyNobodyBuy}${err.message}`, ephemeral: true })
+                    interaction.editReply({ content: `${WhyNobodyBuy}${err.message}`, ephemeral: true })
                     return
                 }
             } else {
-                ({ match, meta } = await getMatch(matchId, userSnapshot))
+                ({ match, meta } = await getMatch(match.id, userSnapshot))
                 if (!match) {
-                    interaction.reply({ content: `${WhyNobodyBuy} Couldn't get match`, ephemeral: true })
+                    interaction.editReply({ content: `${WhyNobodyBuy} Couldn't get match`, ephemeral: true })
                     return
                 }
-                interaction.update({ components: rewindComponents({ match }) })
+                interaction.editReply({ components: rewindComponents({ match }) })
                 return
             }
             break
@@ -186,7 +252,7 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
             try {
                 const setupRes = await requestWithUser({
                     method: 'post',
-                    url: `/matches/${matchId}/submitAction`,
+                    url: `/matches/${match.id}/submitAction`,
                     userSnapshot,
                     data: {
                         actions: [
@@ -201,7 +267,7 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
                 match = setupRes.data
                 meta = setupRes.meta
             } catch (err) {
-                interaction.reply({ content: `${WhyNobodyBuy}${err.message}`, ephemeral: true })
+                await errorOut(interaction, `${WhyNobodyBuy}${err.message}`)
                 return
             }
 
@@ -211,7 +277,7 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
             try {
                 const eventRes = await requestWithUser({
                     method: 'post',
-                    url: `/matches/${matchId}/submitAction`,
+                    url: `/matches/${match.id}/submitAction`,
                     userSnapshot,
                     data: {
                         actions: [
@@ -234,7 +300,7 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
                 meta = eventRes.meta
 
             } catch (err) {
-                interaction.reply({ content: `${WhyNobodyBuy}${err.message}`, ephemeral: true })
+                await errorOut(interaction, `${WhyNobodyBuy}${err.message}`)
                 return
             }
 
@@ -251,7 +317,7 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
                     const holdUp = new EmbedBuilder()
                         .setTitle(`${WhyNobodyBuy} Time Does Not Compute`)
                         .setDescription("Your time was submitted in an incorrect format.")
-                    interaction.reply({ embeds: [holdUp], ephemeral: true })
+                    interaction.editReply({ embeds: [holdUp], ephemeral: true })
                     return
                 }
 
@@ -266,7 +332,7 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
                 try {
                     const eventRes = await requestWithUser({
                         method: 'post',
-                        url: `/matches/${matchId}/submitAction`,
+                        url: `/matches/${match.id}/submitAction`,
                         userSnapshot,
                         data: {
                             actions: [
@@ -282,23 +348,13 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
                     meta = eventRes.meta
 
                 } catch (err) {
-                    interaction.reply({ content: `${WhyNobodyBuy}${err.message}`, ephemeral: true })
+                    await errorOut(interaction, `${WhyNobodyBuy}${err.message}`)
                     return
                 }
-            } else {
-                const res = await axios.get(`/matches/${matchId}`)
-                match = res.data?.data
-                // get existing run for submitting user
-                const race = match.races[match.currentRace]
-                const existingRun = race.runs.find(r => r.player.discordId == userSnapshot.id)
-                const runModal = submitRunModal({ currentRace: match.currentRace, run: existingRun })
-                interaction.showModal(runModal)
-                return
-
             }
             break
         case 'verifyResults':
-            const res = await axios.get(`/matches/${matchId}`)
+            const res = await axios.get(`/matches/${match.id}`)
             match = res.data?.data
 
             if (interaction.isModalSubmit()) {
@@ -319,7 +375,7 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
                 try {
                     const eventRes = await requestWithUser({
                         method: 'post',
-                        url: `/matches/${matchId}/submitAction`,
+                        url: `/matches/${match.id}/submitAction`,
                         userSnapshot,
                         data: {
                             actions: [
@@ -335,28 +391,24 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
                     meta = eventRes.meta
 
                 } catch (err) {
-                    interaction.reply({ content: `${WhyNobodyBuy}${err.message}`, ephemeral: true })
+                    await errorOut(interaction, `${WhyNobodyBuy}${err.message}`)
                     return
                 }
-            } else {
-                // get existing run for submitting user
-                const verifyM = verifyModal({ match })
-                interaction.showModal(verifyM)
-                return
             }
             break
     }
 
     if (!match) {
         try {
-            const res = await axios.get(`/matches/${matchId}`)
+            const res = await axios.get(`/matches/${match.id}`)
             match = res.data?.data
         } catch (err) {
-            interaction.reply({ content: `${WhyNobodyBuy}${err.message}`, ephemeral: true })
+            await errorOut(interaction, `${WhyNobodyBuy}${err.message}`)
             return
         }
     }
 
+    client.channelToMatch.set(interaction.channel.id, match)
     let embed = adminEmbed({ match })
     let components = []
 
@@ -377,15 +429,13 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
             meta.message = preRaceContent({ match })
             embed = preRaceEmbed({ match, summary: meta.matchSummary, options: meta.activeEventsOptions })
             components = preRaceComponents({ match, activeEventCost: meta.activeEventCost, options: meta.activeEventsOptions })
-
             break
         case STATE_WARMUP:
-
             embed = warmupEmbed({ match })
             components = warmupComponents({ match })
 
             if (command == 'nextEvents') {
-                await interaction.update({ content: "", embeds: [preRaceEmbed({ match, summary: meta.matchSummary, options: meta.activeEventsOptions })], components: [] })
+                await interaction.editReply({ content: "", embeds: [preRaceEmbed({ match, summary: meta.matchSummary, options: meta.activeEventsOptions })], components: [] })
                 interaction.followUp({ content: meta.message, embeds: [embed], components })
                 return
             }
@@ -395,7 +445,7 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
             components = inRaceComponents({ match })
 
             if (command == 'markReady') {
-                interaction.update({ content: `Good luck racers! Countdown incoming ${emojimap.countdown}`, embeds: [], components: [] })
+                interaction.editReply({ content: `Good luck racers! Countdown incoming ${emojimap.countdown}`, embeds: [], components: [] })
                 countDown(interaction)
 
                 setTimeout(() => {
@@ -403,7 +453,6 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
                 }, 10000)
                 return
             }
-
             break
         case STATE_POST_RACE:
             meta.message = `Awaiting verification ${match.commentators.map(c => `<@${c.discordId}>`).join(", ")}`
@@ -416,42 +465,46 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
             components = []
             break
         case STATE_CANCELLED:
-            interaction.update({ content: meta.message ?? "", embeds: [], components: [] })
+            interaction.editReply({ content: meta.message ?? "", embeds: [], components: [] })
             return
     }
 
-    console.log('command', command, match.status)
-
     if (meta.raceUpdated || meta.countdownSet) {
-        await interaction.update({ content: "", components: [] })
-
-        let timeDelay = 0
+        await interaction.editReply({ content: "", components: [] })
 
         // send match summary when match advances to next race
         if (meta.raceUpdated && match.currentRace > 0) {
             await interaction.followUp({ embeds: [matchSummaryEmbed({ summary: meta.matchSummary })] })
-            timeDelay = 3000
         }
 
         const followUpMessage = await interaction.followUp({ content: meta.message ?? "", embeds: [embed], components, withResponse: true })
 
         // set up countdown
         if (meta.countdownSet) {
-            const race = match.races[match.currentRace]
-            if (race.raceStart) {
+            const raceStart = match.races[match.currentRace]?.raceStart
+            if (raceStart) {
                 setTimeout(() => {
+                    if (!isCountdownActive(client, interaction, raceStart)) {
+                        return
+                    }
                     interaction.followUp({ content: `Good luck racers! Countdown incoming ${emojimap.countdown}` })
-                }, race.raceStart - Date.now() - 10000)
+                }, raceStart - Date.now() - 10000)
 
                 setTimeout(() => {
+                    if (!isCountdownActive(client, interaction, raceStart)) {
+                        return
+                    }
                     countDown(interaction)
-                }, race.raceStart - Date.now() - 8000)
+                }, raceStart - Date.now() - 8000)
 
                 setTimeout(async () => {
+                    if (!isCountdownActive(client, interaction, raceStart)) {
+                        return
+                    }
                     try {
                         const eventRes = await requestWithUser({
                             method: 'post',
-                            url: `/matches/${matchId}/submitAction`,
+                            url: `/matches/${match.id}/submitAction`,
                             userSnapshot,
                             data: {
                                 actions: [
@@ -478,23 +531,16 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
                         return
                     }
 
-                }, race.raceStart - Date.now() + 3000)
+                }, raceStart - Date.now() + 3000)
             }
             return
         }
-
         return
     }
 
-
-
     if (interaction.isChatInputCommand() || messageIsEphemeral) {
-        interaction.reply({ content: meta.message ?? "", embeds: [embed], components })
+        interaction.editReply({ content: meta.message ?? "", embeds: [embed], components })
     } else {
-        interaction.update({ content: meta.message ?? "", embeds: [embed], components })
+        interaction.editReply({ content: meta.message ?? "", embeds: [embed], components })
     }
-
-    //process command
-    // const tourney_command = require(`./play/${command}.js`)
-    // tourney_command[command]({ client, interaction, args, match })
 }

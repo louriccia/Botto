@@ -31,6 +31,8 @@ const { achievement_data } = require('../../data/challenge/achievement.js')
 const { getGoalTime } = require('../simulate/botto_simulator.js')
 const { get_thumbnail } = require('../../youtube.js')
 const { db, database } = require('../../firebase.js')
+const { avgSpeed, upgradeCooling, upgradeTopSpeed } = require('../../data/sw_racer/part.js')
+const { getRacers } = require('../../services/racerService.js')
 
 
 exports.getGoalTimes = function ({ track, racer, skips, nu, laps, backwards, best } = {}) {
@@ -1417,18 +1419,21 @@ exports.racerSelector = function ({ customid, placeholder, min, max, description
         .setMinValues(min ?? 1)
         .setMaxValues(max ?? 1)
 
-    for (var i = 0; i < 23; i++) {
+    const racersWithSpeed = racers.slice(0, 23).map(racer => ({ ...racer, avgSpeed: avgSpeed(upgradeTopSpeed(racer.max_speed, 5), racer.boost_thrust, racer.heat_rate, upgradeCooling(racer.cool_rate, 5)) }))
+    const racersBySpeed = racersWithSpeed.sort((a, b) => b.avgSpeed - a.avgSpeed)
+    racersBySpeed.forEach(racer => {
         racer_selector.addOptions({
-            label: racers[i].name,
-            value: String(i),
-            description: descriptions ? descriptions[i].substring(0, 50) : racers[i].pod.substring(0, 50),
+            label: racer.name,
+            value: String(racer.racernum - 1),
+            description: descriptions ? descriptions[i].substring(0, 50) : racer.pod.substring(0, 50),
             emoji: {
-                name: racers[i].flag.split(":")[1],
-                id: racers[i].flag.split(":")[2].replace(">", "")
+                name: racer.flag.split(":")[1],
+                id: racer.flag.split(":")[2].replace(">", "")
             },
             default: selected ? selected.includes(String(i)) : false
         })
-    }
+    })
+
     racerSelectRow.addComponents(racer_selector)
     return [racerSelectRow]
 }

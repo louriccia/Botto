@@ -306,9 +306,12 @@ exports.preRaceEmbed = function ({ match, summary, options } = {}) {
     }
 
     //event log
-
     let groupId = ""
-    race.events.filter(event => ['chanceCube', 'poll'].includes(event.event) || event.selection?.length).forEach(event => {
+    const eventLog = race.events.filter(event => ['chanceCube', 'poll'].includes(event.event) || event.selection?.length)
+
+    // add ruleset defined playlist as events
+
+    eventLog.forEach(event => {
         if (event.groupId != groupId) {
             groupId = event.groupId
             desc += `\n`
@@ -424,12 +427,10 @@ exports.getConditionsDescription = function (conditions) {
 }
 
 exports.getPoolOption = function (option, selected) {
-    console.log(option)
     const track = getTrackById(option.track)
     const racer = getRacerById(option.racer)
 
     if (!track) {
-        console.log('no track', option, option.track)
         return { label: "no track", value: "null" }
     }
 
@@ -572,12 +573,10 @@ exports.preRaceComponents = function ({ match, activeEventCost, options } = {}) 
         .addComponents(
             new ButtonBuilder()
                 .setCustomId("tourney_play_nextEvents")
-                .setLabel(`Submit Event${events.length > 1 ? "s" : ""}${activeEventCost ? ` (${activeEventCost}💠)` : ''}`) //label: notrack ? "No Track Selected" : (exports.getForcePoints({ player: chosing_player, interaction }) - fptotal < 0) ? "Not enough forcepoints" : oddselect ? "Too many or too few selections" : "Submit" + (fptotal == 0 ? "" : " (" + fptotal + "💠)") + (repeat ? " (🔁)" : ""),
+                .setLabel(`Submit Event${events.length > 1 ? "s" : ""}${activeEventCost ? ` (${activeEventCost}💠)` : ''}`)
                 .setStyle(ButtonStyle.Primary)
-            //.setDisabled(events.filter(event => event.selection?.length || event.optional).length == 0)
         )
     components.push(buttonRow)
-    //disabled: (exports.getForcePoints({ player: chosing_player, interaction }) - fptotal < 0) || notrack || oddselect || (racer_force && racer_ban) || bad_racer_override
 
     return components
 }
@@ -934,11 +933,12 @@ exports.racePlayerStatus = function (player, runs, hidden = true) {
     }
 
     const hiddenTime = hidden ? " || " : ""
-    const runTime = `:stopwatch:${run.dnf ? "DNF" : run.time ? time_fix(run.time) : ""}`
-    const runDeaths = `${run.deaths === undefined ? '💀×?' : `💀×${run.deaths}`}`
-    const runNotes = run.notes ? `📝 *${run.notes}*` : ""
+    const runRacer = getRacerById(run.racer)
+    const runTime = `${run.racer ? runRacer.flag : ':stopwatch:'} ${run.dnf ? "DNF" : run.time ? time_fix(run.time) : ""} `
+    const runDeaths = `${run.deaths === undefined ? '💀×?' : `💀×${run.deaths}`} `
+    const runNotes = run.notes ? `📝 * ${run.notes}* ` : ""
 
-    return ":green_circle: Results Submitted\n" + [runTime, runDeaths, runNotes].filter(i => i).map((thing, i) => `${i > 0 ? "-# " : ""}${hiddenTime}${thing}${hiddenTime}`).join("\n")
+    return ":green_circle: Results Submitted\n" + [runTime, runDeaths, runNotes].filter(i => i).map((thing, i) => `${i > 0 ? "-# " : ""}${hiddenTime}${thing}${hiddenTime} `).join("\n")
 }
 
 exports.inRaceEmbed = function ({ match } = {}) {
@@ -978,7 +978,7 @@ exports.postRaceEmbed = function ({ match } = {}) {
         .setColor("#2D7D46")
 
     Object.values(match.players).map(player => embed.addFields({
-        name: `${player.id == race.winner?.id ? "👑 " : ""}${player.username}`,
+        name: `${player.id == race.winner?.id ? "👑 " : ""}${player.username} `,
         value: exports.racePlayerStatus(player, race.runs, false), // resultFormat(race.runs[player], winner == player),
         inline: true
     }))
@@ -1034,8 +1034,8 @@ exports.matchSummaryEmbed = function ({ summary } = {}) {
         .setColor("#FFFFFF")
         .setDescription(`First to ${summary.winLimit} wins.`)
         .setTitle(
-            summary.tied ? `Tied Match ${summary.players[0].wins} to ${summary.players[0].wins}` :
-                `${summary.players[0].username} ${(summary.status == STATE_POST_MATCH ? "wins" : "leads")} ${summary.players[0].wins} to ${summary.players[1].wins}` +
+            summary.tied ? `Tied Match ${summary.players[0].wins} to ${summary.players[0].wins} ` :
+                `${summary.players[0].username} ${(summary.status == STATE_POST_MATCH ? "wins" : "leads")} ${summary.players[0].wins} to ${summary.players[1].wins} ` +
                 (summary.matchPoint ? " (Match Point)" : ""))
 
     summary.players.forEach((player, i) => {
@@ -1073,7 +1073,7 @@ exports.adminEmbed = function ({ match } = {}) {
     const embed = new EmbedBuilder()
         .setAuthor({ name: 'Match Manager' })
         .setColor(blurple_color)
-        .setDescription(exports.matchTitle({ match }) + "\nThis menu is for resetting the match to a previous point in the event of an error. Please make a selection.\nCurrent Race: `" + match?.currentRace + "`\nCurrent Stage: `" + match?.status + "`")
+        .setDescription(exports.matchTitle({ match }) + "\nThis menu allows admins and commentators to manage the match while it is in progress. Please make a selection.\nCurrent Race: `" + match?.currentRace + "`\nCurrent Stage: `" + match?.status + "`")
         .setFooter({ text: `id: ${match.id}` })
     return embed
 }
@@ -1151,6 +1151,9 @@ exports.adminComponents = function () {
 
 
 exports.warmupComponents = function ({ match }) {
+    const race = match.races[match.currentRace]
+    const racerBans = race.racerBans
+
     const racerRow = racerSelector(
         {
             customid: 'tourney_play_selectRacer',
@@ -1158,7 +1161,13 @@ exports.warmupComponents = function ({ match }) {
             min: 1,
             max: 1
         })
-    const race = match.races[match.currentRace]
+
+    racerRow[0].components[0].options.forEach(option => {
+        if (racerBans.includes(option.data.value)) {
+            option.data.description = banStatusMap[1].name
+            option.data.emoji = { name: banStatusMap[1].emoji }
+        }
+    })
 
     //gents prompt
     const ButtonRow = new ActionRowBuilder()

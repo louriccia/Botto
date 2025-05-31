@@ -8,7 +8,6 @@ async function getRacers() {
     const cacheKey = "racers";
     let racers = cache.get(cacheKey);
     if (racers) return racers; // Return from cache if available
-    console.log('actually fetching data')
     try {
         const response = await axiosClient.get(`${API_BASE_URL}/racers`);
         racers = response.data;
