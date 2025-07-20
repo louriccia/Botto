@@ -4,7 +4,7 @@ const { updateChallenge, manageTruguts } = require('./functions.js');
 const { EmbedBuilder } = require('discord.js');
 
 exports.feedback = async function ({ current_challenge, current_challenge_ref, interaction, db, member_id, member_avatar, user_key, user_profile, profile_ref, botto_name, args, database } = {}) {
-    
+
     const feedbackref = database.ref('challenge/feedback')
 
     if (!Object.keys(current_challenge.submissions).includes(interaction.user.id)) {
@@ -49,5 +49,6 @@ exports.feedback = async function ({ current_challenge, current_challenge_ref, i
     });
     current_challenge = db.ch.challenges[interaction.message.id]
     const feedback_reply = await updateChallenge({ client: interaction.client, user_profile, current_challenge, current_challengeref: current_challenge_ref, profile_ref, member_id, name: botto_name, avatar: member_avatar, interaction, db })
+
     interaction.update(feedback_reply)
 }

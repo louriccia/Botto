@@ -81,7 +81,8 @@ module.exports = {
             .setDescription(`expires <t:${Math.floor((Date.now() + bet_limit) / 1000)}:R>`)
             .setColor(blurple_color)
 
-        const betMessage = await interaction.reply({ embeds: [triviaBetEmbed], components: [row1], fetchReply: true })
+        const betResponse = await interaction.reply({ embeds: [triviaBetEmbed], components: [row1], withResponse: true })
+        const betMessage = betResponse.resource.message
 
         let question_data = {
             bets_open: true,
@@ -101,7 +102,8 @@ module.exports = {
             question_ref.update({ bets_open: false })
             editMessage(interaction.client, betMessage.channelId, betMessage.id, { content: "Bets closed!", components: [] })
 
-            const poll_message = await interaction.followUp({ content: `${random_question.category}\nexpires <t:${Math.floor((Date.now() + time_limit) / 1000)}:R>`, poll, fetchReply: true })
+            const poll_reply = await interaction.followUp({ content: `${random_question.category}\nexpires <t:${Math.floor((Date.now() + time_limit) / 1000)}:R>`, poll, withResponse: true })
+            const poll_message = poll_message.resource.message
             const poll_object = poll_message.poll
             setTimeout(async function () {
 

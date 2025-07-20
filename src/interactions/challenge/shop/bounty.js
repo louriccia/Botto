@@ -8,14 +8,15 @@ exports.bounty = async function ({ interaction, db, database, member_id, member_
         'deluxe': 2,
     }
     let bounty = initializeBounty('private', hintmap[hselection], { name: botto_name, member_id, user: user_key, avatar: member_avatar }, user_profile)
-    const message = await interaction.reply({
+    const messageReply = await interaction.reply({
         embeds: [bountyEmbed({ bounty, user_profile, db })], components: [
             {
                 type: 1,
                 components: [playButton()]
             }
-        ], fetchReply: true
+        ], withResponse: true
     })
+    const message = messageReply.resource.message
     bounty.url = message.url
     bounty.message = message.id
     bounty.channel = message.channelId

@@ -62,7 +62,8 @@ exports.sponsor = async function ({ interaction, args, db, member_id, botto_name
             user: user_key
         }
         const pub_response = await updateChallenge({ client: interaction.client, user_profile, current_challenge: sponsorchallenge, profile_ref, member_id, name: botto_name, avatar: member_avatar, interaction, db })
-        let publishmessage = await interaction.reply(pub_response)
+        let publishmessage_reply = await interaction.reply(pub_response)
+        const publishmessage = publishmessage_reply.resource.message
         if (interaction.guildId == swe1r_guild) {
             publishmessage.pin()
         }

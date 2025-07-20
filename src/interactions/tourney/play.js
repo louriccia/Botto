@@ -53,7 +53,6 @@ async function defferInteraction(interaction, deferred, command, ephemeral = fal
             case 'submitRun':
                 const race = match?.races?.[match.currentRace]
                 const existingRun = race?.runs?.find(r => r.player.discordId == userId)
-                console.log(race.runs, userId, existingRun)
                 const runModal = submitRunModal({ currentRace: match?.currentRace, run: existingRun })
                 interaction.showModal(runModal)
                 return 1
@@ -99,8 +98,6 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
     let meta = {
         message: ""
     }
-
-    console.log(userSnapshot)
 
     // bind match
     if (args[1] == 'bindMatch') {

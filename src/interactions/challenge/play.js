@@ -42,7 +42,9 @@ exports.play = async function ({ current_challenge, current_challenge_ref, inter
     current_challenge = initializeChallenge({ user_profile, member_id, type, name: botto_name, avatar: member_avatar, user: user_key, db, interaction })
     const reply = await updateChallenge({ client: interaction.client, db, user_profile, current_challenge, current_challengeref: current_challenge_ref, profile_ref, member: member_id, name: botto_name, avatar: member_avatar, interaction })
     try {
-        let message = await interaction.reply(reply)
+        const challenge_reply = await interaction.reply(reply)
+        const message = challenge_reply.resource.message
+
         current_challenge.message = message.id
         current_challenge.channel = interaction.channelId
         current_challenge.guild = interaction.guildId

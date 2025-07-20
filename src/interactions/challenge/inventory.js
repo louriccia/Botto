@@ -221,7 +221,8 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
                 truguts: ''
             }
         })
-        let trademessage = await interaction.reply({ content: `<@${selected_player_id}> ${botto_name} invites you to trade`, embeds: [tradeEmbed({ trade, db })], components: [...tradeComponents({ trade, db })], fetchReply: true })
+        let tradereply = await interaction.reply({ content: `<@${selected_player_id}> ${botto_name} invites you to trade`, embeds: [tradeEmbed({ trade, db })], components: [...tradeComponents({ trade, db })], withResponse: true })
+        const trademessage = tradereply.resource.message
         database.ref('challenge/trades').child(trademessage.id).set(trade)
         return
     } else if (args[2] == 'claim') {

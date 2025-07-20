@@ -55,7 +55,8 @@ module.exports = {
                 }
 
                 //post message and save id
-                const betMessage = await interaction.reply({ embeds: [betEmbed(bet)], components: betComponents(bet), fetchReply: true })
+                const betReply = await interaction.reply({ embeds: [betEmbed(bet)], components: betComponents(bet), withResponse: true })
+                const betMessage = betReply.resource.message
                 betref.child(betMessage.id).set(bet)
                 return
             } else {

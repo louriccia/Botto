@@ -2,14 +2,14 @@ const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInpu
 
 let clues = process.env.SCAVENGER ? JSON.parse(process.env.SCAVENGER) : []
 
-if (!clues.length) {
-    clues_export = require('../data/clue.js')
-    clues = clues_export.clues
-}
+// if (!clues.length) {
+//     clues_export = require('../data/clue.js')
+//     clues = clues_export.clues
+// }
 
 const endEmbed = new EmbedBuilder()
     .setTitle('The End')
-    .setDescription(clues[25]?.text)
+    .setDescription(clues[25]?.text || "oops")
     .setFooter({ text: 'Congratulations! You beat the scavenger hunt!' })
     .setColor("#FFFFFF")
 

@@ -27,7 +27,8 @@ exports.sponsorchallenge = async function ({ interaction, db, database, member_i
     delete sponsorchallenge.player
 
     //reveal challenge
-    const sponsor = await interaction.reply({ embeds: [sponsorEmbed(sponsorchallenge, user_profile, db)], components: sponsorComponents(user_profile, circuit, 1), ephemeral: true, fetchReply: true })
+    const sponsorReply = await interaction.reply({ embeds: [sponsorEmbed(sponsorchallenge, user_profile, db)], components: sponsorComponents(user_profile, circuit, 1), ephemeral: true, withResponse: true })
+    const sponsor = sponsorReply.resource.message
     database.ref('challenge/sponsorships').child(sponsor.id).set(sponsorchallenge)
     return true
 }

@@ -1119,7 +1119,7 @@ exports.updateChallenge = async function ({ client, db, user_profile, current_ch
         content: current_challenge.rerolled ? '' : flavor_text,
         embeds: [cembed],
         components: current_challenge.rerolled ? [] : [exports.challengeComponents(current_challenge, user_profile)],
-        fetchReply: true
+        withResponse: true
     }
     return data
 }
@@ -1421,7 +1421,7 @@ exports.racerSelector = function ({ customid, placeholder, min, max, description
 
     const racersWithSpeed = racers.slice(0, 23).map(racer => ({ ...racer, avgSpeed: avgSpeed(upgradeTopSpeed(racer.max_speed, 5), racer.boost_thrust, racer.heat_rate, upgradeCooling(racer.cool_rate, 5)) }))
     const racersBySpeed = racersWithSpeed.sort((a, b) => b.avgSpeed - a.avgSpeed)
-    racersBySpeed.forEach(racer => {
+    racersBySpeed.forEach((racer, i) => {
         racer_selector.addOptions({
             label: racer.name,
             value: String(racer.racernum - 1),
@@ -3268,7 +3268,8 @@ exports.monthlyChallenge = async function ({ client, challengesref, db, database
                 current_challenge.conditions[con] = false
             }
         })
-        let cotmmessage = await postMessage(client, '551786988861128714', await exports.updateChallenge({ client, current_challenge, db })) //551786988861128714
+        let cotmreply = await postMessage(client, '551786988861128714', await exports.updateChallenge({ client, current_challenge, db })) //551786988861128714
+        const cotmmessage = cotmreply.resource.message
         current_challenge.message = cotmmessage.id
         current_challenge.guild = cotmmessage.guildId
         current_challenge.channel = cotmmessage.channelId
@@ -3384,7 +3385,8 @@ exports.dailyChallenge = async function ({ client, challengesref, db } = {}) {
 
         }
 
-        let cotdmessage = await postMessage(client, '551786988861128714', await exports.updateChallenge({ client, current_challenge, db })) //551786988861128714
+        let cotdreply = await postMessage(client, '551786988861128714', await exports.updateChallenge({ client, current_challenge, db })) //551786988861128714
+        const cotdmessage = cotdreply.resource.message
         current_challenge.message = cotdmessage.id
         current_challenge.guild = cotdmessage.guildId
         current_challenge.channel = cotdmessage.channelId
