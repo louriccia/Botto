@@ -3385,8 +3385,7 @@ exports.dailyChallenge = async function ({ client, challengesref, db } = {}) {
 
         }
 
-        let cotdreply = await postMessage(client, '551786988861128714', await exports.updateChallenge({ client, current_challenge, db })) //551786988861128714
-        const cotdmessage = cotdreply.resource.message
+        const cotdmessage = await postMessage(client, '551786988861128714', await exports.updateChallenge({ client, current_challenge, db })) //551786988861128714
         current_challenge.message = cotdmessage.id
         current_challenge.guild = cotdmessage.guildId
         current_challenge.channel = cotdmessage.channelId
