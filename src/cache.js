@@ -1,4 +1,6 @@
 module.exports = {
     tracks: [],
-    racers: []
+    racers: [],
+    circuits: [],
+    planets: []
 };

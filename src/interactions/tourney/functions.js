@@ -2,7 +2,7 @@ const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, StringSelect
 
 const { difficulties } = require('../../data/difficulty.js')
 
-const { capitalize, time_fix, getTrackName, getRacerName, truncateString, getTrackById, getRacerById } = require('../../generic.js')
+const { capitalize, time_fix, getTrackName, getRacerName, truncateString, getTrackById, getRacerById, getCircuitById, getPlanetById, getPlanetName, getCircuitName } = require('../../generic.js')
 const { postMessage } = require('../../discord.js');
 const { avgSpeed, upgradeCooling, upgradeTopSpeed } = require('../../data/sw_racer/part.js');
 const { blurple_color, ping_color } = require('../../colors.js');
@@ -188,34 +188,55 @@ exports.getForcePoints = function (match, discordId) {
     return startingPoints
 }
 
-exports.eventDescriptor = function ({ event, present = false, options } = {}) {
-    const eventOptions = options?.[event.id]
+exports.getEventPlayer = function (event, present = false) {
+    let choice = event.choice
+    let inverted = false
+
+    if (choice.startsWith('!')) {
+        inverted = true
+        choice = choice.substring(1)
+    }
+
+    const choiceDescriptions = {
+        'raceLoser': "Loser of last race",
+        'raceWinner': 'Winner of last race',
+        'cubeWinner': "Chance cube winner",
+        'cubeLoser': "Chance cube loser",
+        'randomPlayer': "Random player",
+        'player': present ? "Any player" : "Players",
+        'seedWinner': "Higher ranked player",
+        'seedLoser': "Lower ranked player",
+        'system': "Botto",
+        'systemRandom': "Botto randomly",
+        'systemNext': "Botto",
+        'selectedPlayer': "Selected player",
+        'unselectedPlayer': "Unselected player",
+    }
+
+    // botto events
+    if (event.choice.startsWith('system') || event.event == 'chanceCube') {
+        return `<@545798436105224203>` // Botto's discord ID
+    }
+
+    // user has been assigned
+    if (event.user) {
+        return event.user.discordId ? `<@${event.user.discordId}>` : event.user.username
+    }
+
+    return (inverted ? "Opponent of " : "") + (choiceDescriptions[choice] || choice || "Unknown Player")
+}
+
+exports.eventDescriptor = function ({ event, present = false } = {}) {
     const actionDescriptions = {
         permaBan: present ? "🚫 perma-bans" : "🚫 perma-banned",
         tempBan: present ? "❌ temp-bans" : "❌ temp-banned",
         selection: present ? "👆 selects" : "👆 selected",
         override: present ? "✳️ overrides" : "✳️ overrode",
-        poll: present ? "📊 polls" : "📊 polled",
+        poll: present ? "🗳️ votes for" : "🗳️ voted for",
         choice: present ? "🗳️ chooses" : "🗳️ chose",
         poolPick: present ? "🗳️ picks" : "🗳️ picked",
         clearPoolPick: present ? "🗳️ clears" : "🗳️ cleared",
         chanceCube: present ? "🎲 rolls" : "🎲 rolled",
-    }
-
-    const choiceDescriptions = {
-        'raceLoser': "Loser of Last Race",
-        'raceWinner': 'Winner of Last Race',
-        'cubeWinner': "Chance Cube Winner",
-        'cubeLoser': "Chance Cube Loser",
-        'randomPlayer': "Random Player",
-        'player': "Any Player",
-        'seedWinner': "Higher Ranked Player",
-        'seedLoser': "Lower Ranked Player",
-        'system': "Botto",
-        'systemRandom': "Botto randomly",
-        'systemNext': "Botto",
-        'selectedPlayer': "Selected Player",
-        'unselectedPlayer': "Unselected Player",
     }
 
     const typeDescriptionMap = {
@@ -223,27 +244,33 @@ exports.eventDescriptor = function ({ event, present = false, options } = {}) {
         'enemyPool': " pick from their opponent's pool",
         'winnerPool': " pick from the winner's pool",
         'loserPool': " pick from the loser's pool",
-        'dynamicEvent': "n event"
+        'dynamicEvent': "n event",
+        'event': "n event",
+        'color': ' chance cube'
     }
 
     const selectionDescriptions = {
         'track': getTrackName(event.selection?.map(track => track.id)),
         'racer': getRacerName(event.selection?.map(racer => racer.id)),
+        'planet': getPlanetName(event.selection?.map(planet => planet.id)),
+        'circuit': getCircuitName(event.selection?.map(circuit => circuit.id)),
         'condition': event.selection?.map(selection => conditionsMap[selection.id]?.name).join(", "),
         'color': event.selection?.[0]?.id == 'red' ? "🟥 Red" : "🟦 Blue",
         'player': event.selection?.map(player => `${player.username}`).join(", "),
-        'enemyPool': event.selection?.map(selection => exports.getPoolDescription(selection)).join(", "), //TODO: This is a unique case that probably requires we enrich on the backend
+        'enemyPool': event.selection?.map(selection => exports.getPoolDescription(selection)).join(", "),
+        'event': event.selection?.map(selection => selection.name || selection.id).join(", "),
     }
 
-
-    const eventPlayer = event.event == 'chanceCube' ? (present ? 'Botto' : '<@545798436105224203>') : event.user?.discordId && !present ? `<@${event.user.discordId}>` : choiceDescriptions[event.choice]
+    const eventPlayer = exports.getEventPlayer(event, present)
     const eventAction = actionDescriptions[event.event] || event.event
     const eventSelection = selectionDescriptions[event.type] || event.selection
     const eventCost = exports.getEventCost(event)
-    const eventCostDescription = event.cost ? " for " + eventCost + "💠 forcepoint" + (eventCost == 1 ? "" : "s") : ""
+    //const eventCostDescription = event.cost ? " for " + eventCost + "💠 forcepoint" + (eventCost == 1 ? "" : "s") : ""
+    const eventCostDescription = event.cost ? ` (${eventCost}💠)` : ""
     const eventType = typeDescriptionMap[event.type] ?? ` ${event.type}`
 
-    const eventDescription = `${eventPlayer} ${eventAction} a${eventType}${present ? '' : `: ** ${eventSelection}**`}${eventCostDescription}`
+    //const eventDescription = `${eventPlayer} ${eventAction} a${eventType}${present ? '' : `: ** ${eventSelection}**`}${eventCostDescription}`
+    const eventDescription = `${eventPlayer} ${eventAction} ${present ? `a${eventType}` : `** ${eventSelection}**`}${eventCostDescription}`
 
     if (['chanceCube', 'poll'].includes(event.event) && !present) {
         const pollDesc = exports.pollDescription({ event })
@@ -254,7 +281,16 @@ exports.eventDescriptor = function ({ event, present = false, options } = {}) {
 }
 
 exports.pollDescription = function ({ event } = {}) {
-    const pollDescription = event.votes?.map(vote => (`-# *<@${vote.player.discordId}> voted for ${vote.selection?.map(selection => selection.id).join(", ")}*`)).join("\n")
+
+    if (!event.votes || !event.votes.length) {
+        return ""
+    }
+
+    const pollDescription = event.votes.map(vote => (
+        `-# *<@${vote.player.discordId}> voted for ${vote.selection?.map(selection =>
+            event.options?.find(option => option.id == selection.id)?.name || selection.id
+        ).join(", ")}*`
+    )).join("\n")
     return pollDescription
 }
 
@@ -307,11 +343,19 @@ exports.preRaceEmbed = function ({ match, summary, options } = {}) {
 
     //event log
     let groupId = ""
-    const eventLog = race.events.filter(event => ['chanceCube', 'poll'].includes(event.event) || event.selection?.length)
+    let eventLog = race.events.filter(event => ['chanceCube', 'poll'].includes(event.event) || event.selection?.length)
 
-    // add ruleset defined playlist as events
+    // truncate first x events in event log before embed content becomes too lengthy
+    const MAX_EVENT_LOG_LENGTH = 12
+    if (eventLog.length > MAX_EVENT_LOG_LENGTH) {
+        const eventLogSlice = eventLog.length - MAX_EVENT_LOG_LENGTH
+        eventLog = eventLog.slice(eventLogSlice)
+        desc += `[${eventLogSlice} earlier events](https://bottosjunkyard.com/matches/${match.id})\n`
+    }
 
-    eventLog.forEach(event => {
+    // TODO: add ruleset defined playlist as events 
+
+    eventLog.forEach((event, i) => {
         if (event.groupId != groupId) {
             groupId = event.groupId
             desc += `\n`
@@ -320,7 +364,7 @@ exports.preRaceEmbed = function ({ match, summary, options } = {}) {
             }
         }
         const indent = event.groupId ? "* " : ""
-        desc += indent + exports.eventDescriptor({ event, present: false, options }) + "\n"
+        desc += indent + exports.eventDescriptor({ event, present: false }) + "\n"
     })
 
     //poll description
@@ -335,9 +379,8 @@ exports.preRaceEmbed = function ({ match, summary, options } = {}) {
         desc += `\n\n-# Right now:\n${exports.eventDescriptor(
             {
                 event: race.activeEvents[0],
-                present: true,
-                options
-            })}${race.activeEvents.length > 1 ? ` +${race.activeEvents.length - 1} more events` : ""}`
+                present: true
+            })}${race.activeEvents.length > 1 ? ` and ${race.activeEvents.length - 1} more events` : ""}`
     }
 
     //up next
@@ -345,14 +388,14 @@ exports.preRaceEmbed = function ({ match, summary, options } = {}) {
     if (race.eventQueue?.length) {
         desc += exports.eventDescriptor({ event: race.eventQueue[0], present: true, options })
         if (race.eventQueue.length > 1) {
-            desc += ` +${race.eventQueue.length - 1} more events`
+            desc += ` and ${race.eventQueue.length - 1}${[...race.activeEvents, ...race.eventQueue].some(event => ['dynamicEvent', 'event'].includes(event.type)) ? '+' : ''} more events`
         }
     } else {
         desc += "Warmup begins"
     }
 
     if (desc) {
-        embed.setDescription(desc)
+        embed.setDescription(truncateString(desc, 4096))
     }
 
     return embed
@@ -365,7 +408,7 @@ exports.getConditionOption = function (option, selected) {
 
 
     if (!conditionsMap[condition]) {
-        throw new Error(`Unrecognized condition ${condition} ${conditionIds} ${conditionObject}`)
+        throw new Error(`Unrecognized condition ${condition}`)
     }
 
     return (
@@ -457,6 +500,16 @@ exports.getPoolOption = function (option, selected) {
     return poolOption
 }
 
+exports.getEventOption = function (option, selected) {
+    const eventOption = {
+        label: option.name || option.id,
+        description: `${option.description || ""} (${option.events.length}${option.events.some(event => event.type == 'dynamicEvent') ? "+" : ""} events)`,
+        value: option.id,
+        default: selected
+    }
+
+    return eventOption
+}
 
 exports.eventSelector = function ({ event, options } = {}) {
     const eventRow = new ActionRowBuilder()
@@ -488,11 +541,20 @@ exports.eventSelector = function ({ event, options } = {}) {
             case "track":
                 event_selector.addOptions(exports.getTrackOption(option, selected))
                 break
+            case "circuit":
+                event_selector.addOptions(exports.getCircuitOption(option, selected))
+                break
+            case "planet":
+                event_selector.addOptions(exports.getPlanetOption(option, selected))
+                break
             case "condition":
                 event_selector.addOptions(exports.getConditionOption(option, selected))
                 break
             case "player":
                 event_selector.addOptions(exports.getPlayerOption(option, selected))
+                break
+            case "event":
+                event_selector.addOptions(exports.getEventOption(option, selected))
                 break
             case "allyPool":
             case "enemyPool":
@@ -576,7 +638,9 @@ exports.preRaceComponents = function ({ match, activeEventCost, options } = {}) 
                 .setLabel(`Submit Event${events.length > 1 ? "s" : ""}${activeEventCost ? ` (${activeEventCost}💠)` : ''}`)
                 .setStyle(ButtonStyle.Primary)
         )
-    components.push(buttonRow)
+    if (!(events.length == 1 && events[0].event == 'chanceCube')) {
+        components.push(buttonRow)
+    }
 
     return components
 }
@@ -748,7 +812,7 @@ exports.setupMatchComponents = function ({ match, tournaments, rulesets } = {}) 
 
     let components = []
 
-    const tourneyRow = exports.tourneySelector({ tournaments, selected: match.tournament?.id ? [match.tournament.id] : [] })
+    const tourneyRow = exports.tourneySelector({ tournaments, selected: match.tournament?.id ? [match.tournament.id] : ['practice'] })
     components.push(tourneyRow)
 
     if (match.tournament == "practice") {
@@ -1388,6 +1452,34 @@ exports.getTrackOption = function (option, selected) {
                 name: track.planet.emoji.split(":")[1],
                 id: track.planet.emoji.split(":")[2].replace(">", "")
             },
+            default: selected
+        }
+    )
+}
+
+exports.getPlanetOption = function (option, selected) {
+    const planet = getPlanetById(option.id)
+    return (
+        {
+            label: planet.name,
+            value: option.id,
+            description: `${planet.tracks.length} Tracks | Hosted by ${planet.host}`,
+            emoji: {
+                name: planet.emoji.split(":")[1],
+                id: planet.emoji.split(":")[2].replace(">", "")
+            },
+            default: selected
+        }
+    )
+}
+
+exports.getCircuitOption = function (option, selected) {
+    const circuit = getCircuitById(option.id)
+    return (
+        {
+            label: circuit.name,
+            value: option.id,
+            description: `${circuit.abbreviation} | ${circuit.tracks.length} Tracks`,
             default: selected
         }
     )

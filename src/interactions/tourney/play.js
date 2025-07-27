@@ -30,7 +30,7 @@ async function getMatch(matchId, userSnapshot) {
         return { match: res.data, meta: res.meta }
     } catch (err) {
         console.log(err)
-        return { match: null, meta: null }
+        return { match: null, meta: null, error: err.message }
     }
 }
 
@@ -53,6 +53,7 @@ async function defferInteraction(interaction, deferred, command, ephemeral = fal
             case 'submitRun':
                 const race = match?.races?.[match.currentRace]
                 const existingRun = race?.runs?.find(r => r.player.discordId == userId)
+                console.log(race.runs, userId, existingRun)
                 const runModal = submitRunModal({ currentRace: match?.currentRace, run: existingRun })
                 interaction.showModal(runModal)
                 return 1
@@ -134,10 +135,10 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
             } else {
                 let matchId = selection;
 
-                ({ match, meta } = await getMatch(matchId, userSnapshot))
+                ({ match, meta, error } = await getMatch(matchId, userSnapshot))
                 client.channelToMatch.set(interaction.channel.id, match)
                 if (!match) {
-                    interaction.editReply({ content: `${WhyNobodyBuy} Couldn't get match`, ephemeral: true })
+                    interaction.reply({ content: `${WhyNobodyBuy} Couldn't get match\n${error}`, ephemeral: true })
                     return
                 }
             }
@@ -271,26 +272,34 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
             break
         case 'submitEvent':
             const eventId = args[2]
+
+            let actions = [
+                {
+                    name: 'submitEvent',
+                    event: {
+                        id: eventId,
+                        selection: selection.map(id => {
+                            return {
+                                id: id,
+                            }
+                        })
+                    }
+                }
+            ]
+
+            // FIXME: this is a hack to auto-advance the match when a color is selected
+            if (['red', 'blue'].includes(selection[0])) {
+                actions.push({
+                    name: 'nextEvents'
+                })
+            }
+
             try {
                 const eventRes = await requestWithUser({
                     method: 'post',
                     url: `/matches/${match.id}/submitAction`,
                     userSnapshot,
-                    data: {
-                        actions: [
-                            {
-                                name: 'submitEvent',
-                                event: {
-                                    id: eventId,
-                                    selection: selection.map(id => {
-                                        return {
-                                            id: id,
-                                        }
-                                    })
-                                }
-                            }
-                        ]
-                    },
+                    data: { actions },
                 })
 
                 match = eventRes.data

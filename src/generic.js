@@ -126,6 +126,20 @@ exports.getTrackById = function (trackId) {
     return cache.tracks.find(track => track.id === trackId);
 }
 
+exports.getCircuitById = function (circuitId) {
+    if (!circuitId) {
+        return null
+    }
+    return cache.circuits.find(circuit => circuit.id === circuitId);
+}
+
+exports.getPlanetById = function (planetId) {
+    if (!planetId) {
+        return null
+    }
+    return cache.planets.find(planet => planet.id === planetId);
+}
+
 exports.getTracks = function () {
     return cache.tracks
 }
@@ -351,16 +365,35 @@ exports.getTrackName = function (trackId) {
 
     return `${track.planet.emoji} ${track.name}`
 }
-exports.getCircuitName = function (circuit) {
+exports.getCircuitName = function (circuitId) {
+    if (Array.isArray(circuitId)) {
+        return circuitId.map(i => exports.getCircuitName(i)).join(", ")
+    }
 
-    if ([null, undefined, ""].includes(circuit)) {
+    if ([null, undefined, ""].includes(circuitId)) {
+        return '--'
+    }
+
+    const circuit = exports.getCircuitById(circuitId)
+
+    if (!circuit) {
         return '--'
     }
 
     return `${circuit.name}`
 }
-exports.getPlanetName = function (planet) {
-    if ([null, undefined, ""].includes(planet)) {
+exports.getPlanetName = function (planetId) {
+    if (Array.isArray(planetId)) {
+        return planetId.map(i => exports.getPlanetName(i)).join(", ")
+    }
+
+    if ([null, undefined, ""].includes(planetId)) {
+        return '--'
+    }
+
+    const planet = exports.getPlanetById(planetId)
+
+    if (!planet) {
         return '--'
     }
 
