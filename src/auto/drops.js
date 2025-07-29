@@ -1,9 +1,9 @@
-const DROP_ODDS = 0.035
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js')
 const { anniversaryMonth } = require('../interactions/challenge/functions')
 const { postMessage } = require('../discord')
 const { testing } = require('../../config')
 const { number_with_commas } = require('../generic')
+const { requestWithUser } = require('../axios')
 
 const whitelist = [
     '442087812007985174',
@@ -26,40 +26,63 @@ const whitelist = [
     '1235050393021579296'
 ]
 
+const DROP_ODDS = 0.025
+const ANNIVERSARY_MULTIPLIER = 100
+
 exports.drops = function (client, message) {
-    if (message.guildId == '441839750555369474' && !testing) {
-        let random_number = Math.random()
-
-        if (random_number < DROP_ODDS && whitelist.includes(message.channelId)) {
-            let drop = Math.floor(Math.random() * 20) * 100 + 500
-
-            if (anniversaryMonth()) {
-                drop *= 100
-            }
-
-            postMessage(client, message.channelId, {
-                components: [
-                    new ActionRowBuilder().addComponents(
-                        new ButtonBuilder()
-                            .setLabel(`📀${number_with_commas(drop)}`)
-                            .setCustomId(`challenge_random_drop_${drop}`)
-                            .setStyle(ButtonStyle.Secondary)
-                    )
-                ]
-            })
-        }
-
-        if (anniversaryMonth() && Math.random() < 0.01 && whitelist.includes(message.channelId)) {
-            postMessage(client, message.channelId, {
-                components: [
-                    new ActionRowBuilder().addComponents(
-                        new ButtonBuilder()
-                            .setEmoji('🎟️')
-                            .setCustomId(`challenge_random_drop_ticket`)
-                            .setStyle(ButtonStyle.Secondary)
-                    )
-                ]
-            })
-        }
+    if (!whitelist.includes(message.channelId) && !testing) {
+        return
     }
+
+    const random_number = Math.random()
+    if (random_number > DROP_ODDS) {
+        return
+    }
+
+    // check user settings if drops are enabled
+    //query /users on backend for a user with matching discordId
+    requestWithUser({
+        method: 'get',
+        url: '/users',
+        query: { discordId: message.author.id },
+    }).then(data => {
+        const user = data?.data?.[0]
+        if (user?.settings?.botto?.allowSpecialDrops === false) {
+            return
+        }
+
+        const drop = Math.floor(Math.random() * 20) * 100 + 500
+
+        if (anniversaryMonth()) { // 100x multiplier for anniversary month
+            drop *= ANNIVERSARY_MULTIPLIER
+        }
+
+        postMessage(client, message.channelId, {
+            components: [
+                new ActionRowBuilder().addComponents(
+                    new ButtonBuilder()
+                        .setLabel(`📀${number_with_commas(drop)}`)
+                        .setCustomId(`challenge_random_drop_${drop}`)
+                        .setStyle(ButtonStyle.Secondary)
+                )
+            ]
+        })
+
+    }).catch(err => {
+        console.error('Error fetching user settings:', err)
+        return
+    })
+
+    // if (anniversaryMonth() && Math.random() < 0.01 && whitelist.includes(message.channelId)) {
+    //     postMessage(client, message.channelId, {
+    //         components: [
+    //             new ActionRowBuilder().addComponents(
+    //                 new ButtonBuilder()
+    //                     .setEmoji('🎟️')
+    //                     .setCustomId(`challenge_random_drop_ticket`)
+    //                     .setStyle(ButtonStyle.Secondary)
+    //             )
+    //         ]
+    //     })
+    // }
 }

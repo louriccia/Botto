@@ -60,12 +60,22 @@ for (const file of buttonFiles) {
 //firebase
 const { db, database } = require('./firebase.js')
 const { WhyNobodyBuy } = require('./data/discord/emoji.js')
+const { requestWithUser } = require('./axios.js')
 
 //banned
 const banned = []
 
+function switchGuard(guildId) {
+    if (testing) {
+        return guildId == test_guild
+    }
+    return guildId !== test_guild
+}
+
 //interactions
 client.on(Events.InteractionCreate, async interaction => {
+    if (!switchGuard(interaction.guildId)) return;
+
     if (interaction.isAutocomplete()) return;
     //log command
     console.log(interaction.isChatInputCommand() ? 'slash' :
@@ -81,67 +91,65 @@ client.on(Events.InteractionCreate, async interaction => {
         return
     }
 
-    if ((testing && interaction.guildId == test_guild) || (!testing && interaction.guildId !== test_guild)) {
+    //prepare profile
 
-        //prepare profile
+    const member_name = interaction.member?.displayName
+    const member_avatar = await interaction.member?.displayAvatarURL() ?? await interaction.user.displayAvatarURL()
 
-        const member_name = interaction.member?.displayName
-        const member_avatar = await interaction.member?.displayAvatarURL() ?? await interaction.user.displayAvatarURL()
+    //database might be down
+    if (!database) {
+        interaction.reply({ content: 'Impossible, the archives must be... down?', ephemeral: true })
+        return
+    }
 
-        //database might be down
-        if (!database) {
-            interaction.reply({ content: 'Impossible, the archives must be... down?', ephemeral: true })
-            return
+    //find player in userbase
+    let user_key = get_user_key_by_discord_id(db, member_id)
+    if (!user_key) {
+        user_key = await initializeUser(database.ref('users'), member_id, member_name)
+    }
+    let user_profile = db.user[user_key]?.random
+    if (!user_profile) {
+        user_profile = initializePlayer(database.ref(`users/${user_key}/random`), member_name)
+    }
+
+    const userSnapshot = {
+        username: interaction.member?.displayName ?? interaction.user.username,
+        avatar: member_avatar,
+        id: member_id
+    }
+
+    //command handler
+    if (interaction.isChatInputCommand()) {
+        const command = interaction.commandName.toLowerCase();
+
+        if (!client.commands.has(command)) {
+            console.log('command does not exist')
+            return;
         }
-
-        //find player in userbase
-        let user_key = get_user_key_by_discord_id(db, member_id)
-        if (!user_key) {
-            user_key = await initializeUser(database.ref('users'), member_id, member_name)
+        try {
+            client.commands.get(command).execute({ client, interaction, database, db, member_id, member_name, member_avatar, user_key, user_profile, userSnapshot });
+        } catch (error) {
+            console.error(error);
+            await interaction.reply({ content: "`Error: Command failed to execute `\n" + errorMessage[Math.floor(Math.random() * errorMessage.length)] })
         }
-        let user_profile = db.user[user_key]?.random
-        if (!user_profile) {
-            user_profile = initializePlayer(database.ref(`users/${user_key}/random`), member_name)
-        }
+    } else {
+        let split = interaction.customId.split("_")
+        const name = split[0]
+        const args = split.slice(1)
 
-        const userSnapshot = {
-            username: interaction.member?.displayName ?? interaction.user.username,
-            avatar: member_avatar,
-            id: member_id
-        }
-
-        //command handler
-        if (interaction.isChatInputCommand()) {
-            const command = interaction.commandName.toLowerCase();
-
-            if (!client.commands.has(command)) {
-                console.log('command does not exist')
-                return;
-            }
-            try {
-                client.commands.get(command).execute({ client, interaction, database, db, member_id, member_name, member_avatar, user_key, user_profile, userSnapshot });
-            } catch (error) {
-                console.error(error);
-                await interaction.reply({ content: "`Error: Command failed to execute `\n" + errorMessage[Math.floor(Math.random() * errorMessage.length)] })
-            }
-        } else {
-            let split = interaction.customId.split("_")
-            const name = split[0]
-            const args = split.slice(1)
-
-            try {
-                client.buttons.get(name).execute({ client, interaction, args, database, db, member_id, member_name, member_avatar, user_key, user_profile, userSnapshot });
-            } catch (error) {
-                console.error(error);
-            }
+        try {
+            client.buttons.get(name).execute({ client, interaction, args, database, db, member_id, member_name, member_avatar, user_key, user_profile, userSnapshot });
+        } catch (error) {
+            console.error(error);
         }
     }
 })
 
 //autocomplete
 client.on(Events.InteractionCreate, async interaction => {
-    if (interaction.isAutocomplete()) {
+    if (!switchGuard(interaction.guildId)) return;
 
+    if (interaction.isAutocomplete()) {
         const command = interaction.client.commands.get(interaction.commandName);
 
         if (!command) {
@@ -189,14 +197,17 @@ client.once(Events.ClientReady, async () => {
 })
 
 client.on(Events.GuildMemberAdd, (guildMember) => { //join log
+    if (testing) return;
     join_message(client, guildMember)
 })
 
 client.on(Events.MessageReactionAdd, async (reaction, user) => {
+
     // When a reaction is received, check if the structure is partial
     if (user.bot || banned.includes(user.id)) {
         return
     }
+
     if (reaction.partial) {
         // If the message this reaction belongs to was removed, the fetching might result in an API error which should be handled
         try {
@@ -207,13 +218,37 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
             return;
         }
     }
-    let profile = Object.values(db.user).find(u => u.discordID == user.id)
-    if (profile?.random?.effects?.botto_buddy) {
-        reaction.message.react(reaction.emoji)
+
+    if (!switchGuard(reaction.message.guild.id)) return;
+
+    const authorProfile = Object.values(db.user).find(u => u.discordID == user.id)
+    if (!authorProfile?.random?.effects?.botto_buddy) {
+        return
+    }
+
+    try {
+        requestWithUser({
+            method: 'get',
+            url: '/users',
+            query: { discordId: reaction.message.author.id },
+        }).then(async data => {
+            const user = data?.data?.[0]
+            if (user?.settings?.botto?.allowReactions === false) {
+                return
+            }
+            await reaction.message.react(reaction.emoji);
+        }).catch(err => {
+            console.error('Error fetching user settings:', err)
+            return
+        })
+    } catch (error) {
+        console.error('Failed to react to message:', error);
+        return;
     }
 });
 
 client.on(Events.MessageDelete, async messageDelete => {
+    if (!switchGuard(messageDelete.guild.id)) return;
 
     if (messageDelete.author?.bot || messageDelete.channel.type !== "text") {
         return
@@ -240,7 +275,9 @@ client.on(Events.MessageDelete, async messageDelete => {
 });
 
 client.on(Events.MessageCreate, async function (message) {
-    if (message.author.bot || testing || banned.includes(message.author.id)) return; //trumps any command from executing from a bot message
+    if (!switchGuard(message.guild.id)) return;
+
+    if (message.author.bot || banned.includes(message.author.id)) return; //trumps any command from executing from a bot message
 
     if (message.partial) {
         // If the message this reaction belongs to was removed, the fetching might result in an API error which should be handled
@@ -253,14 +290,16 @@ client.on(Events.MessageCreate, async function (message) {
         }
     }
 
+    // custom kill command
+    if (message.content.toLowerCase() == `!kill` && message.channelId == "444208252541075476") {
+        message.channel.send("Come back when you got some money!")
+        client.destroy()
+        return
+    }
+
     //drops
     drops(client, message)
     botto_chat(message, db, openai)
-
-    if (message.content.toLowerCase() == `!kill` && message.channelID == "444208252541075476") {
-        message.channel.send("Come back when you got some money!")
-        client.destroy()
-    }
 })
 
 
