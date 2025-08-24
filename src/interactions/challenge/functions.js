@@ -3268,8 +3268,7 @@ exports.monthlyChallenge = async function ({ client, challengesref, db, database
                 current_challenge.conditions[con] = false
             }
         })
-        let cotmreply = await postMessage(client, '551786988861128714', await exports.updateChallenge({ client, current_challenge, db })) //551786988861128714
-        const cotmmessage = cotmreply.resource.message
+        const cotmmessage = await postMessage(client, '551786988861128714', await exports.updateChallenge({ client, current_challenge, db })) //551786988861128714
         current_challenge.message = cotmmessage.id
         current_challenge.guild = cotmmessage.guildId
         current_challenge.channel = cotmmessage.channelId
