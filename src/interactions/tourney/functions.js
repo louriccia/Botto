@@ -699,7 +699,7 @@ exports.matchSelector = function ({ matches, selected } = {}) {
         match_selector.addOptions(
             {
                 label: `${matchPlayers} - Race ${match.currentRace + 1} - ${STATE_NAMES[match.status]}`,
-                description: `${matchTourney + (matchDescription ? ` - ${matchDescription}` : "")}`,
+                description: truncateString(`${matchTourney + (matchDescription ? ` - ${matchDescription}` : "")}`, 100),
                 value: match.id,
                 default: selected.includes(match.id)
             }
