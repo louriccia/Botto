@@ -1040,7 +1040,7 @@ exports.getBest = function (db, current_challenge) {
         }
     })
     return best.sort(function (a, b) {
-        return a.time - b.time;
+        return exports.aprilFoolsDay() ? b.time - a.time : a.time - b.time;
     })
 }
 
@@ -3869,6 +3869,10 @@ exports.isDroid = function ({ item } = {}) {
 
 exports.anniversaryMonth = function () {
     return exports.easternTime().month() == 4
+}
+
+exports.aprilFoolsDay = function () {
+    return exports.easternTime().month() == 3 && exports.easternTime().date() == 1
 }
 
 exports.getNeededItems = function ({ user_profile } = {}) {

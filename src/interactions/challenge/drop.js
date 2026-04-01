@@ -39,7 +39,7 @@ exports.drop = async function ({ interaction, user_profile, profile_ref, args, d
     interaction.reply(
         {
             components: [],
-            content: `You snagged a \`📀${number_with_commas(DROP)}\` drop\nCurrent truguts: \`📀${number_with_commas(p.truguts_earned - p.truguts_spent)}\``,
+            content: `You snagged a \`📀${number_with_commas(DROP)}\` drop\nCurrent truguts: \`📀${number_with_commas(p.truguts_earned - p.truguts_spent)}\`` + (DROP < 0 ? '\nApril fools!' : ''),
             ephemeral: true
         })
 

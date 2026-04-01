@@ -1,5 +1,5 @@
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js')
-const { anniversaryMonth } = require('../interactions/challenge/functions')
+const { anniversaryMonth, aprilFoolsDay } = require('../interactions/challenge/functions')
 const { postMessage } = require('../discord')
 const { testing } = require('../../config')
 const { number_with_commas } = require('../generic')
@@ -51,9 +51,11 @@ exports.drops = function (client, message) {
             return
         }
 
-        const drop = Math.floor(Math.random() * 20) * 100 + 500
+        let drop = Math.floor(Math.random() * 20) * 100 + 500
 
-        if (anniversaryMonth()) { // 100x multiplier for anniversary month
+        if (aprilFoolsDay()) {
+            drop *= -3
+        } else if (anniversaryMonth()) { // 100x multiplier for anniversary month
             drop *= ANNIVERSARY_MULTIPLIER
         }
 

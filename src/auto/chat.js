@@ -60,11 +60,13 @@ exports.botto_chat = async function (message, db, openai) {
         ? 'You are talking to your favorite customer. You will do your best to satisfy their podracing needs. Your currency of choice is truguts, credits are no good.'
         : "You are notoriously greedy and addicted to gambling. You love to swindle and cheat. Your favorite currency is truguts."
 
-    const autoreact = Object.values(db.ch.auto)
+    const autoEntries = db.ch.auto ? Object.values(db.ch.auto) : []
+
+    const autoreact = autoEntries
         .filter(a => a.type === 'react')
         .find(a => makeTriggerRegex(a.phrase).test(message.content));
 
-    const autoreply = Object.values(db.ch.auto)
+    const autoreply = autoEntries
         .filter(a => a.type === 'reply')
         .find(a => makeTriggerRegex(a.phrase).test(message.content));
 

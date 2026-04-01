@@ -6,6 +6,7 @@ const { dailyChallenge, monthlyChallenge, completeRepairs } = require("./interac
 const { swe1r_guild, test_guild } = require('./data/discord/guild.js')
 const { scan_streams } = require('./twitch.js')
 const { drops } = require('./auto/drops.js')
+const { scam, fakeStream } = require('./auto/scam.js')
 const { update_users } = require('./auto/update_users.js')
 const { botto_chat } = require('./auto/chat.js')
 const { join_message } = require('./auto/join.js')
@@ -74,6 +75,7 @@ function switchGuard(guildId) {
 
 //interactions
 client.on(Events.InteractionCreate, async interaction => {
+    try {
     if (!switchGuard(interaction.guildId)) return;
 
     if (interaction.isAutocomplete()) return;
@@ -127,10 +129,17 @@ client.on(Events.InteractionCreate, async interaction => {
             return;
         }
         try {
-            client.commands.get(command).execute({ client, interaction, database, db, member_id, member_name, member_avatar, user_key, user_profile, userSnapshot });
+            await client.commands.get(command).execute({ client, interaction, database, db, member_id, member_name, member_avatar, user_key, user_profile, userSnapshot });
         } catch (error) {
-            console.error(error);
-            await interaction.reply({ content: "`Error: Command failed to execute `\n" + errorMessage[Math.floor(Math.random() * errorMessage.length)] })
+            reportError(`Command: ${command}`, error);
+            try {
+                const msg = { content: "`Error: Command failed to execute `\n" + errorMessage[Math.floor(Math.random() * errorMessage.length)] };
+                if (interaction.replied || interaction.deferred) {
+                    await interaction.followUp({ ...msg, ephemeral: true });
+                } else {
+                    await interaction.reply({ ...msg, ephemeral: true });
+                }
+            } catch (_) {}
         }
     } else {
         let split = interaction.customId.split("_")
@@ -138,10 +147,13 @@ client.on(Events.InteractionCreate, async interaction => {
         const args = split.slice(1)
 
         try {
-            client.buttons.get(name).execute({ client, interaction, args, database, db, member_id, member_name, member_avatar, user_key, user_profile, userSnapshot });
+            await client.buttons.get(name).execute({ client, interaction, args, database, db, member_id, member_name, member_avatar, user_key, user_profile, userSnapshot });
         } catch (error) {
-            console.error(error);
+            reportError(`Button: ${name}`, error);
         }
+    }
+    } catch (error) {
+        reportError('Interaction', error);
     }
 })
 
@@ -168,6 +180,15 @@ client.on(Events.InteractionCreate, async interaction => {
 client.once(Events.ClientReady, async () => {
     console.log('Ready!')
 
+    // reset bot nickname and avatar on startup
+    try {
+        const guild = await client.guilds.fetch(testing ? test_guild : swe1r_guild)
+        const me = await guild.members.fetchMe()
+        if (me.nickname) await me.setNickname(null)
+    } catch (err) {
+        console.error('Failed to reset nickname/avatar:', err)
+    }
+
     //delete last bot message in bot log channel
     if (!testing) {
         client.channels.cache.get("444208252541075476").messages.fetch({ limit: 1 }).then(messages => {
@@ -183,12 +204,16 @@ client.once(Events.ClientReady, async () => {
     update_users(client)
 
     const minuteUpdater = async () => {
-        Object.keys(db.user).filter(key => db.user[key]?.random?.items).forEach(key => completeRepairs({ user_profile: db.user[key].random, profile_ref: database.ref(`users/${key}/random`), client, member: db.user[key].discordID }))
+        try {
+            Object.keys(db.user).filter(key => db.user[key]?.random?.items).forEach(key => completeRepairs({ user_profile: db.user[key].random, profile_ref: database.ref(`users/${key}/random`), client, member: db.user[key].discordID }))
 
-        if (!testing) {
-            scan_streams(client);
-            dailyChallenge({ client, db, challengesref: database.ref('challenge/challenges') })
-            monthlyChallenge({ client, db, challengesref: database.ref('challenge/challenges'), database })
+            if (!testing) {
+                scan_streams(client);
+                dailyChallenge({ client, db, challengesref: database.ref('challenge/challenges') })
+                monthlyChallenge({ client, db, challengesref: database.ref('challenge/challenges'), database })
+            }
+        } catch (error) {
+            reportError('Minute Updater', error);
         }
     }
 
@@ -298,9 +323,39 @@ client.on(Events.MessageCreate, async function (message) {
     }
 
     //drops
-    drops(client, message)
-    botto_chat(message, db, openai)
+    try { await drops(client, message) } catch (error) { reportError('Drops', error) }
+    try { await scam(client, message) } catch (error) { reportError('Scam', error) }
+    try { await fakeStream(client, message) } catch (error) { reportError('Fake Stream', error) }
+    try { await botto_chat(message, db, openai) } catch (error) { reportError('Chat', error) }
 })
 
+
+// Global error handling — prevent crashes and report to droid testing channel when live
+async function reportError(label, error) {
+    console.error(`[${label}]`, error);
+    if (!testing) {
+        try {
+            const channel = client.channels?.cache?.get("444208252541075476");
+            if (channel) {
+                const stack = error?.stack || String(error);
+                await channel.send(`**${label}**\n\`\`\`\n${stack.slice(0, 1900)}\n\`\`\``);
+            }
+        } catch (e) {
+            console.error('Failed to report error to Discord:', e);
+        }
+    }
+}
+
+process.on('uncaughtException', (error) => {
+    reportError('Uncaught Exception', error);
+});
+
+process.on('unhandledRejection', (error) => {
+    reportError('Unhandled Rejection', error);
+});
+
+client.on('error', (error) => {
+    reportError('Client Error', error);
+});
 
 client.login(process.env.token);
