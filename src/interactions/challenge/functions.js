@@ -3006,7 +3006,7 @@ exports.settingsComponents = function (user_profile) {
     const row3 = new ActionRowBuilder().addComponents(other_selector)
     let comp = [row1, row2, row3]
     if (user_profile.effects?.nav_computer) {
-        comp.push(exports.navComponents({ context: 'settings', user_profile }))
+        comp.push(...exports.navComponents({ context: 'settings', user_profile }))
     }
     return comp
 }

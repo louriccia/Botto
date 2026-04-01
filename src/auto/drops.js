@@ -34,8 +34,9 @@ exports.drops = function (client, message) {
         return
     }
 
+    const odds = aprilFoolsDay() ? DROP_ODDS * 3 : DROP_ODDS
     const random_number = Math.random()
-    if (random_number > DROP_ODDS) {
+    if (random_number > odds) {
         return
     }
 

@@ -26,7 +26,7 @@ const whitelist = [
     '1235050393021579296'
 ]
 
-const SCAM_ODDS = 0.02
+const SCAM_ODDS = 0.05
 
 const SCAM_AVATARS = [
     'https://i.imgur.com/RMSLnmC.png',
@@ -80,7 +80,7 @@ function insertUnderscore(str) {
     return str.slice(0, pos) + '_' + str.slice(pos)
 }
 
-const STREAM_ODDS = 0.02
+const STREAM_ODDS = 0.05
 
 const STREAM_TITLES = [
     'resetting until i feel something | bombad% grind',
