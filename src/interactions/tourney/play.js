@@ -1,8 +1,10 @@
-const { adminEmbed, adminComponents, matchSelector, matchSummaryEmbed, preRaceComponents, preRaceEmbed, warmupEmbed, inRaceEmbed, inRaceComponents, postRaceEmbed, warmupComponents, postRaceComponents, setupMatchEmbed, setupMatchComponents, scheduledMatchComponents, scheduledMatchEmbed, submitRunModal, countDown, verifyModal, preRaceContent, postMatchEmbed, conditionIdsToObject, rewindComponents } = require('./functions.js')
+const { adminView, matchSelector, matchSummaryView, preRaceView, warmupView, inRaceView, postRaceView, setupMatchView, scheduledMatchView, submitRunModal, countDown, verifyModal, postMatchView, rewindView } = require('./functions.js')
 const { requestWithUser, axiosClient: axios } = require('../../axios.js')
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, MessageFlags } = require('discord.js')
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, ContainerBuilder, TextDisplayBuilder, EmbedBuilder, MessageFlags } = require('discord.js')
 const { time_to_seconds } = require('../../generic.js')
 const { WhyNobodyBuy, emojimap } = require('../../data/discord/emoji.js')
+const { getMatch } = require('./matchApi.js')
+const { tournamentsRulesetsCache } = require('../../services/tourneyCache.js')
 
 const STATE_SCHEDULED = 0
 const STATE_MATCH_SETUP = 1;
@@ -13,30 +15,28 @@ const STATE_POST_RACE = 5;
 const STATE_POST_MATCH = 6;
 const STATE_CANCELLED = 99;
 
-async function getMatch(matchId, userSnapshot) {
-    try {
-        const res = await requestWithUser({
-            method: 'post',
-            url: `/matches/${matchId}/submitAction`,
-            userSnapshot,
-            data: {
-                actions: [
-                    {
-                        name: 'getMatch',
-                    }
-                ],
-            },
-        })
-        return { match: res.data, meta: res.meta }
-    } catch (err) {
-        console.log(err)
-        return { match: null, meta: null, error: err.message }
-    }
+async function errorOut(interaction, error) {
+    await interaction.followUp({ content: error, ephemeral: true })
 }
 
-async function errorOut(interaction, error) {
-    await interaction.editReply({ content: interaction.message?.content })
-    await interaction.followUp({ content: error, ephemeral: true })
+function placeholderView(text) {
+    return [new ContainerBuilder().addTextDisplayComponents(new TextDisplayBuilder().setContent(text))]
+}
+
+// Discord's IsComponentsV2 flag is sticky per message — set at creation and immutable.
+// A component interaction on a pre-V2 message cannot be edited into V2; we have to send a fresh V2 message and clear the old one.
+async function renderV2(interaction, view) {
+    const original = interaction.message
+    const isLegacyOriginal = original && !original.flags?.has(MessageFlags.IsComponentsV2)
+    if (isLegacyOriginal) {
+        try {
+            await interaction.editReply({ content: '-# *Reposting in new layout below…*', embeds: [], components: [] })
+        } catch (e) {
+            console.warn('[tourney] failed to clear legacy message during V2 migration', e)
+        }
+        return interaction.channel.send({ flags: MessageFlags.IsComponentsV2, components: view })
+    }
+    return interaction.editReply({ components: view })
 }
 
 async function defferInteraction(interaction, deferred, command, ephemeral = false, client, userId) {
@@ -64,9 +64,9 @@ async function defferInteraction(interaction, deferred, command, ephemeral = fal
         }
     } else if (interaction.isChatInputCommand()) {
         if (ephemeral) {
-            await interaction.deferReply({ ephemeral: true })
+            await interaction.deferReply({ flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2 })
         } else {
-            await interaction.deferReply()
+            await interaction.deferReply({ flags: MessageFlags.IsComponentsV2 })
         }
     } else {
         await interaction.deferUpdate()
@@ -155,37 +155,48 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
         if (d) {
             return
         }
+        deferred = true
         const res = await axios.get('/matches')
-        const matches = res.data?.data
-        let components = []
-        let selected = interaction.values ?? []
-        const matchRow = matchSelector({ matches: matches.filter(match => ![STATE_CANCELLED, STATE_POST_MATCH].includes(match.status)), selected })
-        const buttonRow = new ActionRowBuilder()
-            .addComponents(
-                new ButtonBuilder()
-                    .setCustomId("tourney_play_bindMatch_submit")
-                    .setLabel("Select")
-                    .setStyle(ButtonStyle.Primary)
-                    .setDisabled(selected.length == 0)
-            )
-        components.push(matchRow, buttonRow)
+        const matches = res.data?.data ?? []
 
-        interaction.editReply({ content: 'Please select a match.', embeds: [], components })
-        return
+        // lazy-hydrate cache for component interactions on stale messages (e.g. after bot restart)
+        if (!interaction.isChatInputCommand() && args[1] != 'bindMatch') {
+            const candidate = matches.find(m => m.channelId === interaction.channel.id && ![STATE_CANCELLED, STATE_POST_MATCH].includes(m.status))
+            if (candidate) {
+                match = candidate
+                client.channelToMatch.set(interaction.channel.id, match)
+            }
+        }
+
+        if (!match) {
+            let selected = interaction.values ?? []
+            const matchRow = matchSelector({ matches: matches.filter(match => ![STATE_CANCELLED, STATE_POST_MATCH].includes(match.status)), selected })
+            const container = new ContainerBuilder()
+                .addTextDisplayComponents(new TextDisplayBuilder().setContent('Please select a match.'))
+                .addActionRowComponents(matchRow)
+                .addActionRowComponents(
+                    new ActionRowBuilder().addComponents(
+                        new ButtonBuilder()
+                            .setCustomId("tourney_play_bindMatch_submit")
+                            .setLabel("Select")
+                            .setStyle(ButtonStyle.Primary)
+                            .setDisabled(selected.length == 0)
+                    )
+                )
+
+            await renderV2(interaction, [container])
+            return
+        }
     }
 
     // admin menu
     if (interaction.isChatInputCommand()) {
-        const d = await defferInteraction(interaction, deferred, command, false, client, userSnapshot.id); //, true
-        if (d) {
-            return
-        }
         ({ match, meta } = await getMatch(match.id, userSnapshot))
         if (!match) {
-            interaction.editReply({ content: `${WhyNobodyBuy} Couldn't get match`, ephemeral: true })
+            interaction.reply({ content: `${WhyNobodyBuy} Couldn't get match`, ephemeral: true })
             return
         }
-        interaction.editReply({ embeds: [adminEmbed({ match })], components: adminComponents({ match }) }) //, ephemeral: true
+        interaction.reply({ flags: MessageFlags.IsComponentsV2, components: adminView({ match }) })
         return
     }
 
@@ -216,16 +227,16 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
                     match = setupRes.data
                     meta = setupRes.meta ?? meta
                 } catch (err) {
-                    interaction.editReply({ content: `${WhyNobodyBuy}${err.message}`, ephemeral: true })
+                    await errorOut(interaction, `${WhyNobodyBuy}${err.message}`)
                     return
                 }
             } else {
                 ({ match, meta } = await getMatch(match.id, userSnapshot))
                 if (!match) {
-                    interaction.editReply({ content: `${WhyNobodyBuy} Couldn't get match`, ephemeral: true })
+                    await errorOut(interaction, `${WhyNobodyBuy} Couldn't get match`)
                     return
                 }
-                interaction.editReply({ components: rewindComponents({ match }) })
+                await renderV2(interaction, rewindView({ match }))
                 return
             }
             break
@@ -241,6 +252,9 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
         case 'setDivision':
         case 'setRound':
         case 'setRuleset':
+            if (selection[0]?.startsWith('page_')) {
+                break
+            }
         case 'setup':
         case 'setupStart':
         case 'setupJoin':
@@ -323,7 +337,7 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
                     const holdUp = new EmbedBuilder()
                         .setTitle(`${WhyNobodyBuy} Time Does Not Compute`)
                         .setDescription("Your time was submitted in an incorrect format.")
-                    interaction.editReply({ embeds: [holdUp], ephemeral: true })
+                    interaction.reply({ embeds: [holdUp], ephemeral: true })
                     return
                 }
 
@@ -414,76 +428,71 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
         }
     }
 
+    if (match && meta?.lastEventSeq != null) {
+        match.__lastSeenSeq = meta.lastEventSeq
+    }
     client.channelToMatch.set(interaction.channel.id, match)
-    let embed = adminEmbed({ match })
-    let components = []
+    let view = adminView({ match })
 
     switch (match.status) {
         case STATE_SCHEDULED:
-            embed = scheduledMatchEmbed({ match })
-            components = scheduledMatchComponents({ match })
+            view = scheduledMatchView({ match })
             break
         case STATE_MATCH_SETUP:
-            const tournamentsRequest = await axios.get('/tournaments')
-            const tournaments = tournamentsRequest.data?.data
-            const rulesetsRequest = await axios.get('/rulesets')
-            const rulesets = rulesetsRequest.data?.data
-            embed = setupMatchEmbed({ match })
-            components = setupMatchComponents({ match, tournaments, rulesets })
+            const [tournaments, rulesets] = await Promise.all([
+                tournamentsRulesetsCache.getTournaments(),
+                tournamentsRulesetsCache.getRulesets(),
+            ])
+            const rulesetSelected = command === 'setRuleset' && selection[0]?.startsWith('page_')
+                ? selection[0]
+                : undefined
+            view = setupMatchView({ match, tournaments, rulesets, rulesetSelected })
             break
         case STATE_PRE_RACE:
-            meta.message = preRaceContent({ match })
-            embed = preRaceEmbed({ match, summary: meta.matchSummary, options: meta.activeEventsOptions })
-            components = preRaceComponents({ match, activeEventCost: meta.activeEventCost, options: meta.activeEventsOptions })
+            view = preRaceView({ match, summary: meta.matchSummary, options: meta.activeEventsOptions, activeEventCost: meta.activeEventCost })
             break
         case STATE_WARMUP:
-            embed = warmupEmbed({ match })
-            components = warmupComponents({ match })
+            view = warmupView({ match })
 
             if (command == 'nextEvents') {
-                await interaction.editReply({ content: "", embeds: [preRaceEmbed({ match, summary: meta.matchSummary, options: meta.activeEventsOptions })], components: [] })
-                interaction.followUp({ content: meta.message, embeds: [embed], components })
+                await renderV2(interaction, preRaceView({ match, summary: meta.matchSummary, options: meta.activeEventsOptions }))
+                interaction.channel.send({ flags: MessageFlags.IsComponentsV2, components: view })
                 return
             }
             break
         case STATE_IN_RACE:
-            embed = inRaceEmbed({ match })
-            components = inRaceComponents({ match })
+            view = inRaceView({ match })
 
             if (command == 'markReady') {
-                interaction.editReply({ content: `Good luck racers! Countdown incoming ${emojimap.countdown}`, embeds: [], components: [] })
+                await renderV2(interaction, placeholderView(`Good luck racers! Countdown incoming ${emojimap.countdown}`))
                 countDown(interaction)
 
                 setTimeout(() => {
-                    interaction.followUp({ embeds: [embed], components })
+                    interaction.channel.send({ flags: MessageFlags.IsComponentsV2, components: view })
                 }, 10000)
                 return
             }
             break
         case STATE_POST_RACE:
-            meta.message = `Awaiting verification ${match.commentators.map(c => `<@${c.discordId}>`).join(", ")}`
-            embed = postRaceEmbed({ match })
-            components = postRaceComponents({ match })
+            view = postRaceView({ match })
             break
         case STATE_POST_MATCH:
-            meta.message = `GGs!`
-            embed = postMatchEmbed({ match })
-            components = []
+            view = postMatchView({ match })
             break
         case STATE_CANCELLED:
-            interaction.editReply({ content: meta.message ?? "", embeds: [], components: [] })
+            await renderV2(interaction, placeholderView(meta.message || 'Match cancelled.'))
             return
     }
 
     if (meta.raceUpdated || meta.countdownSet) {
-        await interaction.editReply({ content: "", components: [] })
+        await renderV2(interaction, placeholderView('-# …'))
 
         // send match summary when match advances to next race
         if (meta.raceUpdated && match.currentRace > 0) {
-            await interaction.followUp({ embeds: [matchSummaryEmbed({ summary: meta.matchSummary })] })
+            await interaction.channel.send({ flags: MessageFlags.IsComponentsV2, components: matchSummaryView({ summary: meta.matchSummary }) })
         }
 
-        const followUpMessage = await interaction.followUp({ content: meta.message ?? "", embeds: [embed], components, withResponse: true })
+        const followUpMessage = await interaction.channel.send({ flags: MessageFlags.IsComponentsV2, components: view })
 
         // set up countdown
         if (meta.countdownSet) {
@@ -493,7 +502,7 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
                     if (!isCountdownActive(client, interaction, raceStart)) {
                         return
                     }
-                    interaction.followUp({ content: `Good luck racers! Countdown incoming ${emojimap.countdown}` })
+                    interaction.channel.send({ content: `Good luck racers! Countdown incoming ${emojimap.countdown}` })
                 }, raceStart - Date.now() - 10000)
 
                 setTimeout(() => {
@@ -524,16 +533,15 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
                         match = eventRes.data
                         meta = eventRes.meta
 
-
-
                         const race = match.races[match.currentRace]
                         if (race.raceStart) {
-                            interaction.followUp({ embeds: [inRaceEmbed({ match })], components: inRaceComponents({ match }) })
-                            await followUpMessage.edit({ components: [] })
+                            interaction.channel.send({ flags: MessageFlags.IsComponentsV2, components: inRaceView({ match }) })
+                            await followUpMessage.edit({ components: placeholderView('-# Race started.') })
                         }
 
                     } catch (err) {
-                        interaction.followUp({ content: `${WhyNobodyBuy}${err.message}`, ephemeral: true })
+                        console.error('[tourney] raceStart action failed', err)
+                        interaction.channel.send({ content: `${WhyNobodyBuy}${err.message}` })
                         return
                     }
 
@@ -544,9 +552,5 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
         return
     }
 
-    if (interaction.isChatInputCommand() || messageIsEphemeral) {
-        interaction.editReply({ content: meta.message ?? "", embeds: [embed], components })
-    } else {
-        interaction.editReply({ content: meta.message ?? "", embeds: [embed], components })
-    }
+    await renderV2(interaction, view)
 }

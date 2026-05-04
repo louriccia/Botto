@@ -1,4 +1,6 @@
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder, ActionRow, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder, ActionRow, ModalBuilder, TextInputBuilder, TextInputStyle, ContainerBuilder, TextDisplayBuilder, SectionBuilder, ThumbnailBuilder, SeparatorBuilder, SeparatorSpacingSize, MessageFlags } = require('discord.js');
+
+const colorToInt = (hex) => typeof hex === 'number' ? hex : parseInt(String(hex).replace('#', ''), 16)
 
 const { difficulties } = require('../../data/difficulty.js')
 
@@ -6,7 +8,7 @@ const { capitalize, time_fix, getTrackName, getRacerName, truncateString, getTra
 const { postMessage } = require('../../discord.js');
 const { avgSpeed, upgradeCooling, upgradeTopSpeed } = require('../../data/sw_racer/part.js');
 const { blurple_color, ping_color } = require('../../colors.js');
-const { racerSelector } = require('../challenge/functions.js');
+const { racerSelector, paginator } = require('../challenge/functions.js');
 const axios = require('../../axios.js');
 
 const STATE_SCHEDULED = 0
@@ -137,27 +139,20 @@ exports.matchDescription = function ({ match } = {}) {
     return description
 }
 
-exports.setupMatchEmbed = function ({ match } = {}) {
+exports.setupMatchText = function ({ match } = {}) {
     const matchRules = match.ruleset
+    const tourney_name = match.tournament?.name || "Practice Mode"
+    const stream = match.stream
 
-    let tourney_name = match.tournament?.name || "Practice Mode"
-    let stream = match.stream
-
-    const matchMaker = new EmbedBuilder()
-        .setTitle("Match Setup")
-        .setDescription(
-            [
-                `🏆 ${tourney_name}`,
-                exports.matchDescription({ match }),
-                `📜 ${(matchRules?.name ?? 'No ruleset selected')}`,
-                `👥 ${match.players?.map(player => `<@${player.discordId}>`).join(", ")}`,
-                `🎙️ ${match.commentators?.map(commentator => `<@${commentator.discordId}>`).join(", ")}`,
-                stream ? `📺 Stream: ${match.stream}` : ''
-            ].join("\n")
-        )
-        .setColor("#3BA55D")
-
-    return matchMaker
+    return [
+        `## Match Setup`,
+        `🏆 ${tourney_name}`,
+        exports.matchDescription({ match }),
+        `📜 ${(matchRules?.name ?? 'No ruleset selected')}`,
+        `👥 ${match.players?.map(player => `<@${player.discordId}>`).join(", ") || ''}`,
+        `🎙️ ${match.commentators?.map(commentator => `<@${commentator.discordId}>`).join(", ") || ''}`,
+        stream ? `📺 Stream: ${match.stream}` : ''
+    ].filter(line => line !== '').join("\n")
 }
 
 exports.getPoolDescription = function (pool) {
@@ -179,16 +174,33 @@ exports.getEventCost = function (event) {
 }
 
 exports.getForcePoints = function (match, discordId) {
-    let startingPoints = match.ruleset?.forcePoints?.start ?? 0
-    match.races?.events?.forEach(event => {
-        if (event.user?.discordId == discordId) {
-            startingPoints -= exports.getEventCost(event)
+    let fp = Number(match.ruleset?.forcePoints?.start ?? 0)
+    const max = Number(match.ruleset?.forcePoints?.max ?? Infinity)
+    const earnPerRace = Number(match.ruleset?.forcePoints?.earnPerRace ?? 0)
+    const earnPerWin = Number(match.ruleset?.forcePoints?.earnPerWin ?? 0)
+    const earnPerLoss = Number(match.ruleset?.forcePoints?.earnPerLoss ?? 0)
+
+    match.races?.forEach(race => {
+        race.events?.forEach(event => {
+            if (event.user?.discordId == discordId) {
+                fp -= exports.getEventCost(event)
+            }
+        })
+
+        if (race.winner) {
+            fp += earnPerRace
+            if (race.winner.discordId == discordId) {
+                fp += earnPerWin
+            } else {
+                fp += earnPerLoss
+            }
+            fp = Math.min(fp, max)
         }
     })
-    return startingPoints
+    return fp
 }
 
-exports.getEventPlayer = function (event, present = false) {
+exports.getEventPlayer = function (event, present = false, mention = false) {
     let choice = event.choice
     let inverted = false
 
@@ -215,18 +227,21 @@ exports.getEventPlayer = function (event, present = false) {
 
     // botto events
     if (event.choice.startsWith('system') || event.event == 'chanceCube') {
-        return `<@545798436105224203>` // Botto's discord ID
+        return mention ? `<@545798436105224203>` : 'Botto' // Botto's discord ID
     }
 
     // user has been assigned
     if (event.user) {
-        return event.user.discordId ? `<@${event.user.discordId}>` : event.user.username
+        if (mention && event.user.discordId) {
+            return `<@${event.user.discordId}>`
+        }
+        return event.user.username || (event.user.discordId ? `<@${event.user.discordId}>` : 'Unknown Player')
     }
 
     return (inverted ? "Opponent of " : "") + (choiceDescriptions[choice] || choice || "Unknown Player")
 }
 
-exports.eventDescriptor = function ({ event, present = false } = {}) {
+exports.eventDescriptor = function ({ event, present = false, mention = false } = {}) {
     const actionDescriptions = {
         permaBan: present ? "🚫 perma-bans" : "🚫 perma-banned",
         tempBan: present ? "❌ temp-bans" : "❌ temp-banned",
@@ -261,7 +276,7 @@ exports.eventDescriptor = function ({ event, present = false } = {}) {
         'event': event.selection?.map(selection => selection.name || selection.id).join(", "),
     }
 
-    const eventPlayer = exports.getEventPlayer(event, present)
+    const eventPlayer = exports.getEventPlayer(event, present, mention)
     const eventAction = actionDescriptions[event.event] || event.event
     const eventSelection = selectionDescriptions[event.type] || event.selection
     const eventCost = exports.getEventCost(event)
@@ -287,7 +302,7 @@ exports.pollDescription = function ({ event } = {}) {
     }
 
     const pollDescription = event.votes.map(vote => (
-        `-# *<@${vote.player.discordId}> voted for ${vote.selection?.map(selection =>
+        `-# *${vote.player.username || `<@${vote.player.discordId}>`} voted for ${vote.selection?.map(selection =>
             event.options?.find(option => option.id == selection.id)?.name || selection.id
         ).join(", ")}*`
     )).join("\n")
@@ -325,27 +340,15 @@ exports.getRaceDescription = function (race, defaultConditions) {
     return raceDescription
 }
 
-exports.preRaceEmbed = function ({ match, summary, options } = {}) {
+exports.preRaceLogText = function ({ match } = {}) {
     const race = match.races[match.currentRace]
-    let desc = ""
-
-    const embed = new EmbedBuilder()
-        .setAuthor({ name: "Race " + (match.currentRace + 1) + " - Event Phase" })
-        .setColor(ping_color)
-
-    //get forcepoints for current player
-    const currentPlayer = race.activeEvents[0]?.user?.id
-    const currentPoints = summary?.players?.find(player => player.id == currentPlayer)?.forcePoints ?? 0
-    if (currentPlayer) {
-        embed
-            .setFooter({ text: `💠 Force Points: ${currentPoints}` })
-    }
+    let desc = `### Race ${match.currentRace + 1} - Event Phase\n`
 
     //event log
     let groupId = ""
     let eventLog = race.events.filter(event => ['chanceCube', 'poll'].includes(event.event) || event.selection?.length)
 
-    // truncate first x events in event log before embed content becomes too lengthy
+    // truncate first x events in event log before message content becomes too lengthy
     const MAX_EVENT_LOG_LENGTH = 12
     if (eventLog.length > MAX_EVENT_LOG_LENGTH) {
         const eventLogSlice = eventLog.length - MAX_EVENT_LOG_LENGTH
@@ -353,38 +356,58 @@ exports.preRaceEmbed = function ({ match, summary, options } = {}) {
         desc += `[${eventLogSlice} earlier events](https://bottosjunkyard.com/matches/${match.id})\n`
     }
 
-    // TODO: add ruleset defined playlist as events 
-
-    eventLog.forEach((event, i) => {
+    eventLog.forEach((event) => {
         if (event.groupId != groupId) {
             groupId = event.groupId
             desc += `\n`
             if (event.groupId) {
-                desc += `-# <@${event.owner.discordId}> added to their pool: \n`
+                desc += `-# ${event.owner?.username || `<@${event.owner?.discordId}>`} added to their pool: \n`
             }
         }
         const indent = event.groupId ? "* " : ""
         desc += indent + exports.eventDescriptor({ event, present: false }) + "\n"
     })
 
+    return truncateString(desc, 3800)
+}
+
+exports.preRaceRightNowText = function ({ match } = {}) {
+    const race = match.races[match.currentRace]
+    let desc = ""
+
     //poll description
     race.activeEvents.forEach(event => {
         if (['chanceCube', 'poll'].includes(event.event) && event.votes?.length) {
-            desc += "\n" + exports.pollDescription({ event })
+            desc += exports.pollDescription({ event }) + "\n"
         }
     })
 
-    //active events
+    //active events — ping the player who needs to act
     if (race.activeEvents.length) {
-        desc += `\n\n-# Right now:\n${exports.eventDescriptor(
+        desc += `-# Right now: ${exports.eventDescriptor(
             {
                 event: race.activeEvents[0],
-                present: true
+                present: true,
+                mention: true
             })}${race.activeEvents.length > 1 ? ` and ${race.activeEvents.length - 1} more events` : ""}`
     }
 
-    //up next
-    desc += "\n\n-# Up next:\n-# "
+    return desc
+}
+
+exports.preRaceForcePointsText = function ({ match, summary } = {}) {
+    const race = match.races[match.currentRace]
+    const currentPlayer = race.activeEvents[0]?.user?.id
+    if (!currentPlayer) {
+        return ""
+    }
+    const currentPoints = summary?.players?.find(player => player.id == currentPlayer)?.forcePoints ?? 0
+    return `-# You have 💠${currentPoints} Force Points`
+}
+
+exports.preRaceUpNextText = function ({ match, options } = {}) {
+    const race = match.races[match.currentRace]
+    let desc = "-# Up next: "
     if (race.eventQueue?.length) {
         desc += exports.eventDescriptor({ event: race.eventQueue[0], present: true, options })
         if (race.eventQueue.length > 1) {
@@ -393,12 +416,7 @@ exports.preRaceEmbed = function ({ match, summary, options } = {}) {
     } else {
         desc += "Warmup begins"
     }
-
-    if (desc) {
-        embed.setDescription(truncateString(desc, 4096))
-    }
-
-    return embed
+    return desc
 }
 
 exports.getConditionOption = function (option, selected) {
@@ -599,50 +617,68 @@ exports.eventSelector = function ({ event, options } = {}) {
     return eventRow
 }
 
-exports.scheduledMatchEmbed = function ({ match } = {}) {
-    const embed = new EmbedBuilder()
-        .setAuthor({ name: `Match Setup` })
-        .setColor(ping_color)
-        .setDescription("Setup match")
-
-    return embed
-}
-
-exports.scheduledMatchComponents = function ({ match } = {}) {
-    const buttonRow = new ActionRowBuilder()
-        .addComponents(
-            new ButtonBuilder()
-                .setCustomId("tourney_play_setup")
-                .setLabel("Set Up Match")
-                .setStyle(ButtonStyle.Primary)
+exports.scheduledMatchView = function ({ match } = {}) {
+    const container = new ContainerBuilder()
+        .setAccentColor(colorToInt(ping_color))
+        .addTextDisplayComponents(new TextDisplayBuilder().setContent(`### Match Setup\nSetup match`))
+        .addActionRowComponents(
+            new ActionRowBuilder().addComponents(
+                new ButtonBuilder()
+                    .setCustomId("tourney_play_setup")
+                    .setLabel("Set Up Match")
+                    .setStyle(ButtonStyle.Primary)
+            )
         )
-    return [buttonRow]
+    return [container]
 }
 
-exports.preRaceComponents = function ({ match, activeEventCost, options } = {}) {
-    let components = []
+exports.preRaceView = function ({ match, summary, options, activeEventCost } = {}) {
     const race = match.races[match.currentRace]
     const events = race.activeEvents
 
-    //get event components
-    events.forEach(event => {
-        const eventRow = exports.eventSelector({ event, options })
-        components.push(eventRow)
-    })
+    const container = new ContainerBuilder().setAccentColor(colorToInt(ping_color))
 
-    //button row
-    const buttonRow = new ActionRowBuilder()
-        .addComponents(
-            new ButtonBuilder()
-                .setCustomId("tourney_play_nextEvents")
-                .setLabel(`Submit Event${events.length > 1 ? "s" : ""}${activeEventCost ? ` (${activeEventCost}💠)` : ''}`)
-                .setStyle(ButtonStyle.Primary)
-        )
-    if (!(events.length == 1 && events[0].event == 'chanceCube')) {
-        components.push(buttonRow)
+    //past events log
+    container.addTextDisplayComponents(
+        new TextDisplayBuilder().setContent(exports.preRaceLogText({ match }))
+    )
+
+    //divider between "what happened" and "who's up right now"
+    const rightNowText = exports.preRaceRightNowText({ match })
+    if (rightNowText) {
+        container.addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small))
+        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(rightNowText))
     }
 
-    return components
+    //one action row per active event
+    events.forEach(event => {
+        container.addActionRowComponents(exports.eventSelector({ event, options }))
+    })
+
+    //force points balance, sits next to the submit-cost so the player can weigh the spend
+    const forcePointsText = exports.preRaceForcePointsText({ match, summary })
+    if (forcePointsText) {
+        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(forcePointsText))
+    }
+
+    //submit button row (suppressed for chance cube only)
+    if (!(events.length == 1 && events[0].event == 'chanceCube')) {
+        container.addActionRowComponents(
+            new ActionRowBuilder().addComponents(
+                new ButtonBuilder()
+                    .setCustomId("tourney_play_nextEvents")
+                    .setLabel(`Submit Event${events.length > 1 ? "s" : ""}${activeEventCost ? ` (${activeEventCost}💠)` : ''}`)
+                    .setStyle(ButtonStyle.Primary)
+            )
+        )
+    }
+
+    //up next preview — placed after submit so it reads as "what happens when you press submit"
+    container.addTextDisplayComponents(
+        new TextDisplayBuilder().setContent(exports.preRaceUpNextText({ match, options }))
+    )
+
+    return [container]
 }
 
 exports.tourneySelector = function ({ tournaments, selected } = {}) {
@@ -659,7 +695,16 @@ exports.tourneySelector = function ({ tournaments, selected } = {}) {
         emoji: { name: "🚩" },
         default: selected.includes('practice')
     })
-    tournaments.sort((a, b) => b.startDate - a.startDate).forEach(tournament => {
+    const startMs = (t) => {
+        const d = t?.startDate
+        if (!d) return 0
+        if (typeof d === 'number') return d
+        if (typeof d._seconds === 'number') return d._seconds * 1000
+        if (typeof d.seconds === 'number') return d.seconds * 1000
+        const parsed = new Date(d).getTime()
+        return isNaN(parsed) ? 0 : parsed
+    }
+    tournaments.sort((a, b) => startMs(b) - startMs(a)).forEach(tournament => {
         tourney_selector.addOptions(
             {
                 label: tournament.name,
@@ -717,20 +762,27 @@ exports.rulesetSelector = function ({ rulesets, selected } = {}) {
         .setMinValues(1)
         .setMaxValues(1)
 
-    rulesets
+    const rulesetTypeEmoji = {
+        '1v1': '🆚',
+        'Qualifier': '🏁',
+        'FFA': '👥',
+    }
+
+    const options = rulesets
         .filter(ruleset => ruleset.status == 'active')
-        .sort((a, b) => a.name.localeCompare(b.name))
-        .forEach(ruleset => {
-            ruleset_selector.addOptions(
-                {
-                    label: ruleset.name,
-                    value: ruleset.id,
-                    description: " " + (ruleset.description).slice(0, 99),
-                    default: selected.includes(ruleset.id)
-                }
-            )
+        .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0))
+        .map(ruleset => {
+            const emoji = rulesetTypeEmoji[ruleset.type] ?? '📋'
+            return {
+                label: ruleset.name,
+                value: ruleset.id,
+                description: " " + (ruleset.description).slice(0, 99),
+                emoji: { name: emoji },
+                default: selected.includes(ruleset.id)
+            }
         })
 
+    ruleset_selector.addOptions(...paginator({ value: selected?.[0], array: options }))
     rulesetRow.addComponents(ruleset_selector)
 
     return rulesetRow
@@ -808,34 +860,40 @@ exports.tourneyRoundSelector = function ({ rounds, selected } = {}) {
     return roundRow
 }
 
-exports.setupMatchComponents = function ({ match, tournaments, rulesets } = {}) {
+exports.setupMatchView = function ({ match, tournaments, rulesets, rulesetSelected } = {}) {
+    const container = new ContainerBuilder()
+        .setAccentColor(colorToInt('#3BA55D'))
+        .addTextDisplayComponents(new TextDisplayBuilder().setContent(exports.setupMatchText({ match })))
 
-    let components = []
+    container.addActionRowComponents(
+        exports.tourneySelector({ tournaments, selected: match.tournament?.id ? [match.tournament.id] : ['practice'] })
+    )
 
-    const tourneyRow = exports.tourneySelector({ tournaments, selected: match.tournament?.id ? [match.tournament.id] : ['practice'] })
-    components.push(tourneyRow)
-
-    if (match.tournament == "practice") {
-        const rulesetRow = exports.rulesetSelector({ rulesets, selected: [match.ruleset?.id] })
-        components.push(rulesetRow)
+    if (!match.tournament?.id) {
+        container.addActionRowComponents(
+            exports.rulesetSelector({ rulesets, selected: [rulesetSelected ?? match.ruleset?.id] })
+        )
     } else if (match.tournament?.phases) {
-        const phaseRow = exports.tourneyPhaseSelector({ phases: match.tournament.phases, selected: [match.phaseId] })
-        components.push(phaseRow)
+        container.addActionRowComponents(
+            exports.tourneyPhaseSelector({ phases: match.tournament.phases, selected: [match.phaseId] })
+        )
 
         if (match.phaseId) {
             const phase = match.tournament.phases.find(phase => phase.id == match.phaseId)
-            const divisionRow = exports.tourneyDivisionSelector({ divisions: phase.divisions, selected: [match.divisionId] })
-            components.push(divisionRow)
+            container.addActionRowComponents(
+                exports.tourneyDivisionSelector({ divisions: phase.divisions, selected: [match.divisionId] })
+            )
 
             if (match.divisionId) {
                 const division = phase.divisions.find(division => division.id == match.divisionId)
-                const roundRow = exports.tourneyRoundSelector({ rounds: division.rounds, selected: [match.roundId] })
-                components.push(roundRow)
+                container.addActionRowComponents(
+                    exports.tourneyRoundSelector({ rounds: division.rounds, selected: [match.roundId] })
+                )
             }
         }
     }
 
-    let playable = false, joinable_player = false, joinable_commentator = false
+    let playable = false, joinable_player = false
 
     if (match.ruleset !== "" && match.players && match.commentators && match.players.length == 2) {
         playable = true
@@ -845,45 +903,45 @@ exports.setupMatchComponents = function ({ match, tournaments, rulesets } = {}) 
         joinable_player = true
     }
 
-    const buttonRow = new ActionRowBuilder()
-        .addComponents(
-            new ButtonBuilder()
-                .setCustomId("tourney_play_setupJoin")
-                .setLabel("Join as Player")
-                .setStyle(ButtonStyle.Primary)
-                .setEmoji('🕹️')
-                .setDisabled(!joinable_player)
-        )
-        .addComponents(
-            new ButtonBuilder()
-                .setCustomId("tourney_play_setupCommentate")
-                .setLabel("Join as Commentator/Tracker")
-                .setStyle(ButtonStyle.Primary)
-                .setEmoji('🎙️')
-        )
-        .addComponents(
-            new ButtonBuilder()
-                .setCustomId("tourney_play_setupStart")
-                .setLabel("Start Match")
-                .setStyle(ButtonStyle.Success)
-                .setDisabled(!playable)
-        )
-        .addComponents(
-            new ButtonBuilder()
-                .setCustomId("tourney_play_setupLeave")
-                .setLabel("Leave Match")
-                .setStyle(ButtonStyle.Danger)
-        )
-        .addComponents(
-            new ButtonBuilder()
-                .setCustomId("tourney_play_setupCancel")
-                .setLabel("Cancel Match")
-                .setStyle(ButtonStyle.Danger)
-        )
+    container.addActionRowComponents(
+        new ActionRowBuilder()
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId("tourney_play_setupJoin")
+                    .setLabel("Join as Player")
+                    .setStyle(ButtonStyle.Primary)
+                    .setEmoji('🕹️')
+                    .setDisabled(!joinable_player)
+            )
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId("tourney_play_setupCommentate")
+                    .setLabel("Join as Commentator/Tracker")
+                    .setStyle(ButtonStyle.Primary)
+                    .setEmoji('🎙️')
+            )
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId("tourney_play_setupStart")
+                    .setLabel("Start Match")
+                    .setStyle(ButtonStyle.Success)
+                    .setDisabled(!playable)
+            )
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId("tourney_play_setupLeave")
+                    .setLabel("Leave Match")
+                    .setStyle(ButtonStyle.Danger)
+            )
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId("tourney_play_setupCancel")
+                    .setLabel("Cancel Match")
+                    .setStyle(ButtonStyle.Danger)
+            )
+    )
 
-    components.push(buttonRow)
-
-    return components
+    return [container]
 }
 
 exports.getLeaderboard = function ({ track, conditions, podbans, pod_override } = {}) {
@@ -959,35 +1017,105 @@ exports.playerWarmupStatus = function (playerStatus, hideReady = false) {
     return `${racerStatus}\n${readyStatus}`
 }
 
-exports.warmupEmbed = function ({ match } = {}) {
-
+exports.warmupView = function ({ match } = {}) {
     const race = match.races[match.currentRace]
     const track = getTrackById(race.track)
-    const countdownStatus = race.raceStart ? `Race begins <t:${Math.round(race.raceStart / 1000)}:R>` : "Countdown starts when both players have readied."
+    const countdownStatus = race.raceStart
+        ? `Race begins <t:${Math.round(race.raceStart / 1000)}:R>`
+        : "Countdown starts when both players have readied."
     const raceDescription = exports.getRaceDescription(race, match.ruleset.defaultConditions)
 
-    const embed = new EmbedBuilder()
-        .setAuthor({ name: `Race ${(match.currentRace + 1)} - Warmup` })
-        .setTitle(raceDescription.title)
-        .setColor(ping_color)
-        .setDescription(`${raceDescription.description}\n\n${countdownStatus}\n`)
-        .setThumbnail(track?.preview)
+    const container = new ContainerBuilder().setAccentColor(colorToInt(ping_color))
 
+    const headerText = `### Race ${match.currentRace + 1} - Warmup\n**${raceDescription.title}**\n${raceDescription.description}\n\n${countdownStatus}`
 
-    Object.values(match.players).map(player => embed.addFields({
-        name: player.username,
-        value: exports.playerWarmupStatus(race.players[player.id], race.raceStart > 0),
-        inline: true
-    }))
+    if (track?.preview) {
+        container.addSectionComponents(
+            new SectionBuilder()
+                .addTextDisplayComponents(new TextDisplayBuilder().setContent(headerText))
+                .setThumbnailAccessory(new ThumbnailBuilder({ media: { url: track.preview } }))
+        )
+    } else {
+        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(headerText))
+    }
 
-    // if (forces.includes("No Upgrades")) {
-    //     embed.addFields({ name: "🕹️ Players", value: ":orange_circle: Don't forget to show your parts to verify upgrades", inline: false })
-    // }
-    // if (forces.includes("Fastest Lap")) {
-    //     embed.addFields({ name: "🕹️ Players", value: ":orange_circle: Don't forget to delete your `tgdf.dat` file or set your laps to 4", inline: false })
-    // }
+    container.addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small))
 
-    return embed
+    Object.values(match.players).forEach(player => {
+        container.addTextDisplayComponents(
+            new TextDisplayBuilder().setContent(`**${player.username}**\n${exports.playerWarmupStatus(race.players[player.id], race.raceStart > 0)}`)
+        )
+    })
+
+    //racer selector + ready buttons
+    const racerRow = racerSelector({
+        customid: 'tourney_play_selectRacer',
+        placeholder: "Select your racer",
+        min: 1,
+        max: 1
+    })
+    racerRow[0].components[0].options.forEach(option => {
+        if ((race.racerBans ?? []).includes(option.data.value)) {
+            option.data.description = banStatusMap[1].name
+            option.data.emoji = { name: banStatusMap[1].emoji }
+        }
+    })
+
+    const buttonRow = new ActionRowBuilder()
+    if (race.gents?.agreed == "?") {
+        buttonRow.addComponents(
+            new ButtonBuilder()
+                .setCustomId("tourney_play_race" + race + "_gents_true")
+                .setLabel("Accept")
+                .setStyle(ButtonStyle.Success),
+            new ButtonBuilder()
+                .setCustomId("tourney_play_race" + race + "_gents_false")
+                .setLabel("Deny")
+                .setStyle(ButtonStyle.Danger)
+        )
+        container.addActionRowComponents(buttonRow)
+        return [container]
+    }
+    if (race.raceStart) {
+        buttonRow
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId("tourney_play_revealRacer")
+                    .setLabel("Reveal Racer Choice")
+                    .setStyle(ButtonStyle.Secondary)
+            )
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId("tourney_play_abortCountdown")
+                    .setLabel("Abort Countdown")
+                    .setStyle(ButtonStyle.Danger)
+            )
+    } else {
+        buttonRow
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId("tourney_play_markReady")
+                    .setLabel("Ready")
+                    .setStyle(ButtonStyle.Success)
+            )
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId("tourney_play_markUnready")
+                    .setLabel("Not Ready")
+                    .setStyle(ButtonStyle.Danger)
+            )
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId("tourney_play_revealRacer")
+                    .setLabel("Reveal Racer Choice")
+                    .setStyle(ButtonStyle.Secondary)
+            )
+    }
+
+    container.addActionRowComponents(...racerRow)
+    container.addActionRowComponents(buttonRow)
+
+    return [container]
 }
 
 exports.racePlayerStatus = function (player, runs, hidden = true) {
@@ -1005,144 +1133,205 @@ exports.racePlayerStatus = function (player, runs, hidden = true) {
     return ":green_circle: Results Submitted\n" + [runTime, runDeaths, runNotes].filter(i => i).map((thing, i) => `${i > 0 ? "-# " : ""}${hiddenTime}${thing}${hiddenTime} `).join("\n")
 }
 
-exports.inRaceEmbed = function ({ match } = {}) {
+exports.inRaceView = function ({ match } = {}) {
     const race = match.races[match.currentRace]
     const raceDescription = exports.getRaceDescription(race, match.ruleset.defaultConditions)
     const track = getTrackById(race.track)
 
-    const embed = new EmbedBuilder()
-        .setAuthor({ name: "Race " + (match.currentRace + 1) + " - In Progress" })
-        .setTitle(raceDescription.title)
-        .setThumbnail(track?.preview)
-        .setDescription(raceDescription.description)
+    const container = new ContainerBuilder().setAccentColor(colorToInt('#DD2E44'))
 
-    // get leaderboard
+    const headerText = `### Race ${match.currentRace + 1} - In Progress\n**${raceDescription.title}**\n${raceDescription.description}`
 
-    embed
-        .setColor("#DD2E44")
-    Object.values(match.players).map(player => embed.addFields({
-        name: player.username,
-        value: exports.racePlayerStatus(player, race.runs), //
-        inline: true
-    }))
-
-    return embed
-}
-
-exports.postRaceEmbed = function ({ match } = {}) {
-    const race = match.races[match.currentRace]
-    const track = getTrackById(race.track)
-    const raceDescription = exports.getRaceDescription(race, match.ruleset.defaultConditions)
-
-    const embed = new EmbedBuilder()
-        .setAuthor({ name: "Race " + (match.currentRace + 1) + " - Post Race" })
-        .setTitle(raceDescription.title)
-        .setDescription(raceDescription.description)
-        .setThumbnail(track?.preview)
-        .setColor("#2D7D46")
-
-    Object.values(match.players).map(player => embed.addFields({
-        name: `${player.id == race.winner?.id ? "👑 " : ""}${player.username} `,
-        value: exports.racePlayerStatus(player, race.runs, false), // resultFormat(race.runs[player], winner == player),
-        inline: true
-    }))
-
-    if (match.status == STATE_POST_RACE) {
-        embed.addFields({ name: "🎙️ Commentators/Trackers", value: ":red_circle: Awaiting Verification", inline: false })
+    if (track?.preview) {
+        container.addSectionComponents(
+            new SectionBuilder()
+                .addTextDisplayComponents(new TextDisplayBuilder().setContent(headerText))
+                .setThumbnailAccessory(new ThumbnailBuilder({ media: { url: track.preview } }))
+        )
+    } else {
+        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(headerText))
     }
 
-    return embed
+    container.addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small))
+
+    Object.values(match.players).forEach(player => {
+        container.addTextDisplayComponents(
+            new TextDisplayBuilder().setContent(`**${player.username}**\n${exports.racePlayerStatus(player, race.runs)}`)
+        )
+    })
+
+    container.addActionRowComponents(
+        new ActionRowBuilder()
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId(`tourney_play_submitRun`)
+                    .setStyle(ButtonStyle.Primary)
+                    .setLabel("Submit Results")
+            )
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId("tourney_play_restartRace")
+                    .setStyle(ButtonStyle.Secondary)
+                    .setLabel("Restart")
+            )
+    )
+
+    return [container]
 }
 
-exports.postRaceComponents = function ({ match } = {}) {
-    const ButtonRow = new ActionRowBuilder()
-        .addComponents(
-            new ButtonBuilder()
-                .setCustomId(`tourney_play_submitRun`)
-                .setStyle(ButtonStyle.Secondary)
-                .setLabel("Submit Results")
-        )
-        .addComponents(
-            new ButtonBuilder()
-                .setCustomId("tourney_play_verifyResults")
-                .setLabel("Verify")
-                .setStyle(ButtonStyle.Primary)
-        )
-        .addComponents(
-            new ButtonBuilder()
-                .setCustomId("tourney_play_restartRace")
-                .setStyle(ButtonStyle.Secondary)
-                .setLabel("Restart")
-        )
+exports.postRaceView = function ({ match } = {}) {
+    const race = match.races[match.currentRace]
+    const track = getTrackById(race.track)
+    const raceDescription = exports.getRaceDescription(race, match.ruleset.defaultConditions)
 
-    return [ButtonRow]
+    const container = new ContainerBuilder().setAccentColor(colorToInt('#2D7D46'))
+
+    const headerText = `### Race ${match.currentRace + 1} - Post Race\n**${raceDescription.title}**\n${raceDescription.description}`
+
+    if (track?.preview) {
+        container.addSectionComponents(
+            new SectionBuilder()
+                .addTextDisplayComponents(new TextDisplayBuilder().setContent(headerText))
+                .setThumbnailAccessory(new ThumbnailBuilder({ media: { url: track.preview } }))
+        )
+    } else {
+        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(headerText))
+    }
+
+    container.addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small))
+
+    Object.values(match.players).forEach(player => {
+        container.addTextDisplayComponents(
+            new TextDisplayBuilder().setContent(`**${player.id == race.winner?.id ? "👑 " : ""}${player.username}**\n${exports.racePlayerStatus(player, race.runs, false)}`)
+        )
+    })
+
+    if (match.status == STATE_POST_RACE) {
+        const commPings = match.commentators?.map(c => `<@${c.discordId}>`).join(", ") || ''
+        container.addTextDisplayComponents(
+            new TextDisplayBuilder().setContent(`**🎙️ Commentators/Trackers**\n:red_circle: Awaiting Verification${commPings ? ` ${commPings}` : ''}`)
+        )
+    }
+
+    container.addActionRowComponents(
+        new ActionRowBuilder()
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId(`tourney_play_submitRun`)
+                    .setStyle(ButtonStyle.Secondary)
+                    .setLabel("Submit Results")
+            )
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId("tourney_play_verifyResults")
+                    .setLabel("Verify")
+                    .setStyle(ButtonStyle.Primary)
+            )
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId("tourney_play_restartRace")
+                    .setStyle(ButtonStyle.Secondary)
+                    .setLabel("Restart")
+            )
+    )
+
+    return [container]
 }
 
-exports.postMatchEmbed = function ({ match } = {}) {
-    const winEmbed = new EmbedBuilder()
-        .setAuthor({ name: "Match Concluded" })
-        .setTitle(`${match.winner.username} Wins!`)
-        .setDescription("GGs, racers! The match has been saved.")
-        .addFields({ name: ":microphone2: Commentators/Trackers", value: ":orange_circle: Don't forget to click 'Episode Finished' after the interviews" })
-
-    return winEmbed
+exports.postMatchView = function ({ match } = {}) {
+    const container = new ContainerBuilder()
+        .setAccentColor(colorToInt('#2D7D46'))
+        .addTextDisplayComponents(new TextDisplayBuilder().setContent(
+            `### Match Concluded\n## ${match.winner.username} Wins!\nGGs, racers! The match has been saved.\n\n**:microphone2: Commentators/Trackers**\n:orange_circle: Don't forget to click 'Episode Finished' after the interviews`
+        ))
+    return [container]
 }
 
-exports.matchSummaryEmbed = function ({ summary } = {}) {
+exports.matchSummaryView = function ({ summary } = {}) {
     if (!summary) {
         return null
     }
 
-    const embed = new EmbedBuilder()
-        .setAuthor({ name: 'Match Summary' })
-        .setColor("#FFFFFF")
-        .setDescription(`First to ${summary.winLimit} wins.`)
-        .setTitle(
-            summary.tied ? `Tied Match ${summary.players[0].wins} to ${summary.players[0].wins} ` :
-                `${summary.players[0].username} ${(summary.status == STATE_POST_MATCH ? "wins" : "leads")} ${summary.players[0].wins} to ${summary.players[1].wins} ` +
-                (summary.matchPoint ? " (Match Point)" : ""))
+    const titleLine = summary.tied
+        ? `Tied Match ${summary.players[0].wins} to ${summary.players[0].wins}`
+        : `${summary.players[0].username} ${(summary.status == STATE_POST_MATCH ? "wins" : "leads")} ${summary.players[0].wins} to ${summary.players[1].wins}` +
+        (summary.matchPoint ? " (Match Point)" : "")
 
-    summary.players.forEach((player, i) => {
-        embed.addFields({
-            name: player.username,
-            value: [
-                `👑 \`${player.wins}\` 💠\`${player.forcePoints}\``,
-                `⏱️ \`${time_fix(player.time) + (player.trueTime ? "" : "+")}\``,
-                `💀 \`${player.deaths + (player.trueDeaths ? "" : "+")}\``
-            ].join("\n"),
-            inline: true
-        })
+    const container = new ContainerBuilder()
+        .setAccentColor(colorToInt('#FFFFFF'))
+        .addTextDisplayComponents(new TextDisplayBuilder().setContent(
+            `### Match Summary\n## ${titleLine}\nFirst to ${summary.winLimit} wins.`
+        ))
+        .addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small))
+
+    summary.players.forEach(player => {
+        container.addTextDisplayComponents(
+            new TextDisplayBuilder().setContent(
+                [
+                    `**${player.username}**`,
+                    `👑 \`${player.wins}\` 💠\`${player.forcePoints}\``,
+                    `⏱️ \`${time_fix(player.time) + (player.trueTime ? "" : "+")}\``,
+                    `💀 \`${player.deaths + (player.trueDeaths ? "" : "+")}\``
+                ].join("\n")
+            )
+        )
     })
 
-    if (summary.status !== STATE_POST_MATCH) {
-        embed.addFields({
-            name: "🎙️ Commentators/Trackers",
-            value: ":orange_circle: Don't forget to update the score!",
-            inline: false
-        })
-    } else {
-        embed.addFields({
-            name: "🎙️ Commentators/Trackers",
-            value: ":orange_circle: Don't forget to close the match!",
-            inline: false
-        })
-    }
+    const commMsg = summary.status !== STATE_POST_MATCH
+        ? ":orange_circle: Don't forget to update the score!"
+        : ":orange_circle: Don't forget to close the match!"
+    container.addTextDisplayComponents(
+        new TextDisplayBuilder().setContent(`**🎙️ Commentators/Trackers**\n${commMsg}`)
+    )
 
-    return embed
+    return [container]
 }
 
 
 
-exports.adminEmbed = function ({ match } = {}) {
-    const embed = new EmbedBuilder()
-        .setAuthor({ name: 'Match Manager' })
-        .setColor(blurple_color)
-        .setDescription(exports.matchTitle({ match }) + "\nThis menu allows admins and commentators to manage the match while it is in progress. Please make a selection.\nCurrent Race: `" + match?.currentRace + "`\nCurrent Stage: `" + match?.status + "`")
-        .setFooter({ text: `id: ${match.id}` })
-    return embed
+exports.adminView = function ({ match } = {}) {
+    const container = new ContainerBuilder()
+        .setAccentColor(colorToInt(blurple_color))
+        .addTextDisplayComponents(new TextDisplayBuilder().setContent(
+            `### Match Manager\n${exports.matchTitle({ match })}\nThis menu allows admins and commentators to manage the match while it is in progress. Please make a selection.\nCurrent Race: \`${match?.currentRace}\`\nCurrent Stage: \`${match?.status}\`\n-# id: ${match.id}`
+        ))
+        .addActionRowComponents(
+            new ActionRowBuilder()
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId("tourney_play_setupCommentate")
+                        .setLabel("Join as Commentator/Tracker")
+                        .setStyle(ButtonStyle.Success)
+                )
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId("tourney_play_rewindMatch")
+                        .setLabel("Rewind Match")
+                        .setStyle(ButtonStyle.Secondary)
+                )
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId("tourney_play_bindMatch")
+                        .setLabel("Change Match")
+                        .setStyle(ButtonStyle.Secondary)
+                )
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId("tourney_play_setupLeave")
+                        .setLabel("Leave Match")
+                        .setStyle(ButtonStyle.Danger)
+                )
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId("tourney_play_setupCancel")
+                        .setLabel("Cancel Match")
+                        .setStyle(ButtonStyle.Danger)
+                )
+        )
+    return [container]
 }
 
-exports.rewindComponents = function ({ match } = {}) {
+exports.rewindView = function ({ match } = {}) {
     const rewindSelector = new StringSelectMenuBuilder()
         .setCustomId(`tourney_play_rewindMatch`)
         .setPlaceholder("Rewind the match")
@@ -1171,132 +1360,15 @@ exports.rewindComponents = function ({ match } = {}) {
             }
         )
 
-    const rewindRow = new ActionRowBuilder().addComponents(rewindSelector)
+    const container = new ContainerBuilder()
+        .setAccentColor(colorToInt(blurple_color))
+        .addTextDisplayComponents(new TextDisplayBuilder().setContent(`### Rewind Match`))
+        .addActionRowComponents(new ActionRowBuilder().addComponents(rewindSelector))
 
-    return [rewindRow]
-}
-
-exports.adminComponents = function () {
-    const ButtonRow = new ActionRowBuilder()
-        .addComponents(
-            new ButtonBuilder()
-                .setCustomId("tourney_play_setupCommentate")
-                .setLabel("Join as Commentator/Tracker")
-                .setStyle(ButtonStyle.Success)
-        )
-        .addComponents(
-            new ButtonBuilder()
-                .setCustomId("tourney_play_rewindMatch")
-                .setLabel("Rewind Match")
-                .setStyle(ButtonStyle.Secondary)
-        )
-        .addComponents(
-            new ButtonBuilder()
-                .setCustomId("tourney_play_bindMatch")
-                .setLabel("Change Match")
-                .setStyle(ButtonStyle.Secondary)
-        )
-        .addComponents(
-            new ButtonBuilder()
-                .setCustomId("tourney_play_setupLeave")
-                .setLabel("Leave Match")
-                .setStyle(ButtonStyle.Danger)
-        )
-        .addComponents(
-            new ButtonBuilder()
-                .setCustomId("tourney_play_setupCancel")
-                .setLabel("Cancel Match")
-                .setStyle(ButtonStyle.Danger)
-        )
-
-
-    return [ButtonRow]
+    return [container]
 }
 
 
-exports.warmupComponents = function ({ match }) {
-    const race = match.races[match.currentRace]
-    const racerBans = race.racerBans
-
-    const racerRow = racerSelector(
-        {
-            customid: 'tourney_play_selectRacer',
-            placeholder: "Select your racer",
-            min: 1,
-            max: 1
-        })
-
-    racerRow[0].components[0].options.forEach(option => {
-        if (racerBans.includes(option.data.value)) {
-            option.data.description = banStatusMap[1].name
-            option.data.emoji = { name: banStatusMap[1].emoji }
-        }
-    })
-
-    //gents prompt
-    const ButtonRow = new ActionRowBuilder()
-    if (race.gents?.agreed == "?") {
-        ButtonRow.addComponents(
-            new ButtonBuilder()
-                .setCustomId("tourney_play_race" + race + "_gents_true")
-                .setLabel("Accept")
-                .setStyle(ButtonStyle.Success),
-            new ButtonBuilder()
-                .setCustomId("tourney_play_race" + race + "_gents_false")
-                .setLabel("Deny")
-                .setStyle(ButtonStyle.Danger)
-        )
-        return [ButtonRow]
-    }
-    if (race.raceStart) {
-        ButtonRow
-            .addComponents(
-                new ButtonBuilder()
-                    .setCustomId("tourney_play_revealRacer")
-                    .setLabel("Reveal Racer Choice")
-                    .setStyle(ButtonStyle.Secondary)
-            )
-            .addComponents(
-                new ButtonBuilder()
-                    .setCustomId("tourney_play_abortCountdown")
-                    .setLabel("Abort Countdown")
-                    .setStyle(ButtonStyle.Danger)
-            )
-    } else {
-        ButtonRow
-            .addComponents(
-                new ButtonBuilder()
-                    .setCustomId("tourney_play_markReady")
-                    .setLabel("Ready") //Object.values(match.races[race].ready).filter(v => v === false).length == 1 ? "Start Countdown" :
-                    .setStyle(ButtonStyle.Success)
-            )
-            .addComponents(
-                new ButtonBuilder()
-                    .setCustomId("tourney_play_markUnready")
-                    .setLabel("Not Ready")
-                    .setStyle(ButtonStyle.Danger)
-            )
-            .addComponents(
-                new ButtonBuilder()
-                    .setCustomId("tourney_play_revealRacer")
-                    .setLabel("Reveal Racer Choice")
-                    .setStyle(ButtonStyle.Secondary)
-            )
-    }
-    // if (match.ruleset.gentlemensAgreement) {
-    //     ButtonRow.addComponents(
-    //         new ButtonBuilder()
-    //             .setCustomId("tourney_play_race" + race + "_gents")
-    //             .setEmoji("🎩")
-    //             .setStyle(ButtonStyle.Secondary)
-    //     )
-    // }
-    // if (race.racer_override) {
-    //     return [buttonRow]
-    // }
-
-    return [...racerRow, ButtonRow]
-}
 
 exports.verifyModal = function ({ match }) {
     const race = match.races[match.currentRace]
@@ -1372,23 +1444,6 @@ exports.submitRunModal = function ({ currentRace, run = null }) {
     const ActionRow3 = new ActionRowBuilder().addComponents(Notes)
     submitModal.addComponents(ActionRow1, ActionRow2, ActionRow3)
     return submitModal
-}
-
-exports.inRaceComponents = function ({ match }) {
-    const ButtonRow = new ActionRowBuilder()
-        .addComponents(
-            new ButtonBuilder()
-                .setCustomId(`tourney_play_submitRun`)
-                .setStyle(ButtonStyle.Primary)
-                .setLabel("Submit Results")
-        )
-        .addComponents(
-            new ButtonBuilder()
-                .setCustomId("tourney_play_restartRace")
-                .setStyle(ButtonStyle.Secondary)
-                .setLabel("Restart")
-        )
-    return [ButtonRow]
 }
 
 exports.rulesetOverview = function ({ interaction }) {

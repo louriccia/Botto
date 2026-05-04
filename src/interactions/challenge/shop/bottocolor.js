@@ -1,6 +1,9 @@
 
 
 const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, AttachmentBuilder } = require('discord.js');
+const Jimp = require('jimp');
+const fs = require('fs');
+const { swe1r_guild } = require('../../../data/discord/guild.js');
 
 exports.bottocolor = async function ({ interaction, member_id } = {}) {
 

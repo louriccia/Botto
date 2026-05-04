@@ -61,7 +61,9 @@ for (const file of buttonFiles) {
 //firebase
 const { db, database } = require('./firebase.js')
 const { WhyNobodyBuy } = require('./data/discord/emoji.js')
-const { requestWithUser } = require('./axios.js')
+const { requestWithUser, axiosClient } = require('./axios.js')
+const { initSseClient, onAction } = require('./sseClient.js')
+const { registerSseHandlers } = require('./sseHandlers.js')
 
 //banned
 const banned = []
@@ -219,6 +221,48 @@ client.once(Events.ClientReady, async () => {
 
     await loadStaticData();
     setInterval(minuteUpdater, 1000 * 60)
+
+    // hydrate match cache so post-restart button presses don't fall back to the selector
+    try {
+        const res = await axiosClient.get('/matches')
+        const matches = res.data?.data ?? []
+        const TOURNEY_STATE_CANCELLED = 99
+        const TOURNEY_STATE_POST_MATCH = 6
+        let count = 0
+        for (const m of matches) {
+            if (m.channelId && ![TOURNEY_STATE_CANCELLED, TOURNEY_STATE_POST_MATCH].includes(m.status)) {
+                client.channelToMatch.set(m.channelId, m)
+                count++
+            }
+        }
+        console.log(`[startup] hydrated ${count} active matches`)
+    } catch (err) {
+        console.error('[startup] failed to hydrate match cache', err)
+    }
+
+    if (process.env.ENABLE_CRON === 'true') {
+        // Register jobs from src/cron/jobs/* then start the scheduler.
+        // Jobs are expected to self-register with scheduler.register() on require.
+        require('./cron/jobs')
+        require('./cron/scheduler').start(client)
+
+        // Reactive (SSE) cron subscriptions — e.g. post match results on
+        // match.verifyResults. Only attach if the SSE client is also running.
+        if (process.env.ENABLE_SSE === 'true') {
+            require('./cron/sseSubscriptions').start(client)
+        }
+    }
+
+    if (process.env.ENABLE_SSE === 'true') {
+        const logEvent = (event) => {
+            console.log(`[sse] seq=${event.seq} ${event.entity}.${event.action} topic=${event.topic ?? '-'} source=${event.payload?.source ?? '-'}`)
+        }
+        for (const prefix of ['match.*', 'tournament.*', 'ruleset.*', 'user.*', 'racer.*', 'track.*']) {
+            onAction(prefix, logEvent)
+        }
+        registerSseHandlers(client)
+        initSseClient()
+    }
 })
 
 client.on(Events.GuildMemberAdd, (guildMember) => { //join log
