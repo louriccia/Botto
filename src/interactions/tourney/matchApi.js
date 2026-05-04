@@ -17,4 +17,22 @@ async function getMatch(matchId, userSnapshot) {
     }
 }
 
-module.exports = { getMatch }
+async function getLeaderboard({ track, conditions, userSnapshot, limit } = {}) {
+    try {
+        const res = await requestWithUser({
+            method: 'get',
+            url: '/matches/leaderboard',
+            userSnapshot,
+            query: {
+                track,
+                conditions: conditions ? JSON.stringify(conditions) : undefined,
+                limit,
+            },
+        })
+        return { runs: res.data || [], error: null }
+    } catch (err) {
+        return { runs: [], error: err.message }
+    }
+}
+
+module.exports = { getMatch, getLeaderboard }

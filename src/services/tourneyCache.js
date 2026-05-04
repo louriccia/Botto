@@ -1,7 +1,11 @@
 const CacheService = require('./cacheService.js')
 const { axiosClient: axios } = require('../axios.js')
+const { getLeaderboard: apiGetLeaderboard } = require('../interactions/tourney/matchApi.js')
 
 const cache = new CacheService()
+// Leaderboard cache lives in its own short-lived store so we can blow it
+// away wholesale on POST_MATCH transitions without affecting tournaments/rulesets.
+const lbCache = new CacheService(60 * 1000)
 
 const TOURNAMENTS_KEY = 'tournaments'
 const RULESETS_KEY = 'rulesets'
@@ -32,6 +36,39 @@ function invalidateRulesets() {
     cache.invalidate(RULESETS_KEY)
 }
 
+// Bot-side cache key needs to be deterministic across calls with the same merged
+// conditions. Stringify with sorted top-level keys so two equivalent objects produce
+// the same key regardless of property insertion order.
+function stableCacheKey(obj) {
+    if (!obj) return ''
+    const keys = Object.keys(obj).sort()
+    return keys.map(k => `${k}=${JSON.stringify(obj[k])}`).join('&')
+}
+
+async function getLeaderboard({ track, conditions, userSnapshot } = {}) {
+    if (!track) return []
+    const key = `lb:${track}:${stableCacheKey(conditions)}`
+    const cached = lbCache.get(key)
+    if (cached) return cached
+    const { runs } = await apiGetLeaderboard({ track, conditions, userSnapshot })
+    lbCache.set(key, runs)
+    return runs
+}
+
+// Single no-op leaderboard request to warm both the API's getAll() match cache
+// and (via _buildLeaderboardIndex) every bucket. Pre-render on bot startup so
+// the first user-triggered race view doesn't pay a cold walk.
+async function warm() {
+    try {
+        await apiGetLeaderboard({ track: '__warm__', conditions: {} })
+    } catch { /* swallow — best-effort warming */ }
+}
+
+function invalidateLeaderboard() {
+    lbCache.clear()
+}
+
 module.exports = {
-    tournamentsRulesetsCache: { getTournaments, getRulesets, invalidateTournaments, invalidateRulesets }
+    tournamentsRulesetsCache: { getTournaments, getRulesets, invalidateTournaments, invalidateRulesets },
+    leaderboardCache: { getLeaderboard, invalidateLeaderboard, warm }
 }

@@ -12,6 +12,7 @@ const { botto_chat } = require('./auto/chat.js')
 const { join_message } = require('./auto/join.js')
 const { get_user_key_by_discord_id, initializePlayer, initializeUser } = require('./user.js')
 const { loadStaticData } = require('./loadStaticData');
+const { leaderboardCache } = require('./services/tourneyCache.js')
 
 //openai
 const OpenAI = require("openai")
@@ -205,6 +206,10 @@ client.once(Events.ClientReady, async () => {
     log_preview(client)
     update_users(client)
 
+    // Fire-and-forget: triggers the API to walk all matches once and precompute every
+    // leaderboard bucket so the first user-triggered race view is a hot cache hit.
+    leaderboardCache.warm().catch(() => { })
+
     const minuteUpdater = async () => {
         try {
             Object.keys(db.user).filter(key => db.user[key]?.random?.items).forEach(key => completeRepairs({ user_profile: db.user[key].random, profile_ref: database.ref(`users/${key}/random`), client, member: db.user[key].discordID }))
@@ -222,23 +227,45 @@ client.once(Events.ClientReady, async () => {
     await loadStaticData();
     setInterval(minuteUpdater, 1000 * 60)
 
-    // hydrate match cache so post-restart button presses don't fall back to the selector
-    try {
-        const res = await axiosClient.get('/matches')
-        const matches = res.data?.data ?? []
-        const TOURNEY_STATE_CANCELLED = 99
-        const TOURNEY_STATE_POST_MATCH = 6
-        let count = 0
-        for (const m of matches) {
-            if (m.channelId && ![TOURNEY_STATE_CANCELLED, TOURNEY_STATE_POST_MATCH].includes(m.status)) {
-                client.channelToMatch.set(m.channelId, m)
-                count++
+    // hydrate match cache so post-restart button presses don't fall back to the selector.
+    // Cold-start API calls can exceed the default 10s axios timeout, so use a longer
+    // per-request timeout and retry with backoff in the background instead of giving up.
+    const TOURNEY_STATE_CANCELLED = 99
+    const TOURNEY_STATE_POST_MATCH = 6
+    // Marks hydration completion so tourney interaction handlers can short-circuit during
+    // startup and ask the user to wait, instead of racing the API for /matches and timing
+    // out (which would otherwise hand them the match-selector and orphan the live match).
+    client.matchCacheHydrated = false
+    const hydrateMatches = async (attempt = 1) => {
+        try {
+            const res = await axiosClient.get('/matches', { timeout: 30_000 })
+            const matches = res.data?.data ?? []
+            let count = 0
+            for (const m of matches) {
+                if (m.channelId && ![TOURNEY_STATE_CANCELLED, TOURNEY_STATE_POST_MATCH].includes(m.status)) {
+                    client.channelToMatch.set(m.channelId, m)
+                    count++
+                }
+            }
+            console.log(`[startup] hydrated ${count} active matches (attempt ${attempt})`)
+            // Prime the play-side matches cache so the first "Change Match" click after
+            // restart doesn't pay the cold-start API cost re-fetching this same list.
+            client.matchesListCache = { matches, expiresAt: Date.now() + 10_000 }
+            client.matchCacheHydrated = true
+        } catch (err) {
+            const willRetry = attempt < 5
+            console.error(`[startup] match cache hydrate attempt ${attempt} failed${willRetry ? ', will retry' : ''}: ${err.message}`)
+            if (willRetry) {
+                const delaySec = Math.min(60, 5 * attempt)
+                setTimeout(() => { hydrateMatches(attempt + 1).catch(() => { }) }, delaySec * 1000)
+            } else {
+                // Out of retries — let the cache start serving (selector flow remains the
+                // backstop) so users aren't blocked indefinitely.
+                client.matchCacheHydrated = true
             }
         }
-        console.log(`[startup] hydrated ${count} active matches`)
-    } catch (err) {
-        console.error('[startup] failed to hydrate match cache', err)
     }
+    hydrateMatches().catch(() => { })
 
     if (process.env.ENABLE_CRON === 'true') {
         // Register jobs from src/cron/jobs/* then start the scheduler.

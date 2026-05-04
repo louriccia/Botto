@@ -21,6 +21,10 @@ class cacheService {
     invalidate(key) {
         this.cache.delete(key);
     }
+
+    clear() {
+        this.cache.clear();
+    }
 }
 
 module.exports = cacheService;
