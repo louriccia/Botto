@@ -17,7 +17,7 @@ async function getMatch(matchId, userSnapshot) {
     }
 }
 
-async function getLeaderboard({ track, conditions, userSnapshot, limit } = {}) {
+async function getLeaderboard({ track, conditions, userSnapshot, limit, timeout, quiet } = {}) {
     try {
         const res = await requestWithUser({
             method: 'get',
@@ -28,6 +28,8 @@ async function getLeaderboard({ track, conditions, userSnapshot, limit } = {}) {
                 conditions: conditions ? JSON.stringify(conditions) : undefined,
                 limit,
             },
+            timeout,
+            quiet,
         })
         return { runs: res.data || [], error: null }
     } catch (err) {

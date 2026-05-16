@@ -1,33 +1,23 @@
+const { ContainerBuilder, TextDisplayBuilder, MessageFlags } = require('discord.js')
 const { onAction } = require('./sseClient.js')
 const { axiosClient } = require('./axios.js')
 const { tournamentsRulesetsCache } = require('./services/tourneyCache.js')
-const { getTrackName, getRacerName, getCircuitName, getPlanetName } = require('./generic.js')
+const { system_color } = require('./colors.js')
+const { eventDescriptor } = require('./interactions/tourney/functions.js')
+
+const SYSTEM_ACCENT = parseInt(String(system_color).replace('#', ''), 16)
+
+// Wrap SSE-triggered notifications in a Components V2 container with the system accent
+// color so they render with the same border treatment as the rest of the tourney message
+// flow but stay visually distinct from player- and admin-driven messages.
+function sendSystemMessage(channel, content) {
+    const view = [new ContainerBuilder()
+        .setAccentColor(SYSTEM_ACCENT)
+        .addTextDisplayComponents(new TextDisplayBuilder().setContent(content))]
+    return channel.send({ flags: MessageFlags.IsComponentsV2, components: view })
+}
 
 const REFRESH_DEBOUNCE_MS = 500
-
-const CONDITION_LABELS = {
-    nu: 'No Upgrades',
-    sk: 'Skips',
-    fl: 'Fastest Lap',
-}
-
-// Render the API's selection array (from match.resolveSystemEvent / revealDeferredEvents
-// payloads) as human-readable text, using the same lookup helpers the rest of the bot uses
-// for game data. Returns '' if nothing renderable is available so callers can skip silently.
-function formatSystemSelection(type, selection = []) {
-    if (!Array.isArray(selection) || !selection.length) return ''
-    const ids = selection.map(s => s?.id).filter(v => v != null && v !== '')
-    switch (type) {
-        case 'track': return getTrackName(ids)
-        case 'racer': return getRacerName(ids)
-        case 'planet': return getPlanetName(ids)
-        case 'circuit': return getCircuitName(ids)
-        case 'color': return ids[0] === 'red' ? '🟥 Red' : '🟦 Blue'
-        case 'condition': return ids.map(id => CONDITION_LABELS[id] || id).join(', ')
-        case 'player': return selection.map(s => s?.username || s?.id).filter(Boolean).join(', ')
-        default: return selection.map(s => s?.name || s?.id).filter(Boolean).join(', ')
-    }
-}
 
 function findChannelForMatch(client, matchId) {
     for (const [channelId, m] of client.channelToMatch) {
@@ -95,7 +85,7 @@ function makeModRunHandler(client) {
             const userId = event.payload?.userId
             const who = userId ? `<@${userId}>` : 'A racer'
             const timeStr = run?.dnf ? 'DNF' : (run?.time != null ? run.time : '?')
-            await channel.send(`${who} submitted via game mod: **${timeStr}**`)
+            await sendSystemMessage(channel, `${who} submitted via game mod: **${timeStr}**`)
         } catch (err) {
             console.error('[sse] mod run notification failed', err)
         }
@@ -116,11 +106,11 @@ function makeResolveSystemEventHandler(client) {
         try {
             const channel = await client.channels.fetch(channelId)
             if (!channel?.isTextBased?.()) return
-            const { type, choice, selection } = event.payload || {}
-            const sel = formatSystemSelection(type, selection)
-            if (!sel) return
-            const verb = choice === 'systemRandom' ? 'randomly picked' : 'picked'
-            await channel.send({ content: `-# 🎲 Botto ${verb} ${sel}` })
+            const eventData = event.payload || {}
+            if (!eventData.event || !eventData.selection?.length) return
+            const line = eventDescriptor({ event: eventData, present: false, mention: false })
+            if (!line) return
+            await sendSystemMessage(channel, `-# ${line}`)
         } catch (err) {
             console.error('[sse] resolveSystemEvent notification failed', err?.message || err)
         }
@@ -142,13 +132,10 @@ function makeRevealDeferredEventsHandler(client) {
             const events = event.payload?.events ?? []
             if (!events.length) return
             const lines = events
-                .map(e => {
-                    const sel = formatSystemSelection(e.type, e.selection)
-                    return sel ? `-# 🎴 ${sel}` : null
-                })
-                .filter(Boolean)
+                .filter(e => e.selection?.length)
+                .map(e => `-# ${eventDescriptor({ event: e, present: false, mention: false })}`)
             if (!lines.length) return
-            await channel.send({ content: `**Warmup reveal:**\n${lines.join('\n')}` })
+            await sendSystemMessage(channel, lines.join('\n'))
         } catch (err) {
             console.error('[sse] revealDeferredEvents notification failed', err?.message || err)
         }

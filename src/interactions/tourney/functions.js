@@ -9,7 +9,7 @@ const { capitalize, time_fix, getTrackName, getRacerName, truncateString, getTra
 const { postMessage } = require('../../discord.js');
 const { db } = require('../../firebase.js');
 const { avgSpeed, upgradeCooling, upgradeTopSpeed } = require('../../data/sw_racer/part.js');
-const { blurple_color, ping_color } = require('../../colors.js');
+const { blurple_color, ping_color, trail_color } = require('../../colors.js');
 const { racerSelector, paginator } = require('../challenge/functions.js');
 const axios = require('../../axios.js');
 
@@ -60,12 +60,17 @@ const repeatStatusMap = {
         emoji: ""
     },
     1: {
-        name: "Unrepeatable",
+        name: "Already picked — cannot be picked again",
         emoji: "⭕"
     },
     2: {
-        name: "Repeatable with condition",
-        emoji: "*️⃣"
+        // Status 2 = picking this would violate one of the active event's
+        // repeatConditions (e.g. differentPlayer / differentConditions). The
+        // server enforces this on submit, so picking it WILL be rejected — the
+        // copy needs to make that clear, not suggest "you can repeat with a
+        // tweak".
+        name: "Already picked — picking again will be rejected",
+        emoji: "⚠️"
     }
 }
 
@@ -174,11 +179,11 @@ exports.getPoolDescription = function (pool) {
 }
 
 exports.getEventCost = function (event) {
-    if (!event || !event.cost || !event.selection?.length) {
-        return 0
-    }
-    return (event.cost ?? 0) * (event.selection.length / (event.qty ?? 1))
-
+    if (!event || !event.cost) return 0
+    // Activated deferred events bill at full cost until resolved at the defer point.
+    if (event.activated && !event.selection?.length) return event.cost
+    if (!event.selection?.length) return 0
+    return event.cost * (event.selection.length / (event.qty ?? 1))
 }
 
 exports.getForcePoints = function (match, discordId) {
@@ -208,6 +213,50 @@ exports.getForcePoints = function (match, discordId) {
     return fp
 }
 
+// Single source of truth for the descriptive copy used by getEventPlayer and
+// eventDescriptor. Choice copy is adverb-style — meant to read with a verb
+// immediately after ("Botto randomly chooses an event").
+const BOTTO_DISCORD_ID = '545798436105224203'
+
+const EVENT_DESCRIPTORS = {
+    actions: {
+        permaBan: { present: '🚫 perma-bans', past: '🚫 perma-banned' },
+        tempBan: { present: '❌ temp-bans', past: '❌ temp-banned' },
+        selection: { present: '👆 selects', past: '👆 selected' },
+        override: { present: '✳️ overrides', past: '✳️ overrode' },
+        poll: { present: '🗳️ votes for', past: '🗳️ voted for' },
+        choice: { present: '🗳️ chooses', past: '🗳️ chose' },
+        poolPick: { present: '🗳️ picks', past: '🗳️ picked' },
+        clearPoolPick: { present: '🗳️ clears', past: '🗳️ cleared' },
+        chanceCube: { present: '🎲 rolls', past: '🎲 rolled' },
+    },
+    types: {
+        allyPool: " pick from their teammate's pool",
+        enemyPool: " pick from their opponent's pool",
+        winnerPool: " pick from the winner's pool",
+        loserPool: " pick from the loser's pool",
+        dynamicEvent: 'n event',
+        event: 'n event',
+        color: ' chance cube',
+    },
+    choices: {
+        raceLoser: 'Loser of last race',
+        raceWinner: 'Winner of last race',
+        cubeWinner: 'Chance cube winner',
+        cubeLoser: 'Chance cube loser',
+        randomPlayer: 'Random player',
+        seedWinner: 'Higher ranked player',
+        seedLoser: 'Lower ranked player',
+        system: 'Botto',
+        systemRandom: 'Botto randomly',
+        systemNext: 'Botto sequentially',
+        selectedPlayer: 'Selected player',
+        unselectedPlayer: 'Unselected player',
+        // 'player' depends on `present` and is handled inline in getEventPlayer.
+    },
+    deferUntil: { warmup: 'Warmup' },
+}
+
 exports.getEventPlayer = function (event, present = false, mention = false) {
     let choice = event.choice
     let inverted = false
@@ -217,28 +266,19 @@ exports.getEventPlayer = function (event, present = false, mention = false) {
         choice = choice.substring(1)
     }
 
-    const choiceDescriptions = {
-        'raceLoser': "Loser of last race",
-        'raceWinner': 'Winner of last race',
-        'cubeWinner': "Chance cube winner",
-        'cubeLoser': "Chance cube loser",
-        'randomPlayer': "Random player",
-        'player': present ? "Any player" : "Players",
-        'seedWinner': "Higher ranked player",
-        'seedLoser': "Lower ranked player",
-        'system': "Botto",
-        'systemRandom': "Botto randomly",
-        'systemNext': "Botto",
-        'selectedPlayer': "Selected player",
-        'unselectedPlayer': "Unselected player",
+    const isSystem = choice.startsWith('system') || event.event == 'chanceCube'
+    if (isSystem) {
+        // For adverb-style system choices ('systemRandom' → "Botto randomly",
+        // 'systemNext' → "Botto sequentially") the adverb is the whole reason
+        // the line reads naturally. Keep the ping for plain-Botto cases (e.g.
+        // chanceCube), but suppress it for adverbed ones so the resulting text
+        // doesn't lose the "randomly"/"sequentially" qualifier.
+        const adverbed = EVENT_DESCRIPTORS.choices[choice]
+        if (adverbed && adverbed !== 'Botto') return adverbed
+        if (mention) return `<@${BOTTO_DISCORD_ID}>`
+        return adverbed || 'Botto'
     }
 
-    // botto events
-    if (event.choice.startsWith('system') || event.event == 'chanceCube') {
-        return mention ? `<@545798436105224203>` : 'Botto' // Botto's discord ID
-    }
-
-    // user has been assigned
     if (event.user) {
         if (mention && event.user.discordId) {
             return `<@${event.user.discordId}>`
@@ -246,32 +286,13 @@ exports.getEventPlayer = function (event, present = false, mention = false) {
         return event.user.username || (event.user.discordId ? `<@${event.user.discordId}>` : 'Unknown Player')
     }
 
-    return (inverted ? "Opponent of " : "") + (choiceDescriptions[choice] || choice || "Unknown Player")
+    const playerLabel = choice === 'player'
+        ? (present ? 'Any player' : 'Players')
+        : (EVENT_DESCRIPTORS.choices[choice] || choice || 'Unknown Player')
+    return (inverted ? 'Opponent of ' : '') + playerLabel
 }
 
 exports.eventDescriptor = function ({ event, present = false, mention = false } = {}) {
-    const actionDescriptions = {
-        permaBan: present ? "🚫 perma-bans" : "🚫 perma-banned",
-        tempBan: present ? "❌ temp-bans" : "❌ temp-banned",
-        selection: present ? "👆 selects" : "👆 selected",
-        override: present ? "✳️ overrides" : "✳️ overrode",
-        poll: present ? "🗳️ votes for" : "🗳️ voted for",
-        choice: present ? "🗳️ chooses" : "🗳️ chose",
-        poolPick: present ? "🗳️ picks" : "🗳️ picked",
-        clearPoolPick: present ? "🗳️ clears" : "🗳️ cleared",
-        chanceCube: present ? "🎲 rolls" : "🎲 rolled",
-    }
-
-    const typeDescriptionMap = {
-        'allyPool': " pick from their teammate's pool",
-        'enemyPool': " pick from their opponent's pool",
-        'winnerPool': " pick from the winner's pool",
-        'loserPool': " pick from the loser's pool",
-        'dynamicEvent': "n event",
-        'event': "n event",
-        'color': ' chance cube'
-    }
-
     const selectionDescriptions = {
         'track': getTrackName(event.selection?.map(track => track.id)),
         'racer': getRacerName(event.selection?.map(racer => racer.id)),
@@ -280,24 +301,28 @@ exports.eventDescriptor = function ({ event, present = false, mention = false } 
         'condition': event.selection?.map(selection => conditionsMap[selection.id]?.name).join(", "),
         'color': event.selection?.[0]?.id == 'red' ? "🟥 Red" : "🟦 Blue",
         'player': event.selection?.map(player => `${player.username}`).join(", "),
+        'allyPool': event.selection?.map(selection => exports.getPoolDescription(selection)).join(", "),
         'enemyPool': event.selection?.map(selection => exports.getPoolDescription(selection)).join(", "),
+        'winnerPool': event.selection?.map(selection => exports.getPoolDescription(selection)).join(", "),
+        'loserPool': event.selection?.map(selection => exports.getPoolDescription(selection)).join(", "),
         'event': event.selection?.map(selection => selection.name || selection.id).join(", "),
     }
 
-    const eventPlayer = exports.getEventPlayer(event, present, mention)
-    const eventAction = actionDescriptions[event.event] || event.event
-    const eventSelection = selectionDescriptions[event.type] || event.selection
-    const eventCost = exports.getEventCost(event)
-    //const eventCostDescription = event.cost ? " for " + eventCost + "💠 forcepoint" + (eventCost == 1 ? "" : "s") : ""
-    const eventCostDescription = event.cost ? ` (${eventCost}💠)` : ""
-    const eventType = typeDescriptionMap[event.type] ?? ` ${event.type}`
-
-    // Defer-activation sentinel: player selected "Defer to ..." but no concrete value
-    // exists yet — show "a {type}" form rather than rendering the sentinel id.
-    const isUnresolvedDefer = event.selection?.length === 1 && event.selection[0]?.id === '__activate__'
+    // Activated deferred event: player has committed but no concrete value
+    // exists yet — show "a {type}" form rather than empty.
+    const isUnresolvedDefer = event.activated && !event.selection?.length
     const showAsPresent = present || isUnresolvedDefer
 
-    //const eventDescription = `${eventPlayer} ${eventAction} a${eventType}${present ? '' : `: ** ${eventSelection}**`}${eventCostDescription}`
+    const eventPlayer = exports.getEventPlayer(event, showAsPresent, mention)
+    const actionDescriptor = EVENT_DESCRIPTORS.actions[event.event]
+    const eventAction = actionDescriptor
+        ? (showAsPresent ? actionDescriptor.present : actionDescriptor.past)
+        : event.event
+    const eventSelection = selectionDescriptions[event.type] || event.selection
+    const eventCost = exports.getEventCost(event)
+    const eventCostDescription = event.cost ? ` (${eventCost}💠)` : ""
+    const eventType = EVENT_DESCRIPTORS.types[event.type] ?? ` ${event.type}`
+
     const eventDescription = `${eventPlayer} ${eventAction} ${showAsPresent ? `a${eventType}` : `** ${eventSelection}**`}${eventCostDescription}${exports.deferSuffix(event)}`
 
     if (['chanceCube', 'poll'].includes(event.event) && !present) {
@@ -308,16 +333,13 @@ exports.eventDescriptor = function ({ event, present = false, mention = false } 
     return eventDescription
 }
 
-// Suffix appended to event descriptions when the event is deferred.
-// Mirrors junkyard's "— deferred to {Warmup} ({Botto (Random)})" copy from
-// rulesetSchema.js so wording is consistent across surfaces.
+// Suffix appended to event descriptions when the event is deferred. The defer
+// strategy isn't repeated here because eventPlayer already conveys it via the
+// adverb-style choice copy ("Botto randomly chooses an event — deferred to Warmup").
 exports.deferSuffix = function (event) {
     if (!event?.deferUntil) return ''
-    const untilLabels = { warmup: 'Warmup' }
-    const choiceLabels = { systemRandom: 'Botto (Random)', systemNext: 'Botto (Sequential)' }
-    const until = untilLabels[event.deferUntil] || event.deferUntil
-    const strat = choiceLabels[event.deferChoice]
-    return strat ? ` — deferred to ${until} (${strat})` : ` — deferred to ${until}`
+    const until = EVENT_DESCRIPTORS.deferUntil[event.deferUntil] || event.deferUntil
+    return ` (activated at ${until})`
 }
 
 exports.pollDescription = function ({ event } = {}) {
@@ -386,7 +408,14 @@ exports.preRaceHeaderText = function ({ match } = {}) {
 // Grouped events (pool picks) get a pool-header prefix and bullet indent so the
 // scrollback reads like "<player> added to their pool: * X * Y".
 exports.resolvedStepSummary = function ({ resolvedEvents } = {}) {
-    const visible = (resolvedEvents ?? []).filter(event => ['chanceCube', 'poll'].includes(event.event) || event.selection?.length)
+    // Activated-but-unresolved deferred events have no selection yet (e.g. a Random Pod
+    // committed during the event phase but rolled at warmup) — include them so the pool
+    // log shows the deferred line ("Botto randomly chooses a racer (activated at Warmup)").
+    const visible = (resolvedEvents ?? []).filter(event =>
+        ['chanceCube', 'poll'].includes(event.event)
+        || event.selection?.length
+        || (event.activated && event.deferUntil)
+    )
     if (!visible.length) {
         return ''
     }
@@ -401,14 +430,23 @@ exports.resolvedStepSummary = function ({ resolvedEvents } = {}) {
             }
         }
         const indent = event.groupId ? '* ' : ''
-        lines.push(indent + exports.eventDescriptor({ event, present: false, mention: true }))
+        // Deferred events haven't actually resolved yet — render in present tense,
+        // and treat deferChoice as the actor since whoever was configured to choose
+        // punted to it. Falls back to event.choice if deferChoice is missing.
+        const isDeferred = !!event.deferUntil
+        const descriptorEvent = isDeferred
+            ? { ...event, choice: event.deferChoice || event.choice }
+            : event
+        lines.push(indent + exports.eventDescriptor({ event: descriptorEvent, present: isDeferred, mention: true }))
     })
     return lines.join('\n')
 }
 
 // Minimal V2 container with a single TextDisplay; used to "collapse" a stale step message.
 exports.collapsedView = function ({ text } = {}) {
-    return [new ContainerBuilder().addTextDisplayComponents(new TextDisplayBuilder().setContent(text || '-#'))]
+    return [new ContainerBuilder()
+        .setAccentColor(colorToInt(trail_color))
+        .addTextDisplayComponents(new TextDisplayBuilder().setContent(text || '-#'))]
 }
 
 // For poll/chanceCube active events: show every player's vote status — voted ones with their pick
@@ -516,16 +554,25 @@ exports.getColorOption = function (option, selected) {
 }
 
 // Take a server-sorted run list (ascending by time) and apply legacy display
-// rules: tag the overall record (`trecord`), tag the best non-banned pod when
-// distinct (`record`), and dedupe so each player has at most one entry. Returns
-// a short list suitable for the race-view "Best Times" section.
-exports.annotateLeaderboard = function ({ runs = [], racerBans = [], currentPlayers = [], podOverride } = {}) {
+// rules: tag the overall record (`trecord`), the best non-banned pod when
+// distinct (`record`), and the best run from the current tournament when distinct
+// from the overall record (`tournamentRecord`). Dedupes per-player.
+exports.annotateLeaderboard = function ({ runs = [], racerBans = [], currentPlayers = [], podOverride, currentTournamentId } = {}) {
     if (!runs.length) return []
 
     const banned = new Set((racerBans || []).map(String))
     const annotated = runs.map(r => ({ ...r, podban: banned.has(String(r.racer)) }))
 
     annotated[0].trecord = true
+
+    // "This tournament" record: best run from the same tournament. Only marked
+    // when it isn't already the overall record (otherwise the badge is redundant).
+    if (currentTournamentId) {
+        const tournamentBest = annotated.find(r => r.tournamentId === currentTournamentId)
+        if (tournamentBest && !tournamentBest.trecord) {
+            tournamentBest.tournamentRecord = true
+        }
+    }
 
     const result = []
     if (annotated[0].podban) result.push(annotated[0])
@@ -545,9 +592,9 @@ exports.annotateLeaderboard = function ({ runs = [], racerBans = [], currentPlay
         result.push(r)
     }
 
-    // Filter to legacy display set: trecord + record (if different) + entries belonging to current match players
+    // Filter to legacy display set: trecord + record + tournamentRecord (if distinct) + entries belonging to current match players.
     const currentPlayerIds = new Set((currentPlayers || []).map(p => p?.id).filter(Boolean))
-    return result.filter(r => r.trecord || r.record || currentPlayerIds.has(r.player?.id))
+    return result.filter(r => r.trecord || r.record || r.tournamentRecord || currentPlayerIds.has(r.player?.id))
 }
 
 // One line per leaderboard entry; mirrors legacy resultFormat shape.
@@ -557,7 +604,13 @@ exports.formatLeaderboardLine = function (run) {
     const racerFlag = racer?.flag || '❔'
     const playerName = truncateString(run.player?.username || '?', 24)
     const deaths = [null, undefined, 0].includes(run.deaths) ? '' : `\`💀×${run.deaths}\``
-    const tag = run.trecord ? '`Tourney Record`' : (run.record ? '`Best Available Pod`' : '')
+    const tag = run.trecord
+        ? '`Tourney Record`'
+        : run.tournamentRecord
+            ? '`This Tournament Record`'
+            : run.record
+                ? '`Best Available Pod`'
+                : ''
     return [racerFlag, `\`${time_fix(run.time)}\``, playerName, deaths, tag].filter(Boolean).join(' ')
 }
 
@@ -655,6 +708,21 @@ exports.getEventOption = function (option, selected) {
     return eventOption
 }
 
+exports.optionGetters = {
+    color: (option, selected) => exports.getColorOption(option, selected),
+    racer: (option, selected) => exports.getRacerOption(option, selected),
+    track: (option, selected) => exports.getTrackOption(option, selected),
+    circuit: (option, selected) => exports.getCircuitOption(option, selected),
+    planet: (option, selected) => exports.getPlanetOption(option, selected),
+    condition: (option, selected) => exports.getConditionOption(option, selected),
+    player: (option, selected) => exports.getPlayerOption(option, selected),
+    event: (option, selected) => exports.getEventOption(option, selected),
+    allyPool: (option, selected) => exports.getPoolOption(option, selected),
+    enemyPool: (option, selected) => exports.getPoolOption(option, selected),
+    winnerPool: (option, selected) => exports.getPoolOption(option, selected),
+    loserPool: (option, selected) => exports.getPoolOption(option, selected),
+}
+
 exports.eventSelector = function ({ event, options } = {}) {
     const eventRow = new ActionRowBuilder()
     const eventOptions = options?.[event.id]
@@ -681,56 +749,43 @@ exports.eventSelector = function ({ event, options } = {}) {
         .setMaxValues(maxValues)
 
     eventRow.addComponents(event_selector)
+
+    // deferChoice events have no real options — render a single activation row.
+    // Picking it sends `activated: true` to the API; the actual value is filled
+    // in at the defer point. The local Discord value `__activate__` is
+    // translated to the activation submission shape in play.js and never
+    // round-trips to the API as an id.
+    if (event.deferChoice) {
+        // Activation is inherently optional regardless of how the ruleset flags
+        // the event — deselecting the row sends `activated: false` to undo it.
+        // Clamp max_values to the single option we actually render: the outer
+        // computation derives max from the API's full racer-option list (25 once
+        // the event is activated, so resolveDeferredEvents has something to roll),
+        // and Discord rejects max_values > options.length.
+        event_selector.setMinValues(0)
+        event_selector.setMaxValues(1)
+        const label = event.name || 'Defer activation'
+        const description = exports.eventDescriptor({
+            event: { ...event, choice: event.deferChoice, cost: 0 },
+            present: true,
+        })
+        event_selector.addOptions({
+            label: label.substring(0, 100),
+            description: description.substring(0, 100),
+            value: '__activate__',
+            default: !!event.activated,
+        })
+        return eventRow
+    }
+
     eventOptions.forEach(option => {
         const selected = event.selection?.some(selection => selection.id == option.id)
-        // Defer activation sentinel: a single synthetic option emitted by the API
-        // for events with deferChoice. Render generically using the option name —
-        // the underlying event.type (e.g. 'racer') doesn't apply to this option.
-        if (option.id === '__activate__') {
-            event_selector.addOptions({ label: option.name || 'Defer', value: option.id, default: selected })
-            return
-        }
-        switch (event.type) { //TODO: Refactor this event.selected crap
-            case "color":
-                event_selector.addOptions(exports.getColorOption(option, selected))
-                break
-            case "racer":
-                event_selector.addOptions(exports.getRacerOption(option, selected))
-                break
-            case "track":
-                event_selector.addOptions(exports.getTrackOption(option, selected))
-                break
-            case "circuit":
-                event_selector.addOptions(exports.getCircuitOption(option, selected))
-                break
-            case "planet":
-                event_selector.addOptions(exports.getPlanetOption(option, selected))
-                break
-            case "condition":
-                event_selector.addOptions(exports.getConditionOption(option, selected))
-                break
-            case "player":
-                event_selector.addOptions(exports.getPlayerOption(option, selected))
-                break
-            case "event":
-                event_selector.addOptions(exports.getEventOption(option, selected))
-                break
-            case "allyPool":
-            case "enemyPool":
-            case "winnerPool":
-            case "loserPool":
-                event_selector.addOptions(exports.getPoolOption(option, selected))
-                break
-            default:
-                event_selector.addOptions(
-                    {
-                        label: option.id,
-                        value: option.id,
-                        default: selected
-                    }
-                )
-                break
-        }
+        const getOption = exports.optionGetters[event.type]
+        event_selector.addOptions(
+            getOption
+                ? getOption(option, selected)
+                : { label: option.id, value: option.id, default: selected }
+        )
     })
 
     //overwrite description with ban / repeat status
@@ -745,7 +800,7 @@ exports.eventSelector = function ({ event, options } = {}) {
         }
     })
 
-    //sort racers by avg speed (skip if any option is a non-racer sentinel like __activate__)
+    //sort racers by avg speed (skip if any option isn't a known racer id)
     if (event.type == 'racer' && event_selector.options.every(o => getRacerById(o.data.value))) {
         event_selector.options.sort((a, b) => {
             const a_racer = getRacerById(a.data.value)
@@ -1221,15 +1276,24 @@ exports.addPlayerRow = function (container, { player, text, client } = {}) {
     return container
 }
 
-exports.playerWarmupStatus = function (playerStatus, hideReady = false) {
+exports.playerWarmupStatus = function (playerStatus, hideReady = false, forcedRacer = null) {
     const greenCircle = ":green_circle:"
     const redCircle = ":red_circle:"
 
-    if (!playerStatus) {
+    if (!playerStatus && !forcedRacer) {
         return `${redCircle} Not Ready`
     }
 
-    const racerStatus = playerStatus.selectedRacer ? (playerStatus.racerShown ? getRacerName(playerStatus.selectedRacer) : `${greenCircle} Racer Selected (hidden)`) : `${redCircle} Racer Not Selected`
+    let racerStatus
+    if (forcedRacer) {
+        // race.racer is a forced override (e.g. a Random Pod that resolved at warmup) —
+        // the player has no choice during warmup; show the locked-in racer.
+        racerStatus = `${greenCircle} ${getRacerName(forcedRacer)}`
+    } else if (playerStatus.selectedRacer) {
+        racerStatus = playerStatus.racerShown ? getRacerName(playerStatus.selectedRacer) : `${greenCircle} Racer Selected (hidden)`
+    } else {
+        racerStatus = `${redCircle} Racer Not Selected`
+    }
     const readyStatus = playerStatus.isReady ? `${greenCircle} Ready` : `${redCircle} Not Ready`
 
     if (hideReady) {
@@ -1270,11 +1334,14 @@ exports.warmupView = function ({ match, client, readOnly = false, leaderboard } 
 
     divider()
 
+    // Forced racer (race.racer) overrides player choice — set by an override or by a
+    // resolved deferred Random Pod. Suppresses the pick button and shows the locked racer.
+    const forcedRacer = race.racer || null
     Object.values(match.players).forEach(player => {
         const playerStatus = race.players[player.id]
-        const text = `### ${exports.playerFlagEmoji(player)}${player.username}\n${exports.playerWarmupStatus(playerStatus, race.raceStart > 0)}`
+        const text = `### ${exports.playerFlagEmoji(player)}${player.username}\n${exports.playerWarmupStatus(playerStatus, race.raceStart > 0, forcedRacer)}`
 
-        if (readOnly) {
+        if (readOnly || forcedRacer) {
             container.addTextDisplayComponents(new TextDisplayBuilder().setContent(text))
         } else {
             const hasRacer = !!playerStatus?.selectedRacer
@@ -1417,6 +1484,12 @@ exports.inRaceView = function ({ match, client, readOnly = false, leaderboard } 
         new ActionRowBuilder()
             .addComponents(
                 new ButtonBuilder()
+                    .setCustomId(`tourney_play_submitRun`)
+                    .setStyle(ButtonStyle.Primary)
+                    .setLabel("Submit Results")
+            )
+            .addComponents(
+                new ButtonBuilder()
                     .setCustomId(`tourney_play_submitDnf`)
                     .setStyle(ButtonStyle.Danger)
                     .setLabel("DNF")
@@ -1460,23 +1533,34 @@ exports.postRaceView = function ({ match, client, readOnly = false, leaderboard 
 
     divider()
 
-    // Determine which players just set the tournament record. The annotated leaderboard's
-    // `trecord` entry is the overall fastest run; if it came from this race+match, the player
-    // who owns it gets the new-record badge on their post-race row.
+    // Determine which players just set a record this race. `trecord` = overall
+    // best for the (track, conditions) bucket; `tournamentRecord` = best within
+    // the current tournament. We surface both so a player who beats their own
+    // tournament's standing gets recognition even if they didn't crack the
+    // overall record.
     const trecordEntry = (leaderboard || []).find(r => r.trecord)
-    const playerSetRecord = (player) => !!(trecordEntry
-        && trecordEntry.matchId === match.id
-        && trecordEntry.raceIndex === match.currentRace
-        && trecordEntry.player?.id === player?.id)
+    const tournamentRecordEntry = (leaderboard || []).find(r => r.tournamentRecord)
+    const fromThisRace = (entry) => !!(entry
+        && entry.matchId === match.id
+        && entry.raceIndex === match.currentRace)
+    const playerSetRecord = (player) => fromThisRace(trecordEntry) && trecordEntry.player?.id === player?.id
+    const playerSetTournamentRecord = (player) => fromThisRace(tournamentRecordEntry) && tournamentRecordEntry.player?.id === player?.id
 
     Object.values(match.players).forEach(player => {
         const run = race.runs.find(r => r.player.id == player.id)
         const verifiedTag = run?.verified
             ? `\n-# :white_check_mark: Verified${run.verifiedBy?.discordId ? ` by <@${run.verifiedBy.discordId}>` : ''}`
             : ''
+        // Explicit record callouts under the verification line — the inline emoji
+        // badge alone is easy to miss.
+        const recordCallout = playerSetRecord(player)
+            ? `\n-# 🏆 New tourney record!`
+            : playerSetTournamentRecord(player)
+                ? `\n-# 🏅 New record for this tournament!`
+                : ''
         const isWinner = player.id == race.winner?.id
         const leadingEmoji = isWinner ? "👑 " : exports.playerFlagEmoji(player)
-        const text = `### ${leadingEmoji}${player.username}\n${exports.racePlayerStatus(player, race.runs, false, playerSetRecord(player))}${verifiedTag}`
+        const text = `### ${leadingEmoji}${player.username}\n${exports.racePlayerStatus(player, race.runs, false, playerSetRecord(player))}${verifiedTag}${recordCallout}`
 
         if (!readOnly && match.status == STATE_POST_RACE && run) {
             container.addSectionComponents(
@@ -1548,6 +1632,53 @@ exports.postMatchView = function ({ match } = {}) {
     return [container]
 }
 
+// Kickoff view posted on the MATCH_SETUP → PRE_RACE transition in place of the
+// race-0 matchSummaryView ("Tied 0 to 0"). Same Container/accent shape as the
+// summary view, but surfaces each player's profile (platform, input, bio) so the
+// matchup feels introduced rather than scored.
+exports.matchIntroductionView = function ({ match, summary, client } = {}) {
+    if (!match) return null
+
+    const container = new ContainerBuilder().setAccentColor(colorToInt('#FFFFFF'))
+
+    const tourneyName = match.tournament?.name || 'Practice Mode'
+    const desc = exports.matchDescription({ match })
+    const rulesetName = match.ruleset?.name || 'No ruleset'
+    const winLimit = summary?.winLimit ?? match.ruleset?.winLimit
+
+    const headerLines = [`-# Match Introduction`, `## 🏆 ${tourneyName}`]
+    if (desc && desc !== 'Practice Mode' && desc !== tourneyName) {
+        headerLines.push(desc)
+    }
+    headerLines.push(`📜 ${rulesetName}`)
+    if (winLimit) headerLines.push(`👑 First to ${winLimit} wins.`)
+    if (match.stream) headerLines.push(`📺 ${match.stream}`)
+
+    container.addTextDisplayComponents(new TextDisplayBuilder().setContent(headerLines.join('\n')))
+
+    const divider = () => container.addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small))
+    divider()
+
+    ;(match.players ?? []).forEach(player => {
+        const user = lookupUserRecord(player)
+        const flag = exports.playerFlagEmoji(player)
+        const pronouns = exports.playerPronouns(player)
+        const platform = user?.platform ? `\`${user.platform}\`` : '*no platform set*'
+        const input = user?.input ? `\`${user.input}\`` : '*no input set*'
+        const bio = user?.bio ? `\n*${truncateString(user.bio, 200)}*` : ''
+
+        const text = [
+            `### ${flag}${player.username}${pronouns}`,
+            `🎮 ${platform} · ⌨️ ${input}${bio}`
+        ].join('\n')
+
+        exports.addPlayerRow(container, { player, client, text })
+        divider()
+    })
+
+    return [container]
+}
+
 exports.matchSummaryView = function ({ summary, client } = {}) {
     if (!summary) {
         return null
@@ -1570,11 +1701,12 @@ exports.matchSummaryView = function ({ summary, client } = {}) {
     summary.players.forEach((player, i) => {
         const isLeader = !summary.tied && i === 0 && summary.status == STATE_POST_MATCH
         const leadingEmoji = isLeader ? "👑 " : exports.playerFlagEmoji(player)
+        const pronouns = exports.playerPronouns(player)
         const text = [
             `### ${leadingEmoji}${player.username}`,
-            `👑 \`${player.wins}\` 💠\`${player.forcePoints}\``,
+            `-# ${pronouns}`,
+            `👑 \`${player.wins}\` 💠\`${player.forcePoints}\` 💀 \`${player.deaths + (player.trueDeaths ? "" : "+")}\``,
             `⏱️ \`${time_fix(player.time) + (player.trueTime ? "" : "+")}\``,
-            `💀 \`${player.deaths + (player.trueDeaths ? "" : "+")}\``
         ].join("\n")
         exports.addPlayerRow(container, { player, client, text })
         divider()

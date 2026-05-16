@@ -1,4 +1,4 @@
-const { adminView, matchSelector, matchSummaryView, preRaceView, warmupView, inRaceView, postRaceView, setupMatchView, scheduledMatchView, submitRunModal, pickRacerModal, countDown, verifyModal, verifyRunModal, postMatchView, rewindView, collapsedView, resolvedStepSummary, annotateLeaderboard } = require('./functions.js')
+const { adminView, matchSelector, matchSummaryView, matchIntroductionView, preRaceView, warmupView, inRaceView, postRaceView, setupMatchView, scheduledMatchView, submitRunModal, pickRacerModal, countDown, verifyModal, verifyRunModal, postMatchView, rewindView, collapsedView, resolvedStepSummary, annotateLeaderboard } = require('./functions.js')
 const { requestWithUser, axiosClient: axios } = require('../../axios.js')
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, ContainerBuilder, TextDisplayBuilder, EmbedBuilder, MessageFlags } = require('discord.js')
 const { time_to_seconds } = require('../../generic.js')
@@ -26,6 +26,7 @@ async function getAnnotatedLeaderboard(match, userSnapshot) {
             racerBans: race.racerBans,
             currentPlayers: Object.values(match.players || {}),
             podOverride: race.racer,
+            currentTournamentId: match.tournament,
         })
     } catch (e) {
         return []
@@ -129,7 +130,7 @@ function canSubmitForPlayer({ match, userId, targetPlayer }) {
 // genuine permission error that should surface to the user, not a silent refresh.
 function isStaleStateError(err) {
     const msg = err?.message || ''
-    return /Event not found in active events|There are no active events|active event|invalid action for current match status/i.test(msg)
+    return /Event not found in active events|There are no active events|invalid action for current match status/i.test(msg)
 }
 
 // Find events that were active in prevMatch but have since resolved into race.events.
@@ -241,7 +242,9 @@ async function defferInteraction(interaction, deferred, command, ephemeral = fal
                 const existingRun = matchPlayer
                     ? race?.runs?.find(r => r.player.id == matchPlayer.id)
                     : null
-                const warmupRacer = matchPlayer ? race?.players?.[matchPlayer.id]?.selectedRacer : null
+                // race.racer is a forced override — preselect it in the run modal so the
+                 // player doesn't have to retype it, but still let them edit at submit time.
+                 const warmupRacer = matchPlayer ? (race?.racer || race?.players?.[matchPlayer.id]?.selectedRacer) : null
                 const runModal = submitRunModal({
                     currentRace: match?.currentRace,
                     run: existingRun,
@@ -610,18 +613,22 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
             break
         case 'submitEvent':
             const eventId = args[2]
+            const isActivation = selection.length === 1 && selection[0] === '__activate__'
+            // Cleared select on an already-activated deferChoice row → undo the activation.
+            const activeEvent = match?.races?.[match.currentRace]?.activeEvents?.find(e => e.id === eventId)
+            const isDeactivation = !selection.length && !!activeEvent?.deferChoice && !!activeEvent?.activated
 
             let actions = [
                 {
                     name: 'submitEvent',
-                    event: {
-                        id: eventId,
-                        selection: selection.map(id => {
-                            return {
-                                id: id,
-                            }
-                        })
-                    }
+                    event: isActivation
+                        ? { id: eventId, activated: true, selection: [] }
+                        : isDeactivation
+                            ? { id: eventId, activated: false, selection: [] }
+                            : {
+                                id: eventId,
+                                selection: selection.map(id => ({ id })),
+                            },
                 }
             ]
 
@@ -920,9 +927,14 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
     client.channelToMatch.set(interaction.channel.id, match)
     let view = adminView({ match })
 
-    // A POST_MATCH transition just made this match's runs eligible for the
-    // leaderboard. Drop the bot-side cache so the next view fetches fresh data.
-    if (meta?.previousState !== STATE_POST_MATCH && match.status === STATE_POST_MATCH) {
+    // Drop the bot-side leaderboard cache whenever runs change so the next
+    // view fetches fresh data — covers the new-record badge in postRaceView
+    // and "this tournament" entries that should appear right after a verify.
+    // The API now only invalidates its own cache on run-affecting actions, so
+    // mirroring that here keeps the two layers consistent.
+    const runAffecting = ['submitRun', 'submitDnf', 'verifyRun', 'verifyResults', 'restartRace', 'rewindMatch']
+    const transitionedToPostMatch = meta?.previousState !== STATE_POST_MATCH && match.status === STATE_POST_MATCH
+    if (transitionedToPostMatch || runAffecting.includes(command)) {
         leaderboardCache.invalidateLeaderboard()
     }
 
@@ -1063,8 +1075,18 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
         // having no follow-up at all.
         let followUpMessage
         try {
-            if (meta.raceUpdated && match.currentRace > 0) {
-                await interaction.channel.send({ flags: MessageFlags.IsComponentsV2, components: matchSummaryView({ summary: meta.matchSummary, client }) })
+            // Post a matchup card on every race transition. For the kickoff
+            // transition (MATCH_SETUP → PRE_RACE), use the richer Match Introduction
+            // view instead of the regular summary — at race 0 the summary just reads
+            // "Tied 0 to 0", whereas the intro surfaces each player's platform/input/bio.
+            if (meta.raceUpdated) {
+                const isKickoff = prevMatch?.status === STATE_MATCH_SETUP
+                const kickoffView = isKickoff
+                    ? matchIntroductionView({ match, summary: meta.matchSummary, client })
+                    : matchSummaryView({ summary: meta.matchSummary, client })
+                if (kickoffView) {
+                    await interaction.channel.send({ flags: MessageFlags.IsComponentsV2, components: kickoffView })
+                }
             }
             followUpMessage = await interaction.channel.send({ flags: MessageFlags.IsComponentsV2, components: view })
         } catch (err) {

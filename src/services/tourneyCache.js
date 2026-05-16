@@ -57,10 +57,12 @@ async function getLeaderboard({ track, conditions, userSnapshot } = {}) {
 
 // Single no-op leaderboard request to warm both the API's getAll() match cache
 // and (via _buildLeaderboardIndex) every bucket. Pre-render on bot startup so
-// the first user-triggered race view doesn't pay a cold walk.
+// the first user-triggered race view doesn't pay a cold walk. Cold builds can
+// blow past the default 10s axios timeout, so we give it a generous window
+// and silence error logging — this is purely best-effort.
 async function warm() {
     try {
-        await apiGetLeaderboard({ track: '__warm__', conditions: {} })
+        await apiGetLeaderboard({ track: '__warm__', conditions: {}, timeout: 60000, quiet: true })
     } catch { /* swallow — best-effort warming */ }
 }
 

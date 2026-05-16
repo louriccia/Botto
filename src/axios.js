@@ -21,7 +21,7 @@ const axiosClient = axios.create({
  * @param {Object} [options.query] - Optional query params (for GETs).
  * @returns {Promise<any>} - The API response data.
  */
-async function requestWithUser({ method, url, userSnapshot, data = {}, meta = {}, query }) {
+async function requestWithUser({ method, url, userSnapshot, data = {}, meta = {}, query, timeout, quiet = false }) {
     const headers = {
         'x-user-id': userSnapshot?.id,
         'x-bot-token': process.env.BOT_API_KEY
@@ -41,6 +41,8 @@ async function requestWithUser({ method, url, userSnapshot, data = {}, meta = {}
         headers
     };
 
+    if (timeout) config.timeout = timeout;
+
     if (method.toLowerCase() === 'get') {
         config.params = query || {};
     } else {
@@ -58,8 +60,10 @@ async function requestWithUser({ method, url, userSnapshot, data = {}, meta = {}
             raw: err.response?.data || err
         };
 
-        // Optional: log here if this is unexpected or critical
-        console.error(`[API ERROR] ${method.toUpperCase()} ${url}:`, apiError);
+        // Best-effort callers (e.g. cache warming) opt out of logging.
+        if (!quiet) {
+            console.error(`[API ERROR] ${method.toUpperCase()} ${url}:`, apiError);
+        }
 
         // Let the caller handle it
         throw apiError;
