@@ -191,14 +191,21 @@ async function withRetry(fn, { attempts = 3, delayMs = 2000 } = {}) {
 
 // Discord's IsComponentsV2 flag is sticky per message — set at creation and immutable.
 // A component interaction on a pre-V2 message cannot be edited into V2; we have to send a fresh V2 message and clear the old one.
+// Same problem applies to chat-input commands: deferReply's IsComponentsV2 flag is not reliably
+// honored on the deferred placeholder, so editReply'ing it with a Container fails with
+// "components[0] type must be one of (1,)" — clean up the placeholder and send a fresh V2 message instead.
 async function renderV2(interaction, view) {
     const original = interaction.message
     const isLegacyOriginal = original && !original.flags?.has(MessageFlags.IsComponentsV2)
-    if (isLegacyOriginal) {
+    if (isLegacyOriginal || !original) {
         try {
-            await interaction.editReply({ content: '-# *Reposting in new layout below…*', embeds: [], components: [] })
+            if (isLegacyOriginal) {
+                await interaction.editReply({ content: '-# *Reposting in new layout below…*', embeds: [], components: [] })
+            } else {
+                await interaction.deleteReply()
+            }
         } catch (e) {
-            console.warn('[tourney] failed to clear legacy message during V2 migration', e)
+            console.warn('[tourney] failed to clear placeholder during V2 send', e)
         }
         return interaction.channel.send({ flags: MessageFlags.IsComponentsV2, components: view })
     }
