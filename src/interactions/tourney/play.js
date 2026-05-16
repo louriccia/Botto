@@ -380,6 +380,11 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
                 return
             }
 
+            // Cold-start API calls below can exceed Discord's 3-second interaction ack
+            // window. Defer before any HTTP request so we don't lose the interaction.
+            await interaction.deferUpdate()
+            deferred = true
+
             //create new match
             if (selection == 'new') {
                 try {
@@ -397,7 +402,7 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
                     meta = newRes.meta ?? meta
                     client.channelToMatch.set(interaction.channel.id, match)
                 } catch (err) {
-                    await interaction.reply({ content: `${WhyNobodyBuy}${err.message}`, ephemeral: true })
+                    await interaction.followUp({ content: `${WhyNobodyBuy}${err.message}`, ephemeral: true })
                     return
                 }
 
@@ -408,7 +413,7 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
                 ({ match, meta, error } = await getMatch(matchId, userSnapshot))
                 client.channelToMatch.set(interaction.channel.id, match)
                 if (!match) {
-                    await interaction.reply({ content: `${WhyNobodyBuy} Couldn't get match\n${error}`, ephemeral: true })
+                    await interaction.followUp({ content: `${WhyNobodyBuy} Couldn't get match\n${error}`, ephemeral: true })
                     return
                 }
             }
