@@ -336,8 +336,11 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
     // off rather than letting the lazy /matches lookup race against the cold-start API
     // (which can take longer than the axios timeout and leave the live match orphaned in
     // the matchSelector flow). Skipped for chat commands so /tourney play still works
-    // — that path posts the selector by design.
-    if (!client.matchCacheHydrated && !interaction.isChatInputCommand() && !interaction.isModalSubmit()) {
+    // — that path posts the selector by design. Also skipped for the matchSelector's own
+    // interactions (Select button and dropdown change): the user is explicitly creating
+    // or picking a match, so there's no live match to orphan.
+    const isSelectorFlow = command === 'bindMatch' || (!command && interaction.isStringSelectMenu?.())
+    if (!client.matchCacheHydrated && !interaction.isChatInputCommand() && !interaction.isModalSubmit() && !isSelectorFlow) {
         try {
             await interaction.reply({
                 content: '-# *⏳ Bot just restarted — give it a few seconds to catch up, then try again.*',
