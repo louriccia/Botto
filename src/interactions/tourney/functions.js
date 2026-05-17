@@ -944,8 +944,7 @@ exports.matchSelector = function ({ matches, selected } = {}) {
         default: selected.includes('new')
     })
 
-    const tsMs = (m) => {
-        const d = m?.updatedAt ?? m?.createdAt
+    const toMs = (d) => {
         if (!d) return 0
         if (typeof d === 'number') return d
         if (typeof d._seconds === 'number') return d._seconds * 1000
@@ -953,7 +952,23 @@ exports.matchSelector = function ({ matches, selected } = {}) {
         const parsed = new Date(d).getTime()
         return isNaN(parsed) ? 0 : parsed
     }
-    matches.sort((a, b) => tsMs(b) - tsMs(a)).slice(0, 24).forEach(match => {
+    const recencyMs = (m) => toMs(m?.updatedAt ?? m?.createdAt)
+    const scheduledMs = (m) => toMs(m?.scheduledStart)
+    // Tier matches so /tourney play surfaces the match the operator is most likely setting up:
+    //   0 — SCHEDULED with a future scheduledStart, ordered soonest-first
+    //   1 — anything in progress (setup/pre-race/warmup/in-race/post-race), most-recent activity first
+    //   2 — SCHEDULED with a missing or past scheduledStart, most-recent activity first
+    const now = Date.now()
+    const sortKey = (m) => {
+        const start = scheduledMs(m)
+        if (m?.status === STATE_SCHEDULED && start > now) return [0, start]
+        if (m?.status !== STATE_SCHEDULED) return [1, -recencyMs(m)]
+        return [2, -recencyMs(m)]
+    }
+    matches.sort((a, b) => {
+        const ka = sortKey(a), kb = sortKey(b)
+        return ka[0] - kb[0] || ka[1] - kb[1]
+    }).slice(0, 24).forEach(match => {
         const matchPlayers = match.players?.length ? match.players.map(player => `${player.username}`).join(", ") : "No Players"
         const matchDescription = exports.matchDescription({ match })
         const matchTourney = match.tournament?.name || "Practice Mode"
