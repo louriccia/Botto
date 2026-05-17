@@ -10,7 +10,7 @@
 const { axiosClient } = require('../axios');
 
 async function syncSpeedgaming() {
-    const { data } = await axiosClient.post('sync-speedgaming');
+    const { data } = await axiosClient.post('internal/sync-speedgaming');
     return data;
 }
 
