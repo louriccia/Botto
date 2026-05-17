@@ -54,23 +54,29 @@ const banStatusMap = {
     },
 }
 
+// Mirrors the three-state enum the backend now emits from
+// matchService.classifyRepeatStatuses(). Severity rises with the value (0=fine,
+// 1=fixable, 2=blocked) so the visuals — empty / yellow / red — read in order.
 const repeatStatusMap = {
     0: {
         name: "Repeatable",
         emoji: ""
     },
     1: {
-        name: "Already picked — cannot be picked again",
-        emoji: "⭕"
+        // Status 1 = previously picked; the only thing blocking repeat is a
+        // `differentConditions` repeatCondition. The player can satisfy it by
+        // changing the pool's conditions before submitting, so the copy nudges
+        // them toward that fix instead of saying "you can't pick this".
+        name: "Repeatable with conditions",
+        emoji: "✳"
     },
     2: {
-        // Status 2 = picking this would violate one of the active event's
-        // repeatConditions (e.g. differentPlayer / differentConditions). The
-        // server enforces this on submit, so picking it WILL be rejected — the
-        // copy needs to make that clear, not suggest "you can repeat with a
-        // tweak".
-        name: "Already picked — picking again will be rejected",
-        emoji: "⚠️"
+        // Status 2 = previously picked and the violation isn't something this
+        // player can undo (repeatLimit exceeded, or a `differentPlayer` /
+        // `playerSelected` rule that hinges on who picked it last time).
+        // Picking it WILL be rejected — copy needs to be unambiguous.
+        name: "Cannot be repeated",
+        emoji: "⭕"
     }
 }
 
@@ -223,7 +229,7 @@ const EVENT_DESCRIPTORS = {
         permaBan: { present: '🚫 perma-bans', past: '🚫 perma-banned' },
         tempBan: { present: '❌ temp-bans', past: '❌ temp-banned' },
         selection: { present: '👆 selects', past: '👆 selected' },
-        override: { present: '✳️ forces', past: '✳️ forced' },
+        override: { present: '✳️ applies', past: '✳️ applied' },
         poll: { present: '🗳️ votes for', past: '🗳️ voted for' },
         choice: { present: '🗳️ chooses', past: '🗳️ chose' },
         poolPick: { present: '🗳️ picks', past: '🗳️ picked' },
@@ -476,7 +482,7 @@ exports.preRaceRightNowText = function ({ match } = {}) {
     const event = race.activeEvents[0]
     const isVote = ['chanceCube', 'poll'].includes(event.event)
 
-    let desc = `-# Right now: ${exports.eventDescriptor({
+    let desc = `Right now: ${exports.eventDescriptor({
         event,
         present: true,
         mention: !isVote
@@ -1816,8 +1822,11 @@ exports.rewindView = function ({ match } = {}) {
 exports.verifyModal = function ({ match }) {
     const race = match.races[match.currentRace]
 
+    // See verifyRunModal: Discord caches modal input by customId and restores it on
+    // re-open, overriding setValue. Append a nonce so each open is a fresh customId.
+    const nonce = Date.now().toString(36)
     const verifyModal = new ModalBuilder()
-        .setCustomId("tourney_play_verifyResults")
+        .setCustomId(`tourney_play_verifyResults:${nonce}`)
         .setTitle(`Verify Race ${match.currentRace + 1} Results`)
     race.runs.forEach(run => {
         const timeInput = new TextInputBuilder()

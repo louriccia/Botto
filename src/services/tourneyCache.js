@@ -50,7 +50,16 @@ async function getLeaderboard({ track, conditions, userSnapshot } = {}) {
     const key = `lb:${track}:${stableCacheKey(conditions)}`
     const cached = lbCache.get(key)
     if (cached) return cached
-    const { runs } = await apiGetLeaderboard({ track, conditions, userSnapshot })
+    // The API's _buildLeaderboardIndex walks every tournament match on a cold miss,
+    // which can exceed the default 10s axios timeout. The user-facing path in play.js
+    // races this against a 1500ms cap and returns [] immediately if we're slow — so
+    // the background request only needs to live long enough to populate the cache for
+    // the next render. Give it a generous window.
+    const { runs, error } = await apiGetLeaderboard({ track, conditions, userSnapshot, timeout: 30000 })
+    // Don't cache failures — caching an empty result on timeout means subsequent
+    // renders return stale empties until invalidation, never getting a chance to
+    // actually fetch real data.
+    if (error) return runs
     lbCache.set(key, runs)
     return runs
 }

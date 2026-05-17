@@ -329,7 +329,9 @@ function isCountdownActive(client, interaction, raceStart) {
 exports.play = async function ({ client, interaction, args, userSnapshot } = {}) {
     const messageIsEphemeral = interaction.message?.flags.has(MessageFlags.Ephemeral)
     const selection = interaction.values ?? []
-    const command = args[1]
+    // Strip any ":<nonce>" suffix some modal customIds carry to defeat Discord's
+    // per-customId input cache (see verifyModal / verifyRunModal in functions.js).
+    const command = args[1]?.split(':')[0]
     let deferred = false
 
     // Bot just restarted and the match cache hasn't populated yet. Tell the user to hold
