@@ -223,7 +223,7 @@ const EVENT_DESCRIPTORS = {
         permaBan: { present: '🚫 perma-bans', past: '🚫 perma-banned' },
         tempBan: { present: '❌ temp-bans', past: '❌ temp-banned' },
         selection: { present: '👆 selects', past: '👆 selected' },
-        override: { present: '✳️ overrides', past: '✳️ overrode' },
+        override: { present: '✳️ forces', past: '✳️ forced' },
         poll: { present: '🗳️ votes for', past: '🗳️ voted for' },
         choice: { present: '🗳️ chooses', past: '🗳️ chose' },
         poolPick: { present: '🗳️ picks', past: '🗳️ picked' },
@@ -1659,22 +1659,22 @@ exports.matchIntroductionView = function ({ match, summary, client } = {}) {
     const divider = () => container.addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small))
     divider()
 
-    ;(match.players ?? []).forEach(player => {
-        const user = lookupUserRecord(player)
-        const flag = exports.playerFlagEmoji(player)
-        const pronouns = exports.playerPronouns(player)
-        const platform = user?.platform ? `\`${user.platform}\`` : '*no platform set*'
-        const input = user?.input ? `\`${user.input}\`` : '*no input set*'
-        const bio = user?.bio ? `\n*${truncateString(user.bio, 200)}*` : ''
+        ; (match.players ?? []).forEach(player => {
+            const user = lookupUserRecord(player)
+            const flag = exports.playerFlagEmoji(player)
+            const pronouns = exports.playerPronouns(player)
+            const platform = user?.platform ? `\`${user.platform}\`` : '*no platform set*'
+            const input = user?.input ? `\`${user.input}\`` : '*no input set*'
+            const bio = user?.bio ? `\n*${truncateString(user.bio, 200)}*` : ''
 
-        const text = [
-            `### ${flag}${player.username}${pronouns}`,
-            `🎮 ${platform} · ⌨️ ${input}${bio}`
-        ].join('\n')
+            const text = [
+                `### ${flag}${player.username}${pronouns}`,
+                `🎮 ${platform} · ⌨️ ${input}${bio}`
+            ].join('\n')
 
-        exports.addPlayerRow(container, { player, client, text })
-        divider()
-    })
+            exports.addPlayerRow(container, { player, client, text })
+            divider()
+        })
 
     return [container]
 }

@@ -63,7 +63,7 @@ function stepKey(match) {
 // authoritative API state without breaking Discord's 3-second modal-show deadline. Returns
 // the freshest match available (refreshed when API responds in time, otherwise the cached
 // fallback). Also writes the refreshed match into the channel cache as a side effect.
-async function refreshMatchForModal(client, channelId, fallback, userSnapshot, timeoutMs = 2200) {
+async function refreshMatchForModal(client, channelId, fallback, userSnapshot, timeoutMs = 2700) {
     if (!fallback?.id) return fallback
     try {
         // Direct unauthenticated GET — fast, no writeBack cycle. The API's getOne respects
@@ -699,7 +699,7 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
                 const dnf = isDnfSubmission || submittedTime.toLowerCase() == 'dnf'
 
                 //validate submission (only for non-DNF — DNF skips time validation entirely)
-                if (!dnf && (isNaN(Number(submittedTime.replace(":", ""))) || time_to_seconds(submittedTime) == null)) {
+                if (!dnf && time_to_seconds(submittedTime) == null) {
                     const holdUp = new EmbedBuilder()
                         .setTitle(`${WhyNobodyBuy} Time Does Not Compute`)
                         .setDescription("Your time was submitted in an incorrect format.")
@@ -770,12 +770,22 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
                 const race = match.races[match.currentRace]
                 const runs = race.runs
 
-                match.players.forEach(player => {
-                    const run = runs.find(r => r.player.id == player.id)
-                    const submittedTime = interaction.fields.getTextInputValue(`${player.id}_time`).trim()
-                    const submittedDeaths = interaction.fields.getTextInputValue(`${player.id}_deaths`).trim()
+                // Iterate runs from the fresh match. A run might be present here that wasn't in
+                // the modal (player submitted after modal-show); getTextInputValue would throw on
+                // a missing customId, so guard with try/catch and skip — the API will preserve
+                // the existing value for unsent runs. Skipping unsubmitted players also avoids
+                // dereferencing undefined `run` for a player who hasn't submitted yet.
+                let skippedRuns = 0
+                runs.forEach(run => {
+                    let submittedTime, submittedDeaths
+                    try {
+                        submittedTime = interaction.fields.getTextInputValue(`${run.player.id}_time`).trim()
+                        submittedDeaths = interaction.fields.getTextInputValue(`${run.player.id}_deaths`).trim()
+                    } catch (e) {
+                        skippedRuns++
+                        return
+                    }
                     const dnf = submittedTime.toLowerCase() == 'dnf'
-
                     run.time = dnf ? 0 : time_to_seconds(submittedTime)
                     run.dnf = dnf
                     // Only overwrite deaths when the verifier gave a concrete answer; leaving the
@@ -785,6 +795,12 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
                         run.deaths = Number(submittedDeaths)
                     }
                 })
+                if (skippedRuns > 0) {
+                    await interaction.followUp({
+                        content: `-# *⚠️ ${skippedRuns} run${skippedRuns === 1 ? ' was' : 's were'} added after you opened this form and couldn't be verified here. Click Verify again to include ${skippedRuns === 1 ? 'it' : 'them'}.*`,
+                        ephemeral: true
+                    }).catch(() => { })
+                }
 
                 try {
                     const eventRes = await requestWithUser({

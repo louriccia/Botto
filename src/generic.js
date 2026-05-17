@@ -224,32 +224,53 @@ exports.time_fix = function (time) {
         return Number(time).toFixed(3)
     }
 }
+// Parse a race time using any delimiter the user happens to type. Accepts forms like:
+//   "1:23.456", "1.23.456", "1m23s456", "1m 23.456s", "83.456", "1,23,456", "83"
+// Returns a stringified seconds value (3 decimals) or null when nothing usable was given.
+// Strategy: take the LAST dot/comma as the decimal point (race times always have
+// sub-seconds at the end), then split the remainder into integer parts by any
+// non-digit delimiter. 1 part → seconds; 2 parts → min:sec; 3 parts with no
+// decimal → min:sec:ms (e.g. "1m23s456").
 exports.time_to_seconds = function (time) {
-    if (time !== undefined) {
-        if (String(time).includes(":")) {
-            var split = time.split(':')
-            if (split.length = 2) {
-                var out = Number(split[0] * 60) + Number(split[1])
-                if (Number(split[1]) >= 60) {
-                    return null
-                } else {
-                    return Number(out).toFixed(3)
-                }
-            } else if (split.length = 3) {
-                var out = Number(split[0] * 60 * 60) + Number(split[1] * 60) + Number(split[2])
-                return Number(out).toFixed(3)
-            } else {
-                return null
-            }
+    if (time == null) return null
+    let s = String(time).trim().toLowerCase()
+    if (!s || s === 'dnf') return null
+    s = s.replace(/,/g, '.')
 
-        } else {
-            return Number(time).toFixed(3)
-        }
-    } else {
-        return null
+    let fractional = 0
+    const decMatch = s.match(/\.(\d+)(?!.*\.)/)
+    if (decMatch) {
+        fractional = Number('0.' + decMatch[1])
+        s = s.slice(0, decMatch.index) + s.slice(decMatch.index + decMatch[0].length)
     }
 
+    const parts = s.match(/\d+/g)
+    if (!parts || parts.length === 0) {
+        return fractional > 0 ? Number(fractional).toFixed(3) : null
+    }
+    if (parts.length > 3) return null
 
+    let total = 0
+    if (parts.length === 1) {
+        total = Number(parts[0])
+    } else if (parts.length === 2) {
+        if (Number(parts[1]) >= 60) return null
+        total = Number(parts[0]) * 60 + Number(parts[1])
+    } else {
+        // 3 parts. If no decimal was given (e.g. "1m23s456"), treat the trailing
+        // part as milliseconds. Otherwise interpret as h:m:s (rare for races).
+        if (decMatch) {
+            if (Number(parts[1]) >= 60 || Number(parts[2]) >= 60) return null
+            total = Number(parts[0]) * 3600 + Number(parts[1]) * 60 + Number(parts[2])
+        } else {
+            if (Number(parts[1]) >= 60) return null
+            total = Number(parts[0]) * 60 + Number(parts[1])
+            const ms = parts[2].slice(0, 3).padEnd(3, '0')
+            fractional = Number('0.' + ms)
+        }
+    }
+
+    return Number(total + fractional).toFixed(3)
 }
 exports.find_time = function (str) {
     var time = ""
