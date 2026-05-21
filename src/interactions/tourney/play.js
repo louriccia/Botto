@@ -265,6 +265,15 @@ async function defferInteraction(interaction, deferred, command, ephemeral = fal
             }
             case 'verifyResults':
                 const verifyM = verifyModal({ match })
+                if (!verifyM) {
+                    // verifyModal returns null when race.runs is empty — Discord would
+                    // otherwise reject the modal with ExpectedConstraintError (≥1 row).
+                    await interaction.reply({
+                        content: 'No runs have been submitted for this race yet — nothing to verify.',
+                        ephemeral: true
+                    })
+                    return 1
+                }
                 await interaction.showModal(verifyM)
                 return 1
             case 'verifyRun': {
@@ -769,7 +778,33 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
             match = res.data?.data
 
             if (interaction.isModalSubmit()) {
-                const race = match.races[match.currentRace]
+                // Parse the race index embedded in the modal customId
+                // (`verifyResults:${raceIdx}:${nonce}`). If the match has since advanced
+                // to a different race, the modal's pre-filled run metadata (racer,
+                // notes, submittedAt) belongs to a DIFFERENT race than the API now
+                // points at — submitting would overwrite the new race's slot with
+                // stale per-run metadata. Refuse instead, so the user can re-open
+                // the verify modal against the current race.
+                //
+                // Modals built before this fix don't have a race index; for those we
+                // fall back to match.currentRace (the previous behavior).
+                const args1Parts = (args[1] || '').split(':')
+                const hasRaceIdx = args1Parts.length >= 3 && /^\d+$/.test(args1Parts[1])
+                const modalRaceIdx = hasRaceIdx ? Number(args1Parts[1]) : null
+
+                if (modalRaceIdx != null && modalRaceIdx !== match.currentRace) {
+                    await errorOut(interaction,
+                        `${WhyNobodyBuy} This verify form was for Race ${modalRaceIdx + 1}, but the match has moved on to Race ${match.currentRace + 1}. Open the verify modal again from the current race.`
+                    )
+                    return
+                }
+
+                const raceIdx = modalRaceIdx ?? match.currentRace
+                const race = match.races?.[raceIdx]
+                if (!race) {
+                    await errorOut(interaction, `${WhyNobodyBuy} Could not find race ${raceIdx + 1} to verify.`)
+                    return
+                }
                 const runs = race.runs
 
                 // Iterate runs from the fresh match. A run might be present here that wasn't in
@@ -813,6 +848,10 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
                             actions: [
                                 {
                                     name: 'verifyResults',
+                                    // Pass the race index so the API can reject the action if its
+                                    // currentRace has shifted since the modal was opened — defense
+                                    // in depth alongside the bot-side check above.
+                                    raceIndex: raceIdx,
                                     runs
                                 }
                             ]

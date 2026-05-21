@@ -1835,14 +1835,23 @@ exports.rewindView = function ({ match } = {}) {
 
 
 exports.verifyModal = function ({ match }) {
-    const race = match.races[match.currentRace]
+    const raceIdx = match.currentRace
+    const race = match.races[raceIdx]
 
+    // Discord rejects a modal with zero input rows. If runs is empty (e.g., the
+    // race just advanced and no one has submitted yet), bail — caller should
+    // surface a friendly message instead of crashing on showModal.
+    if (!race?.runs?.length) return null
+
+    // Embed the race index so the modal-submit handler can detect a race-advance
+    // race (between modal-show and modal-submit) and refuse rather than write
+    // the wrong race's metadata into the new race's runs slot.
     // See verifyRunModal: Discord caches modal input by customId and restores it on
     // re-open, overriding setValue. Append a nonce so each open is a fresh customId.
     const nonce = Date.now().toString(36)
     const verifyModal = new ModalBuilder()
-        .setCustomId(`tourney_play_verifyResults:${nonce}`)
-        .setTitle(`Verify Race ${match.currentRace + 1} Results`)
+        .setCustomId(`tourney_play_verifyResults:${raceIdx}:${nonce}`)
+        .setTitle(`Verify Race ${raceIdx + 1} Results`)
     race.runs.forEach(run => {
         const timeInput = new TextInputBuilder()
             .setCustomId(`${run.player.id}_time`)
