@@ -5,7 +5,8 @@
 // require('./cron/jobs') — new jobs show up here, not in bot.js.
 
 require('./syncSpeedgaming');
-require('./matchReminders');
-// require('./betScheduler');   // deferred — design issues to resolve first
-require('./scheduleReminder');
-// require('./challenges');     // stretch — enable when content source ready
+require('./tourneyBet48h');
+require('./liveMatchSetup');
+require('./streamNotification');
+require('./closeMatchBets');
+require('./liveMatchRoleCleanup');

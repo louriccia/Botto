@@ -15,18 +15,21 @@ async function syncSpeedgaming() {
 }
 
 /**
- * @param {Object} opts
- * @param {number} opts.from Unix-ms lower bound (inclusive) for scheduledStart
- * @param {number} opts.to   Unix-ms upper bound (inclusive)
- * @param {number} [opts.status] optional match.status filter (e.g. 0 = SCHEDULED)
+ * List matches with arbitrary filters supported by GenericService
+ * (e.g. `status`, `status_in: '6,7,99'`, `tournament`).
+ *
+ * Range filters on timestamp fields (`scheduledStart_gte`, etc.) are NOT
+ * usable here because the backend stores those as Firestore Timestamps and
+ * `_coerceFilterValue` ships the bound as a Number — Firestore won't match
+ * Number bounds against Timestamp fields. Cron jobs do range filtering
+ * client-side via toMs() after fetching by status.
  */
-async function getMatchesInWindow({ from, to, status } = {}) {
+async function listMatches(filters = {}) {
     const params = {};
-    if (from !== undefined) params.scheduledStart_gte = from;
-    if (to !== undefined) params.scheduledStart_lte = to;
-    if (status !== undefined) params.status = status;
+    for (const [k, v] of Object.entries(filters)) {
+        if (v !== undefined && v !== null) params[k] = v;
+    }
     const { data } = await axiosClient.get('matches', { params });
-    // GET /matches returns { data: [...] } for list endpoints
     return data?.data ?? data ?? [];
 }
 
@@ -64,20 +67,18 @@ async function getBet(betId) {
     return data?.data ?? data;
 }
 
-async function settleBet(betId, winningOutcome) {
-    const { data } = await axiosClient.patch(`bets/${betId}`, {
-        data: { status: 'complete', winningOutcome },
-    });
-    return data;
+async function patchBet(betId, fields) {
+    const { data } = await axiosClient.patch(`bets/${betId}`, { data: fields });
+    return data?.data ?? data;
 }
 
 module.exports = {
     syncSpeedgaming,
-    getMatchesInWindow,
+    listMatches,
     getMatch,
     markReminderSent,
     patchMatch,
     createBet,
     getBet,
-    settleBet,
+    patchBet,
 };
