@@ -1,4 +1,4 @@
-const { ChannelType, MessageFlags } = require('discord.js');
+const { MessageFlags } = require('discord.js');
 const scheduler = require('../scheduler');
 const api = require('../apiClient');
 const { toMs } = require('../timestamps');
@@ -11,17 +11,10 @@ const LIVEMATCH_ROLE_ID = '970995237952569404';
 const LEAD_MS = 60 * 60 * 1000; // 1 hour
 const STATUS_SCHEDULED = 0;
 const STATUS_SETUP = 1;
-const THREAD_AUTO_ARCHIVE_MIN = 1440; // 24h
 
 function matchLabel(match) {
     if (!match?.players?.length) return 'Match';
     return match.players.map(p => p?.username || '?').join(' vs ');
-}
-
-function threadName(match) {
-    // Discord thread names cap at 100 chars.
-    const tourney = match?.tournament?.name ? `[${match.tournament.name}] ` : '';
-    return `${tourney}${matchLabel(match)}`.slice(0, 100);
 }
 
 function startTag(scheduledStartMs) {
@@ -57,8 +50,8 @@ scheduler.register({
             const matches = await api.listMatches({ status: STATUS_SCHEDULED });
             if (!matches.length) return;
 
-            const parent = client.channels.cache.get(tournament_live_channel);
-            if (!parent) {
+            const channel = client.channels.cache.get(tournament_live_channel);
+            if (!channel) {
                 console.warn(`[cron:liveMatchSetup] tournament_live_channel ${tournament_live_channel} not in cache, skipping`);
                 return;
             }
@@ -77,55 +70,37 @@ scheduler.register({
                 // cron was off.
                 if (startMs - now > LEAD_MS) continue;
                 if (startMs - now < -5 * 60 * 1000) continue;
-                // Defensive: a channelId already set means someone (probably
-                // /tourney play) bound the match to a Discord channel before
-                // we got here. Don't spawn a duplicate thread.
-                if (match.channelId) continue;
 
-                // Create the thread first so we have a channelId to write
-                // back. A failure here aborts the rest of the work for this
-                // match — next pass will retry.
-                let thread;
+                // Patch channelId + status together. The channelId binding is
+                // what lets the setup view's buttons resolve the right match
+                // via client.channelToMatch.get(channel.id).
                 try {
-                    thread = await parent.threads.create({
-                        name: threadName(match),
-                        autoArchiveDuration: THREAD_AUTO_ARCHIVE_MIN,
-                        type: ChannelType.PublicThread,
-                        reason: `Match setup for ${match.id}`,
+                    await api.patchMatch(match.id, {
+                        channelId: tournament_live_channel,
+                        status: STATUS_SETUP,
                     });
-                } catch (err) {
-                    console.error(`[cron:liveMatchSetup] thread.create failed for match ${match.id}`, err?.message ?? err);
-                    continue;
-                }
-
-                // Patch channelId + status together. If this fails the thread
-                // is orphaned, but the next cron pass sees status=0 and
-                // channelId still empty (PATCH didn't land), so it'll create
-                // a fresh thread and try again. Old orphan stays parked.
-                try {
-                    await api.patchMatch(match.id, { channelId: thread.id, status: STATUS_SETUP });
                 } catch (err) {
                     console.error(`[cron:liveMatchSetup] patchMatch failed for ${match.id}`, err?.message ?? err);
                     continue;
                 }
 
                 // Re-fetch so we render with the enriched tournament/ruleset
-                // objects (the PATCH response goes through the same enrichment,
-                // but a fresh GET is also cached and matches what the API will
-                // serve everyone else).
+                // objects and the freshly-set channelId/status.
                 let fresh;
                 try {
                     fresh = await api.getMatch(match.id);
                 } catch (err) {
                     console.warn(`[cron:liveMatchSetup] re-fetch failed for ${match.id}, falling back to local match`, err?.message ?? err);
-                    fresh = { ...match, channelId: thread.id, status: STATUS_SETUP };
+                    fresh = { ...match, channelId: tournament_live_channel, status: STATUS_SETUP };
                 }
 
-                // Bind the thread → match in the in-process cache so the
-                // setup view's buttons (Join/Commentate/Start/Leave/Cancel)
-                // resolve via channelToMatch.get(channel.id) without waiting
-                // for the next bot restart's matchCacheHydrate.
-                client.channelToMatch.set(thread.id, fresh);
+                // Bind channel → match in the in-process cache so the setup
+                // view's buttons (Join/Commentate/Start/Leave/Cancel) resolve
+                // immediately without waiting for the next bot restart's
+                // matchCacheHydrate. Only the most recent match wins the
+                // mapping for this channel — at typical match cadence that's
+                // the one users care about.
+                client.channelToMatch.set(tournament_live_channel, fresh);
 
                 // Add the livematch role to every player + commentator.
                 const participants = [
@@ -137,8 +112,7 @@ scheduler.register({
                 }
 
                 // Render the same interactive setup view that /tourney play
-                // produces. Buttons route through the existing tourney_play_*
-                // handlers, which only need the channelToMatch binding above.
+                // produces, in the tournament-live channel directly.
                 let tournaments = [], rulesets = [];
                 try {
                     [tournaments, rulesets] = await Promise.all([
@@ -152,16 +126,16 @@ scheduler.register({
                 const view = setupMatchView({ match: fresh, tournaments, rulesets });
 
                 try {
-                    await thread.send({
-                        content: `<@&${LIVEMATCH_ROLE_ID}> match starts ${startTag(startMs)}`,
+                    await channel.send({
+                        content: `<@&${LIVEMATCH_ROLE_ID}> **${matchLabel(fresh)}** — match starts ${startTag(startMs)}`,
                         allowedMentions: { roles: [LIVEMATCH_ROLE_ID] },
                     });
-                    await thread.send({ flags: MessageFlags.IsComponentsV2, components: [view] });
+                    await channel.send({ flags: MessageFlags.IsComponentsV2, components: [view] });
                 } catch (err) {
                     console.error(`[cron:liveMatchSetup] setup post failed for ${match.id}`, err?.message ?? err);
                 }
 
-                console.log(`[cron:liveMatchSetup] match ${match.id} → thread ${thread.id}, ${participants.length} participants role'd`);
+                console.log(`[cron:liveMatchSetup] match ${match.id} → SETUP, ${participants.length} participants role'd`);
             }
         } finally {
             running = false;

@@ -1,39 +1,61 @@
 const scheduler = require('../scheduler');
 const api = require('../apiClient');
+const { database } = require('../../firebase');
+const { betEmbed, betComponents } = require('../../interactions/trugut_functions');
+const { editMessage } = require('../../discord');
+const { tournaments_channel } = require('../../data/discord/channel');
 
-// Status values that count as "match is over for betting purposes":
 // 6 POST_MATCH, 7 FORFEITED, 99 CANCELLED.
 const FINISHED_STATUSES = [6, 7, 99];
 
 let running = false;
 
+async function readBet(betId) {
+    const snap = await database.ref(`tourney/bets/${betId}`).once('value');
+    return snap.val();
+}
+
 scheduler.register({
     name: 'closeMatchBets',
     schedule: '*/5 * * * *',
-    async run(_client) {
+    async run(client) {
         if (running) return;
         running = true;
         try {
-            // Firestore `in` operator caps at 10, but we only have 3 values.
             const matches = await api.listMatches({ status_in: FINISHED_STATUSES.join(',') });
             for (const match of matches) {
                 if (!match?.betId) continue;
 
                 let bet;
                 try {
-                    bet = await api.getBet(match.betId);
+                    bet = await readBet(match.betId);
                 } catch (err) {
-                    console.warn(`[cron:closeMatchBets] getBet ${match.betId} for match ${match.id} failed: ${err?.message ?? err}`);
+                    console.warn(`[cron:closeMatchBets] read bet ${match.betId} for match ${match.id} failed: ${err?.message ?? err}`);
                     continue;
                 }
-                if (!bet || bet.status !== 'open') continue;
+                if (!bet) continue; // no RTDB bet under that key (manually deleted, etc.)
+                if (bet.status !== 'open') continue;
 
                 try {
-                    await api.patchBet(match.betId, { status: 'closed' });
-                    console.log(`[cron:closeMatchBets] closed bet ${match.betId} for match ${match.id}`);
+                    await database.ref(`tourney/bets/${match.betId}/status`).set('closed');
                 } catch (err) {
-                    console.error(`[cron:closeMatchBets] patchBet ${match.betId} failed`, err?.message ?? err);
+                    console.error(`[cron:closeMatchBets] status write failed for ${match.betId}`, err?.message ?? err);
+                    continue;
                 }
+
+                // Refresh the Discord embed so users see the closed state and
+                // the bet/admin buttons re-render to match.
+                const closed = { ...bet, status: 'closed' };
+                try {
+                    editMessage(client, tournaments_channel, match.betId, {
+                        embeds: [betEmbed(closed)],
+                        components: betComponents(closed),
+                    });
+                } catch (err) {
+                    console.warn(`[cron:closeMatchBets] editMessage failed for ${match.betId}: ${err?.message ?? err}`);
+                }
+
+                console.log(`[cron:closeMatchBets] closed bet ${match.betId} for match ${match.id}`);
             }
         } finally {
             running = false;

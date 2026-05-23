@@ -443,10 +443,14 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
         }
         deferred = true
 
-        // Fetch matches with a longer timeout to survive cold-start API; on failure, fall through
-        // with an empty list so the user can at least pick "New Match" instead of being stuck.
-        // Cached briefly so rapid clicks (dropdown change → Select button) don't each spend
-        // 20s re-fetching the same list.
+        // Fetch the 24 most-recent non-completed matches (the dropdown's max anyway), sorted
+        // by displayDate desc server-side. Previously this pulled every match in the DB —
+        // hundreds of completed ones included — which routinely tripped the 20s timeout and
+        // ballooned the response payload. Filtering to status_in 0..5 (scheduled through
+        // post-race) and letting Firestore sort by the denormalized displayDate field
+        // (scheduledStart ?? createdAt) keeps the response small and uses the existing
+        // status + displayDate composite index. Cached briefly so rapid clicks
+        // (dropdown change → Select button) don't each re-fetch the same list.
         let matches = []
         let matchesFetchFailed = false
         const cached = client.matchesListCache
@@ -454,7 +458,15 @@ exports.play = async function ({ client, interaction, args, userSnapshot } = {})
             matches = cached.matches
         } else {
             try {
-                const res = await axios.get('/matches', { timeout: 20_000 })
+                const res = await axios.get('/matches', {
+                    params: {
+                        status_in: '0,1,2,3,4,5',
+                        _limit: 24,
+                        _sort: 'displayDate',
+                        _order: 'desc',
+                    },
+                    timeout: 10_000,
+                })
                 matches = res.data?.data ?? []
                 client.matchesListCache = { matches, expiresAt: Date.now() + 10_000 }
             } catch (err) {

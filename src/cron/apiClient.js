@@ -57,28 +57,10 @@ async function patchMatch(matchId, fields) {
     return data;
 }
 
-async function createBet(bet) {
-    const { data } = await axiosClient.post('bets', { data: bet });
-    return data?.data ?? data;
-}
-
-async function getBet(betId) {
-    const { data } = await axiosClient.get(`bets/${betId}`);
-    return data?.data ?? data;
-}
-
-async function patchBet(betId, fields) {
-    const { data } = await axiosClient.patch(`bets/${betId}`, { data: fields });
-    return data?.data ?? data;
-}
-
 module.exports = {
     syncSpeedgaming,
     listMatches,
     getMatch,
     markReminderSent,
     patchMatch,
-    createBet,
-    getBet,
-    patchBet,
 };

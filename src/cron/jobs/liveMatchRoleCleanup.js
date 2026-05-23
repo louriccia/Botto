@@ -11,7 +11,7 @@ let running = false;
 
 scheduler.register({
     name: 'liveMatchRoleCleanup',
-    schedule: '*/10 * * * *',
+    schedule: '*/5 * * * *',
     async run(client) {
         if (running) return;
         running = true;
@@ -31,24 +31,37 @@ scheduler.register({
             });
             if (!guild) return;
 
-            // Ensure we know who actually has the role right now. Without a
-            // fresh members fetch the cache may not include role-holders the
-            // bot hasn't touched this session.
+            // Force-fetch the role so role.members is populated even on a
+            // fresh process. guild.roles.cache.get can return undefined if
+            // the role hasn't been touched since startup.
+            let role;
+            try {
+                role = await guild.roles.fetch(LIVEMATCH_ROLE_ID);
+            } catch (err) {
+                console.warn(`[cron:liveMatchRoleCleanup] roles.fetch(${LIVEMATCH_ROLE_ID}) failed: ${err?.message ?? err}`);
+                return;
+            }
+            if (!role) {
+                console.warn(`[cron:liveMatchRoleCleanup] role ${LIVEMATCH_ROLE_ID} not found in guild`);
+                return;
+            }
+
+            // role.members is built from the local member cache. Without a
+            // full member fetch we miss anyone the bot hasn't interacted with
+            // this session — exactly the people the cron is supposed to be
+            // cleaning up after.
             try { await guild.members.fetch(); }
             catch (err) {
                 console.warn(`[cron:liveMatchRoleCleanup] members.fetch failed: ${err?.message ?? err}`);
                 return;
             }
 
-            const role = guild.roles.cache.get(LIVEMATCH_ROLE_ID);
-            if (!role) {
-                console.warn(`[cron:liveMatchRoleCleanup] role ${LIVEMATCH_ROLE_ID} not found in guild`);
-                return;
-            }
+            const holders = role.members;
+            console.log(`[cron:liveMatchRoleCleanup] ${holders.size} holders, ${activeDiscordIds.size} active participants`);
 
-            let removed = 0;
-            for (const [memberId, member] of role.members) {
-                if (activeDiscordIds.has(memberId)) continue;
+            let removed = 0, kept = 0;
+            for (const [memberId, member] of holders) {
+                if (activeDiscordIds.has(memberId)) { kept++; continue; }
                 try {
                     await member.roles.remove(LIVEMATCH_ROLE_ID, 'No active match');
                     removed++;
@@ -56,8 +69,8 @@ scheduler.register({
                     console.warn(`[cron:liveMatchRoleCleanup] could not remove role from ${memberId}: ${err?.message ?? err}`);
                 }
             }
-            if (removed) {
-                console.log(`[cron:liveMatchRoleCleanup] removed livematch role from ${removed} member(s); ${activeDiscordIds.size} active participant(s)`);
+            if (removed || kept) {
+                console.log(`[cron:liveMatchRoleCleanup] removed=${removed}, kept=${kept}`);
             }
         } finally {
             running = false;
