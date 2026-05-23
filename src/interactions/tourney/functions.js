@@ -618,8 +618,13 @@ exports.formatLeaderboardLine = function (run) {
                 ? '`Best Available Pod`'
                 : ''
     const timeToken = `\`${time_fix(run.time)}\``
-    const linkedTime = (run.matchId && run.tournamentId)
-        ? `[${timeToken}](https://bottosjunkyard.com/tournaments/${run.tournamentId}/matches/${run.matchId}#race-${(run.raceIndex ?? 0) + 1})`
+    // tournamentId/matchId arrive as either a string id or a populated object — the API's
+    // _buildLeaderboardIndex ships match.tournament as-is, and that field can be either
+    // shape depending on whether normalization (matchService.js:207) ran for this read path.
+    const tournamentId = run.tournamentId && typeof run.tournamentId === 'object' ? run.tournamentId.id : run.tournamentId
+    const matchId = run.matchId && typeof run.matchId === 'object' ? run.matchId.id : run.matchId
+    const linkedTime = (matchId && tournamentId)
+        ? `[${timeToken}](https://bottosjunkyard.com/tournaments/${tournamentId}/matches/${matchId}#race-${(run.raceIndex ?? 0) + 1})`
         : timeToken
     return [racerFlag, linkedTime, playerName, deaths, tag].filter(Boolean).join(' ')
 }
