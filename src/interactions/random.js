@@ -1,67 +1,26 @@
+const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const cache = require('../cache.js');
+const tools = require('../generic.js');
+
+function randomizeRow(custom_id) {
+    return new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+            .setLabel("Randomize")
+            .setEmoji("🎲")
+            .setStyle(ButtonStyle.Danger)
+            .setCustomId(custom_id)
+    );
+}
+
 module.exports = {
     name: 'random',
-    execute(client, interaction, args) {
-        
-
-        const Discord = require('discord.js');
-        const myEmbed = new Discord.MessageEmbed()
-        var tools = require('./../tools.js');
+    async execute({ client, interaction, args } = {}) {
         if (args[0] == "racer") {
-            var random_racer = Math.floor(Math.random() * 25)
-            client.api.interactions(interaction.id, interaction.token).callback.post({
-                data: {
-                    type: 7,
-                    data: {
-                        //content: "",
-                        embeds: [tools.getRacerEmbed(random_racer)],
-                        components: [
-                            {
-                                type: 1,
-                                components: [
-                                    {
-                                        type: 2,
-                                        label: "Randomize",
-                                        emoji: {
-                                            id: null,
-                                            name: "🎲"
-                                        },
-                                        style: 4,
-                                        custom_id: "random_racer"
-                                    }
-                                ]
-                            }
-                        ]
-                    }
-                }
-            })
+            const racer = tools.getRandomElement(cache.racers);
+            await interaction.update({ embeds: [tools.getRacerEmbed(racer)], components: [randomizeRow("random_racer")] });
         } else if (args[0] == "track") {
-            var random_track = Math.floor(Math.random() * 25)
-            client.api.interactions(interaction.id, interaction.token).callback.post({
-                data: {
-                    type: 7,
-                    data: {
-                        //content: "",
-                        embeds: [tools.getTrackEmbed(random_track)],
-                        components: [
-                            {
-                                type: 1,
-                                components: [
-                                    {
-                                        type: 2,
-                                        label: "Randomize",
-                                        emoji: {
-                                            id: null,
-                                            name: "🎲"
-                                        },
-                                        style: 4,
-                                        custom_id: "random_track"
-                                    }
-                                ]
-                            }
-                        ]
-                    }
-                }
-            })
+            const track = tools.getRandomElement(cache.tracks);
+            await interaction.update({ embeds: [tools.getTrackEmbed(track)], components: [randomizeRow("random_track")] });
         }
     }
 }
