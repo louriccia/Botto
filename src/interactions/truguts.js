@@ -113,11 +113,12 @@ module.exports = {
 
                         if (!outcome.paid) {
                             //pay out
-                            const total_wrong = outcome.bets.filter(b => b.guess !== result).map(b => b.amount).reduce((a, b) => a + b, 0) ?? 0
-                            const total_right = outcome.bets.filter(b => b.guess == result).map(b => b.amount).reduce((a, b) => a + b, 0) ?? 0
+                            const outcome_bets = outcome.bets ?? []
+                            const total_wrong = outcome_bets.filter(b => b.guess !== result).map(b => b.amount).reduce((a, b) => a + b, 0) ?? 0
+                            const total_right = outcome_bets.filter(b => b.guess == result).map(b => b.amount).reduce((a, b) => a + b, 0) ?? 0
 
                             console.log(total_wrong, total_right)
-                            bet.outcomes[outcome_index].bets.forEach(b => {
+                            outcome_bets.forEach(b => {
                                 if (b.guess == result) {
                                     let take = Math.round((b.amount / total_right) * total_wrong)
                                     manageTruguts({ user_profile: db.user[b.id].random, profile_ref: userref.child(b.id).child('random'), transaction: 'd', amount: take })
