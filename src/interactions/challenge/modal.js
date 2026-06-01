@@ -106,11 +106,11 @@ exports.modal = async function ({current_challenge, interaction, db, member_id, 
         .setRequired(false)
     if (current_challenge.submissions?.[member_id]) {
         const this_submission = db.ch.times[current_challenge.submissions[member_id].id]
-        submissionTime.setValue(time_fix(this_submission.time))
-        submissionNotes.setValue(this_submission.notes)
-        submissionProof.setValue(this_submission.proof)
-        submissionRTA.setValue(this_submission.rta)
-        submissionPlatform.setValue(this_submission.platform)
+        submissionTime.setValue(time_fix(this_submission.time) || "")
+        submissionNotes.setValue(this_submission.notes || "")
+        submissionProof.setValue(this_submission.proof || "")
+        submissionRTA.setValue(this_submission.rta ? time_fix(this_submission.rta) : "")
+        submissionPlatform.setValue(this_submission.platform || "")
     }
     const ActionRow1 = new ActionRowBuilder().addComponents(submissionTime)
     const ActionRow2 = new ActionRowBuilder().addComponents(submissionNotes)
