@@ -1,332 +1,223 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const cache = require('../cache.js');
+const tools = require('../generic.js');
+const { circuits } = require('../data/sw_racer/circuit.js');
+const { planets } = require('../data/sw_racer/planet.js');
+const { difficulties } = require('../data/difficulty.js');
+
+const tierNames = ["Top", "High", "Mid", "Low"];
+
+function randomizeRow(custom_id) {
+    return new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+            .setLabel("Randomize")
+            .setEmoji("🎲")
+            .setStyle(ButtonStyle.Danger)
+            .setCustomId(custom_id)
+    );
+}
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('random')
-        .setDescription('get a random racer, track, etc.'),
-    execute({ interaction, database, db, member_id, member_name, member_avatar, user_key, user_profile } = {}) {
-        const Discord = require('discord.js');
-        const fetch = require('node-fetch');
-        var tools = require('./../generic.js');
-        const Guild = interaction.client.guilds.cache.get(interaction.guild_id); // Getting the guild.
-        const Channel = interaction.client.channels.cache.get(interaction.channel_id);
-        if (Channel == !undefined) {
-            const Member = Guild.members.cache.get(interaction.member.user.id); // Getting the member.
-            if (Member.voice.channel) {
-                var mems = client.channels.cache.get(Member.voice.channelID).members;
-                var memarray = [];
-                var memlist = ""
-                for (let [snowflake, guildMember] of mems) {
-                    if (guildMember.displayName !== "Botto") {
-                        memarray.push(guildMember.displayName)
-                        memlist = memlist + guildMember.displayName + "\n"
-                    }
-                }
-            }
-        }
-        let subcommand = interaction.options.getSubcommand()
+        .setDescription('get a random racer, track, challenge, and more')
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('racer')
+                .setDescription('get a random racer')
+                .addStringOption(option =>
+                    option.setName('tier')
+                        .setDescription('limit to a MU tier')
+                        .addChoices(
+                            { name: 'Any', value: 'any' },
+                            { name: 'Top', value: '0' },
+                            { name: 'High', value: '1' },
+                            { name: 'Mid', value: '2' },
+                            { name: 'Low', value: '3' }
+                        )
+                )
+                .addStringOption(option =>
+                    option.setName('canon')
+                        .setDescription('limit to canonical or non-canonical racers')
+                        .addChoices(
+                            { name: 'Any', value: 'any' },
+                            { name: 'Canon', value: 'canon' },
+                            { name: 'Non-Canon', value: 'non-canon' }
+                        )
+                )
+                .addBooleanOption(option =>
+                    option.setName('vc')
+                        .setDescription('roll a unique racer for everyone in your voice channel')
+                )
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('track')
+                .setDescription('get a random track')
+                .addStringOption(option =>
+                    option.setName('circuit')
+                        .setDescription('limit to a circuit')
+                        .addChoices(...circuits.map(c => ({ name: c.name, value: c.name })))
+                )
+                .addStringOption(option =>
+                    option.setName('planet')
+                        .setDescription('limit to a planet')
+                        .addChoices(...planets.map(p => ({ name: p.name, value: p.name })))
+                )
+                .addStringOption(option =>
+                    option.setName('length')
+                        .setDescription('limit to a track length')
+                        .addChoices(
+                            { name: 'Short', value: 'short' },
+                            { name: 'Medium', value: 'medium' },
+                            { name: 'Long', value: 'long' }
+                        )
+                )
+                .addStringOption(option =>
+                    option.setName('difficulty')
+                        .setDescription('limit to a difficulty')
+                        .addChoices(...difficulties.map(d => ({ name: d.name, value: d.name })))
+                )
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('challenge')
+                .setDescription('get a random pod/track challenge')
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('teams')
+                .setDescription('split everyone in your voice channel into teams')
+                .addIntegerOption(option =>
+                    option.setName('teams')
+                        .setDescription('number of teams')
+                        .setMinValue(2)
+                        .setRequired(true)
+                )
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('number')
+                .setDescription('get a random number')
+                .addIntegerOption(option =>
+                    option.setName('max')
+                        .setDescription('the highest possible number (inclusive)')
+                        .setMinValue(1)
+                        .setRequired(true)
+                )
+        ),
+    async execute({ client, interaction, database, db, member_id, member_name, member_avatar, user_key, user_profile } = {}) {
+        const subcommand = interaction.options.getSubcommand();
+
         if (subcommand == "racer") {
-            var tier = interaction.options.getString("tier") ?? ""
-            var canon = interaction.options.getString("canon")
-            var vc = false
-            var Tiernames = ["Top", "High", "Mid", "Low"]
-            if (args[0].hasOwnProperty("options")) {
-                for (let i = 0; i < args[0].options.length; i++) {
-                    if (args[0].options[i].name == "tier") { //any/top/high/mid/low
-                        tier = args[0].options[i].value
-                    } else if (args[0].options[i].name == "canon") {
-                        if (args[0].options[i].value == "canon") {
-                            canon = true
-                        } else if (args[0].options[i].value == "non-canon") {
-                            canon = false
-                        }
-                    } else if (args[0].options[i].name == "vc") {
-                        vc = args[0].options[i].value
-                    }
-                }
-            }
-            var pool = []
-            for (let i = 0; i < racers.length; i++) {
-                if (tier === "" || tier === "any") {
-                    if (canon === "" || canon === "any") { //any
-                        pool.push(i)
-                    } else if (canon == racers[i].canon) {
-                        pool.push(i)
-                    }
-                } else if (tier == racers[i].mu_tier) {
-                    if (canon === "" || canon === "any") { //any
-                        pool.push(i)
-                    } else if (canon == racers[i].canon) {
-                        pool.push(i)
-                    }
-                }
-            }
-            var poolsave = [...pool]
+            const tier = interaction.options.getString("tier") ?? "any";
+            const canon = interaction.options.getString("canon") ?? "any";
+            const vc = interaction.options.getBoolean("vc") ?? false;
+
+            const pool = cache.racers.filter(racer => {
+                if (tier !== "any" && racer.mu_tier != Number(tier)) return false;
+                if (canon == "canon" && !racer.canon) return false;
+                if (canon == "non-canon" && racer.canon) return false;
+                return true;
+            });
+
             if (pool.length == 0) {
-                client.api.interactions(interaction.id, interaction.token).callback.post({
-                    data: {
-                        type: 4,
-                        data: {
-                            content: "`Error: No racers meet that criteria`\n" + errorMessage[Math.floor(Math.random() * errorMessage.length)],
-                        }
-                    }
-                })
+                await interaction.reply({ content: "`Error: No racers meet that criteria`\n" + tools.randomErrorMessage(), ephemeral: true });
+                return;
             }
+
             if (vc) {
-                if (!Member.voice.channel) {
-                    client.api.interactions(interaction.id, interaction.token).callback.post({
-                        data: {
-                            type: 4,
-                            data: {
-                                content: "`Error: To roll a random racer for everyone in the voice channel, you need to be in a voice channel.`\n" + errorMessage[Math.floor(Math.random() * errorMessage.length)],
-                            }
-                        }
-                    })
-                } else {
-                    var podlist = "";
-                    var desc = "Rolled random "
-                    for (let i = 0; i < memarray.length; i++) {
-                        if (pool.length == 0) {
-                            pool = [...poolsave]
-                        }
-                        var randompod = Math.floor(Math.random() * pool.length)
-                        podlist = podlist + racers[pool[randompod]].flag + " " + racers[pool[randompod]].name + "\n"
-                        pool.splice(randompod, 1)
-                    }
-                    if (canon) {
-                        desc = desc + "canonical "
-                    } else if (canon === false) {
-                        desc = desc + "non-canonical "
-                    }
-                    if (tier !== "" && tier !== "any") {
-                        desc = desc + Tiernames[tier].toLowerCase() + " tier pods"
-                    } else {
-                        desc = desc + " pods"
-                    }
-                    const racerEmbed = new Discord.MessageEmbed()
-                        .setTitle("Random Racers")
-                        .setDescription(desc)
-                        .addField("Players", memlist, true)
-                        .addField("Pods", podlist, true)
-                        .addField('\u200B', '\u200B', true)
-                    client.api.interactions(interaction.id, interaction.token).callback.post({
-                        data: {
-                            type: 4,
-                            data: {
-                                //content: "",
-                                embeds: [racerEmbed]
-                            }
-                        }
-                    })
+                const voiceChannel = interaction.member?.voice?.channel;
+                if (!voiceChannel) {
+                    await interaction.reply({ content: "`Error: To roll a random racer for everyone in the voice channel, you need to be in a voice channel.`\n" + tools.randomErrorMessage(), ephemeral: true });
+                    return;
                 }
-            } else {
-                var randomracer = pool[Math.floor(Math.random() * pool.length)]
-                var racerEmbed = tools.getRacerEmbed(randomracer)
-                client.api.interactions(interaction.id, interaction.token).callback.post({
-                    data: {
-                        type: 4,
-                        data: {
-                            //content: "",
-                            embeds: [racerEmbed],
-                            components: [
-                                {
-                                    type: 1,
-                                    components: [
-                                        {
-                                            type: 2,
-                                            label: "Randomize",
-                                            emoji: {
-                                                id: null,
-                                                name: "🎲"
-                                            },
-                                            style: 4,
-                                            custom_id: "random_racer"
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    }
-                })
+                const members = [...voiceChannel.members.values()].filter(m => !m.user.bot);
+                let available = [...pool];
+                let players = "";
+                let pods = "";
+                for (const m of members) {
+                    if (available.length == 0) available = [...pool];
+                    const index = Math.floor(Math.random() * available.length);
+                    const racer = available.splice(index, 1)[0];
+                    players += m.displayName + "\n";
+                    pods += `${racer.flag} ${racer.name}\n`;
+                }
+                let desc = "Rolled random ";
+                if (canon == "canon") desc += "canonical ";
+                else if (canon == "non-canon") desc += "non-canonical ";
+                if (tier !== "any") desc += tierNames[Number(tier)].toLowerCase() + " tier ";
+                desc += "pods";
+                const racerEmbed = new EmbedBuilder()
+                    .setTitle("Random Racers")
+                    .setDescription(desc)
+                    .addFields(
+                        { name: "Players", value: players, inline: true },
+                        { name: "Pods", value: pods, inline: true }
+                    );
+                await interaction.reply({ embeds: [racerEmbed] });
+                return;
             }
+
+            const racer = tools.getRandomElement(pool);
+            await interaction.reply({ embeds: [tools.getRacerEmbed(racer)], components: [randomizeRow("random_racer")] });
+
         } else if (subcommand == "track") {
-            var circuit = ""
-            var planet = ""
-            var length = ""
-            var difficulty = ""
-            if (args[0].hasOwnProperty("options")) {
-                for (let i = 0; i < args[0].options.length; i++) {
-                    if (args[0].options[i].name == "circuit") {
-                        for (let j = 0; j < circuits.length; j++) {
-                            if (args[0].options[i].value == circuits[j].name) {
-                                circuit = j
-                            }
-                        }
-                    } else if (args[0].options[i].name == "planet") {
-                        for (let j = 0; j < planets.length; j++) {
-                            if (args[0].options[i].value == planets[j].name) {
-                                planet = j
-                            }
-                        }
-                    } else if (args[0].options[i].name == "length") {
-                        length = args[0].options[i].value
-                    } else if (args[0].options[i].name == "difficulty") {
-                        for (let j = 0; j < difficulties.length; j++) {
-                            if (args[0].options[i].value == difficulties[j].name) {
-                                difficulty = j
-                            }
-                        }
-                    }
-                }
-            }
-            var pool = []
-            for (var i = 0; i < tracks.length; i++) {
-                pool.push(i)
-            }
-            if (circuit !== "" && circuit !== "any") {
-                for (var i = 0; i < pool.length; i++) {
-                    if (tracks[pool[i]].circuit !== circuit) {
-                        if (pool.indexOf(pool[i]) > -1) {
-                            pool.splice(pool.indexOf(pool[i]), 1)
-                            i = i - 1 //note to self: don't be an idiot and forget stuff like this
-                        }
-                    }
-                }
-            }
-            if (planet !== "" && planet !== "any") {
-                for (var i = 0; i < pool.length; i++) {
-                    if (tracks[pool[i]].planet !== planet) {
-                        if (pool.indexOf(pool[i]) > -1) {
-                            pool.splice(pool.indexOf(pool[i]), 1)
-                            i = i - 1
-                        }
-                    }
-                }
-            }
-            if (length !== "" && length !== "any") {
-                for (var i = 0; i < pool.length; i++) {
-                    if (tracks[pool[i]].lengthclass.replace("Extra ", "").toLowerCase() !== length) {
-                        if (pool.indexOf(pool[i]) > -1) {
-                            pool.splice(pool.indexOf(pool[i]), 1)
-                            i = i - 1
-                        }
-                    }
-                }
-            }
-            if (difficulty !== "" && difficulty !== "any") {
-                for (var i = 0; i < pool.length; i++) {
-                    if (tracks[pool[i]].difficulty !== difficulty) {
-                        if (pool.indexOf(pool[i]) > -1) {
-                            pool.splice(pool.indexOf(pool[i]), 1)
-                            i = i - 1
-                        }
-                    }
-                }
-            }
+            const circuit = interaction.options.getString("circuit");
+            const planet = interaction.options.getString("planet");
+            const length = interaction.options.getString("length");
+            const difficulty = interaction.options.getString("difficulty");
+
+            const pool = cache.tracks.filter(track => {
+                if (circuit && track.circuit?.name !== circuit) return false;
+                if (planet && track.planet?.name !== planet) return false;
+                if (length && track.lengthclass.replace("Extra ", "").toLowerCase() !== length) return false;
+                if (difficulty && difficulties[track.difficulty]?.name !== difficulty) return false;
+                return true;
+            });
+
             if (pool.length == 0) {
-                client.api.interactions(interaction.id, interaction.token).callback.post({
-                    data: {
-                        type: 4,
-                        data: {
-                            content: "`Error: No tracks meet that criteria`\n" + errorMessage[Math.floor(Math.random() * errorMessage.length)],
-                        }
-                    }
-                })
+                await interaction.reply({ content: "`Error: No tracks meet that criteria`\n" + tools.randomErrorMessage(), ephemeral: true });
+                return;
             }
-            var numb = pool[Math.floor(Math.random() * pool.length)]
-            var trackEmbed = tools.getTrackEmbed(numb, client, interaction.channel_id, interaction)
-            client.api.interactions(interaction.id, interaction.token).callback.post({
-                data: {
-                    type: 4,
-                    data: {
-                        //content: "",
-                        embeds: [trackEmbed],
-                        components: [
-                            {
-                                type: 1,
-                                components: [
-                                    {
-                                        type: 2,
-                                        label: "Randomize",
-                                        emoji: {
-                                            id: null,
-                                            name: "🎲"
-                                        },
-                                        style: 4,
-                                        custom_id: "random_track"
-                                    }
-                                ]
-                            }
-                        ]
-                    }
-                }
-            })
+
+            const track = tools.getRandomElement(pool);
+            await interaction.reply({ embeds: [tools.getTrackEmbed(track)], components: [randomizeRow("random_track")] });
 
         } else if (subcommand == "challenge") {
-            client.buttons.get("challenge").execute(client, interaction, ["random", "menu", "new"])
+            await client.buttons.get("challenge").execute({ client, interaction, args: ["random", "play"], database, db, member_id, member_name, member_avatar, user_key, user_profile });
+
         } else if (subcommand == "teams") {
-            var teamnum = args[0].options[0].value
-            const teamEmbed = new Discord.MessageEmbed()
+            const teamnum = interaction.options.getInteger("teams");
+            const voiceChannel = interaction.member?.voice?.channel;
+            if (!voiceChannel) {
+                await interaction.reply({ content: "`Error: To make random teams, you need to be in a voice channel.`\n" + tools.randomErrorMessage(), ephemeral: true });
+                return;
+            }
+            const memarray = [...voiceChannel.members.values()].filter(m => !m.user.bot).map(m => m.displayName);
+            if (teamnum > memarray.length) {
+                await interaction.reply({ content: "`Error: That's too many teams!`\n" + tools.randomErrorMessage(), ephemeral: true });
+                return;
+            }
+            const teams = Array.from({ length: teamnum }, () => []);
+            let i = 0;
+            while (memarray.length > 0) {
+                const index = Math.floor(Math.random() * memarray.length);
+                teams[i % teamnum].push(memarray.splice(index, 1)[0]);
+                i++;
+            }
+            const teamEmbed = new EmbedBuilder()
                 .setTitle("Random Teams")
-                .setDescription("Everyone in the voice channel has been split into **" + teamnum + "** teams")
+                .setDescription("Everyone in the voice channel has been split into **" + teamnum + "** teams");
+            teams.forEach((team, idx) => {
+                teamEmbed.addFields({ name: "Team " + (idx + 1), value: team.join("\n") || "--", inline: true });
+            });
+            await interaction.reply({ embeds: [teamEmbed] });
 
-            var playernum = memarray.length
-            if (teamnum > playernum) {
-                client.api.interactions(interaction.id, interaction.token).callback.post({
-                    data: {
-                        type: 4,
-                        data: {
-                            content: "`Error: That's too many teams!`\n" + errorMessage[Math.floor(Math.random() * errorMessage.length)],
-                            //embeds: [teamEmbed]
-                        }
-                    }
-                })
-            } else {
-                var remainder = playernum % teamnum
-                var members = ""
-                for (let i = 0; i < teamnum; i++) {
-                    members = ""
-                    for (let j = 0; j < (Math.floor(playernum / teamnum)); j++) {
-                        var random = Math.floor(Math.random() * memarray.length)
-                        members = members + memarray[random] + "\n"
-                        memarray.splice(random, 1)
-                        if (remainder > 0) {
-                            var random = Math.floor(Math.random() * memarray.length)
-                            members = members + memarray[random] + "\n"
-                            memarray.splice(random, 1)
-                            remainder = remainder - 1
-                        }
-
-                    }
-                    teamEmbed.addField("Team " + (i + 1), members, true)
-                }
-                client.api.interactions(interaction.id, interaction.token).callback.post({
-                    data: {
-                        type: 4,
-                        data: {
-                            //content: "",
-                            embeds: [teamEmbed]
-                        }
-                    }
-                })
-            }
         } else if (subcommand == "number") {
-            if (messageLow.startsWith(`${prefix}random`)) {
-
-                var randomnum = (Math.floor(Math.random() * args[0].options[0].value) + 1)
-                client.api.interactions(interaction.id, interaction.token).callback.post({
-                    data: {
-                        type: 4,
-                        data: {
-                            content: randomnum,
-                            //embeds: [myEmbed]
-                        }
-                    }
-                })
-
-            }
-
+            const max = interaction.options.getInteger("max");
+            const randomnum = Math.floor(Math.random() * max) + 1;
+            await interaction.reply({ content: String(randomnum) });
         }
     }
-
 }
