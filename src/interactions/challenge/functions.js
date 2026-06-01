@@ -3499,7 +3499,7 @@ exports.currentTruguts = function (user_profile) {
 exports.randomChallengeItem = function ({ user_profile, current_challenge, db, member, coffer, sarlacc } = {}) {
     const challenges_completed = Object.values(db.ch.times).filter(time => time.user == member).length
     let item_pool = []
-    let special_items = [{ id: 'collectible_coffer' }, { id: 'trugut_boost' }, { id: 'sabotage_kit' }]
+    let special_items = ['collectible_coffer', 'trugut_boost', 'sabotage_kit'].map(id => items.find(i => i.id == id)).filter(Boolean)
     items.forEach(item => {
         if (coffer || sarlacc || (item.challenges !== null && challenges_completed > item.challenges) || current_challenge.conditions[item.condition] || item.track.includes(current_challenge.track) || item.racer.includes(current_challenge.racer)) {
             item_pool.push(item)
