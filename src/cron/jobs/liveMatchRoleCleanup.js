@@ -18,11 +18,45 @@ scheduler.register({
         try {
             const matches = await api.listMatches({ status_in: ACTIVE_STATUSES.join(',') });
 
+            // Build the set of discord ids that should keep the role.
+            //
+            // Normalize to string: the API sometimes serializes discordId as a
+            // Number, but role.members is keyed by a string id, so a Number would
+            // silently never match. (Discord snowflakes also exceed
+            // Number.MAX_SAFE_INTEGER, so a numeric id is already corrupted before
+            // we see it — String()+trim at least makes the comparison type- and
+            // whitespace-consistent.)
+            //
+            // trackers are first-class match participants elsewhere (see
+            // canSubmitForPlayer in interactions/tourney/play.js), so they keep the
+            // role too — otherwise a tracker on a live match is stripped every cycle.
             const activeDiscordIds = new Set();
+            let participantsSeen = 0;
             for (const match of matches) {
-                for (const p of [...(match.players || []), ...(match.commentators || [])]) {
-                    if (p?.discordId) activeDiscordIds.add(p.discordId);
+                for (const p of [
+                    ...(match.players || []),
+                    ...(match.commentators || []),
+                    ...(match.trackers || []),
+                ]) {
+                    if (!p) continue;
+                    participantsSeen++;
+                    const id = p.discordId == null ? '' : String(p.discordId).trim();
+                    if (id) activeDiscordIds.add(id);
                 }
+            }
+
+            // Fail safe: if there ARE active matches with participants but we
+            // resolved zero usable discord ids, the participant data is broken —
+            // e.g. a SpeedGaming sync linked the match to a duplicate user profile
+            // that has no discordId. Stripping now would kick every legitimate
+            // holder, so skip this cycle and let an operator repair the data. A
+            // role lingering 5 more minutes is far less disruptive than pulling
+            // live participants mid-match. (When there are simply no active
+            // matches, participantsSeen is 0 and we fall through to clean up
+            // normally, which is correct.)
+            if (participantsSeen > 0 && activeDiscordIds.size === 0) {
+                console.warn(`[cron:liveMatchRoleCleanup] ${matches.length} active match(es) with ${participantsSeen} participant(s) but 0 resolvable discordIds — skipping cleanup to avoid mass-stripping. Check for duplicate/unlinked user profiles.`);
+                return;
             }
 
             const guild = await client.guilds.fetch(swe1r_guild).catch(err => {
