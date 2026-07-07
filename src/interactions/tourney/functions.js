@@ -982,6 +982,20 @@ exports.matchSelector = function ({ matches, selected } = {}) {
     return matchRow
 }
 
+// Discord rejects a StringSelectMenu with zero options (BASE_TYPE_BAD_LENGTH — options must
+// be 1-25). When the source list is empty (e.g. a tournament phase with no divisions, or no
+// active rulesets), attach a single disabled placeholder option and disable the menu instead
+// of letting the whole V2 view fail to render.
+function attachSelectOptions(selector, options, emptyLabel = 'None available') {
+    const opts = (options ?? []).filter(o => o != null)
+    if (opts.length === 0) {
+        selector.addOptions({ label: emptyLabel, value: '__none__', default: false })
+        selector.setDisabled(true)
+        return
+    }
+    selector.addOptions(...opts.slice(0, 25))
+}
+
 exports.rulesetSelector = function ({ rulesets, selected } = {}) {
     const rulesetRow = new ActionRowBuilder()
     const ruleset_selector = new StringSelectMenuBuilder()
@@ -1010,7 +1024,7 @@ exports.rulesetSelector = function ({ rulesets, selected } = {}) {
             }
         })
 
-    ruleset_selector.addOptions(...paginator({ value: selected?.[0], array: options }))
+    attachSelectOptions(ruleset_selector, paginator({ value: selected?.[0], array: options }), 'No rulesets available')
     rulesetRow.addComponents(ruleset_selector)
 
     return rulesetRow
@@ -1027,15 +1041,11 @@ exports.tourneyPhaseSelector = function ({ phases, selected } = {}) {
 
     phaseRow.addComponents(phaseSelector)
 
-    phases.forEach(phase => {
-        phaseSelector.addOptions(
-            {
-                label: phase.name,
-                value: phase.id,
-                default: selected.includes(phase.id)
-            }
-        )
-    })
+    attachSelectOptions(phaseSelector, (phases ?? []).map(phase => ({
+        label: phase.name,
+        value: phase.id,
+        default: selected.includes(phase.id)
+    })), 'No phases available')
 
     return phaseRow
 }
@@ -1051,15 +1061,11 @@ exports.tourneyDivisionSelector = function ({ divisions, selected } = {}) {
 
     divisionRow.addComponents(divisionSelector)
 
-    divisions.forEach(division => {
-        divisionSelector.addOptions(
-            {
-                label: division.name,
-                value: division.id,
-                default: selected.includes(division.id)
-            }
-        )
-    })
+    attachSelectOptions(divisionSelector, (divisions ?? []).map(division => ({
+        label: division.name,
+        value: division.id,
+        default: selected.includes(division.id)
+    })), 'No divisions available')
 
     return divisionRow
 }
@@ -1075,15 +1081,11 @@ exports.tourneyRoundSelector = function ({ rounds, selected } = {}) {
 
     roundRow.addComponents(roundSelector)
 
-    rounds.forEach(round => {
-        roundSelector.addOptions(
-            {
-                label: round.name,
-                value: round.id,
-                default: selected.includes(round.id)
-            }
-        )
-    })
+    attachSelectOptions(roundSelector, (rounds ?? []).map(round => ({
+        label: round.name,
+        value: round.id,
+        default: selected.includes(round.id)
+    })), 'No rounds available')
 
     return roundRow
 }

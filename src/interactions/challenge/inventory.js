@@ -299,6 +299,7 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
                 return
             }
 
+            const SWE1R_Guild = await interaction.client.guilds.cache.get(swe1r_guild)
             let role = await SWE1R_Guild.roles.cache.get(user_profile.roles.custom)
             role.edit({ color: color })
 
@@ -327,6 +328,7 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
         }
     } else if (args[2] == 'icon') {
         if (user_profile?.roles?.emoji && interaction.guild.id == swe1r_guild) {
+            const Member = await interaction.guild.members.fetch(member_id)
             Object.values(user_profile.roles.emoji).forEach(role => {
                 if (interaction.values.includes(role.id)) {
                     Member.roles.add(role.id)

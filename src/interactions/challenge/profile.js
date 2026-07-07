@@ -67,10 +67,17 @@ exports.profile = async function ({ interaction, args, db, member_id, user_profi
         }
     }
 
-    if (interaction.isChatInputCommand()) {
-        await interaction.deferReply()
-    } else {
-        await interaction.deferUpdate()
+    try {
+        if (interaction.isChatInputCommand()) {
+            await interaction.deferReply()
+        } else {
+            await interaction.deferUpdate()
+        }
+    } catch (err) {
+        // The interaction token has already expired or been acknowledged (DiscordAPIError
+        // 10062 "Unknown interaction") — usually a stale button click after a restart. There's
+        // nothing left to render to, so bail rather than throw an unhandled rejection.
+        return
     }
 
     const ach_report = achievementProgress({ db, player: member_id })
@@ -96,7 +103,7 @@ exports.profile = async function ({ interaction, args, db, member_id, user_profi
         })
         await profile_ref.child('progression').set(progression)
         let new_player_level = playerLevel(progression)
-        postMessage(client, interaction.channelId, { embeds: [new EmbedBuilder().setAuthor({ name: `${botto_name} leveled up!`, iconURL: member_avatar }).setDescription(new_player_level.string).setFooter({ text: `Level ${new_player_level.level}` })] })
+        postMessage(interaction.client, interaction.channelId, { embeds: [new EmbedBuilder().setAuthor({ name: `${botto_name} leveled up!`, iconURL: member_avatar }).setDescription(new_player_level.string).setFooter({ text: `Level ${new_player_level.level}` })] })
     }
     interaction.editReply({ embeds: [profileEmbed({ db, player: member_id, name: botto_name, avatar: member_avatar, ach_report, user_profile, stats })], components: profileComponents({ member_id, ach_report, stats, user_profile }) })
 

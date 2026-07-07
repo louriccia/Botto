@@ -294,7 +294,14 @@ async function defferInteraction(interaction, deferred, command, ephemeral = fal
                     })
                     return 1
                 }
-                const race = match.races[match.currentRace]
+                if (!matchPlayer) {
+                    await interaction.reply({
+                        content: 'Could not find that racer in this match.',
+                        ephemeral: true
+                    })
+                    return 1
+                }
+                const race = match?.races?.[match.currentRace]
                 const playerStatus = race?.players?.[matchPlayer.id]
                 const pickModal = pickRacerModal({
                     currentRace: match.currentRace,
