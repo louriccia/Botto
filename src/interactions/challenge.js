@@ -51,7 +51,7 @@ module.exports = {
                 command = 'feedback'
             }
             const challenge_command = require(`./challenge/${command}.js`)
-            challenge_command[command]({ current_challenge, current_challenge_ref, interaction, args, db, database, member_id, member_avatar, user_key, user_profile, profile_ref, botto_name })
+            await challenge_command[command]({ current_challenge, current_challenge_ref, interaction, args, db, database, member_id, member_avatar, user_key, user_profile, profile_ref, botto_name })
         }
     }
 }
