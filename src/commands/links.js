@@ -63,8 +63,8 @@ module.exports = {
         } else if (subcommand == "mp_guide") {
             title = "Online Multiplayer Setup Guide"
             desc = "Everything you need to know to start podracing online. Click the above link to see the extended guide."
-            link = "https://docs.google.com/document/d/1lxVkuT80ug0BX2LMJp5CXcMVPZneLK4unOetLU3WlQQ/edit?usp=sharing"
-            myEmbed.addFields({ name: "1. Patch SWEP1RCR.EXE", value: "[Download swe1r-patcher.zip from JayFoxRox's github](https://github.com/JayFoxRox/swe1r-patcher/releases) and copy dinput.dll and the textures folder into your game directory", inline: false })
+            link = "https://bottosjunkyard.com/multiplayer"
+            myEmbed.addFields({ name: "1. Download the patch", value: "[Download the latest release of the community mod](https://github.com/tim-tim707/SW_RACER_RE/releases) and extract dinput.dll and the assets folder into your game directory", inline: false })
             myEmbed.addFields({ name: "2. Set Up a VLAN Connection", value: "[Download Radmin VPN](https://www.radmin-vpn.com/) and join the Star Wars Episode I: Racer gaming network.", inline: false })
             myEmbed.addFields({ name: "3. Change Ethernet Adapter", value: "Run `ipxconfig.exe` in your game files and change your Primary interface to Famatech RadminVPN", inline: false })
             myEmbed.addFields({ name: "4. Create or Join a Session", value: "Launch the game, select multiplayer, and create or join a session.", inline: false })
