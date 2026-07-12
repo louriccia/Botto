@@ -3475,6 +3475,11 @@ exports.initializeBounty = function (type, h, player, user_profile) {
 
 exports.manageTruguts = function ({ user_profile, profile_ref, transaction, amount, purchase } = {}) {
     console.log(`${user_profile.name} ${transaction} ${amount}`)
+    amount = Number(amount)
+    if (!Number.isFinite(amount)) {
+        console.error(`manageTruguts received invalid amount for ${user_profile.name}: ${amount} (transaction: ${transaction})`)
+        return user_profile
+    }
     if (transaction == 'w') {
         user_profile.truguts_spent += amount
     } else if (transaction == 'd') {
