@@ -114,13 +114,13 @@ module.exports = {
                         if (!outcome.paid) {
                             //pay out
                             const outcome_bets = outcome.bets ?? []
-                            const total_wrong = outcome_bets.filter(b => b.guess !== result).map(b => b.amount).reduce((a, b) => a + b, 0) ?? 0
-                            const total_right = outcome_bets.filter(b => b.guess == result).map(b => b.amount).reduce((a, b) => a + b, 0) ?? 0
+                            const total_wrong = outcome_bets.filter(b => b.guess !== result).map(b => Number(b.amount) || 0).reduce((a, b) => a + b, 0)
+                            const total_right = outcome_bets.filter(b => b.guess == result).map(b => Number(b.amount) || 0).reduce((a, b) => a + b, 0)
 
                             console.log(total_wrong, total_right)
                             outcome_bets.forEach(b => {
                                 if (b.guess == result) {
-                                    let take = Math.round((b.amount / total_right) * total_wrong)
+                                    let take = total_right > 0 ? Math.round(((Number(b.amount) || 0) / total_right) * total_wrong) : 0
                                     manageTruguts({ user_profile: db.user[b.id].random, profile_ref: userref.child(b.id).child('random'), transaction: 'd', amount: take })
                                     b.take = take
                                 } else {
@@ -137,8 +137,8 @@ module.exports = {
 
 
                         if (!outcome.paid) {
-                            const total_wrong = bet.outcomes.filter((o, i) => i !== outcome_index && o.type == 'this_or_that').map(o => o.bets).flat().map(b => b?.amount).reduce((a, b) => a + b, 0) ?? 0
-                            const total_right = bet.outcomes.filter((o, i) => i == outcome_index && o.type == 'this_or_that').map(o => o.bets).flat().map(b => b?.amount).reduce((a, b) => a + b, 0) ?? 0
+                            const total_wrong = bet.outcomes.filter((o, i) => i !== outcome_index && o.type == 'this_or_that').map(o => o.bets).flat().map(b => Number(b?.amount) || 0).reduce((a, b) => a + b, 0)
+                            const total_right = bet.outcomes.filter((o, i) => i == outcome_index && o.type == 'this_or_that').map(o => o.bets).flat().map(b => Number(b?.amount) || 0).reduce((a, b) => a + b, 0)
 
                             bet.outcomes.forEach((o, i) => {
                                 if (o.type == "this_or_that") {
@@ -146,7 +146,7 @@ module.exports = {
                                     if (o.bets) {
                                         o.bets.forEach(b => {
                                             if (o.winner) {
-                                                let take = Math.round((b.amount / total_right) * total_wrong)
+                                                let take = total_right > 0 ? Math.round(((Number(b.amount) || 0) / total_right) * total_wrong) : 0
                                                 console.log(take)
                                                 manageTruguts({ user_profile: db.user[b.id].random, profile_ref: userref.child(b.id).child('random'), transaction: 'd', amount: take })
                                                 b.take = take
