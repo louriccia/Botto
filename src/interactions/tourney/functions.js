@@ -736,7 +736,7 @@ exports.optionGetters = {
     loserPool: (option, selected) => exports.getPoolOption(option, selected),
 }
 
-exports.eventSelector = function ({ event, options } = {}) {
+exports.eventSelector = function ({ event, options, index } = {}) {
     const eventRow = new ActionRowBuilder()
     const eventOptions = options?.[event.id]
     let eventQty = (event.qty == 1 ? event.type : `${event.qty} ${event.type}s`)
@@ -755,8 +755,14 @@ exports.eventSelector = function ({ event, options } = {}) {
     const rawMax = !event.qty ? 1 : (event.max || Math.min(25, optionCount))
     const maxValues = Math.max(1, rawMax)
     const minValues = Math.min(maxValues, event.optional ? 0 : (event.qty ?? 1))
+    // Append the row index as a trailing segment so the custom_id stays unique even if two
+    // active events share an id (rare same-millisecond collision in the API's id generator).
+    // event.id never contains an underscore, so play.js still reads it as args[2]; the index
+    // is a no-op disambiguator that nothing parses. Without it, a duplicate custom_id makes
+    // Discord reject the entire message (COMPONENT_CUSTOM_ID_DUPLICATED) and the view fails to render.
+    const idSuffix = index === undefined ? '' : `_${index}`
     const event_selector = new StringSelectMenuBuilder()
-        .setCustomId(`tourney_play_submitEvent_${event.id}`)
+        .setCustomId(`tourney_play_submitEvent_${event.id}${idSuffix}`)
         .setPlaceholder(placeholder)
         .setMinValues(minValues)
         .setMaxValues(maxValues)
@@ -866,8 +872,8 @@ exports.preRaceView = function ({ match, summary, options, activeEventCost, lead
     }
 
     //one action row per active event
-    events.forEach(event => {
-        container.addActionRowComponents(exports.eventSelector({ event, options }))
+    events.forEach((event, index) => {
+        container.addActionRowComponents(exports.eventSelector({ event, options, index }))
     })
 
     //force points balance, sits next to the submit-cost so the player can weigh the spend
