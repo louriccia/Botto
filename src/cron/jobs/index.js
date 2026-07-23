@@ -10,3 +10,4 @@ require('./liveMatchSetup');
 require('./streamNotification');
 require('./closeMatchBets');
 require('./liveMatchRoleCleanup');
+require('./stockTick');

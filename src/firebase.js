@@ -52,6 +52,7 @@ let db = {
         scheduled: null,
         live: null
     },
+    stock: null,
     user: null
 }
 
@@ -153,6 +154,10 @@ fetchData(database.ref('challenge/drops'), function (data) {
 
 fetchData(database.ref('challenge/trivia'), function (data) {
     db.ch.trivia = data;
+});
+
+fetchData(database.ref('stock'), function (data) {
+    db.stock = data;
 });
 
 module.exports = {
