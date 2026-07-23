@@ -20,7 +20,7 @@ const { manageTruguts } = require('./challenge/functions.js');
 const {
     marketEmbed, marketComponents, stockDetailEmbed, detailComponents,
     portfolioEmbed, portfolioComponents, confirmEmbed, confirmComponents, resultEmbed,
-    priceChart, getCompany, getPortfolio, balanceOf, tg, config, DEFAULT_RANGE,
+    priceChart, getCompany, getPortfolio, balanceOf, isWhale, quoteTrade, tg, DEFAULT_RANGE,
 } = require('./stock/functions.js');
 
 function errorEmbed(title, desc) {
@@ -138,29 +138,22 @@ module.exports = {
             if (!Number.isFinite(shares) || shares <= 0) {
                 return interaction.reply({ embeds: [errorEmbed('Invalid amount', 'Enter a positive whole number of shares.')], ephemeral: true });
             }
-            const price = Number(company.price);
-            const gross = Math.round(price * shares);
-            const fee = Math.round(price * shares * config.brokerFee);
+            const quote = quoteTrade({ db, user_profile, kind, price: Number(company.price), shares });
             const balance = balanceOf(user_profile);
+            const whale = isWhale(db, user_profile);
 
             if (kind === 'buy') {
-                const total = gross + fee;
-                if (balance < total) {
-                    return interaction.reply({ embeds: [errorEmbed('Not enough truguts', `You need ${tg(total)} but only have ${tg(balance)}.`)], ephemeral: true });
+                if (balance < quote.total) {
+                    return interaction.reply({ embeds: [errorEmbed('Not enough truguts', `You need ${tg(quote.total)} but only have ${tg(balance)}.`)], ephemeral: true });
                 }
-                return interaction.reply({
-                    embeds: [confirmEmbed({ kind, symbol, name: company.name, shares, price, gross, fee, total, balance })],
-                    components: confirmComponents({ kind, symbol, shares }),
-                    ephemeral: true,
-                });
+            } else {
+                const owned = Number(getPortfolio(user_profile)[symbol]?.shares) || 0;
+                if (owned < shares) {
+                    return interaction.reply({ embeds: [errorEmbed('Not enough shares', `You only own ${number_with_commas(owned)} ${symbol}.`)], ephemeral: true });
+                }
             }
-            const owned = Number(getPortfolio(user_profile)[symbol]?.shares) || 0;
-            if (owned < shares) {
-                return interaction.reply({ embeds: [errorEmbed('Not enough shares', `You only own ${number_with_commas(owned)} ${symbol}.`)], ephemeral: true });
-            }
-            const total = gross - fee;
             return interaction.reply({
-                embeds: [confirmEmbed({ kind, symbol, name: company.name, shares, price, gross, fee, total, balance })],
+                embeds: [confirmEmbed({ kind, symbol, name: company.name, shares, quote, balance, whale })],
                 components: confirmComponents({ kind, symbol, shares }),
                 ephemeral: true,
             });
@@ -174,29 +167,29 @@ module.exports = {
                 return interaction.update({ embeds: [errorEmbed('Order failed', 'This order is no longer valid.')], components: [] });
             }
             const price = Number(company.price);
-            const gross = Math.round(price * shares);
-            const fee = Math.round(price * shares * config.brokerFee);
+            // Re-quote at execution time — price, market hours, and whale status
+            // may all have moved since the confirmation was shown.
+            const quote = quoteTrade({ db, user_profile, kind, price, shares });
 
             if (kind === 'buy') {
-                const total = gross + fee;
-                if (balanceOf(user_profile) < total) {
-                    return interaction.update({ embeds: [errorEmbed('Not enough truguts', `The price moved — you need ${tg(total)} but have ${tg(balanceOf(user_profile))}.`)], components: [] });
+                if (balanceOf(user_profile) < quote.total) {
+                    return interaction.update({ embeds: [errorEmbed('Not enough truguts', `The price moved — you need ${tg(quote.total)} but have ${tg(balanceOf(user_profile))}.`)], components: [] });
                 }
                 manageTruguts({
-                    user_profile, profile_ref, transaction: 'w', amount: total,
-                    purchase: { date: Date.now(), purchased_item: 'stock_buy', symbol, shares, price, fee, cost: total },
+                    user_profile, profile_ref, transaction: 'w', amount: quote.total,
+                    purchase: { date: Date.now(), purchased_item: 'stock_buy', symbol, shares, price, fillPrice: quote.fillPrice, fee: quote.fee, cost: quote.total },
                 });
                 const holding = getPortfolio(user_profile)[symbol] || { shares: 0, averageCost: 0 };
                 const prevShares = Number(holding.shares) || 0;
                 const newShares = prevShares + shares;
-                let newAvg = ((Number(holding.averageCost) || 0) * prevShares + total) / newShares;
+                let newAvg = ((Number(holding.averageCost) || 0) * prevShares + quote.total) / newShares;
                 newAvg = Number.isFinite(newAvg) ? Math.round(newAvg * 100) / 100 : price;
                 user_profile.portfolio = user_profile.portfolio || {};
                 user_profile.portfolio[symbol] = { shares: newShares, averageCost: newAvg };
                 profile_ref.child('portfolio').child(symbol).set({ shares: newShares, averageCost: newAvg });
-                addVolume(symbol, 'buy', gross);
-                database.ref('stock/transactions').push({ user_key, discordId: member_id, symbol, action: 'buy', shares, price, gross, fee, total, date: Date.now() });
-                return interaction.update({ embeds: [resultEmbed({ kind, symbol, shares, price, total })], components: [] });
+                addVolume(symbol, 'buy', quote.gross);
+                database.ref('stock/transactions').push({ user_key, discordId: member_id, symbol, action: 'buy', shares, price, fillPrice: quote.fillPrice, gross: quote.base, fee: quote.fee, total: quote.total, date: Date.now() });
+                return interaction.update({ embeds: [resultEmbed({ kind, symbol, shares, quote })], components: [] });
             }
 
             const holding = getPortfolio(user_profile)[symbol];
@@ -204,8 +197,7 @@ module.exports = {
             if (owned < shares) {
                 return interaction.update({ embeds: [errorEmbed('Not enough shares', `You only own ${number_with_commas(owned)} ${symbol}.`)], components: [] });
             }
-            const total = gross - fee;
-            manageTruguts({ user_profile, profile_ref, transaction: 'd', amount: total });
+            manageTruguts({ user_profile, profile_ref, transaction: 'd', amount: quote.total });
             const newShares = owned - shares;
             user_profile.portfolio = user_profile.portfolio || {};
             if (newShares <= 0) {
@@ -216,9 +208,9 @@ module.exports = {
                 user_profile.portfolio[symbol] = { shares: newShares, averageCost: avg };
                 profile_ref.child('portfolio').child(symbol).set({ shares: newShares, averageCost: avg });
             }
-            addVolume(symbol, 'sell', gross);
-            database.ref('stock/transactions').push({ user_key, discordId: member_id, symbol, action: 'sell', shares, price, gross, fee, total, date: Date.now() });
-            return interaction.update({ embeds: [resultEmbed({ kind, symbol, shares, price, total })], components: [] });
+            addVolume(symbol, 'sell', quote.gross);
+            database.ref('stock/transactions').push({ user_key, discordId: member_id, symbol, action: 'sell', shares, price, fillPrice: quote.fillPrice, gross: quote.base, fee: quote.fee, total: quote.total, date: Date.now() });
+            return interaction.update({ embeds: [resultEmbed({ kind, symbol, shares, quote })], components: [] });
         }
 
         // Accumulate live buy/sell pressure for the next price tick. Read-modify-

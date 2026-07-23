@@ -1,18 +1,23 @@
-// View builders, component builders, and the QuickChart price-graph generator
-// for the Wald Street Exchange stock market. Follows the codebase convention of
-// one bespoke EmbedBuilder per view (see challenge/functions.js menuEmbed etc.).
+// View builders, component builders, trade-quote math, and the QuickChart
+// price-graph generator for the Wald Street Exchange stock market. Follows the
+// codebase convention of one bespoke EmbedBuilder per view (see
+// challenge/functions.js menuEmbed etc.).
 
 const {
     EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle,
     StringSelectMenuBuilder, AttachmentBuilder
 } = require('discord.js');
+const moment = require('moment');
+require('moment-timezone');
 const { number_with_commas } = require('../../generic.js');
 const { trugut_color } = require('../../colors.js');
 const { COMPANIES } = require('../../data/stock/companies.js');
-const { config, TREND_LABEL, RANGE_POINTS, DEFAULT_RANGE } = require('../../data/stock/config.js');
+const { config, TREND_LABEL, RANGE_POINTS, DEFAULT_RANGE, isMarketOpen } = require('../../data/stock/config.js');
 
 const UP = "#57F287";
 const DOWN = "#ED4245";
+
+const easternTime = () => moment().tz('America/New_York');
 
 // Isolated axios instance — the shared `axios` default is globally mutated
 // elsewhere (lookup.js sets baseURL/headers), so never reuse it for QuickChart.
@@ -22,12 +27,12 @@ const chartAxios = require('axios').create();
 
 const money = v => number_with_commas(Number(v || 0).toFixed(2));
 const tg = v => number_with_commas(Math.round(Number(v) || 0));
+const pctText = v => `${v > 0 ? "+" : ""}${(Number(v) * 100).toFixed(2)}%`;
 
 function changeParts(lastChange) {
     const c = Number(lastChange) || 0;
     const arrow = c > 0 ? "▲" : c < 0 ? "▼" : "–";
-    const sign = c > 0 ? "+" : "";
-    return { arrow, text: `${arrow} ${sign}${(c * 100).toFixed(2)}%`, up: c > 0, down: c < 0 };
+    return { arrow, text: `${arrow} ${pctText(c)}`, up: c > 0, down: c < 0 };
 }
 
 // Buy/sell pressure label (ported from prototype sentiment()).
@@ -54,7 +59,7 @@ function getCompanies(db) {
         // Preserve the canonical COMPANIES order.
         return COMPANIES.map(c => stored[c.symbol] || { ...c, lastChange: 0, history: [] });
     }
-    return COMPANIES.map(c => ({ ...c, boostTicks: 0, exposed: false, buyVolume: 0, sellVolume: 0, lastChange: 0, history: [] }));
+    return COMPANIES.map(c => ({ ...c, anchor: c.price, histHigh: c.price, histLow: c.price, boostTicks: 0, exposed: false, newsToday: false, buyVolume: 0, sellVolume: 0, lastChange: 0, history: [] }));
 }
 
 function getCompany(db, symbol) {
@@ -62,9 +67,8 @@ function getCompany(db, symbol) {
     return getCompanies(db).find(c => c.symbol === String(symbol).toUpperCase()) || null;
 }
 
-function getPortfolio(user_profile) {
-    return (user_profile && user_profile.portfolio) || {};
-}
+const getMeta = db => (db?.stock?.meta) || {};
+const getPortfolio = user_profile => (user_profile && user_profile.portfolio) || {};
 
 function holdingsValue(db, user_profile) {
     const portfolio = getPortfolio(user_profile);
@@ -78,29 +82,81 @@ function holdingsValue(db, user_profile) {
 const balanceOf = user_profile =>
     (Number(user_profile?.truguts_earned) || 0) - (Number(user_profile?.truguts_spent) || 0);
 
+const netWorth = (db, user_profile) => balanceOf(user_profile) + holdingsValue(db, user_profile);
+const isWhale = (db, user_profile) => netWorth(db, user_profile) >= config.whaleThreshold;
+
+// ---- trade quote math ---------------------------------------------------
+
+// Live market status, driven by the real Eastern-time clock (weekday 6am–5pm).
+function marketStatus() {
+    const open = isMarketOpen(easternTime());
+    return {
+        open,
+        baseFee: open ? config.brokerFeeOpen : config.brokerFeeClosed,
+        sentimentImpact: open ? config.sentimentImpactOpen : config.sentimentImpactClosed,
+    };
+}
+
+// Whales pay a multiple of the base broker fee. The base still switches on
+// market hours, so a whale keeps feeling the open-vs-closed effect too.
+function brokerRate(db, user_profile) {
+    return marketStatus().baseFee * (isWhale(db, user_profile) ? config.whaleFeeMultiplier : 1);
+}
+
+// Order-size slippage: a large order walks the book, so the average fill price
+// moves against you. Cost grows ~linearly with the impact fraction; small orders
+// are barely affected. Returns the average-fill multiplier on the quoted price.
+function slippageMult(grossNotional, side) {
+    const impact = Math.min((Number(grossNotional) || 0) / config.slippageLiquidity, config.maxImpact);
+    const half = impact / 2;
+    return side === 'buy' ? 1 + half : Math.max(0.1, 1 - half);
+}
+
+// Full cost/proceeds breakdown for a `shares`-sized order at the current price.
+// Truguts are whole, so base/fee/total are rounded; fillPrice stays at 2dp for
+// display. Callers (confirm + execute) must both go through this so the numbers
+// they show and charge match.
+function quoteTrade({ db, user_profile, kind, price, shares }) {
+    const p = Number(price) || 0;
+    const gross = p * shares;
+    const slip = slippageMult(gross, kind);
+    const fillPrice = p * slip;
+    const base = Math.round(fillPrice * shares);
+    const rate = brokerRate(db, user_profile);
+    const fee = Math.round(fillPrice * shares * rate);
+    const total = kind === 'buy' ? base + fee : base - fee;
+    return { gross, slip, fillPrice, base, rate, fee, total };
+}
+
 // ---- embeds -------------------------------------------------------------
 
 function marketEmbed({ db, user_profile } = {}) {
     const companies = getCompanies(db);
+    const meta = getMeta(db);
+    const status = marketStatus();
+
     const header = "SYM    PRICE        CHANGE";
     const rows = companies.map(c => {
         const { text } = changeParts(c.lastChange);
-        return `${c.symbol.padEnd(6)}${money(c.price).padStart(9)}   ${text}`;
+        const fire = Number(c.boostTicks) > 0 ? " 🔥" : "";
+        return `${c.symbol.padEnd(6)}${money(c.price).padStart(9)}   ${text}${fire}`;
     });
     let desc = "```\n" + header + "\n" + rows.join("\n") + "\n```";
 
-    const exposed = companies.find(c => c.exposed);
-    if (exposed) desc += `\n📰 **Today's exposure:** ${exposed.name} (${exposed.symbol})`;
+    desc += `\n🕒 **Market:** ${status.open ? "🟢 OPEN" : "🔴 CLOSED"} — broker fee ${(brokerRate(db, user_profile) * 100).toFixed(1)}%`;
+    if (meta.todayAppearance) desc += `\n🏁 **Featured pod:** ${meta.todayAppearance}`;
+    if (meta.todayNews) desc += `\n📰 ${meta.todayNews}`;
 
     const balance = balanceOf(user_profile);
     const holdings = holdingsValue(db, user_profile);
-    desc += `\n\n💰 **Truguts:** ${tg(balance)} 📦 **Holdings:** ${tg(holdings)} 📊 **Net worth:** ${tg(balance + holdings)}`;
+    const whaleTag = isWhale(db, user_profile) ? " 🐋" : "";
+    desc += `\n\n💰 **Truguts:** ${tg(balance)} 📦 **Holdings:** ${tg(holdings)} 📊 **Net worth:** ${tg(balance + holdings)}${whaleTag}`;
 
     return new EmbedBuilder()
         .setTitle("📈 Wald Street Exchange")
         .setDescription(desc)
         .setColor(trugut_color)
-        .setFooter({ text: "Pick a company below for details • prices tick 3×/day (9a/1p/5p ET)" });
+        .setFooter({ text: "Pick a company below • ticks 4×/day (12a/6a/12p/6p ET) • 🔥 volatility boosted" });
 }
 
 function stockDetailEmbed({ db, user_profile, symbol } = {}) {
@@ -112,9 +168,13 @@ function stockDetailEmbed({ db, user_profile, symbol } = {}) {
     const owned = Number(pos?.shares) || 0;
 
     let desc =
-        `**Price:** ${money(c.price)} ${text}\n` +
-        `**Trend:** ${TREND_LABEL[c.trend] || c.trend} **Sentiment:** ${sentiment(c)}`;
-    if (c.exposed) desc += `\n📰 *Exposed today — volatility boosted.*`;
+        `**Price:** ${money(c.price)} ${text}\n` +
+        `**Range:** ${money(c.histLow)} – ${money(c.histHigh)}\n` +
+        `**Trend:** ${TREND_LABEL[c.trend] || c.trend} **Sentiment:** ${sentiment(c)}`;
+    const tags = [];
+    if (Number(c.boostTicks) > 0 || c.exposed) tags.push("🔥 *Featured today — volatility boosted.*");
+    if (c.newsToday) tags.push("📰 *Moved by today's news.*");
+    if (tags.length) desc += `\n${tags.join("\n")}`;
 
     const embed = new EmbedBuilder()
         .setTitle(`${c.symbol} — ${c.name}`)
@@ -174,40 +234,47 @@ function portfolioEmbed({ db, user_profile } = {}) {
 
     const totalPl = totalValue - totalCost;
     const plSign = totalPl >= 0 ? "+" : "-";
+    const whaleTag = isWhale(db, user_profile) ? " 🐋" : "";
     embed.setDescription(
         "```\n" + header + "\n" + rows.join("\n") + "\n```" +
-        `\n💰 **Truguts:** ${tg(balance)} 📦 **Holdings:** ${tg(totalValue)}` +
-        `\n📊 **Net worth:** ${tg(balance + totalValue)} 📈 **Total P/L:** ${plSign}${money(Math.abs(totalPl))}`
+        `\n💰 **Truguts:** ${tg(balance)} 📦 **Holdings:** ${tg(totalValue)}` +
+        `\n📊 **Net worth:** ${tg(balance + totalValue)}${whaleTag} 📈 **Total P/L:** ${plSign}${money(Math.abs(totalPl))}`
     );
     return embed;
 }
 
 // Confirmation shown (ephemerally) after the buy/sell modal, before the trade
-// goes through — surfaces the brokerage fee.
-function confirmEmbed({ kind, symbol, name, shares, price, gross, fee, total, balance } = {}) {
+// goes through — surfaces slippage, the market-hours broker fee, and any whale rake.
+function confirmEmbed({ kind, symbol, name, shares, quote, balance, whale } = {}) {
     const buying = kind === "buy";
+    const status = marketStatus();
+    const slipPct = ((quote.slip - 1) * 100);
+    const slipLine = Math.abs(slipPct) >= 0.05
+        ? `\n**Fill price:** ${money(quote.fillPrice)} each (slippage ${slipPct > 0 ? "+" : ""}${slipPct.toFixed(1)}%)`
+        : "";
     return new EmbedBuilder()
         .setTitle(`${buying ? "🛒 Confirm Buy" : "💵 Confirm Sell"} — ${symbol}`)
         .setColor(trugut_color)
         .setDescription(
             `${name}\n\n` +
             `**Shares:** ${number_with_commas(shares)}\n` +
-            `**Price:** ${money(price)} each\n` +
-            `**${buying ? "Cost" : "Gross"}:** ${tg(gross)}\n` +
-            `**Brokerage fee (${(config.brokerFee * 100).toFixed(1)}%):** ${buying ? "+" : "-"}${tg(fee)}\n` +
-            `**${buying ? "Total to pay" : "You receive"}:** ${tg(total)}\n\n` +
+            `**Quoted price:** ${money(quote.fillPrice ? quote.gross / shares : 0)} each` +
+            slipLine + `\n` +
+            `**${buying ? "Cost" : "Gross"}:** ${tg(quote.base)}\n` +
+            `**Broker fee (${(quote.rate * 100).toFixed(1)}%${whale ? " 🐋" : ""}, market ${status.open ? "open" : "closed"}):** ${buying ? "+" : "-"}${tg(quote.fee)}\n` +
+            `**${buying ? "Total to pay" : "You receive"}:** ${tg(quote.total)}\n\n` +
             `Your truguts: ${tg(balance)}`
         );
 }
 
-function resultEmbed({ kind, symbol, shares, price, total } = {}) {
+function resultEmbed({ kind, symbol, shares, quote } = {}) {
     const buying = kind === "buy";
     return new EmbedBuilder()
         .setTitle(buying ? "✅ Purchase complete" : "✅ Sale complete")
         .setColor(UP)
         .setDescription(
-            `${buying ? "Bought" : "Sold"} **${number_with_commas(shares)}** ${symbol} @ ${money(price)}.\n` +
-            `${buying ? "Paid" : "Received"} **${tg(total)}** truguts.`
+            `${buying ? "Bought" : "Sold"} **${number_with_commas(shares)}** ${symbol} @ ${money(quote.fillPrice)}.\n` +
+            `${buying ? "Paid" : "Received"} **${tg(quote.total)}** truguts (fee ${tg(quote.fee)}).`
         );
 }
 
@@ -337,7 +404,9 @@ module.exports = {
     // formatting
     money, tg, changeParts, sentiment,
     // state
-    getCompanies, getCompany, getPortfolio, holdingsValue, balanceOf,
+    getCompanies, getCompany, getPortfolio, getMeta, holdingsValue, balanceOf, netWorth, isWhale,
+    // trade math
+    marketStatus, brokerRate, slippageMult, quoteTrade,
     // embeds
     marketEmbed, stockDetailEmbed, portfolioEmbed, confirmEmbed, resultEmbed,
     // components
