@@ -52,7 +52,10 @@ let db = {
         scheduled: null,
         live: null
     },
-    stock: null,
+    stock: {
+        companies: null,
+        meta: null
+    },
     user: null
 }
 
@@ -156,8 +159,14 @@ fetchData(database.ref('challenge/trivia'), function (data) {
     db.ch.trivia = data;
 });
 
-fetchData(database.ref('stock'), function (data) {
-    db.stock = data;
+// Listened to separately (like challenge/*) so the append-only, never-read
+// stock/transactions log isn't downloaded at boot and re-synced into memory
+// on every trade and market tick.
+fetchData(database.ref('stock/companies'), function (data) {
+    db.stock.companies = data;
+});
+fetchData(database.ref('stock/meta'), function (data) {
+    db.stock.meta = data;
 });
 
 module.exports = {

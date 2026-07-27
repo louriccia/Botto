@@ -2,7 +2,7 @@
 // Values ported from the stock_market.html prototype `config`.
 exports.config = {
     // Broker fee (a truguts sink) — the market swings between OPEN and CLOSED.
-    brokerFeeOpen: 0.02,                   // 2% while the market is open (weekday 6am–5pm ET)
+    brokerFeeOpen: 0.02,                   // 2% while the market is open (weekday 6am–6pm ET)
     brokerFeeClosed: 0.05,                 // 5% overnight and on weekends
     // How hard live buy/sell pressure pushes the price. Counts double while closed.
     sentimentImpactOpen: 1,
@@ -12,12 +12,19 @@ exports.config = {
     trendDriftChance: 0.075,               // chance a non-exposed company drifts a trend step at the daily open
     appearanceBoostTicks: 3,               // how many ticks the exposure boost lasts (6am/12pm/6pm)
     minPrice: 1,                           // price floor
-    pressureReference: 6000,               // volume needed for max player pressure
+    // Net truguts notional (buys minus sells, in one tick) needed to max out the
+    // +/- playerPressureCap swing. Deliberately set to slippageLiquidity: an order
+    // big enough to peg the pressure is also an order that pays ~50% slippage, so
+    // moving the board takes real capital. Kept high on purpose — at a low value a
+    // single player pegs the cap for pocket change and compounds a stock upward
+    // ~19%/day while keeping the shares, which is a money printer. This is the main
+    // balance dial: lower it to make the market twitchier, raise it to calm it down.
+    pressureReference: 10000000,
     // Pull toward each stock's anchor (log space) so prices can't compound to infinity.
     // A stock settles around anchor * e^(trend/meanReversionStrength).
     meanReversionStrength: 0.0025,
     // --- anti-whale friction (a wealth-scaled rake, tuned to keep trading playable) ---
-    slippageLiquidity: 1000000,            // book depth in truguts; a single order's impact = notional / this
+    slippageLiquidity: 10000000,           // book depth in truguts; a single order's impact = notional / this
     maxImpact: 4,                          // cap on one order's impact (avg buy fill up to +200%)
     whaleThreshold: 100000000,             // net worth at/above which you count as a "whale"
     whaleFeeMultiplier: 2                   // whales pay this multiple of the base open/closed broker fee
@@ -28,7 +35,7 @@ exports.config = {
 //   6am   that maker's volatility spikes; market opens
 //   12pm  a news headline drops
 //   6pm   the news moves the affected stock's trend; market closes
-// The market trades 6am–5pm on weekdays only (see isMarketOpen).
+// The market trades 6am–6pm on weekdays only (see isMarketOpen).
 exports.TICKS = [
     { hour: 0, label: "12am", open: false, role: "daily" },
     { hour: 6, label: "6am", open: true, role: "tick" },
@@ -51,9 +58,9 @@ exports.TREND_LABEL = {
 }
 
 // Real-calendar market hours. Both take a moment (already in the target tz).
-// Weekdays are Mon–Fri; the market floor/close is 6am–5pm.
+// Weekdays are Mon–Fri; the market floor/close is 6am–6pm.
 exports.isWeekday = (m) => m.isoWeekday() <= 5
-exports.isMarketOpen = (m) => exports.isWeekday(m) && m.hour() >= 6 && m.hour() < 17
+exports.isMarketOpen = (m) => exports.isWeekday(m) && m.hour() >= 6 && m.hour() < 18
 
 // Max price points kept per company (~30 trading days at 4 ticks/day).
 exports.HISTORY_CAP = 120
