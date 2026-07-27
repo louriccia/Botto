@@ -198,6 +198,8 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
 
     //award sponsor cuts
     let earning_update = current_challenge.sponsor_earnings ?? {}
+    //player sponsorship disabled - no payouts to player sponsors
+    /*
     if (user_profile.sponsors) {
         //player sponsors
         Object.values(user_profile.sponsors).forEach(async sponsor => {
@@ -212,6 +214,7 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
             earning_update[id] += sponsor_earnings
         })
     }
+    */
     if (current_challenge.sponsors) {
         //challenge sponsors
         Object.keys(current_challenge.sponsors).forEach(async sponsor_id => {

@@ -7,6 +7,12 @@ const { number_with_commas } = require('../../generic.js');
 
 exports.reroll = async function ({ interaction, current_challenge, current_challenge_ref, user_profile, member_id, profile_ref, database, db, botto_name, member_avatar, user_key } = {}) {
 
+    //the Random Challenge of the Day reroll has its own escalating-cost flow
+    if (current_challenge?.type == 'cotd') {
+        const { rerolldaily } = require('./shop/rerolldaily.js')
+        return rerolldaily({ interaction, current_challenge, db, database, botto_name, user_profile, profile_ref })
+    }
+
     const userref = database.ref("users")
 
     //expired challenge

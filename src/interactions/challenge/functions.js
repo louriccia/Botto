@@ -183,7 +183,7 @@ exports.initializeChallenge = function ({ user_profile, member_id, type, name, a
         no_upgrades: (type == 'cotm' ? 15 : type == 'cotd' ? 15 : type == 'multiplayer' ? 0 : type == 'private' ? user_profile.settings.no_upgrades : settings_default.no_upgrades) / 100,
         non_3_lap: (type == 'cotm' ? 20 : type == 'cotd' ? 20 : type == 'multiplayer' ? 0 : type == 'private' ? user_profile.settings.non_3_lap : settings_default.non_3_lap) / 100,
         mirrored: (type == 'cotm' ? 20 : type == 'cotd' ? 20 : type == 'multiplayer' ? 0 : type == 'private' ? user_profile.settings.mirror_mode : settings_default.mirror_mode) / 100,
-        backwards: (type == 'cotm' ? 0 : type == 'cotd' ? 15 : type == 'multiplayer' ? 0 : type == 'private' ? user_profile.settings.backwards : settings_default.backwards) / 100,
+        backwards: (type == 'cotm' ? 0 : type == 'cotd' ? 0 : type == 'multiplayer' ? 0 : type == 'private' ? user_profile.settings.backwards : settings_default.backwards) / 100,
     }
 
     let skips = tracks[random_track].skips ? Math.random() < odds.skips : false
@@ -1118,7 +1118,7 @@ exports.updateChallenge = async function ({ client, db, user_profile, current_ch
     let data = {
         content: current_challenge.rerolled ? '' : flavor_text,
         embeds: [cembed],
-        components: current_challenge.rerolled ? [] : [exports.challengeComponents(current_challenge, user_profile)],
+        components: current_challenge.rerolled ? [] : [exports.challengeComponents(current_challenge, user_profile, db)],
         withResponse: true
     }
     return data
@@ -1131,6 +1131,17 @@ exports.rerollReceipt = function (current_challenge, user_profile) {
         receipt: free ? 'FREE REROLLS FOR LIFE' : reroll_cost == 'discount' ? "-📀" + number_with_commas(truguts.reroll_discount) + " (discounted)" : (reroll_cost == 'free' ? "(no charge for record holders)" : "-📀" + number_with_commas(truguts.reroll)),
         cost: free ? 0 : reroll_cost == 'discount' ? truguts.reroll_discount : (reroll_cost == 'free' ? 0 : truguts.reroll)
     }
+}
+
+// Cost to reroll the Random Challenge of the Day. Starts at 📀1,000,000 and
+// doubles with each reroll performed on the same day (resets each new daily).
+exports.dailyRerollCost = function (db) {
+    const base = 1000000
+    const today = exports.easternTime().dayOfYear()
+    const rerollsToday = Object.values(db.ch.challenges).filter(c =>
+        c.type == 'cotd' && c.rerolled && c.day == today && c.created > Date.now() - 1000 * 60 * 60 * 24
+    ).length
+    return base * Math.pow(2, rerollsToday)
 }
 
 exports.checkActive = function (db, member, current_challenge) {
@@ -1297,7 +1308,7 @@ exports.progressionReward = function ({ racer, level }) {
     return reward
 }
 
-exports.challengeComponents = function (current_challenge, user_profile) {
+exports.challengeComponents = function (current_challenge, user_profile, db) {
     //components
     const row = new ActionRowBuilder()
     let reroll = exports.rerollReceipt(current_challenge, user_profile)
@@ -1309,6 +1320,15 @@ exports.challengeComponents = function (current_challenge, user_profile) {
                 .setLabel("Submit")
                 .setStyle(ButtonStyle.Primary)
                 .setEmoji("⏱️")
+        )
+    }
+    if (db && current_challenge.type == 'cotd' && !current_challenge.rerolled && !current_challenge.completed && current_challenge.created > Date.now() - 1000 * 60 * 60 * 2) {
+        row.addComponents(
+            new ButtonBuilder()
+                .setCustomId("challenge_random_reroll")
+                .setLabel("📀" + number_with_commas(exports.dailyRerollCost(db)))
+                .setStyle(ButtonStyle.Secondary)
+                .setEmoji("854097998357987418")
         )
     }
     if (current_challenge.type == "private" && !current_challenge.completed) {
@@ -1657,6 +1677,7 @@ exports.shopOptions = function ({ user_profile, player, db, selection } = {}) {
             },
             options: exports.clueComponents({ selection })
         },
+        /* player sponsorship disabled
         {
             label: `Sponsor Player`,
             value: 'sponsorplayer',
@@ -1670,16 +1691,7 @@ exports.shopOptions = function ({ user_profile, player, db, selection } = {}) {
             },
             options: exports.sponsorPlayerComponents({ selection, db })
         },
-        {
-            label: `Daily Challenge Reroll`,
-            value: 'rerolldaily',
-            price: 80000,
-            description: 'Reroll the Random Challenge of the Day',
-            info: "Sometimes the Random Challenge of the Day is so bad or so impossible it warants a reroll. This can only be done once within one hour of the daily being posted.",
-            emoji: {
-                name: "🔄"
-            }
-        },
+        */
         {
             label: `Life Debt`,
             value: 'debt',
