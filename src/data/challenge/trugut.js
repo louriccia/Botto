@@ -36,5 +36,6 @@ exports.truguts = {
     shuffle: 1200,
     lotto: 200,
     sabotage: 15000,
-    rival: 500
+    rival: 500,
+    bet_house_fee: 0.05
 }
