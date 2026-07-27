@@ -23,6 +23,17 @@ exports.shop = async function ({ interaction, args, db, database, member_id, mem
         return
     }
 
+    //stale message guard: the selected item may have been removed from the shop
+    //(e.g. 'rerolldaily'/'sponsorplayer' on messages posted before those options
+    //were retired) — without this, shoption is undefined and the purchase throws.
+    if (!shoption) {
+        const notAvailable = new EmbedBuilder()
+            .setTitle("<:WhyNobodyBuy:589481340957753363> Out of stock")
+            .setDescription("That item is no longer sold here. Reopen the shop to browse the current stock.")
+        interaction.reply({ embeds: [notAvailable], ephemeral: true })
+        return
+    }
+
     //check if nitro booster
     let afterblasterperk = playerdata.discord?.roles &&
         Object.values(playerdata.discord.roles).includes("586060902453739530") &&

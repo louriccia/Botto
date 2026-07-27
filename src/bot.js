@@ -224,7 +224,13 @@ client.once(Events.ClientReady, async () => {
         }
     }
 
-    await loadStaticData();
+    // Non-fatal: if botto-api is unreachable at boot, log and continue so the
+    // rest of startup (cron, stream scanning, match hydration) still runs.
+    try {
+        await loadStaticData();
+    } catch (err) {
+        console.error('[startup] loadStaticData failed, continuing:', err?.message ?? err);
+    }
     setInterval(minuteUpdater, 1000 * 60)
 
     // hydrate match cache so post-restart button presses don't fall back to the selector.

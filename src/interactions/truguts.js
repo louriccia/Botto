@@ -3,6 +3,7 @@ const { number_with_commas, big_number, truncateString } = require('../generic.j
 const { manageTruguts } = require('../interactions/challenge/functions');
 const { betEmbed, betComponents } = require('./trugut_functions.js');
 const { postMessage } = require('../discord.js');
+const { truguts } = require('../data/challenge/trugut.js');
 
 
 
@@ -78,6 +79,16 @@ module.exports = {
                 betref.child(interaction.message.id).update(bet)
                 interaction.update({ embeds: [betEmbed(bet)], components: betComponents(bet) })
             } else if (args[1] == 'delete') {
+                //refund any held wagers for outcomes that haven't paid out yet
+                bet.outcomes.forEach(o => {
+                    if (!o.paid && o.bets) {
+                        o.bets.forEach(b => {
+                            if (b.escrowed && db.user[b.id]?.random) {
+                                manageTruguts({ user_profile: db.user[b.id].random, profile_ref: userref.child(b.id).child('random'), transaction: 'r', amount: b.amount })
+                            }
+                        })
+                    }
+                })
                 betref.child(interaction.message.id).remove()
                 interaction.update({ content: 'Bet was canceled by author.', embeds: [], components: [] })
             } else if (!isNaN(Number(args[1]))) {
@@ -120,10 +131,15 @@ module.exports = {
                             console.log(total_wrong, total_right)
                             outcome_bets.forEach(b => {
                                 if (b.guess == result) {
-                                    let take = total_right > 0 ? Math.round(((Number(b.amount) || 0) / total_right) * total_wrong) : 0
+                                    let take = total_right > 0 ? Math.round(((Number(b.amount) || 0) / total_right) * total_wrong * (1 - truguts.bet_house_fee)) : 0
                                     manageTruguts({ user_profile: db.user[b.id].random, profile_ref: userref.child(b.id).child('random'), transaction: 'd', amount: take })
+                                    if (b.escrowed) {
+                                        //return the wager that was held when the bet was placed
+                                        manageTruguts({ user_profile: db.user[b.id].random, profile_ref: userref.child(b.id).child('random'), transaction: 'r', amount: b.amount })
+                                    }
                                     b.take = take
-                                } else {
+                                } else if (!b.escrowed) {
+                                    //legacy bet whose wager was never held - charge it now
                                     manageTruguts({ user_profile: db.user[b.id].random, profile_ref: userref.child(b.id).child('random'), transaction: 'w', amount: b.amount })
                                 }
                             })
@@ -146,11 +162,16 @@ module.exports = {
                                     if (o.bets) {
                                         o.bets.forEach(b => {
                                             if (o.winner) {
-                                                let take = total_right > 0 ? Math.round(((Number(b.amount) || 0) / total_right) * total_wrong) : 0
+                                                let take = total_right > 0 ? Math.round(((Number(b.amount) || 0) / total_right) * total_wrong * (1 - truguts.bet_house_fee)) : 0
                                                 console.log(take)
                                                 manageTruguts({ user_profile: db.user[b.id].random, profile_ref: userref.child(b.id).child('random'), transaction: 'd', amount: take })
+                                                if (b.escrowed) {
+                                                    //return the wager that was held when the bet was placed
+                                                    manageTruguts({ user_profile: db.user[b.id].random, profile_ref: userref.child(b.id).child('random'), transaction: 'r', amount: b.amount })
+                                                }
                                                 b.take = take
-                                            } else {
+                                            } else if (!b.escrowed) {
+                                                //legacy bet whose wager was never held - charge it now
                                                 manageTruguts({ user_profile: db.user[b.id].random, profile_ref: userref.child(b.id).child('random'), transaction: 'w', amount: b.amount })
                                             }
                                         })
@@ -188,6 +209,21 @@ module.exports = {
 
 
                 if (interaction.isModalSubmit()) {
+                    //the modal can sit open while the author closes and settles the bet.
+                    //placing a wager now holds the truguts immediately, and a bet landing
+                    //on an already-paid outcome would never be settled OR refunded (the
+                    //delete path only refunds outcomes where !paid) - the stake would just
+                    //be destroyed. The branch that OPENS the modal checks this too; the
+                    //check has to be repeated here because state moves in between.
+                    if (['closed', 'complete'].includes(bet.status)) {
+                        interaction.reply({ content: "This bet has closed.", ephemeral: true })
+                        return
+                    }
+                    if (outcome?.paid) {
+                        interaction.reply({ content: "This outcome has already been settled.", ephemeral: true })
+                        return
+                    }
+
                     let amount = interaction.fields.getTextInputValue('amount').replaceAll(",", "")
                     let note = interaction.fields.getTextInputValue('note')
                     if (isNaN(Number(amount))) {
@@ -196,7 +232,12 @@ module.exports = {
                     }
 
                     amount = Math.round(amount)
-                    if (amount > user_profile.truguts_earned - user_profile.truguts_spent) {
+
+                    //stake already held on this outcome - bets can only be increased, so only the delta is charged
+                    const previous_bet = bet.outcomes[outcome_index]?.bets?.find(b => b.discordId == member_id)
+                    const already_escrowed = previous_bet?.escrowed ? Number(previous_bet.amount) || 0 : 0
+
+                    if (amount - already_escrowed > user_profile.truguts_earned - user_profile.truguts_spent) {
                         interaction.reply({ content: "You do not have enough truguts to make this bet. (Current Truguts: `📀" + big_number(user_profile.truguts_earned - user_profile.truguts_spent) + "`)", ephemeral: true })
                         return
                     }
@@ -237,7 +278,8 @@ module.exports = {
                         name: member_name,
                         id: user_key,
                         discordId: member_id,
-                        note
+                        note,
+                        escrowed: true
                     }
                     if (outcome.type == 'number') {
                         thisbet.guess = guess
@@ -252,9 +294,14 @@ module.exports = {
 
                     if (existing_bet_index >= 0) {
                         bet.outcomes[outcome_index].bets[existing_bet_index].amount = amount
+                        bet.outcomes[outcome_index].bets[existing_bet_index].escrowed = true
                     } else {
                         bet.outcomes[outcome_index].bets.push(thisbet)
                     }
+
+                    //hold the wager: deduct only the newly added amount from the bettor's balance
+                    manageTruguts({ user_profile, profile_ref: userref.child(user_key).child('random'), transaction: 'w', amount: amount - already_escrowed })
+
                     betref.child(interaction.message.id).update(bet)
                     interaction.update({ embeds: [betEmbed(bet)], components: betComponents(bet) })
                 } else {

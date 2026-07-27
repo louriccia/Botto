@@ -1,64 +1,131 @@
+// Register the bot's slash commands with Discord.
+//
+// The bot serves the SWE1R guild (and everywhere else it's installed) from the
+// GLOBAL command set. Guild-scoped registration exists only for the test guild,
+// where it propagates instantly instead of taking up to an hour.
+//
+// The target is always explicit -- running this with no arguments prints the
+// current state and does nothing. An earlier version defaulted to writing to the
+// test guild, which meant a "deploy" could look like it succeeded while leaving
+// the commands real users see completely untouched.
+//
+//   node deploy-commands.js --list                 show what's registered vs. what's here
+//   node deploy-commands.js --global               deploy globally (this is the real one)
+//   node deploy-commands.js --guild <id>           deploy to one guild, for testing
+//   node deploy-commands.js --clear-guild <id>     remove a guild's own registrations
+//
+// Requires clientId and token in .env. Safe to re-run: every mode is a PUT, which
+// replaces the whole command set rather than appending to it.
+
 require('dotenv').config({ path: __dirname + '/../../.env' })
 
 const { REST, Routes } = require('discord.js');
 const fs = require('node:fs');
+const path = require('node:path');
 
-//const {commands} = require('./command_register.js');
-// Grab all the command files from the commands directory you created earlier
-const commandFiles = fs.readdirSync('../commands/').filter(file => file.endsWith('.js'));
-let commands = []
-let other_commands = []
-// Grab the SlashCommandBuilder#toJSON() output of each command's data for deployment
-for (const file of commandFiles) {
-	const command = require(`../commands/${file}`);
-	if (command.data) {
-		if (!['scrape'].includes(command.data.name)) {
-			console.log(command.data)
-			commands.push(command.data.toJSON());
-		} else {
-			if (!['scrape'].includes(command.data.name)) {
-				other_commands.push(command.data.toJSON())
-			}
-		}
+// Commands that exist in the repo but are deliberately kept out of the global set.
+// Deploy these to the test guild with --guild if you need them.
+const EXCLUDE = [
+	'scrape',
+	'lookup',   // test-guild only; never been public. Drop from this list to release it.
+];
+
+// __dirname-relative: the old './../commands/' only resolved when you happened to
+// run this from src/scripts/, and silently found nothing otherwise.
+const COMMAND_DIR = path.join(__dirname, '../commands');
+
+function loadCommands() {
+	const commands = [];
+	const skipped = [];
+	for (const file of fs.readdirSync(COMMAND_DIR).filter(f => f.endsWith('.js'))) {
+		const command = require(path.join(COMMAND_DIR, file));
+		if (!command.data) continue;
+		if (EXCLUDE.includes(command.data.name)) { skipped.push(command.data.name); continue; }
+		commands.push(command.data.toJSON());
 	}
-
-
+	return { commands, skipped };
 }
 
-const clientID = process.env.clientId
-const SWE1R_Guild = process.env.guilldId
-const Botto_Guild = '1135800421290627112'
-const secret_guild = '1199872145354915920'
-const token = process.env.token
+const clientID = process.env.clientId;
+const token = process.env.token;
 
-// Construct and prepare an instance of the REST module
+if (!clientID || !token) {
+	console.error('Missing clientId or token in .env - nothing to do.');
+	process.exit(1);
+}
 
 const rest = new REST({ version: '10' }).setToken(token);
+const names = list => list.map(c => '/' + c.name).sort().join(' ') || '(none)';
 
-// deploy commands
-(async () => {
+async function show(label, route) {
 	try {
-		console.log(`Started refreshing ${commands.length} application (/) commands.`);
+		const current = await rest.get(route);
+		console.log(`  ${label}: ${current.length}\n    ${names(current)}`);
+		return current;
+	} catch (err) {
+		console.log(`  ${label}: unreadable (${err.status || ''} ${err.message})`);
+		return null;
+	}
+}
 
-		//application commands
-		// const data = await rest.put(
-		// 	Routes.applicationCommands('545798436105224203'),
-		// 	{ body: commands },
-		// );
+(async () => {
+	const [mode, arg] = process.argv.slice(2);
+	const { commands, skipped } = loadCommands();
 
-		// delete
-		await rest.put(Routes.applicationGuildCommands(clientID, Botto_Guild), { body: [] })
-			.then(() => console.log('Successfully deleted all guild commands.'))
-			.catch(console.error);
+	console.log(`Found ${commands.length} command(s) in ${COMMAND_DIR}`);
+	console.log(`  ${names(commands)}`);
+	if (skipped.length) console.log(`  excluded: ${skipped.join(' ')}`);
+	console.log('');
 
-		await rest.put(
-			Routes.applicationGuildCommands(clientID, Botto_Guild),
-			{ body: commands },
-		);
+	try {
+		if (mode === '--global') {
+			const before = await rest.get(Routes.applicationCommands(clientID));
+			const added = commands.filter(c => !before.some(b => b.name === c.name)).map(c => c.name);
+			const removed = before.filter(b => !commands.some(c => c.name === b.name)).map(b => b.name);
 
-		//console.log(`Successfully reloaded ${data.length} application (/) commands.`);
+			const data = await rest.put(Routes.applicationCommands(clientID), { body: commands });
+			console.log(`Deployed ${data.length} command(s) globally.`);
+			if (added.length) console.log(`  added:   ${added.map(n => '/' + n).join(' ')}`);
+			if (removed.length) console.log(`  removed: ${removed.map(n => '/' + n).join(' ')}`);
+			if (!added.length && !removed.length) console.log('  no change to the command list (definitions may still have updated)');
+			console.log('\nGlobal commands can take up to an hour to appear everywhere.');
+			return;
+		}
+
+		if (mode === '--guild') {
+			if (!arg) return console.error('--guild needs a guild id.');
+			const data = await rest.put(Routes.applicationGuildCommands(clientID, arg), { body: commands });
+			console.log(`Deployed ${data.length} command(s) to guild ${arg} (instant).`);
+			console.log('Note: a guild copy sits alongside the global set - expect duplicates for any shared name.');
+			return;
+		}
+
+		if (mode === '--clear-guild') {
+			if (!arg) return console.error('--clear-guild needs a guild id.');
+			await rest.put(Routes.applicationGuildCommands(clientID, arg), { body: [] });
+			console.log(`Cleared all guild-scoped commands for ${arg}. That guild now uses the global set.`);
+			return;
+		}
+
+		// --list, and the no-argument default.
+		console.log('Currently registered:');
+		await show('global', Routes.applicationCommands(clientID));
+		for (const [label, id] of [['test guild', '1135800421290627112'], ['secret guild', '1199872145354915920']]) {
+			await show(`${label} (${id})`, Routes.applicationGuildCommands(clientID, id));
+		}
+		if (mode !== '--list') {
+			console.log('\nNothing deployed. Pass --global to deploy for real, or --list to just look.');
+		}
 	} catch (error) {
-		// And of course, make sure you catch and log any errors!
-		console.error(error);
+		console.error('Deploy failed:', error.status || '', error.message);
+		process.exitCode = 1;
+	} finally {
+		// Loading the command modules pulls in firebase.js, whose realtime
+		// listeners hold the event loop open forever. Without this the script
+		// never returns to the shell -- and when its output is piped rather than
+		// on a terminal, node's buffered stdout never flushes, so it looks like
+		// the deploy produced nothing at all.
+		await new Promise(r => process.stdout.write('', r));
+		process.exit(process.exitCode || 0);
 	}
 })();

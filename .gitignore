@@ -6,3 +6,4 @@ package.json
 config.js
 log.txt
 monitor.js
+_bot*.log

@@ -1,6 +1,7 @@
 const { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle, ActionRow } = require('discord.js');
 const { number_with_commas, big_number, truncateString, capitalize } = require('../generic.js');
 const { blurple_color } = require('../colors.js');
+const { truguts } = require('../data/challenge/trugut.js');
 
 exports.betEmbed = function (bet) {
     const Embed = new EmbedBuilder()
@@ -31,6 +32,10 @@ exports.betEmbed = function (bet) {
                 inline: outcome.type == 'this_or_that'
             })
     })
+    //disclose the house fee once winnings have been paid out
+    if (truguts.bet_house_fee > 0 && bet.outcomes.some(o => o.paid)) {
+        Embed.setFooter({ text: `House fee: ${+(truguts.bet_house_fee * 100).toFixed(2)}% of winnings` })
+    }
     return Embed
 }
 
