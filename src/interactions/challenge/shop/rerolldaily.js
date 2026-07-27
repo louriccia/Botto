@@ -1,13 +1,15 @@
-const { updateChallenge, dailyChallenge, dailyRerollCost, manageTruguts } = require('../functions.js');
+const { updateChallenge, dailyChallenge, dailyRerollCost, dailyRerollOpen, manageTruguts } = require('../functions.js');
 const { editMessage } = require('../../../discord.js');
 const { number_with_commas } = require('../../../generic.js');
 
 const { EmbedBuilder } = require('discord.js');
 
 exports.rerolldaily = async function ({ interaction, current_challenge, db, database, botto_name, user_profile, profile_ref } = {}) {
-    //the daily can only be rerolled within two hours of being posted
+    //the daily can only be rerolled for two hours after the day's FIRST
+    //announcement - dailyRerollOpen anchors to that rather than to whichever
+    //replacement is currently up, so rerolling can't push the window forward
     let last = current_challenge ?? Object.values(db.ch.challenges).filter(c => c.type == 'cotd' && !c.rerolled).sort((a, b) => a.created - b.created).pop()
-    if (!last || last.type !== 'cotd' || last.rerolled || last.completed || last.created < Date.now() - 1000 * 60 * 60 * 2) {
+    if (!last || last.type !== 'cotd' || last.rerolled || last.completed || !dailyRerollOpen(db)) {
         const tooLate = new EmbedBuilder()
             .setTitle("<:WhyNobodyBuy:589481340957753363> It's too late...")
             .setDescription("You can only reroll the random challenge of the day within 2 hours of its announcement.")
