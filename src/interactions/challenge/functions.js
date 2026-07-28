@@ -2142,7 +2142,7 @@ exports.inventoryComponents = function ({ user_profile, selection, db, interacti
         let selected_item = selection[2]?.[0]
         scrappable_items = scrappable_items.map(item => {
             return ({
-                label: `${item.name} ${item.health ? `(${Math.round(item.health * 100 / 255)}%)` : ''}${collectible_items.map(c => c.key).includes(item.key) ? ' ♦' : ''}`,
+                label: `${item.name} ${typeof item.health == 'number' ? `(${Math.round(item.health * 100 / 255)}%)` : ''}${collectible_items.map(c => c.key).includes(item.key) ? ' ♦' : ''}`,
                 value: item.key,
                 description: (`📀${number_with_commas(exports.itemValue({ item }))} | ${item.description}`).slice(0, 100),
                 emoji: { name: raritysymbols[item.rarity] },
@@ -2160,7 +2160,7 @@ exports.inventoryComponents = function ({ user_profile, selection, db, interacti
 
         comp.push(new ActionRowBuilder().addComponents(dups))
         function getScrapValue(item) {
-            return Math.round(items.find(i => i.id == item?.id)?.value * (user_profile.effects?.efficient_scrapper ? 1 : 0.5) * (item?.health ? (item?.health / 255) : 1))
+            return Math.round(items.find(i => i.id == item?.id)?.value * (user_profile.effects?.efficient_scrapper ? 1 : 0.5) * (typeof item?.health == 'number' ? (item.health / 255) : 1))
         }
         let scrap_value = getScrapValue(user_profile.items[selected_item])
         const ScrapButton = new ButtonBuilder()
@@ -3668,8 +3668,9 @@ exports.collectionRewardEmbed = function ({ key, name, avatar }) {
 }
 
 exports.itemString = function ({ item, user_profile }) {
-    let dup = (user_profile?.items ? Object.values(user_profile.items).filter(i => i.id == item.id).length > 1 ? true : false : false) && !['collectible_coffer', 'trugut_boost', 'sabotage_kit'].includes(item.id)
-    return `${raritysymbols[item.rarity]} ${item.name}` + (item.health ? ` [${Math.round(item.health * 100 / 255)}%]` : '') + (dup ? " (duplicate)" : "")
+    //only live copies count as duplicates -- scrapped/fed/used items are gone
+    let dup = (user_profile?.items ? Object.values(user_profile.items).filter(i => i.id == item.id && exports.usableItem({ item: i })).length > 1 : false) && !['collectible_coffer', 'trugut_boost', 'sabotage_kit'].includes(item.id)
+    return `${raritysymbols[item.rarity]} ${item.name}` + (typeof item.health == 'number' ? ` [${Math.round(item.health * 100 / 255)}%]` : '') + (dup ? " (duplicate)" : "")
 }
 
 exports.collectionRewardUpdater = function ({ user_profile, client, interaction, profile_ref, name, avatar } = {}) {
@@ -3851,7 +3852,8 @@ exports.tradeComponents = function ({ trade, db, selection } = {}) {
 }
 
 exports.itemValue = function ({ item } = {}) {
-    return Math.round(item.value * (item.health ? (item.health / 255) : 1))
+    //typeof check: a part rolled at 0 health is worth 0, not full price
+    return Math.round(item.value * (typeof item.health == 'number' ? (item.health / 255) : 1))
 }
 
 exports.getProfileItems = function ({ user_profile } = {}) {

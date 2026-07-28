@@ -325,10 +325,11 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
             .setFooter({ text: `Truguts: 📀${currentTruguts(user_profile)}` })
             .addFields({ name: getRacerName(progress.racer), value: progress.summary, inline: true })
 
-        if (![undefined, ""].includes(current_challenge.earnings?.[member_id]?.item)) {
-            let item = items.find(i => i.id == current_challenge.earnings[member_id].item)
-            let dup = user_profile.items ? Object.values(user_profile.items).filter(i => i.id == item.id).length > 1 ? true : false : false
-            receiptEmbed.addFields({ name: `${raritysymbols[item.rarity]} ${item.name}` + (item.health ? `[${Math.round(item.health * 100 / 255)} %]` : '') + (dup ? " (duplicate)" : ""), value: `*${item.description}*`, inline: true })
+        if (![undefined, ""].includes(eitem?.id)) {
+            //merge the instance over the base definition so the receipt shows the rolled health, not the stock 100%
+            let item = { ...items.find(i => i.id == eitem.id), ...eitem }
+            let dup = user_profile.items ? Object.values(user_profile.items).filter(i => i.id == item.id && ![i.used, i.fed, i.scrapped].some(f => f)).length > 1 : false
+            receiptEmbed.addFields({ name: `${raritysymbols[item.rarity]} ${item.name}` + (typeof item.health == 'number' ? ` [${Math.round(item.health * 100 / 255)}%]` : '') + (dup ? " (duplicate)" : ""), value: `*${item.description}*`, inline: true })
         }
 
         interaction.editReply({ embeds: [receiptEmbed], ephemeral: true })
