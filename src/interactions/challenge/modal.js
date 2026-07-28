@@ -106,12 +106,18 @@ exports.modal = async function ({current_challenge, interaction, db, member_id, 
         .setRequired(false)
     if (current_challenge.submissions?.[member_id]) {
         const this_submission = db.ch.times[current_challenge.submissions[member_id].id]
-        // time_fix can produce a string longer than the field's maxLength (11) for
-        // very large stored times (e.g. a >=10h typo -> "10:00:00.000"). A prefill
-        // that exceeds maxLength makes showModal throw, so drop it back to empty.
+        // A prefill outside the field's own length bounds makes showModal throw.
+        // Too long: time_fix can exceed maxLength (11) for very large stored times
+        // (e.g. a >=10h typo -> "10:00:00.000") -- drop those back to empty.
+        // Too short: time_fix drops the leading zero on sub-10-second times
+        // ("2.222" is 5 chars, under the 6 minLength) -- pad it back, which
+        // round-trips through time_to_seconds unchanged.
         const fitTime = (t) => {
             const formatted = time_fix(t)
-            return (formatted && formatted.length <= 11) ? formatted : ""
+            if (!formatted || formatted.length > 11) {
+                return ""
+            }
+            return formatted.length < 6 ? formatted.padStart(6, '0') : formatted
         }
         submissionTime.setValue(fitTime(this_submission.time))
         submissionNotes.setValue(this_submission.notes || "")
