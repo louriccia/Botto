@@ -1389,7 +1389,8 @@ exports.challengeComponents = function (current_challenge, user_profile, db) {
                     .setEmoji("854097998357987418")
             )
         }
-        if ((!current_challenge.track_bribe || !current_challenge.racer_bribe) && (current_truguts >= truguts.bribe_track || current_truguts >= truguts.bribe_racer)) {
+        const bribes_left = !current_challenge.track_bribe || !current_challenge.racer_bribe || (!current_challenge.condition_bribe && user_profile?.effects?.altered_deal)
+        if (bribes_left && (current_truguts >= truguts.bribe_track || current_truguts >= truguts.bribe_racer)) {
             row.addComponents(
                 new ButtonBuilder()
                     .setCustomId("challenge_random_bribe")
@@ -1497,7 +1498,8 @@ exports.racerSelector = function ({ customid, placeholder, min, max, description
                 name: racer.flag.split(":")[1],
                 id: racer.flag.split(":")[2].replace(">", "")
             },
-            default: selected ? selected.includes(String(i)) : false
+            //match against the option's value (racernum - 1), not the speed-sorted index
+            default: selected ? selected.includes(String(racer.racernum - 1)) : false
         })
     })
 
@@ -1530,35 +1532,126 @@ exports.partSelector = function ({ customid, placeholder, min, max, descriptions
     return [partCategoryRow, partSelectRow]
 }
 
-exports.bribeComponents = function (current_challenge, user_profile) {
+//compute what a staged bribe selection would change and what it costs.
+//selection: { track: ['5']|[], racer: ['2']|[], condition: ['nu','laps_2',...]|null }
+//the condition select uses desired-state semantics (its defaults mirror the
+//challenge's current conditions); null means the select was never rendered
+exports.bribeDelta = function ({ current_challenge, user_profile, selection = {}, citizen = false } = {}) {
+    const c = current_challenge.conditions ?? {}
+    const delta = { cost: 0, changes: [], update: {}, error: null }
+
+    if (selection.track?.length && Number(selection.track[0]) !== current_challenge.track) {
+        const t = Number(selection.track[0])
+        delta.update.track = t
+        delta.update.track_bribe = true
+        //Smuggling Routes: same-planet track bribes are free
+        const free = user_profile?.effects?.smuggling_routes && tracks[t]?.planet == tracks[current_challenge.track]?.planet
+        delta.cost += free ? 0 : truguts.bribe_track
+        delta.changes.push('track')
+    }
+    const target_track = delta.update.track ?? current_challenge.track
+
+    if (selection.racer?.length && Number(selection.racer[0]) !== current_challenge.racer) {
+        delta.update.racer = Number(selection.racer[0])
+        delta.update.racer_bribe = true
+        delta.cost += truguts.bribe_racer
+        delta.changes.push('racer')
+    }
+
+    //Altered Deal: condition changes cost a track bribe each
+    if (selection.condition && user_profile?.effects?.altered_deal && !current_challenge.condition_bribe) {
+        const lap_values = selection.condition.filter(v => v.startsWith('laps_'))
+        if (lap_values.length > 1) {
+            delta.error = 'Select only one lap count'
+        }
+        const desired = {
+            nu: selection.condition.includes('nu'),
+            mirror: selection.condition.includes('mirror'),
+            backwards: selection.condition.includes('backwards'),
+            skips: selection.condition.includes('skips') && !!tracks[target_track]?.parskiptimes,
+            laps: lap_values.length == 1 ? Number(lap_values[0].replace('laps_', '')) : 3
+        }
+        const changed = ['nu', 'mirror', 'backwards', 'skips'].filter(k => desired[k] !== !!c[k])
+        if (desired.laps !== (c.laps ?? 3)) {
+            changed.push('laps')
+        }
+        if (changed.length) {
+            delta.update.conditions = { ...c, ...desired }
+            delta.update.condition_bribe = true
+            delta.cost += changed.length * truguts.bribe_track
+            delta.changes.push(...changed)
+        }
+    }
+
+    //a track change can strand an active skips condition on a track with no skip goal times
+    if (delta.update.track !== undefined && !tracks[target_track]?.parskiptimes && (delta.update.conditions ?? c).skips) {
+        delta.update.conditions = { ...(delta.update.conditions ?? c), skips: false }
+    }
+
+    //Citizenship: free bribes on the citizen planet's tracks while the role is equipped
+    if (citizen) {
+        delta.cost = 0
+    }
+    return delta
+}
+
+//staged bribe UI: selections are held in the selects' defaults and only applied
+//when the Bribe button is pressed
+exports.bribeComponents = function ({ current_challenge, user_profile, selection = {}, citizen = false } = {}) {
     let components = []
+    const track_sel = selection.track ?? []
+    const racer_sel = selection.racer ?? []
+
     if (!current_challenge.track_bribe) {
-        components.push(...exports.trackSelector({ customid: 'challenge_random_bribe_track', placeholder: "Bribe Track (📀" + number_with_commas(truguts.bribe_track) + ")", min: 1, max: 1 }))
+        components.push(...exports.trackSelector({ customid: 'challenge_random_bribe_track', placeholder: "Bribe Track (📀" + number_with_commas(truguts.bribe_track) + ")", min: 0, max: 1, selected: track_sel }))
     }
     if (!current_challenge.racer_bribe) {
-        components.push(...exports.racerSelector({ customid: 'challenge_random_bribe_racer', placeholder: "Bribe Racer (📀" + number_with_commas(truguts.bribe_racer) + ")", min: 1, max: 1 }))
+        components.push(...exports.racerSelector({ customid: 'challenge_random_bribe_racer', placeholder: "Bribe Racer (📀" + number_with_commas(truguts.bribe_racer) + ")", min: 0, max: 1, selected: racer_sel }))
     }
-    //Altered Deal: unlocks condition bribes (one per challenge, like track/racer)
+    //Altered Deal: multi-select of the challenge's desired conditions
     if (user_profile?.effects?.altered_deal && !current_challenge.condition_bribe) {
         const c = current_challenge.conditions ?? {}
-        const options = [
-            { label: `${c.nu ? 'Remove' : 'Add'} No Upgrades`, value: 'nu', emoji: { name: '🔧' } },
-            { label: `${c.mirror ? 'Remove' : 'Add'} Mirror Mode`, value: 'mirror', emoji: { name: '🪞' } },
-            { label: `${c.backwards ? 'Remove' : 'Add'} Backwards`, value: 'backwards', emoji: { name: '🔙' } },
+        //skips availability follows the staged target track
+        const target_track = track_sel.length ? Number(track_sel[0]) : current_challenge.track
+        //until the player edits the set, defaults mirror the current conditions
+        const desired = selection.condition ?? [
+            ...(c.nu ? ['nu'] : []),
+            ...(c.mirror ? ['mirror'] : []),
+            ...(c.backwards ? ['backwards'] : []),
+            ...(c.skips ? ['skips'] : []),
+            ...((c.laps ?? 3) !== 3 ? [`laps_${c.laps}`] : [])
         ]
-        if (tracks[current_challenge.track]?.parskiptimes) {
-            options.push({ label: `${c.skips ? 'Remove' : 'Add'} Skips`, value: 'skips', emoji: { name: '⏭' } })
-        }
-        ;[1, 2, 3, 4, 5].filter(l => l !== (c.laps ?? 3)).forEach(l => {
-            options.push({ label: `${l} Lap${l > 1 ? 's' : ''}`, value: `laps_${l}`, emoji: { name: '🔁' } })
-        })
+        const options = [
+            { label: 'No Upgrades', value: 'nu', emoji: { name: '🔧' } },
+            { label: 'Mirror Mode', value: 'mirror', emoji: { name: '🪞' } },
+            { label: 'Backwards', value: 'backwards', emoji: { name: '🔙' } },
+            ...(tracks[target_track]?.parskiptimes ? [{ label: 'Skips', value: 'skips', emoji: { name: '⏭' } }] : []),
+            ...[1, 2, 4, 5].map(l => ({ label: `${l} Lap${l > 1 ? 's' : ''}`, value: `laps_${l}`, emoji: { name: '🔁' } }))
+        ].map(o => ({ ...o, default: desired.includes(o.value) }))
         components.push(new ActionRowBuilder().addComponents(new StringSelectMenuBuilder()
             .setCustomId('challenge_random_bribe_condition')
-            .setPlaceholder("Bribe Conditions (📀" + number_with_commas(truguts.bribe_track) + ")")
-            .setMinValues(1)
-            .setMaxValues(1)
+            .setPlaceholder("Bribe Conditions (📀" + number_with_commas(truguts.bribe_track) + " per change)")
+            .setMinValues(0)
+            .setMaxValues(options.length)
             .addOptions(...options)))
     }
+
+    //nothing left to bribe on this challenge
+    if (!components.length) {
+        return components
+    }
+
+    const delta = exports.bribeDelta({ current_challenge, user_profile, selection, citizen })
+    const BribeButton = new ButtonBuilder()
+        .setCustomId('challenge_random_bribe_submit')
+        .setStyle(ButtonStyle.Success)
+        .setLabel(delta.error ?? `Bribe (📀${number_with_commas(delta.cost)})`)
+        .setDisabled(!!delta.error || !delta.changes.length)
+    const CancelButton = new ButtonBuilder()
+        .setCustomId('challenge_random_bribe_cancel')
+        .setStyle(ButtonStyle.Secondary)
+        .setLabel('Cancel')
+    components.push(new ActionRowBuilder().addComponents(BribeButton, CancelButton))
     return components
 }
 
