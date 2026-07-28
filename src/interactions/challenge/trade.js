@@ -1,8 +1,8 @@
-const { manageTruguts, currentTruguts, tradeEmbed, tradeComponents } = require('./functions.js');
+const { manageTruguts, currentTruguts, tradeEmbed, tradeComponents, availableItemsforTrade } = require('./functions.js');
 
 const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
 
-exports.trade = async function ({ interaction, database,  db, botto_name, user_key } = {}) {
+exports.trade = async function ({ interaction, database, db, args, botto_name, user_key } = {}) {
 
     let trow = interaction.customId.split("_")[3]
     trow = Number(trow)
@@ -29,7 +29,7 @@ exports.trade = async function ({ interaction, database,  db, botto_name, user_k
         return
     }
 
-    if (selected_item && !selected_item.includes('page_')) {
+    if (selected_item && !selected_item.includes('page_') && selected_item !== 'no') {
         let trade_player = traders[args[2]]
         let trade_items = trade.traders[trade_player].items ? Object.values(trade.traders[trade_player].items) : []
         if (trade_items.includes(selected_item)) {
@@ -46,8 +46,38 @@ exports.trade = async function ({ interaction, database,  db, botto_name, user_k
         await database.ref(`challenge/trades/${trade_id}/traders/${user_key}`).update({ agreed: !trade.traders[user_key].agreed })
         trade.traders[user_key].agreed = !trade.traders[user_key].agreed
         if (!Object.values(trade.traders).map(t => t.agreed).includes(false)) {
+            //re-validate on the live profiles before executing -- items may have been
+            //scrapped, used, locked, or traded away and balances spent since selection
+            let problems = []
+            traders.forEach(trader => {
+                let profile = db.user[trader].random
+                let trader_name = db.user[trader].name
+                let amount = Number(trade.traders[trader].truguts) || 0
+                if (amount > 0 && (profile.truguts_earned - profile.truguts_spent) < amount) {
+                    problems.push(`${trader_name} no longer has the offered truguts`)
+                }
+                if (trade.traders[trader].items) {
+                    let tradable_keys = availableItemsforTrade({ user_profile: profile }).map(i => i.key)
+                    Object.values(trade.traders[trader].items).forEach(key => {
+                        if (!tradable_keys.includes(key)) {
+                            problems.push(`${trader_name} can no longer trade one of the selected items`)
+                        }
+                    })
+                }
+            })
+            if (problems.length) {
+                //void the agreement so both parties re-confirm the adjusted offer
+                traders.forEach(trader => {
+                    trade.traders[trader].agreed = false
+                })
+                for (const trader of traders) {
+                    await database.ref(`challenge/trades/${trade_id}/traders/${trader}`).update({ agreed: false })
+                }
+                interaction.update({ content: `⚠️ ${[...new Set(problems)].join('; ')}. Agreements were reset -- adjust the offer and agree again.`, embeds: [tradeEmbed({ trade, db })], components: [...tradeComponents({ trade, db, selection: tselection })] })
+                return
+            }
             //complete trade
-            traders.forEach(async trader => {
+            for (const trader of traders) {
                 let opposite_trader = traders.filter(t => t !== trader)[0]
                 if (trade.traders[trader].truguts) {
                     let trugut_trade = trade.traders[trader].truguts
@@ -55,17 +85,20 @@ exports.trade = async function ({ interaction, database,  db, botto_name, user_k
                     manageTruguts({ user_profile: db.user[opposite_trader].random, profile_ref: database.ref(`users/${opposite_trader}/random`), transaction: 'd', amount: trugut_trade })
                 }
                 if (trade.traders[trader].items) {
-                    Object.values(trade.traders[trader].items).forEach(async key => {
+                    for (const key of Object.values(trade.traders[trader].items)) {
                         let item = db.user[trader].random.items[key]
+                        if (!item) {
+                            continue
+                        }
                         if (!item.trades) {
                             item.trades = []
                         }
                         item.trades.push(trade_id)
                         await database.ref(`users/${opposite_trader}/random/items`).child(key).set(item)
                         await database.ref(`users/${trader}/random/items/${key}`).remove()
-                    })
+                    }
                 }
-            })
+            }
             await database.ref(`challenge/trades/${trade_id}`).update({ completed: true })
             trade.completed = true
             interaction.update({ embeds: [tradeEmbed({ trade, db })], components: [], content: "" })

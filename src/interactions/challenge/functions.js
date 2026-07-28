@@ -3771,11 +3771,11 @@ exports.tradeComponents = function ({ trade, db, selection } = {}) {
     let tradables = {}
     let collections = exports.Collections()
     traders.forEach(key => {
-        let player_items = db.user[key].random.items
+        let player_items = db.user[key].random.items ?? {}
         tradables[key] = {
             name: db.user[key].name,
             selected: trade.traders[key].items ? Object.values(trade.traders[key].items) : [],
-            items: Object.keys(player_items).map(k => ({ ...items.find(i => i.id == player_items[k].id), ...items[k], key: k })).filter(i => exports.usableItem({ item: i }) && !i.locked),
+            items: Object.keys(player_items).map(k => ({ ...items.find(i => i.id == player_items[k].id), ...player_items[k], key: k })).filter(i => exports.usableItem({ item: i }) && !i.locked),
         }
     })
 
@@ -3801,20 +3801,30 @@ exports.tradeComponents = function ({ trade, db, selection } = {}) {
         'legendary': 3
     }
     traders.forEach((key, index) => {
+        let options = exports.paginator({
+            value: selection?.[index]?.[0], array: tradables[key].tradable.sort((a, b) => a.rarity == b.rarity ? a.name == b.name ? a.date - b.date : a.name.localeCompare(b.name) : raritymap[b.rarity] - raritymap[a.rarity]).map(t => (
+                {
+                    label: `${tradables[key].selected.includes(t.key) ? '[TRADING] ' : ''}${t.name} ${typeof t.health == 'number' ? `(${Math.round(t.health * 100 / 255)}%)` : ``}${t.collectible ? ' ♦' : ''}`,
+                    value: t.key,
+                    description: (`📀${number_with_commas(exports.itemValue({ item: t }))} | ${tradables[key].selected.includes(t.key) ? 'Select to remove' : t.description}`).slice(0, 100),
+                    emoji: { name: tradables[key].selected.includes(t.key) ? '↔' : raritysymbols[t.rarity] },
+                }
+            ))
+        })
+        //a select menu can't be empty -- show a placeholder when there's nothing to trade
+        if (!options.length) {
+            options = [{
+                label: 'No items',
+                value: 'no',
+                description: 'This player has no tradable items, but can still offer truguts',
+                emoji: { name: '❌' }
+            }]
+        }
         comp.push(new ActionRowBuilder().addComponents(new StringSelectMenuBuilder()
             .setCustomId(`challenge_random_trade_${index}`)
             .setPlaceholder(`Select items from ${tradables[key].name}`)
             .setMinValues(0)
-            .addOptions(...exports.paginator({
-                value: selection?.[index]?.[0], array: tradables[key].tradable.sort((a, b) => a.rarity == b.rarity ? a.name == b.name ? a.date - b.date : a.name.localeCompare(b.name) : raritymap[b.rarity] - raritymap[a.rarity]).map(t => (
-                    {
-                        label: `${tradables[key].selected.includes(t.key) ? '[TRADING] ' : ''}${t.name} ${t.health ? `(${Math.round(t.health * 100 / 255)}%)` : ``}${t.collectible ? ' ♦' : ''}`,
-                        value: t.key,
-                        description: (`📀${number_with_commas(exports.itemValue({ item: t }))} | ${tradables[key].selected.includes(t.key) ? 'Select to remove' : t.description}`).slice(0, 100),
-                        emoji: { name: tradables[key].selected.includes(t.key) ? '↔' : raritysymbols[t.rarity] },
-                    }
-                ))
-            }))))
+            .addOptions(...options)))
     })
 
     const TrugutButton = new ButtonBuilder()
