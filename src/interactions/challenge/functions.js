@@ -1003,7 +1003,10 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, user_
     earnings_total = Math.round(earnings_total)
 
     //sabotage, only one can be triggered
-    let sabotagekey = user_profile.effects?.sabotage ? (Object.keys(user_profile.effects.sabotage).find(k => user_profile.effects.sabotage[k].millisecond == String(submitted_time.time)[String(submitted_time.time).length - 1] && (!user_profile.effects.sabotage[k].used || user_profile.effects.sabotage[k].challenge == current_challenge.message)) ?? null) : null
+    //toFixed(3) keeps trailing zeros so the compared digit is always the milliseconds place
+    //(String(95.12) drops the 0 a time of 95.120 ends in)
+    let final_digit = Number.isFinite(Number(submitted_time.time)) ? Number(submitted_time.time).toFixed(3).slice(-1) : null
+    let sabotagekey = user_profile.effects?.sabotage && final_digit !== null ? (Object.keys(user_profile.effects.sabotage).find(k => user_profile.effects.sabotage[k].millisecond == final_digit && (!user_profile.effects.sabotage[k].used || user_profile.effects.sabotage[k].challenge == current_challenge.message)) ?? null) : null
     let sabotage = '', dp = null, s = null
     if (sabotagekey) {
         s = user_profile.effects.sabotage[sabotagekey]
