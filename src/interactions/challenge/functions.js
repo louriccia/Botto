@@ -1333,12 +1333,14 @@ exports.challengeEmbed = async function ({ current_challenge, user_profile, prof
 //sponsor rows are small text; every time is a bolded code block. goal rows
 //carry no winnings or level-up markers -- those live in the Winnings receipt
 exports.challengeLeaderboardV2 = function ({ current_challenge, best, member, db, goals } = {}) {
+    //player times are bold; small-text rows (-#) keep the code block unbolded
     const t = (time) => `**\`${time_fix(time)}\`**`
+    const st = (time) => `\`${time_fix(time)}\``
     let rows = []
 
     //goal times
     goals.times.forEach((time, i) => {
-        rows.push({ time, string: `-# ${goal_symbols[i]} ${t(time)}` })
+        rows.push({ time, string: `-# ${goal_symbols[i]} ${st(time)}` })
     })
 
     //player runs (time before name)
@@ -1379,7 +1381,7 @@ exports.challengeLeaderboardV2 = function ({ current_challenge, best, member, db
         Object.values(current_challenge.predictions).forEach(p => {
             rows.push({
                 time: p.time,
-                string: `-# 🔮 ${t(p.time)} *${p.name}* \`+📀${number_with_commas(exports.predictionScore(p.time, submission))}\``
+                string: `-# 🔮 ${st(p.time)} *${p.name}* \`+📀${number_with_commas(exports.predictionScore(p.time, submission))}\``
             })
         })
     }
@@ -1388,7 +1390,7 @@ exports.challengeLeaderboardV2 = function ({ current_challenge, best, member, db
     if (current_challenge.sponsor?.time) {
         rows.push({
             time: current_challenge.sponsor.time,
-            string: `-# 📢 ${t(current_challenge.sponsor.time)} ${current_challenge.sponsor.name}`
+            string: `-# 📢 ${st(current_challenge.sponsor.time)} ${current_challenge.sponsor.name}`
         })
     }
 
