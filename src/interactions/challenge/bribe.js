@@ -28,17 +28,18 @@ exports.bribe = async function ({ current_challenge, current_challenge_ref, inte
     //until its select has been rendered (bribeComponents then mirrors the
     //challenge's current conditions as the starting set)
     const selection = { track: [], racer: [], condition: null }
-    interaction.message.components.forEach(row => {
-        const comp = row.components[0]
-        if (!comp?.data?.options) {
-            return
-        }
-        const key = comp.data.custom_id?.split("_")[3]
-        if (!['track', 'racer', 'condition'].includes(key)) {
-            return
-        }
-        selection[key] = comp.data.options.filter(o => o.default).map(o => o.value)
-    })
+    //walk the whole component tree -- a components v2 message mixes text displays
+    //and containers in at top level, so not every entry is an action row
+    ;(function scrape(nodes) {
+        (nodes ?? []).forEach(node => {
+            const options = node?.data?.options ?? node?.options
+            const key = node?.data?.custom_id?.split("_")[3] ?? node?.customId?.split("_")[3]
+            if (options && ['track', 'racer', 'condition'].includes(key)) {
+                selection[key] = options.filter(o => o.default ?? o.data?.default).map(o => o.value ?? o.data?.value)
+            }
+            scrape(node?.components)
+        })
+    })(interaction.message.components)
     if (interaction.isStringSelectMenu() && ['track', 'racer', 'condition'].includes(args[2])) {
         selection[args[2]] = interaction.values
     }
