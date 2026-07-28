@@ -1328,6 +1328,73 @@ exports.challengeEmbed = async function ({ current_challenge, user_profile, prof
     return challengeEmbed
 }
 
+//merged leaderboard for the components v2 card: goal times, player times,
+//predictions, and sponsor times sorted together by time. goal, prediction, and
+//sponsor rows are small text; every time is a bolded code block. goal rows
+//carry no winnings or level-up markers -- those live in the Winnings receipt
+exports.challengeLeaderboardV2 = function ({ current_challenge, best, member, db, goals } = {}) {
+    const t = (time) => `**\`${time_fix(time)}\`**`
+    let rows = []
+
+    //goal times
+    goals.times.forEach((time, i) => {
+        rows.push({ time, string: `-# ${goal_symbols[i]} ${t(time)}` })
+    })
+
+    //player runs (time before name)
+    let pos = ["<:P1:671601240228233216> ", "<:P2:671601321257992204> ", "<:P3:671601364794605570> ", "4th ", "5th ", "6th ", "7th ", "8th ", "9th ", "10th "]
+    let already = []
+    function getUserName(id) {
+        let user = Object.values(db.user).find(u => u.discordID == id)
+        return user?.random?.name ?? user?.name ?? 'no name'
+    }
+    best.forEach(run => {
+        if (pos.length && (!already.includes(run.user) || (run.user == member && current_challenge.type == 'private') || run.date == current_challenge.created)) {
+            let bold = (run.user == member && current_challenge.type == 'private') || run.date == current_challenge.created
+            let name = bold ? `<@${run.user}>` : `${getUserName(run?.user)}`
+            let time = run.proof ? `[${t(run.time)}](<${run.proof}>)` : t(run.time)
+            let platform = console_emojis[run.platform] ? `${console_emojis[run.platform]}` : ''
+            let notes = run.notes ?? ""
+            let record = run.date == current_challenge.created ? "<a:newrecord:672640831882133524>" : ""
+            let earnings = !['private', 'abandoned'].includes(current_challenge.type) && current_challenge?.earnings?.[run.user] ? "`+📀" + number_with_commas(current_challenge.earnings?.[run.user]?.truguts_earned) + "`" : ""
+            rows.push({
+                time: run.time,
+                string: [pos[0].trim(), time, name, platform, notes, record, earnings].filter(e => e).join(" ")
+            })
+            if (run.user) {
+                already.push(run.user)
+            }
+            pos.splice(0, 1)
+        }
+    })
+
+    //first-time bonus
+    if (!best.length) {
+        rows.push({ time: Infinity, string: `-# :snowflake: \`📀 ${number_with_commas(truguts.first)}\`` })
+    }
+
+    //predictions
+    let submission = current_challenge.submissions && current_challenge.type == 'private' ? current_challenge.submissions[current_challenge.player.member]?.time : null
+    if (current_challenge.completed && current_challenge.predictions) {
+        Object.values(current_challenge.predictions).forEach(p => {
+            rows.push({
+                time: p.time,
+                string: `-# 🔮 ${t(p.time)} *${p.name}* \`+📀${number_with_commas(exports.predictionScore(p.time, submission))}\``
+            })
+        })
+    }
+
+    //sponsor time
+    if (current_challenge.sponsor?.time) {
+        rows.push({
+            time: current_challenge.sponsor.time,
+            string: `-# 📢 ${t(current_challenge.sponsor.time)} ${current_challenge.sponsor.name}`
+        })
+    }
+
+    return rows.sort((a, b) => a.time - b.time).map(r => r.string).join("\n")
+}
+
 //Components v2 rendering of the challenge message. Fields are full-width (no
 //thumbnail-forced column squeeze) and the player avatar survives as a section
 //thumbnail accessory. Only challenges created with v2: true render this way --
@@ -1360,34 +1427,33 @@ exports.challengeContainer = async function ({ current_challenge, user_profile, 
 
     const thumbnail = pole?.avatar ?? (current_challenge.type == 'private' ? avatar : null)
     const headers = [
-        new TextDisplayBuilder().setContent(`-# ${authormap[current_challenge.type]}`),
+        new TextDisplayBuilder().setContent(`-# **${authormap[current_challenge.type]}**`),
         new TextDisplayBuilder().setContent(`### ${title}`)
     ]
+    //the description shares the header layout (wraps beside the thumbnail)
+    const rerolled_out = current_challenge.rerolled && current_challenge.type !== 'cotd'
+    if (desc && desc.trim() && !rerolled_out) {
+        headers.push(new TextDisplayBuilder().setContent(desc.slice(0, 1000)))
+    }
     if (thumbnail) {
         container.addSectionComponents(new SectionBuilder().addTextDisplayComponents(...headers).setThumbnailAccessory(new ThumbnailBuilder().setURL(thumbnail)))
     } else {
         container.addTextDisplayComponents(...headers)
     }
 
-    if (current_challenge.rerolled && current_challenge.type !== 'cotd') {
+    if (rerolled_out) {
         let reroll = exports.rerollReceipt(current_challenge, user_profile)
         container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`-# ${reroll.receipt}\n-# Truguts: 📀${exports.currentTruguts(user_profile)}`))
         return [container]
-    }
-
-    if (desc && desc.trim()) {
-        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(desc.slice(0, 2000)))
     }
 
     let goals = exports.goalTimeList(current_challenge, user_profile, best)
     container.addSeparatorComponents(new SeparatorBuilder())
     if (current_challenge.completed && ['private', 'abandoned'].includes(current_challenge.type)) {
         let winnings = exports.challengeWinnings({ current_challenge, user_profile, profile_ref, submitted_time, best, goals, member, db })
-        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**Winnings**\n${winnings.receipt.slice(0, 1800)}`))
-    } else {
-        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**Goal Times**\n${goals.list.slice(0, 1800)}`))
+        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**Winnings**\n${winnings.receipt.slice(0, 1000)}`))
     }
-    container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**Best Times**\n${exports.generateLeaderboard({ best, member, current_challenge, db }).slice(0, 1800)}`))
+    container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**Leaderboard**\n${exports.challengeLeaderboardV2({ current_challenge, best, member, db, goals }).slice(0, 1500)}`))
 
     if (current_challenge.completed && ['private', 'abandoned'].includes(current_challenge.type)) {
         let progression = exports.challengeProgression({ current_challenge, submitted_time, goals, user_profile })
