@@ -22,7 +22,7 @@ const { items } = require('../../data/challenge/item.js')
 const { collections } = require('../../data/challenge/collection.js')
 const { levels } = require('../../data/challenge/level.js')
 const { raritysymbols } = require('../../data/challenge/rarity.js')
-const { emojimap, goal_symbols, level_symbols, console_emojis } = require('../../data/discord/emoji.js')
+const { emojimap, goal_symbols, level_symbols, console_emojis, bar_segments } = require('../../data/discord/emoji.js')
 const { postMessage } = require('../../discord.js')
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ContainerBuilder, TextDisplayBuilder, SectionBuilder, ThumbnailBuilder, MediaGalleryBuilder, MediaGalleryItemBuilder, SeparatorBuilder, MessageFlags } = require('discord.js');
 const moment = require('moment');
@@ -1584,12 +1584,12 @@ exports.challengeProgression = function ({ current_challenge, submitted_time, go
             //with the bar, alongside the ▓ segments showing it. the footnote closes
             //the racer block and leads into the player one.
             `${racer?.flag ?? ''} **${racer?.name ?? 'Racer'}** · Racer Lv ${level.level + 1} \`${level.sublevel}/${level.nextlevel}\`\n` +
-            `\`${racer_bar}\`${points ? ` \`+${points}\`${medal}` : ''}` +
+            `${racer_bar}${points ? ` \`+${points}\`${medal}` : ''}` +
             `${levelup ? ` <a:guidearrow:891128437354401842> **LEVEL UP** ${rewards.map(r => flat(r.string)).join(' ')}` : ''}\n` +
             `-# Racer levels average into your player level · next racer reward ${flat(nextreward.string)}\n` +
             `\n` +
             `${player.symbol} **${player.title}** · Player Lv ${player.level} \`${Math.floor(player.progress * 100)}%\`\n` +
-            `\`${player_bar}\`${moved > 0 ? ` \`+${moved}%\`` : ''}`
+            `${player_bar}${moved > 0 ? ` \`+${moved}%\`` : ''}`
     }
 }
 
@@ -3053,19 +3053,37 @@ exports.playerLevel = function (progression) {
     }
 }
 
-//a block meter. pass `previous` to render the segments earned by this challenge
-//in a distinct glyph, so the gain is visible at a glance:
-//  ▰ held before   ▨ gained now   ▱ still to earn
-exports.progressBar = function ({ value = 0, previous = null, max = 1, width = 16 } = {}) {
-    const segments = v => {
+//A progress meter built from custom emoji. Pass `previous` to render the
+//progress earned by this challenge in the "new" segment, so the gain is visible
+//at a glance. Resolution is half a segment: the half glyphs cover a boundary
+//that lands mid-segment (held->gained, gained->empty).
+//NOTE: the result is emoji, so it must NOT be wrapped in backticks.
+exports.progressBar = function ({ value = 0, previous = null, max = 1, width = 10 } = {}) {
+    const halves = v => {
         const ratio = max > 0 ? Math.min(1, Math.max(0, v / max)) : 0
         //floor so the bar only reads full at an actual 100%
-        return Math.min(width, Math.floor(ratio * width))
+        return Math.min(width * 2, Math.floor(ratio * width * 2))
     }
-    const filled = segments(value)
+    const filled = halves(value)
     //a level-up resets the scale, so clamp: everything filled now counts as new
-    const before = previous == null ? filled : Math.min(filled, segments(previous))
-    return '▰'.repeat(before) + '▨'.repeat(filled - before) + '▱'.repeat(width - filled)
+    const held = previous == null ? filled : Math.min(filled, halves(previous))
+
+    const state = h => h < held ? 'h' : h < filled ? 'n' : 'e'
+    //there is no half-filled/half-empty glyph, so a held edge landing mid-segment
+    //rounds down rather than overstating progress
+    const glyphs = {
+        hh: bar_segments.filled,
+        hn: bar_segments.filled_new_half,
+        he: bar_segments.empty,
+        nn: bar_segments.new,
+        ne: bar_segments.new_half,
+        ee: bar_segments.empty
+    }
+    let out = ''
+    for (let i = 0; i < width; i++) {
+        out += glyphs[state(i * 2) + state(i * 2 + 1)] ?? bar_segments.empty
+    }
+    return out
 }
 
 exports.convertLevel = function (int) {

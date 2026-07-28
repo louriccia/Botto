@@ -144,3 +144,13 @@ exports.emoji = {
 exports.goal_symbols = ["<:diamond:1136554333723435068>", "<:platinum:1136554336705597510>", "<:gold:1136554335426318406>", "<:silver:1136554338895011850>", "<:bronze:1136554332586786879>"]
 
 exports.level_symbols = ["<:bronze:1136554332586786879>", "<:silver:1136554338895011850>", "<:gold:1136554335426318406>", "<:platinum:1136554336705597510>", "<:diamond:1136554333723435068>", "<:master:1145487065912447026>", "<:grandmaster:1145487067682447442>"]
+
+//Progress bar segments. The *half* variants let a bar land mid-segment:
+//filled_new_half is the held->gained boundary, new_half the gained->empty one.
+exports.bar_segments = {
+    empty: "<:Empty:1531746211655192767>",
+    filled: "<:Filled:1531745976883216576>",
+    new: "<:New:1531746004444119312>",
+    filled_new_half: "<:FilledNewHalf:1531747367412568246>",
+    new_half: "<:NewHalf:1531745948848357466>"
+}
