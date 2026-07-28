@@ -129,6 +129,11 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
     if (current_challenge.hunt) {
         submissiondata.hunt = user_profile.hunt.bonus
     }
+
+    //items only drop on unplayed challenges -- check for a prior time on this
+    //configuration before the new submission is logged
+    const already_played = getBest(db, current_challenge).some(b => b.user == member_id)
+
     var newPostRef = challengetimeref.push(submissiondata);
     await current_challenge_ref.child("submissions").child(member_id).set({ id: newPostRef.key, player: member_id, time })
     if (['abandoned', 'private'].includes(current_challenge.type)) {
@@ -152,15 +157,21 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
 
     user_profile = manageTruguts({ user_profile, profile_ref, transaction: 'd', amount: winnings.earnings })
 
-    //award item
-    let earned_item = randomChallengeItem({ user_profile, profile_ref, current_challenge, db, member_id })
-    let eitem = { id: earned_item.id, challenge: interaction.message.id, date: Date.now() }
-    if (earned_item.upgrade) {
-        eitem = { ...eitem, health: earned_item.health, upgrade: earned_item.upgrade }
+    //award item (only the first time a configuration is played)
+    let eitem = null
+    if (!already_played) {
+        let earned_item = randomChallengeItem({ user_profile, profile_ref, current_challenge, db, member_id })
+        eitem = { id: earned_item.id, challenge: interaction.message.id, date: Date.now() }
+        if (earned_item.upgrade) {
+            eitem = { ...eitem, health: earned_item.health, upgrade: earned_item.upgrade }
+        }
+        profile_ref.child('items').push(eitem)
     }
-    profile_ref.child('items').push(eitem)
 
-    let ern = { truguts_earned: winnings.earnings, player: member_id, item: eitem.id }
+    let ern = { truguts_earned: winnings.earnings, player: member_id }
+    if (eitem) {
+        ern.item = eitem.id
+    }
     if (winnings.sabotage) {
         ern.sabotage = winnings.sabotage
     }
