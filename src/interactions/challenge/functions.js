@@ -1363,9 +1363,11 @@ exports.challengeLeaderboardV2 = function ({ current_challenge, best, member, db
             let notes = run.notes ?? ""
             let record = run.date == current_challenge.created ? "<a:newrecord:672640831882133524>" : ""
             let earnings = !['private', 'abandoned'].includes(current_challenge.type) && current_challenge?.earnings?.[run.user] ? "`+📀" + number_with_commas(current_challenge.earnings?.[run.user]?.truguts_earned) + "`" : ""
+            //notes drop to their own small italic line, matching tourney runs and bets
             rows.push({
                 time: run.time,
-                string: [pos[0].trim(), time, name, platform, notes, record, earnings].filter(e => e).join(" ")
+                string: [pos[0].trim(), time, name, platform, record, earnings].filter(e => e).join(" ")
+                    + (notes ? `\n-# *└ ${notes}*` : '')
             })
             if (run.user) {
                 already.push(run.user)

@@ -15,7 +15,16 @@ const { database, db } = require('../../firebase.js')
 exports.submit = async function ({ current_challenge, current_challenge_ref, interaction, member_id, member_avatar, user_key, user_profile, profile_ref, botto_name } = {}) {
     //get inputs
     let subtime = interaction.fields.getTextInputValue('challengeTime')
-    let subnotes = interaction.fields.getTextInputValue('challengeNotes').replace(/[^a-zA-Z0-9 ]/g, '')
+    // Notes render inside "-# *└ ...*" on the leaderboard, so only strip what would
+    // break that line or let a note reach beyond itself: markdown control
+    // characters, mention/link brackets, and newlines. Ordinary punctuation,
+    // accents, and emoji are kept. Mass-ping tokens are defanged rather than
+    // dropped so the text still reads.
+    let subnotes = String(interaction.fields.getTextInputValue('challengeNotes') ?? '')
+        .replace(/[`*_~|<>\\]/g, '')
+        .replace(/@(everyone|here)/gi, '$1')
+        .replace(/\s+/g, ' ')
+        .trim()
     let subproof = interaction.fields.getTextInputValue('challengeProof') ?? ""
     let subplatform = interaction.fields.getTextInputValue('challengePlatform') ?? ""
     let subrta = current_challenge.type == 'cotm' ? interaction.fields.getTextInputValue('challengeRTA') : ""
