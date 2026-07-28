@@ -1,6 +1,6 @@
-const { tracks } = require('../data/sw_racer/track.js')
-const { circuits } = require('../data/sw_racer/circuit.js')
-const { planets } = require('../data/sw_racer/planet.js')
+const { tracks } = require('../../data/sw_racer/track.js')
+const { circuits } = require('../../data/sw_racer/circuit.js')
+const { planets } = require('../../data/sw_racer/planet.js')
 
 const { EmbedBuilder } = require('discord.js');
 
