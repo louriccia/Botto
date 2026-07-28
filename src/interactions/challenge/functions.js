@@ -3054,8 +3054,8 @@ exports.playerLevel = function (progression) {
 }
 
 //a block meter. pass `previous` to render the segments earned by this challenge
-//in a lighter shade, so the gain reads as a leading edge on the fill:
-//  █ held before   ▓ gained now   ░ still to earn
+//in a distinct glyph, so the gain is visible at a glance:
+//  ▰ held before   ▨ gained now   ▱ still to earn
 exports.progressBar = function ({ value = 0, previous = null, max = 1, width = 16 } = {}) {
     const segments = v => {
         const ratio = max > 0 ? Math.min(1, Math.max(0, v / max)) : 0
@@ -3065,7 +3065,7 @@ exports.progressBar = function ({ value = 0, previous = null, max = 1, width = 1
     const filled = segments(value)
     //a level-up resets the scale, so clamp: everything filled now counts as new
     const before = previous == null ? filled : Math.min(filled, segments(previous))
-    return '█'.repeat(before) + '▓'.repeat(filled - before) + '░'.repeat(width - filled)
+    return '▰'.repeat(before) + '▨'.repeat(filled - before) + '▱'.repeat(width - filled)
 }
 
 exports.convertLevel = function (int) {
