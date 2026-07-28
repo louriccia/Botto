@@ -1334,8 +1334,8 @@ exports.challengeEmbed = async function ({ current_challenge, user_profile, prof
 
 
         challengeEmbed
-            //numeric index -> local racers array (getRacerName expects an API string id)
-            .addFields({ name: racers[progression.racer] ? `${racers[progression.racer].flag} ${racers[progression.racer].name}` : getRacerName(progression.racer), value: progression.summary, inline: true })
+            //the summary names the racer itself
+            .addFields({ name: 'Experience', value: progression.summary, inline: true })
 
         if (![undefined, ""].includes(current_challenge.earnings?.[member]?.item)) {
             let item = items.find(i => i.id == current_challenge.earnings[member].item)
@@ -1506,12 +1506,9 @@ exports.challengeContainer = async function ({ current_challenge, user_profile, 
         container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**Winnings**\n${winnings.receipt.slice(0, 1000)}`))
 
         let progression = exports.challengeProgression({ current_challenge, submitted_time, goals, user_profile })
-        //progression.racer is a numeric index into the local racers array --
-        //getRacerName() looks up the API cache by string id and would yield '--'
-        const prog_racer = racers[progression.racer]
-        const prog_name = prog_racer ? `${prog_racer.flag} ${prog_racer.name}` : getRacerName(progression.racer)
+        //the summary names the racer itself, so no separate name line here
         container.addSeparatorComponents(new SeparatorBuilder())
-        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**Experience**\n${prog_name}\n${progression.summary}`))
+        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**Experience**\n${progression.summary}`))
 
         if (![undefined, ""].includes(current_challenge.earnings?.[member]?.item)) {
             let item = items.find(i => i.id == current_challenge.earnings[member].item)
@@ -1556,15 +1553,27 @@ exports.challengeProgression = function ({ current_challenge, submitted_time, go
         rewards.push(exports.progressionReward({ racer: current_challenge.racer, level: i }))
     }
     let nextreward = exports.progressionReward({ racer: current_challenge.racer, level: level.level + 1 })
+    //flatten reward strings -- they carry a newline between truguts and item
+    const flat = s => String(s).replace(/\n/g, ' ')
+
+    //two labelled lines: this racer's level, then the overall player level.
+    //the player bar advances on the fraction of the racer-level average, so it
+    //visibly creeps toward the next rank as any racer gains points.
+    const player = exports.playerLevel(user_profile.progression)
+    const racer = racers[current_challenge.racer]
+    const racer_bar = exports.progressBar({ value: level.sublevel, max: level.nextlevel, width: 8 })
+    const player_bar = exports.progressBar({ value: player.progress, max: 1, width: 8 })
+
     return {
         racer: current_challenge.racer,
         medal,
         points,
-        summary: `${points ? `\`+${points}\` ${medal}\n\n` : ''}` +
-            `${levelup ? '<a:guidearrow:891128437354401842> **LEVEL UP** <a:guidearrow:891128437354401842>\n' : ''}` +
-            `${levelup ? `${rewards.map(r => r.string).join('\n')}\n\n` : ''}` +
-            `${level.string}\n${level_symbols[Math.min(6, Math.floor(level.level / 4))]} *${levels[Math.min(level.level, 24)]}*\n` +
-            `\nNext reward:\n${nextreward.string}`
+        summary:
+            `${racer?.flag ?? ''} **${racer?.name ?? 'Racer'}** · Racer Lv ${level.level + 1} \`${racer_bar}\` \`${level.sublevel}/${level.nextlevel}\`` +
+            `${points ? ` \`+${points}\`${medal}` : ''}\n` +
+            `${player.symbol} **${player.title}** · Player Lv ${player.level} \`${player_bar}\` \`${Math.floor(player.progress * 100)}%\`\n` +
+            `${levelup ? `<a:guidearrow:891128437354401842> **LEVEL UP** ${rewards.map(r => flat(r.string)).join(' ')}\n` : ''}` +
+            `-# Racer levels average into your player level · next racer reward ${flat(nextreward.string)}`
     }
 }
 
@@ -3004,14 +3013,28 @@ exports.playerLevel = function (progression) {
     function average(array) {
         return array.reduce((x, y) => x + y) / array.length
     }
-    let level = Math.floor(average(Object.values(progression).map(r => {
-        let level = exports.convertLevel(r)
-        return level?.level
-    })))
+    const racer_levels = Object.values(progression).map(r => exports.convertLevel(r)?.level)
+    const avg = average(racer_levels)
+    let level = Math.floor(avg)
     return {
         level: level + 1,
+        //the fractional part of the average is progress toward the next player
+        //level, which is what makes the overall bar move between challenges
+        average: avg,
+        progress: avg - level,
+        racers: racer_levels.length,
+        symbol: level_symbols[Math.min(Math.floor(level / 4), 6)],
+        title: levels[Math.min(level, 24)],
         string: `${level_symbols[Math.min(Math.floor(level / 4), 6)]} *${levels[Math.min(level, 24)]}*`
     }
+}
+
+//a compact filled/empty block meter
+exports.progressBar = function ({ value = 0, max = 1, width = 8 } = {}) {
+    const ratio = max > 0 ? Math.min(1, Math.max(0, value / max)) : 0
+    //floor so the bar only reads full at an actual 100%
+    const filled = Math.min(width, Math.floor(ratio * width))
+    return '▰'.repeat(filled) + '▱'.repeat(width - filled)
 }
 
 exports.convertLevel = function (int) {
