@@ -3069,12 +3069,11 @@ exports.progressBar = function ({ value = 0, previous = null, max = 1, width = 1
     const held = previous == null ? filled : Math.min(filled, halves(previous))
 
     const state = h => h < held ? 'h' : h < filled ? 'n' : 'e'
-    //there is no half-filled/half-empty glyph, so a held edge landing mid-segment
-    //rounds down rather than overstating progress
+    //every boundary has a glyph, so a bar is exact to half a segment
     const glyphs = {
         hh: bar_segments.filled,
         hn: bar_segments.filled_new_half,
-        he: bar_segments.empty,
+        he: bar_segments.filled_half,
         nn: bar_segments.new,
         ne: bar_segments.new_half,
         ee: bar_segments.empty
