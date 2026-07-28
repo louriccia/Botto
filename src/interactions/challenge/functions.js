@@ -1580,14 +1580,16 @@ exports.challengeProgression = function ({ current_challenge, submitted_time, go
         medal,
         points,
         summary:
-            //label line, then the bar carrying its own counts and movement
-            `${racer?.flag ?? ''} **${racer?.name ?? 'Racer'}** · Racer Lv ${level.level + 1}\n` +
-            `\`${racer_bar}\` \`${level.sublevel}/${level.nextlevel}\`${points ? ` \`+${points}\`${medal}` : ''}` +
-            `${levelup ? ` <a:guidearrow:891128437354401842> **LEVEL UP** ${rewards.map(r => flat(r.string)).join(' ')}` : ''}\n` +
+            //counts sit with the label; the bar gets its own line beneath.
+            //the footnote closes the racer block and leads into the player one.
+            `${racer?.flag ?? ''} **${racer?.name ?? 'Racer'}** · Racer Lv ${level.level + 1} \`${level.sublevel}/${level.nextlevel}\`` +
+            `${points ? ` \`+${points}\`${medal}` : ''}\n` +
+            `\`${racer_bar}\`${levelup ? ` <a:guidearrow:891128437354401842> **LEVEL UP** ${rewards.map(r => flat(r.string)).join(' ')}` : ''}\n` +
+            `-# Racer levels average into your player level · next racer reward ${flat(nextreward.string)}\n` +
             `\n` +
-            `${player.symbol} **${player.title}** · Player Lv ${player.level}\n` +
-            `\`${player_bar}\` \`${Math.floor(player.progress * 100)}%\`${moved > 0 ? ` \`+${moved}%\`` : ''}\n` +
-            `-# Racer levels average into your player level · next racer reward ${flat(nextreward.string)}`
+            `${player.symbol} **${player.title}** · Player Lv ${player.level} \`${Math.floor(player.progress * 100)}%\`` +
+            `${moved > 0 ? ` \`+${moved}%\`` : ''}\n` +
+            `\`${player_bar}\``
     }
 }
 
