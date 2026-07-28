@@ -154,9 +154,6 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
 
     //award item
     let earned_item = randomChallengeItem({ user_profile, profile_ref, current_challenge, db, member_id })
-    if (!user_profile.items) {
-        profile_ref.child('items').set('test')
-    }
     let eitem = { id: earned_item.id, challenge: interaction.message.id, date: Date.now() }
     if (earned_item.upgrade) {
         eitem = { ...eitem, health: earned_item.health, upgrade: earned_item.upgrade }

@@ -2015,13 +2015,13 @@ exports.inventoryEmbed = function ({ user_profile, selection, name, avatar }) {
             })
         }
         if (section.value == 'duplicates') {
-            myEmbed.setFooter({ text: `Scrap: ${Object.values(user_profile.items).filter(i => exports.usableItem({ item: i }) && !i.locked && i.id == 70).length}\nTruguts: 📀${number_with_commas(exports.currentTruguts(user_profile))}\n♦ indicates an item is needed for a collection` })
+            myEmbed.setFooter({ text: `Scrap: ${Object.values(user_profile.items ?? {}).filter(i => exports.usableItem({ item: i }) && !i.locked && i.id == 70).length}\nTruguts: 📀${number_with_commas(exports.currentTruguts(user_profile))}\n♦ indicates an item is needed for a collection` })
         }
         if (section.value == 'droids') {
             let droid_key = s_selection
-            let droid_item = user_profile.items[droid_key]
-            let droid = { ...items.find(i => i.id == droid_item?.id), ...droid_item }
-            if (droid) {
+            let droid_item = droid_key ? user_profile.items?.[droid_key] : null
+            let droid = droid_item ? { ...items.find(i => i.id == droid_item.id), ...droid_item } : null
+            if (droid?.display_image) {
                 myEmbed.setThumbnail(droid.display_image)
             }
 
@@ -2170,12 +2170,12 @@ exports.inventoryComponents = function ({ user_profile, selection, db, interacti
             .setCustomId("challenge_random_inventory_scrap")
             .setStyle(ButtonStyle.Danger)
             .setLabel(`Scrap ${scrap_value ? `(+📀${number_with_commas(scrap_value)})` : ''}`)
-            .setDisabled([null, undefined, ""].includes(selected_item))
+            .setDisabled([null, undefined, ""].includes(selected_item) || String(selected_item).startsWith('page_'))
         const SarlaccButton = new ButtonBuilder()
             .setCustomId('challenge_random_inventory_sarlacc')
             .setStyle(ButtonStyle.Secondary)
             .setLabel('Feed to Sarlacc')
-            .setDisabled([null, undefined, ""].includes(selected_item) || !user_profile.effects?.sarlacc_snack)
+            .setDisabled([null, undefined, ""].includes(selected_item) || String(selected_item).startsWith('page_') || !user_profile.effects?.sarlacc_snack)
 
         const buttonRow = new ActionRowBuilder()
         buttonRow.addComponents(ScrapButton, SarlaccButton)
@@ -2243,7 +2243,7 @@ exports.inventoryComponents = function ({ user_profile, selection, db, interacti
                         .setCustomId("challenge_random_inventory_trade")
                         .setStyle(ButtonStyle.Primary)
                         .setLabel(`Invite to Trade`)
-                        .setDisabled([null, undefined, ""].includes(selected_user)))
+                        .setDisabled([null, undefined, ""].includes(selected_user) || String(selected_user).startsWith('page_')))
             )
         }
     } else if (selection[1]?.[0] == 'droids') {
@@ -2315,12 +2315,12 @@ exports.inventoryComponents = function ({ user_profile, selection, db, interacti
             .setCustomId("challenge_random_inventory_task")
             .setStyle(ButtonStyle.Primary)
             .setLabel(`Task Repairs`)
-            .setDisabled([null, undefined, "", 'no'].includes(selected_droid) || [null, undefined, "", 'no'].includes(selected_part))
+            .setDisabled([null, undefined, "", 'no'].includes(selected_droid) || String(selected_droid).startsWith('page_') || [null, undefined, "", 'no'].includes(selected_part) || String(selected_part).startsWith('page_'))
         const NameButton = new ButtonBuilder()
             .setCustomId('challenge_random_inventory_name')
             .setStyle(ButtonStyle.Secondary)
             .setLabel('Name Droid')
-            .setDisabled([null, undefined, ""].includes(selected_droid))
+            .setDisabled([null, undefined, "", 'no'].includes(selected_droid) || String(selected_droid).startsWith('page_'))
         comp.push(new ActionRowBuilder().addComponents(TaskButton, NameButton))
     } else if (selection[1]?.[0] == 'roles') {
 
@@ -2420,6 +2420,9 @@ exports.Collections = function () {
             reward: 'Citizenship Role; 📀100,000',
             planet: true,
             key: planet.name.toLowerCase().replaceAll(" ", "_"),
+            //capped at 25 (Discord select menu limit); membership is the first 25 in
+            //item.js order, so append new planet items to the END of item.js or they'll
+            //shift the cut-off and retroactively change who has completed the collection
             items: items.filter(i => i.track.map(track => tracks[track].planet == p).includes(true) && i.track.length < 25).slice(0, 25).map(i => i.id)
         })
     })
@@ -3946,11 +3949,21 @@ exports.getNeededItems = function ({ user_profile } = {}) {
     let profile_items = exports.availableItemsforTrade({ user_profile })
     let needed = []
     collections.filter(c => !user_profile.effects?.[c.key]).forEach(c => {
-        c.items.forEach(i => {
-            if (!profile_items.map(j => j.id).includes(i)) {
-                needed.push(i)
-            }
-        })
+        if (c.key == 'chance_cube') {
+            //count-aware: the chance cube needs 3 of each side
+            [95, 96].forEach(id => {
+                let owned = profile_items.filter(j => j.id == id).length
+                for (let n = owned; n < 3; n++) {
+                    needed.push(id)
+                }
+            })
+        } else {
+            c.items.forEach(i => {
+                if (!profile_items.map(j => j.id).includes(i)) {
+                    needed.push(i)
+                }
+            })
+        }
     })
     return needed
 }
