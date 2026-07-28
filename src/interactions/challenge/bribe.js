@@ -1,7 +1,7 @@
-const { updateChallenge, bribeComponents, bribeDelta, playButton, notYoursEmbed, isActive, expiredEmbed, manageTruguts } = require('./functions.js');
+const { updateChallenge, bribeComponents, bribeDelta, challengeContainer, getBest, playButton, notYoursEmbed, isActive, expiredEmbed, manageTruguts } = require('./functions.js');
 const { tracks } = require('../../data/sw_racer/track.js')
 const { planets } = require('../../data/sw_racer/planet.js')
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, MessageFlags } = require('discord.js');
 const { number_with_commas } = require('../../generic.js');
 exports.bribe = async function ({ current_challenge, current_challenge_ref, interaction, user_profile, args, profile_ref, member_avatar, db, member_id, botto_name } = {}) {
 
@@ -98,5 +98,12 @@ exports.bribe = async function ({ current_challenge, current_challenge_ref, inte
         interaction.reply({ embeds: [holdUp], ephemeral: true })
         return
     }
-    interaction.update({ components })
+    if (current_challenge.v2) {
+        //a components-v2 message is entirely components, so the challenge card
+        //has to be rebuilt alongside the bribe selects
+        const container = await challengeContainer({ client: interaction.client, current_challenge, user_profile, profile_ref, best: getBest(db, current_challenge), name: botto_name, member: member_id, avatar: member_avatar, db })
+        interaction.update({ components: [...container, ...components], flags: MessageFlags.IsComponentsV2 })
+    } else {
+        interaction.update({ components })
+    }
 }

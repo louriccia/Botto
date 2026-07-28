@@ -24,7 +24,7 @@ const { levels } = require('../../data/challenge/level.js')
 const { raritysymbols } = require('../../data/challenge/rarity.js')
 const { emojimap, goal_symbols, level_symbols, console_emojis } = require('../../data/discord/emoji.js')
 const { postMessage } = require('../../discord.js')
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } = require('discord.js');
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ContainerBuilder, TextDisplayBuilder, SectionBuilder, ThumbnailBuilder, MediaGalleryBuilder, MediaGalleryItemBuilder, SeparatorBuilder, MessageFlags } = require('discord.js');
 const moment = require('moment');
 require('moment-timezone')
 const { achievement_data } = require('../../data/challenge/achievement.js')
@@ -235,6 +235,7 @@ exports.initializeChallenge = function ({ user_profile, member_id, type, name, a
     let challenge = {
         type: type,
         created: Date.now(),
+        v2: true, //render with components v2 (see challengeContainer)
 
         // completed: false,
         // rerolled: false,
@@ -367,7 +368,7 @@ exports.generateChallengeDescription = function ({ current_challenge, db, user_p
 
     let formercotd = Object.values(db.ch.challenges).filter(challenge => challenge.created < current_challenge.created && challenge.type == 'cotd').map((c, i) => { return { index: i, ...c } }).filter(c => exports.matchingChallenge(c, current_challenge)) ?? null
     if (formercotd.length) {
-        desc += `\n Former :game_die: *Random Challenge of the Day*\n${formercotd.map(c => `[COTD #${c.index}](<${c.url}>)`).join(", ")}`
+        desc += `\n Former :game_die: *Random Challenge of the Day*\n${formercotd.map(c => `[#${c.index}](<${c.url}>)`).join(", ")}`
     }
 
     if (current_challenge.conditions.backwards) {
@@ -1127,6 +1128,25 @@ exports.updateChallenge = async function ({ client, db, user_profile, current_ch
 
     let flavor_text = player_profile?.settings?.flavor === false ? '' : exports.flavorText({ current_challenge, db, best })
 
+    //challenges created with v2: true render as components v2; older messages
+    //can't be converted (Discord forbids switching) so they keep the embed
+    if (current_challenge.v2) {
+        const container = await exports.challengeContainer({ client, current_challenge, user_profile: player_profile, profile_ref, best, name: player_name, member: player, avatar: player_avatar, db })
+        const comps = []
+        if (flavor_text && !current_challenge.rerolled) {
+            comps.push(new TextDisplayBuilder().setContent(flavor_text))
+        }
+        comps.push(...container)
+        if (!current_challenge.rerolled) {
+            comps.push(exports.challengeComponents(current_challenge, user_profile, db))
+        }
+        return {
+            components: comps,
+            flags: MessageFlags.IsComponentsV2,
+            withResponse: true
+        }
+    }
+
     const cembed = await exports.challengeEmbed({ client, current_challenge, user_profile: player_profile, profile_ref, best, name: player_name, member: player, avatar: player_avatar, interaction, db })
 
     let data = {
@@ -1306,6 +1326,94 @@ exports.challengeEmbed = async function ({ current_challenge, user_profile, prof
         }
     }
     return challengeEmbed
+}
+
+//Components v2 rendering of the challenge message. Fields are full-width (no
+//thumbnail-forced column squeeze) and the player avatar survives as a section
+//thumbnail accessory. Only challenges created with v2: true render this way --
+//Discord doesn't allow editing a message between embeds and components v2.
+exports.challengeContainer = async function ({ current_challenge, user_profile, profile_ref, best, name, member, avatar, db, client } = {}) {
+    let submitted_time = db.ch.times[current_challenge?.submissions?.[member]?.id] ?? {}
+    let achs = current_challenge.type == 'private' ? exports.achievementProgress({ db, player: member }) : null
+    let desc = exports.generateChallengeDescription({ current_challenge, db, user_profile }) + (current_challenge.type == 'private' ? "\n" + exports.challengeAchievementProgress({ client, current_challenge, user_profile, profile_ref, achievements: achs, name, avatar, member }) : '')
+    let title = exports.generateChallengeTitle(current_challenge)
+
+    const container = new ContainerBuilder()
+    let accent = exports.challengeColor(current_challenge)
+
+    const authormap = {
+        multiplayer: '🏁 Multiplayer Challenge',
+        abandoned: '💨 Abandoned Challenge',
+        private: `🎲 ${name}'s Random Challenge`,
+        open: '🎲 Open Challenge',
+        cotd: `🎲 Random Challenge of the Day #${Object.values(db.ch.challenges).filter(challenge => challenge.type == 'cotd' && challenge.created < current_challenge.created).length}`,
+        cotm: `🎲 Random Challenge of the Month #${Object.values(db.ch.challenges).filter(challenge => challenge.type == 'cotm' && challenge.created < current_challenge.created).length}`
+    }
+
+    //Pole Position: the record holder's avatar and profile color take over the card
+    const pole_holder = best?.[0] ? Object.values(db.user).find(u => u.discordID == best[0].user) : null
+    const pole = pole_holder?.random?.effects?.pole_position && !current_challenge.completed && !current_challenge.rerolled ? pole_holder : null
+    if (pole && /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(pole.random.color ?? '')) {
+        accent = pole.random.color
+    }
+    container.setAccentColor(parseInt(String(accent).replace('#', ''), 16))
+
+    const thumbnail = pole?.avatar ?? (current_challenge.type == 'private' ? avatar : null)
+    const headers = [
+        new TextDisplayBuilder().setContent(`-# ${authormap[current_challenge.type]}`),
+        new TextDisplayBuilder().setContent(`### ${title}`)
+    ]
+    if (thumbnail) {
+        container.addSectionComponents(new SectionBuilder().addTextDisplayComponents(...headers).setThumbnailAccessory(new ThumbnailBuilder().setURL(thumbnail)))
+    } else {
+        container.addTextDisplayComponents(...headers)
+    }
+
+    if (current_challenge.rerolled && current_challenge.type !== 'cotd') {
+        let reroll = exports.rerollReceipt(current_challenge, user_profile)
+        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`-# ${reroll.receipt}\n-# Truguts: 📀${exports.currentTruguts(user_profile)}`))
+        return [container]
+    }
+
+    if (desc && desc.trim()) {
+        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(desc.slice(0, 2000)))
+    }
+
+    let goals = exports.goalTimeList(current_challenge, user_profile, best)
+    container.addSeparatorComponents(new SeparatorBuilder())
+    if (current_challenge.completed && ['private', 'abandoned'].includes(current_challenge.type)) {
+        let winnings = exports.challengeWinnings({ current_challenge, user_profile, profile_ref, submitted_time, best, goals, member, db })
+        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**Winnings**\n${winnings.receipt.slice(0, 1800)}`))
+    } else {
+        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**Goal Times**\n${goals.list.slice(0, 1800)}`))
+    }
+    container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**Best Times**\n${exports.generateLeaderboard({ best, member, current_challenge, db }).slice(0, 1800)}`))
+
+    if (current_challenge.completed && ['private', 'abandoned'].includes(current_challenge.type)) {
+        let progression = exports.challengeProgression({ current_challenge, submitted_time, goals, user_profile })
+        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**${getRacerName(progression.racer)}**\n${progression.summary}`))
+        if (![undefined, ""].includes(current_challenge.earnings?.[member]?.item)) {
+            let item = items.find(i => i.id == current_challenge.earnings[member].item)
+            container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**${exports.itemString({ item, user_profile })}**\n*${item.description}*`))
+        }
+    }
+
+    const image_url = best.find(b => b.proof?.includes('youtu'))?.proof ?? null
+    let image = null
+    if (image_url && !current_challenge.completed && !current_challenge.rerolled) {
+        image = await get_thumbnail(image_url)
+    }
+    if (image) {
+        container.addMediaGalleryComponents(new MediaGalleryBuilder().addItems(new MediaGalleryItemBuilder().setURL(image)))
+    }
+
+    if (current_challenge.type == 'private') {
+        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`-# Truguts: 📀${exports.currentTruguts(user_profile)}`))
+    } else if (['cotd', 'cotm'].includes(current_challenge.type)) {
+        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`-# <t:${Math.round(current_challenge.created / 1000)}:f>`))
+    }
+
+    return [container]
 }
 
 exports.challengeProgression = function ({ current_challenge, submitted_time, goals, user_profile }) {
