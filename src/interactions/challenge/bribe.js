@@ -76,9 +76,13 @@ exports.bribe = async function ({ current_challenge, current_challenge_ref, inte
                 selection: delta.changes.join(", ") + (citizen ? ' (citizen)' : '')
             }
         })
-        await current_challenge_ref.update({ ...delta.update, predictions: {}, created: Date.now() })
+        const bribe_update = { ...delta.update, predictions: {}, created: Date.now() }
+        await current_challenge_ref.update(bribe_update)
 
-        current_challenge = db.ch.challenges[current_challenge.message]
+        //merge locally rather than re-reading db.ch.challenges -- the cache
+        //listener may not have echoed the write yet, and rendering the stale
+        //object would show the pre-bribe title and description
+        current_challenge = { ...current_challenge, ...bribe_update }
         const challenge_update = await updateChallenge({ client: interaction.client, user_profile, current_challenge, profile_ref, member: member_id, name: botto_name, avatar: member_avatar, interaction, db })
         interaction.update(challenge_update)
         return

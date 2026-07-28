@@ -402,6 +402,12 @@ exports.generateChallengeDescription = function ({ current_challenge, db, user_p
     if (current_challenge.track_bribe) {
         desc += crossout + "\n💰 (Track) `-📀" + number_with_commas(truguts.bribe_track) + "`" + crossout
     }
+    if (current_challenge.condition_bribe) {
+        //condition_bribe holds the list of changed conditions (older challenges may have `true`)
+        const changed = typeof current_challenge.condition_bribe == 'object' ? Object.values(current_challenge.condition_bribe) : []
+        const condition_names = { nu: 'No Upgrades', skips: 'Skips', mirror: 'Mirror', backwards: 'Backwards', laps: 'Laps' }
+        desc += crossout + "\n💰 (" + (changed.length ? changed.map(k => condition_names[k] ?? k).join(", ") : 'Conditions') + ") `-📀" + number_with_commas(Math.max(changed.length, 1) * truguts.bribe_track) + "`" + crossout
+    }
     return desc
 }
 
@@ -1577,7 +1583,8 @@ exports.bribeDelta = function ({ current_challenge, user_profile, selection = {}
         }
         if (changed.length) {
             delta.update.conditions = { ...c, ...desired }
-            delta.update.condition_bribe = true
+            //store which conditions changed (truthy, so the once-per-challenge gate still works)
+            delta.update.condition_bribe = changed
             delta.cost += changed.length * truguts.bribe_track
             delta.changes.push(...changed)
         }
