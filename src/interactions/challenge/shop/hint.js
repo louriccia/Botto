@@ -15,11 +15,13 @@ exports.hint = async function ({ interaction, db, member_id, member_avatar, user
         'standard': 1,
         'deluxe': 2,
     }
-    let hint = Number(hintmap[selection[2][0]]) + (user_profile.effects?.movie_buff ? 1 : 0)
+    //trivia_buff adds a clue but doesn't change the purchased tier (name/price)
+    let tier = Number(hintmap[selection[2][0]])
+    let hint = tier + (user_profile.effects?.trivia_buff ? 1 : 0)
     const hintBuy = new EmbedBuilder()
         .setColor("#ED4245")
         .setAuthor({ name: botto_name + "'s Random Challenge Hint", iconURL: member_avatar })
-        .setTitle(":bulb: " + hints[hint].name + ": " + achievements[achievement].name)
+        .setTitle(":bulb: " + hints[tier].name + ": " + achievements[achievement].name)
     //figure out missing challenges for each achievement
     for (let j = 0; j < 25; j++) {
         if (j < 23) {
@@ -86,7 +88,7 @@ exports.hint = async function ({ interaction, db, member_id, member_avatar, user
     }
     // process purchase
 
-    hintBuy.setDescription("`-📀" + number_with_commas(hints[hint].price) + "`")
+    hintBuy.setDescription("`-📀" + number_with_commas(hints[tier].price) + "`")
     //profile_ref.update({ truguts_spent: user_profile.truguts_spent + hints[hint].price })
 
     interaction.reply({ embeds: [hintBuy] })

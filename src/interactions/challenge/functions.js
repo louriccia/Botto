@@ -1601,7 +1601,7 @@ exports.shopOptions = function ({ user_profile, player, db, selection } = {}) {
             price: truguts.hint,
             description: "Get a hint for incomplete achievements",
             info: "Hints help you narrow down what challenges you need to complete for :trophy: **Achievements**. The more you pay, the better the hint.",
-            fields: [{ name: 'Additional Effect', value: "Complete the **Star Wars Episode I: Racer: The Movie** collection to get an additional clue: *Movie Buff - Get an additional clue on all your Hints and Bounties*" }],
+            fields: [{ name: 'Additional Effect', value: "Complete the **Star Wars Episode I: Racer: The Movie** collection to get an additional clue: *Trivia Buff - Get an extra clue on all your Hints and Bounties*" }],
             emoji: {
                 name: "💡"
             },
@@ -1614,7 +1614,7 @@ exports.shopOptions = function ({ user_profile, player, db, selection } = {}) {
             price: truguts.hint,
             description: "Take on a challenge bounty, find it, and claim your prize!",
             info: "Challenge Bounty is a way to earn big truguts fast. Based on your hint selection, Botto hides a large trugut bonus on a random challenge.",
-            fields: [{ name: 'Additional Effect', value: "Complete the **Star Wars Episode I: Racer: The Movie** collection to get an additional clue: *Movie Buff - Get an additional clue on all your Hints and Bounties*" }],
+            fields: [{ name: 'Additional Effect', value: "Complete the **Star Wars Episode I: Racer: The Movie** collection to get an additional clue: *Trivia Buff - Get an extra clue on all your Hints and Bounties*" }],
             emoji: {
                 name: "🎯"
             },
@@ -3470,8 +3470,11 @@ exports.dailyBounty = async function ({ client, db, bountyref } = {}) {
 }
 
 exports.bountyEmbed = function ({ bounty, user_profile, db } = {}) {
+    //tier drives name/price/bonus; r_hints/t_hints are lead counts (tier + trivia_buff).
+    //older bounties predate the tier field, so fall back to the (clamped) lead count
+    const tier = hints[Math.min(bounty.tier ?? bounty.r_hints, hints.length - 1)]
     const bEmbed = new EmbedBuilder()
-        .setTitle(":dart: " + (bounty.type == 'botd' ? "Bounty of the Day" : hints[bounty.r_hints].hunt))
+        .setTitle(":dart: " + (bounty.type == 'botd' ? "Bounty of the Day" : tier.hunt))
         .setColor("#ED4245")
         .addFields(
             { name: "Track Leads", value: exports.trackHint({ track: bounty.track, count: bounty.t_hints, db }).map(h => "○ *" + h + "*").join("\n") },
@@ -3481,8 +3484,8 @@ exports.bountyEmbed = function ({ bounty, user_profile, db } = {}) {
     if (bounty.type == 'private') {
         bEmbed
             .setFooter({ text: "Truguts: 📀" + exports.currentTruguts(user_profile) })
-            .setDescription("`-📀" + number_with_commas(hints[bounty.r_hints].price) + "`\nBounty expires: <t:" + Math.round((Date.now() + 1000 * 60 * 60) / 1000) + ":R>\n" +
-                "Reward: `📀" + number_with_commas(hints[bounty.r_hints].bonus) + "`")
+            .setDescription("`-📀" + number_with_commas(tier.price) + "`\nBounty expires: <t:" + Math.round((Date.now() + 1000 * 60 * 60) / 1000) + ":R>\n" +
+                "Reward: `📀" + number_with_commas(bounty.bonus ?? tier.bonus) + "`")
             .setAuthor({ name: bounty.player.name + "'s Random Challenge Bounty", iconURL: bounty.player.avatar })
     } else {
         bEmbed
@@ -3512,8 +3515,10 @@ exports.initializeBounty = function (type, h, player, user_profile) {
         bounty.bonus = Math.floor(Math.random() * 35) * 1000
     } else if (type == 'private') {
         bounty.player = player
-        bounty.r_hints = h + (user_profile.effects?.movie_buff ? 1 : 0)
-        bounty.t_hints = h + (user_profile.effects?.movie_buff ? 1 : 0)
+        //tier is what was purchased (drives name/price/bonus); trivia_buff only adds a lead
+        bounty.tier = h
+        bounty.r_hints = h + (user_profile.effects?.trivia_buff ? 1 : 0)
+        bounty.t_hints = h + (user_profile.effects?.trivia_buff ? 1 : 0)
         bounty.bonus = hints[h].bonus
     }
     return bounty
