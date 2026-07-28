@@ -858,7 +858,40 @@ exports.alignReceipt = function (text) {
     }).join('\n')
 }
 
-exports.challengeWinnings = function ({ current_challenge, submitted_time, user_profile, best, goals, member } = {}) {
+//Fit text into an embed field (Discord's hard limit is 1024). Progress bars are
+//built from custom emoji, so a naive slice can cut a <:Name:id> token in half and
+//dump the raw text into the message -- drop whole trailing lines instead.
+exports.fitField = function (text, max = 1024) {
+    const s = String(text ?? '')
+    if (s.length <= max) {
+        return s
+    }
+    const lines = s.split('\n')
+    while (lines.length > 1 && lines.join('\n').length > max) {
+        lines.pop()
+    }
+    const fitted = lines.join('\n')
+    return fitted.length <= max ? fitted : fitted.slice(0, max)
+}
+
+//Whether a player currently holds a role. Prefers discord.js' member cache, which
+//is live; db.user[..].discord.roles is only rewritten by auto/update_users at boot,
+//so it can't see a role equipped during this session.
+exports.hasRole = function ({ client, db, guild, member, role } = {}) {
+    if (!role || !member) {
+        return false
+    }
+    const cached = client?.guilds?.cache?.get(guild)?.members?.cache?.get(member)
+    if (cached) {
+        return cached.roles.cache.has(role)
+    }
+    return Object.values(Object.values(db?.user ?? {}).find(u => u.discordID == member)?.discord?.roles ?? {}).includes(role)
+}
+
+//no_rival suppresses the Bitter Rivalry bonus. It's set only on the nested call
+//that prices the rival's own run -- without it two players who rival each other
+//and both hold the collection would recurse into each other's receipt forever.
+exports.challengeWinnings = function ({ current_challenge, submitted_time, user_profile, best, goals, member, no_rival } = {}) {
     if (!Object.keys(submitted_time).length) {
         return { earnings: 0, receipt: "Sorry, could not calculate earnings." }
     }
@@ -983,10 +1016,17 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, user_
     //rival, bitter_rivalry
     let rival = user_profile.rival ? Object.values(user_profile.rival).pop() : null
     if (rival && beat.map(b => String(b.user)).includes(rival.player)) {
-        if (user_profile.effects?.bitter_rivalry) {
-            let rival_winnings = ({ current_challenge, submitted_time: beat.find(b => b.user == rival.player)?.time, user_profile: Object.values(db.user).find(u => u.discordID == rival.player)?.random, best, goals, member: rival.player, db })
-            earnings += "`+📀" + number_with_commas(rival_winnings.earnings) + "` *Bitter Rivalry*\n"
-            earnings_subtotal += rival_winnings.earnings
+        //price the rival's own run for that time and add it as the bonus. this has to
+        //be an actual call -- it used to be a bare object literal, so .earnings was
+        //undefined and NaN'd the whole receipt.
+        let rival_time = beat.find(b => String(b.user) == rival.player)
+        let rival_profile = Object.values(db.user).find(u => u.discordID == rival.player)?.random
+        let rival_bonus = (!no_rival && user_profile.effects?.bitter_rivalry && rival_time && rival_profile)
+            ? exports.challengeWinnings({ current_challenge, submitted_time: rival_time, user_profile: rival_profile, best, goals, member: rival.player, no_rival: true }).earnings
+            : null
+        if (Number.isFinite(rival_bonus)) {
+            earnings += "`+📀" + number_with_commas(rival_bonus) + "` *Bitter Rivalry*\n"
+            earnings_subtotal += rival_bonus
         } else {
             earnings += "`+📀" + number_with_commas(truguts.rival) + "` Beat Rival\n"
             earnings_subtotal += truguts.rival
@@ -1139,11 +1179,13 @@ exports.updateChallenge = async function ({ client, db, user_profile, current_ch
 
     if (current_challenge.type == 'private') {
         current_challenge = exports.getBounty(current_challenge, db)
-        //Citizenship: free rerolls on the citizen planet's tracks while its role is equipped
+        //Citizenship: free rerolls on the citizen planet's tracks while its role is equipped.
+        //Read the live member cache first -- db.user[..].discord.roles is only refreshed by
+        //update_users at boot, so a role equipped this session isn't in it yet.
         const challenge_planet = planets[tracks[current_challenge.track]?.planet]
         const citizen = challenge_planet
             && player_profile?.effects?.[challenge_planet.name.toLowerCase().replaceAll(" ", "_")]
-            && Object.values(Object.values(db.user).find(u => u.discordID == player)?.discord?.roles ?? {}).includes(challenge_planet.role)
+            && exports.hasRole({ client, db, guild: current_challenge.guild, member: player, role: challenge_planet.role })
         current_challenge.reroll_cost = (player_profile.effects?.free_rerolls || citizen || current_challenge.sponsors?.[player] || record_holder) ? "free" : played ? "discount" : "full price"
     }
 
@@ -1335,10 +1377,10 @@ exports.challengeEmbed = async function ({ current_challenge, user_profile, prof
 
         challengeEmbed
             //the summary names the racer itself
-            .addFields({ name: 'Experience', value: progression.summary, inline: true })
+            .addFields({ name: 'Experience', value: exports.fitField(progression.summary), inline: true })
 
-        if (![undefined, ""].includes(current_challenge.earnings?.[member]?.item)) {
-            let item = items.find(i => i.id == current_challenge.earnings[member].item)
+        let item = exports.earnedItem({ current_challenge, member, user_profile, db })
+        if (item) {
             challengeEmbed.addFields({ name: exports.itemString({ item, user_profile }), value: `*${item.description}*`, inline: true })
         }
 
@@ -1510,8 +1552,8 @@ exports.challengeContainer = async function ({ current_challenge, user_profile, 
         container.addSeparatorComponents(new SeparatorBuilder())
         container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**Experience**\n${progression.summary}`))
 
-        if (![undefined, ""].includes(current_challenge.earnings?.[member]?.item)) {
-            let item = items.find(i => i.id == current_challenge.earnings[member].item)
+        let item = exports.earnedItem({ current_challenge, member, user_profile, db })
+        if (item) {
             container.addSeparatorComponents(new SeparatorBuilder())
             container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**Item Reward**\n${exports.itemString({ item, user_profile })}\n*${item.description}*`))
         }
@@ -1832,7 +1874,10 @@ exports.bribeDelta = function ({ current_challenge, user_profile, selection = {}
             skips: selection.condition.includes('skips') && !!tracks[target_track]?.parskiptimes,
             laps: lap_values.length == 1 ? Number(lap_values[0].replace('laps_', '')) : 3
         }
-        const changed = ['nu', 'mirror', 'backwards', 'skips'].filter(k => desired[k] !== !!c[k])
+        //a track with no skip goal times clears skips for free further down, so don't
+        //bill the removal as a condition change on top of the track bribe
+        const skips_forced_off = !tracks[target_track]?.parskiptimes
+        const changed = ['nu', 'mirror', 'backwards', 'skips'].filter(k => desired[k] !== !!c[k] && !(k == 'skips' && skips_forced_off))
         if (desired.laps !== (c.laps ?? 3)) {
             changed.push('laps')
         }
@@ -2557,7 +2602,7 @@ exports.inventoryComponents = function ({ user_profile, selection, db, interacti
         function getScrapValue(item) {
             return Math.round(items.find(i => i.id == item?.id)?.value * (user_profile.effects?.efficient_scrapper ? 1 : 0.5) * (typeof item?.health == 'number' ? (item.health / 255) : 1))
         }
-        let scrap_value = getScrapValue(user_profile.items[selected_item])
+        let scrap_value = getScrapValue(selected_item ? user_profile.items?.[selected_item] : null)
         const ScrapButton = new ButtonBuilder()
             .setCustomId("challenge_random_inventory_scrap")
             .setStyle(ButtonStyle.Danger)
@@ -3090,7 +3135,9 @@ exports.convertLevel = function (int) {
     let level = { level: 0, nextlevel: 0, sublevel: 0 }
     if (int > 324) {
         let l = 25 + Math.floor((int - 325) / 25)
-        level = { level: l, nextlevel: l + 1, sublevel: (int - 325) % 25 }
+        //levels past 25 are a flat 25 points wide -- nextlevel is that width, not the
+        //level number (consumers scale progress bars and the x/y label off it)
+        level = { level: l, nextlevel: 25, sublevel: (int - 325) % 25 }
         level.string = `Level ${level.level + 1} \`${level.sublevel}/25\``
         return level
     }
@@ -4117,6 +4164,27 @@ exports.collectionRewardEmbed = function ({ key, name, avatar }) {
         .setColor("FFB900")
         .setTitle(`${collection.emoji} ${collection.name}`)
     return congratsEmbed
+}
+
+//The item a player earned on a challenge, as the rolled instance rather than the
+//stock definition. earnings only records the item id, and the base definitions in
+//item.js carry health: 255 -- so rendering the definition shows every part at
+//[100%]. The instance is stamped with the challenge message it dropped from, so
+//find it on the earner's profile and merge it over the definition. Falls back to a
+//health-less definition when the copy is gone (traded, scrapped, fed) so the card
+//shows no percentage instead of a wrong one.
+exports.earnedItem = function ({ current_challenge, member, user_profile, db } = {}) {
+    const id = current_challenge?.earnings?.[member]?.item
+    if ([undefined, null, ""].includes(id)) {
+        return null
+    }
+    const base = items.find(i => i.id == id)
+    if (!base) {
+        return null
+    }
+    const owner = Object.values(db?.user ?? {}).find(u => u.discordID == member)?.random ?? user_profile
+    const instance = Object.values(owner?.items ?? {}).find(i => i.id == id && i.challenge == current_challenge.message)
+    return instance ? { ...base, ...instance } : { ...base, health: undefined }
 }
 
 exports.itemString = function ({ item, user_profile }) {

@@ -1,4 +1,4 @@
-const { updateChallenge, playButton, isActive, expiredEmbed, challengeWinnings, getBest, goalTimeList, predictionScore, manageTruguts, currentTruguts, predictionAchievement, bountyAchievement, achievementEmbed, randomChallengeItem, challengeProgression, playerLevel, convertLevel, progressionReward } = require('./functions.js');
+const { updateChallenge, playButton, isActive, expiredEmbed, challengeWinnings, getBest, goalTimeList, predictionScore, manageTruguts, currentTruguts, predictionAchievement, bountyAchievement, achievementEmbed, randomChallengeItem, challengeProgression, playerLevel, convertLevel, progressionReward, fitField } = require('./functions.js');
 const { postMessage, editMessage } = require('../../discord.js');
 const { items } = require('../../data/challenge/item.js')
 const { raritysymbols } = require('../../data/challenge/rarity.js')
@@ -343,7 +343,7 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
             .addFields({ name: 'Winnings', value: winnings.receipt, inline: true })
             .setFooter({ text: `Truguts: 📀${currentTruguts(user_profile)}` })
             //the summary names the racer itself
-            .addFields({ name: 'Experience', value: progress.summary, inline: true })
+            .addFields({ name: 'Experience', value: fitField(progress.summary), inline: true })
 
         if (![undefined, ""].includes(eitem?.id)) {
             //merge the instance over the base definition so the receipt shows the rolled health, not the stock 100%
