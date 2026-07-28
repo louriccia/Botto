@@ -833,6 +833,31 @@ exports.goalTimeRank = function ({ submitted_time, goals }) {
     return goals.times.filter(g => Number(submitted_time.time) - Number(g) > 0).length
 }
 
+//Right-align the amount column of a receipt, like the stock market's trade
+//confirmations. Each line leads with a `code span` holding the amount (optionally
+//wrapped in ** for totals); pad those to a common width so the figures line up.
+//Widths are measured in code points so the 📀 glyph counts as one character.
+exports.alignReceipt = function (text) {
+    const leading = /^(\*\*)?`([^`]*)`/
+    const cellWidth = l => {
+        const m = l.match(leading)
+        return m ? Array.from(m[2]).length : -1
+    }
+    const lines = String(text ?? '').split('\n')
+    const width = Math.max(-1, ...lines.map(cellWidth))
+    if (width < 0) {
+        return text
+    }
+    return lines.map(l => {
+        const m = l.match(leading)
+        if (!m) {
+            return l
+        }
+        const pad = ' '.repeat(Math.max(0, width - Array.from(m[2]).length))
+        return l.replace(leading, `${m[1] ?? ''}\`${pad}${m[2]}\``)
+    }).join('\n')
+}
+
 exports.challengeWinnings = function ({ current_challenge, submitted_time, user_profile, best, goals, member } = {}) {
     if (!Object.keys(submitted_time).length) {
         return { earnings: 0, receipt: "Sorry, could not calculate earnings." }
@@ -1019,7 +1044,7 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, user_
         s = user_profile.effects.sabotage[sabotagekey]
         dp = db.user[s.player].random?.effects?.doubled_powers
         sabotage += `\`-📀${number_with_commas(earnings_total * (dp ? 1 : 0.5))}\` 💥Sabotaged!\n`
-        sabotage += `<@${db.user[s.player].discordID}> \`+📀${number_with_commas(earnings_total * (dp ? 1 : 0.5))}\`\n`
+        sabotage += `\`+📀${number_with_commas(earnings_total * (dp ? 1 : 0.5))}\` <@${db.user[s.player].discordID}>\n`
     }
     const line = "▬▬▬▬▬▬▬▬▬▬▬"
     if (multipliers || sabotage) {
@@ -1032,7 +1057,7 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, user_
         earnings += "\n`+📀" + number_with_commas(truguts.rated * (user_profile.effects?.vote_confidence ? 2 : 1)) + "` Rated"
     }
 
-    let winnings = { earnings: earnings_total, receipt: earnings }
+    let winnings = { earnings: earnings_total, receipt: exports.alignReceipt(earnings) }
     if (sabotage) {
         winnings.sabotage = sabotagekey
     }
