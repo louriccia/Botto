@@ -1162,7 +1162,10 @@ exports.rerollReceipt = function (current_challenge, user_profile) {
     let reroll_cost = current_challenge.reroll_cost
     let free = user_profile?.effects?.free_rerolls
     return {
+        //receipt is plain for embed footers (they don't render markdown);
+        //receipt_md code-formats the amount for components v2 text
         receipt: free ? 'FREE REROLLS FOR LIFE' : reroll_cost == 'discount' ? "-📀" + number_with_commas(truguts.reroll_discount) + " (discounted)" : (reroll_cost == 'free' ? "(no charge)" : "-📀" + number_with_commas(truguts.reroll)),
+        receipt_md: free ? 'FREE REROLLS FOR LIFE' : reroll_cost == 'discount' ? "`-📀" + number_with_commas(truguts.reroll_discount) + "` (discounted)" : (reroll_cost == 'free' ? "(no charge)" : "`-📀" + number_with_commas(truguts.reroll) + "`"),
         cost: free ? 0 : reroll_cost == 'discount' ? truguts.reroll_discount : (reroll_cost == 'free' ? 0 : truguts.reroll)
     }
 }
@@ -1431,9 +1434,13 @@ exports.challengeContainer = async function ({ current_challenge, user_profile, 
     //fall back to the first one); the player avatar no longer appears here
     const thumb_track = Array.isArray(current_challenge.track) ? current_challenge.track[0] : current_challenge.track
     const thumbnail = tracks[thumb_track]?.preview ?? null
+    //a sponsor's custom title (and the bounty banner) arrive as leading lines of
+    //the title -- keep them on their own lines so the race line stays a heading
+    const title_lines = title.split("\n")
+    const race_line = title_lines.pop()
     const headers = [
         new TextDisplayBuilder().setContent(`-# **${authormap[current_challenge.type]}**`),
-        new TextDisplayBuilder().setContent(`### ${title}`)
+        new TextDisplayBuilder().setContent([...title_lines, `### ${race_line}`].join("\n"))
     ]
     //the description shares the header layout (wraps beside the thumbnail)
     const rerolled_out = current_challenge.rerolled && current_challenge.type !== 'cotd'
@@ -1448,7 +1455,7 @@ exports.challengeContainer = async function ({ current_challenge, user_profile, 
 
     if (rerolled_out) {
         let reroll = exports.rerollReceipt(current_challenge, user_profile)
-        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`-# ${reroll.receipt}\n-# Truguts: 📀${exports.currentTruguts(user_profile)}`))
+        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`-# ${reroll.receipt_md}\n-# Truguts: \`📀${exports.currentTruguts(user_profile)}\``))
         return [container]
     }
 
@@ -1485,7 +1492,7 @@ exports.challengeContainer = async function ({ current_challenge, user_profile, 
     }
 
     if (current_challenge.type == 'private') {
-        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`-# Truguts: 📀${exports.currentTruguts(user_profile)}`))
+        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`-# Truguts: \`📀${exports.currentTruguts(user_profile)}\``))
     } else if (['cotd', 'cotm'].includes(current_challenge.type)) {
         container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`-# <t:${Math.round(current_challenge.created / 1000)}:f>`))
     }
