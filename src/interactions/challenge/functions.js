@@ -1425,7 +1425,7 @@ exports.challengeContainer = async function ({ current_challenge, user_profile, 
     }
     container.setAccentColor(parseInt(String(accent).replace('#', ''), 16))
 
-    const thumbnail = pole?.avatar ?? (current_challenge.type == 'private' ? avatar : null)
+    const thumbnail = current_challenge.type == 'private' ? avatar : null
     const headers = [
         new TextDisplayBuilder().setContent(`-# **${authormap[current_challenge.type]}**`),
         new TextDisplayBuilder().setContent(`### ${title}`)
@@ -1453,7 +1453,13 @@ exports.challengeContainer = async function ({ current_challenge, user_profile, 
         let winnings = exports.challengeWinnings({ current_challenge, user_profile, profile_ref, submitted_time, best, goals, member, db })
         container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**Winnings**\n${winnings.receipt.slice(0, 1000)}`))
     }
-    container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**Leaderboard**\n${exports.challengeLeaderboardV2({ current_challenge, best, member, db, goals }).slice(0, 1500)}`))
+    //Pole Position: the record holder's avatar sits beside the leaderboard
+    const leaderboard_text = new TextDisplayBuilder().setContent(`**Leaderboard**\n${exports.challengeLeaderboardV2({ current_challenge, best, member, db, goals }).slice(0, 1500)}`)
+    if (pole?.avatar) {
+        container.addSectionComponents(new SectionBuilder().addTextDisplayComponents(leaderboard_text).setThumbnailAccessory(new ThumbnailBuilder().setURL(pole.avatar)))
+    } else {
+        container.addTextDisplayComponents(leaderboard_text)
+    }
 
     if (current_challenge.completed && ['private', 'abandoned'].includes(current_challenge.type)) {
         let progression = exports.challengeProgression({ current_challenge, submitted_time, goals, user_profile })
