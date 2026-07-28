@@ -1,4 +1,4 @@
-const { manageTruguts, randomChallengeItem, inventoryComponents, inventoryEmbed, Collections, collectionRewardEmbed, openCoffer, itemString, tradeEmbed, tradeComponents, availableItemsforScrap } = require('./functions.js');
+const { manageTruguts, randomChallengeItem, inventoryComponents, inventoryEmbed, Collections, collectionReward, collectionRewardEmbed, openCoffer, itemString, tradeEmbed, tradeComponents, availableItemsforScrap, availableItemsforCollection, availableItemsforRepairs } = require('./functions.js');
 const { postMessage, editMessage } = require('../../discord.js');
 const { planets } = require('../../data/sw_racer/planet.js')
 const { items } = require('../../data/challenge/item.js')
@@ -27,6 +27,23 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
         return
     }
 
+    //atomically stamp a disposal field on an item so a double-click can't consume it twice
+    async function consumeProfileItem(key, stamp) {
+        let consumed = false
+        const result = await profile_ref.child('items').child(key).transaction(item => {
+            consumed = false
+            if (item === null) {
+                return item //not in the local cache yet; the SDK retries with server data (or no-ops if truly gone)
+            }
+            if (item.used || item.scrapped || item.fed || item.locked) {
+                return //already consumed -> abort
+            }
+            consumed = true
+            return { ...item, ...stamp }
+        })
+        return consumed && result.committed && result.snapshot.exists()
+    }
+
     const actionmap = {
         coffer: 'collectible_coffer',
         sabotage: 'sabotage_kit',
@@ -44,8 +61,11 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
         }
 
         if (args[2] == 'coffer') {
+            if (!(await consumeProfileItem(key, { used: Date.now() }))) {
+                NoItems()
+                return
+            }
             let new_items = openCoffer({ user_profile, db, member_id })
-            await profile_ref.child('items').child(key).update({ used: Date.now() })
             new_items.forEach(async item => {
                 let condensed = { coffer: key, date: Date.now(), id: item.id }
                 if (item.upgrade) {
@@ -91,12 +111,15 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
                     interaction.reply({ embeds: [noTruguts], ephemeral: true })
                     return
                 }
+                if (!(await consumeProfileItem(key, { used: Date.now() }))) {
+                    NoItems()
+                    return
+                }
                 database.ref(`users/${selected_player}/random/effects/sabotage`).push({
                     player: user_key,
                     millisecond: mil,
                     used: false
                 })
-                profile_ref.child('items').child(key).update({ used: Date.now() })
                 const sabotageEmbed = new EmbedBuilder()
                     .setTitle("💥 Sabotaged!")
                     .setDescription(`You have successfully set up a sabotage on <@${db.user[selected_player].discordID}>. When they submit a time ending in \`${mil}\`, you'll get ${user_profile.effects?.doubled_powers ? 'all' : 'half'} their winnings!`)
@@ -127,7 +150,10 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
                 interaction.reply({ embeds: [noTruguts], ephemeral: true })
                 return
             }
-            profile_ref.child('items').child(key).update({ used: Date.now() })
+            if (!(await consumeProfileItem(key, { used: Date.now() }))) {
+                NoItems()
+                return
+            }
             profile_ref.child('effects').update({ trugut_boost: Date.now() })
             const congratsEmbed = new EmbedBuilder()
                 .setAuthor({ name: botto_name + " activated a ⚡Trugut Boost", iconURL: member_avatar })
@@ -139,9 +165,14 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
     if (args[2] == 'scrap') {
         let scrappable = availableItemsforScrap({ user_profile })
 
-        let key = iselection[2][0]
-        let scrap_item = items.find(i => i.id == user_profile.items[key].id)
+        let key = iselection[2]?.[0]
+        let profile_item = key ? user_profile.items?.[key] : null
+        let scrap_item = profile_item ? items.find(i => i.id == profile_item.id) : null
         if (scrap_item && scrappable.map(s => s.key).includes(key)) {
+            if (!(await consumeProfileItem(key, { scrapped: true }))) {
+                NoItems()
+                return
+            }
             const scrap = await profile_ref.child('items').push(
                 {
                     id: 70,
@@ -149,10 +180,10 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
                 }
             )
             await profile_ref.child('items').child(key).update({ scrapped: scrap.key })
-            manageTruguts({ user_profile, profile_ref, transaction: 'd', amount: Math.round(scrap_item.value * (user_profile.effects?.efficient_scrapper ? 1 : 0.5) * (user_profile.items[key].health ? (user_profile.items[key].health / 255) : 1)) })
+            manageTruguts({ user_profile, profile_ref, transaction: 'd', amount: Math.round(scrap_item.value * (user_profile.effects?.efficient_scrapper ? 1 : 0.5) * (typeof profile_item.health == 'number' ? (profile_item.health / 255) : 1)) })
         }
     } else if (args[2] == 'sarlacc') {
-        let scrap_key = iselection[2][0]
+        let scrap_key = iselection[2]?.[0]
         if ([null, undefined, ''].includes(scrap_key)) {
             const noTruguts = new EmbedBuilder()
                 .setTitle("<:WhyNobodyBuy:589481340957753363> It's something... elsewhere, elusive.")
@@ -174,7 +205,20 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
             interaction.reply({ embeds: [noTruguts], ephemeral: true })
             return
         }
+        //only items offered in the select can be fed -- rejects page rows, stale keys,
+        //locked/repairing items, and specials
+        if (!availableItemsforScrap({ user_profile }).map(s => s.key).includes(scrap_key)) {
+            const noTruguts = new EmbedBuilder()
+                .setTitle("<:WhyNobodyBuy:589481340957753363> It's something... elsewhere, elusive.")
+                .setDescription("No item selected.")
+            interaction.reply({ embeds: [noTruguts], ephemeral: true })
+            return
+        }
         let feeditem = user_profile.items[scrap_key]
+        if (!(await consumeProfileItem(scrap_key, { fed: true }))) {
+            NoItems()
+            return
+        }
         profile_ref.child('effects').update({ sarlacc_fed: Date.now() })
         const sarlaccEmbed = new EmbedBuilder()
             .setAuthor({ name: botto_name + " fed the Sarlacc a " + itemString({ item: { ...items.find(i => i.id == feeditem.id), ...feeditem }, user_profile }), iconURL: member_avatar })
@@ -201,6 +245,13 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
         }, 2000)
     } else if (args[2] == 'trade') {
         let selected_player = iselection[2]?.[0]
+        if ([null, undefined, ''].includes(selected_player) || String(selected_player).startsWith('page_') || !db.user[selected_player]) {
+            const holdUp = new EmbedBuilder()
+                .setTitle("<:WhyNobodyBuy:589481340957753363> It's something... elsewhere, elusive.")
+                .setDescription("No player selected.")
+            interaction.reply({ embeds: [holdUp], ephemeral: true })
+            return
+        }
         let selected_player_id = db.user[selected_player].discordID
         if (member_id == selected_player_id) {
             const holdUp = new EmbedBuilder()
@@ -226,22 +277,69 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
         database.ref('challenge/trades').child(trademessage.id).set(trade)
         return
     } else if (args[2] == 'claim') {
-        let selected_col = iselection[2][0]
+        let selected_col = iselection[2]?.[0]
         let collections = Collections()
-        let selected_collection = collections[selected_col]
-        let profile_items = Object.keys(user_profile.items).map(key => ({ ...user_profile.items[key], key }))
-        selected_collection.items.forEach(async i => {
-            let match = profile_items.find(j => j.id == i)
-            await profile_ref.child('items').child(match.key).update({ locked: true })
+        let selected_collection = collections[Number(selected_col)]
+        //re-verify on the live profile -- the click may come from a stale message
+        //after items were traded, scrapped, or the reward already claimed
+        let rewards = collectionReward({ user_profile })
+        if (!selected_collection || user_profile.effects?.[selected_collection.key] || !rewards[selected_collection.key]) {
+            const holdUp = new EmbedBuilder()
+                .setTitle("<:WhyNobodyBuy:589481340957753363> No money, no parts, no deal!")
+                .setDescription(selected_collection && user_profile.effects?.[selected_collection.key] ? "You've already claimed this collection's reward." : "You no longer have all the items needed to claim this collection.")
+            interaction.reply({ embeds: [holdUp], ephemeral: true })
+            return
+        }
+        //atomically flip the effect first so a double-click can't claim twice
+        let claimed = false
+        const claim_result = await profile_ref.child('effects').child(selected_collection.key).transaction(v => {
+            claimed = false
+            if (v) {
+                return //already claimed -> abort
+            }
+            claimed = true
+            return true
         })
-        await profile_ref.child('effects').child(selected_collection.key).set(true)
+        if (!(claimed && claim_result.committed)) {
+            const holdUp = new EmbedBuilder()
+                .setTitle("<:WhyNobodyBuy:589481340957753363> No money, no parts, no deal!")
+                .setDescription("You've already claimed this collection's reward.")
+            interaction.reply({ embeds: [holdUp], ephemeral: true })
+            return
+        }
+        //lock the specific live items that satisfy the collection
+        //(the chance cube needs 3 of each side; other collections one of each id)
+        let available = availableItemsforCollection({ user_profile })
+        let lock_keys = []
+        if (selected_collection.key == 'chance_cube') {
+            [95, 96].forEach(id => {
+                lock_keys.push(...available.filter(i => i.id == id).slice(0, 3).map(i => i.key))
+            })
+        } else {
+            [...new Set(selected_collection.items)].forEach(id => {
+                let match = available.find(i => i.id == id && !lock_keys.includes(i.key))
+                if (match) {
+                    lock_keys.push(match.key)
+                }
+            })
+        }
+        for (const lock_key of lock_keys) {
+            await profile_ref.child('items').child(lock_key).update({ locked: true })
+        }
         postMessage(interaction.client, interaction.channelId, { embeds: [collectionRewardEmbed({ key: selected_collection.key, name: botto_name, member_avatar })] })
         if (planets.map(p => p.name.toLowerCase().replaceAll(" ", "_")).includes(selected_collection.key)) {
             manageTruguts({ user_profile, profile_ref, transaction: 'd', amount: 100000 })
         }
     } else if (args[2] == 'name') {
         let selected_droid = iselection[2]?.[0]
-        let droid = user_profile.items[selected_droid]
+        let droid = selected_droid ? user_profile.items?.[selected_droid] : null
+        if (!droid) {
+            const holdUp = new EmbedBuilder()
+                .setTitle("<:WhyNobodyBuy:589481340957753363> Mind tricks don't work on me!")
+                .setDescription("No droid selected.")
+            interaction.reply({ embeds: [holdUp], ephemeral: true })
+            return
+        }
         if (interaction.isModalSubmit()) {
             let name = interaction.fields.getTextInputValue('name')
 
@@ -267,7 +365,12 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
     } else if (args[2] == 'task') {
         let selected_droid = iselection[2]?.[0]
         let selected_part = iselection[3]?.[0]
-        if ([null, undefined, ''].includes(selected_droid) || [null, undefined, ''].includes(selected_part)) {
+        //validate against the same list the selects were built from -- rejects
+        //page rows, 'no' placeholders, stale keys, and full-capacity droids
+        let repairable = availableItemsforRepairs({ user_profile })
+        let droid_ok = repairable.find(i => i.key == selected_droid && i.repair_speed)
+        let part_ok = repairable.find(i => i.key == selected_part && i.upgrade && i.health < 255)
+        if (!droid_ok || !part_ok) {
             const holdUp = new EmbedBuilder()
                 .setTitle("<:WhyNobodyBuy:589481340957753363> Mind tricks don't work on me!")
                 .setDescription("No droid or part selected.")
@@ -325,6 +428,26 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
             sponsorModal.addComponents(ActionRow1)
             await interaction.showModal(sponsorModal)
             return
+        }
+    } else if (args[2] == 'citizen') {
+        if (interaction.guild.id == swe1r_guild) {
+            const Member = await interaction.guild.members.fetch(member_id)
+            for (const p of planets) {
+                const planet_key = p.name.toLowerCase().replaceAll(" ", "_")
+                if (interaction.values.includes(p.role)) {
+                    //citizenship must be unlocked by completing the planet's collection
+                    if (!user_profile.effects?.[planet_key]) {
+                        const holdUp = new EmbedBuilder()
+                            .setTitle("<:WhyNobodyBuy:589481340957753363> Citizenship must be earned!")
+                            .setDescription(`Complete the ${p.name} Collection to unlock the ${p.citizen} role.`)
+                        interaction.reply({ embeds: [holdUp], ephemeral: true })
+                        return
+                    }
+                    await Member.roles.add(p.role).catch(error => console.log(error))
+                } else if (Member.roles.cache.some(r => r.id === p.role)) {
+                    await Member.roles.remove(p.role).catch(error => console.log(error))
+                }
+            }
         }
     } else if (args[2] == 'icon') {
         if (user_profile?.roles?.emoji && interaction.guild.id == swe1r_guild) {

@@ -1,10 +1,10 @@
-const { updateChallenge, playButton, isActive, expiredEmbed, challengeWinnings, getBest, goalTimeList, predictionScore, manageTruguts, currentTruguts, predictionAchievement, bountyAchievement, achievementEmbed, randomChallengeItem, challengeProgression, playerLevel, convertLevel, progressionReward } = require('./functions.js');
+const { updateChallenge, playButton, isActive, expiredEmbed, challengeWinnings, getBest, goalTimeList, predictionScore, manageTruguts, currentTruguts, predictionAchievement, bountyAchievement, achievementEmbed, randomChallengeItem, challengeProgression, playerLevel, convertLevel, progressionReward, fitField } = require('./functions.js');
 const { postMessage, editMessage } = require('../../discord.js');
 const { items } = require('../../data/challenge/item.js')
 const { raritysymbols } = require('../../data/challenge/rarity.js')
 
 const { EmbedBuilder } = require('discord.js');
-const { time_to_seconds, getRacerName } = require('../../generic.js');
+const { time_to_seconds } = require('../../generic.js');
 const { achievement_data } = require('../../data/challenge/achievement.js');
 const { swe1r_guild } = require('../../data/discord/guild.js');
 const { WhyNobodyBuy } = require('../../data/discord/emoji.js');
@@ -14,7 +14,16 @@ const { database, db } = require('../../firebase.js')
 exports.submit = async function ({ current_challenge, current_challenge_ref, interaction, member_id, member_avatar, user_key, user_profile, profile_ref, botto_name } = {}) {
     //get inputs
     let subtime = interaction.fields.getTextInputValue('challengeTime')
-    let subnotes = interaction.fields.getTextInputValue('challengeNotes').replace(/[^a-zA-Z0-9 ]/g, '')
+    // Notes render inside "-# *└ ...*" on the leaderboard, so only strip what would
+    // break that line or let a note reach beyond itself: markdown control
+    // characters, mention/link brackets, and newlines. Ordinary punctuation,
+    // accents, and emoji are kept. Mass-ping tokens are defanged rather than
+    // dropped so the text still reads.
+    let subnotes = String(interaction.fields.getTextInputValue('challengeNotes') ?? '')
+        .replace(/[`*_~|<>\\]/g, '')
+        .replace(/@(everyone|here)/gi, '$1')
+        .replace(/\s+/g, ' ')
+        .trim()
     let subproof = interaction.fields.getTextInputValue('challengeProof') ?? ""
     let subplatform = interaction.fields.getTextInputValue('challengePlatform') ?? ""
     let subrta = current_challenge.type == 'cotm' ? interaction.fields.getTextInputValue('challengeRTA') : ""
@@ -33,8 +42,10 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
         return
     }
 
-    //time doesn't make sense
-    if (isNaN(Number(subtime.replace(":", ""))) || time_to_seconds(subtime) == null) {
+    //time doesn't make sense -- time_to_seconds is the sole authority; it returns
+    //null for anything it can't parse (an extra isNaN pre-check used to reject
+    //valid formats it handles, notably any h:mm:ss time)
+    if (time_to_seconds(subtime) == null) {
         const holdUp = new EmbedBuilder()
             .setTitle(`${WhyNobodyBuy} Time Does Not Compute`)
             .setDescription("Your time was submitted in an incorrect format.")
@@ -129,6 +140,11 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
     if (current_challenge.hunt) {
         submissiondata.hunt = user_profile.hunt.bonus
     }
+
+    //items only drop on unplayed challenges -- check for a prior time on this
+    //configuration before the new submission is logged
+    const already_played = getBest(db, current_challenge).some(b => b.user == member_id)
+
     var newPostRef = challengetimeref.push(submissiondata);
     await current_challenge_ref.child("submissions").child(member_id).set({ id: newPostRef.key, player: member_id, time })
     if (['abandoned', 'private'].includes(current_challenge.type)) {
@@ -152,18 +168,21 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
 
     user_profile = manageTruguts({ user_profile, profile_ref, transaction: 'd', amount: winnings.earnings })
 
-    //award item
-    let earned_item = randomChallengeItem({ user_profile, profile_ref, current_challenge, db, member_id })
-    if (!user_profile.items) {
-        profile_ref.child('items').set('test')
+    //award item (only the first time a configuration is played)
+    let eitem = null
+    if (!already_played) {
+        let earned_item = randomChallengeItem({ user_profile, profile_ref, current_challenge, db, member_id })
+        eitem = { id: earned_item.id, challenge: interaction.message.id, date: Date.now() }
+        if (earned_item.upgrade) {
+            eitem = { ...eitem, health: earned_item.health, upgrade: earned_item.upgrade }
+        }
+        profile_ref.child('items').push(eitem)
     }
-    let eitem = { id: earned_item.id, challenge: interaction.message.id, date: Date.now() }
-    if (earned_item.upgrade) {
-        eitem = { ...eitem, health: earned_item.health, upgrade: earned_item.upgrade }
-    }
-    profile_ref.child('items').push(eitem)
 
-    let ern = { truguts_earned: winnings.earnings, player: member_id, item: eitem.id }
+    let ern = { truguts_earned: winnings.earnings, player: member_id }
+    if (eitem) {
+        ern.item = eitem.id
+    }
     if (winnings.sabotage) {
         ern.sabotage = winnings.sabotage
     }
@@ -277,7 +296,7 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
             let truguts = 0
             let items = []
             for (let i = level + 1; i < new_level + 1; i++) {
-                let reward = progressionReward({ racer: current_challenge.racer, level: new_level })
+                let reward = progressionReward({ racer: current_challenge.racer, level: i })
                 truguts += reward.truguts
                 if (reward.item) {
                     items.push(reward.item)
@@ -323,12 +342,14 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
         const receiptEmbed = new EmbedBuilder()
             .addFields({ name: 'Winnings', value: winnings.receipt, inline: true })
             .setFooter({ text: `Truguts: 📀${currentTruguts(user_profile)}` })
-            .addFields({ name: getRacerName(progress.racer), value: progress.summary, inline: true })
+            //the summary names the racer itself
+            .addFields({ name: 'Experience', value: fitField(progress.summary), inline: true })
 
-        if (![undefined, ""].includes(current_challenge.earnings?.[member_id]?.item)) {
-            let item = items.find(i => i.id == current_challenge.earnings[member_id].item)
-            let dup = user_profile.items ? Object.values(user_profile.items).filter(i => i.id == item.id).length > 1 ? true : false : false
-            receiptEmbed.addFields({ name: `${raritysymbols[item.rarity]} ${item.name}` + (item.health ? `[${Math.round(item.health * 100 / 255)} %]` : '') + (dup ? " (duplicate)" : ""), value: `*${item.description}*`, inline: true })
+        if (![undefined, ""].includes(eitem?.id)) {
+            //merge the instance over the base definition so the receipt shows the rolled health, not the stock 100%
+            let item = { ...items.find(i => i.id == eitem.id), ...eitem }
+            let dup = user_profile.items ? Object.values(user_profile.items).filter(i => i.id == item.id && ![i.used, i.fed, i.scrapped].some(f => f)).length > 1 : false
+            receiptEmbed.addFields({ name: `${raritysymbols[item.rarity]} ${item.name}` + (typeof item.health == 'number' ? ` [${Math.round(item.health * 100 / 255)}%]` : '') + (dup ? " (duplicate)" : ""), value: `*${item.description}*`, inline: true })
         }
 
         interaction.editReply({ embeds: [receiptEmbed], ephemeral: true })

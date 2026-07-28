@@ -12,7 +12,7 @@ exports.predict = async function ({ interaction, current_challenge, current_chal
     }
     if (interaction.isModalSubmit()) {
         let predictiontime = interaction.fields.getTextInputValue('predictionTime')
-        if (isNaN(Number(predictiontime.replace(":", ""))) || time_to_seconds(predictiontime) == null) { //incorrect time format
+        if (time_to_seconds(predictiontime) == null) { //incorrect time format
             const holdUp = new EmbedBuilder()
                 .setTitle("<:WhyNobodyBuy:589481340957753363> Time Does Not Compute")
                 .setDescription("Your time was submitted in an incorrect format.")

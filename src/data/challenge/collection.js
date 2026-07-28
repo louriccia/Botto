@@ -30,7 +30,7 @@ exports.collections = [
     {
         name: 'Poster Child',
         emoji: '✨',
-        reward: 'Pole Position - Unlock the option to color and display avatar as record holder',
+        reward: 'Pole Position - Your avatar and profile color are displayed on challenges where you hold the record',
         key: 'pole_position',
         items: [72, 73, 74, 75, 76, 77, 78, 79, 177]
     },
