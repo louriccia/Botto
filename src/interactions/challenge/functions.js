@@ -3622,11 +3622,8 @@ exports.sponsorComponents = function (user_profile) {
 }
 
 exports.validateTime = function (time) {
-    if (!time || isNaN(Number(time.replace(":", ""))) || time_to_seconds(time) == null) {
-        return ''
-    } else {
-        return time_to_seconds(time)
-    }
+    //time_to_seconds is the sole authority; it returns null for anything unparseable
+    return time_to_seconds(time) ?? ''
 }
 
 exports.easternTime = function () {

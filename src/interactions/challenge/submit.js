@@ -34,8 +34,10 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
         return
     }
 
-    //time doesn't make sense
-    if (isNaN(Number(subtime.replace(":", ""))) || time_to_seconds(subtime) == null) {
+    //time doesn't make sense -- time_to_seconds is the sole authority; it returns
+    //null for anything it can't parse (an extra isNaN pre-check used to reject
+    //valid formats it handles, notably any h:mm:ss time)
+    if (time_to_seconds(subtime) == null) {
         const holdUp = new EmbedBuilder()
             .setTitle(`${WhyNobodyBuy} Time Does Not Compute`)
             .setDescription("Your time was submitted in an incorrect format.")
