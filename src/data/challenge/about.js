@@ -16,7 +16,7 @@ exports.about = {
         name: "Predictions", emoji: "🔮", desc: "While a private challenge is in progress, onlookers can guess what time the current challenger is going to get and submit a prediction by clicking 🔮. The closer a prediction is to the submitted time (without underbidding), the more truguts earned. You can disable predictions on your private challenges in your random challenge settings."
     },
     bribes: {
-        name: "Bribes", emoji: "💰", desc: "If you slip a few truguts under the table, Botto will let you change the track and/or racer to any active challenge once. Bribes are useful for finding achievement-specific challenges, bounties, or beating the awful RNG. Submitting a bribe will reset the 15 minute timer on private challenges."
+        name: "Bribes", emoji: "💰", desc: "If you slip a few truguts under the table, Botto will let you change the track and/or racer to any active challenge once. Bribes are useful for finding achievement-specific challenges, bounties, or beating the awful RNG. Submitting a bribe will reset the 15 minute timer on private challenges. Completing the **Arrow Dynamics** collection also unlocks condition bribes (no upgrades, mirror, backwards, skips, and lap count)."
     },
     hints: {
         name: "Hints", emoji: "💡", desc: "Hints can be used to help figure out what challenges remain for specific achievements. There are 3 tiers of hints, ranging from giving a 1-part hint to a 3-part hint. The hints often apply to more than one track or racer, but if you're feeling lucky there's a chance that a 1-part hint is specific enough to guide you to the right challenge."

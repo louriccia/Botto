@@ -429,6 +429,26 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
             await interaction.showModal(sponsorModal)
             return
         }
+    } else if (args[2] == 'citizen') {
+        if (interaction.guild.id == swe1r_guild) {
+            const Member = await interaction.guild.members.fetch(member_id)
+            for (const p of planets) {
+                const planet_key = p.name.toLowerCase().replaceAll(" ", "_")
+                if (interaction.values.includes(p.role)) {
+                    //citizenship must be unlocked by completing the planet's collection
+                    if (!user_profile.effects?.[planet_key]) {
+                        const holdUp = new EmbedBuilder()
+                            .setTitle("<:WhyNobodyBuy:589481340957753363> Citizenship must be earned!")
+                            .setDescription(`Complete the ${p.name} Collection to unlock the ${p.citizen} role.`)
+                        interaction.reply({ embeds: [holdUp], ephemeral: true })
+                        return
+                    }
+                    await Member.roles.add(p.role).catch(error => console.log(error))
+                } else if (Member.roles.cache.some(r => r.id === p.role)) {
+                    await Member.roles.remove(p.role).catch(error => console.log(error))
+                }
+            }
+        }
     } else if (args[2] == 'icon') {
         if (user_profile?.roles?.emoji && interaction.guild.id == swe1r_guild) {
             const Member = await interaction.guild.members.fetch(member_id)

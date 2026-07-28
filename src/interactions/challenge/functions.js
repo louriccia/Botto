@@ -1107,7 +1107,12 @@ exports.updateChallenge = async function ({ client, db, user_profile, current_ch
 
     if (current_challenge.type == 'private') {
         current_challenge = exports.getBounty(current_challenge, db)
-        current_challenge.reroll_cost = (player_profile.effects?.free_rerolls || current_challenge.sponsors?.[player] || record_holder) ? "free" : played ? "discount" : "full price"
+        //Citizenship: free rerolls on the citizen planet's tracks while its role is equipped
+        const challenge_planet = planets[tracks[current_challenge.track]?.planet]
+        const citizen = challenge_planet
+            && player_profile?.effects?.[challenge_planet.name.toLowerCase().replaceAll(" ", "_")]
+            && Object.values(Object.values(db.user).find(u => u.discordID == player)?.discord?.roles ?? {}).includes(challenge_planet.role)
+        current_challenge.reroll_cost = (player_profile.effects?.free_rerolls || citizen || current_challenge.sponsors?.[player] || record_holder) ? "free" : played ? "discount" : "full price"
     }
 
     if (current_challengeref) {
@@ -1131,7 +1136,7 @@ exports.rerollReceipt = function (current_challenge, user_profile) {
     let reroll_cost = current_challenge.reroll_cost
     let free = user_profile?.effects?.free_rerolls
     return {
-        receipt: free ? 'FREE REROLLS FOR LIFE' : reroll_cost == 'discount' ? "-📀" + number_with_commas(truguts.reroll_discount) + " (discounted)" : (reroll_cost == 'free' ? "(no charge for record holders)" : "-📀" + number_with_commas(truguts.reroll)),
+        receipt: free ? 'FREE REROLLS FOR LIFE' : reroll_cost == 'discount' ? "-📀" + number_with_commas(truguts.reroll_discount) + " (discounted)" : (reroll_cost == 'free' ? "(no charge)" : "-📀" + number_with_commas(truguts.reroll)),
         cost: free ? 0 : reroll_cost == 'discount' ? truguts.reroll_discount : (reroll_cost == 'free' ? 0 : truguts.reroll)
     }
 }
@@ -1282,6 +1287,17 @@ exports.challengeEmbed = async function ({ current_challenge, user_profile, prof
             challengeEmbed.addFields({ name: exports.itemString({ item, user_profile }), value: `*${item.description}*`, inline: true })
         }
 
+    }
+
+    //Pole Position: the record holder's avatar and profile color are displayed on the challenge
+    const pole_holder = best?.[0] ? Object.values(db.user).find(u => u.discordID == best[0].user) : null
+    if (pole_holder?.random?.effects?.pole_position && !current_challenge.completed && !current_challenge.rerolled) {
+        if (pole_holder.avatar) {
+            challengeEmbed.setThumbnail(pole_holder.avatar)
+        }
+        if (/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(pole_holder.random.color ?? '')) {
+            challengeEmbed.setColor(pole_holder.random.color)
+        }
     }
     return challengeEmbed
 }
@@ -1514,13 +1530,34 @@ exports.partSelector = function ({ customid, placeholder, min, max, descriptions
     return [partCategoryRow, partSelectRow]
 }
 
-exports.bribeComponents = function (current_challenge) {
+exports.bribeComponents = function (current_challenge, user_profile) {
     let components = []
     if (!current_challenge.track_bribe) {
         components.push(...exports.trackSelector({ customid: 'challenge_random_bribe_track', placeholder: "Bribe Track (📀" + number_with_commas(truguts.bribe_track) + ")", min: 1, max: 1 }))
     }
     if (!current_challenge.racer_bribe) {
         components.push(...exports.racerSelector({ customid: 'challenge_random_bribe_racer', placeholder: "Bribe Racer (📀" + number_with_commas(truguts.bribe_racer) + ")", min: 1, max: 1 }))
+    }
+    //Altered Deal: unlocks condition bribes (one per challenge, like track/racer)
+    if (user_profile?.effects?.altered_deal && !current_challenge.condition_bribe) {
+        const c = current_challenge.conditions ?? {}
+        const options = [
+            { label: `${c.nu ? 'Remove' : 'Add'} No Upgrades`, value: 'nu', emoji: { name: '🔧' } },
+            { label: `${c.mirror ? 'Remove' : 'Add'} Mirror Mode`, value: 'mirror', emoji: { name: '🪞' } },
+            { label: `${c.backwards ? 'Remove' : 'Add'} Backwards`, value: 'backwards', emoji: { name: '🔙' } },
+        ]
+        if (tracks[current_challenge.track]?.parskiptimes) {
+            options.push({ label: `${c.skips ? 'Remove' : 'Add'} Skips`, value: 'skips', emoji: { name: '⏭' } })
+        }
+        ;[1, 2, 3, 4, 5].filter(l => l !== (c.laps ?? 3)).forEach(l => {
+            options.push({ label: `${l} Lap${l > 1 ? 's' : ''}`, value: `laps_${l}`, emoji: { name: '🔁' } })
+        })
+        components.push(new ActionRowBuilder().addComponents(new StringSelectMenuBuilder()
+            .setCustomId('challenge_random_bribe_condition')
+            .setPlaceholder("Bribe Conditions (📀" + number_with_commas(truguts.bribe_track) + ")")
+            .setMinValues(1)
+            .setMaxValues(1)
+            .addOptions(...options)))
     }
     return components
 }
@@ -2325,7 +2362,7 @@ exports.inventoryComponents = function ({ user_profile, selection, db, interacti
     } else if (selection[1]?.[0] == 'roles') {
 
         const citizen_select = new StringSelectMenuBuilder()
-            .setCustomId('challenge_random_inventory_2')
+            .setCustomId('challenge_random_inventory_citizen')
             .setPlaceholder("Citizen roles")
             .setMinValues(0)
             .setMaxValues(1)
