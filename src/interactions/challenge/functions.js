@@ -1309,7 +1309,8 @@ exports.challengeEmbed = async function ({ current_challenge, user_profile, prof
 
 
         challengeEmbed
-            .addFields({ name: getRacerName(progression.racer), value: progression.summary, inline: true })
+            //numeric index -> local racers array (getRacerName expects an API string id)
+            .addFields({ name: racers[progression.racer] ? `${racers[progression.racer].flag} ${racers[progression.racer].name}` : getRacerName(progression.racer), value: progression.summary, inline: true })
 
         if (![undefined, ""].includes(current_challenge.earnings?.[member]?.item)) {
             let item = items.find(i => i.id == current_challenge.earnings[member].item)
@@ -1460,12 +1461,10 @@ exports.challengeContainer = async function ({ current_challenge, user_profile, 
     }
 
     let goals = exports.goalTimeList(current_challenge, user_profile, best)
+    const completed_view = current_challenge.completed && ['private', 'abandoned'].includes(current_challenge.type)
+
+    //Leaderboard leads every view; Pole Position's avatar sits beside it
     container.addSeparatorComponents(new SeparatorBuilder())
-    if (current_challenge.completed && ['private', 'abandoned'].includes(current_challenge.type)) {
-        let winnings = exports.challengeWinnings({ current_challenge, user_profile, profile_ref, submitted_time, best, goals, member, db })
-        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**Winnings**\n${winnings.receipt.slice(0, 1000)}`))
-    }
-    //Pole Position: the record holder's avatar sits beside the leaderboard
     const leaderboard_text = new TextDisplayBuilder().setContent(`**Leaderboard**\n${exports.challengeLeaderboardV2({ current_challenge, best, member, db, goals }).slice(0, 1500)}`)
     if (pole?.avatar) {
         container.addSectionComponents(new SectionBuilder().addTextDisplayComponents(leaderboard_text).setThumbnailAccessory(new ThumbnailBuilder().setURL(pole.avatar)))
@@ -1473,12 +1472,24 @@ exports.challengeContainer = async function ({ current_challenge, user_profile, 
         container.addTextDisplayComponents(leaderboard_text)
     }
 
-    if (current_challenge.completed && ['private', 'abandoned'].includes(current_challenge.type)) {
+    if (completed_view) {
+        //each remaining section gets its own separator and heading
+        let winnings = exports.challengeWinnings({ current_challenge, user_profile, profile_ref, submitted_time, best, goals, member, db })
+        container.addSeparatorComponents(new SeparatorBuilder())
+        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**Winnings**\n${winnings.receipt.slice(0, 1000)}`))
+
         let progression = exports.challengeProgression({ current_challenge, submitted_time, goals, user_profile })
-        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**${getRacerName(progression.racer)}**\n${progression.summary}`))
+        //progression.racer is a numeric index into the local racers array --
+        //getRacerName() looks up the API cache by string id and would yield '--'
+        const prog_racer = racers[progression.racer]
+        const prog_name = prog_racer ? `${prog_racer.flag} ${prog_racer.name}` : getRacerName(progression.racer)
+        container.addSeparatorComponents(new SeparatorBuilder())
+        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**Experience**\n${prog_name}\n${progression.summary}`))
+
         if (![undefined, ""].includes(current_challenge.earnings?.[member]?.item)) {
             let item = items.find(i => i.id == current_challenge.earnings[member].item)
-            container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**${exports.itemString({ item, user_profile })}**\n*${item.description}*`))
+            container.addSeparatorComponents(new SeparatorBuilder())
+            container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**Item Reward**\n${exports.itemString({ item, user_profile })}\n*${item.description}*`))
         }
     }
 

@@ -1,6 +1,7 @@
 const { updateChallenge, playButton, isActive, expiredEmbed, challengeWinnings, getBest, goalTimeList, predictionScore, manageTruguts, currentTruguts, predictionAchievement, bountyAchievement, achievementEmbed, randomChallengeItem, challengeProgression, playerLevel, convertLevel, progressionReward } = require('./functions.js');
 const { postMessage, editMessage } = require('../../discord.js');
 const { items } = require('../../data/challenge/item.js')
+const { racers } = require('../../data/sw_racer/racer.js')
 const { raritysymbols } = require('../../data/challenge/rarity.js')
 
 const { EmbedBuilder } = require('discord.js');
@@ -331,7 +332,8 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
         const receiptEmbed = new EmbedBuilder()
             .addFields({ name: 'Winnings', value: winnings.receipt, inline: true })
             .setFooter({ text: `Truguts: 📀${currentTruguts(user_profile)}` })
-            .addFields({ name: getRacerName(progress.racer), value: progress.summary, inline: true })
+            //numeric index -> local racers array (getRacerName expects an API string id)
+            .addFields({ name: racers[progress.racer] ? `${racers[progress.racer].flag} ${racers[progress.racer].name}` : getRacerName(progress.racer), value: progress.summary, inline: true })
 
         if (![undefined, ""].includes(eitem?.id)) {
             //merge the instance over the base definition so the receipt shows the rolled health, not the stock 100%
