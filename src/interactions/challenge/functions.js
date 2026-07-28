@@ -1298,7 +1298,7 @@ exports.challengeProgression = function ({ current_challenge, submitted_time, go
     let levelup = previous_level.level !== level.level
     let rewards = []
     for (let i = previous_level.level + 1; i < level.level + 1; i++) {
-        rewards.push(exports.progressionReward({ racer: current_challenge.racer, level: level.level }))
+        rewards.push(exports.progressionReward({ racer: current_challenge.racer, level: i }))
     }
     let nextreward = exports.progressionReward({ racer: current_challenge.racer, level: level.level + 1 })
     return {

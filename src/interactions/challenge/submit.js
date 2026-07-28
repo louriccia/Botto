@@ -277,7 +277,7 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
             let truguts = 0
             let items = []
             for (let i = level + 1; i < new_level + 1; i++) {
-                let reward = progressionReward({ racer: current_challenge.racer, level: new_level })
+                let reward = progressionReward({ racer: current_challenge.racer, level: i })
                 truguts += reward.truguts
                 if (reward.item) {
                     items.push(reward.item)
