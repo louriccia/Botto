@@ -3541,8 +3541,8 @@ exports.currentTruguts = function (user_profile) {
     return number_with_commas(user_profile.truguts_earned - user_profile.truguts_spent)
 }
 
-exports.randomChallengeItem = function ({ user_profile, current_challenge, db, member, coffer, sarlacc } = {}) {
-    const challenges_completed = Object.values(db.ch.times).filter(time => time.user == member).length
+exports.randomChallengeItem = function ({ user_profile, current_challenge, db, member_id, coffer, sarlacc } = {}) {
+    const challenges_completed = Object.values(db.ch.times).filter(time => time.user == member_id).length
     let item_pool = []
     let special_items = ['collectible_coffer', 'trugut_boost', 'sabotage_kit'].map(id => items.find(i => i.id == id)).filter(Boolean)
     items.forEach(item => {
@@ -3553,27 +3553,25 @@ exports.randomChallengeItem = function ({ user_profile, current_challenge, db, m
 
     //item rarity roll
     const rarity = Math.random()
+    const tiers = ['common', 'uncommon', 'rare', 'legendary']
+    let tier = rarity < 0.60 ? 0 : rarity < 0.85 ? 1 : rarity < 0.95 ? 2 : 3
     let rarity_pool = []
-    if (rarity < 0.60) {
-        rarity_pool = item_pool.filter(i => i.rarity == 'common')
-    } else if (rarity < 0.85) {
-        rarity_pool = item_pool.filter(i => i.rarity == 'uncommon')
-    } else if (rarity < 0.95) {
-        rarity_pool = item_pool.filter(i => i.rarity == 'rare')
-    } else {
-        rarity_pool = item_pool.filter(i => i.rarity == 'legendary')
-    }
 
-    //if no items are available of rolled rarity, default to common
+    //if no items are available of the rolled rarity, cascade down the tiers
+    for (let t = tier; t >= 0 && rarity_pool.length == 0; t--) {
+        rarity_pool = item_pool.filter(i => i.rarity == tiers[t])
+    }
+    //last resort: anything in the pool
     if (rarity_pool.length == 0) {
-        rarity_pool = item_pool.filter(i => i.rarity == 'common')
+        rarity_pool = item_pool
     }
 
     //get random item
     let random_item = rarity_pool[Math.floor(Math.random() * rarity_pool.length)]
 
     //if it's a dup, there's a chance it will be replaced with a new item
-    let owned_ids = user_profile.items ? Object.values(user_profile.items).map(item => item.id) : []
+    //(only live items count -- scrapped/fed/used copies aren't dups)
+    let owned_ids = user_profile.items ? Object.values(user_profile.items).filter(item => exports.usableItem({ item })).map(item => item.id) : []
     if (owned_ids.includes(random_item.id) && Math.random() < (sarlacc || user_profile.effects?.favor_ancients ? 0.85 : 0.15)) {
         let new_pool = rarity_pool.filter(item => !owned_ids.includes(item.id))
         if (new_pool.length) {
@@ -3584,18 +3582,26 @@ exports.randomChallengeItem = function ({ user_profile, current_challenge, db, m
         }
     }
 
-    if (random_item.health) {
-        random_item.health = Math.floor(Math.random() * 256)
+    //clone before setting health -- item_pool holds references to the shared
+    //definitions in data/challenge/item.js, and writing through would corrupt
+    //them for every later roll (a rolled 0 would even stick permanently)
+    if (random_item.upgrade) {
+        random_item = { ...random_item, health: Math.floor(Math.random() * 256) }
     }
 
     return random_item
 }
 
-exports.openCoffer = function ({ user_profile, db, member } = {}) {
+exports.openCoffer = function ({ user_profile, db, member_id } = {}) {
     let coffer_items = []
 
+    //grow the owned-items snapshot as we roll so the duplicate-avoidance
+    //logic can see the items granted earlier in this same coffer
+    let rolling_profile = { ...user_profile, items: { ...(user_profile.items ?? {}) } }
     for (let j = 0; j < 4; j++) {
-        coffer_items.push(exports.randomChallengeItem({ user_profile, current_challenge: null, db, member, coffer: true }))
+        let rolled = exports.randomChallengeItem({ user_profile: rolling_profile, current_challenge: null, db, member_id, coffer: true })
+        rolling_profile.items[`coffer_roll_${j}`] = { id: rolled.id }
+        coffer_items.push(rolled)
     }
 
     return coffer_items
