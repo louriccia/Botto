@@ -1556,23 +1556,37 @@ exports.challengeProgression = function ({ current_challenge, submitted_time, go
     //flatten reward strings -- they carry a newline between truguts and item
     const flat = s => String(s).replace(/\n/g, ' ')
 
-    //two labelled lines: this racer's level, then the overall player level.
+    //two labelled blocks: this racer's level, then the overall player level.
     //the player bar advances on the fraction of the racer-level average, so it
     //visibly creeps toward the next rank as any racer gains points.
     const player = exports.playerLevel(user_profile.progression)
+    //the same average before this submission, for the movement readout
+    const previous_player = exports.playerLevel(
+        Object.values(user_profile.progression).map((v, i) => i == current_challenge.racer ? v - points : v)
+    )
+    const moved = Math.round((player.average - previous_player.average) * 100)
+
     const racer = racers[current_challenge.racer]
-    const racer_bar = exports.progressBar({ value: level.sublevel, max: level.nextlevel, width: 8 })
-    const player_bar = exports.progressBar({ value: player.progress, max: 1, width: 8 })
+    const racer_bar = exports.progressBar({
+        value: level.sublevel,
+        //a level-up resets the scale, so everything showing is newly earned
+        previous: levelup ? 0 : previous_level.sublevel,
+        max: level.nextlevel, width: 8
+    })
+    const player_bar = exports.progressBar({ value: player.progress, previous: previous_player.progress, max: 1, width: 8 })
 
     return {
         racer: current_challenge.racer,
         medal,
         points,
         summary:
-            `${racer?.flag ?? ''} **${racer?.name ?? 'Racer'}** · Racer Lv ${level.level + 1} \`${racer_bar}\` \`${level.sublevel}/${level.nextlevel}\`` +
+            `${racer?.flag ?? ''} **${racer?.name ?? 'Racer'}** · Racer Lv ${level.level + 1} \`${level.sublevel}/${level.nextlevel}\`` +
             `${points ? ` \`+${points}\`${medal}` : ''}\n` +
-            `${player.symbol} **${player.title}** · Player Lv ${player.level} \`${player_bar}\` \`${Math.floor(player.progress * 100)}%\`\n` +
-            `${levelup ? `<a:guidearrow:891128437354401842> **LEVEL UP** ${rewards.map(r => flat(r.string)).join(' ')}\n` : ''}` +
+            `\`${racer_bar}\`${levelup ? ` <a:guidearrow:891128437354401842> **LEVEL UP** ${rewards.map(r => flat(r.string)).join(' ')}` : ''}\n` +
+            `\n` +
+            `${player.symbol} **${player.title}** · Player Lv ${player.level} \`${Math.floor(player.progress * 100)}%\`` +
+            `${moved > 0 ? ` \`+${moved}%\`` : ''}\n` +
+            `\`${player_bar}\`\n` +
             `-# Racer levels average into your player level · next racer reward ${flat(nextreward.string)}`
     }
 }
@@ -3013,7 +3027,15 @@ exports.playerLevel = function (progression) {
     function average(array) {
         return array.reduce((x, y) => x + y) / array.length
     }
-    const racer_levels = Object.values(progression).map(r => exports.convertLevel(r)?.level)
+    //Average *fractional* racer levels (level + progress through it) rather than
+    //whole levels. Averaging whole levels discarded sub-level progress, so the
+    //player level only ever moved when some racer crossed a level -- making it
+    //impossible to see a rank approaching. A fractional average is never lower
+    //than the whole-level one, so this can only ever raise a player's level.
+    const racer_levels = Object.values(progression).map(r => {
+        const l = exports.convertLevel(r)
+        return l.level + (l.nextlevel > 0 ? l.sublevel / l.nextlevel : 0)
+    })
     const avg = average(racer_levels)
     let level = Math.floor(avg)
     return {
@@ -3029,12 +3051,19 @@ exports.playerLevel = function (progression) {
     }
 }
 
-//a compact filled/empty block meter
-exports.progressBar = function ({ value = 0, max = 1, width = 8 } = {}) {
-    const ratio = max > 0 ? Math.min(1, Math.max(0, value / max)) : 0
-    //floor so the bar only reads full at an actual 100%
-    const filled = Math.min(width, Math.floor(ratio * width))
-    return '▰'.repeat(filled) + '▱'.repeat(width - filled)
+//a compact block meter. pass `previous` to render the segments earned by this
+//challenge in a distinct glyph, so players can see what they just gained:
+//  ▰ held before   ▨ gained now   ▱ still to earn
+exports.progressBar = function ({ value = 0, previous = null, max = 1, width = 8 } = {}) {
+    const segments = v => {
+        const ratio = max > 0 ? Math.min(1, Math.max(0, v / max)) : 0
+        //floor so the bar only reads full at an actual 100%
+        return Math.min(width, Math.floor(ratio * width))
+    }
+    const filled = segments(value)
+    //a level-up resets the scale, so clamp: everything filled now counts as new
+    const before = previous == null ? filled : Math.min(filled, segments(previous))
+    return '▰'.repeat(before) + '▨'.repeat(filled - before) + '▱'.repeat(width - filled)
 }
 
 exports.convertLevel = function (int) {
