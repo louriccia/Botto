@@ -1425,7 +1425,10 @@ exports.challengeContainer = async function ({ current_challenge, user_profile, 
     }
     container.setAccentColor(parseInt(String(accent).replace('#', ''), 16))
 
-    const thumbnail = current_challenge.type == 'private' ? avatar : null
+    //the track map is the card's thumbnail (cotm carries an array of tracks, so
+    //fall back to the first one); the player avatar no longer appears here
+    const thumb_track = Array.isArray(current_challenge.track) ? current_challenge.track[0] : current_challenge.track
+    const thumbnail = tracks[thumb_track]?.preview ?? null
     const headers = [
         new TextDisplayBuilder().setContent(`-# **${authormap[current_challenge.type]}**`),
         new TextDisplayBuilder().setContent(`### ${title}`)
