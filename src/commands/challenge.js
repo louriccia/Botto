@@ -28,6 +28,11 @@ module.exports = {
         )
         .addSubcommand(subcommand =>
             subcommand
+                .setName('leaderboard')
+                .setDescription('Browse the best random challenge times by track, conditions, and pod')
+        )
+        .addSubcommand(subcommand =>
+            subcommand
                 .setName('map')
                 .setDescription('Visualize a map of every possible challenge')
         ),

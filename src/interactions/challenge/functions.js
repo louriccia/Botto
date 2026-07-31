@@ -2025,8 +2025,16 @@ exports.menuComponents = function () {
     //         .setEmoji('⚙️')
     // )
 
+    const row2 = new ActionRowBuilder()
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId("challenge_random_leaderboard")
+                .setLabel("Leaderboard")
+                .setStyle(ButtonStyle.Secondary)
+                .setEmoji('🏆')
+        )
 
-    return [row1]
+    return [row1, row2]
 }
 
 exports.shopOptions = function ({ user_profile, player, db, selection } = {}) {
