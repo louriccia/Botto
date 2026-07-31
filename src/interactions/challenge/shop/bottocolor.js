@@ -3,6 +3,7 @@
 const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, AttachmentBuilder } = require('discord.js');
 const Jimp = require('jimp');
 const fs = require('fs');
+const path = require('path');
 const { swe1r_guild } = require('../../../data/discord/guild.js');
 
 exports.bottocolor = async function ({ interaction, member_id } = {}) {
@@ -27,10 +28,12 @@ exports.bottocolor = async function ({ interaction, member_id } = {}) {
         let role = await SWE1R_Guild.roles.cache.get('1144077932021686272')
         role.edit({ color: color })
 
-        const avatarColorURL = 'https://cdn.discordapp.com/attachments/1135800422066556940/1160326500957028422/botto_color.png';
-        const avatarWhiteURL = 'https://cdn.discordapp.com/attachments/1135800422066556940/1160326538324103228/botto_white.png'
-        const avatarColor = await Jimp.read(avatarColorURL);
-        const avatarWhite = await Jimp.read(avatarWhiteURL)
+        // Bundled locally - Discord rotates the signature on CDN attachment
+        // links, so hotlinking them eventually 404s.
+        const avatarColorPath = path.join(__dirname, '../../../resources/img/botto_color.png');
+        const avatarWhitePath = path.join(__dirname, '../../../resources/img/botto_white.png');
+        const avatarColor = await Jimp.read(avatarColorPath);
+        const avatarWhite = await Jimp.read(avatarWhitePath)
 
         avatarColor.color([{ apply: 'mix', params: [color, 100] }]);
 
