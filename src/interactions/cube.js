@@ -988,3 +988,6 @@ module.exports = {
 };
 
 module.exports.isUnlocked = isUnlocked;
+// Shared with the Activity's entry-point command, so a player who hasn't built a cube gets the
+// same answer whichever way they come at it.
+module.exports.lockedEmbed = lockedEmbed;
