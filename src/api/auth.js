@@ -85,8 +85,9 @@ exports.tokenHandler = ctx => async function (req, res) {
         return res.status(400).json({ error: 'Missing code.' });
     }
     let discordUser;
+    let discordToken;
     try {
-        ({ user: discordUser } = await exchange(code));
+        ({ user: discordUser, access: discordToken } = await exchange(code));
     } catch (err) {
         // Discord's own message is not something to hand a browser verbatim, and a failed
         // exchange is a failed exchange whatever the reason.
@@ -99,7 +100,15 @@ exports.tokenHandler = ctx => async function (req, res) {
 
     const token = jwt.sign({ discordId: discordUser.id, userKey }, JWT_SECRET, { expiresIn: TOKEN_TTL });
     return res.json({
+        // Ours, for this API. Signed with CUBE_JWT_SECRET and meaningless to anyone else.
         token,
+        // **Discord's**, for `sdk.commands.authenticate()`. The SDK hands it straight back to
+        // Discord, which validates it against `/oauth2/@me` — so our JWT cannot stand in for it,
+        // and passing one there is a 401 every time.
+        //
+        // Returning it is the documented flow rather than a leak: the client is what obtained the
+        // code in the first place, and the scope is `identify` and nothing else.
+        accessToken: discordToken,
         user: {
             id: discordUser.id,
             username: name,
