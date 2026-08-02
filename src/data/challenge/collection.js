@@ -58,7 +58,7 @@ exports.collections = [
     {
         name: 'Red vs Blue',
         emoji: '🟥',
-        reward: "Botto's Chance Cube - Unlocks a chance cube betting minigame",
+        reward: "Chuba Cubes - Unlocks a chance cube betting minigame",
         key: 'chance_cube',
         items: [96, 96, 96, 95, 95, 95]
     },
