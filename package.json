@@ -8,7 +8,7 @@
   },
   "main": "/src/bot.js",
   "scripts": {
-    "start": "node page.js"
+    "start": "node --max-old-space-size=4096 src/bot.js"
   },
   "author": "",
   "license": "ISC",
