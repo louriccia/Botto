@@ -44,6 +44,7 @@ const orig = require('../src/interactions/cube/functions.js');
 const engine = require('../src/game/cube/engine.js');
 const pstate = require('../src/game/cube/state.js');
 const { faceGlyph } = require('../src/data/discord/cube_emoji.js');
+const { renderNote, renderNotes } = require('../src/data/discord/cube_notes.js');
 const { SPECIALS } = require('../src/game/cube/tuning.js');
 
 const ROLLS = Number(process.argv[2]) || 50000;
@@ -296,8 +297,16 @@ for (let i = 0; i < ROLLS; i++) {
             }
         }
 
-        // A note per event, in the same order, even though their contents differ in shape.
-        if (!same(i, w('notes.length'), B.notes.length, A.notes.length)) bad = true;
+        // **The notes, rendered back to prose and compared character for character.** This is the
+        // completeness check on the structured note schema: if a kind ever forgot to carry a
+        // count, a side or a source face, the sentence it produces would differ from the one the
+        // original wrote, and nothing else in this script would notice.
+        if (!same(i, w('notes'), renderNotes(B.notes), A.notes)) bad = true;
+
+        // The steps carry their own note, and the reveal draws that one rather than the list.
+        for (let s = 0; s < Math.min(A.steps.length, B.steps.length); s++) {
+            if (!same(i, w(`steps[${s}].note`), renderNote(B.steps[s].note), A.steps[s].note)) bad = true;
+        }
 
         // The multiplier walk replayed, which is where `multSteps` is exercised at all.
         const msA = orig.multSteps(2, A.pays, A.majority);
@@ -306,6 +315,7 @@ for (let i = 0; i < ROLLS; i++) {
         for (let m = 0; m < Math.min(msA.length, msB.length); m++) {
             if (!same(i, w(`multSteps[${m}].multiple`), msB[m].multiple, msA[m].multiple)) bad = true;
             if (!same(i, w(`multSteps[${m}].paid`), msB[m].paid, msA[m].paid)) bad = true;
+            if (!same(i, w(`multSteps[${m}].note`), renderNote(msB[m].note), msA[m].note)) bad = true;
         }
 
         // Invariants worth asserting on their own, because they are the contracts the port most
