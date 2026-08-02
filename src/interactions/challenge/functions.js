@@ -22,9 +22,9 @@ const { items } = require('../../data/challenge/item.js')
 const { collections } = require('../../data/challenge/collection.js')
 const { levels } = require('../../data/challenge/level.js')
 const { raritysymbols } = require('../../data/challenge/rarity.js')
-const { emojimap, goal_symbols, level_symbols, console_emojis } = require('../../data/discord/emoji.js')
+const { emojimap, goal_symbols, level_symbols, console_emojis, bar_segments } = require('../../data/discord/emoji.js')
 const { postMessage } = require('../../discord.js')
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } = require('discord.js');
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ContainerBuilder, TextDisplayBuilder, SectionBuilder, ThumbnailBuilder, MediaGalleryBuilder, MediaGalleryItemBuilder, SeparatorBuilder, MessageFlags } = require('discord.js');
 const moment = require('moment');
 require('moment-timezone')
 const { achievement_data } = require('../../data/challenge/achievement.js')
@@ -235,6 +235,7 @@ exports.initializeChallenge = function ({ user_profile, member_id, type, name, a
     let challenge = {
         type: type,
         created: Date.now(),
+        v2: true, //render with components v2 (see challengeContainer)
 
         // completed: false,
         // rerolled: false,
@@ -367,7 +368,7 @@ exports.generateChallengeDescription = function ({ current_challenge, db, user_p
 
     let formercotd = Object.values(db.ch.challenges).filter(challenge => challenge.created < current_challenge.created && challenge.type == 'cotd').map((c, i) => { return { index: i, ...c } }).filter(c => exports.matchingChallenge(c, current_challenge)) ?? null
     if (formercotd.length) {
-        desc += `\n Former :game_die: *Random Challenge of the Day*\n${formercotd.map(c => `[COTD #${c.index}](<${c.url}>)`).join(", ")}`
+        desc += `\n Former :game_die: *Random Challenge of the Day*\n${formercotd.map(c => `[#${c.index}](<${c.url}>)`).join(", ")}`
     }
 
     if (current_challenge.conditions.backwards) {
@@ -401,6 +402,12 @@ exports.generateChallengeDescription = function ({ current_challenge, db, user_p
     }
     if (current_challenge.track_bribe) {
         desc += crossout + "\n💰 (Track) `-📀" + number_with_commas(truguts.bribe_track) + "`" + crossout
+    }
+    if (current_challenge.condition_bribe) {
+        //condition_bribe holds the list of changed conditions (older challenges may have `true`)
+        const changed = typeof current_challenge.condition_bribe == 'object' ? Object.values(current_challenge.condition_bribe) : []
+        const condition_names = { nu: 'No Upgrades', skips: 'Skips', mirror: 'Mirror', backwards: 'Backwards', laps: 'Laps' }
+        desc += crossout + "\n💰 (" + (changed.length ? changed.map(k => condition_names[k] ?? k).join(", ") : 'Conditions') + ") `-📀" + number_with_commas(Math.max(changed.length, 1) * truguts.bribe_track) + "`" + crossout
     }
     return desc
 }
@@ -826,7 +833,65 @@ exports.goalTimeRank = function ({ submitted_time, goals }) {
     return goals.times.filter(g => Number(submitted_time.time) - Number(g) > 0).length
 }
 
-exports.challengeWinnings = function ({ current_challenge, submitted_time, user_profile, best, goals, member } = {}) {
+//Right-align the amount column of a receipt, like the stock market's trade
+//confirmations. Each line leads with a `code span` holding the amount (optionally
+//wrapped in ** for totals); pad those to a common width so the figures line up.
+//Widths are measured in code points so the 📀 glyph counts as one character.
+exports.alignReceipt = function (text) {
+    const leading = /^(\*\*)?`([^`]*)`/
+    const cellWidth = l => {
+        const m = l.match(leading)
+        return m ? Array.from(m[2]).length : -1
+    }
+    const lines = String(text ?? '').split('\n')
+    const width = Math.max(-1, ...lines.map(cellWidth))
+    if (width < 0) {
+        return text
+    }
+    return lines.map(l => {
+        const m = l.match(leading)
+        if (!m) {
+            return l
+        }
+        const pad = ' '.repeat(Math.max(0, width - Array.from(m[2]).length))
+        return l.replace(leading, `${m[1] ?? ''}\`${pad}${m[2]}\``)
+    }).join('\n')
+}
+
+//Fit text into an embed field (Discord's hard limit is 1024). Progress bars are
+//built from custom emoji, so a naive slice can cut a <:Name:id> token in half and
+//dump the raw text into the message -- drop whole trailing lines instead.
+exports.fitField = function (text, max = 1024) {
+    const s = String(text ?? '')
+    if (s.length <= max) {
+        return s
+    }
+    const lines = s.split('\n')
+    while (lines.length > 1 && lines.join('\n').length > max) {
+        lines.pop()
+    }
+    const fitted = lines.join('\n')
+    return fitted.length <= max ? fitted : fitted.slice(0, max)
+}
+
+//Whether a player currently holds a role. Prefers discord.js' member cache, which
+//is live; db.user[..].discord.roles is only rewritten by auto/update_users at boot,
+//so it can't see a role equipped during this session.
+exports.hasRole = function ({ client, db, guild, member, role } = {}) {
+    if (!role || !member) {
+        return false
+    }
+    const cached = client?.guilds?.cache?.get(guild)?.members?.cache?.get(member)
+    if (cached) {
+        return cached.roles.cache.has(role)
+    }
+    return Object.values(Object.values(db?.user ?? {}).find(u => u.discordID == member)?.discord?.roles ?? {}).includes(role)
+}
+
+//no_rival suppresses the Bitter Rivalry bonus. It's set only on the nested call
+//that prices the rival's own run -- without it two players who rival each other
+//and both hold the collection would recurse into each other's receipt forever.
+exports.challengeWinnings = function ({ current_challenge, submitted_time, user_profile, best, goals, member, no_rival } = {}) {
     if (!Object.keys(submitted_time).length) {
         return { earnings: 0, receipt: "Sorry, could not calculate earnings." }
     }
@@ -951,10 +1016,17 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, user_
     //rival, bitter_rivalry
     let rival = user_profile.rival ? Object.values(user_profile.rival).pop() : null
     if (rival && beat.map(b => String(b.user)).includes(rival.player)) {
-        if (user_profile.effects?.bitter_rivalry) {
-            let rival_winnings = ({ current_challenge, submitted_time: beat.find(b => b.user == rival.player)?.time, user_profile: Object.values(db.user).find(u => u.discordID == rival.player)?.random, best, goals, member: rival.player, db })
-            earnings += "`+📀" + number_with_commas(rival_winnings.earnings) + "` *Bitter Rivalry*\n"
-            earnings_subtotal += rival_winnings.earnings
+        //price the rival's own run for that time and add it as the bonus. this has to
+        //be an actual call -- it used to be a bare object literal, so .earnings was
+        //undefined and NaN'd the whole receipt.
+        let rival_time = beat.find(b => String(b.user) == rival.player)
+        let rival_profile = Object.values(db.user).find(u => u.discordID == rival.player)?.random
+        let rival_bonus = (!no_rival && user_profile.effects?.bitter_rivalry && rival_time && rival_profile)
+            ? exports.challengeWinnings({ current_challenge, submitted_time: rival_time, user_profile: rival_profile, best, goals, member: rival.player, no_rival: true }).earnings
+            : null
+        if (Number.isFinite(rival_bonus)) {
+            earnings += "`+📀" + number_with_commas(rival_bonus) + "` *Bitter Rivalry*\n"
+            earnings_subtotal += rival_bonus
         } else {
             earnings += "`+📀" + number_with_commas(truguts.rival) + "` Beat Rival\n"
             earnings_subtotal += truguts.rival
@@ -1003,13 +1075,16 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, user_
     earnings_total = Math.round(earnings_total)
 
     //sabotage, only one can be triggered
-    let sabotagekey = user_profile.effects?.sabotage ? (Object.keys(user_profile.effects.sabotage).find(k => user_profile.effects.sabotage[k].millisecond == String(submitted_time.time)[String(submitted_time.time).length - 1] && (!user_profile.effects.sabotage[k].used || user_profile.effects.sabotage[k].challenge == current_challenge.message)) ?? null) : null
+    //toFixed(3) keeps trailing zeros so the compared digit is always the milliseconds place
+    //(String(95.12) drops the 0 a time of 95.120 ends in)
+    let final_digit = Number.isFinite(Number(submitted_time.time)) ? Number(submitted_time.time).toFixed(3).slice(-1) : null
+    let sabotagekey = user_profile.effects?.sabotage && final_digit !== null ? (Object.keys(user_profile.effects.sabotage).find(k => user_profile.effects.sabotage[k].millisecond == final_digit && (!user_profile.effects.sabotage[k].used || user_profile.effects.sabotage[k].challenge == current_challenge.message)) ?? null) : null
     let sabotage = '', dp = null, s = null
     if (sabotagekey) {
         s = user_profile.effects.sabotage[sabotagekey]
         dp = db.user[s.player].random?.effects?.doubled_powers
         sabotage += `\`-📀${number_with_commas(earnings_total * (dp ? 1 : 0.5))}\` 💥Sabotaged!\n`
-        sabotage += `<@${db.user[s.player].discordID}> \`+📀${number_with_commas(earnings_total * (dp ? 1 : 0.5))}\`\n`
+        sabotage += `\`+📀${number_with_commas(earnings_total * (dp ? 1 : 0.5))}\` <@${db.user[s.player].discordID}>\n`
     }
     const line = "▬▬▬▬▬▬▬▬▬▬▬"
     if (multipliers || sabotage) {
@@ -1022,7 +1097,7 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, user_
         earnings += "\n`+📀" + number_with_commas(truguts.rated * (user_profile.effects?.vote_confidence ? 2 : 1)) + "` Rated"
     }
 
-    let winnings = { earnings: earnings_total, receipt: earnings }
+    let winnings = { earnings: earnings_total, receipt: exports.alignReceipt(earnings) }
     if (sabotage) {
         winnings.sabotage = sabotagekey
     }
@@ -1104,7 +1179,14 @@ exports.updateChallenge = async function ({ client, db, user_profile, current_ch
 
     if (current_challenge.type == 'private') {
         current_challenge = exports.getBounty(current_challenge, db)
-        current_challenge.reroll_cost = (player_profile.effects?.free_rerolls || current_challenge.sponsors?.[player] || record_holder) ? "free" : played ? "discount" : "full price"
+        //Citizenship: free rerolls on the citizen planet's tracks while its role is equipped.
+        //Read the live member cache first -- db.user[..].discord.roles is only refreshed by
+        //update_users at boot, so a role equipped this session isn't in it yet.
+        const challenge_planet = planets[tracks[current_challenge.track]?.planet]
+        const citizen = challenge_planet
+            && player_profile?.effects?.[challenge_planet.name.toLowerCase().replaceAll(" ", "_")]
+            && exports.hasRole({ client, db, guild: current_challenge.guild, member: player, role: challenge_planet.role })
+        current_challenge.reroll_cost = (player_profile.effects?.free_rerolls || citizen || current_challenge.sponsors?.[player] || record_holder) ? "free" : played ? "discount" : "full price"
     }
 
     if (current_challengeref) {
@@ -1112,6 +1194,25 @@ exports.updateChallenge = async function ({ client, db, user_profile, current_ch
     }
 
     let flavor_text = player_profile?.settings?.flavor === false ? '' : exports.flavorText({ current_challenge, db, best })
+
+    //challenges created with v2: true render as components v2; older messages
+    //can't be converted (Discord forbids switching) so they keep the embed
+    if (current_challenge.v2) {
+        const container = await exports.challengeContainer({ client, current_challenge, user_profile: player_profile, profile_ref, best, name: player_name, member: player, avatar: player_avatar, db })
+        const comps = []
+        if (flavor_text && !current_challenge.rerolled) {
+            comps.push(new TextDisplayBuilder().setContent(flavor_text))
+        }
+        comps.push(...container)
+        if (!current_challenge.rerolled) {
+            comps.push(exports.challengeComponents(current_challenge, user_profile, db))
+        }
+        return {
+            components: comps,
+            flags: MessageFlags.IsComponentsV2,
+            withResponse: true
+        }
+    }
 
     const cembed = await exports.challengeEmbed({ client, current_challenge, user_profile: player_profile, profile_ref, best, name: player_name, member: player, avatar: player_avatar, interaction, db })
 
@@ -1128,7 +1229,10 @@ exports.rerollReceipt = function (current_challenge, user_profile) {
     let reroll_cost = current_challenge.reroll_cost
     let free = user_profile?.effects?.free_rerolls
     return {
-        receipt: free ? 'FREE REROLLS FOR LIFE' : reroll_cost == 'discount' ? "-📀" + number_with_commas(truguts.reroll_discount) + " (discounted)" : (reroll_cost == 'free' ? "(no charge for record holders)" : "-📀" + number_with_commas(truguts.reroll)),
+        //receipt is plain for embed footers (they don't render markdown);
+        //receipt_md code-formats the amount for components v2 text
+        receipt: free ? 'FREE REROLLS FOR LIFE' : reroll_cost == 'discount' ? "-📀" + number_with_commas(truguts.reroll_discount) + " (discounted)" : (reroll_cost == 'free' ? "(no charge)" : "-📀" + number_with_commas(truguts.reroll)),
+        receipt_md: free ? 'FREE REROLLS FOR LIFE' : reroll_cost == 'discount' ? "`-📀" + number_with_commas(truguts.reroll_discount) + "` (discounted)" : (reroll_cost == 'free' ? "(no charge)" : "`-📀" + number_with_commas(truguts.reroll) + "`"),
         cost: free ? 0 : reroll_cost == 'discount' ? truguts.reroll_discount : (reroll_cost == 'free' ? 0 : truguts.reroll)
     }
 }
@@ -1272,15 +1376,205 @@ exports.challengeEmbed = async function ({ current_challenge, user_profile, prof
 
 
         challengeEmbed
-            .addFields({ name: getRacerName(progression.racer), value: progression.summary, inline: true })
+            //the summary names the racer itself
+            .addFields({ name: 'Experience', value: exports.fitField(progression.summary), inline: true })
 
-        if (![undefined, ""].includes(current_challenge.earnings?.[member]?.item)) {
-            let item = items.find(i => i.id == current_challenge.earnings[member].item)
+        let item = exports.earnedItem({ current_challenge, member, user_profile, db })
+        if (item) {
             challengeEmbed.addFields({ name: exports.itemString({ item, user_profile }), value: `*${item.description}*`, inline: true })
         }
 
     }
+
+    //Pole Position: the record holder's avatar and profile color are displayed on the challenge
+    const pole_holder = best?.[0] ? Object.values(db.user).find(u => u.discordID == best[0].user) : null
+    if (pole_holder?.random?.effects?.pole_position && !current_challenge.completed && !current_challenge.rerolled) {
+        if (pole_holder.avatar) {
+            challengeEmbed.setThumbnail(pole_holder.avatar)
+        }
+        if (/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(pole_holder.random.color ?? '')) {
+            challengeEmbed.setColor(pole_holder.random.color)
+        }
+    }
     return challengeEmbed
+}
+
+//merged leaderboard for the components v2 card: goal times, player times,
+//predictions, and sponsor times sorted together by time. goal, prediction, and
+//sponsor rows are small text; every time is a bolded code block. goal rows
+//carry no winnings or level-up markers -- those live in the Winnings receipt
+exports.challengeLeaderboardV2 = function ({ current_challenge, best, member, db, goals } = {}) {
+    //player times are bold; small-text rows (-#) keep the code block unbolded
+    const t = (time) => `**\`${time_fix(time)}\`**`
+    const st = (time) => `\`${time_fix(time)}\``
+    let rows = []
+
+    //goal times
+    goals.times.forEach((time, i) => {
+        rows.push({ time, string: `-# ${goal_symbols[i]} ${st(time)}` })
+    })
+
+    //player runs (time before name)
+    let pos = ["<:P1:671601240228233216> ", "<:P2:671601321257992204> ", "<:P3:671601364794605570> ", "4th ", "5th ", "6th ", "7th ", "8th ", "9th ", "10th "]
+    let already = []
+    function getUserName(id) {
+        let user = Object.values(db.user).find(u => u.discordID == id)
+        return user?.random?.name ?? user?.name ?? 'no name'
+    }
+    best.forEach(run => {
+        if (pos.length && (!already.includes(run.user) || (run.user == member && current_challenge.type == 'private') || run.date == current_challenge.created)) {
+            let bold = (run.user == member && current_challenge.type == 'private') || run.date == current_challenge.created
+            let name = bold ? `<@${run.user}>` : `${getUserName(run?.user)}`
+            let time = run.proof ? `[${t(run.time)}](<${run.proof}>)` : t(run.time)
+            let platform = console_emojis[run.platform] ? `${console_emojis[run.platform]}` : ''
+            let notes = run.notes ?? ""
+            let record = run.date == current_challenge.created ? "<a:newrecord:672640831882133524>" : ""
+            let earnings = !['private', 'abandoned'].includes(current_challenge.type) && current_challenge?.earnings?.[run.user] ? "`+📀" + number_with_commas(current_challenge.earnings?.[run.user]?.truguts_earned) + "`" : ""
+            //notes drop to their own small italic line, matching tourney runs and bets
+            rows.push({
+                time: run.time,
+                string: [pos[0].trim(), time, name, platform, record, earnings].filter(e => e).join(" ")
+                    + (notes ? `\n-# *└ ${notes}*` : '')
+            })
+            if (run.user) {
+                already.push(run.user)
+            }
+            pos.splice(0, 1)
+        }
+    })
+
+    //first-time bonus
+    if (!best.length) {
+        rows.push({ time: Infinity, string: `-# :snowflake: \`📀 ${number_with_commas(truguts.first)}\`` })
+    }
+
+    //predictions
+    let submission = current_challenge.submissions && current_challenge.type == 'private' ? current_challenge.submissions[current_challenge.player.member]?.time : null
+    if (current_challenge.completed && current_challenge.predictions) {
+        Object.values(current_challenge.predictions).forEach(p => {
+            rows.push({
+                time: p.time,
+                string: `-# 🔮 ${st(p.time)} *${p.name}* \`+📀${number_with_commas(exports.predictionScore(p.time, submission))}\``
+            })
+        })
+    }
+
+    //sponsor time
+    if (current_challenge.sponsor?.time) {
+        rows.push({
+            time: current_challenge.sponsor.time,
+            string: `-# 📢 ${st(current_challenge.sponsor.time)} ${current_challenge.sponsor.name}`
+        })
+    }
+
+    return rows.sort((a, b) => a.time - b.time).map(r => r.string).join("\n")
+}
+
+//Components v2 rendering of the challenge message. Fields are full-width (no
+//thumbnail-forced column squeeze) and the player avatar survives as a section
+//thumbnail accessory. Only challenges created with v2: true render this way --
+//Discord doesn't allow editing a message between embeds and components v2.
+exports.challengeContainer = async function ({ current_challenge, user_profile, profile_ref, best, name, member, avatar, db, client } = {}) {
+    let submitted_time = db.ch.times[current_challenge?.submissions?.[member]?.id] ?? {}
+    let achs = current_challenge.type == 'private' ? exports.achievementProgress({ db, player: member }) : null
+    let desc = exports.generateChallengeDescription({ current_challenge, db, user_profile }) + (current_challenge.type == 'private' ? "\n" + exports.challengeAchievementProgress({ client, current_challenge, user_profile, profile_ref, achievements: achs, name, avatar, member }) : '')
+    let title = exports.generateChallengeTitle(current_challenge)
+
+    const container = new ContainerBuilder()
+    let accent = exports.challengeColor(current_challenge)
+
+    const authormap = {
+        multiplayer: '🏁 Multiplayer Challenge',
+        abandoned: '💨 Abandoned Challenge',
+        private: `🎲 ${name}'s Random Challenge`,
+        open: '🎲 Open Challenge',
+        cotd: `🎲 Random Challenge of the Day #${Object.values(db.ch.challenges).filter(challenge => challenge.type == 'cotd' && challenge.created < current_challenge.created).length}`,
+        cotm: `🎲 Random Challenge of the Month #${Object.values(db.ch.challenges).filter(challenge => challenge.type == 'cotm' && challenge.created < current_challenge.created).length}`
+    }
+
+    //Pole Position: the record holder's avatar and profile color take over the card
+    const pole_holder = best?.[0] ? Object.values(db.user).find(u => u.discordID == best[0].user) : null
+    const pole = pole_holder?.random?.effects?.pole_position && !current_challenge.completed && !current_challenge.rerolled ? pole_holder : null
+    if (pole && /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(pole.random.color ?? '')) {
+        accent = pole.random.color
+    }
+    container.setAccentColor(parseInt(String(accent).replace('#', ''), 16))
+
+    //the track map is the card's thumbnail (cotm carries an array of tracks, so
+    //fall back to the first one); the player avatar no longer appears here
+    const thumb_track = Array.isArray(current_challenge.track) ? current_challenge.track[0] : current_challenge.track
+    const thumbnail = tracks[thumb_track]?.preview ?? null
+    //a sponsor's custom title (and the bounty banner) arrive as leading lines of
+    //the title -- keep them on their own lines so the race line stays a heading
+    const title_lines = title.split("\n")
+    const race_line = title_lines.pop()
+    const headers = [
+        new TextDisplayBuilder().setContent(`-# **${authormap[current_challenge.type]}**`),
+        new TextDisplayBuilder().setContent([...title_lines, `### ${race_line}`].join("\n"))
+    ]
+    //the description shares the header layout (wraps beside the thumbnail)
+    const rerolled_out = current_challenge.rerolled && current_challenge.type !== 'cotd'
+    if (desc && desc.trim() && !rerolled_out) {
+        headers.push(new TextDisplayBuilder().setContent(desc.slice(0, 1000)))
+    }
+    if (thumbnail) {
+        container.addSectionComponents(new SectionBuilder().addTextDisplayComponents(...headers).setThumbnailAccessory(new ThumbnailBuilder().setURL(thumbnail)))
+    } else {
+        container.addTextDisplayComponents(...headers)
+    }
+
+    if (rerolled_out) {
+        let reroll = exports.rerollReceipt(current_challenge, user_profile)
+        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`-# ${reroll.receipt_md}\n-# Truguts: \`📀${exports.currentTruguts(user_profile)}\``))
+        return [container]
+    }
+
+    let goals = exports.goalTimeList(current_challenge, user_profile, best)
+    const completed_view = current_challenge.completed && ['private', 'abandoned'].includes(current_challenge.type)
+
+    //Leaderboard leads every view; Pole Position's avatar sits beside it
+    container.addSeparatorComponents(new SeparatorBuilder())
+    const leaderboard_text = new TextDisplayBuilder().setContent(`**Leaderboard**\n${exports.challengeLeaderboardV2({ current_challenge, best, member, db, goals }).slice(0, 1500)}`)
+    if (pole?.avatar) {
+        container.addSectionComponents(new SectionBuilder().addTextDisplayComponents(leaderboard_text).setThumbnailAccessory(new ThumbnailBuilder().setURL(pole.avatar)))
+    } else {
+        container.addTextDisplayComponents(leaderboard_text)
+    }
+
+    if (completed_view) {
+        //each remaining section gets its own separator and heading
+        let winnings = exports.challengeWinnings({ current_challenge, user_profile, profile_ref, submitted_time, best, goals, member, db })
+        container.addSeparatorComponents(new SeparatorBuilder())
+        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**Winnings**\n${winnings.receipt.slice(0, 1000)}`))
+
+        let progression = exports.challengeProgression({ current_challenge, submitted_time, goals, user_profile })
+        //the summary names the racer itself, so no separate name line here
+        container.addSeparatorComponents(new SeparatorBuilder())
+        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**Experience**\n${progression.summary}`))
+
+        let item = exports.earnedItem({ current_challenge, member, user_profile, db })
+        if (item) {
+            container.addSeparatorComponents(new SeparatorBuilder())
+            container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**Item Reward**\n${exports.itemString({ item, user_profile })}\n*${item.description}*`))
+        }
+    }
+
+    const image_url = best.find(b => b.proof?.includes('youtu'))?.proof ?? null
+    let image = null
+    if (image_url && !current_challenge.completed && !current_challenge.rerolled) {
+        image = await get_thumbnail(image_url)
+    }
+    if (image) {
+        container.addMediaGalleryComponents(new MediaGalleryBuilder().addItems(new MediaGalleryItemBuilder().setURL(image)))
+    }
+
+    if (current_challenge.type == 'private') {
+        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`-# Truguts: \`📀${exports.currentTruguts(user_profile)}\``))
+    } else if (['cotd', 'cotm'].includes(current_challenge.type)) {
+        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`-# <t:${Math.round(current_challenge.created / 1000)}:f>`))
+    }
+
+    return [container]
 }
 
 exports.challengeProgression = function ({ current_challenge, submitted_time, goals, user_profile }) {
@@ -1298,18 +1592,46 @@ exports.challengeProgression = function ({ current_challenge, submitted_time, go
     let levelup = previous_level.level !== level.level
     let rewards = []
     for (let i = previous_level.level + 1; i < level.level + 1; i++) {
-        rewards.push(exports.progressionReward({ racer: current_challenge.racer, level: level.level }))
+        rewards.push(exports.progressionReward({ racer: current_challenge.racer, level: i }))
     }
     let nextreward = exports.progressionReward({ racer: current_challenge.racer, level: level.level + 1 })
+    //flatten reward strings -- they carry a newline between truguts and item
+    const flat = s => String(s).replace(/\n/g, ' ')
+
+    //two labelled blocks: this racer's level, then the overall player level.
+    //the player bar advances on the fraction of the racer-level average, so it
+    //visibly creeps toward the next rank as any racer gains points.
+    const player = exports.playerLevel(user_profile.progression)
+    //the same average before this submission, for the movement readout
+    const previous_player = exports.playerLevel(
+        Object.values(user_profile.progression).map((v, i) => i == current_challenge.racer ? v - points : v)
+    )
+    const moved = Math.round((player.average - previous_player.average) * 100)
+
+    const racer = racers[current_challenge.racer]
+    const racer_bar = exports.progressBar({
+        value: level.sublevel,
+        //a level-up resets the scale, so everything showing is newly earned
+        previous: levelup ? 0 : previous_level.sublevel,
+        max: level.nextlevel
+    })
+    const player_bar = exports.progressBar({ value: player.progress, previous: previous_player.progress, max: 1 })
+
     return {
         racer: current_challenge.racer,
         medal,
         points,
-        summary: `${points ? `\`+${points}\` ${medal}\n\n` : ''}` +
-            `${levelup ? '<a:guidearrow:891128437354401842> **LEVEL UP** <a:guidearrow:891128437354401842>\n' : ''}` +
-            `${levelup ? `${rewards.map(r => r.string).join('\n')}\n\n` : ''}` +
-            `${level.string}\n${level_symbols[Math.min(6, Math.floor(level.level / 4))]} *${levels[Math.min(level.level, 24)]}*\n` +
-            `\nNext reward:\n${nextreward.string}`
+        summary:
+            //the running total sits with the label; what this challenge added sits
+            //with the bar, alongside the ▓ segments showing it. the footnote closes
+            //the racer block and leads into the player one.
+            `${racer?.flag ?? ''} **${racer?.name ?? 'Racer'}** · Racer Lv ${level.level + 1} \`${level.sublevel}/${level.nextlevel}\`\n` +
+            `${racer_bar}${points ? ` \`+${points}\`${medal}` : ''}` +
+            `${levelup ? ` <a:guidearrow:891128437354401842> **LEVEL UP** ${rewards.map(r => flat(r.string)).join(' ')}` : ''}\n` +
+            `-# Racer levels average into your player level · next racer reward ${flat(nextreward.string)}\n` +
+            `\n` +
+            `${player.symbol} **${player.title}** · Player Lv ${player.level} \`${Math.floor(player.progress * 100)}%\`\n` +
+            `${player_bar}${moved > 0 ? ` \`+${moved}%\`` : ''}`
     }
 }
 
@@ -1370,7 +1692,8 @@ exports.challengeComponents = function (current_challenge, user_profile, db) {
                     .setEmoji("854097998357987418")
             )
         }
-        if ((!current_challenge.track_bribe || !current_challenge.racer_bribe) && (current_truguts >= truguts.bribe_track || current_truguts >= truguts.bribe_racer)) {
+        const bribes_left = !current_challenge.track_bribe || !current_challenge.racer_bribe || (!current_challenge.condition_bribe && user_profile?.effects?.altered_deal)
+        if (bribes_left && (current_truguts >= truguts.bribe_track || current_truguts >= truguts.bribe_racer)) {
             row.addComponents(
                 new ButtonBuilder()
                     .setCustomId("challenge_random_bribe")
@@ -1478,7 +1801,8 @@ exports.racerSelector = function ({ customid, placeholder, min, max, description
                 name: racer.flag.split(":")[1],
                 id: racer.flag.split(":")[2].replace(">", "")
             },
-            default: selected ? selected.includes(String(i)) : false
+            //match against the option's value (racernum - 1), not the speed-sorted index
+            default: selected ? selected.includes(String(racer.racernum - 1)) : false
         })
     })
 
@@ -1511,14 +1835,130 @@ exports.partSelector = function ({ customid, placeholder, min, max, descriptions
     return [partCategoryRow, partSelectRow]
 }
 
-exports.bribeComponents = function (current_challenge) {
+//compute what a staged bribe selection would change and what it costs.
+//selection: { track: ['5']|[], racer: ['2']|[], condition: ['nu','laps_2',...]|null }
+//the condition select uses desired-state semantics (its defaults mirror the
+//challenge's current conditions); null means the select was never rendered
+exports.bribeDelta = function ({ current_challenge, user_profile, selection = {}, citizen = false } = {}) {
+    const c = current_challenge.conditions ?? {}
+    const delta = { cost: 0, changes: [], update: {}, error: null }
+
+    if (selection.track?.length && Number(selection.track[0]) !== current_challenge.track) {
+        const t = Number(selection.track[0])
+        delta.update.track = t
+        delta.update.track_bribe = true
+        //Smuggling Routes: same-planet track bribes are free
+        const free = user_profile?.effects?.smuggling_routes && tracks[t]?.planet == tracks[current_challenge.track]?.planet
+        delta.cost += free ? 0 : truguts.bribe_track
+        delta.changes.push('track')
+    }
+    const target_track = delta.update.track ?? current_challenge.track
+
+    if (selection.racer?.length && Number(selection.racer[0]) !== current_challenge.racer) {
+        delta.update.racer = Number(selection.racer[0])
+        delta.update.racer_bribe = true
+        delta.cost += truguts.bribe_racer
+        delta.changes.push('racer')
+    }
+
+    //Altered Deal: condition changes cost a track bribe each
+    if (selection.condition && user_profile?.effects?.altered_deal && !current_challenge.condition_bribe) {
+        const lap_values = selection.condition.filter(v => v.startsWith('laps_'))
+        if (lap_values.length > 1) {
+            delta.error = 'Select only one lap count'
+        }
+        const desired = {
+            nu: selection.condition.includes('nu'),
+            mirror: selection.condition.includes('mirror'),
+            backwards: selection.condition.includes('backwards'),
+            skips: selection.condition.includes('skips') && !!tracks[target_track]?.parskiptimes,
+            laps: lap_values.length == 1 ? Number(lap_values[0].replace('laps_', '')) : 3
+        }
+        //a track with no skip goal times clears skips for free further down, so don't
+        //bill the removal as a condition change on top of the track bribe
+        const skips_forced_off = !tracks[target_track]?.parskiptimes
+        const changed = ['nu', 'mirror', 'backwards', 'skips'].filter(k => desired[k] !== !!c[k] && !(k == 'skips' && skips_forced_off))
+        if (desired.laps !== (c.laps ?? 3)) {
+            changed.push('laps')
+        }
+        if (changed.length) {
+            delta.update.conditions = { ...c, ...desired }
+            //store which conditions changed (truthy, so the once-per-challenge gate still works)
+            delta.update.condition_bribe = changed
+            delta.cost += changed.length * truguts.bribe_track
+            delta.changes.push(...changed)
+        }
+    }
+
+    //a track change can strand an active skips condition on a track with no skip goal times
+    if (delta.update.track !== undefined && !tracks[target_track]?.parskiptimes && (delta.update.conditions ?? c).skips) {
+        delta.update.conditions = { ...(delta.update.conditions ?? c), skips: false }
+    }
+
+    //Citizenship: free bribes on the citizen planet's tracks while the role is equipped
+    if (citizen) {
+        delta.cost = 0
+    }
+    return delta
+}
+
+//staged bribe UI: selections are held in the selects' defaults and only applied
+//when the Bribe button is pressed
+exports.bribeComponents = function ({ current_challenge, user_profile, selection = {}, citizen = false } = {}) {
     let components = []
+    const track_sel = selection.track ?? []
+    const racer_sel = selection.racer ?? []
+
     if (!current_challenge.track_bribe) {
-        components.push(...exports.trackSelector({ customid: 'challenge_random_bribe_track', placeholder: "Bribe Track (📀" + number_with_commas(truguts.bribe_track) + ")", min: 1, max: 1 }))
+        components.push(...exports.trackSelector({ customid: 'challenge_random_bribe_track', placeholder: "Bribe Track (📀" + number_with_commas(truguts.bribe_track) + ")", min: 0, max: 1, selected: track_sel }))
     }
     if (!current_challenge.racer_bribe) {
-        components.push(...exports.racerSelector({ customid: 'challenge_random_bribe_racer', placeholder: "Bribe Racer (📀" + number_with_commas(truguts.bribe_racer) + ")", min: 1, max: 1 }))
+        components.push(...exports.racerSelector({ customid: 'challenge_random_bribe_racer', placeholder: "Bribe Racer (📀" + number_with_commas(truguts.bribe_racer) + ")", min: 0, max: 1, selected: racer_sel }))
     }
+    //Altered Deal: multi-select of the challenge's desired conditions
+    if (user_profile?.effects?.altered_deal && !current_challenge.condition_bribe) {
+        const c = current_challenge.conditions ?? {}
+        //skips availability follows the staged target track
+        const target_track = track_sel.length ? Number(track_sel[0]) : current_challenge.track
+        //until the player edits the set, defaults mirror the current conditions
+        const desired = selection.condition ?? [
+            ...(c.nu ? ['nu'] : []),
+            ...(c.mirror ? ['mirror'] : []),
+            ...(c.backwards ? ['backwards'] : []),
+            ...(c.skips ? ['skips'] : []),
+            ...((c.laps ?? 3) !== 3 ? [`laps_${c.laps}`] : [])
+        ]
+        const options = [
+            { label: 'No Upgrades', value: 'nu', emoji: { name: '🔧' } },
+            { label: 'Mirror Mode', value: 'mirror', emoji: { name: '🪞' } },
+            { label: 'Backwards', value: 'backwards', emoji: { name: '🔙' } },
+            ...(tracks[target_track]?.parskiptimes ? [{ label: 'Skips', value: 'skips', emoji: { name: '⏭' } }] : []),
+            ...[1, 2, 4, 5].map(l => ({ label: `${l} Lap${l > 1 ? 's' : ''}`, value: `laps_${l}`, emoji: { name: '🔁' } }))
+        ].map(o => ({ ...o, default: desired.includes(o.value) }))
+        components.push(new ActionRowBuilder().addComponents(new StringSelectMenuBuilder()
+            .setCustomId('challenge_random_bribe_condition')
+            .setPlaceholder("Bribe Conditions (📀" + number_with_commas(truguts.bribe_track) + " per change)")
+            .setMinValues(0)
+            .setMaxValues(options.length)
+            .addOptions(...options)))
+    }
+
+    //nothing left to bribe on this challenge
+    if (!components.length) {
+        return components
+    }
+
+    const delta = exports.bribeDelta({ current_challenge, user_profile, selection, citizen })
+    const BribeButton = new ButtonBuilder()
+        .setCustomId('challenge_random_bribe_submit')
+        .setStyle(ButtonStyle.Success)
+        .setLabel(delta.error ?? `Bribe (📀${number_with_commas(delta.cost)})`)
+        .setDisabled(!!delta.error || !delta.changes.length)
+    const CancelButton = new ButtonBuilder()
+        .setCustomId('challenge_random_bribe_cancel')
+        .setStyle(ButtonStyle.Secondary)
+        .setLabel('Cancel')
+    components.push(new ActionRowBuilder().addComponents(BribeButton, CancelButton))
     return components
 }
 
@@ -1585,8 +2025,16 @@ exports.menuComponents = function () {
     //         .setEmoji('⚙️')
     // )
 
+    const row2 = new ActionRowBuilder()
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId("challenge_random_leaderboard")
+                .setLabel("Leaderboard")
+                .setStyle(ButtonStyle.Secondary)
+                .setEmoji('🏆')
+        )
 
-    return [row1]
+    return [row1, row2]
 }
 
 exports.shopOptions = function ({ user_profile, player, db, selection } = {}) {
@@ -1598,7 +2046,7 @@ exports.shopOptions = function ({ user_profile, player, db, selection } = {}) {
             price: truguts.hint,
             description: "Get a hint for incomplete achievements",
             info: "Hints help you narrow down what challenges you need to complete for :trophy: **Achievements**. The more you pay, the better the hint.",
-            fields: [{ name: 'Additional Effect', value: "Complete the **Star Wars Episode I: Racer: The Movie** collection to get an additional clue: *Movie Buff - Get an additional clue on all your Hints and Bounties*" }],
+            fields: [{ name: 'Additional Effect', value: "Complete the **Star Wars Episode I: Racer: The Movie** collection to get an additional clue: *Trivia Buff - Get an extra clue on all your Hints and Bounties*" }],
             emoji: {
                 name: "💡"
             },
@@ -1611,7 +2059,7 @@ exports.shopOptions = function ({ user_profile, player, db, selection } = {}) {
             price: truguts.hint,
             description: "Take on a challenge bounty, find it, and claim your prize!",
             info: "Challenge Bounty is a way to earn big truguts fast. Based on your hint selection, Botto hides a large trugut bonus on a random challenge.",
-            fields: [{ name: 'Additional Effect', value: "Complete the **Star Wars Episode I: Racer: The Movie** collection to get an additional clue: *Movie Buff - Get an additional clue on all your Hints and Bounties*" }],
+            fields: [{ name: 'Additional Effect', value: "Complete the **Star Wars Episode I: Racer: The Movie** collection to get an additional clue: *Trivia Buff - Get an extra clue on all your Hints and Bounties*" }],
             emoji: {
                 name: "🎯"
             },
@@ -2012,13 +2460,13 @@ exports.inventoryEmbed = function ({ user_profile, selection, name, avatar }) {
             })
         }
         if (section.value == 'duplicates') {
-            myEmbed.setFooter({ text: `Scrap: ${Object.values(user_profile.items).filter(i => exports.usableItem({ item: i }) && !i.locked && i.id == 70).length}\nTruguts: 📀${number_with_commas(exports.currentTruguts(user_profile))}\n♦ indicates an item is needed for a collection` })
+            myEmbed.setFooter({ text: `Scrap: ${Object.values(user_profile.items ?? {}).filter(i => exports.usableItem({ item: i }) && !i.locked && i.id == 70).length}\nTruguts: 📀${number_with_commas(exports.currentTruguts(user_profile))}\n♦ indicates an item is needed for a collection` })
         }
         if (section.value == 'droids') {
             let droid_key = s_selection
-            let droid_item = user_profile.items[droid_key]
-            let droid = { ...items.find(i => i.id == droid_item?.id), ...droid_item }
-            if (droid) {
+            let droid_item = droid_key ? user_profile.items?.[droid_key] : null
+            let droid = droid_item ? { ...items.find(i => i.id == droid_item.id), ...droid_item } : null
+            if (droid?.display_image) {
                 myEmbed.setThumbnail(droid.display_image)
             }
 
@@ -2142,7 +2590,7 @@ exports.inventoryComponents = function ({ user_profile, selection, db, interacti
         let selected_item = selection[2]?.[0]
         scrappable_items = scrappable_items.map(item => {
             return ({
-                label: `${item.name} ${item.health ? `(${Math.round(item.health * 100 / 255)}%)` : ''}${collectible_items.map(c => c.key).includes(item.key) ? ' ♦' : ''}`,
+                label: `${item.name} ${typeof item.health == 'number' ? `(${Math.round(item.health * 100 / 255)}%)` : ''}${collectible_items.map(c => c.key).includes(item.key) ? ' ♦' : ''}`,
                 value: item.key,
                 description: (`📀${number_with_commas(exports.itemValue({ item }))} | ${item.description}`).slice(0, 100),
                 emoji: { name: raritysymbols[item.rarity] },
@@ -2160,19 +2608,19 @@ exports.inventoryComponents = function ({ user_profile, selection, db, interacti
 
         comp.push(new ActionRowBuilder().addComponents(dups))
         function getScrapValue(item) {
-            return Math.round(items.find(i => i.id == item?.id)?.value * (user_profile.effects?.efficient_scrapper ? 1 : 0.5) * (item?.health ? (item?.health / 255) : 1))
+            return Math.round(items.find(i => i.id == item?.id)?.value * (user_profile.effects?.efficient_scrapper ? 1 : 0.5) * (typeof item?.health == 'number' ? (item.health / 255) : 1))
         }
-        let scrap_value = getScrapValue(user_profile.items[selected_item])
+        let scrap_value = getScrapValue(selected_item ? user_profile.items?.[selected_item] : null)
         const ScrapButton = new ButtonBuilder()
             .setCustomId("challenge_random_inventory_scrap")
             .setStyle(ButtonStyle.Danger)
             .setLabel(`Scrap ${scrap_value ? `(+📀${number_with_commas(scrap_value)})` : ''}`)
-            .setDisabled([null, undefined, ""].includes(selected_item))
+            .setDisabled([null, undefined, ""].includes(selected_item) || String(selected_item).startsWith('page_'))
         const SarlaccButton = new ButtonBuilder()
             .setCustomId('challenge_random_inventory_sarlacc')
             .setStyle(ButtonStyle.Secondary)
             .setLabel('Feed to Sarlacc')
-            .setDisabled([null, undefined, ""].includes(selected_item) || !user_profile.effects?.sarlacc_snack)
+            .setDisabled([null, undefined, ""].includes(selected_item) || String(selected_item).startsWith('page_') || !user_profile.effects?.sarlacc_snack)
 
         const buttonRow = new ActionRowBuilder()
         buttonRow.addComponents(ScrapButton, SarlaccButton)
@@ -2240,7 +2688,7 @@ exports.inventoryComponents = function ({ user_profile, selection, db, interacti
                         .setCustomId("challenge_random_inventory_trade")
                         .setStyle(ButtonStyle.Primary)
                         .setLabel(`Invite to Trade`)
-                        .setDisabled([null, undefined, ""].includes(selected_user)))
+                        .setDisabled([null, undefined, ""].includes(selected_user) || String(selected_user).startsWith('page_')))
             )
         }
     } else if (selection[1]?.[0] == 'droids') {
@@ -2312,17 +2760,17 @@ exports.inventoryComponents = function ({ user_profile, selection, db, interacti
             .setCustomId("challenge_random_inventory_task")
             .setStyle(ButtonStyle.Primary)
             .setLabel(`Task Repairs`)
-            .setDisabled([null, undefined, "", 'no'].includes(selected_droid) || [null, undefined, "", 'no'].includes(selected_part))
+            .setDisabled([null, undefined, "", 'no'].includes(selected_droid) || String(selected_droid).startsWith('page_') || [null, undefined, "", 'no'].includes(selected_part) || String(selected_part).startsWith('page_'))
         const NameButton = new ButtonBuilder()
             .setCustomId('challenge_random_inventory_name')
             .setStyle(ButtonStyle.Secondary)
             .setLabel('Name Droid')
-            .setDisabled([null, undefined, ""].includes(selected_droid))
+            .setDisabled([null, undefined, "", 'no'].includes(selected_droid) || String(selected_droid).startsWith('page_'))
         comp.push(new ActionRowBuilder().addComponents(TaskButton, NameButton))
     } else if (selection[1]?.[0] == 'roles') {
 
         const citizen_select = new StringSelectMenuBuilder()
-            .setCustomId('challenge_random_inventory_2')
+            .setCustomId('challenge_random_inventory_citizen')
             .setPlaceholder("Citizen roles")
             .setMinValues(0)
             .setMaxValues(1)
@@ -2417,6 +2865,9 @@ exports.Collections = function () {
             reward: 'Citizenship Role; 📀100,000',
             planet: true,
             key: planet.name.toLowerCase().replaceAll(" ", "_"),
+            //capped at 25 (Discord select menu limit); membership is the first 25 in
+            //item.js order, so append new planet items to the END of item.js or they'll
+            //shift the cut-off and retroactively change who has completed the collection
             items: items.filter(i => i.track.map(track => tracks[track].planet == p).includes(true) && i.track.length < 25).slice(0, 25).map(i => i.id)
         })
     })
@@ -2631,14 +3082,60 @@ exports.playerLevel = function (progression) {
     function average(array) {
         return array.reduce((x, y) => x + y) / array.length
     }
-    let level = Math.floor(average(Object.values(progression).map(r => {
-        let level = exports.convertLevel(r)
-        return level?.level
-    })))
+    //Average *fractional* racer levels (level + progress through it) rather than
+    //whole levels. Averaging whole levels discarded sub-level progress, so the
+    //player level only ever moved when some racer crossed a level -- making it
+    //impossible to see a rank approaching. A fractional average is never lower
+    //than the whole-level one, so this can only ever raise a player's level.
+    const racer_levels = Object.values(progression).map(r => {
+        const l = exports.convertLevel(r)
+        return l.level + (l.nextlevel > 0 ? l.sublevel / l.nextlevel : 0)
+    })
+    const avg = average(racer_levels)
+    let level = Math.floor(avg)
     return {
         level: level + 1,
+        //the fractional part of the average is progress toward the next player
+        //level, which is what makes the overall bar move between challenges
+        average: avg,
+        progress: avg - level,
+        racers: racer_levels.length,
+        symbol: level_symbols[Math.min(Math.floor(level / 4), 6)],
+        title: levels[Math.min(level, 24)],
         string: `${level_symbols[Math.min(Math.floor(level / 4), 6)]} *${levels[Math.min(level, 24)]}*`
     }
+}
+
+//A progress meter built from custom emoji. Pass `previous` to render the
+//progress earned by this challenge in the "new" segment, so the gain is visible
+//at a glance. Resolution is half a segment: the half glyphs cover a boundary
+//that lands mid-segment (held->gained, gained->empty).
+//NOTE: the result is emoji, so it must NOT be wrapped in backticks.
+exports.progressBar = function ({ value = 0, previous = null, max = 1, width = 10 } = {}) {
+    const halves = v => {
+        const ratio = max > 0 ? Math.min(1, Math.max(0, v / max)) : 0
+        //floor so the bar only reads full at an actual 100%
+        return Math.min(width * 2, Math.floor(ratio * width * 2))
+    }
+    const filled = halves(value)
+    //a level-up resets the scale, so clamp: everything filled now counts as new
+    const held = previous == null ? filled : Math.min(filled, halves(previous))
+
+    const state = h => h < held ? 'h' : h < filled ? 'n' : 'e'
+    //every boundary has a glyph, so a bar is exact to half a segment
+    const glyphs = {
+        hh: bar_segments.filled,
+        hn: bar_segments.filled_new_half,
+        he: bar_segments.filled_half,
+        nn: bar_segments.new,
+        ne: bar_segments.new_half,
+        ee: bar_segments.empty
+    }
+    let out = ''
+    for (let i = 0; i < width; i++) {
+        out += glyphs[state(i * 2) + state(i * 2 + 1)] ?? bar_segments.empty
+    }
+    return out
 }
 
 exports.convertLevel = function (int) {
@@ -2646,7 +3143,9 @@ exports.convertLevel = function (int) {
     let level = { level: 0, nextlevel: 0, sublevel: 0 }
     if (int > 324) {
         let l = 25 + Math.floor((int - 325) / 25)
-        level = { level: l, nextlevel: l + 1, sublevel: (int - 325) % 25 }
+        //levels past 25 are a flat 25 points wide -- nextlevel is that width, not the
+        //level number (consumers scale progress bars and the x/y label off it)
+        level = { level: l, nextlevel: 25, sublevel: (int - 325) % 25 }
         level.string = `Level ${level.level + 1} \`${level.sublevel}/25\``
         return level
     }
@@ -3276,11 +3775,8 @@ exports.sponsorComponents = function (user_profile) {
 }
 
 exports.validateTime = function (time) {
-    if (!time || isNaN(Number(time.replace(":", ""))) || time_to_seconds(time) == null) {
-        return ''
-    } else {
-        return time_to_seconds(time)
-    }
+    //time_to_seconds is the sole authority; it returns null for anything unparseable
+    return time_to_seconds(time) ?? ''
 }
 
 exports.easternTime = function () {
@@ -3464,8 +3960,11 @@ exports.dailyBounty = async function ({ client, db, bountyref } = {}) {
 }
 
 exports.bountyEmbed = function ({ bounty, user_profile, db } = {}) {
+    //tier drives name/price/bonus; r_hints/t_hints are lead counts (tier + trivia_buff).
+    //older bounties predate the tier field, so fall back to the (clamped) lead count
+    const tier = hints[Math.min(bounty.tier ?? bounty.r_hints, hints.length - 1)]
     const bEmbed = new EmbedBuilder()
-        .setTitle(":dart: " + (bounty.type == 'botd' ? "Bounty of the Day" : hints[bounty.r_hints].hunt))
+        .setTitle(":dart: " + (bounty.type == 'botd' ? "Bounty of the Day" : tier.hunt))
         .setColor("#ED4245")
         .addFields(
             { name: "Track Leads", value: exports.trackHint({ track: bounty.track, count: bounty.t_hints, db }).map(h => "○ *" + h + "*").join("\n") },
@@ -3475,8 +3974,8 @@ exports.bountyEmbed = function ({ bounty, user_profile, db } = {}) {
     if (bounty.type == 'private') {
         bEmbed
             .setFooter({ text: "Truguts: 📀" + exports.currentTruguts(user_profile) })
-            .setDescription("`-📀" + number_with_commas(hints[bounty.r_hints].price) + "`\nBounty expires: <t:" + Math.round((Date.now() + 1000 * 60 * 60) / 1000) + ":R>\n" +
-                "Reward: `📀" + number_with_commas(hints[bounty.r_hints].bonus) + "`")
+            .setDescription("`-📀" + number_with_commas(tier.price) + "`\nBounty expires: <t:" + Math.round((Date.now() + 1000 * 60 * 60) / 1000) + ":R>\n" +
+                "Reward: `📀" + number_with_commas(bounty.bonus ?? tier.bonus) + "`")
             .setAuthor({ name: bounty.player.name + "'s Random Challenge Bounty", iconURL: bounty.player.avatar })
     } else {
         bEmbed
@@ -3506,8 +4005,10 @@ exports.initializeBounty = function (type, h, player, user_profile) {
         bounty.bonus = Math.floor(Math.random() * 35) * 1000
     } else if (type == 'private') {
         bounty.player = player
-        bounty.r_hints = h + (user_profile.effects?.movie_buff ? 1 : 0)
-        bounty.t_hints = h + (user_profile.effects?.movie_buff ? 1 : 0)
+        //tier is what was purchased (drives name/price/bonus); trivia_buff only adds a lead
+        bounty.tier = h
+        bounty.r_hints = h + (user_profile.effects?.trivia_buff ? 1 : 0)
+        bounty.t_hints = h + (user_profile.effects?.trivia_buff ? 1 : 0)
         bounty.bonus = hints[h].bonus
     }
     return bounty
@@ -3541,8 +4042,8 @@ exports.currentTruguts = function (user_profile) {
     return number_with_commas(user_profile.truguts_earned - user_profile.truguts_spent)
 }
 
-exports.randomChallengeItem = function ({ user_profile, current_challenge, db, member, coffer, sarlacc } = {}) {
-    const challenges_completed = Object.values(db.ch.times).filter(time => time.user == member).length
+exports.randomChallengeItem = function ({ user_profile, current_challenge, db, member_id, coffer, sarlacc } = {}) {
+    const challenges_completed = Object.values(db.ch.times).filter(time => time.user == member_id).length
     let item_pool = []
     let special_items = ['collectible_coffer', 'trugut_boost', 'sabotage_kit'].map(id => items.find(i => i.id == id)).filter(Boolean)
     items.forEach(item => {
@@ -3553,27 +4054,25 @@ exports.randomChallengeItem = function ({ user_profile, current_challenge, db, m
 
     //item rarity roll
     const rarity = Math.random()
+    const tiers = ['common', 'uncommon', 'rare', 'legendary']
+    let tier = rarity < 0.60 ? 0 : rarity < 0.85 ? 1 : rarity < 0.95 ? 2 : 3
     let rarity_pool = []
-    if (rarity < 0.60) {
-        rarity_pool = item_pool.filter(i => i.rarity == 'common')
-    } else if (rarity < 0.85) {
-        rarity_pool = item_pool.filter(i => i.rarity == 'uncommon')
-    } else if (rarity < 0.95) {
-        rarity_pool = item_pool.filter(i => i.rarity == 'rare')
-    } else {
-        rarity_pool = item_pool.filter(i => i.rarity == 'legendary')
-    }
 
-    //if no items are available of rolled rarity, default to common
+    //if no items are available of the rolled rarity, cascade down the tiers
+    for (let t = tier; t >= 0 && rarity_pool.length == 0; t--) {
+        rarity_pool = item_pool.filter(i => i.rarity == tiers[t])
+    }
+    //last resort: anything in the pool
     if (rarity_pool.length == 0) {
-        rarity_pool = item_pool.filter(i => i.rarity == 'common')
+        rarity_pool = item_pool
     }
 
     //get random item
     let random_item = rarity_pool[Math.floor(Math.random() * rarity_pool.length)]
 
     //if it's a dup, there's a chance it will be replaced with a new item
-    let owned_ids = user_profile.items ? Object.values(user_profile.items).map(item => item.id) : []
+    //(only live items count -- scrapped/fed/used copies aren't dups)
+    let owned_ids = user_profile.items ? Object.values(user_profile.items).filter(item => exports.usableItem({ item })).map(item => item.id) : []
     if (owned_ids.includes(random_item.id) && Math.random() < (sarlacc || user_profile.effects?.favor_ancients ? 0.85 : 0.15)) {
         let new_pool = rarity_pool.filter(item => !owned_ids.includes(item.id))
         if (new_pool.length) {
@@ -3584,18 +4083,26 @@ exports.randomChallengeItem = function ({ user_profile, current_challenge, db, m
         }
     }
 
-    if (random_item.health) {
-        random_item.health = Math.floor(Math.random() * 256)
+    //clone before setting health -- item_pool holds references to the shared
+    //definitions in data/challenge/item.js, and writing through would corrupt
+    //them for every later roll (a rolled 0 would even stick permanently)
+    if (random_item.upgrade) {
+        random_item = { ...random_item, health: Math.floor(Math.random() * 256) }
     }
 
     return random_item
 }
 
-exports.openCoffer = function ({ user_profile, db, member } = {}) {
+exports.openCoffer = function ({ user_profile, db, member_id } = {}) {
     let coffer_items = []
 
+    //grow the owned-items snapshot as we roll so the duplicate-avoidance
+    //logic can see the items granted earlier in this same coffer
+    let rolling_profile = { ...user_profile, items: { ...(user_profile.items ?? {}) } }
     for (let j = 0; j < 4; j++) {
-        coffer_items.push(exports.randomChallengeItem({ user_profile, current_challenge: null, db, member, coffer: true }))
+        let rolled = exports.randomChallengeItem({ user_profile: rolling_profile, current_challenge: null, db, member_id, coffer: true })
+        rolling_profile.items[`coffer_roll_${j}`] = { id: rolled.id }
+        coffer_items.push(rolled)
     }
 
     return coffer_items
@@ -3667,9 +4174,31 @@ exports.collectionRewardEmbed = function ({ key, name, avatar }) {
     return congratsEmbed
 }
 
+//The item a player earned on a challenge, as the rolled instance rather than the
+//stock definition. earnings only records the item id, and the base definitions in
+//item.js carry health: 255 -- so rendering the definition shows every part at
+//[100%]. The instance is stamped with the challenge message it dropped from, so
+//find it on the earner's profile and merge it over the definition. Falls back to a
+//health-less definition when the copy is gone (traded, scrapped, fed) so the card
+//shows no percentage instead of a wrong one.
+exports.earnedItem = function ({ current_challenge, member, user_profile, db } = {}) {
+    const id = current_challenge?.earnings?.[member]?.item
+    if ([undefined, null, ""].includes(id)) {
+        return null
+    }
+    const base = items.find(i => i.id == id)
+    if (!base) {
+        return null
+    }
+    const owner = Object.values(db?.user ?? {}).find(u => u.discordID == member)?.random ?? user_profile
+    const instance = Object.values(owner?.items ?? {}).find(i => i.id == id && i.challenge == current_challenge.message)
+    return instance ? { ...base, ...instance } : { ...base, health: undefined }
+}
+
 exports.itemString = function ({ item, user_profile }) {
-    let dup = (user_profile?.items ? Object.values(user_profile.items).filter(i => i.id == item.id).length > 1 ? true : false : false) && !['collectible_coffer', 'trugut_boost', 'sabotage_kit'].includes(item.id)
-    return `${raritysymbols[item.rarity]} ${item.name}` + (item.health ? ` [${Math.round(item.health * 100 / 255)}%]` : '') + (dup ? " (duplicate)" : "")
+    //only live copies count as duplicates -- scrapped/fed/used items are gone
+    let dup = (user_profile?.items ? Object.values(user_profile.items).filter(i => i.id == item.id && exports.usableItem({ item: i })).length > 1 : false) && !['collectible_coffer', 'trugut_boost', 'sabotage_kit'].includes(item.id)
+    return `${raritysymbols[item.rarity]} ${item.name}` + (typeof item.health == 'number' ? ` [${Math.round(item.health * 100 / 255)}%]` : '') + (dup ? " (duplicate)" : "")
 }
 
 exports.collectionRewardUpdater = function ({ user_profile, client, interaction, profile_ref, name, avatar } = {}) {
@@ -3771,11 +4300,11 @@ exports.tradeComponents = function ({ trade, db, selection } = {}) {
     let tradables = {}
     let collections = exports.Collections()
     traders.forEach(key => {
-        let player_items = db.user[key].random.items
+        let player_items = db.user[key].random.items ?? {}
         tradables[key] = {
             name: db.user[key].name,
             selected: trade.traders[key].items ? Object.values(trade.traders[key].items) : [],
-            items: Object.keys(player_items).map(k => ({ ...items.find(i => i.id == player_items[k].id), ...items[k], key: k })).filter(i => exports.usableItem({ item: i }) && !i.locked),
+            items: Object.keys(player_items).map(k => ({ ...items.find(i => i.id == player_items[k].id), ...player_items[k], key: k })).filter(i => exports.usableItem({ item: i }) && !i.locked),
         }
     })
 
@@ -3801,20 +4330,30 @@ exports.tradeComponents = function ({ trade, db, selection } = {}) {
         'legendary': 3
     }
     traders.forEach((key, index) => {
+        let options = exports.paginator({
+            value: selection?.[index]?.[0], array: tradables[key].tradable.sort((a, b) => a.rarity == b.rarity ? a.name == b.name ? a.date - b.date : a.name.localeCompare(b.name) : raritymap[b.rarity] - raritymap[a.rarity]).map(t => (
+                {
+                    label: `${tradables[key].selected.includes(t.key) ? '[TRADING] ' : ''}${t.name} ${typeof t.health == 'number' ? `(${Math.round(t.health * 100 / 255)}%)` : ``}${t.collectible ? ' ♦' : ''}`,
+                    value: t.key,
+                    description: (`📀${number_with_commas(exports.itemValue({ item: t }))} | ${tradables[key].selected.includes(t.key) ? 'Select to remove' : t.description}`).slice(0, 100),
+                    emoji: { name: tradables[key].selected.includes(t.key) ? '↔' : raritysymbols[t.rarity] },
+                }
+            ))
+        })
+        //a select menu can't be empty -- show a placeholder when there's nothing to trade
+        if (!options.length) {
+            options = [{
+                label: 'No items',
+                value: 'no',
+                description: 'This player has no tradable items, but can still offer truguts',
+                emoji: { name: '❌' }
+            }]
+        }
         comp.push(new ActionRowBuilder().addComponents(new StringSelectMenuBuilder()
             .setCustomId(`challenge_random_trade_${index}`)
             .setPlaceholder(`Select items from ${tradables[key].name}`)
             .setMinValues(0)
-            .addOptions(...exports.paginator({
-                value: selection?.[index]?.[0], array: tradables[key].tradable.sort((a, b) => a.rarity == b.rarity ? a.name == b.name ? a.date - b.date : a.name.localeCompare(b.name) : raritymap[b.rarity] - raritymap[a.rarity]).map(t => (
-                    {
-                        label: `${tradables[key].selected.includes(t.key) ? '[TRADING] ' : ''}${t.name} ${t.health ? `(${Math.round(t.health * 100 / 255)}%)` : ``}${t.collectible ? ' ♦' : ''}`,
-                        value: t.key,
-                        description: (`📀${number_with_commas(exports.itemValue({ item: t }))} | ${tradables[key].selected.includes(t.key) ? 'Select to remove' : t.description}`).slice(0, 100),
-                        emoji: { name: tradables[key].selected.includes(t.key) ? '↔' : raritysymbols[t.rarity] },
-                    }
-                ))
-            }))))
+            .addOptions(...options)))
     })
 
     const TrugutButton = new ButtonBuilder()
@@ -3841,7 +4380,8 @@ exports.tradeComponents = function ({ trade, db, selection } = {}) {
 }
 
 exports.itemValue = function ({ item } = {}) {
-    return Math.round(item.value * (item.health ? (item.health / 255) : 1))
+    //typeof check: a part rolled at 0 health is worth 0, not full price
+    return Math.round(item.value * (typeof item.health == 'number' ? (item.health / 255) : 1))
 }
 
 exports.getProfileItems = function ({ user_profile } = {}) {
@@ -3925,11 +4465,21 @@ exports.getNeededItems = function ({ user_profile } = {}) {
     let profile_items = exports.availableItemsforTrade({ user_profile })
     let needed = []
     collections.filter(c => !user_profile.effects?.[c.key]).forEach(c => {
-        c.items.forEach(i => {
-            if (!profile_items.map(j => j.id).includes(i)) {
-                needed.push(i)
-            }
-        })
+        if (c.key == 'chance_cube') {
+            //count-aware: the chance cube needs 3 of each side
+            [95, 96].forEach(id => {
+                let owned = profile_items.filter(j => j.id == id).length
+                for (let n = owned; n < 3; n++) {
+                    needed.push(id)
+                }
+            })
+        } else {
+            c.items.forEach(i => {
+                if (!profile_items.map(j => j.id).includes(i)) {
+                    needed.push(i)
+                }
+            })
+        }
     })
     return needed
 }

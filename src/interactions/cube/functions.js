@@ -21,7 +21,7 @@ const moment = require('moment');
 require('moment-timezone');
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
 const { number_with_commas } = require('../../generic.js');
-const { ChanceCube, WhyNobodyBuy, bar_symbols, emojimap, level_symbols } = require('../../data/discord/emoji.js');
+const { ChanceCube, WhyNobodyBuy, bar_segments, emojimap, level_symbols } = require('../../data/discord/emoji.js');
 const { newrecord, DyeGon, RIPratts, wipeout, Whatto, SlyGon } = emojimap;
 const { faceGlyph, SPECIAL_EMOJI } = require('../../data/discord/cube_emoji.js');
 // `chip` is deliberately not taken from here — the view half below declares its own, identical
@@ -292,10 +292,10 @@ exports.tieOddsLine = tieOddsLine;
 // leaves a visible mark on the meter rather than quietly reverting to an empty one. Progress
 // itself is untouched — a failed clear costs the run, not the clears already banked.
 const barOf = (done, goal, current, failed) => Array.from({ length: goal }, (_, i) => {
-    if (i < done) return bar_symbols.new;
-    if (i !== done) return bar_symbols.empty;
-    if (failed) return bar_symbols.error;
-    return current ? bar_symbols.filled : bar_symbols.empty;
+    if (i < done) return bar_segments.new;
+    if (i !== done) return bar_segments.empty;
+    if (failed) return bar_segments.error;
+    return current ? bar_segments.filled : bar_segments.empty;
 }).join('');
 exports.barOf = barOf;
 

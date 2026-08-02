@@ -154,16 +154,16 @@ exports.goal_symbols = ["<:diamond:1136554333723435068>", "<:platinum:1136554336
 
 exports.level_symbols = ["<:bronze:1136554332586786879>", "<:silver:1136554338895011850>", "<:gold:1136554335426318406>", "<:platinum:1136554336705597510>", "<:diamond:1136554333723435068>", "<:master:1145487065912447026>", "<:grandmaster:1145487067682447442>"]
 
-// XP progress bar segments. Tiles butt together seamlessly, so a bar is just N of these
-// in a row: `filled` for progress already earned, `new` for what was just gained, `empty`
-// for the rest. The `*_half` tiles are the half-and-half boundary pieces, for bars whose
-// progress lands mid-tile.
-exports.bar_symbols = {
+//Progress bar segments. Tiles butt together seamlessly, so a bar is just N of these in a
+//row: filled for progress already held, new for what was just gained, empty for the rest.
+//The *half* variants let a bar land mid-segment: filled_half is a held->empty boundary,
+//filled_new_half a held->gained one, and new_half a gained->empty one.
+exports.bar_segments = {
+    empty: "<:Empty:1531757513999909034>",
     filled: "<:Filled:1531757562108837928>",
     new: "<:New:1531757614269206588>",
-    empty: "<:Empty:1531757513999909034>",
     // The segment you were attempting and lost, for a bar that tracks attempts rather than
-    // pure progress.
+    // pure progress — the chance cube's clears meter draws this after a failed clear.
     error: "<:Error:1532842628624810077>",
     filled_half: "<:FilledHalf:1531758373194829955>",
     filled_new_half: "<:FilledNewHalf:1531757539673247985>",

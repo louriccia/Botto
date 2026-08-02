@@ -1,7 +1,7 @@
-const { updateChallenge, bribeComponents, playButton, notYoursEmbed, isActive, expiredEmbed, manageTruguts } = require('./functions.js');
+const { updateChallenge, bribeComponents, bribeDelta, challengeContainer, getBest, playButton, notYoursEmbed, isActive, expiredEmbed, manageTruguts } = require('./functions.js');
 const { tracks } = require('../../data/sw_racer/track.js')
-const { EmbedBuilder } = require('discord.js');
-const { truguts } = require('../../data/challenge/trugut.js');
+const { planets } = require('../../data/sw_racer/planet.js')
+const { EmbedBuilder, MessageFlags } = require('discord.js');
 const { number_with_commas } = require('../../generic.js');
 exports.bribe = async function ({ current_challenge, current_challenge_ref, interaction, user_profile, args, profile_ref, member_avatar, db, member_id, botto_name } = {}) {
 
@@ -17,52 +17,94 @@ exports.bribe = async function ({ current_challenge, current_challenge_ref, inte
         return
     }
 
-    let bribed = false
-    if (interaction.isStringSelectMenu()) {
-        let selection = Number(interaction.values[0])
-        let purchase = {
-            date: Date.now(),
-            selection: selection
-        }
-        let bribe_cost = 0
-        if (args[2] == "track") {
-            bribe_cost = truguts.bribe_track
-            purchase.purchased_item = "track bribe"
-        } else if (args[2] == "racer") {
-            bribe_cost = truguts.bribe_racer
-            purchase.purchased_item = "racer bribe"
-        }
+    //Citizenship: free bribes on the citizen planet's tracks while its role is equipped
+    const challenge_planet = planets[tracks[current_challenge.track]?.planet]
+    const citizen = !!(challenge_planet
+        && user_profile.effects?.[challenge_planet.name.toLowerCase().replaceAll(" ", "_")]
+        && interaction.member.roles.cache.some(r => r.id === challenge_planet.role))
 
-        if (user_profile.truguts_earned - user_profile.truguts_spent < bribe_cost) { //can't afford bribe
+    //read the staged selection out of the message's select defaults, overlaying
+    //the values of the select that fired this interaction. condition stays null
+    //until its select has been rendered (bribeComponents then mirrors the
+    //challenge's current conditions as the starting set)
+    const selection = { track: [], racer: [], condition: null }
+    //walk the whole component tree -- a components v2 message mixes text displays
+    //and containers in at top level, so not every entry is an action row
+    ;(function scrape(nodes) {
+        (nodes ?? []).forEach(node => {
+            const options = node?.data?.options ?? node?.options
+            const key = node?.data?.custom_id?.split("_")[3] ?? node?.customId?.split("_")[3]
+            if (options && ['track', 'racer', 'condition'].includes(key)) {
+                selection[key] = options.filter(o => o.default ?? o.data?.default).map(o => o.value ?? o.data?.value)
+            }
+            scrape(node?.components)
+        })
+    })(interaction.message.components)
+    if (interaction.isStringSelectMenu() && ['track', 'racer', 'condition'].includes(args[2])) {
+        selection[args[2]] = interaction.values
+    }
+
+    //cancel: restore the normal challenge view without applying anything
+    if (args[2] == 'cancel') {
+        const challenge_update = await updateChallenge({ client: interaction.client, user_profile, current_challenge, profile_ref, member: member_id, name: botto_name, avatar: member_avatar, interaction, db })
+        interaction.update(challenge_update)
+        return
+    }
+
+    //submit: apply every staged change at once
+    if (args[2] == 'submit') {
+        const delta = bribeDelta({ current_challenge, user_profile, selection, citizen })
+        if (delta.error || !delta.changes.length) {
+            const holdUp = new EmbedBuilder()
+                .setTitle("<:WhyNobodyBuy:589481340957753363> You what?")
+                .setDescription(delta.error ?? "Nothing selected to bribe.")
+            interaction.reply({ embeds: [holdUp], ephemeral: true })
+            return
+        }
+        if (user_profile.truguts_earned - user_profile.truguts_spent < delta.cost) { //can't afford bribe
             let noMoney = new EmbedBuilder()
                 .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
-                .setDescription("*'No money, no bribe!'*\nYou do not have enough truguts to make this bribe.\n\nBribe cost: `" + number_with_commas(bribe_cost) + "`")
+                .setDescription("*'No money, no bribe!'*\nYou do not have enough truguts to make this bribe.\n\nBribe cost: `" + number_with_commas(delta.cost) + "`")
             interaction.reply({ embeds: [noMoney], ephemeral: true })
             return
         }
 
         //process purchase
-
-        if (args[2] == "track" && selection !== current_challenge.track) {
-            current_challenge_ref.update({ track_bribe: true, track: selection, predictions: {}, created: Date.now() })
-            bribed = true
-            if (!tracks[selection].parskiptimes) {
-                current_challenge_ref.update({ skips: false })
+        manageTruguts({
+            user_profile, profile_ref, transaction: 'w', amount: delta.cost, purchase: {
+                date: Date.now(),
+                purchased_item: 'bribe',
+                selection: delta.changes.join(", ") + (citizen ? ' (citizen)' : '')
             }
-        } else if (args[2] == "racer" && selection !== current_challenge.racer) {
-            current_challenge_ref.update({ racer_bribe: true, racer: selection, predictions: {}, created: Date.now() })
-            bribed = true
-        }
-        if (bribed) {
-            manageTruguts({ user_profile, profile_ref, transaction: 'w', amount: bribe_cost, purchase })
-        }
+        })
+        const bribe_update = { ...delta.update, predictions: {}, created: Date.now() }
+        await current_challenge_ref.update(bribe_update)
+
+        //merge locally rather than re-reading db.ch.challenges -- the cache
+        //listener may not have echoed the write yet, and rendering the stale
+        //object would show the pre-bribe title and description
+        current_challenge = { ...current_challenge, ...bribe_update }
+        const challenge_update = await updateChallenge({ client: interaction.client, user_profile, current_challenge, profile_ref, member: member_id, name: botto_name, avatar: member_avatar, interaction, db })
+        interaction.update(challenge_update)
+        return
     }
 
-    current_challenge = db.ch.challenges[current_challenge.message]
-    //populate options
-    let challenge_update = await updateChallenge({ client: interaction.client, user_profile, current_challenge, current_challenge_ref, profile_ref, member_id, name: botto_name, member_avatar, interaction, db })
-    if (!bribed) {
-        challenge_update.components = [challenge_update.components, bribeComponents(current_challenge)].flat()
+    //initial press or a select change: (re)render the staged bribe UI in place
+    //of the challenge components -- nothing is applied until submit
+    const components = bribeComponents({ current_challenge, user_profile, selection, citizen })
+    if (!components.length) {
+        const holdUp = new EmbedBuilder()
+            .setTitle("<:WhyNobodyBuy:589481340957753363> No bribery in the pits!")
+            .setDescription("You've already used every available bribe on this challenge.")
+        interaction.reply({ embeds: [holdUp], ephemeral: true })
+        return
     }
-    interaction.update(challenge_update)
+    if (current_challenge.v2) {
+        //a components-v2 message is entirely components, so the challenge card
+        //has to be rebuilt alongside the bribe selects
+        const container = await challengeContainer({ client: interaction.client, current_challenge, user_profile, profile_ref, best: getBest(db, current_challenge), name: botto_name, member: member_id, avatar: member_avatar, db })
+        interaction.update({ components: [...container, ...components], flags: MessageFlags.IsComponentsV2 })
+    } else {
+        interaction.update({ components })
+    }
 }
