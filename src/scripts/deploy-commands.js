@@ -33,10 +33,10 @@ const EXCLUDE = [
 	'scrape',
 	'lookup',   // test-guild only; never been public. Drop from this list to release it.
 	// Botto's Chance Cube. Held back while the Discord Activity is being built: /chubacubes has
-	// only ever run in the test guild, and /playcubes cannot work at all until Activities are
-	// enabled on the application. Drop both from this list to release them together.
+	// only ever run in the test guild, and /launch is Discord's own entry point, which the bot only
+	// needs to take over if it should gate the collection before the iframe opens.
 	'chubacubes',
-	'playcubes',
+	'launch',
 ];
 
 // __dirname-relative: the old './../commands/' only resolved when you happened to

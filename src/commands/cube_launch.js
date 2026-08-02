@@ -19,12 +19,18 @@
 // every other entry to the mode already puts it, and the copy stays the same one.
 //
 // ---------------------------------------------------------------------------
-// This does not replace /chubacubes yet
+// This is not deployed yet, and does not need to be
 // ---------------------------------------------------------------------------
 //
-// The embed still works and is still the only version proven in front of players. Two entries
-// coexist until the Activity has been used in anger; retiring the embed is its own change, and it
-// is the point at which this command takes the `chubacubes` name.
+// Discord's own `/launch` already opens the Activity and works. All this changes is *where the
+// collection gate fires*: with Discord's version the iframe opens and the client shows the
+// "you haven't built a cube" screen a moment later; with this one the bot answers before anything
+// opens.
+//
+// It costs one thing, which is why it is held back rather than shipped: handler 1 means the bot
+// has to be up for the Activity to open at all. Handler 2 opens it regardless and lets the API
+// explain itself. Deploy this by dropping `launch` from EXCLUDE in deploy-commands.js and running
+// --global; it replaces Discord's copy.
 
 const { ApplicationCommandType } = require('discord.js');
 
@@ -32,7 +38,10 @@ const { ApplicationCommandType } = require('discord.js');
 // written out with the name it has in the API docs rather than as a bare 1.
 const APP_HANDLER = 1;
 
-const NAME = 'playcubes';
+// Discord creates this command itself, named `launch`, the moment Activities are enabled on the
+// application -- with handler 2. Matching that name means deploying this *replaces* it rather than
+// colliding with it: an app may only have one entry point.
+const NAME = 'launch';
 
 module.exports = {
     data: {

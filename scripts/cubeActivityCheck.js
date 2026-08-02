@@ -98,10 +98,13 @@ const warn = (what, detail, fix) => rows.push({ state: 'warn', what, detail, fix
         state: 'manual',
         what: 'URL mappings',
         detail: 'not readable through the API — check them by eye',
-        fix: 'Developer Portal → Activities → URL Mappings, longer prefix FIRST:\n'
-            + '        /cube  ->  <your-app>.herokuapp.com\n'
-            + '        /      ->  bottosjunkyard.com\n'
-            + '      Targets carry no protocol. If / comes first it swallows /cube.',
+        fix: 'Developer Portal → Activities → URL Mappings. The portal keeps these apart, so\n'
+            + '      there is no ordering question between them:\n'
+            + '        Root Mapping        /      ->  bottosjunkyard.com/activity\n'
+            + '        Proxy Path Mapping  /cube  ->  <your-app>.herokuapp.com\n'
+            + '      Targets carry no protocol. The root target must be a directory that serves an\n'
+            + '      index — /activity, never /activity.html. Ordering only matters if two proxy\n'
+            + '      path prefixes overlap.',
     });
 
     // --- report -------------------------------------------------------------
