@@ -65,6 +65,8 @@ const defaultMoveTrugutsFor = (profile, ref) => function ({ transaction, amount 
     return manageTruguts({ user_profile: profile, profile_ref: ref, transaction, amount });
 };
 
+// `app` here is an express.Router, mounted at both /cube and / — see the note in index.js.
+// Paths are therefore written without the /cube prefix.
 module.exports = function mountCube(app, ctx) {
     const auth = [requireAuth(ctx), requireCube];
     const moveTrugutsFor = ctx.moveTrugutsFor || defaultMoveTrugutsFor;
@@ -90,7 +92,7 @@ module.exports = function mountCube(app, ctx) {
     // Signing in
     // -----------------------------------------------------------------------
 
-    app.post('/cube/auth/token', tokenHandler(ctx));
+    app.post('/auth/token', tokenHandler(ctx));
 
     // -----------------------------------------------------------------------
     // Static data
@@ -108,7 +110,7 @@ module.exports = function mountCube(app, ctx) {
     // The rules, so the client can draw a rack and a ladder without hardcoding either. Behind auth
     // only because there is no reason to serve it to anyone else; it is not a secret, and the one
     // thing that *is* — the daily lean salt — is nowhere near this.
-    app.get('/cube/tuning', requireAuth(ctx), (req, res) => res.json({
+    app.get('/tuning', requireAuth(ctx), (req, res) => res.json({
         levels: LEVELS,
         specials: SPECIALS,
         sides: SIDES,
@@ -121,7 +123,7 @@ module.exports = function mountCube(app, ctx) {
     // The board
     // -----------------------------------------------------------------------
 
-    app.get('/cube/state', auth, async (req, res) => {
+    app.get('/state', auth, async (req, res) => {
         try {
             await persist.ensurePot(ctx.database, ctx.db);
             res.json(boardOf(ctx, req));
@@ -137,14 +139,14 @@ module.exports = function mountCube(app, ctx) {
 
     // The stake. Clamped to the prestige ceiling in `actions.setStake`, so a client that ignores
     // `maxStake` cannot put more on the table than the ladder allows.
-    app.post('/cube/stake', auth, rateLimit({ perMinute: 30 }), (req, res) => {
+    app.post('/stake', auth, rateLimit({ perMinute: 30 }), (req, res) => {
         const out = actions.setStake(ctxOf(req), { stake: req.body?.stake });
         return out.ok ? res.json(out) : refused(res, out);
     });
 
     // The loadout. `setLoadout` drops unknown ids, cubes that aren't owned and anything past the
     // slot count, so nothing here has to trust the request.
-    app.post('/cube/loadout', auth, rateLimit({ perMinute: 30 }), (req, res) => {
+    app.post('/loadout', auth, rateLimit({ perMinute: 30 }), (req, res) => {
         if (!Array.isArray(req.body?.ids)) {
             return res.status(400).json({ error: 'Expected { ids: [] }.', code: 'bad_body' });
         }
@@ -180,7 +182,7 @@ module.exports = function mountCube(app, ctx) {
 
     // Stake and call, or push and call. Both end in a throw, which is settled immediately — the
     // client animates a result that is already final, so a closed tab cannot cost a standing.
-    app.post('/cube/roll', auth, rateLimit({ perMinute: 60 }), async (req, res) => {
+    app.post('/roll', auth, rateLimit({ perMinute: 60 }), async (req, res) => {
         const ctx = ctxOf(req);
         const call = req.body?.call === 'red' ? 'red' : 'blue';
         const live = persist.ladderOf(ctx.db, ctx.discordId);
@@ -215,7 +217,7 @@ module.exports = function mountCube(app, ctx) {
     });
 
     // Cashing out short of the ceiling.
-    app.post('/cube/bank', auth, rateLimit({ perMinute: 30 }), (req, res) => {
+    app.post('/bank', auth, rateLimit({ perMinute: 30 }), (req, res) => {
         const ctx = ctxOf(req);
         const out = actions.bank(ctx);
         if (!out.ok) return refused(res, out);
@@ -223,7 +225,7 @@ module.exports = function mountCube(app, ctx) {
     });
 
     // The answer to a parked tie: roll his cube, or buy it off him.
-    app.post('/cube/tie', auth, rateLimit({ perMinute: 30 }), async (req, res) => {
+    app.post('/tie', auth, rateLimit({ perMinute: 30 }), async (req, res) => {
         const ctx = ctxOf(req);
         const parked = persist.tieOf(ctx.db, ctx.discordId);
         if (!parked) return refused(res, { code: 'no_tie', message: 'There is no tie waiting.' });
@@ -252,7 +254,7 @@ module.exports = function mountCube(app, ctx) {
     });
 
     // Spending a banked reroll on the bust that just happened.
-    app.post('/cube/reroll', auth, rateLimit({ perMinute: 30 }), async (req, res) => {
+    app.post('/reroll', auth, rateLimit({ perMinute: 30 }), async (req, res) => {
         const ctx = ctxOf(req);
         const again = actions.spendReroll(ctx);
         if (!again.ok) return refused(res, again);
@@ -277,7 +279,7 @@ module.exports = function mountCube(app, ctx) {
     });
 
     // Buying one off the shelf, between runs.
-    app.post('/cube/buyreroll', auth, rateLimit({ perMinute: 20 }), (req, res) => {
+    app.post('/buyreroll', auth, rateLimit({ perMinute: 20 }), (req, res) => {
         const ctx = ctxOf(req);
         const out = actions.buyReroll(ctx);
         if (!out.ok) return refused(res, out);
@@ -285,7 +287,7 @@ module.exports = function mountCube(app, ctx) {
     });
 
     // Handing the ladder back for a bigger ceiling and one thing off the rack.
-    app.post('/cube/prestige', auth, rateLimit({ perMinute: 10 }), (req, res) => {
+    app.post('/prestige', auth, rateLimit({ perMinute: 10 }), (req, res) => {
         const ctx = ctxOf(req);
         const out = actions.prestige(ctx, { reward: req.body?.reward });
         if (!out.ok) return refused(res, out);
@@ -293,7 +295,7 @@ module.exports = function mountCube(app, ctx) {
     });
 
     // What a prestige is worth picking from, so the client can draw the menu.
-    app.get('/cube/prestige/choices', auth, (req, res) => {
+    app.get('/prestige/choices', auth, (req, res) => {
         const ctx = ctxOf(req);
         if (!pstate.canPrestige(ctx.s)) {
             return res.status(409).json({ error: 'You have not earned a prestige.', code: 'not_eligible' });
