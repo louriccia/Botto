@@ -42,11 +42,161 @@ crypto.randomInt = (min, max) => (max === undefined
 
 const orig = require('../src/interactions/cube/functions.js');
 const engine = require('../src/game/cube/engine.js');
+const pstate = require('../src/game/cube/state.js');
 const { faceGlyph } = require('../src/data/discord/cube_emoji.js');
 const { SPECIALS } = require('../src/game/cube/tuning.js');
 
 const ROLLS = Number(process.argv[2]) || 50000;
 const ALL = SPECIALS.map(s => s.id);
+
+// ---------------------------------------------------------------------------
+// Phase one: player state
+// ---------------------------------------------------------------------------
+//
+// `cubeState` reads a stored profile and every other function in state.js mutates what it
+// returned. Both halves are compared against the original across a spread of profiles — empty,
+// partial, maxed, and deliberately malformed — because the clamping on read is what stops a
+// profile saved under older rules from fielding an extra cube or an oversized stake.
+
+const profiles = [];
+// Nothing stored at all: a player who has just unlocked the collection.
+profiles.push({});
+profiles.push({ cube: {} });
+for (let p = 0; p <= 9; p++) {
+    for (let owned = 0; owned <= ALL.length; owned++) {
+        profiles.push({
+            cube: {
+                prestige: p,
+                unlocked: p % 6,
+                clears: p % 4,
+                slots: 1 + (p % 4),
+                cubes: Object.fromEntries(ALL.slice(0, owned).map(id => [id, true])),
+                equipped: ALL.slice(0, Math.min(owned, 3)),
+                stake: [0, 50, 1000, 999999999][p % 4],
+                rerolls: p % 5,
+                buyReroll: p % 2 === 0,
+                nudge: p % 3 === 0,
+                bribe: p % 3 === 1,
+                bribes: p % 4,
+                calls: { blue: p * 7, red: p * 3 },
+                wins: { blue: p * 2, red: p },
+                rolled: { blue: p * 11, red: p * 9 },
+                faces: { wild: { wild: p, end: 1 } },
+                bestLevel: p % 6,
+                bestStanding: p * 1000,
+                bestCubes: p * 3,
+                bestMultiple: p * 2.5,
+                streak: p,
+                bestStreak: p * 2,
+                totalWon: p * 100,
+                totalLost: p * 50,
+                totalSpent: p * 10,
+                turn: p,
+            },
+        });
+    }
+}
+// Deliberately malformed: values that a hand-edited or migrated profile could actually hold.
+profiles.push({ cube: { prestige: -3, unlocked: 99, slots: -1, stake: 'x', cubes: { nope: true } } });
+profiles.push({ cube: { equipped: { 0: 'wild', 1: 'ghost' }, cubes: { wild: true }, slots: 0 } });
+profiles.push({ cube: { calls: null, wins: 'x', rolled: undefined, faces: 'not an object' } });
+
+const stateFailures = [];
+const stateSame = function (label, got, want) {
+    try {
+        assert.deepStrictEqual(got, want);
+    } catch (err) {
+        if (stateFailures.length < 8) {
+            stateFailures.push(`${label}\n    new: ${JSON.stringify(got)}\n    old: ${JSON.stringify(want)}`);
+        }
+    }
+};
+
+profiles.forEach((profile, n) => {
+    // Each engine gets its own copy: these functions mutate what they are handed.
+    const a = orig.cubeState(JSON.parse(JSON.stringify(profile)));
+    const b = pstate.cubeState(JSON.parse(JSON.stringify(profile)));
+    stateSame(`profile ${n} · cubeState`, b, a);
+
+    // Pricing, which the ceiling and the shop both read off.
+    stateSame(`profile ${n} · maxStakeFor`, pstate.maxStakeFor(a.prestige), orig.maxStakeFor(a.prestige));
+    stateSame(`profile ${n} · rerollCostFor`, pstate.rerollCostFor(a.prestige, a.rerolls), orig.rerollCostFor(a.prestige, a.rerolls));
+    stateSame(`profile ${n} · bribeCostFor`, pstate.bribeCostFor(16000, a.bribes), orig.bribeCostFor(16000, a.bribes));
+    stateSame(`profile ${n} · clearsPerLevel`, pstate.clearsPerLevel(a), orig.clearsPerLevel(a));
+    stateSame(`profile ${n} · goalOf`, pstate.goalOf(a), orig.goalOf(a));
+    stateSame(`profile ${n} · canPrestige`, pstate.canPrestige(a), orig.canPrestige(a));
+    stateSame(`profile ${n} · topOf`, pstate.topOf(a), orig.topOf(a));
+
+    // The reward menu, minus the emoji the original attached — that is the presentation this
+    // split exists to remove, so it is checked by the glyph table rather than here.
+    const strip = o => o.map(x => ({ value: x.value, label: x.label, description: x.description }));
+    stateSame(`profile ${n} · rewardChoices`, strip(pstate.rewardChoices(b)), strip(orig.rewardChoices(a)));
+
+    // Every mutator, each on its own fresh pair so one can't contaminate the next.
+    const pairOf = () => [orig.cubeState(JSON.parse(JSON.stringify(profile))),
+        pstate.cubeState(JSON.parse(JSON.stringify(profile)))];
+
+    let [x, y] = pairOf();
+    let px = {}; let py = {};
+    stateSame(`profile ${n} · awardClear`, pstate.awardClear(y, py), orig.awardClear(x, px));
+    stateSame(`profile ${n} · awardClear patch`, py, px);
+    stateSame(`profile ${n} · awardClear state`, y, x);
+
+    for (const reward of ['slot', 'reroll', 'nudge', 'bribe', 'cube:wild', 'cube:greed', 'cube:nope']) {
+        [x, y] = pairOf();
+        px = {}; py = {};
+        orig.applyPrestige(x, px, reward);
+        pstate.applyPrestige(y, py, reward);
+        stateSame(`profile ${n} · applyPrestige(${reward}) patch`, py, px);
+        stateSame(`profile ${n} · applyPrestige(${reward}) state`, y, x);
+    }
+
+    [x, y] = pairOf();
+    px = {}; py = {};
+    const ids = ['greed', 'wild', 'wild', 'ghost', 'mirror', 'binder'];
+    stateSame(`profile ${n} · setLoadout`, pstate.setLoadout(y, py, ids), orig.setLoadout(x, px, ids));
+    stateSame(`profile ${n} · setLoadout patch`, py, px);
+
+    [x, y] = pairOf();
+    px = {}; py = {};
+    const roll = { call: 'blue', won: n % 2 === 0, cubes: ['blue', 'red', 'blue'], level: n % 5, standing: n * 500, line: n % 13, multiple: (n % 9) * 1.5 };
+    stateSame(`profile ${n} · recordRoll`, pstate.recordRoll(y, py, roll), orig.recordRoll(x, px, roll));
+    stateSame(`profile ${n} · recordRoll patch`, py, px);
+    stateSame(`profile ${n} · recordRoll state`, y, x);
+
+    [x, y] = pairOf();
+    px = {}; py = {};
+    const log = [{ id: 'wild', key: 'wild' }, { id: 'wild', key: 'end' }, { id: 'greed', key: 'greed' }];
+    orig.recordFaces(x, px, log);
+    pstate.recordFaces(y, py, log);
+    stateSame(`profile ${n} · recordFaces patch`, py, px);
+    stateSame(`profile ${n} · recordFaces state`, y, x);
+
+    for (const fn of ['recordWon', 'recordLost', 'recordSpent', 'unrecordLost']) {
+        [x, y] = pairOf();
+        px = {}; py = {};
+        orig[fn](x, px, 1234);
+        pstate[fn](y, py, 1234);
+        stateSame(`profile ${n} · ${fn} patch`, py, px);
+        stateSame(`profile ${n} · ${fn} state`, y, x);
+    }
+
+    [x, y] = pairOf();
+    px = {}; py = {};
+    orig.addReroll(x, px, 3);
+    pstate.addReroll(y, py, 3);
+    stateSame(`profile ${n} · addReroll`, py, px);
+    orig.addBribe(x, px);
+    pstate.addBribe(y, py);
+    stateSame(`profile ${n} · addBribe`, py, px);
+});
+
+if (stateFailures.length) {
+    console.log(`Player state diverged across ${profiles.length} profiles:\n`);
+    stateFailures.forEach(f => console.log(`  ${f}\n`));
+    process.exit(1);
+}
+console.log(`Player state matches across ${profiles.length} profiles.`);
 
 // ---------------------------------------------------------------------------
 // One climb, played identically by whichever engine it is handed
