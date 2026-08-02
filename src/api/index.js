@@ -52,7 +52,20 @@ exports.createApi = function (ctx) {
     // debugging a URL mapping.
     app.get('/health', (req, res) => res.json({ ok: true, bot: !!ctx.client?.isReady?.() }));
 
-    mountCube(app, ctx);
+    // **Mounted twice, and both are load-bearing.**
+    //
+    // Discord's proxy forwards a mapped prefix to its target, and whether it *strips* that prefix
+    // on the way is not something the documentation states. Mapping `/cube` at the bot's origin
+    // therefore delivers either `/cube/auth/token` or `/auth/token`, and the first attempt guessed
+    // wrong: the Activity's exchange came back 404.
+    //
+    // Serving both costs one line and settles it. `/cube` is also what the routes look like when
+    // hit directly — from a browser, from the smoke test, from curl — so keeping it is worth more
+    // than picking whichever one the proxy happens to use this year.
+    const cube = express.Router();
+    mountCube(cube, ctx);
+    app.use('/cube', cube);
+    app.use('/', cube);
 
     // Anything else is a mapping mistake, and should say so rather than returning Express's HTML.
     app.use((req, res) => res.status(404).json({ error: `No route for ${req.method} ${req.path}` }));
