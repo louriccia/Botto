@@ -1,5 +1,6 @@
 // Proves the extracted engine (`src/game/cube/engine.js`) resolves a line identically to the
-// original that shipped inside `src/interactions/cube/functions.js`.
+// original that shipped inside `src/interactions/cube/functions.js`, checked out of the commit
+// before the port. See REFERENCE_COMMIT below.
 //
 // This is the gate on the whole Activity port. The engine decides how many truguts change hands,
 // so a divergence here is not a rendering bug, it is a currency bug — and it would be invisible
@@ -11,15 +12,55 @@
 // same number of random values in the same order as well as reach the same answer — a real
 // equivalence rather than a matching summary.
 //
-// The old engine reports faces as Discord emoji and the new one as abstract ids, so the new
-// output is mapped through `data/discord/cube_emoji.js` before comparing. That checks the id
-// scheme and the glyph table at the same time: if `mult:blue` ever stopped meaning PraiseMaja,
-// this would catch it.
+// **Three engines, not two.** The frozen original, the extracted engine, and the wrapper the bot
+// actually loads (`interactions/cube/functions.js`), which dresses the engine back up in emoji and
+// prose. All three play the same climb from the same seed:
+//
+//   original ↔ engine    the rules are unchanged. Faces are mapped through the glyph table to
+//                        compare, which checks the id scheme too — if `mult:blue` ever stopped
+//                        meaning PraiseMaja, this catches it.
+//   original ↔ wrapper   the embed still gets exactly what it always got, compared with no
+//                        mapping at all.
+//
+// The third pass is not redundant. A bulk re-export in the wrapper once silently overwrote its
+// Discord-shaped `resolveLine` with the raw engine's, leaving `res.faces` undefined for every
+// caller — and the first pass could not see it, because it never loads the file the bot runs.
 //
 //   node scripts/cubeParity.js [rolls]
 
 const assert = require('assert');
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
+const { execFileSync } = require('child_process');
+
+// ---------------------------------------------------------------------------
+// The reference implementation
+// ---------------------------------------------------------------------------
+//
+// The original engine no longer exists in the working tree — `interactions/cube/functions.js` is
+// a thin wrapper over `game/cube/` now, so comparing against it would be comparing the extraction
+// against itself and would pass no matter what broke.
+//
+// So the reference is checked out of the commit **before** the port, written next to where it used
+// to live (so its relative requires still resolve), loaded, and deleted. It reads the tuning
+// through `data/challenge/cube.js`, which is the shim — and the shim is verified to reproduce the
+// original tuning exactly, so the reference behaves as it did the day it was frozen.
+const REFERENCE_COMMIT = 'e8228cf1';
+const REFERENCE_PATH = 'src/interactions/cube/functions.js';
+const tmp = path.join(__dirname, '..', 'src', 'interactions', 'cube', '.parity-reference.js');
+
+let source;
+try {
+    source = execFileSync('git', ['show', `${REFERENCE_COMMIT}:${REFERENCE_PATH}`],
+        { cwd: path.join(__dirname, '..'), encoding: 'utf8', maxBuffer: 1 << 24 });
+} catch (err) {
+    console.error(`Could not read the reference engine from ${REFERENCE_COMMIT}:${REFERENCE_PATH}`);
+    console.error('Without it there is nothing to compare against, so this proves nothing.');
+    process.exit(2);
+}
+fs.writeFileSync(tmp, source);
+process.on('exit', () => { try { fs.unlinkSync(tmp); } catch (e) { /* already gone */ } });
 
 // ---------------------------------------------------------------------------
 // Seeded randomness, installed before the engines load
@@ -40,8 +81,10 @@ crypto.randomInt = (min, max) => (max === undefined
     ? Math.floor(next() * min)
     : min + Math.floor(next() * (max - min)));
 
-const orig = require('../src/interactions/cube/functions.js');
+const orig = require('../src/interactions/cube/.parity-reference.js');
 const engine = require('../src/game/cube/engine.js');
+// The file the bot actually loads: the engine with Discord's clothes on.
+const wrapper = require('../src/interactions/cube/functions.js');
 const pstate = require('../src/game/cube/state.js');
 const { faceGlyph } = require('../src/data/discord/cube_emoji.js');
 const { renderNote, renderNotes } = require('../src/data/discord/cube_notes.js');
@@ -262,9 +305,45 @@ for (let i = 0; i < ROLLS; i++) {
     const a = climb(orig, rack, top, call);
     seed(i + 1);
     const b = climb(engine, rack, top, call);
+    // The embed's wrapper, played identically. Compared **without** any mapping, because it is
+    // supposed to produce exactly what the original produced — emoji and finished prose.
+    //
+    // This third pass exists because the first two could not see a real bug: the wrapper's
+    // Discord-shaped `resolveLine` was being silently overwritten by a bulk re-export of the raw
+    // engine, so `res.faces` was undefined for every caller. Comparing the engine to the original
+    // proved nothing about the file the bot actually loads.
+    seed(i + 1);
+    const c = climb(wrapper, rack, top, call);
 
     let bad = false;
     if (!same(i, 'level count', b.length, a.length)) { bad = true; }
+    if (!same(i, 'wrapper level count', c.length, a.length)) { bad = true; }
+
+    for (let lv = 0; lv < Math.min(a.length, c.length); lv++) {
+        const A = a[lv].res;
+        const C = c[lv].res;
+        const w = f => `L${lv} wrapper ${f}`;
+        if (!same(i, w('rolled'), c[lv].rolled, a[lv].rolled)) bad = true;
+        if (!same(i, w('faces'), C.faces, A.faces)) bad = true;
+        if (!same(i, w('notes'), C.notes, A.notes)) bad = true;
+        if (!same(i, w('steps.length'), C.steps.length, A.steps.length)) bad = true;
+        for (let s = 0; s < Math.min(A.steps.length, C.steps.length); s++) {
+            if (!same(i, w(`steps[${s}].faces`), C.steps[s].faces, A.steps[s].faces)) bad = true;
+            if (!same(i, w(`steps[${s}].note`), C.steps[s].note, A.steps[s].note)) bad = true;
+            if (!same(i, w(`steps[${s}].at`), C.steps[s].at, A.steps[s].at)) bad = true;
+        }
+        const wmA = orig.multSteps(2, A.pays, A.majority);
+        const wmC = wrapper.multSteps(2, C.pays, C.majority);
+        if (!same(i, w('multSteps.length'), wmC.length, wmA.length)) bad = true;
+        for (let m = 0; m < Math.min(wmA.length, wmC.length); m++) {
+            if (!same(i, w(`multSteps[${m}].note`), wmC[m].note, wmA[m].note)) bad = true;
+            if (!same(i, w(`multSteps[${m}].multiple`), wmC[m].multiple, wmA[m].multiple)) bad = true;
+        }
+        for (const f of ['cubes', 'set', 'majority', 'pure', 'swept', 'mult', 'mults',
+            'shortcut', 'rerolls', 'broken', 'ended', 'specials', 'faceLog']) {
+            if (!same(i, w(f), C[f], A[f])) bad = true;
+        }
+    }
 
     for (let lv = 0; lv < Math.min(a.length, b.length); lv++) {
         const A = a[lv].res;

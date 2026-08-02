@@ -7,3 +7,5 @@ config.js
 log.txt
 monitor.js
 _bot*.log
+# Materialised by scripts/cubeParity.js while it runs, deleted on exit.
+.parity-reference.js
