@@ -64,6 +64,7 @@ const { db, database } = require('./firebase.js')
 const { WhyNobodyBuy } = require('./data/discord/emoji.js')
 const { requestWithUser, axiosClient } = require('./axios.js')
 const { initSseClient, onAction } = require('./sseClient.js')
+const { startApi } = require('./api/index.js')
 const { registerSseHandlers } = require('./sseHandlers.js')
 
 //banned
@@ -209,6 +210,12 @@ client.once(Events.ClientReady, async () => {
     // Fire-and-forget: triggers the API to walk all matches once and precompute every
     // leaderboard bucket so the first user-triggered race view is a hot cache hit.
     leaderboardCache.warm().catch(() => { })
+
+    // The bot's own HTTP surface, backing the chance cube Discord Activity. Started here rather
+    // than at module load so it can answer for the client's readiness, and because everything it
+    // serves reads the Firebase mirror that is warm by now. See src/api/index.js for why it lives
+    // in this process rather than in botto-api.
+    startApi({ client, db, database })
 
     const minuteUpdater = async () => {
         try {
