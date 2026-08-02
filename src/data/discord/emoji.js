@@ -23,6 +23,7 @@ exports.emojimap = {
     CryGon: "<:CryGon:1028180139995045968>",
     DieGon: "<:DieGon:1058560460586237982>",
     Dug: "<:Dug:525755299647193088>",
+    DyeGon: "<a:DyeGon:1235055298281209886>",
     EyeYunga: "<:EyeYunga:1024168110938411050>",
     FlyGon: "<:FlyGon:1005209412899717211>",
     Fodesinbeed: "<a:Fodesinbeed:672640805055496192>",
@@ -73,7 +74,10 @@ exports.emojimap = {
     andotent: "<:andotent:1023110359407657090>",
     ani_engine: "<:ani_engine:672639989019967490>",
     benspin: "<a:benspin:1028168991337885776>",
-    binder: "<:binder:525755271084113940>",
+    // Two emoji share the name "binder" in the guild; the static one is keyed separately
+    // because an object literal can only hold one `binder` and the animated one is the
+    // Binder Cube's face.
+    airbrake: "<:binder:525755271084113940>",
     binder: "<a:binder:672640399113715734>",
     botto: "<:botto:850138537440313344>",
     countdown: "<a:countdown:672640791369482251>",
@@ -94,7 +98,12 @@ exports.emojimap = {
     swr: "<:swr:671547869118988328>",
     wipeout: "<a:wipeout:672640904473083904>",
     HappyFud: "<:HappyFud:1235054612327698512>",
+    // Three thirds of one wide Ben. WideBen2 is his middle and is the Symbiont's raze face; the
+    // other two are what the cubes he destroys are replaced with, so the three positions read as a
+    // single picture lying across the line.
+    WideBen1: "<:WideBen1:1235054858080616498>",
     WideBen2: "<:WideBen2:1235054897213476955>",
+    WideBen3: "<:WideBen3:1235054932529385522>",
     SighGon: "<:SighGon:1235054800312209550>",
     server_icon: "<:server_icon:1235054663368179712>",
     SWEP1RCREXE: "<:SWEP1RCREXE:1235054770142711978>"
@@ -145,13 +154,17 @@ exports.goal_symbols = ["<:diamond:1136554333723435068>", "<:platinum:1136554336
 
 exports.level_symbols = ["<:bronze:1136554332586786879>", "<:silver:1136554338895011850>", "<:gold:1136554335426318406>", "<:platinum:1136554336705597510>", "<:diamond:1136554333723435068>", "<:master:1145487065912447026>", "<:grandmaster:1145487067682447442>"]
 
-//Progress bar segments. The *half* variants let a bar land mid-segment:
-//filled_half is a held->empty boundary, filled_new_half a held->gained one,
-//and new_half a gained->empty one.
+//Progress bar segments. Tiles butt together seamlessly, so a bar is just N of these in a
+//row: filled for progress already held, new for what was just gained, empty for the rest.
+//The *half* variants let a bar land mid-segment: filled_half is a held->empty boundary,
+//filled_new_half a held->gained one, and new_half a gained->empty one.
 exports.bar_segments = {
     empty: "<:Empty:1531757513999909034>",
     filled: "<:Filled:1531757562108837928>",
     new: "<:New:1531757614269206588>",
+    // The segment you were attempting and lost, for a bar that tracks attempts rather than
+    // pure progress — the chance cube's clears meter draws this after a failed clear.
+    error: "<:Error:1532842628624810077>",
     filled_half: "<:FilledHalf:1531758373194829955>",
     filled_new_half: "<:FilledNewHalf:1531757539673247985>",
     new_half: "<:NewHalf:1531757586435543212>"

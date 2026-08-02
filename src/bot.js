@@ -64,6 +64,7 @@ const { db, database } = require('./firebase.js')
 const { WhyNobodyBuy } = require('./data/discord/emoji.js')
 const { requestWithUser, axiosClient } = require('./axios.js')
 const { initSseClient, onAction } = require('./sseClient.js')
+const { startApi } = require('./api/index.js')
 const { registerSseHandlers } = require('./sseHandlers.js')
 
 //banned
@@ -124,7 +125,19 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 
     //command handler
-    if (interaction.isChatInputCommand()) {
+    //
+    // An Activity's entry point is a command, but *not* a chat input one — `isChatInputCommand()`
+    // is false for it, so without this branch it would fall through to the component handler below
+    // and throw on a `customId` that command interactions do not have.
+    if (interaction.isCommand() && !interaction.isChatInputCommand() && !interaction.isContextMenuCommand()) {
+        const command = interaction.commandName?.toLowerCase();
+        if (!command || !client.commands.has(command)) return;
+        try {
+            await client.commands.get(command).execute({ client, interaction, database, db, member_id, member_name, member_avatar, user_key, user_profile, userSnapshot });
+        } catch (error) {
+            reportError(`Entry point: ${command}`, error);
+        }
+    } else if (interaction.isChatInputCommand()) {
         const command = interaction.commandName.toLowerCase();
 
         if (!client.commands.has(command)) {
@@ -209,6 +222,12 @@ client.once(Events.ClientReady, async () => {
     // Fire-and-forget: triggers the API to walk all matches once and precompute every
     // leaderboard bucket so the first user-triggered race view is a hot cache hit.
     leaderboardCache.warm().catch(() => { })
+
+    // The bot's own HTTP surface, backing the chance cube Discord Activity. Started here rather
+    // than at module load so it can answer for the client's readiness, and because everything it
+    // serves reads the Firebase mirror that is warm by now. See src/api/index.js for why it lives
+    // in this process rather than in botto-api.
+    startApi({ client, db, database })
 
     const minuteUpdater = async () => {
         try {

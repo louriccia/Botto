@@ -23,27 +23,44 @@ const { REST, Routes } = require('discord.js');
 const fs = require('node:fs');
 const path = require('node:path');
 
-// Commands that exist in the repo but are deliberately kept out of the global set.
+// Commands that exist in the repo but are deliberately kept out of the GLOBAL set.
 // Deploy these to the test guild with --guild if you need them.
+//
+// That second sentence used to be untrue: the filter ran for every mode, so an excluded command
+// could not be deployed anywhere, and --guild silently dropped exactly the commands you were
+// testing. It is honoured for --global only now, which is what the line has always claimed.
 const EXCLUDE = [
 	'scrape',
 	'lookup',   // test-guild only; never been public. Drop from this list to release it.
+	// Botto's Chance Cube. Held back while the Discord Activity is being built: /chubacubes has
+	// only ever run in the test guild, and /launch is Discord's own entry point, which the bot only
+	// needs to take over if it should gate the collection before the iframe opens.
+	'chubacubes',
+	'launch',
 ];
 
 // __dirname-relative: the old './../commands/' only resolved when you happened to
 // run this from src/scripts/, and silently found nothing otherwise.
 const COMMAND_DIR = path.join(__dirname, '../commands');
 
-function loadCommands() {
+function loadCommands({ applyExcludes }) {
 	const commands = [];
 	const skipped = [];
+	const broken = [];
 	for (const file of fs.readdirSync(COMMAND_DIR).filter(f => f.endsWith('.js'))) {
 		const command = require(path.join(COMMAND_DIR, file));
 		if (!command.data) continue;
-		if (EXCLUDE.includes(command.data.name)) { skipped.push(command.data.name); continue; }
-		commands.push(command.data.toJSON());
+		if (applyExcludes && EXCLUDE.includes(command.data.name)) { skipped.push(command.data.name); continue; }
+		// A definition that won't serialise is one command's problem, not the deploy's. This used
+		// to throw and take the whole run with it — which nobody noticed, because the one broken
+		// command was also on the exclude list and never reached this line.
+		try {
+			commands.push(command.data.toJSON());
+		} catch (err) {
+			broken.push({ file, name: command.data.name, why: err.message });
+		}
 	}
-	return { commands, skipped };
+	return { commands, skipped, broken };
 }
 
 const clientID = process.env.clientId;
@@ -70,11 +87,18 @@ async function show(label, route) {
 
 (async () => {
 	const [mode, arg] = process.argv.slice(2);
-	const { commands, skipped } = loadCommands();
+	// A guild deploy is for testing, which is exactly what the held-back commands are for.
+	const { commands, skipped, broken } = loadCommands({ applyExcludes: mode !== '--guild' });
 
 	console.log(`Found ${commands.length} command(s) in ${COMMAND_DIR}`);
 	console.log(`  ${names(commands)}`);
-	if (skipped.length) console.log(`  excluded: ${skipped.join(' ')}`);
+	if (skipped.length) console.log(`  excluded from global: ${skipped.join(' ')}`);
+	if (mode === '--guild' && EXCLUDE.length) {
+		console.log(`  including ${EXCLUDE.join(' ')} — guild deploys carry the held-back commands`);
+	}
+	for (const b of broken) {
+		console.log(`  BROKEN, not deployed: ${b.file} (${b.name || 'unnamed'}) — ${b.why}`);
+	}
 	console.log('');
 
 	try {

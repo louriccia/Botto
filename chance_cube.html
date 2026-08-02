@@ -1,0 +1,1572 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Botto's Chance Cube</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            margin: .5rem .75rem;
+            max-width: 1250px;
+        }
+
+        h1 {
+            font-size: 1.35rem;
+            margin: .1rem 0 .3rem;
+        }
+
+        h2 {
+            font-size: 1rem;
+            margin: .6rem 0 .25rem;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: .35rem 0;
+            font-size: .85rem;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 3px 7px;
+            text-align: left;
+        }
+
+        th {
+            background: #f0f0f0;
+        }
+
+        td.num,
+        th.num {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        tr.active {
+            background: #fff3d6;
+        }
+
+        tr.locked {
+            color: #aaa;
+        }
+
+        .muted {
+            color: #888;
+        }
+
+        .up {
+            color: #087f23;
+        }
+
+        .down {
+            color: #b00;
+        }
+
+        .ok {
+            color: #087f23;
+            font-weight: 700;
+        }
+
+        .bad {
+            color: #b00;
+            font-weight: 700;
+        }
+
+        button,
+        input,
+        select {
+            font: inherit;
+        }
+
+        button:disabled {
+            opacity: .45;
+        }
+
+        input[type=number] {
+            width: 5.5rem;
+        }
+
+        label {
+            margin-right: 1rem;
+            white-space: nowrap;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0 1.25rem;
+            align-items: start;
+        }
+
+        .panel {
+            padding: .45rem .6rem;
+            background: #f7f7f7;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            margin: .35rem 0;
+        }
+
+        #cubes {
+            font-size: 1.9rem;
+            letter-spacing: .18rem;
+            line-height: 1.25;
+            min-height: 2.4rem;
+            word-break: break-all;
+        }
+
+        #verdict {
+            font-weight: 700;
+            min-height: 1.2rem;
+        }
+
+        #standing {
+            font-size: 1.05rem;
+        }
+
+        #log {
+            height: 170px;
+            overflow: auto;
+            font-size: .82rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: .3rem .45rem;
+            background: #fff;
+        }
+
+        #log div {
+            margin: .1rem 0;
+        }
+
+        .rack {
+            letter-spacing: .15rem;
+            font-size: 1.1rem;
+        }
+
+        .bar {
+            display: flex;
+            height: 14px;
+            border-radius: 3px;
+            overflow: hidden;
+            border: 1px solid #ccc;
+            margin: .25rem 0;
+        }
+
+        .bar .blue {
+            background: #4a7fd4;
+        }
+
+        .bar .red {
+            background: #d44a4a;
+        }
+
+        .reveal {
+            display: none;
+        }
+
+        body.reveal .reveal {
+            display: inline;
+        }
+
+        .reveal-row {
+            display: none;
+        }
+
+        body.reveal .reveal-row {
+            display: table-row;
+        }
+
+        .big {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .clock {
+            font-variant-numeric: tabular-nums;
+        }
+
+        fieldset {
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            margin: .35rem 0;
+            padding: .35rem .6rem .5rem;
+        }
+
+        legend {
+            font-size: .85rem;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .hint {
+            font-size: .78rem;
+            color: #888;
+            margin: .2rem 0;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🎲 Botto's Chance Cube <span class="muted" style="font-size:.8rem">— prototype /
+            playtest harness</span></h1>
+
+    <p>
+        <button id="advHour">Advance 1 Hour</button>
+        <button id="advLastCall">Skip to Last Call</button>
+        <button id="newDay">New Day</button>
+        <button id="forceSense">🔮 Force Sense</button>
+        <button id="grantClear">+1 clear</button>
+        <button id="reset">Reset</button>
+        <span class="muted clock" id="clock"></span>
+    </p>
+
+    <div class="grid">
+        <!-- ============================ LEFT: PLAY ============================ -->
+        <div>
+            <div class="panel">
+                <div>
+                    <b>Day <span id="day"></span></b> &nbsp;·&nbsp;
+                    Balance <b id="balance"></b> &nbsp;·&nbsp;
+                    Staked today <span id="stakedToday"></span>
+                </div>
+                <div>
+                    Rack <span class="rack" id="rackBar"></span>
+                    <span id="rackText"></span> &nbsp;·&nbsp;
+                    Clears <span id="clearText"></span>
+                </div>
+                <div>
+                    <b id="tierText"></b> &nbsp;·&nbsp;
+                    ✨ Pure Cube pot <b id="jackpot"></b>
+                </div>
+                <div class="reveal">
+                    <span class="muted">🔮 loaded:</span> <b id="loadingReveal"></b>
+                </div>
+                <div class="muted" style="font-size:.78rem">commit <span id="commit"></span></div>
+            </div>
+
+            <h2>The Ladder</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Rung</th>
+                        <th>Name</th>
+                        <th class="num">Cubes</th>
+                        <th class="num">Payout</th>
+                        <th class="num">Pays (bank)</th>
+                    </tr>
+                </thead>
+                <tbody id="ladder"></tbody>
+            </table>
+
+            <div class="panel">
+                <div id="standing"></div>
+                <div id="cubes"></div>
+                <div id="verdict"></div>
+                <p>
+                    <label>Stake <input id="stake" type="number" min="1" step="100" value="1000" /></label>
+                    <button id="callBlue"></button>
+                    <button id="callRed"></button>
+                    <button id="bank">💰 Bank</button>
+                </p>
+                <div class="hint" id="playHint"></div>
+                <p style="margin:.3rem 0">
+                    <label>Your cube
+                        <select id="palettePick"></select>
+                    </label>
+                    <span class="muted" id="paletteHint"></span>
+                </p>
+            </div>
+
+            <h2>📓 Today's Ledger</h2>
+            <div class="panel">
+                <div class="big">
+                    <span id="ledgerBlue"></span> &nbsp;·&nbsp; <span id="ledgerRed"></span>
+                    <span class="muted" style="font-size:.8rem">(<span id="ledgerTotal"></span> cubes
+                        rolled)</span>
+                </div>
+                <div class="bar" id="ledgerBar">
+                    <div class="blue"></div>
+                    <div class="red"></div>
+                </div>
+                <div id="posterior"></div>
+                <div id="sweepCount"></div>
+                <div class="hint">
+                    Posterior over the loading, from the ledger alone, using the prior below. Early in the
+                    day this is noise; late on a Thumb day it is real information. 25% of days have no
+                    lean at all — a high reading can still be a True Cube fooling you.
+                </div>
+            </div>
+
+            <h2>Lifetime</h2>
+            <div class="panel" id="stats"></div>
+        </div>
+
+        <!-- ======================= RIGHT: TUNING + MATH ======================= -->
+        <div>
+            <h2>Tuning</h2>
+            <fieldset>
+                <legend>Payout ladder &amp; rake</legend>
+                <label>L1 <input class="payout" data-i="0" type="number" step=".05" min="1" /></label>
+                <label>L2 <input class="payout" data-i="1" type="number" step=".1" min="1" /></label>
+                <label>L3 <input class="payout" data-i="2" type="number" step=".1" min="1" /></label>
+                <label>L4 <input class="payout" data-i="3" type="number" step=".5" min="1" /></label>
+                <label>L5 <input class="payout" data-i="4" type="number" step=".5" min="1" /></label>
+                <label>Rake (of profit) <input id="rake" type="number" step=".01" min="0" max=".5" /></label>
+            </fieldset>
+            <fieldset>
+                <legend>The Loading — chance of each weight (renormalised)</legend>
+                <label>50/50 <input class="lchance" data-i="0" type="number" step=".05" min="0"
+                        max="1" /></label>
+                <label>52/48 <input class="lchance" data-i="1" type="number" step=".05" min="0"
+                        max="1" /></label>
+                <label>54/46 <input class="lchance" data-i="2" type="number" step=".05" min="0"
+                        max="1" /></label>
+                <br />
+                <label>weight <input class="lweight" data-i="1" type="number" step=".005" min=".5"
+                        max=".7" /></label>
+                <label>weight <input class="lweight" data-i="2" type="number" step=".005" min=".5"
+                        max=".7" /></label>
+                <span class="hint">The 54% ceiling is load-bearing — push these up and watch the
+                    informed-EV table below go positive.</span>
+            </fieldset>
+            <fieldset>
+                <legend>Limits &amp; crowd</legend>
+                <label>Min stake <input id="minStake" type="number" step="50" min="0" /></label>
+                <label>Crowd cubes/hr <input id="crowdRate" type="number" step="2" min="0" /></label>
+                <label>Start balance <input id="startBal" type="number" step="10000" min="0" /></label>
+                <br />
+                <label style="white-space:normal">Cap ladder
+                    <input id="capLadder" type="text" style="width:15rem" /></label>
+                <span class="hint">Daily stake cap per prestige tier. Retiring the cube moves you up
+                    one and resets your rack to a single cube.</span>
+            </fieldset>
+            <fieldset>
+                <legend>The Pure Cube pot — all cubes one colour</legend>
+                <label>Rake share to pot <input id="potShare" type="number" step=".05" min="0"
+                        max="1" /></label>
+                <label>Cackle bonus <input id="cackleBonus" type="number" step=".01" min="0"
+                        max=".5" /></label>
+                <label>Pot seed <input id="potSeed" type="number" step="5000" min="0" /></label>
+                <br />
+                <label>pure 5 pays <input class="sweep" data-n="5" type="number" step=".01" min="0"
+                        max="1" /></label>
+                <label>pure 7 <input class="sweep" data-n="7" type="number" step=".05" min="0"
+                        max="1" /></label>
+                <label>pure 9 <input class="sweep" data-n="9" type="number" step=".05" min="0"
+                        max="1" /></label>
+                <span class="hint">Shares of the pot, so it can never pay out more than the rake put
+                    in. Pure 9 is a ~9-month event at 30 players/day — pure 7 (monthly) is what
+                    makes the pot feel alive.</span>
+            </fieldset>
+
+            <h2>Design-doc check <span class="muted" style="font-size:.78rem">— computed vs
+                    <code>docs/chance-cube.md</code></span></h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Rung</th>
+                        <th class="num">Blind P(win)</th>
+                        <th class="num">P(win) @54 right</th>
+                        <th class="num">doc</th>
+                        <th class="num">Blind surv.</th>
+                        <th class="num">EV @p=.5</th>
+                        <th class="num">doc</th>
+                        <th class="num">EV real days</th>
+                    </tr>
+                </thead>
+                <tbody id="mathTable"></tbody>
+            </table>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Bank at</th>
+                        <th class="num">EV @52/48</th>
+                        <th class="num">doc</th>
+                        <th class="num">EV @54/46</th>
+                        <th class="num">doc</th>
+                    </tr>
+                </thead>
+                <tbody id="informedTable"></tbody>
+            </table>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ledger leader is the loaded colour</th>
+                        <th class="num">40</th>
+                        <th class="num">100</th>
+                        <th class="num">250</th>
+                        <th class="num">600</th>
+                    </tr>
+                </thead>
+                <tbody id="reliabilityTable"></tbody>
+            </table>
+
+            <h2>Monte Carlo</h2>
+            <div class="panel">
+                <p style="margin:.2rem 0">
+                    <label>Days <input id="simRuns" type="number" step="5000" min="100" value="20000" /></label>
+                    <label>Stake <input id="simStake" type="number" step="100" min="1" value="1000" /></label>
+                    <label>Cubes/day <input id="simCubes" type="number" step="50" min="10" value="400" /></label>
+                    <label>Acts at <input id="simActAt" type="number" step=".05" min="0" max="1"
+                            value=".7" /></label>
+                </p>
+                <p style="margin:.2rem 0">
+                    <label>Informed: min cubes <input id="simMinCubes" type="number" step="10" min="0"
+                            value="100" /></label>
+                    <label>confidence &ge; <input id="simConf" type="number" step=".05" min="0" max="1"
+                            value=".6" /></label>
+                    <button id="runSim">Run</button>
+                </p>
+                <div class="hint">
+                    Each simulated day draws a fresh loading, fills the ledger to <i>acts at</i> &times;
+                    <i>cubes/day</i>, then one player bets once. <b>Blind</b> always plays and calls at
+                    random. <b>Informed</b> reads the ledger and only plays when the posterior clears the
+                    confidence bar. EV &lt; 1 means the house is winning.
+                </div>
+                <div id="simOut"></div>
+            </div>
+
+            <h2>Cap ladder risk</h2>
+            <div id="tierRisk" class="panel"><span class="muted">Run the Monte Carlo above.</span></div>
+
+            <h2>Pure Cube pot equilibrium</h2>
+            <div class="panel">
+                <p style="margin:.2rem 0">
+                    <label>Days <input id="potDays" type="number" step="30" min="30" value="365" /></label>
+                    <label>Players/day <input id="potPlayers" type="number" step="5" min="1"
+                            value="30" /></label>
+                    <button id="runPotSim">Run</button>
+                </p>
+                <div id="potOut"></div>
+            </div>
+
+            <h2>Feed</h2>
+            <div id="log"></div>
+        </div>
+    </div>
+
+    <script>
+        (() => {
+            "use strict";
+
+            // ------------------------------------------------------------------
+            // Static design data (mirrors docs/chance-cube.md §3, §4.1)
+            // ------------------------------------------------------------------
+            const RUNGS = [
+                { name: "Fair Wager", cubes: 1, payout: 1.95 },
+                { name: "Double or Nothing", cubes: 3, payout: 3.8 },
+                { name: "Watto's Greed", cubes: 5, payout: 7.4 },
+                { name: "The Whole Pod", cubes: 7, payout: 14 },
+                { name: "Boonta Eve", cubes: 9, payout: 26 }
+            ];
+
+            // Rack tiers: cubes owned, top rung playable, clears needed to advance.
+            const RACKS = [
+                { cubes: 1, topRung: 1, clears: 3 },
+                { cubes: 3, topRung: 2, clears: 3 },
+                { cubes: 5, topRung: 3, clears: 4 },
+                { cubes: 7, topRung: 4, clears: 5 },
+                { cubes: 9, topRung: 5, clears: 5 } // clears here buy a prestige, not more cubes
+            ];
+
+            // Prestige ladder. Retiring the cube raises your daily stake cap and takes your
+            // rack back to a single cube — the defence is that a huge cap is only dangerous
+            // at L4/L5, and you have to re-earn 15 clears to get back there.
+            // Caps rise sub-linearly on purpose. A sharp's extraction scales *linearly* with
+            // the cap, so a 10×-per-tier ladder (10k→100k→1M→10M) hands the top tier ~📀27M
+            // a month. This ladder tops out around 📀700k/month, which is a reward rather
+            // than a leak. See the cap-ladder risk table.
+            let TIERS = [
+                { name: "Table Stakes", cap: 10000 },
+                { name: "Tier I · Outer Rim", cap: 30000 },
+                { name: "Tier II · Boonta", cap: 80000 },
+                { name: "Tier III · Watto's Own", cap: 200000 }
+            ];
+
+            // The two sides are named, not coloured. This is what lets palettes be cosmetic:
+            // the server-wide ledger and the daily lean are announced by SIDE, so they stay
+            // legible no matter what colours anyone's cube is wearing. The names come straight
+            // out of the unlock items — 96 "it's the boy...", 95 "it's the mother...".
+            const SIDES = { blue: "BOY", red: "MOTHER" };
+
+            // Palettes unlock one per prestige. Built entirely from standard Unicode blocks
+            // and circles, so this costs zero custom-emoji budget in the guild.
+            const PALETTES = [
+                { name: "Red vs Blue (lore)", blue: "🟦", red: "🟥", tier: 0 },
+                { name: "Tatooine Sand", blue: "🟨", red: "🟧", tier: 1 },
+                { name: "Podracer Green", blue: "🟩", red: "🟪", tier: 2 },
+                { name: "Obsidian", blue: "⬜", red: "⬛", tier: 3 },
+                { name: "Boonta Spheres", blue: "🔵", red: "🔴", tier: 3 },
+                { name: "Hutt Gold", blue: "🟡", red: "🟤", tier: 3 }
+            ];
+
+            // Fraction of the Pure Cube pot paid for an all-one-colour sweep, by cube count.
+            //
+            // Frequencies, blind, per roll at that rung: pure 3 = 1/8, pure 5 = 1/32,
+            // pure 7 = 1/128, pure 9 = 1/512. Because only 1-in-16 players survive to roll
+            // nine cubes at all, a pure 9 is a ~9-month event on a 30-player server — so it
+            // cannot be the *only* payout or the pot is a myth nobody sees hit. Pure 7 lands
+            // roughly monthly and carries the feature; pure 5 lands every few days and pays
+            // nothing, which is what lets the pot actually accumulate.
+            let SWEEP_SHARE = { 3: 0, 5: 0, 7: 0.25, 9: 1.00 };
+
+            const LOADINGS = [
+                { name: "True Cube", weight: 0.50, chance: 0.25 },
+                { name: "Slight Lean", weight: 0.52, chance: 0.45 },
+                { name: "Watto's Thumb", weight: 0.54, chance: 0.30 }
+            ];
+
+            // Values asserted in the design doc, for the verification tables.
+            const DOC = {
+                winAt54: [0.540, 0.560, 0.575, 0.587, 0.598],
+                blindEV: [0.951, 0.915, 0.885, 0.834, 0.773],
+                ev52: [0.989, null, 1.049, null, 1.094],
+                ev54: [1.027, null, 1.230, null, 1.508],
+                reliability: {
+                    0.52: { 40: 0.60, 100: 0.66, 250: 0.74, 600: 0.84 },
+                    0.54: { 40: 0.69, 100: 0.79, 250: 0.90, 600: 0.98 }
+                }
+            };
+
+            const HOURS_PER_DAY = 24;
+
+            const config = {
+                rake: 0.05,
+                minStake: 100,
+                crowdCubesPerHour: 18,
+                startBalance: 100000,
+                // --- The Pure Cube pot ---
+                // Escrowed out of Watto's own cut, so the pot costs the economy nothing net:
+                // it only recycles rake the house already took. Payouts are a *fraction of
+                // the pot*, which makes overpaying structurally impossible.
+                jackpotRakeShare: 0.20,
+                jackpotSeed: 25000,
+                cacklePotBonus: 0.02 // fraction of a busted stake added on a Cackle
+            };
+
+            // ------------------------------------------------------------------
+            // Math
+            // ------------------------------------------------------------------
+            const LANCZOS = [
+                676.5203681218851, -1259.1392167224028, 771.32342877765313,
+                -176.61502916214059, 12.507343278686905, -0.13857109526572012,
+                9.9843695780195716e-6, 1.5056327351493116e-7
+            ];
+
+            function logGamma(z) {
+                if (z < 0.5) return Math.log(Math.PI / Math.sin(Math.PI * z)) - logGamma(1 - z);
+                z -= 1;
+                let x = 0.99999999999980993;
+                for (let i = 0; i < LANCZOS.length; i++) x += LANCZOS[i] / (z + i + 1);
+                const t = z + LANCZOS.length - 0.5;
+                return 0.5 * Math.log(2 * Math.PI) + (z + 0.5) * Math.log(t) - t + Math.log(x);
+            }
+
+            const logChoose = (n, k) => logGamma(n + 1) - logGamma(k + 1) - logGamma(n - k + 1);
+
+            function binomPmf(n, k, p) {
+                if (k < 0 || k > n) return 0;
+                if (p <= 0) return k === 0 ? 1 : 0;
+                if (p >= 1) return k === n ? 1 : 0;
+                return Math.exp(logChoose(n, k) + k * Math.log(p) + (n - k) * Math.log(1 - p));
+            }
+
+            // P(X >= k) for X ~ Binomial(n, p). Sums the shorter tail for accuracy.
+            function binomAtLeast(n, k, p) {
+                if (k <= 0) return 1;
+                if (k > n) return 0;
+                let sum = 0;
+                if (k > n / 2) {
+                    for (let i = k; i <= n; i++) sum += binomPmf(n, i, p);
+                } else {
+                    for (let i = 0; i < k; i++) sum += binomPmf(n, i, p);
+                    sum = 1 - sum;
+                }
+                return Math.min(1, Math.max(0, sum));
+            }
+
+            // N is always odd, so the majority is (N+1)/2 and ties are impossible.
+            const majorityProb = (n, p) => binomAtLeast(n, Math.ceil((n + 1) / 2), p);
+
+            // Bank pays gross minus rake on profit only (doc §7.3).
+            function bankPayout(stake, payout) {
+                const gross = stake * payout;
+                return gross - (gross - stake) * config.rake;
+            }
+
+            // Cumulative survival to a rung index, at per-cube probability p.
+            function survival(rungIdx, p) {
+                let s = 1;
+                for (let i = 0; i <= rungIdx; i++) s *= majorityProb(RUNGS[i].cubes, p);
+                return s;
+            }
+
+            const evAt = (rungIdx, p) =>
+                survival(rungIdx, p) * bankPayout(1, RUNGS[rungIdx].payout);
+
+            // A blind player's REAL expectation, averaged over the day distribution.
+            //
+            // This is not the same as evAt(rung, 0.5), which is what doc §7.1 tabulates.
+            // Survival is a product of majority probabilities and is therefore *convex*
+            // in p, so a coin-flip call on a leaning day gains from Jensen's inequality:
+            // the half of the time you accidentally ride the lean is worth more than the
+            // half you fight it costs you. The effect compounds with depth — negligible at
+            // L1, worth ~6.5 points of house edge at L5. Blind players drain slower than
+            // the flat-50% table claims.
+            function blindMixtureEV(rungIdx) {
+                const total = LOADINGS.reduce((s, l) => s + l.chance, 0) || 1;
+                let surv = 0;
+                for (const l of LOADINGS) {
+                    const share = l.chance / total;
+                    surv += share * (l.weight === 0.5
+                        ? survival(rungIdx, 0.5)
+                        : 0.5 * (survival(rungIdx, l.weight) + survival(rungIdx, 1 - l.weight)));
+                }
+                return surv * bankPayout(1, RUNGS[rungIdx].payout);
+            }
+
+            // P(the ledger's leader is the loaded colour | a true lean of p), excluding ties.
+            function reliability(n, p) {
+                const need = Math.floor(n / 2) + 1;
+                const lead = binomAtLeast(n, need, p);
+                const tie = n % 2 === 0 ? binomPmf(n, n / 2, p) : 0;
+                return lead / (1 - tie);
+            }
+
+            // Bayesian posterior over the loading given an observed ledger.
+            // Hypotheses: fair, plus each leaning weight × each favoured colour.
+            function posterior(blue, red) {
+                const n = blue + red;
+                const total = LOADINGS.reduce((s, l) => s + l.chance, 0) || 1;
+                const hyps = [];
+                for (const l of LOADINGS) {
+                    const prior = l.chance / total;
+                    if (l.weight === 0.5) {
+                        hyps.push({ colour: null, pBlue: 0.5, prior, label: l.name });
+                    } else {
+                        hyps.push({ colour: "blue", pBlue: l.weight, prior: prior / 2, label: l.name });
+                        hyps.push({ colour: "red", pBlue: 1 - l.weight, prior: prior / 2, label: l.name });
+                    }
+                }
+                let norm = 0;
+                for (const h of hyps) {
+                    h.post = h.prior * binomPmf(n, blue, h.pBlue);
+                    norm += h.post;
+                }
+                if (norm <= 0) for (const h of hyps) { h.post = h.prior; norm += h.prior; }
+                for (const h of hyps) h.post /= norm;
+
+                const leader = blue === red ? null : (blue > red ? "blue" : "red");
+                const pFair = hyps.filter(h => h.colour === null)
+                    .reduce((s, h) => s + h.post, 0);
+                const pBlueLoaded = hyps.filter(h => h.colour === "blue")
+                    .reduce((s, h) => s + h.post, 0);
+                const pRedLoaded = hyps.filter(h => h.colour === "red")
+                    .reduce((s, h) => s + h.post, 0);
+                const leaderProb = leader === "blue" ? pBlueLoaded
+                    : leader === "red" ? pRedLoaded : 0;
+                return { leader, leaderProb, pFair, pBlueLoaded, pRedLoaded };
+            }
+
+            // ------------------------------------------------------------------
+            // State
+            // ------------------------------------------------------------------
+            let state;
+            let rolling = false;
+
+            function drawLoading() {
+                const total = LOADINGS.reduce((s, l) => s + l.chance, 0);
+                let r = Math.random() * total;
+                let pick = LOADINGS[LOADINGS.length - 1];
+                for (const l of LOADINGS) {
+                    if (r < l.chance) { pick = l; break; }
+                    r -= l.chance;
+                }
+                const colour = pick.weight === 0.5 ? null
+                    : (Math.random() < 0.5 ? "blue" : "red");
+                const pBlue = colour === null ? 0.5
+                    : colour === "blue" ? pick.weight : 1 - pick.weight;
+                return { name: pick.name, weight: pick.weight, colour, pBlue };
+            }
+
+            async function sha256(text) {
+                if (!(window.crypto && window.crypto.subtle)) return "(no subtle crypto)";
+                const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+                return Array.from(new Uint8Array(buf))
+                    .map(b => b.toString(16).padStart(2, "0")).join("").slice(0, 16);
+            }
+
+            // The provably-fair commitment from doc §4.3: publish the hash at open,
+            // reveal the seed at Last Call.
+            async function loadCube(day) {
+                const loading = drawLoading();
+                loading.seed = Math.floor(Math.random() * 2 ** 48).toString(16);
+                loading.hash = await sha256(
+                    `${day}:${loading.seed}:${loading.colour || "none"}:${loading.weight}`
+                );
+                return loading;
+            }
+
+            async function reset() {
+                state = {
+                    day: 1,
+                    hour: 0,
+                    balance: config.startBalance,
+                    rackIdx: 0,
+                    clears: 0,
+                    tier: 0,
+                    palette: 0,
+                    stakedToday: 0,
+                    jackpot: config.jackpotSeed,
+                    ledger: { blue: 0, red: 0 },
+                    sweeps: { blue: 0, red: 0 }, // pure rolls seen today, either colour
+                    run: null,
+                    revealed: false,
+                    stats: {
+                        runs: 0, banked: 0, busted: 0, staked: 0, returned: 0,
+                        deepest: 0, bestBank: 0, days: 0, reads: { right: 0, wrong: 0 },
+                        sweeps: 0, cackles: 0, potWon: 0, prestiges: 0
+                    },
+                    logLines: []
+                };
+                state.loading = await loadCube(state.day);
+                document.body.classList.remove("reveal");
+                log(`— Day 1 opens. A cube is loaded. commit ${state.loading.hash}…`);
+                crowdRoll(config.crowdCubesPerHour); // a little overnight action
+                render();
+            }
+
+            // ------------------------------------------------------------------
+            // Ledger / time
+            // ------------------------------------------------------------------
+            function crowdRoll(n) {
+                for (let i = 0; i < n; i++) {
+                    if (Math.random() < state.loading.pBlue) state.ledger.blue++;
+                    else state.ledger.red++;
+                }
+            }
+
+            function advanceHour() {
+                if (state.hour >= HOURS_PER_DAY - 1) { lastCall(); return; }
+                state.hour++;
+                // Traffic is heavier in the evening, which is what gives the day its arc.
+                const busy = 0.5 + 1.2 * (state.hour / HOURS_PER_DAY);
+                crowdRoll(Math.max(0, Math.round(config.crowdCubesPerHour * busy * (0.6 + Math.random() * 0.8))));
+                render();
+            }
+
+            async function lastCall() {
+                if (state.run) {
+                    log(`⏰ Last Call with a live ladder — force-banked.`);
+                    doBank(true);
+                }
+                const l = state.loading;
+                const led = state.ledger;
+                const leader = led.blue === led.red ? null : (led.blue > led.red ? "blue" : "red");
+                const w = Math.round(l.weight * 100);
+                if (l.colour === null) {
+                    log(`🎲 <b>Last Call.</b> The cube is retired. It was a <b>True Cube</b> — 50/50. There was nothing to find.`);
+                } else {
+                    log(`🎲 <b>Last Call.</b> The cube is retired. Today it favoured ` +
+                        `<b>${canonical(l.colour)} ${SIDES[l.colour]}, ${w}/${100 - w}</b>.`);
+                }
+                log(`📓 The ledger closed ${canonical("blue")} ${SIDES.blue} ${led.blue} — ` +
+                    `${canonical("red")} ${SIDES.red} ${led.red}. ` +
+                    (l.colour === null ? "" : leader === l.colour
+                        ? "<span class='up'>The ledger read it right.</span>"
+                        : "<span class='down'>The ledger read it wrong.</span>"));
+                log(`🔓 seed ${l.seed} (commit ${l.hash}… published at open)`);
+                if (l.colour !== null) {
+                    if (leader === l.colour) state.stats.reads.right++;
+                    else if (leader) state.stats.reads.wrong++;
+                }
+                state.stats.days++;
+                await newDay();
+            }
+
+            async function newDay() {
+                state.day++;
+                state.hour = 0;
+                state.stakedToday = 0;
+                state.ledger = { blue: 0, red: 0 };
+                state.sweeps = { blue: 0, red: 0 };
+                state.revealed = false;
+                document.body.classList.remove("reveal");
+                state.loading = await loadCube(state.day);
+                log(`— <b>Day ${state.day}</b> opens. A new cube is loaded. commit ${state.loading.hash}…`);
+                crowdRoll(config.crowdCubesPerHour);
+                render();
+            }
+
+            // ------------------------------------------------------------------
+            // Play
+            // ------------------------------------------------------------------
+            const rack = () => RACKS[state.rackIdx];
+            const topRungIdx = () => rack().topRung - 1;
+            const tier = () => TIERS[Math.min(state.tier, TIERS.length - 1)];
+            const stakeCap = () => tier().cap;
+            const atFullRack = () => state.rackIdx === RACKS.length - 1;
+
+            function startRun(call) {
+                const stake = Math.floor(+document.getElementById("stake").value || 0);
+                if (stake < config.minStake) {
+                    log(`<span class="down">Minimum stake is ${fmt(config.minStake)}.</span>`);
+                    return;
+                }
+                if (stake > state.balance) {
+                    log(`<span class="down">You don't have ${fmt(stake)}.</span>`);
+                    return;
+                }
+                if (stakeCap() > 0 && state.stakedToday + stake > stakeCap()) {
+                    log(`<span class="down">Daily stake cap (${tier().name}) — ${fmt(stakeCap() - state.stakedToday)} left today.</span>`);
+                    return;
+                }
+                state.balance -= stake;
+                state.stakedToday += stake;
+                state.stats.runs++;
+                state.stats.staked += stake;
+                state.run = { stake, rungIdx: 0, call, standing: 0 };
+                log(`🎲 Staked ${fmt(stake)} on ${chip(call)} at L1.`);
+                doRoll();
+            }
+
+            function pushRun(call) {
+                const run = state.run;
+                if (run.rungIdx >= topRungIdx()) return; // shouldn't happen; force-banked
+                run.rungIdx++;
+                run.call = call;
+                log(`↗ Pushed to L${run.rungIdx + 1} on ${chip(call)}, ${fmt(run.standing)} at risk.`);
+                doRoll();
+            }
+
+            // Reveal cubes one at a time — at L5 the ninth cube deciding a 26× pot is the
+            // whole mode's best moment and should not resolve instantly (doc §5).
+            function doRoll() {
+                const run = state.run;
+                const rung = RUNGS[run.rungIdx];
+                const cubes = [];
+                for (let i = 0; i < rung.cubes; i++) {
+                    cubes.push(Math.random() < state.loading.pBlue ? "blue" : "red");
+                    if (cubes[i] === "blue") state.ledger.blue++; else state.ledger.red++;
+                }
+                rolling = true;
+                run.roll = [];
+                render();
+
+                let i = 0;
+                const step = () => {
+                    run.roll.push(cubes[i]);
+                    i++;
+                    renderCubes();
+                    if (i < cubes.length) {
+                        setTimeout(step, 260);
+                    } else {
+                        rolling = false;
+                        resolveRoll();
+                    }
+                };
+                setTimeout(step, 160);
+            }
+
+            function resolveRoll() {
+                const run = state.run;
+                const rung = RUNGS[run.rungIdx];
+                const blue = run.roll.filter(c => c === "blue").length;
+                const majority = blue * 2 > rung.cubes ? "blue" : "red";
+                const won = majority === run.call;
+
+                // --- all-one-colour rolls ---
+                // A "pure" roll of 3+ cubes is either a Pure Cube (all yours) or a Cackle
+                // (all against). Only 3+ counts; a single cube is trivially pure.
+                const pure = rung.cubes >= 3 && (blue === 0 || blue === rung.cubes);
+                if (pure) {
+                    state.sweeps[majority]++;
+                    if (won) {
+                        state.stats.sweeps++;
+                        const share = SWEEP_SHARE[rung.cubes] || 0;
+                        const prize = Math.floor(state.jackpot * share);
+                        log(`✨ <b>PURE CUBE</b> — all ${rung.cubes} landed ${chip(majority)}.`);
+                        if (prize > 0) {
+                            state.jackpot -= prize;
+                            state.balance += prize;
+                            state.stats.potWon += prize;
+                            log(rung.cubes === 9
+                                ? `🏆 <b>THE POT IS YOURS — ${fmt(prize)}.</b> Nine cubes, one colour. 1 in 512.`
+                                : `💎 Pure ${rung.cubes} takes ${pct(share, 0)} of the pot — <b>${fmt(prize)}</b>.`);
+                        } else {
+                            log(`<span class="muted">A pure 3 pays nothing but bragging rights.</span>`);
+                        }
+                    } else {
+                        state.stats.cackles++;
+                        const add = Math.floor(run.stake * config.cacklePotBonus);
+                        state.jackpot += add;
+                        log(`😈 <b>WATTO'S CACKLE</b> — all ${rung.cubes} landed ${chip(majority)}, ` +
+                            `every one against you. ${fmt(add)} of it goes into the pot.`);
+                    }
+                }
+
+                if (!won) {
+                    state.stats.busted++;
+                    log(`💥 <span class="down">L${run.rungIdx + 1} majority ${chip(majority)} — called ${chip(run.call)}. Lost ${fmt(run.stake)}${run.standing ? ` and ${fmt(run.standing)} standing` : ""}.</span>`);
+                    state.run = { ...run, dead: true };
+                    render();
+                    return;
+                }
+
+                run.standing = bankPayout(run.stake, rung.payout);
+                state.stats.deepest = Math.max(state.stats.deepest, run.rungIdx + 1);
+                log(`✅ L${run.rungIdx + 1} majority ${chip(majority)} — called right. Standing ${fmt(run.standing)}.`);
+
+                if (run.rungIdx >= topRungIdx()) {
+                    log(`🔒 That's the top of your rack (${rack().cubes} cubes) — banked automatically.`);
+                    doBank(false);
+                }
+                render();
+            }
+
+            function doBank(silent) {
+                const run = state.run;
+                if (!run || run.dead || !run.standing) { state.run = null; render(); return; }
+                const atTop = run.rungIdx >= topRungIdx();
+                state.balance += run.standing;
+                state.stats.banked++;
+                state.stats.returned += run.standing;
+                state.stats.bestBank = Math.max(state.stats.bestBank, run.standing);
+                const profit = run.standing - run.stake;
+                const cut = (run.stake * RUNGS[run.rungIdx].payout - run.stake) * config.rake;
+                const toPot = Math.floor(cut * config.jackpotRakeShare);
+                state.jackpot += toPot;
+                if (!silent) {
+                    log(`💰 Banked <b>${fmt(run.standing)}</b> at L${run.rungIdx + 1} ` +
+                        `(<span class="${profit >= 0 ? "up" : "down"}">${profit >= 0 ? "+" : ""}${fmt(profit)}</span>, ` +
+                        `Watto took ${fmt(cut)}${toPot > 0 ? `, ${fmt(toPot)} to the pot` : ""}).`);
+                }
+                if (atTop) awardClear();
+                state.run = null;
+                render();
+            }
+
+            // Banking at your rack's top rung is a "clear". Enough of them buys two more
+            // cubes — or, at a full rack, a retirement.
+            function awardClear() {
+                state.clears++;
+                const goal = rack().clears;
+                if (atFullRack()) {
+                    log(`🎯 Cleared Boonta Eve — ${state.clears}/${goal} toward retiring the cube.`);
+                    if (state.clears >= goal) prestige();
+                } else {
+                    log(`🎯 Cleared L${rack().topRung} — ${state.clears}/${goal} toward a bigger rack.`);
+                    if (state.clears >= goal) {
+                        state.rackIdx++;
+                        state.clears = 0;
+                        log(`🧊 <b>Watto grudgingly hands over two more cubes.</b> Rack is now ${rack().cubes} — L${rack().topRung} unlocked.`);
+                    }
+                }
+            }
+
+            // Retiring the cube: the answer to "what happens when you beat everything".
+            // The cap jumps a tier and the rack goes back to one cube, so the new ceiling
+            // is only reachable at L1 until 15 more clears are ground out.
+            function prestige() {
+                if (state.tier >= TIERS.length - 1) {
+                    state.clears = 0;
+                    log(`👑 <b>Watto has nothing left to raise.</b> You are at ${tier().name} with a full rack — the top of the game.`);
+                    return;
+                }
+                state.tier++;
+                state.rackIdx = 0;
+                state.clears = 0;
+                state.stats.prestiges++;
+                log(`🌀 <b>THE CUBE IS RETIRED.</b> Watto sweeps your rack off the table and raises the stakes: ` +
+                    `<b>${tier().name}</b>, cap ${fmt(stakeCap())}. You are back to one cube.`);
+                const freshly = PALETTES.filter(p => p.tier === state.tier);
+                if (freshly.length) {
+                    log(`🎨 <b>New faces unlocked</b> — ${freshly.map(p =>
+                        `${p.blue}${p.red} ${p.name}`).join(", ")}. ` +
+                        `Reassemble your cube however you like; the Boy and the Mother are still the Boy and the Mother.`);
+                }
+            }
+
+            // ------------------------------------------------------------------
+            // Monte Carlo
+            // ------------------------------------------------------------------
+            function binomSample(n, p) {
+                let k = 0;
+                for (let i = 0; i < n; i++) if (Math.random() < p) k++;
+                return k;
+            }
+
+            function simulate(opts) {
+                const out = {};
+                for (const mode of ["blind", "informed"]) {
+                    let staked = 0, returned = 0, plays = 0, skips = 0,
+                        banks = 0, busts = 0, depth = 0, calledRight = 0;
+                    for (let d = 0; d < opts.runs; d++) {
+                        const loading = drawLoading();
+                        const n = Math.round(opts.cubes * opts.actAt);
+                        const blue = binomSample(n, loading.pBlue);
+                        let call;
+                        if (mode === "informed") {
+                            const post = posterior(blue, n - blue);
+                            if (n < opts.minCubes || !post.leader || post.leaderProb < opts.conf) {
+                                skips++;
+                                continue;
+                            }
+                            call = post.leader;
+                        } else {
+                            call = Math.random() < 0.5 ? "blue" : "red";
+                        }
+                        if (loading.colour && call === loading.colour) calledRight++;
+
+                        plays++;
+                        staked += opts.stake;
+                        const pCall = call === "blue" ? loading.pBlue : 1 - loading.pBlue;
+                        let idx = 0;
+                        for (;;) {
+                            const cubes = RUNGS[idx].cubes;
+                            if (binomSample(cubes, pCall) * 2 > cubes) {
+                                if (idx + 1 >= opts.target) {
+                                    returned += bankPayout(opts.stake, RUNGS[idx].payout);
+                                    banks++;
+                                    depth += idx + 1;
+                                    break;
+                                }
+                                idx++;
+                            } else {
+                                busts++;
+                                depth += idx;
+                                break;
+                            }
+                        }
+                    }
+                    out[mode] = {
+                        plays, skips, banks, busts, staked, returned,
+                        ev: staked ? returned / staked : 0,
+                        avgDepth: plays ? depth / plays : 0,
+                        readRate: plays ? calledRight / plays : 0
+                    };
+                }
+                return out;
+            }
+
+            // Does the pot reach a steady state, or does it drain / balloon?
+            // Runs a whole server: playersPerDay blind players, each pushing to `target`.
+            function simulatePot(opts) {
+                let pot = config.jackpotSeed;
+                let potIn = 0, potOut = 0, cackles = 0, potSum = 0, maxPot = 0, jackpots = 0;
+                const hits = { 3: 0, 5: 0, 7: 0, 9: 0 };
+                for (let d = 0; d < opts.days; d++) {
+                    const loading = drawLoading();
+                    for (let p = 0; p < opts.playersPerDay; p++) {
+                        const call = Math.random() < 0.5 ? "blue" : "red";
+                        const pCall = call === "blue" ? loading.pBlue : 1 - loading.pBlue;
+                        let idx = 0;
+                        for (;;) {
+                            const cubes = RUNGS[idx].cubes;
+                            const mine = binomSample(cubes, pCall);
+                            if (cubes >= 3 && mine === cubes) {
+                                hits[cubes]++;
+                                const prize = Math.floor(pot * (SWEEP_SHARE[cubes] || 0));
+                                if (cubes === 9 && prize > 0) jackpots++;
+                                pot -= prize;
+                                potOut += prize;
+                            } else if (cubes >= 3 && mine === 0) {
+                                cackles++;
+                                const add = Math.floor(opts.stake * config.cacklePotBonus);
+                                pot += add;
+                                potIn += add;
+                            }
+                            if (mine * 2 > cubes) {
+                                if (idx + 1 >= opts.target) {
+                                    const cut = (opts.stake * RUNGS[idx].payout - opts.stake) * config.rake;
+                                    const add = Math.floor(cut * config.jackpotRakeShare);
+                                    pot += add;
+                                    potIn += add;
+                                    break;
+                                }
+                                idx++;
+                            } else break;
+                        }
+                    }
+                    potSum += pot;
+                    maxPot = Math.max(maxPot, pot);
+                }
+                return {
+                    pot, avgPot: potSum / opts.days, maxPot, potIn, potOut, hits, cackles, jackpots,
+                    daysPerJackpot: jackpots ? opts.days / jackpots : Infinity
+                };
+            }
+
+            function runPotSim() {
+                const days = Math.max(30, +document.getElementById("potDays").value || 365);
+                const playersPerDay = Math.max(1, +document.getElementById("potPlayers").value || 30);
+                const stake = +document.getElementById("simStake").value || 1000;
+                const rows = [1, 3, 5].map(target => ({
+                    target, r: simulatePot({ days, playersPerDay, stake, target })
+                }));
+                let html = `<table><thead><tr>
+          <th>Everyone pushes to</th><th class="num">avg pot</th><th class="num">peak</th>
+          <th class="num">in</th><th class="num">out</th>
+          <th class="num">pure 9s</th><th class="num">days/jackpot</th>
+        </tr></thead><tbody>`;
+                for (const { target, r } of rows) {
+                    html += `<tr><td>L${target}</td>
+            <td class="num"><b>${fmt(r.avgPot)}</b></td>
+            <td class="num">${fmt(r.maxPot)}</td>
+            <td class="num">${fmt(r.potIn)}</td>
+            <td class="num">${fmt(r.potOut)}</td>
+            <td class="num">${r.hits[9]}</td>
+            <td class="num">${r.daysPerJackpot === Infinity ? "—" : r.daysPerJackpot.toFixed(0)}</td>
+          </tr>`;
+                }
+                html += `</tbody></table><div class="hint">
+          ${playersPerDay} players/day &times; ${fmt(days)} days at ${fmt(stake)} a run. Nobody can
+          reach a pure 9 unless they push to L5, so the pot only pays its headline prize on the
+          bottom row — on the others it just accumulates, which is the intended tension.</div>`;
+                document.getElementById("potOut").innerHTML = html;
+            }
+
+            // The cap ladder is the one lever that scales a sharp's extraction linearly.
+            function renderTierRisk(edge, playRate) {
+                let html = `<table><thead><tr><th>Tier</th><th class="num">daily cap</th>
+          <th class="num">sharp's expected take / day</th><th class="num">/ month</th>
+        </tr></thead><tbody>`;
+                for (const t of TIERS) {
+                    const perDay = t.cap * edge * playRate;
+                    html += `<tr><td>${t.name}</td><td class="num">${fmt(t.cap)}</td>
+            <td class="num ${perDay > 100000 ? "bad" : ""}">${fmt(perDay)}</td>
+            <td class="num ${perDay * 30 > 2000000 ? "bad" : ""}">${fmt(perDay * 30)}</td></tr>`;
+                }
+                html += `</tbody></table><div class="hint">
+          Using the L5 informed edge (+${(edge * 100).toFixed(1)}%) at a ${(playRate * 100).toFixed(0)}%
+          play rate, from the run above. Assumes a sharp with a full rack who maxes the cap every day
+          they play — the worst realistic case, and the reason retiring the cube resets the rack.</div>`;
+                document.getElementById("tierRisk").innerHTML = html;
+            }
+
+            function runSim() {
+                const runs = Math.max(100, +document.getElementById("simRuns").value || 20000);
+                const opts = {
+                    runs,
+                    stake: +document.getElementById("simStake").value || 1000,
+                    cubes: +document.getElementById("simCubes").value || 400,
+                    actAt: Math.min(1, Math.max(0, +document.getElementById("simActAt").value)),
+                    minCubes: +document.getElementById("simMinCubes").value || 0,
+                    conf: +document.getElementById("simConf").value || 0
+                };
+                const rows = [];
+                for (let target = 1; target <= 5; target++) {
+                    rows.push({ target, res: simulate({ ...opts, target }) });
+                }
+                const cell = v => {
+                    const pct = (v - 1) * 100;
+                    return `<td class="num ${v >= 1 ? "up" : "down"}">${v.toFixed(3)}` +
+                        `<span class="muted"> (${pct >= 0 ? "+" : ""}${pct.toFixed(1)}%)</span></td>`;
+                };
+                let html = `<table><thead><tr>
+          <th>Push to</th>
+          <th class="num">Blind EV</th><th class="num">theory</th>
+          <th class="num">Informed EV</th><th class="num">plays</th>
+          <th class="num">read right</th><th class="num">house net</th>
+        </tr></thead><tbody>`;
+                for (const { target, res } of rows) {
+                    const i = res.informed, b = res.blind;
+                    const houseNet = (b.staked - b.returned) + (i.staked - i.returned);
+                    html += `<tr><td>L${target}</td>` +
+                        cell(b.ev) +
+                        `<td class="num muted">${blindMixtureEV(target - 1).toFixed(3)}</td>` +
+                        cell(i.ev) +
+                        `<td class="num">${((i.plays / runs) * 100).toFixed(0)}%</td>` +
+                        `<td class="num">${(i.readRate * 100).toFixed(1)}%</td>` +
+                        `<td class="num ${houseNet >= 0 ? "up" : "down"}">${fmt(Math.round(houseNet))}</td>` +
+                        `</tr>`;
+                }
+                html += `</tbody></table>`;
+                html += `<div class="hint">${fmt(runs)} days per row, per strategy. <b>read right</b> is how
+          often the informed player called the actually-loaded colour (True Cube days count as
+          misses, since there is nothing to read). <b>house net</b> is truguts drained across both
+          strategies combined. <b>theory</b> is the blind expectation over the real day mixture,
+          not the flat-50% figure in doc §7.1 — see <i>EV real days</i> in the check table above
+          for the gap.</div>`;
+                document.getElementById("simOut").innerHTML = html;
+
+                const l5 = rows[4].res.informed;
+                renderTierRisk(Math.max(0, l5.ev - 1), l5.plays / runs);
+            }
+
+            // ------------------------------------------------------------------
+            // Render
+            // ------------------------------------------------------------------
+            const fmt = n => "📀" + Math.round(n).toLocaleString();
+            const pct = (v, d = 1) => (v * 100).toFixed(d) + "%";
+
+            // Your palette skins the glyphs; the side name never changes, so the shared
+            // ledger and the daily lean stay readable across every cube on the server.
+            const palette = () => PALETTES[state.palette] || PALETTES[0];
+            const glyph = side => palette()[side];
+            const chip = side => `${glyph(side)} ${SIDES[side]}`;
+            const canonical = side => PALETTES[0][side]; // for public/shared surfaces
+
+            function log(msg) {
+                state.logLines.unshift(`<div>[D${state.day} ${String(state.hour).padStart(2, "0")}:00] ${msg}</div>`);
+                state.logLines = state.logLines.slice(0, 300);
+                const el = document.getElementById("log");
+                if (el) el.innerHTML = state.logLines.join("");
+            }
+
+            function renderPalette() {
+                const sel = document.getElementById("palettePick");
+                const unlocked = PALETTES.filter(p => p.tier <= state.tier).length;
+                const sig = `${unlocked}:${state.palette}`;
+                if (sel.dataset.sig !== sig) {
+                    sel.dataset.sig = sig;
+                    sel.innerHTML = PALETTES.map((p, i) => {
+                        const locked = p.tier > state.tier;
+                        return `<option value="${i}" ${locked ? "disabled" : ""} ${i === state.palette ? "selected" : ""}>` +
+                            `${p.blue}${p.red} ${p.name}${locked ? ` — locked (retire ${p.tier}×)` : ""}</option>`;
+                    }).join("");
+                }
+                const locked = PALETTES.length - unlocked;
+                document.getElementById("paletteHint").textContent = locked
+                    ? `${unlocked} of ${PALETTES.length} unlocked — retire the cube for more.`
+                    : `All faces unlocked.`;
+            }
+
+            function renderCubes() {
+                const run = state.run;
+                const el = document.getElementById("cubes");
+                if (!run || !run.roll) { el.textContent = ""; return; }
+                const total = RUNGS[run.rungIdx].cubes;
+                const shown = run.roll.map(c => glyph(c));
+                while (shown.length < total) shown.push("⬜");
+                const blue = run.roll.filter(c => c === "blue").length;
+                const red = run.roll.length - blue;
+                el.innerHTML = shown.join("") +
+                    `<span class="muted" style="font-size:.55em"> &nbsp;${blue}–${red}</span>`;
+            }
+
+            function renderLadder() {
+                const stake = Math.max(0, Math.floor(+document.getElementById("stake").value || 0));
+                const run = state.run;
+                document.getElementById("ladder").innerHTML = RUNGS.map((r, i) => {
+                    const locked = i > topRungIdx();
+                    const active = run && !run.dead && run.rungIdx === i;
+                    return `<tr class="${active ? "active" : locked ? "locked" : ""}">
+            <td>L${i + 1}${locked ? " 🔒" : ""}</td>
+            <td>${r.name}</td>
+            <td class="num">${r.cubes}</td>
+            <td class="num">${r.payout}×</td>
+            <td class="num">${stake ? fmt(bankPayout(stake, r.payout)) : "—"}</td>
+          </tr>`;
+                }).join("");
+            }
+
+            function renderMath() {
+                document.getElementById("mathTable").innerHTML = RUNGS.map((r, i) => {
+                    const blindWin = majorityProb(r.cubes, 0.5);
+                    const win54 = majorityProb(r.cubes, 0.54);
+                    const surv = survival(i, 0.5);
+                    const ev = evAt(i, 0.5);
+                    return `<tr>
+            <td>L${i + 1}</td>
+            <td class="num">${pct(blindWin)}</td>
+            <td class="num">${pct(win54)}</td>
+            ${docCell(win54, DOC.winAt54[i], 0.001, true)}
+            <td class="num">${pct(surv)}</td>
+            <td class="num">${ev.toFixed(3)}</td>
+            ${docCell(ev, DOC.blindEV[i], 0.001)}
+            <td class="num"><b>${blindMixtureEV(i).toFixed(3)}</b></td>
+          </tr>`;
+                }).join("");
+
+                document.getElementById("informedTable").innerHTML = RUNGS.map((r, i) => {
+                    const e52 = evAt(i, 0.52), e54 = evAt(i, 0.54);
+                    return `<tr>
+            <td>L${i + 1}</td>
+            <td class="num ${e52 >= 1 ? "up" : ""}">${e52.toFixed(3)}</td>
+            ${docCell(e52, DOC.ev52[i], 0.001)}
+            <td class="num ${e54 >= 1 ? "up" : ""}">${e54.toFixed(3)}</td>
+            ${docCell(e54, DOC.ev54[i], 0.003)}
+          </tr>`;
+                }).join("");
+
+                const ns = [40, 100, 250, 600];
+                document.getElementById("reliabilityTable").innerHTML =
+                    [0.52, 0.54].map(p => {
+                        const cells = ns.map(n => {
+                            const v = reliability(n, p);
+                            const d = DOC.reliability[p][n];
+                            const near = Math.abs(v - d) <= 0.03;
+                            return `<td class="num">${pct(v, 0)}
+                <span class="muted">/ ${pct(d, 0)}</span>
+                <span class="${near ? "ok" : "bad"}">${near ? "✓" : "✗"}</span></td>`;
+                        }).join("");
+                        return `<tr><td>true lean ${Math.round(p * 100)}/${Math.round((1 - p) * 100)}
+              <span class="muted">computed / doc</span></td>${cells}</tr>`;
+                    }).join("");
+            }
+
+            function docCell(actual, claimed, tol, asPct) {
+                if (claimed == null) return `<td class="num muted">—</td>`;
+                const near = Math.abs(actual - claimed) <= tol;
+                const shown = asPct ? pct(claimed) : claimed.toFixed(3);
+                return `<td class="num muted">${shown}
+          <span class="${near ? "ok" : "bad"}">${near ? "✓" : "✗"}</span></td>`;
+            }
+
+            function render() {
+                const run = state.run;
+                const r = rack();
+
+                document.getElementById("clock").textContent =
+                    `Day ${state.day} · ${String(state.hour).padStart(2, "0")}:00 ET` +
+                    (state.hour >= HOURS_PER_DAY - 1 ? " — Last Call is next" : "");
+                document.getElementById("day").textContent = state.day;
+                document.getElementById("balance").textContent = fmt(state.balance);
+                document.getElementById("stakedToday").textContent =
+                    stakeCap() > 0
+                        ? `${fmt(state.stakedToday)} / ${fmt(stakeCap())}`
+                        : fmt(state.stakedToday);
+                document.getElementById("tierText").textContent =
+                    `${tier().name} — cap ${fmt(stakeCap())}`;
+                document.getElementById("jackpot").textContent = fmt(state.jackpot);
+
+                document.getElementById("rackBar").textContent =
+                    "▮".repeat(r.cubes) + "▯".repeat(9 - r.cubes);
+                document.getElementById("rackText").textContent =
+                    `${r.cubes} cube${r.cubes > 1 ? "s" : ""} (L${r.topRung} max)`;
+                document.getElementById("clearText").textContent =
+                    atFullRack()
+                        ? `${state.clears}/${r.clears} at L5 — retire the cube`
+                        : `${state.clears}/${r.clears} at L${r.topRung}`;
+
+                const l = state.loading;
+                document.getElementById("loadingReveal").textContent =
+                    l.colour === null
+                        ? "True Cube — 50/50, nothing to find"
+                        : `${SIDES[l.colour]} ${Math.round(l.weight * 100)}/${Math.round((1 - l.weight) * 100)} — ${l.name}`;
+                document.getElementById("commit").textContent = l.hash + "…";
+
+                // Ledger
+                const led = state.ledger, total = led.blue + led.red;
+                document.getElementById("ledgerBlue").textContent =
+                    `${glyph("blue")} ${SIDES.blue} ${led.blue}`;
+                document.getElementById("ledgerRed").textContent =
+                    `${glyph("red")} ${SIDES.red} ${led.red}`;
+                document.getElementById("ledgerTotal").textContent = total;
+                const bar = document.getElementById("ledgerBar");
+                bar.children[0].style.width = (total ? (led.blue / total) * 100 : 50) + "%";
+                bar.children[1].style.width = (total ? (led.red / total) * 100 : 50) + "%";
+
+                const post = posterior(led.blue, led.red);
+                document.getElementById("posterior").innerHTML = total === 0
+                    ? `<span class="muted">No cubes rolled yet.</span>`
+                    : `Leader ${post.leader ? chip(post.leader) : "<span class='muted'>dead even</span>"} — ` +
+                    `<b>${pct(post.leaderProb)}</b> that it's the loaded colour · ` +
+                    `<span class="muted">${pct(post.pFair)} chance it's a True Cube</span>`;
+
+                const sw = state.sweeps;
+                document.getElementById("sweepCount").innerHTML = (sw.blue + sw.red) === 0
+                    ? `<span class="muted">No pure rolls yet today.</span>`
+                    : `Pure rolls today: ${glyph("blue")} ${sw.blue} · ${glyph("red")} ${sw.red} ` +
+                    `<span class="muted">— rare, and twice as likely on the loaded side</span>`;
+
+                // Play panel
+                const canPush = run && !run.dead && run.standing > 0 && run.rungIdx < topRungIdx();
+                const idle = !run || run.dead;
+                document.getElementById("standing").innerHTML = idle
+                    ? `<span class="muted">No live ladder. Set a stake and call a colour.</span>`
+                    : `── <b>Rung ${run.rungIdx + 1} · ${RUNGS[run.rungIdx].name}</b> ── ` +
+                    `${RUNGS[run.rungIdx].cubes} cubes ── ${RUNGS[run.rungIdx].payout}× ──<br />` +
+                    (run.standing
+                        ? `Standing <b>${fmt(run.standing)}</b>` +
+                        (canPush ? ` · one more rung pays ${fmt(bankPayout(run.stake, RUNGS[run.rungIdx + 1].payout))}` : "")
+                        : `Called ${chip(run.call)} · ${fmt(run.stake)} at risk`);
+
+                document.getElementById("verdict").innerHTML =
+                    run && run.dead ? `<span class="down">Busted. The run is over.</span>` : "";
+
+                const canCall = !rolling && (idle || canPush);
+                document.getElementById("callBlue").disabled = !canCall;
+                document.getElementById("callRed").disabled = !canCall;
+                document.getElementById("callBlue").textContent = `${glyph("blue")} Call the Boy`;
+                document.getElementById("callRed").textContent = `${glyph("red")} Call the Mother`;
+                renderPalette();
+                document.getElementById("bank").disabled =
+                    rolling || idle || !run.standing;
+                document.getElementById("bank").textContent =
+                    !idle && run.standing ? `💰 Bank ${fmt(run.standing)}` : "💰 Bank";
+                document.getElementById("stake").disabled = !idle || rolling;
+                document.getElementById("advHour").disabled = rolling;
+                document.getElementById("advLastCall").disabled = rolling;
+                document.getElementById("newDay").disabled = rolling;
+
+                document.getElementById("playHint").innerHTML = rolling
+                    ? "Cubes landing…"
+                    : idle
+                        ? `Min stake ${fmt(config.minStake)}. Your rack caps you at <b>L${r.topRung}</b> — bank there to earn cubes.`
+                        : canPush
+                            ? `Push adds two cubes and re-calls. Lose and the whole ${fmt(run.standing)} goes with it.`
+                            : `Top of your rack — nothing left to push.`;
+
+                if (!rolling) renderCubes();
+
+                // Lifetime
+                const s = state.stats;
+                const net = s.returned - s.staked;
+                document.getElementById("stats").innerHTML =
+                    `Runs <b>${s.runs}</b> · banked ${s.banked} · busted ${s.busted} · ` +
+                    `deepest L${s.deepest || 0} · best bank ${fmt(s.bestBank)}<br />` +
+                    `Staked ${fmt(s.staked)} · returned ${fmt(s.returned)} · ` +
+                    `net <b class="${net >= 0 ? "up" : "down"}">${net >= 0 ? "+" : ""}${fmt(net)}</b>` +
+                    (s.staked ? ` <span class="muted">(EV ${(s.returned / s.staked).toFixed(3)}×)</span>` : "") +
+                    `<br /><span class="muted">Days closed ${s.days} · ledger read the lean right ` +
+                    `${s.reads.right}/${s.reads.right + s.reads.wrong}</span>` +
+                    `<br />✨ Pure Cubes ${s.sweeps} · 😈 Cackles ${s.cackles} · ` +
+                    `pot won ${fmt(s.potWon)} · 🌀 retirements ${s.prestiges}`;
+
+                renderLadder();
+                renderMath();
+            }
+
+            // ------------------------------------------------------------------
+            // Controls
+            // ------------------------------------------------------------------
+            function syncControls() {
+                document.querySelectorAll(".payout").forEach(el => {
+                    el.value = RUNGS[+el.dataset.i].payout;
+                });
+                document.querySelectorAll(".lchance").forEach(el => {
+                    el.value = LOADINGS[+el.dataset.i].chance;
+                });
+                document.querySelectorAll(".lweight").forEach(el => {
+                    el.value = LOADINGS[+el.dataset.i].weight;
+                });
+                document.getElementById("rake").value = config.rake;
+                document.getElementById("minStake").value = config.minStake;
+                document.getElementById("crowdRate").value = config.crowdCubesPerHour;
+                document.getElementById("startBal").value = config.startBalance;
+                document.getElementById("capLadder").value = TIERS.map(t => t.cap).join(", ");
+                document.getElementById("potShare").value = config.jackpotRakeShare;
+                document.getElementById("cackleBonus").value = config.cacklePotBonus;
+                document.getElementById("potSeed").value = config.jackpotSeed;
+                document.querySelectorAll(".sweep").forEach(el => {
+                    el.value = SWEEP_SHARE[+el.dataset.n];
+                });
+            }
+
+            function wire() {
+                document.getElementById("callBlue").onclick = () =>
+                    state.run && !state.run.dead ? pushRun("blue") : startRun("blue");
+                document.getElementById("callRed").onclick = () =>
+                    state.run && !state.run.dead ? pushRun("red") : startRun("red");
+                document.getElementById("bank").onclick = () => doBank(false);
+
+                document.getElementById("advHour").onclick = advanceHour;
+                document.getElementById("advLastCall").onclick = () => {
+                    while (state.hour < HOURS_PER_DAY - 1) {
+                        state.hour++;
+                        const busy = 0.5 + 1.2 * (state.hour / HOURS_PER_DAY);
+                        crowdRoll(Math.max(0, Math.round(
+                            config.crowdCubesPerHour * busy * (0.6 + Math.random() * 0.8))));
+                    }
+                    lastCall();
+                };
+                document.getElementById("newDay").onclick = () => {
+                    if (state.run) doBank(true);
+                    newDay();
+                };
+                document.getElementById("forceSense").onclick = () => {
+                    state.revealed = !state.revealed;
+                    document.body.classList.toggle("reveal", state.revealed);
+                    if (state.revealed) log(`🔮 <i>Force Sense</i> — you feel the cube's weight.`);
+                };
+                document.getElementById("grantClear").onclick = () => {
+                    if (state.run) return;
+                    awardClear();
+                    render();
+                };
+                document.getElementById("reset").onclick = reset;
+                document.getElementById("runSim").onclick = runSim;
+                document.getElementById("runPotSim").onclick = runPotSim;
+                document.getElementById("stake").oninput = () => { renderLadder(); };
+                document.getElementById("palettePick").onchange = e => {
+                    const i = +e.target.value;
+                    if (PALETTES[i] && PALETTES[i].tier <= state.tier) {
+                        state.palette = i;
+                        log(`🎨 Cube reassembled — ${PALETTES[i].blue}${PALETTES[i].red} ${PALETTES[i].name}.`);
+                        render();
+                    }
+                };
+
+                document.querySelectorAll(".payout").forEach(el => {
+                    el.oninput = () => {
+                        RUNGS[+el.dataset.i].payout = Math.max(1, +el.value || 1);
+                        render();
+                    };
+                });
+                document.querySelectorAll(".lchance").forEach(el => {
+                    el.oninput = () => {
+                        LOADINGS[+el.dataset.i].chance = Math.max(0, +el.value || 0);
+                        render();
+                    };
+                });
+                document.querySelectorAll(".lweight").forEach(el => {
+                    el.oninput = () => {
+                        LOADINGS[+el.dataset.i].weight =
+                            Math.min(0.7, Math.max(0.5, +el.value || 0.5));
+                        render();
+                    };
+                });
+                document.getElementById("rake").oninput = e => {
+                    config.rake = Math.min(0.5, Math.max(0, +e.target.value || 0));
+                    render();
+                };
+                document.getElementById("minStake").oninput = e => {
+                    config.minStake = Math.max(0, +e.target.value || 0);
+                    render();
+                };
+                document.getElementById("capLadder").oninput = e => {
+                    const caps = e.target.value.split(",")
+                        .map(v => Math.max(0, parseInt(v.replace(/\D/g, ""), 10) || 0))
+                        .filter(v => v > 0);
+                    if (!caps.length) return;
+                    TIERS = caps.map((cap, i) => ({
+                        name: TIERS[i] ? TIERS[i].name : `Tier ${i}`, cap
+                    }));
+                    render();
+                };
+                document.getElementById("potShare").oninput = e => {
+                    config.jackpotRakeShare = Math.min(1, Math.max(0, +e.target.value || 0));
+                };
+                document.getElementById("cackleBonus").oninput = e => {
+                    config.cacklePotBonus = Math.min(0.5, Math.max(0, +e.target.value || 0));
+                };
+                document.getElementById("potSeed").oninput = e => {
+                    config.jackpotSeed = Math.max(0, +e.target.value || 0);
+                };
+                document.querySelectorAll(".sweep").forEach(el => {
+                    el.oninput = () => {
+                        SWEEP_SHARE[+el.dataset.n] = Math.min(1, Math.max(0, +el.value || 0));
+                    };
+                });
+                document.getElementById("crowdRate").oninput = e => {
+                    config.crowdCubesPerHour = Math.max(0, +e.target.value || 0);
+                };
+                document.getElementById("startBal").oninput = e => {
+                    config.startBalance = Math.max(0, +e.target.value || 0);
+                };
+            }
+
+            syncControls();
+            wire();
+            reset();
+        })();
+    </script>
+</body>
+
+</html>
