@@ -29,22 +29,25 @@
 
 const { EmbedBuilder } = require('discord.js');
 const { manageTruguts } = require('./challenge/functions.js');
-const { LEVELS, SWEEP_SHARE } = require('../data/challenge/cube.js');
-const { WattoLOL, Whatto, restart, RIPratts, wipeout } = require('../data/discord/emoji.js').emojimap;
+const { LEVELS } = require('../data/challenge/cube.js');
+const { WattoLOL, Whatto, wipeout } = require('../data/discord/emoji.js').emojimap;
+// What is left of this import is the *screen*. Everything that decides anything moved to
+// `game/cube/actions.js`, and the shrinking of this list is the shape of that change.
 const {
-    ensurePot, potOf, cubeState, writeCube, ladderOf, deadOf, tieOf, topOf, awardClear, MAX_LEVEL,
-    bankPayout, addToPot, potCut, payFromPot, decidedAt, revealSteps,
-    recordRoll, recordFaces, recordWon, recordLost, recordSpent, unrecordLost, canPrestige, applyPrestige, goalOf,
-    rewardChoices, prestigeEmbed, prestigeComponents,
-    setLoadout, addReroll, addBribe, loadoutEmbed, loadoutComponents,
-    fillBag, drawCubes, throwSet, encodeSet, decodeSet, resolveLine, rolledFaces, specialById,
-    levelMultiple, ladderStep,
-    rollTiebreak, applyMults, multSteps, bribeCostFor, tieCostOf, withBreaker, tieOddsLine,
-    tieFrame, tieComponents,
+    ensurePot, potOf, cubeState, ladderOf, deadOf, tieOf, topOf, MAX_LEVEL,
+    decidedAt, revealSteps, canPrestige, goalOf,
+    prestigeEmbed, prestigeComponents, loadoutEmbed, loadoutComponents,
+    encodeSet, specialById, applyMults, multSteps,
+    tieCostOf, withBreaker, tieOddsLine, tieFrame, tieComponents,
     chip, faces, facesMarked, choiceLine, liveFrame, deadFrame, storedFaces, watto, contextLine,
     wonLine, lostLine, nextUnlockLine, openedLine,
     playEmbed, playComponents, stakeModal, helpEmbed, errorEmbed, tg, config,
 } = require('./cube/functions.js');
+
+// The rules and everything that moves truguts. This handler draws; it no longer decides.
+const actions = require('../game/cube/actions.js');
+const { faceGlyph } = require('../data/discord/cube_emoji.js');
+const { renderNote } = require('../data/discord/cube_notes.js');
 
 // Buying a tie. Matches the gesture on the button and in the rack, so the line in the payout is
 // recognisably the thing that was pressed.
@@ -98,6 +101,18 @@ module.exports = {
 
         await ensurePot(database, db);
         const s = cubeState(user_profile);
+
+        // What `game/cube/actions.js` needs to act. `s` is shared rather than rebuilt, because the
+        // frames drawn around a settlement read the same object the actions mutate — that is how a
+        // meter fills on the frame that earned it.
+        //
+        // `moveTruguts` is the one dependency the actions refuse to import: `manageTruguts` lives
+        // in the challenge module and would drag discord.js into the rules.
+        const ctx = () => ({
+            db, database, s, profile: user_profile, profileRef: profile_ref, discordId: member_id,
+            moveTruguts: ({ transaction, amount }) =>
+                manageTruguts({ user_profile, profile_ref, transaction, amount }),
+        });
 
         if (interaction.isModalSubmit() && action === 'setstake') return setStake();
         if (interaction.isStringSelectMenu()) {
@@ -292,8 +307,8 @@ module.exports = {
                     ephemeral: true,
                 });
             }
-            writeCube(profile_ref, user_profile, { stake });
-            s.stake = stake;
+            const set = actions.setStake(ctx(), { stake });
+            if (!set.ok) return refreshStale();
             // The modal was opened from a button, so update() edits the cube in place
             // instead of stacking another ephemeral on top of it.
             return interaction.update(view());
@@ -314,14 +329,9 @@ module.exports = {
             if (stale(turnArg)) return refreshStale();
             if (busy() || !canPrestige(s)) return refreshStale();
 
-            const value = interaction.values[0];
-            if (!rewardChoices(s).some(r => r.value === value)) return refreshStale();
-
-            const patch = {};
-            applyPrestige(s, patch, value);
-            s.turn += 1;
-            patch.turn = s.turn;
-            writeCube(profile_ref, user_profile, patch);
+            const done = actions.prestige(ctx(), { reward: interaction.values[0] });
+            if (!done.ok) return refreshStale();
+            bumpTurn();
             return render(view());
         }
 
@@ -338,11 +348,9 @@ module.exports = {
         function doLoadout(turnArg) {
             if (stale(turnArg)) return refreshStale();
             if (busy()) return refreshStale();
-            const patch = {};
-            setLoadout(s, patch, interaction.values);
-            s.turn += 1;
-            patch.turn = s.turn;
-            writeCube(profile_ref, user_profile, patch);
+            const done = actions.setLoadout(ctx(), { ids: interaction.values });
+            if (!done.ok) return refreshStale();
+            bumpTurn();
             return render(view());
         }
 
@@ -354,20 +362,18 @@ module.exports = {
             if (stale(turnArg)) return refreshStale();
             if (busy() || !s.buyReroll) return refreshStale();
 
-            const balance = balanceOf(user_profile);
-            if (s.rerollCost > balance) {
-                return interaction.reply({
-                    embeds: [errorEmbed('Not enough truguts', `A reroll costs ${tg(s.rerollCost)} but you only have ${tg(balance)}.`)],
-                    ephemeral: true,
-                });
+            const bought = actions.buyReroll(ctx());
+            if (!bought.ok) {
+                if (bought.code === 'insufficient') {
+                    return interaction.reply({
+                        embeds: [errorEmbed('Not enough truguts',
+                            `A reroll costs ${tg(bought.cost)} but you only have ${tg(bought.balance)}.`)],
+                        ephemeral: true,
+                    });
+                }
+                return refreshStale();
             }
-            manageTruguts({ user_profile, profile_ref, transaction: 'w', amount: s.rerollCost });
-            const patch = {};
-            addReroll(s, patch, 1);
-            recordSpent(s, patch, s.rerollCost);
-            s.turn += 1;
-            patch.turn = s.turn;
-            writeCube(profile_ref, user_profile, patch);
+            bumpTurn();
             return render(view());
         }
 
@@ -377,48 +383,33 @@ module.exports = {
         function doCall(sideArg, turnArg) {
             if (stale(turnArg)) return refreshStale();
             // A parked tie owes exactly one answer, and calling a side isn't it. Refusing here
-            // rather than falling through matters: the idle branch below clears the ladder node,
-            // which would take an unsettled roll — and the stake on it — with it.
+            // rather than falling through matters: starting a run clears the ladder node, which
+            // would take an unsettled roll — and the stake on it — with it.
             if (tieOf(db, member_id)) return refreshStale();
             const call = sideArg === 'red' ? 'red' : 'blue';
-            const ladder = ladderOf(db, member_id);
+            const pushing = !!ladderOf(db, member_id);
 
-            if (ladder) {
-                // Push. The stake was already taken when the run started.
-                if (!ladder.standing || ladder.level >= topOf(s)) return refreshStale();
-                bumpTurn();
-                // A push spends nothing new — the ladder already holds the stake — so there is
-                // nothing to hand back if this roll never reaches the screen. The multiplier
-                // rides along: a Greed or Multiplier cube caught early pays on every level above it.
-                return roll({
-                    stake: ladder.stake, standing: ladder.standing, level: ladder.level + 1, call,
-                    mult: Number(ladder.mult) || 0,
-                    // Cubes a wipeout broke earlier in this climb stay off the table.
-                    spent: Object.values(ladder.spent || {}),
-                    // The table as this run left it and the bag it still has to draw from. A run
-                    // stored before either existed carries neither, and simply starts fresh.
-                    set: decodeSet(ladder.set), bag: decodeSet(ladder.bag),
-                }, false);
+            // Both branches end in a roll; which one is `actions`' decision, along with the stake
+            // debit and every check on it.
+            const opened = pushing
+                ? actions.pushRun(ctx(), { call })
+                : actions.startRun(ctx(), { call });
+
+            if (!opened.ok) {
+                // Out of money is the one refusal worth an explanation. Everything else means the
+                // screen is stale, and a refreshed board says more than an error would.
+                if (opened.code === 'insufficient') {
+                    return interaction.reply({
+                        embeds: [errorEmbed('Not enough truguts',
+                            `That stake is ${tg(opened.stake)} but you only have ${tg(opened.balance)}.`)],
+                        ephemeral: true,
+                    });
+                }
+                return refreshStale();
             }
 
-            // Calling with a reroll offer still on screen is the same answer as Play again.
-            clearLadder();
-            const stake = s.stake;
-            const balance = balanceOf(user_profile);
-            if (stake > balance) {
-                return interaction.reply({
-                    embeds: [errorEmbed('Not enough truguts', `That stake is ${tg(stake)} but you only have ${tg(balance)}.`)],
-                    ephemeral: true,
-                });
-            }
-            manageTruguts({ user_profile, profile_ref, transaction: 'w', amount: stake });
             bumpTurn();
-            // A new run starts with an empty table and a freshly shuffled bag. Level 1 puts the
-            // first cube on the table without touching it.
-            return roll({
-                stake, standing: 0, level: 0, call, mult: 0, spent: [], set: [],
-                bag: fillBag(s.equipped),
-            }, true);
+            return roll(opened.run, opened.staked > 0);
         }
 
         // ---- rerolls -------------------------------------------------------
@@ -431,22 +422,10 @@ module.exports = {
         // called, and it broke the streak; a reroll is a second call rather than a rewrite.
         function spendReroll(turnArg) {
             if (stale(turnArg)) return refreshStale();
-            const dead = deadOf(db, member_id);
-            if (!dead || s.rerolls < 1) return refreshStale();
-
-            clearLadder();
-            const patch = {};
-            addReroll(s, patch, -1);
-            writeCube(profile_ref, user_profile, patch);
+            const again = actions.spendReroll(ctx());
+            if (!again.ok) return refreshStale();
             bumpTurn();
-            return roll({
-                stake: dead.stake, standing: dead.standing, level: dead.level, call: dead.call,
-                mult: Number(dead.mult) || 0, spent: Object.values(dead.spent || {}),
-                // The same cubes that just lost, picked back up. `regrow: false` is what makes this
-                // a reroll rather than a re-draw: nothing comes out of the bag, no cube is added,
-                // removed or swapped — they are simply thrown again, new sides, faces and order.
-                set: decodeSet(dead.set), bag: decodeSet(dead.bag), regrow: false,
-            }, false, dead.stake);
+            return roll(again.run, false, again.reverse);
         }
 
         // "Play again" on a game over screen. The offer only exists on that screen, so leaving it
@@ -501,52 +480,15 @@ module.exports = {
         // during the first beat, so the pot and the balance are already correct by the
         // first reveal and Discord's 3s response window is never spent waiting on firebase.
         async function roll(run, staked, reverse = 0) {
-            const level = LEVELS[run.level];
-
-            // Every draw for this roll happens here, before the first await, so the outcome that
-            // gets settled is fixed before anything is rendered.
+            // Every draw for this roll happens in one call, before the first await, so the outcome
+            // that gets settled is fixed before anything is rendered — and it is the same call the
+            // Activity makes.
+            const thrown = actions.throwLevel(ctx(), run);
+            const {
+                res, level, set, bag, tie, asking, breaker, base, opening, worth, cost,
+            } = thrown;
             const spent = run.spent || [];
-            // This level's cubes come off the top of the run's bag and join the set, then the whole
-            // thing is thrown.
-            //
-            // A **reroll** arrives with `regrow: false` and the table exactly as it was thrown. It
-            // buys back the roll, not the draw: the same cubes are picked up and thrown again, so
-            // they land on new sides, roll new faces and come down in a new order, but nothing is
-            // drawn and the bag is untouched. Drawing here would have quietly rerolled the
-            // *loadout* as well, handing back different cubes off the bag.
-            const drawn = run.regrow === false
-                ? { set: run.set || [], bag: run.bag || [] }
-                : drawCubes(run.set || [], run.bag || [], run.level);
-            const set = drawn.set;
-            const bag = drawn.bag;
-            const line = throwSet(set);
-            const rolled = rolledFaces(line);
-            const res = resolveLine(line, run.call);
-
-            // An even line has no majority in it, and only a destructive special face can leave
-            // one. Watto breaks it with a cube of his own — unless the player owns the right to
-            // buy the tie off him instead, which is the one thing in a roll he has to ask about.
-            //
-            // Ratts trumps a tie: the run is over whatever the cubes said, so there is nothing
-            // left to break and nothing worth buying.
-            const tie = !res.ended && !res.majority;
-            // The multiple this roll is played for: whatever the run carried, stepped one rung up
-            // the ladder, plus what this roll's greed added. Computed once here and handed down —
-            // `settleRoll` must not recompute it, because a resumed tie arrives with it already
-            // stepped and would step it twice.
-            const base = levelMultiple(run.level, run.mult, res.mult);
-            // What the tie is worth if it goes the player's way. The multipliers still waiting on
-            // a winner count here, because either answer to a tie produces one.
-            const worth = tie ? bankPayout(run.stake, applyMults(base, res.mults, run.call)) : 0;
-            const cost = tie && s.bribe ? bribeCostFor(worth, s.bribes) : 0;
-            // He only asks while the answer is worth weighing. Once his price is past what the tie
-            // pays there is nothing to think about, so he stops asking and just rolls — which is
-            // also what keeps every button on the tie screen one you might actually press.
-            const asking = tie && s.bribe && cost < worth;
-            // His cube, drawn here with every other draw so the outcome is fixed before anything
-            // renders. A tie he is *asking* about draws its own when the answer arrives — there is
-            // nothing to fix until then.
-            const breaker = tie && !asking ? rollTiebreak(run.call, s.nudge) : null;
+            const rolled = thrown.rolled.map(faceGlyph);
 
             // Everything the frames below draw around the cubes, as it stood before the
             // roll was settled.
@@ -559,21 +501,24 @@ module.exports = {
             // The frames used to open at `base`, greed included, which meant the number was already
             // finished before there was anything on screen to explain it — and it left phase two
             // nowhere to start but *below* the multiple the previous frame had shown.
-            const opening = levelMultiple(run.level, run.mult, 0);
             // Two factories, because the table changes size mid-roll: the throw shows every cube in
             // the set, the frames after the effects show only what survived them.
-            const drawing = frameFactory(run, opening, line.length);
-            const settledDrawing = frameFactory(run, opening, res.faces.length);
+            const drawing = frameFactory(run, opening, rolled.length);
+            const settledDrawing = frameFactory(run, opening, res.faceIds.length);
             // One frame per effect, built **here** rather than inside the reveal, because the reveal
             // runs after settlement and `frameFactory` reads the ceiling and the deepest level off
             // `s` — both of which settlement moves.
-            const effectFrames = (res.steps || []).slice(0, config.maxEffectFrames).map(step => {
-                const draw = frameFactory(run, opening, step.faces.length);
+            //
+            // The engine emits **every** step it took — nine, on a full rack. The cap is this
+            // client's, because each frame is a message edit.
+            const effectFrames = (res.steps || []).slice(0, config.maxEffectFrames).map((step) => {
+                const row = step.faceIds.map(faceGlyph);
+                const draw = frameFactory(run, opening, row.length);
                 return () => draw(
                     // Pointed at the cube that just acted, so the frame says *which* one did it
                     // rather than leaving the player to diff two rows.
-                    facesMarked(step.faces, step.at), null,
-                    [step.note].filter(Boolean), null, snapshot.s, null,
+                    facesMarked(row, step.at), null,
+                    [renderNote(step.note)].filter(Boolean), null, snapshot.s, null,
                 );
             });
 
@@ -592,17 +537,18 @@ module.exports = {
             const walkable = res.ended ? []
                 : asking ? (res.pays || []).filter(p => p.kind === 'greed')
                     : (res.pays || []);
+            const resolvedRow = res.faceIds.map(faceGlyph);
             const payFrames = multSteps(opening, walkable, asking ? null : (res.majority || breaker))
                 .slice(-config.maxPayFrames)
                 .map((step) => {
-                    const draw = frameFactory(run, step.multiple, res.faces.length);
-                    const row = facesMarked(res.faces, step.at);
+                    const draw = frameFactory(run, step.multiple, resolvedRow.length);
+                    const row = facesMarked(resolvedRow, step.at);
                     // His cube stays face-up for the rest of the reveal once it has landed — these
                     // frames come after it, and the multipliers on them are being counted precisely
                     // because of what it said.
                     return () => draw(
                         breaker ? withBreaker(row, breaker) : row,
-                        null, [step.note], null, snapshot.s, null,
+                        null, [renderNote(step.note)], null, snapshot.s, null,
                     );
                 });
             // Mid-roll: the line as it was rolled, so a special cube shows the face it landed
@@ -659,7 +605,7 @@ module.exports = {
                 // every other frame with a cube face-down on it.
                 if (breaker) {
                     await frame(payload(settledDrawing(
-                        withBreaker(faces(res.faces, res.faces.length), null),
+                        withBreaker(faces(resolvedRow, resolvedRow.length), null),
                         `${Whatto} ${watto('tiebreak')}`, [tieOddsLine(s)], null, snapshot.s, null,
                     ), [], snapshot), config.rollDelay);
                 }
@@ -678,25 +624,12 @@ module.exports = {
             // the tie back up and finishes it. And because nothing was written, every frame drawn
             // off that node an hour later reads the same state it reads now.
             if (asking) {
-                const pending = {
-                    stake: run.stake, standing: run.standing, level: run.level, call: run.call,
-                    // Both multiples: `mult` is what this roll is playing for, already stepped up
-                    // the ladder, and `carry` is what the run brought into the level. Answering the
-                    // tie needs the first; a reroll of a tie that busts needs the second, because a
-                    // reroll replays the level and would otherwise step the ladder a second time.
-                    mult: base, carry: run.mult || 0, mults: res.mults, spent, roll: res.cubes, faces: res.faces,
-                    // Only the Multiplier faces. The greed this roll threw is already folded into
-                    // `mult` above, so replaying it when the tie is answered would count it twice —
-                    // the same reason `res.mult` is rebuilt as a zero down in `finishTie`.
-                    pays: (res.pays || []).filter(p => p.kind === 'mult'),
-                    shortcut: res.shortcut, rerolls: res.rerolls, broken: res.broken,
-                    // Both halves of the table: what survived this throw, to carry on with, and the
-                    // cubes as they were thrown, in case the tie resolves into a bust that a reroll
-                    // then buys back — a reroll picks those same cubes up again.
-                    set: encodeSet(res.set), thrown: encodeSet(set), bag: encodeSet(bag),
-                    reverse, flavor: `${Whatto} ${watto('tiebreak')}`, tie: true,
-                };
-                saveLadder(pending);
+                // Parked where settlement would have written, so a crash between the question and
+                // the answer leaves a tie that can still be picked up and finished. The shape is
+                // `actions.parkTie`'s, because `answerTie` has to be able to rebuild the roll from
+                // it — for this client and for the Activity alike.
+                actions.parkTie(ctx(), thrown, { reverse });
+                const pending = { ...tieOf(db, member_id), flavor: `${Whatto} ${watto('tiebreak')}` };
                 // No sleep of its own: the opening beat was opened when the face-down cubes went
                 // out, and `revealLine`'s first frame waits out whatever is left of it. Parking
                 // the tie is a firebase write, so the old fixed sleep here was stacked on top of
@@ -710,7 +643,7 @@ module.exports = {
                 ));
             }
 
-            return settleRoll({ run, res, level, breaker, reverse, snapshot, reveal: revealLine, thrown: set, bag, base });
+            return settleRoll({ thrown, reverse, snapshot, reveal: revealLine });
         }
 
         // Settlement and the payout frame: the profile write, Watto's verdict, the buttons coming
@@ -720,87 +653,35 @@ module.exports = {
         // down those are the same thing. What differs is all above it — how the cubes got on
         // screen, and whether a bribe changed hands. `reveal` is the cubes landing, which a resumed
         // tie has already done; `extra` is anything to say before the numbers.
-        async function settleRoll({ run, res, level, breaker, bribed = 0, reverse = 0, snapshot, reveal, extra = [], thrown = [], bag = [], base }) {
+        async function settleRoll({ thrown, bribed = 0, reverse = 0, snapshot, reveal, extra = [] }) {
+            const { run, res, base, breaker } = thrown;
             // Whoever ended up with the roll: the line's own majority, Watto's cube on top of it,
-            // or a call bought outright.
+            // or a call bought outright. Worked out here as well as inside settlement, because the
+            // frames below need the final multiple before anything is allowed to move.
             const majority = res.majority || breaker || (bribed ? run.call : null);
-            const cubes = res.cubes;
-            // Ratts ends a run outright, so the majority stops mattering the moment he lands.
-            const won = !res.ended && !!majority && majority === run.call;
-            const pure = won && res.pure;
-            const spent = run.spent || [];
-            // Wipeouts take a cube off the table for the rest of the climb.
-            const stillSpent = res.broken.length ? [...new Set([...spent, ...res.broken])] : spent;
-            // Greed and Multiplier cubes ride the standing for the rest of the run. The
-            // multipliers only cash in here, because only here is there a winning side to check
-            // them against — which is why a tie can't spend them until it has been broken.
-            // `base` arrives already stepped up the ladder and carrying this roll's greed; all that
-            // is left is one more for every surviving Multiplier whose named side actually won.
+            // Greed and Multiplier cubes ride the standing for the rest of the run. `base` arrives
+            // already stepped up the ladder and carrying this roll's greed; all that is left is one
+            // more for every surviving Multiplier whose named side actually won.
             const mult = applyMults(base, res.mults, majority);
 
             // Built **before** anything settles, and that ordering is load-bearing: the factory
             // reads the deepest level and the ceiling off `s`, and settlement moves both. Read
             // after, a roll that set a new deepest level would never wear the badge for it and the
             // clears meter would vanish from the very frame that filled it. The cube-count and
-            // multiple records are read here for exactly the same reason — `recordRoll` below is
-            // about to move both.
+            // multiple records are read here for exactly the same reason.
             const paying = frameFactory(
-                run, mult, res.faces.length,
-                res.faces.length > s.bestCubes, mult > s.bestMultiple,
+                run, mult, res.faceIds.length,
+                res.faceIds.length > s.bestCubes, mult > s.bestMultiple,
             );
 
-            // One profile write for the whole roll: lifetime tallies plus whatever the
-            // settlement adds to it.
-            const patch = {};
-            const standing = won ? bankPayout(run.stake, mult) : 0;
-            // The tie-breaker is Watto's cube, not one of the level's, so it stays out of the
-            // player's own face tallies — `cubes` is the line and nothing but the line.
-            const records = recordRoll(s, patch, {
-                call: run.call, won, cubes, level: run.level, standing,
-                // Positions left standing after the effects, which is what the cube-count record
-                // is a record of — not the cubes that counted toward the majority.
-                line: res.faces.length,
-                // What the roll ended up worth per trugut staked, counted win or lose — the same
-                // number the header just badged.
-                multiple: mult,
-            });
-            // Every special face this roll threw, for the per-cube record on the rack screen. Kept
-            // out of `recordRoll` because it counts faces rather than cubes, and because a resumed
-            // tie must not tally the same throw twice — the reconstructed `res` carries no log.
-            recordFaces(s, patch, res.faceLog);
-            // A Reroll Cube banks its reroll whatever the roll did, so it's never a punishment
-            // for having won.
-            if (res.rerolls) addReroll(s, patch, res.rerolls);
-            // Undoing the bust a reroll was spent on. Only the pot and the ledger need reversing:
-            // the stake left the player's balance when the run started, not on this roll.
+            // Everything that moves — the ledger, the pot, the clears, the ladder, the truguts —
+            // happens in one call, in `game/cube/actions.js`, which the Activity calls too. This
+            // handler draws the result and nothing else.
             //
-            // Each is undone in the currency it was done in — the pot only ever received
-            // `potCut(stake)`, so that is all that comes back out, while the ledger recorded the
-            // whole stake and gives back the whole stake. `reverse` is the same stake `settleLoss`
-            // deposited against, so the two `potCut` calls floor to the identical integer and the
-            // jar lands exactly where it started.
-            if (reverse) {
-                addToPot(database, db, -potCut(reverse));
-                unrecordLost(s, patch, reverse);
-            }
-            // A bought tie is a trugut the mode took, like a bought reroll, so it goes on the
-            // lifetime spend — and it makes the next one dearer. Not on the *loss* ledger: a bribe
-            // is a price, and half the time it is the price of a win.
-            if (bribed) {
-                recordSpent(s, patch, bribed);
-                addBribe(s, patch);
-            }
-
-            // No `sleep` raced against this any more, because the pacer is already holding the
-            // beat: it started when the face-down cubes went out, and the first frame of
-            // `reveal` waits out whatever is left of it. Same effect as the `Promise.all` this
-            // replaces — settlement still overlaps the opening beat rather than following it —
-            // but the beat is owned in one place now instead of being half here and half in the
-            // frame that opened it.
-            const settled = won
-                ? await settleWin({ run, level, majority, pure, cubes, standing, mult, patch, records, res, stillSpent, breaker, bribed, bag })
-                : await settleLoss({ run, level, res, patch });
-            writeCube(profile_ref, user_profile, patch);
+            // No `sleep` races it: the pacer is already holding the beat that opened when the
+            // face-down cubes went out, and the first frame of `reveal` waits out whatever is left.
+            // Settlement still overlaps the opening beat rather than following it.
+            const settled = await actions.settleThrow(ctx(), { thrown, bribed, reverse });
 
             if (reveal) await reveal();
 
@@ -811,11 +692,15 @@ module.exports = {
                 ? { ...snapshot.s, clears: goalOf(snapshot.s) }
                 : s;
 
+            // Everything the settlement decided, said out loud. The outcome is structured data —
+            // `reason: 'ratts'`, `opened: 3` — and this is where it becomes Watto.
+            const { flavor, lines: said } = outcomeProse(settled, { bribed, breaker });
+
             // A shatter is the one special-cube effect that gets said out loud, because it's the
             // only one that changes what the *next* roll can do — the cube is off the table for
             // the rest of the climb, and a player who wasn't told would just find a loadout
             // quietly short. Everything else the specials did is left to be read off the cubes.
-            const shattered = res.broken.map(specialById).filter(Boolean);
+            const shattered = settled.shattered.map(specialById).filter(Boolean);
             const lines = [
                 ...extra,
                 ...(shattered.length
@@ -824,7 +709,7 @@ module.exports = {
                             ? ` — the table is ${shattered.length > 1 ? `**${shattered.length}** cubes` : 'a cube'} shorter for the rest of the climb`
                             : ''}.`]
                     : []),
-                ...settled.lines,
+                ...said,
             ];
 
             // The payout frame draws the *resolved* line, so the cubes the count was taken over
@@ -832,10 +717,12 @@ module.exports = {
             // Watto's tie-breaker stays beside it face-up, because it decided the roll and belongs
             // in the picture of how the roll ended. A tie he was paid off for shows no cube at
             // all: he never rolled one.
-            const resolved = faces(res.faces, res.faces.length);
+            const glyphs = res.faceIds.map(faceGlyph);
+            const resolved = faces(glyphs, glyphs.length);
             const finalFrame = paying(
                 breaker ? withBreaker(resolved, breaker) : resolved,
-                settled.flavor, lines, settled.outcome, after, won ? 'win' : 'bust',
+                flavor, lines, settled.outcome === 'bust' ? 'bust' : settled.outcome,
+                after, settled.won ? 'win' : 'bust',
             );
             // A bust with a reroll in the bank keeps the run on file so the offer on this screen
             // has something to replay. The bust itself is already fully settled, so letting the
@@ -843,7 +730,11 @@ module.exports = {
             if (settled.outcome === 'bust' && s.rerolls > 0) {
                 // Stored with the cubes **as they were thrown**, because a reroll picks up that same
                 // table and throws it again rather than drawing a new one.
-                saveDead({ ...run, set: encodeSet(thrown), bag: encodeSet(bag), spent, dead: true, faces: res.faces, roll: cubes, flavor: settled.flavor, lines });
+                saveDead({
+                    ...run, set: encodeSet(thrown.set), bag: encodeSet(thrown.bag),
+                    spent: run.spent || [], dead: true,
+                    faces: res.faceIds, roll: settled.cubes, flavor, lines,
+                });
             }
 
             // Paced like a frame but sent like a screen. It holds for the beat the last reveal
@@ -856,7 +747,74 @@ module.exports = {
                 buttons(settled.ladder, !settled.ladder, settled.outcome === 'bust'),
             ));
 
-            return announce(settled.publicNote);
+            return announce(channelNote(settled));
+        }
+
+        // ---- saying what happened -------------------------------------------
+
+        // Turns a settled throw into Watto's verdict and the lines under it. Everything it reads is
+        // structured — a reason, a profit, a level index — so the same settlement can be narrated
+        // completely differently by the Activity without either client owning the rules.
+        function outcomeProse(settled, { bribed, breaker }) {
+            if (settled.outcome === 'bust') {
+                // Four ways to lose, and Watto has a line for each — but only the line. What the
+                // cubes did to get there is on the table for the player to read.
+                const flavor = settled.reason === 'cackle'
+                    ? `${WattoLOL} ${watto('cackle')}`
+                    : watto(settled.reason === 'ratts' ? 'ripratts' : settled.reason);
+                return { flavor, lines: [lostLine(settled.lostStake, settled.lostStanding)] };
+            }
+
+            const lines = [];
+            // A tie is the one win with a bigger story than the level it happened on: losing one
+            // has to sound like the house winning, so winning one has to sound like the house
+            // losing. Neither can collide with a jackpot — a tied line has no majority in it, so it
+            // can never be swept.
+            const flavor = watto(
+                settled.prize > 0 ? 'jackpot'
+                    : settled.pure ? 'pure'
+                        : breaker ? 'tiewin'
+                            : bribed ? 'bribe'
+                                : settled.outcome !== 'bank' ? 'win'
+                                    : settled.atTop ? 'final' : 'ceiling',
+            );
+            if (settled.pure) {
+                lines.push(`✨ **PURE CUBE** — all ${settled.cubes.length} landed ${chip(settled.majority)}.`);
+            }
+            if (settled.prize > 0) {
+                lines.push(settled.pureTier >= 1
+                    ? `🏆 **THE POT IS YOURS — ${tg(settled.prize)}.**`
+                    : `💎 A pure ${settled.cubes.length} takes **${tg(settled.prize)}** off the pot.`);
+            }
+
+            if (settled.outcome === 'bank') {
+                // Everything gained on this roll: the profit on the stake, plus any pot.
+                lines.push(wonLine(settled.profit + settled.prize, settled.opened, settled.records.standing));
+                // Worth showing whenever the meter moved, and at the top of the ladder it is how
+                // the prestige offer gets announced.
+                if (settled.clear || settled.extra) lines.push(nextUnlockLine(s));
+                return { flavor, lines };
+            }
+
+            if (settled.reopened) lines.push(openedLine(settled.opened));
+            lines.push(choiceLine(settled.ladder.stake, settled.ladder.level,
+                settled.records.standing, settled.mult));
+            return { flavor, lines };
+        }
+
+        // The channel only hears about two things: clearing the top of the ladder, and any Pure
+        // Cube that pays off the pot. Taking a bite out of a jar everyone has been feeding is the
+        // one result that is genuinely other people's business.
+        function channelNote(settled) {
+            if (settled.prize > 0) {
+                return settled.pureTier >= 1
+                    ? `🏆 **${member_name}** rolled a **PURE CUBE** — all ${settled.cubes.length} on ${chip(settled.majority)} — and took the **whole pot**: **${tg(settled.prize)}**.`
+                    : `✨ **${member_name}** rolled a **pure ${settled.cubes.length}** on ${chip(settled.majority)} and took **${tg(settled.prize)}** off the Pure Cube pot.`;
+            }
+            if (settled.outcome === 'bank' && settled.atTop) {
+                return bankNote(settled.standing, MAX_LEVEL);
+            }
+            return null;
         }
 
         // ---- ties ----------------------------------------------------------
@@ -880,78 +838,41 @@ module.exports = {
                 return refreshStale();
             }
 
-            let bribed = 0;
-            if (buying) {
-                if (!s.bribe) return refreshStale();
-                bribed = tieCostOf(pending, s);
-                const balance = balanceOf(user_profile);
-                if (bribed > balance) {
+            // His cube or his price. The price is worked out from the stored standing rather than
+            // taken from the button, so a screen left open across a prestige can't buy a tie at
+            // yesterday's rate.
+            const answered = actions.answerTie(ctx(), { buying });
+            if (!answered.ok) {
+                if (answered.code === 'insufficient') {
                     return interaction.reply({
                         embeds: [errorEmbed('Not enough truguts',
-                            `Watto wants ${tg(bribed)} for that tie and you only have ${tg(balance)}. Rolling his cube is free.`)],
+                            `Watto wants ${tg(answered.cost)} for that tie and you only have ${tg(answered.balance)}. Rolling his cube is free.`)],
                         ephemeral: true,
                     });
                 }
-                manageTruguts({ user_profile, profile_ref, transaction: 'w', amount: bribed });
+                return refreshStale();
             }
+            const bribed = answered.bribed;
 
             // Off the node and the turn bumped before anything settles, so a tie can only ever be
             // answered once — the same job the turn counter does for a double-clicked call.
             clearLadder();
             bumpTurn();
 
-            // What this roll is playing for. Stepped up the ladder and carrying the roll's greed
-            // when the tie was parked, so it is taken as-is rather than recomputed.
-            const base = Number(pending.mult) || LEVELS[pending.level].payout;
-            const run = {
-                stake: Number(pending.stake) || 0,
-                standing: Number(pending.standing) || 0,
-                level: pending.level,
-                call: pending.call,
-                // The multiple the run *entered* this level with, which is what a reroll of this
-                // level steps from. A tie parked before this field existed simply starts the
-                // level's multiple back at the ladder.
-                mult: Number(pending.carry) || 0,
-                spent: Object.values(pending.spent || {}),
-                // The cubes as they were thrown, which is what a reroll would pick back up if
-                // answering the tie ends the run, and the bag left to draw from if it doesn't.
-                set: decodeSet(pending.thrown), bag: decodeSet(pending.bag),
-            };
-            // The line exactly as the roll left it: even, with no majority in it. Everything the
-            // special cubes did is already folded into the stored run, so the only modifiers here
-            // are the ones that were still waiting on a winner.
-            const res = {
-                cubes: Object.values(pending.roll || {}),
-                faces: Object.values(pending.faces || {}),
-                majority: null,
-                pure: false,
-                swept: false,
-                // Zero, not one: this is what the roll *adds*, and the greed it added is already
-                // baked into `pending.mult`. A one here would hand out a free ×1 on every tie.
-                mult: 0,
-                mults: Object.values(pending.mults || {}),
-                // The Multiplier faces still owed an answer, so phase two of the reveal can count
-                // them out once his cube has given them one. Greed was stripped when the tie was
-                // parked, which is what makes the zero above safe.
-                pays: Object.values(pending.pays || {}),
-                shortcut: !!pending.shortcut,
-                rerolls: Number(pending.rerolls) || 0,
-                broken: Object.values(pending.broken || {}),
-                ended: null,
-                notes: [],
-                specials: [],
-                // What survived the throw that tied. If answering the tie keeps the run alive, this
-                // is the table the next level builds on.
-                set: decodeSet(pending.set),
-            };
-            const breaker = buying ? null : rollTiebreak(run.call, s.nudge);
+            // The roll the tie was parked on, rebuilt from the stored node. **Nothing is thrown
+            // again** — the cubes already landed, and the only new information is which way the tie
+            // went. `answerTie` did the reconstruction, because the Activity needs exactly the same
+            // one and a second copy of it is a second way to hand the player a different roll.
+            const { thrown, reverse } = { thrown: answered.thrown, reverse: answered.reverse };
+            const { run, res, base, breaker } = thrown;
             const snapshot = { balance: balanceOf(user_profile), pot: potOf(db), s: { ...s } };
-            const resolved = faces(res.faces, res.faces.length);
+            const row = res.faceIds.map(faceGlyph);
+            const resolved = faces(row, row.length);
 
             // The answer is in, so the buttons come off — and this press is also what acknowledges
             // the interaction, which every frame after it edits. Bribing pockets the cube on the
             // spot; rolling leaves it face-down for one more beat.
-            await render(payload(frameFactory(run, base, res.faces.length)(
+            await render(payload(frameFactory(run, base, row.length)(
                 buying ? resolved : withBreaker(resolved, null),
                 buying ? `${Whatto} ${watto('bribe')}` : pending.flavor || null,
                 buying ? [] : [tieOddsLine(s)], null, snapshot.s, null,
@@ -970,17 +891,16 @@ module.exports = {
             const payFrames = multSteps(base, res.pays, breaker || (bribed ? run.call : null))
                 .slice(-config.maxPayFrames)
                 .map((step) => {
-                    const draw = frameFactory(run, step.multiple, res.faces.length);
-                    const row = facesMarked(res.faces, step.at);
+                    const draw = frameFactory(run, step.multiple, row.length);
+                    const marked = facesMarked(row, step.at);
                     return () => draw(
-                        breaker ? withBreaker(row, breaker) : row,
-                        null, [step.note], null, snapshot.s, null,
+                        breaker ? withBreaker(marked, breaker) : marked,
+                        null, [renderNote(step.note)], null, snapshot.s, null,
                     );
                 });
 
             return settleRoll({
-                run, res, level, breaker, bribed, reverse: Number(pending.reverse) || 0,
-                snapshot, thrown: run.set, bag: run.bag, base,
+                thrown, bribed, reverse, snapshot,
                 reveal: payFrames.length
                     ? async () => {
                         for (const frameOf of payFrames) {
@@ -995,143 +915,15 @@ module.exports = {
             });
         }
 
-        // A share of every trugut lost goes into the Pure Cube pot; the rest leaves the economy.
-        // The stake is already gone from the player's balance either way, so this only decides
-        // how much of it comes back to the table — see `potShare`.
-        //
-        // The **ledger takes the full stake**, not the share. `recordLost` is the player's own
-        // record of what this mode has cost them, so it tracks their balance rather than the
-        // jar's; only the pot sees a fraction.
-        function settleLoss({ run, level, res, patch }) {
-            addToPot(database, db, potCut(run.stake));
-            recordLost(s, patch, run.stake);
-            clearLadder();
-            // Four ways to lose, and Watto has a line for each — but only the line. What the
-            // cubes did to get there is on the table for the player to read.
-            //
-            // A line with no majority in it only reaches here once his tie-breaker has already
-            // gone his way, which it usually does: a bought tie is always a win, and Ratts is
-            // checked first because he ends the run whatever the cubes said.
-            const flavor = res.ended ? watto('ripratts')
-                : !res.majority ? watto('tie')
-                    : res.swept ? `${WattoLOL} ${watto('cackle')}`
-                        : watto('bust');
-            return {
-                flavor,
-                lines: [lostLine(run.stake, run.standing)],
-                ladder: null, publicNote: null, outcome: 'bust',
-            };
-        }
-
-        async function settleWin({ run, level, majority, pure, cubes, standing, mult, patch, records, res, stillSpent, breaker, bribed, bag = [] }) {
-            // A Shortcut Cube is a clear toward *the next locked level*, so once the ladder is
-            // fully open it has nothing to pay. Without this, a shortcut on a Level 1 roll would
-            // hand over the prestige gate — which is meant to cost a run at the top of the
-            // ladder, not a one-cube wager.
-            const shortcut = res.shortcut && s.unlocked < MAX_LEVEL;
-            const lines = [];
-            let publicNote = null;
-            let prize = 0;
-
-            if (pure) {
-                prize = await payFromPot(database, db, SWEEP_SHARE[level.cubes] || 0);
-                if (prize > 0) {
-                    manageTruguts({ user_profile, profile_ref, transaction: 'd', amount: prize });
-                    recordWon(s, patch, prize);
-                    // Every pure cube that pays gets a line in the channel — taking a bite out of
-                    // a pot everyone has been feeding is the one result that's genuinely other
-                    // people's business. Only the ones that pay nothing stay on the board.
-                    publicNote = level.cubes >= 9
-                        ? `🏆 **${member_name}** rolled a **PURE CUBE** — all nine on ${chip(majority)} — and took the **whole pot**: **${tg(prize)}**.`
-                        : `✨ **${member_name}** rolled a **pure ${level.cubes}** on ${chip(majority)} and took **${tg(prize)}** off the Pure Cube pot.`;
-                }
-            }
-
-            const topped = run.level >= topOf(s);
-
-            // Award the clear *before* deciding whether the run ends, because a clear that opens
-            // the next level changes that answer. The ceiling only banks itself because there's
-            // nothing unlocked to push into — and if this very roll unlocked something, that
-            // stopped being true. Deciding first and unlocking second is what used to hand the
-            // player a key and shut the door in the same breath.
-            let clear = null;
-            let extra = null;
-            if (topped) {
-                clear = awardClear(s, patch);
-                // A Shortcut Cube is a second clear on top of the one surviving the ceiling
-                // already earned, so it can be the one that opens the level.
-                extra = shortcut ? awardClear(s, patch) : null;
-            } else if (shortcut) {
-                // A Shortcut Cube pays its clear wherever it lands, which is the only way
-                // progress is ever made below your ceiling. The run carries on regardless.
-                awardClear(s, patch);
-            }
-            const opened = extra?.unlocked ?? clear?.unlocked ?? null;
-            // The wall moved. Stay live and let them carry the standing into the new level.
-            const reopened = topped && opened != null && run.level < topOf(s);
-            const ends = topped && !reopened;
-
-            // A tie is the one win with a bigger story than the level it happened on, so it takes
-            // the line: losing a tie has to sound like the house winning, which means winning one
-            // has to sound like the house losing. Neither can collide with a jackpot or a pure
-            // roll — a tied line has no majority in it, so it can never be swept.
-            const flavor = watto(
-                prize > 0 ? 'jackpot'
-                    : pure ? 'pure'
-                        : breaker ? 'tiewin'
-                            : bribed ? 'bribe'
-                                : !ends ? 'win'
-                                    : run.level >= MAX_LEVEL ? 'final' : 'ceiling',
-            );
-            if (pure) lines.push(`✨ **PURE CUBE** — all ${cubes.length} landed ${chip(majority)}.`);
-            if (prize > 0) lines.push(level.cubes >= 9
-                ? `🏆 **THE POT IS YOURS — ${tg(prize)}.**`
-                : `💎 A pure ${level.cubes} takes **${tg(prize)}** off the pot.`);
-
-            if (ends) {
-                // Nothing unlocked to push into, so your ceiling banks itself.
-                payStanding(standing);
-                recordWon(s, patch, standing - run.stake);
-                // Everything gained on this roll: the profit on the stake, plus any pot.
-                lines.push(wonLine(standing - run.stake + prize, opened, records.standing));
-                // The forward-looking line is worth showing whenever the meter moved, and at
-                // the top of the ladder it's how the prestige offer gets announced.
-                if (clear || extra) lines.push(nextUnlockLine(s));
-                return {
-                    flavor, lines, ladder: null, outcome: 'bank',
-                    filled: !!(clear || extra) && (opened != null || clear?.prestige || extra?.prestige),
-                    publicNote: publicNote || bankNote(standing, run.level),
-                };
-            }
-
-            // Still standing — either below the ceiling, or because the clear just moved it.
-            if (reopened) lines.push(openedLine(opened));
-
-            const live = {
-                stake: run.stake, level: run.level, call: run.call, standing, roll: cubes,
-                mult, faces: res.faces, spent: stillSpent,
-                // The table the next level builds on, and what is left in the bag to build it with.
-                // Everything this roll destroyed, broke or wrote over is already baked into the set.
-                set: encodeSet(res.set), bag: encodeSet(bag),
-            };
-            saveLadder(live);
-            lines.push(choiceLine(run.stake, run.level, records.standing, mult));
-            return { flavor, lines, ladder: live, publicNote, filled: reopened };
-        }
 
         async function doBank(turnArg) {
             if (stale(turnArg)) return refreshStale();
+            // Read before banking, because banking clears it and the screen still has to draw the
+            // run that was cashed out.
             const ladder = ladderOf(db, member_id);
-            if (!ladder || !ladder.standing) return refreshStale();
+            const banked = actions.bank(ctx());
+            if (!banked.ok) return refreshStale();
             bumpTurn();
-            payStanding(ladder.standing);
-
-            // Cashing out short of your ceiling is not a clear — the gate is surviving your
-            // top level, which banks itself, so nothing is awarded here. The profit still
-            // goes on the lifetime ledger.
-            const patch = {};
-            recordWon(s, patch, ladder.standing - ladder.stake);
-            writeCube(profile_ref, user_profile, patch);
 
             await render(payload({
                 levelIdx: ladder.level,
@@ -1141,15 +933,10 @@ module.exports = {
                 faces: storedFaces(ladder),
                 outcome: 'bank',
                 flavor: watto('bank'),
-                lines: [wonLine(ladder.standing - ladder.stake)],
+                lines: [wonLine(banked.profit)],
             }, buttons(null, true)));
 
-            return announce(bankNote(ladder.standing, ladder.level));
-        }
-
-        function payStanding(standing) {
-            manageTruguts({ user_profile, profile_ref, transaction: 'd', amount: standing });
-            clearLadder();
+            return announce(bankNote(banked.standing, banked.level));
         }
 
         // The channel only hears about the top of the ladder. Clearing it is a five-call run at

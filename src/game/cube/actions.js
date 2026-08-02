@@ -487,33 +487,120 @@ exports.setLoadout = function (ctx, { ids }) {
 // Ties
 // ---------------------------------------------------------------------------
 
+// Parks a tie Watto is asking about. **Nothing has settled** — the whole roll goes onto the ladder
+// node, which is exactly where settlement would have written, so a crash between the question and
+// the answer leaves a tie that can still be picked up and finished.
+exports.parkTie = function (ctx, thrown, { reverse = 0 } = {}) {
+    const { database, db, discordId } = ctx;
+    const { run, res, set, bag } = thrown;
+    persist.saveLadder(database, db, discordId, {
+        stake: run.stake, standing: run.standing, level: run.level, call: run.call,
+        // Both multiples. `mult` is what this roll is playing for, already stepped up the ladder;
+        // `carry` is what the run brought into the level. Answering the tie needs the first; a
+        // reroll of a tie that busts needs the second, or the ladder gets stepped twice.
+        mult: thrown.base, carry: run.mult || 0,
+        mults: res.mults, spent: run.spent || [], roll: res.cubes, faces: res.faceIds,
+        // Only the Multiplier faces. The greed this roll threw is already folded into `mult`, so
+        // replaying it when the tie is answered would count it twice.
+        pays: (res.pays || []).filter(p => p.kind === 'mult'),
+        shortcut: res.shortcut, rerolls: res.rerolls, broken: res.broken,
+        // Both halves of the table: what survived this throw to carry on with, and the cubes as
+        // they were thrown, in case the tie resolves into a bust a reroll then buys back.
+        set: engine.encodeSet(res.set), thrown: engine.encodeSet(set), bag: engine.encodeSet(bag),
+        reverse, cost: thrown.cost, worth: thrown.worth, tie: true,
+    });
+};
+
+// Rebuilds the throw a parked tie is waiting on.
+//
+// **It does not throw anything.** The cubes already landed; the only new information is which way
+// the tie went. Re-rolling here would quietly hand the player a different roll from the one they
+// were asked about — which is a bug the API had until both clients started sharing this.
+//
+// `faces` on nodes parked before the engine split holds Discord emoji rather than face ids. They
+// draw as face-down cubes and everything else about the settlement is correct, which is the right
+// way for a stale node to degrade.
+const resumeTie = function (parked) {
+    const run = {
+        stake: Number(parked.stake) || 0,
+        standing: Number(parked.standing) || 0,
+        level: parked.level,
+        call: parked.call,
+        // What the run *entered* the level with, which is what a reroll of this level steps from.
+        mult: Number(parked.carry) || 0,
+        spent: Object.values(parked.spent || {}),
+        set: engine.decodeSet(parked.thrown),
+        bag: engine.decodeSet(parked.bag),
+    };
+    const res = {
+        cubes: Object.values(parked.roll || {}),
+        faceIds: Object.values(parked.faces || {}),
+        majority: null,
+        pure: false,
+        swept: false,
+        // Zero, not one: this is what the roll *adds*, and its greed is already baked into
+        // `parked.mult`. A one here would hand out a free ×1 on every tie.
+        mult: 0,
+        mults: Object.values(parked.mults || {}),
+        pays: Object.values(parked.pays || {}),
+        shortcut: !!parked.shortcut,
+        rerolls: Number(parked.rerolls) || 0,
+        broken: Object.values(parked.broken || {}),
+        ended: null,
+        notes: [],
+        steps: [],
+        // A resumed tie must not tally the same throw twice, so it carries no face log.
+        faceLog: [],
+        specials: [],
+        set: engine.decodeSet(parked.set),
+    };
+    // Taken as-is rather than recomputed: it was stepped up the ladder when the tie was parked and
+    // would be stepped a second time here.
+    const base = Number(parked.mult) || LEVELS[parked.level].payout;
+    return {
+        run, res, base, opening: base,
+        level: LEVELS[parked.level],
+        rolled: res.faceIds, set: run.set, bag: run.bag,
+        tie: true, asking: false, breaker: null,
+        cost: Number(parked.cost) || 0, worth: Number(parked.worth) || 0,
+        reverse: Number(parked.reverse) || 0,
+    };
+};
+exports.resumeTie = resumeTie;
+
 // A parked tie owes exactly one answer: roll his cube, or buy the tie outright. Nothing about that
-// roll was settled, so all of it happens now — exactly as it would have at the time, because the
-// stored run *is* the roll and the only new information is which way it went.
+// roll was settled, so all of it happens now — exactly as it would have at the time.
+//
+// The price is worked out from the stored standing rather than taken from the request, so a screen
+// left open across a prestige cannot buy a tie at yesterday's rate.
 exports.answerTie = function (ctx, { buying }) {
     const { s, db, discordId, profile, moveTruguts } = ctx;
     const parked = persist.tieOf(db, discordId);
     if (!parked) return refuse('no_tie', 'There is no tie waiting.');
 
-    const run = {
-        stake: parked.stake, standing: parked.standing, level: parked.level, call: parked.call,
-        mult: Number(parked.mult) || 0, spent: Object.values(parked.spent || {}),
-    };
+    const thrown = resumeTie(parked);
 
     if (buying) {
         if (!s.bribe) return refuse('locked', 'You cannot buy a tie.');
-        const cost = Number(parked.cost) || 0;
+        const worth = engine.bankPayout(thrown.run.stake,
+            engine.applyMults(thrown.base, thrown.res.mults, thrown.run.call));
+        const cost = pstate.bribeCostFor(worth, s.bribes);
         const balance = balanceOf(profile);
         if (cost > balance) {
             return refuse('insufficient', `That costs ${cost} but you only have ${balance}.`, { cost, balance });
         }
         moveTruguts({ transaction: 'w', amount: cost });
-        return { ok: true, bribed: cost, breaker: null, run };
+        return { ok: true, bribed: cost, thrown, reverse: thrown.reverse };
     }
 
     // His cube is weighted against whatever you called; Qui-Gon's Nudge turns the weight around
     // rather than removing it, so a tie is always somebody's coin flip and never a fair one.
-    return { ok: true, bribed: 0, breaker: engine.rollTiebreak(run.call, s.nudge), run };
+    return {
+        ok: true,
+        bribed: 0,
+        thrown: { ...thrown, breaker: engine.rollTiebreak(thrown.run.call, s.nudge) },
+        reverse: thrown.reverse,
+    };
 };
 
 exports.MAX_LEVEL = MAX_LEVEL;

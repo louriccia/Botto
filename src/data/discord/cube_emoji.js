@@ -54,8 +54,21 @@ const FACE_EMOJI = {
 };
 exports.FACE_EMOJI = FACE_EMOJI;
 
-// The glyph for one position. Anything unrecognised draws face-down — see the note at the top.
-exports.faceGlyph = id => FACE_EMOJI[id] || ChanceCube;
+// A face id, as the engine writes them: lowercase, optionally `kind:side`.
+const IS_FACE_ID = /^[a-z]+(:[a-z]+)?$/;
+
+// The glyph for one position.
+//
+// **Values that are already glyphs pass straight through.** Live runs and parked ties stored
+// before the engine split hold emoji in the slots that now hold face ids, and one of those still
+// on the table when this shipped has to keep drawing correctly rather than turning into a row of
+// face-down cubes. An unrecognised *id* still draws face-down — that is the failure worth
+// designing for, and it is a different case from a glyph that needs no lookup.
+exports.faceGlyph = function (id) {
+    if (FACE_EMOJI[id]) return FACE_EMOJI[id];
+    if (typeof id === 'string' && id && !IS_FACE_ID.test(id)) return id;
+    return ChanceCube;
+};
 
 // A cube's own icon, for the rack and the prestige menu. Shmi and Anakin wear the side they
 // force, which says more about them than a portrait would.

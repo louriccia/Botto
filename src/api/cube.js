@@ -191,16 +191,11 @@ module.exports = function mountCube(app, ctx) {
         try {
             const thrown = actions.throwLevel(ctx, opened.run);
 
-            // A tie Watto is *asking* about is the one throw that does not settle here. It is
-            // parked with everything settlement will need, and blocks the board until answered.
+            // A tie Watto is *asking* about is the one throw that does not settle here. The whole
+            // roll is parked where settlement would have written, so it can be picked up and
+            // finished later — and it blocks the board until it is.
             if (thrown.asking) {
-                persist.saveLadder(ctx.database, ctx.db, ctx.discordId, {
-                    stake: thrown.run.stake, level: thrown.run.level, call: thrown.run.call,
-                    standing: thrown.run.standing, mult: thrown.run.mult, tie: true,
-                    cost: thrown.cost, worth: thrown.worth,
-                    spent: thrown.run.spent || [],
-                    set: engine.encodeSet(thrown.set), bag: engine.encodeSet(thrown.bag),
-                });
+                actions.parkTie(ctx, thrown, { reverse: opened.reverse || 0 });
                 return res.json({
                     ...rollResponse(thrown, null),
                     tie: { asking: true, cost: thrown.cost, worth: thrown.worth },
@@ -237,15 +232,16 @@ module.exports = function mountCube(app, ctx) {
         if (!answered.ok) return refused(res, answered);
 
         try {
-            // The stored run *is* the roll — nothing about it was settled — so the throw is
-            // reconstructed from it rather than drawn again.
-            const thrown = actions.throwLevel(ctx, { ...answered.run, regrow: false,
-                set: engine.decodeSet(parked.set), bag: engine.decodeSet(parked.bag) });
-            const withBreaker = { ...thrown, breaker: answered.breaker };
+            // Off the node before anything settles, so a tie can only ever be answered once — the
+            // same job the turn counter does for a double-clicked call in the embed.
             persist.clearLadder(ctx.database, ctx.db, ctx.discordId);
-            const settled = await actions.settleThrow(ctx, { thrown: withBreaker, bribed: answered.bribed });
+            const settled = await actions.settleThrow(ctx, {
+                thrown: answered.thrown,
+                bribed: answered.bribed,
+                reverse: answered.reverse,
+            });
             return res.json({
-                ...rollResponse(withBreaker, settled),
+                ...rollResponse(answered.thrown, settled),
                 bribed: answered.bribed,
                 board: boardOf(ctx, req),
             });
@@ -263,12 +259,9 @@ module.exports = function mountCube(app, ctx) {
         try {
             const thrown = actions.throwLevel(ctx, again.run);
             if (thrown.asking) {
-                persist.saveLadder(ctx.database, ctx.db, ctx.discordId, {
-                    stake: thrown.run.stake, level: thrown.run.level, call: thrown.run.call,
-                    standing: thrown.run.standing, mult: thrown.run.mult, tie: true,
-                    cost: thrown.cost, worth: thrown.worth, spent: thrown.run.spent || [],
-                    set: engine.encodeSet(thrown.set), bag: engine.encodeSet(thrown.bag),
-                });
+                // The bust this reroll is undoing has to be carried onto the parked node, or
+                // answering the tie would settle without reversing it.
+                actions.parkTie(ctx, thrown, { reverse: again.reverse });
                 return res.json({
                     ...rollResponse(thrown, null),
                     tie: { asking: true, cost: thrown.cost, worth: thrown.worth },

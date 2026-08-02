@@ -236,8 +236,14 @@ const check = function (name, ok, detail) {
         !w.path.startsWith('users/') && !w.path.startsWith('challenge/cube/live'));
     check('every write went to the fake ref, in the cube\'s own subtrees', strayWrites.length === 0,
         JSON.stringify(strayWrites.map(w => w.path)));
-    check('the roll wrote a profile patch and touched the pot',
-        writes.some(w => w.path.endsWith('/cube')) && writes.some(w => w.path.endsWith('/pot')),
+    check('the roll wrote a profile patch', writes.some(w => w.path.endsWith('/cube')),
+        JSON.stringify([...new Set(writes.map(w => w.path))]));
+    // A quarter of a busted stake feeds the pot; a win that stays live touches it at all only if
+    // it paid a pure. Asserting the pot unconditionally was wrong and passed only on the coin
+    // flips that happened to bust.
+    const touchedPot = writes.some(w => w.path.endsWith('/pot'));
+    check(won ? 'a live win leaves the pot alone' : 'a bust feeds the pot',
+        won ? !touchedPot : touchedPot,
         JSON.stringify([...new Set(writes.map(w => w.path))]));
 
     server.close();

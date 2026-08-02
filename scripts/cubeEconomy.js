@@ -147,23 +147,21 @@ const play = async function (rack, runs, label) {
             if (thrown.tie) {
                 stats.ties++;
                 if (thrown.asking) {
-                    // Park it and answer it, which is the path a real player takes through two
-                    // separate interactions. Buying every other one exercises both branches.
-                    const buying = i % 2 === 0;
-                    persist.saveLadder(database, db, ME, {
-                        stake: run.stake, level: run.level, call: run.call, standing: run.standing,
-                        mult: run.mult, tie: true, cost: thrown.cost,
-                        set: require('../src/game/cube/engine.js').encodeSet(thrown.set),
-                        bag: require('../src/game/cube/engine.js').encodeSet(thrown.bag),
-                    });
+                    // Parked and answered through the real path — two separate interactions, and
+                    // the second one rebuilds the roll off the stored node rather than throwing
+                    // again. Buying every other one exercises both branches.
+                    actions.parkTie(ctx, thrown);
                     settleCtx = ctxOf();
-                    const answered = actions.answerTie(settleCtx, { buying });
+                    const answered = actions.answerTie(settleCtx, { buying: i % 2 === 0 });
                     if (!answered.ok) throw new Error(`answerTie refused: ${answered.code}`);
                     bribed = answered.bribed;
                     if (bribed) stats.bribes++;
                     // The parked node is replaced by whatever settlement decides.
                     persist.clearLadder(database, db, ME);
-                    toSettle = { ...thrown, breaker: answered.breaker };
+                    // The **resumed** throw, not the one that was parked: same cubes, now with an
+                    // answer on top. Settling `thrown` here would work by accident and would stop
+                    // testing the thing that matters.
+                    toSettle = answered.thrown;
                 }
             }
 

@@ -690,7 +690,11 @@ exports.contextLine = contextLine;
 // The cubes a stored run left on the table. `faces` is written from the resolved line; `roll`
 // is the plain sides, which is all a run persisted before special cubes existed has.
 const storedFaces = function (ladder) {
-    const shown = ladder.faces ? Object.values(ladder.faces) : sideFaces(ladder.roll || []);
+    // Stored as face ids since the engine split; `faceGlyph` passes older nodes' emoji through
+    // unchanged, so a run that was already on the table keeps drawing.
+    const shown = ladder.faces
+        ? Object.values(ladder.faces).map(faceGlyph)
+        : sideFaces(ladder.roll || []);
     return faces(shown, shown.length);
 };
 exports.storedFaces = storedFaces;
