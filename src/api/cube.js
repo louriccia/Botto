@@ -14,6 +14,7 @@ const { rateLimit } = require('./ratelimit.js');
 const engine = require('../game/cube/engine.js');
 const pstate = require('../game/cube/state.js');
 const persist = require('../game/cube/persist.js');
+const actions = require('../game/cube/actions.js');
 const {
     LEVELS, SPECIALS, SIDES, SWEEP_SHARE, WATTO, cube: config,
 } = require('../game/cube/tuning.js');
@@ -51,8 +52,39 @@ const boardOf = function (ctx, req) {
     };
 };
 
+// The one thing `actions.js` refuses to import. `manageTruguts` lives in a 3,700-line challenge
+// module that initialises Firebase and pulls in discord.js as a side effect of loading, so it is
+// required at first use rather than at the top — the same reason `auth.js` defers `src/user.js`.
+//
+// `ctx.moveTrugutsFor` overrides it, which is how the smoke test exercises the play routes without
+// a database. Nothing else should: there is one trugut writer and this is it.
+let manageTruguts = null;
+const defaultMoveTrugutsFor = (profile, ref) => function ({ transaction, amount }) {
+    // eslint-disable-next-line global-require
+    if (!manageTruguts) ({ manageTruguts } = require('../interactions/challenge/functions.js'));
+    return manageTruguts({ user_profile: profile, profile_ref: ref, transaction, amount });
+};
+
 module.exports = function mountCube(app, ctx) {
     const auth = [requireAuth(ctx), requireCube];
+    const moveTrugutsFor = ctx.moveTrugutsFor || defaultMoveTrugutsFor;
+
+    // A refusal from `actions.js` carries a code the client can branch on. 409 is the right status
+    // for nearly all of them — they mean "not in that state" — with the genuine exceptions listed.
+    const STATUS = { insufficient: 402, locked: 403, bad_reward: 400, bad_stake: 400, too_small: 400 };
+    const refused = (res, r) => res.status(STATUS[r.code] || 409).json({ error: r.message, code: r.code });
+
+    // What every action needs. `s` is rebuilt per request rather than cached: the actions mutate
+    // it in place and a stale one would settle against numbers that have already moved.
+    const ctxOf = req => ({
+        db: ctx.db,
+        database: ctx.database,
+        profile: req.player.profile,
+        profileRef: req.player.ref,
+        discordId: req.player.discordId,
+        s: pstate.cubeState(req.player.profile),
+        moveTruguts: moveTrugutsFor(req.player.profile, req.player.ref),
+    });
 
     // -----------------------------------------------------------------------
     // Signing in
@@ -103,53 +135,176 @@ module.exports = function mountCube(app, ctx) {
     // Settings you change between runs
     // -----------------------------------------------------------------------
 
-    // The stake. Clamped to the prestige ceiling here as well as on read, so a client that ignores
+    // The stake. Clamped to the prestige ceiling in `actions.setStake`, so a client that ignores
     // `maxStake` cannot put more on the table than the ladder allows.
     app.post('/cube/stake', auth, rateLimit({ perMinute: 30 }), (req, res) => {
-        const { profile, ref } = req.player;
-        const s = pstate.cubeState(profile);
-        const wanted = Math.floor(Number(req.body?.stake));
-        if (!Number.isFinite(wanted)) return res.status(400).json({ error: 'Not a number.' });
-        if (wanted < config.minStake) {
-            return res.status(400).json({ error: `The minimum stake is ${config.minStake}.` });
-        }
-        if (persist.ladderOf(ctx.db, req.player.discordId)) {
-            return res.status(409).json({ error: 'You have a run in progress.' });
-        }
-        const stake = Math.min(wanted, s.maxStake);
-        persist.writeCube(ref, profile, { stake });
-        res.json({ stake, maxStake: s.maxStake, clamped: stake !== wanted });
+        const out = actions.setStake(ctxOf(req), { stake: req.body?.stake });
+        return out.ok ? res.json(out) : refused(res, out);
     });
 
     // The loadout. `setLoadout` drops unknown ids, cubes that aren't owned and anything past the
     // slot count, so nothing here has to trust the request.
     app.post('/cube/loadout', auth, rateLimit({ perMinute: 30 }), (req, res) => {
-        const { profile, ref } = req.player;
-        if (persist.ladderOf(ctx.db, req.player.discordId)) {
-            return res.status(409).json({ error: 'The rack is locked while a run is live.' });
+        if (!Array.isArray(req.body?.ids)) {
+            return res.status(400).json({ error: 'Expected { ids: [] }.', code: 'bad_body' });
         }
-        const ids = Array.isArray(req.body?.ids) ? req.body.ids.filter(x => typeof x === 'string') : null;
-        if (!ids) return res.status(400).json({ error: 'Expected { ids: [] }.' });
-        const s = pstate.cubeState(profile);
-        const patch = {};
-        const equipped = pstate.setLoadout(s, patch, ids);
-        persist.writeCube(ref, profile, patch);
-        res.json({ equipped, slots: s.slots, owned: s.cubes });
+        const ids = req.body.ids.filter(x => typeof x === 'string');
+        const out = actions.setLoadout(ctxOf(req), { ids });
+        return out.ok ? res.json(out) : refused(res, out);
     });
 
     // -----------------------------------------------------------------------
     // Playing
     // -----------------------------------------------------------------------
 
-    // Not yet. These move truguts, and the orchestration that does it correctly — the stake debit,
-    // the settlement mid-reveal, the pot, the clears, the tie park — currently lives inside the
-    // Discord handler, tangled up with message edits. It is being lifted into `game/cube/actions.js`
-    // rather than written twice: two implementations of a payout is exactly the bug nobody finds
-    // until a balance is wrong.
-    const pending = (req, res) => res.status(501).json({
-        error: 'Not implemented yet — the play actions are still being lifted out of the Discord handler.',
+    // Everything the client needs to animate a throw and then show what it paid. The reveal caps
+    // the embed lives with — three effect frames, four pay frames — are **not** applied: they are a
+    // property of a message edit, and this client has no such limit.
+    const rollResponse = (thrown, settled) => ({
+        // The line as thrown, one id per position, before any effect resolved.
+        thrown: thrown.rolled,
+        // The line as it ended up, and the walk that got there.
+        line: thrown.res.faceIds,
+        steps: thrown.res.steps,
+        notes: thrown.res.notes,
+        pays: engine.multSteps(thrown.opening, thrown.res.pays,
+            settled ? settled.majority : null),
+        level: thrown.run.level,
+        call: thrown.run.call,
+        stake: thrown.run.stake,
+        opening: thrown.opening,
+        breaker: thrown.breaker,
+        ended: thrown.res.ended,
+        ...(settled ? { settled } : {}),
     });
-    for (const route of ['/cube/roll', '/cube/bank', '/cube/tie', '/cube/prestige', '/cube/reroll']) {
-        app.post(route, auth, pending);
-    }
+
+    // Stake and call, or push and call. Both end in a throw, which is settled immediately — the
+    // client animates a result that is already final, so a closed tab cannot cost a standing.
+    app.post('/cube/roll', auth, rateLimit({ perMinute: 60 }), async (req, res) => {
+        const ctx = ctxOf(req);
+        const call = req.body?.call === 'red' ? 'red' : 'blue';
+        const live = persist.ladderOf(ctx.db, ctx.discordId);
+
+        const opened = live ? actions.pushRun(ctx, { call }) : actions.startRun(ctx, { call });
+        if (!opened.ok) return refused(res, opened);
+
+        try {
+            const thrown = actions.throwLevel(ctx, opened.run);
+
+            // A tie Watto is *asking* about is the one throw that does not settle here. It is
+            // parked with everything settlement will need, and blocks the board until answered.
+            if (thrown.asking) {
+                persist.saveLadder(ctx.database, ctx.db, ctx.discordId, {
+                    stake: thrown.run.stake, level: thrown.run.level, call: thrown.run.call,
+                    standing: thrown.run.standing, mult: thrown.run.mult, tie: true,
+                    cost: thrown.cost, worth: thrown.worth,
+                    spent: thrown.run.spent || [],
+                    set: engine.encodeSet(thrown.set), bag: engine.encodeSet(thrown.bag),
+                });
+                return res.json({
+                    ...rollResponse(thrown, null),
+                    tie: { asking: true, cost: thrown.cost, worth: thrown.worth },
+                    board: boardOf(ctx, req),
+                });
+            }
+
+            const settled = await actions.settleThrow(ctx, { thrown, reverse: opened.reverse || 0 });
+            return res.json({ ...rollResponse(thrown, settled), board: boardOf(ctx, req) });
+        } catch (err) {
+            // The stake is already spent but nothing settled, so the run would simply vanish. Hand
+            // it back, exactly as the embed does when Discord is unreachable mid-roll.
+            if (opened.staked) ctx.moveTruguts({ transaction: 'r', amount: opened.staked });
+            console.error('[api] /cube/roll:', err);
+            return res.status(500).json({ error: 'The roll failed — your stake was returned.' });
+        }
+    });
+
+    // Cashing out short of the ceiling.
+    app.post('/cube/bank', auth, rateLimit({ perMinute: 30 }), (req, res) => {
+        const ctx = ctxOf(req);
+        const out = actions.bank(ctx);
+        if (!out.ok) return refused(res, out);
+        return res.json({ ...out, board: boardOf(ctx, req) });
+    });
+
+    // The answer to a parked tie: roll his cube, or buy it off him.
+    app.post('/cube/tie', auth, rateLimit({ perMinute: 30 }), async (req, res) => {
+        const ctx = ctxOf(req);
+        const parked = persist.tieOf(ctx.db, ctx.discordId);
+        if (!parked) return refused(res, { code: 'no_tie', message: 'There is no tie waiting.' });
+
+        const answered = actions.answerTie(ctx, { buying: !!req.body?.buy });
+        if (!answered.ok) return refused(res, answered);
+
+        try {
+            // The stored run *is* the roll — nothing about it was settled — so the throw is
+            // reconstructed from it rather than drawn again.
+            const thrown = actions.throwLevel(ctx, { ...answered.run, regrow: false,
+                set: engine.decodeSet(parked.set), bag: engine.decodeSet(parked.bag) });
+            const withBreaker = { ...thrown, breaker: answered.breaker };
+            persist.clearLadder(ctx.database, ctx.db, ctx.discordId);
+            const settled = await actions.settleThrow(ctx, { thrown: withBreaker, bribed: answered.bribed });
+            return res.json({
+                ...rollResponse(withBreaker, settled),
+                bribed: answered.bribed,
+                board: boardOf(ctx, req),
+            });
+        } catch (err) {
+            console.error('[api] /cube/tie:', err);
+            return res.status(500).json({ error: 'Could not settle the tie.' });
+        }
+    });
+
+    // Spending a banked reroll on the bust that just happened.
+    app.post('/cube/reroll', auth, rateLimit({ perMinute: 30 }), async (req, res) => {
+        const ctx = ctxOf(req);
+        const again = actions.spendReroll(ctx);
+        if (!again.ok) return refused(res, again);
+        try {
+            const thrown = actions.throwLevel(ctx, again.run);
+            if (thrown.asking) {
+                persist.saveLadder(ctx.database, ctx.db, ctx.discordId, {
+                    stake: thrown.run.stake, level: thrown.run.level, call: thrown.run.call,
+                    standing: thrown.run.standing, mult: thrown.run.mult, tie: true,
+                    cost: thrown.cost, worth: thrown.worth, spent: thrown.run.spent || [],
+                    set: engine.encodeSet(thrown.set), bag: engine.encodeSet(thrown.bag),
+                });
+                return res.json({
+                    ...rollResponse(thrown, null),
+                    tie: { asking: true, cost: thrown.cost, worth: thrown.worth },
+                    board: boardOf(ctx, req),
+                });
+            }
+            const settled = await actions.settleThrow(ctx, { thrown, reverse: again.reverse });
+            return res.json({ ...rollResponse(thrown, settled), board: boardOf(ctx, req) });
+        } catch (err) {
+            console.error('[api] /cube/reroll:', err);
+            return res.status(500).json({ error: 'The reroll failed.' });
+        }
+    });
+
+    // Buying one off the shelf, between runs.
+    app.post('/cube/buyreroll', auth, rateLimit({ perMinute: 20 }), (req, res) => {
+        const ctx = ctxOf(req);
+        const out = actions.buyReroll(ctx);
+        if (!out.ok) return refused(res, out);
+        return res.json({ ...out, board: boardOf(ctx, req) });
+    });
+
+    // Handing the ladder back for a bigger ceiling and one thing off the rack.
+    app.post('/cube/prestige', auth, rateLimit({ perMinute: 10 }), (req, res) => {
+        const ctx = ctxOf(req);
+        const out = actions.prestige(ctx, { reward: req.body?.reward });
+        if (!out.ok) return refused(res, out);
+        return res.json({ ...out, choices: pstate.rewardChoices(ctx.s), board: boardOf(ctx, req) });
+    });
+
+    // What a prestige is worth picking from, so the client can draw the menu.
+    app.get('/cube/prestige/choices', auth, (req, res) => {
+        const ctx = ctxOf(req);
+        if (!pstate.canPrestige(ctx.s)) {
+            return res.status(409).json({ error: 'You have not earned a prestige.', code: 'not_eligible' });
+        }
+        return res.json({ choices: pstate.rewardChoices(ctx.s) });
+    });
 };

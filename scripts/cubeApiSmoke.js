@@ -49,7 +49,18 @@ const database = { ref: fakeRef };
 
 const { createApi } = require('../src/api/index.js');
 
-const app = createApi({ db, database, client: { isReady: () => true } });
+// The real one lives in a module that initialises Firebase on load. Injected here so the play
+// routes can be exercised, and so this file can assert that they move the right numbers.
+const moves = [];
+const moveTrugutsFor = (profile) => ({ transaction, amount }) => {
+    const n = Math.floor(Number(amount) || 0);
+    if (transaction === 'w') profile.truguts_spent += n;
+    if (transaction === 'd') profile.truguts_earned += n;
+    if (transaction === 'r') profile.truguts_spent -= n;
+    moves.push({ transaction, amount: n });
+};
+
+const app = createApi({ db, database, client: { isReady: () => true }, moveTrugutsFor });
 
 const token = k => jwt.sign({ discordId: `d-${k}`, userKey: k }, process.env.CUBE_JWT_SECRET, { expiresIn: '5m' });
 
@@ -158,11 +169,52 @@ const check = function (name, ok, detail) {
     check('state reports the live run', r.json?.run?.level === 1, JSON.stringify(r.json?.run));
     delete db.ch.cube.ladders['d-KEY'];
 
-    // --- the actions that are not built yet -----------------------------------
-    for (const route of ['/cube/roll', '/cube/bank', '/cube/tie', '/cube/prestige', '/cube/reroll']) {
-        r = await call('POST', route, { auth: t, body: {} });
-        check(`${route} says plainly it is not implemented`, r.status === 501, `${r.status} ${r.text}`);
+    // --- playing --------------------------------------------------------------
+
+    r = await call('POST', '/cube/bank', { auth: t, body: {} });
+    check('bank refuses with no run', r.status === 409 && r.json.code === 'no_run', `${r.status} ${r.text}`);
+    r = await call('POST', '/cube/tie', { auth: t, body: {} });
+    check('tie refuses with no tie', r.status === 409 && r.json.code === 'no_tie', `${r.status} ${r.text}`);
+    r = await call('POST', '/cube/reroll', { auth: t, body: {} });
+    check('reroll refuses with nothing dead', r.status === 409 && r.json.code === 'no_reroll', `${r.status} ${r.text}`);
+    r = await call('POST', '/cube/prestige', { auth: t, body: { reward: 'slot' } });
+    check('prestige refuses when not earned', r.status === 409 && r.json.code === 'not_eligible', `${r.status} ${r.text}`);
+
+    // A real roll. Level 1 is a single plain cube, so this is a straight coin flip and the
+    // response has to describe it fully either way.
+    const before = PLAYER.random.truguts_earned - PLAYER.random.truguts_spent;
+    const stakeNow = (await call('GET', '/cube/state', { auth: t })).json.player.stake;
+    r = await call('POST', '/cube/roll', { auth: t, body: { call: 'blue' } });
+    const roll = r.json;
+    check('roll returns a result', r.status === 200 && !!roll?.settled, `${r.status} ${r.text}`);
+    check('roll reports the thrown line', Array.isArray(roll?.thrown) && roll.thrown.length === 1,
+        JSON.stringify(roll?.thrown));
+    // Face ids legitimately contain a colon (`side:red`, `mult:blue`), so this looks for Discord's
+    // emoji syntax specifically rather than for punctuation.
+    check('roll reports abstract ids, not emoji',
+        !/<a?:[a-zA-Z0-9_]+:\d+>/.test(JSON.stringify(roll || {})), JSON.stringify(roll?.line));
+    check('roll carries the board with it', typeof roll?.board?.balance === 'number', JSON.stringify(roll?.board));
+    check('the stake left the balance',
+        roll?.board?.balance === before - stakeNow + (roll?.settled?.outcome === 'bank' ? roll.settled.standing : 0),
+        `balance ${roll?.board?.balance}, before ${before}, stake ${stakeNow}, outcome ${roll?.settled?.outcome}`);
+
+    const won = roll?.settled?.outcome !== 'bust';
+    if (won) {
+        check('a win leaves a live run', !!roll.board.run, JSON.stringify(roll.board.run));
+        r = await call('POST', '/cube/bank', { auth: t, body: {} });
+        check('bank pays the standing out', r.status === 200 && r.json.standing > 0, `${r.status} ${r.text}`);
+        check('bank clears the run', r.json?.board?.run === null, JSON.stringify(r.json?.board?.run));
+    } else {
+        check('a bust leaves no live run', roll.board.run === null, JSON.stringify(roll.board.run));
+        check('a bust reports why', ['bust', 'ratts', 'cackle', 'tie'].includes(roll.settled.reason),
+            roll.settled.reason);
     }
+
+    // Whatever happened, the ledger has to reconcile against the balance that moved.
+    const st = (await call('GET', '/cube/state', { auth: t })).json;
+    const ledger = st.player.totalWon - st.player.totalLost - st.player.totalSpent;
+    check('the ledger reconciles with the balance', st.balance - before === ledger,
+        `balance moved ${st.balance - before}, ledger says ${ledger}`);
 
     // --- CORS ----------------------------------------------------------------
     r = await call('OPTIONS', '/cube/state', { origin: 'https://1234567890.discordsays.com' });
@@ -178,8 +230,15 @@ const check = function (name, ok, detail) {
     check('unknown route answers json, not html', r.status === 404 && !!r.json?.error, `${r.status} ${r.text}`);
 
     // --- nothing touched the real database ------------------------------------
-    check('every write went to the fake ref', writes.every(w => w.path.startsWith('users/')),
-        JSON.stringify(writes.map(w => w.path)));
+    // Only two subtrees are the cube's to write: the player's profile and the live-run node.
+    // Anything else would mean a route reached somewhere it has no business being.
+    const strayWrites = writes.filter(w =>
+        !w.path.startsWith('users/') && !w.path.startsWith('challenge/cube/live'));
+    check('every write went to the fake ref, in the cube\'s own subtrees', strayWrites.length === 0,
+        JSON.stringify(strayWrites.map(w => w.path)));
+    check('the roll wrote a profile patch and touched the pot',
+        writes.some(w => w.path.endsWith('/cube')) && writes.some(w => w.path.endsWith('/pot')),
+        JSON.stringify([...new Set(writes.map(w => w.path))]));
 
     server.close();
     const failed = results.filter(x => !x.ok);

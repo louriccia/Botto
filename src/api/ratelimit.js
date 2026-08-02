@@ -12,20 +12,28 @@
 
 const buckets = new Map();
 
-exports.rateLimit = ({ perMinute }) => function (req, res, next) {
-    const key = req.player?.discordId || req.ip;
-    const now = Date.now();
-    const b = buckets.get(key);
-    if (!b || now > b.until) {
-        buckets.set(key, { n: 1, until: now + 60000 });
+// Each route gets its own bucket per player, not one shared bucket per player. Sharing meant the
+// tightest `perMinute` on any route became the effective limit for all of them — ten prestige
+// attempts a minute would silently cap rolling at ten a minute too.
+let nextId = 0;
+
+exports.rateLimit = ({ perMinute }) => {
+    const route = `r${nextId += 1}`;
+    return function (req, res, next) {
+        const key = `${route}:${req.player?.discordId || req.ip}`;
+        const now = Date.now();
+        const b = buckets.get(key);
+        if (!b || now > b.until) {
+            buckets.set(key, { n: 1, until: now + 60000 });
+            return next();
+        }
+        if (b.n >= perMinute) {
+            res.set('Retry-After', String(Math.ceil((b.until - now) / 1000)));
+            return res.status(429).json({ error: 'Slow down — the cubes need a moment.' });
+        }
+        b.n += 1;
         return next();
-    }
-    if (b.n >= perMinute) {
-        res.set('Retry-After', String(Math.ceil((b.until - now) / 1000)));
-        return res.status(429).json({ error: 'Slow down — the cubes need a moment.' });
-    }
-    b.n += 1;
-    return next();
+    };
 };
 
 // Swept on a timer rather than on every request, so a busy minute doesn't pay for the tidying.
