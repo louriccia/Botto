@@ -7,8 +7,8 @@
 //
 // Read-only — it reads the mirror and signs a JWT. Nothing is written.
 //
-//   node scripts/cubeDevToken.js                 # first player who owns the cube
-//   node scripts/cubeDevToken.js <discordId>     # a specific one
+//   node scripts/cubeDevToken.js                 # the dev user
+//   node scripts/cubeDevToken.js <discordId>     # someone else
 //
 // Then:
 //   curl -H "Authorization: Bearer $TOKEN" http://127.0.0.1:3030/cube/state
@@ -24,7 +24,10 @@ console.log = (...args) => console.error(...args);
 const jwt = require('jsonwebtoken');
 const { db } = require('../src/firebase.js');
 
-const WANTED = process.argv[2] || null;
+// Defaults to the dev account rather than whichever cube owner the mirror happens to list first —
+// the token is for poking at the Activity as yourself.
+const DEV_DISCORD_ID = '256236315144749059';
+const WANTED = process.argv[2] || DEV_DISCORD_ID;
 const SECRET = process.env.CUBE_JWT_SECRET;
 
 if (!SECRET) {
@@ -40,9 +43,7 @@ const tick = function () {
     const keys = Object.keys(users);
 
     if (keys.length) {
-        const key = WANTED
-            ? keys.find(k => String(users[k]?.discordID) === String(WANTED))
-            : keys.find(k => users[k]?.random?.effects?.chance_cube);
+        const key = keys.find(k => String(users[k]?.discordID) === String(WANTED));
 
         if (key) {
             const p = users[key].random || {};
@@ -65,12 +66,7 @@ const tick = function () {
             process.stdout.write(`${token}\n`);
             process.exit(0);
         }
-        if (WANTED) {
-            console.error(`No player with discord id ${WANTED}.`);
-            process.exit(1);
-        }
-        console.error(`None of the ${keys.length} players own the chance cube. `
-            + 'Grant it with scripts/grantChanceCube.js first.');
+        console.error(`No player with discord id ${WANTED} among the ${keys.length} in the mirror.`);
         process.exit(1);
     }
 
