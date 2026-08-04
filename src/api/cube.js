@@ -176,6 +176,13 @@ module.exports = function mountCube(app, ctx) {
         stake: thrown.run.stake,
         opening: thrown.opening,
         breaker: thrown.breaker,
+        // What the roll banked, as totals rather than as faces — and the client cannot derive either
+        // from `line`. Both pay in the first pass and can be written over in the second, which leaves
+        // the line with no position to count them off; a mirrored copy pays without ever having been
+        // thrown. Sent for the same reason a razed greed still gets a `pays` entry with no `at`: a
+        // readout that climbs with nothing on screen to explain it reads as a bug.
+        rerolls: thrown.res.rerolls,
+        shortcut: thrown.res.shortcut,
         ended: thrown.res.ended,
         ...(settled ? { settled } : {}),
     });

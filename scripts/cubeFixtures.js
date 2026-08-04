@@ -92,6 +92,8 @@ const responseOf = (thrown, settled) => ({
     stake: thrown.run.stake,
     opening: thrown.opening,
     breaker: thrown.breaker,
+    rerolls: thrown.res.rerolls,
+    shortcut: thrown.res.shortcut,
     ended: thrown.res.ended,
     ...(settled ? { settled } : {}),
 });
@@ -107,11 +109,24 @@ const WANTED = {
     ratts: r => r.settled?.reason === 'ratts',
     shattered: r => r.settled?.shattered?.length >= 1,
     tieBroken: r => !!r.breaker,
+    // A tie he breaks that also has something waiting on the answer: a Multiplier naming a side, or a
+    // Shortcut. Those labels are held back until his cube lands, so this is the only shape that exercises
+    // the second half of the count — with plain `tieBroken` there is nothing to hold and the walk looks
+    // no different from any other.
+    tieBrokenHeld: r => !!r.breaker && ((r.pays || []).some(p => p.note?.side) || r.shortcut),
     tieAsking: r => !r.settled,
     longLine: r => r.line.length >= 14,
     pure: r => r.settled?.pure,
     cackle: r => r.settled?.reason === 'cackle',
     banked: r => r.settled?.outcome === 'bank',
+    // A banked reroll with its face still on the line, so the walk's `+1 reroll` has a cube to come
+    // off. Nothing in the set had one, which meant the one readout with two sources was the one
+    // nothing could animate.
+    reroll: r => r.rerolls > 0 && r.line.includes('reroll'),
+    // A reroll banked by a face the line no longer shows — written over in the second pass, or paid by
+    // a copy that was never thrown. The stock moves with no cube under it, which is the only shape
+    // that exercises counting it off the middle of the row instead.
+    orphanReroll: r => r.rerolls > r.line.filter(id => id === 'reroll').length,
 };
 
 const sweep = async function (found, opts, budget) {
@@ -156,8 +171,11 @@ const sweep = async function (found, opts, budget) {
     // Most shapes come out of a fully-equipped player who owns everything.
     let attempts = await sweep(found, {}, 300000);
     // Except a tie Watto actually *breaks*: owning Bribe means he asks instead of rolling, so the
-    // only way to see his cube land is a player who cannot buy the tie off him.
-    if (!found.tieBroken) attempts += await sweep(found, { bribe: false }, 100000);
+    // only way to see his cube land is a player who cannot buy the tie off him. Both breaker shapes come
+    // from that pass, so it runs while either is still missing rather than only for the first.
+    if (!found.tieBroken || !found.tieBrokenHeld) {
+        attempts += await sweep(found, { bribe: false }, 300000);
+    }
 
     const missing = Object.keys(WANTED).filter(k => !found[k]);
     fs.mkdirSync(path.dirname(OUT), { recursive: true });
