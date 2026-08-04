@@ -194,6 +194,14 @@ const check = function (name, ok, detail) {
     check('roll reports abstract ids, not emoji',
         !/<a?:[a-zA-Z0-9_]+:\d+>/.test(JSON.stringify(roll || {})), JSON.stringify(roll?.line));
     check('roll carries the board with it', typeof roll?.board?.balance === 'number', JSON.stringify(roll?.board));
+    // The two totals the count walk cannot derive from `line`. Both pay in the first pass and can be
+    // written over in the second, so a client left to count the faces it can still see undercounts —
+    // while the readout moves anyway, off the settled board, with nothing on screen to explain it.
+    // Typed even at zero: to a client reading `|| 0`, a missing field and "banked none" are the same
+    // answer, and this is the check that tells them apart.
+    check('roll reports what it banked, not just the faces it kept',
+        typeof roll?.rerolls === 'number' && typeof roll?.shortcut === 'boolean',
+        `rerolls ${JSON.stringify(roll?.rerolls)}, shortcut ${JSON.stringify(roll?.shortcut)}`);
     check('the stake left the balance',
         roll?.board?.balance === before - stakeNow + (roll?.settled?.outcome === 'bank' ? roll.settled.standing : 0),
         `balance ${roll?.board?.balance}, before ${before}, stake ${stakeNow}, outcome ${roll?.settled?.outcome}`);
@@ -208,6 +216,10 @@ const check = function (name, ok, detail) {
         check('a bust leaves no live run', roll.board.run === null, JSON.stringify(roll.board.run));
         check('a bust reports why', ['bust', 'ratts', 'cackle', 'tie'].includes(roll.settled.reason),
             roll.settled.reason);
+        // Checked against the mirror, not `board.run`: a dead node also reads as no live run, so the
+        // board cannot tell "cleared" from "kept on file".
+        check('a bust with no reroll banked leaves no node at all',
+            db.ch.cube.ladders['d-KEY'] === undefined, JSON.stringify(db.ch.cube.ladders['d-KEY']));
     }
 
     // Whatever happened, the ledger has to reconcile against the balance that moved.
@@ -245,6 +257,38 @@ const check = function (name, ok, detail) {
     check(won ? 'a live win leaves the pot alone' : 'a bust feeds the pot',
         won ? !touchedPot : touchedPot,
         JSON.stringify([...new Set(writes.map(w => w.path))]));
+
+    // --- a dead run is something a reroll can replay --------------------------
+    //
+    // **Must stay last:** the pot audit above reads the whole `writes` array, and a reroll always moves
+    // the pot — reversing the bust takes `potCut(stake)` back out.
+    //
+    // Guards the field names, which are the whole contract between `settleLoss` writing this node and
+    // `spendReroll` reading it back: rename one and the reroll silently replays the wrong table.
+    // Seeded rather than played, because whether a real roll busts is a coin flip. Three plain cubes,
+    // so the throw is an odd count and can never park on a tie.
+    PLAYER.random.cube.rerolls = 1;
+    db.ch.cube.ladders['d-KEY'] = {
+        stake: 1000, standing: 0, level: 1, call: 'blue', mult: 0, spent: [],
+        set: [0, 0, 0], bag: [0],
+        faces: ['side:blue', 'side:red', 'side:blue'], roll: ['blue', 'red', 'blue'],
+        reason: 'bust', dead: true,
+    };
+    r = await call('GET', '/cube/state', { auth: t });
+    check('a dead run is reported as dead, not as live',
+        r.json?.run === null && r.json?.dead?.level === 1,
+        `run ${JSON.stringify(r.json?.run)}, dead ${JSON.stringify(r.json?.dead?.level)}`);
+
+    r = await call('POST', '/cube/reroll', { auth: t, body: {} });
+    check('reroll replays a dead run', r.status === 200 && Array.isArray(r.json?.thrown),
+        `${r.status} ${r.text}`);
+    check('reroll replays the same level', r.json?.level === 1, JSON.stringify(r.json?.level));
+    check('reroll throws the stored table rather than drawing a new one',
+        r.json?.thrown?.length === 3, JSON.stringify(r.json?.thrown));
+    check('reroll spends the banked stock', r.json?.board?.player?.rerolls === 0,
+        JSON.stringify(r.json?.board?.player?.rerolls));
+    check('a spent reroll leaves nothing further to reroll',
+        !r.json?.board?.dead, JSON.stringify(r.json?.board?.dead));
 
     server.close();
     const failed = results.filter(x => !x.ok);

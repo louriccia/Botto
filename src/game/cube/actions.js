@@ -169,7 +169,7 @@ const settleThrow = async function (ctx, { thrown, bribed = 0, reverse = 0 }) {
 
     const outcome = won
         ? await settleWin(ctx, { run, level, majority, pure, cubes, standing, mult, patch, records, res, stillSpent, breaker, bribed, bag })
-        : settleLoss(ctx, { run, res, patch });
+        : settleLoss(ctx, { run, res, thrown, patch });
 
     persist.writeCube(profileRef, profile, patch);
 
@@ -187,11 +187,10 @@ const settleThrow = async function (ctx, { thrown, bribed = 0, reverse = 0 }) {
 exports.settleThrow = settleThrow;
 
 // A bust. A quarter of the stake feeds the pot and the rest leaves the economy.
-const settleLoss = function (ctx, { run, res, patch }) {
+const settleLoss = function (ctx, { run, res, thrown, patch }) {
     const { s, db, database, discordId } = ctx;
     persist.addToPot(database, db, persist.potCut(run.stake));
     pstate.recordLost(s, patch, run.stake);
-    persist.clearLadder(database, db, discordId);
     // Four ways to lose, reported as which one rather than as a sentence. A line with no majority
     // only reaches here once the tie-breaker has already gone the house's way; Ratts is checked
     // first because he ends the run whatever the cubes said.
@@ -199,6 +198,37 @@ const settleLoss = function (ctx, { run, res, patch }) {
         : !res.majority ? 'tie'
             : res.swept ? 'cackle'
                 : 'bust';
+
+    // A bust with a reroll banked stays on file, because that is what `spendReroll` replays. Kept in
+    // the live run's own node and marked `dead`, which `ladderOf` refuses — so this *replaces* the
+    // clear rather than following it, one write to one key instead of a `remove()` and a `set()`
+    // racing on the same ref.
+    //
+    // `mult` is the multiple the run carried *into* the level, not the one this roll played for:
+    // `throwLevel` steps it again on the way back. The cubes are stored as they were **thrown**, since
+    // a reroll picks that table up again — `res.set` is post-effects and would shrink it.
+    //
+    // The embed writes its own richer node over this one, which is where `flavor` and `lines` come
+    // from; `deadFrame` reads both as optional.
+    if (s.rerolls > 0) {
+        persist.saveLadder(database, db, discordId, {
+            stake: run.stake,
+            standing: run.standing || 0,
+            level: run.level,
+            call: run.call,
+            mult: Number(run.mult) || 0,
+            spent: run.spent || [],
+            set: engine.encodeSet(thrown.set),
+            bag: engine.encodeSet(thrown.bag),
+            faces: res.faceIds,
+            roll: res.cubes,
+            reason,
+            dead: true,
+        });
+    } else {
+        persist.clearLadder(database, db, discordId);
+    }
+
     return {
         outcome: 'bust',
         reason,

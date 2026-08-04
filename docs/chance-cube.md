@@ -809,9 +809,16 @@ Two faces are the price of all that, and they are on the cubes that pay best:
 **A shatter is the wipeout's job and nothing else's.** The Reroll Cube briefly shattered *itself* on
 every payout, as a brake on how often it could bank — which worked, and cost the cube its own
 identity: it reported a shatter every single time it did its job, and never once showed the face
-that actually breaks it. The brake is a wipeout face now, one in six, exactly like the other three
-cubes that carry one. Anything the shatter line names has genuinely been destroyed, and it draws as
-the wipeout, because that is what happened to it.
+that actually breaks it. The brake is a wipeout face now — **two** in six, as on the Multiplier;
+Shmi and Anakin carry one apiece. Anything the shatter line names has genuinely been destroyed, and
+it draws as the wipeout, because that is what happened to it.
+
+**The variant table further down predates this brake and has not been re-measured against it.** Its
+shipped row is `2 Ratts, cracks` — four banking faces, two Ratts, and the reroll face spending the
+cube on payout. What ships now is three banking faces, one Ratts and two wipeouts, which is a third
+distribution again: the once-per-run cap survived the redesign but is enforced by a face the player
+can see rather than by the payout, and the EV of that has never been simulated. Read `tuning.js` for
+what the cube does; treat **1.72** as the number for a cube that no longer exists.
 
 Resolution is **two passes over the line**, because a cube's own side has to be settled before
 anything starts copying or fusing cubes around it: first every face that decides a side or sets a

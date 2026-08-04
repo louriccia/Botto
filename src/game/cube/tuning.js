@@ -173,10 +173,14 @@ exports.SPECIALS = [
         // how often it pays. It used to shatter *itself* on every payout, which capped it at one
         // reroll a run — but it also meant the cube reported a shatter every single time it did its
         // job and never once showed the face that actually breaks it. So the brake is a **wipeout**
-        // instead: one face in six takes the cube off the table, like Shmi, Anakin and the
-        // Multiplier, and it renders as the wipeout because that is what it is.
+        // instead: two faces in six take the cube off the table, as on the Multiplier — Shmi and
+        // Anakin carry one apiece — and it renders as the wipeout because that is what it is.
+        //
+        // The face list below is the third distribution this cube has had and the blurb had been left
+        // describing the first. Read it off `faces`, not off the prose around it: three faces bank,
+        // two shatter, one is Ratts.
         id: 'reroll', name: 'Reroll Cube',
-        blurb: 'Four faces bank a reroll. One shatters the cube, one ends the run.',
+        blurb: 'Three faces bank a reroll. Two shatter the cube, one ends the run.',
         faces: [...rep(3, { kind: 'reroll', id: 'reroll' }), END, ...rep(2, BROKEN)],
     },
     {
