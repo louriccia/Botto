@@ -88,10 +88,19 @@ const wrapper = require('../src/interactions/cube/functions.js');
 const pstate = require('../src/game/cube/state.js');
 const { faceGlyph } = require('../src/data/discord/cube_emoji.js');
 const { renderNote, renderNotes } = require('../src/data/discord/cube_notes.js');
-const { SPECIALS } = require('../src/game/cube/tuning.js');
+const { SPECIALS, cube: tuningConfig } = require('../src/game/cube/tuning.js');
 
 const ROLLS = Number(process.argv[2]) || 50000;
-const ALL = SPECIALS.map(s => s.id);
+
+// **The Planet Octahedron is the third deliberate divergence, and the plainest of them.** It did not
+// exist at the reference commit, so the frozen engine has no `octahedron` in `SPECIALS` and would throw
+// it as an ordinary cube — which is not a divergence in the rules, it is a cube the proof cannot be
+// about. This gate says *the ported rules resolve a line identically*, and a cube added afterwards is
+// outside that claim by construction. Its own coverage is `scripts/cubeOctahedron.js`.
+//
+// Everything else about it is still exercised here: the slot representation goes through every roll
+// below, because a set of untouched slots is what a rack without this cube produces.
+const ALL = SPECIALS.map(s => s.id).filter(id => id !== 'octahedron');
 
 // ---------------------------------------------------------------------------
 // Phase one: player state
@@ -156,11 +165,128 @@ const stateSame = function (label, got, want) {
     }
 };
 
+// **Prestige points are the one deliberate divergence from the frozen original.**
+//
+// The original made prestiging and picking a reward the same call; a point is what decouples them,
+// so there is no field to compare `points` against and no way for the old engine to grow one. It is
+// asserted on its own below and then taken off both sides — never simply ignored, or a counter this
+// far from the money could drift unnoticed.
+//
+// **The press and the board add five more of the same kind.** `weldRerollCost` is a derived price,
+// `weldSeen` the press memory, `pressTier`/`pressCubes` how far up the press has been bought, `week`
+// this week's bests for the board, and `faceProgress` a summary over the face tallies. None of them
+// existed at the reference commit and none can be grown by an engine with no press and no board.
+// Every one is asserted on its own below.
+const NEW_KEYS = ['points', 'weldRerollCost', 'weldSeen', 'pressTier', 'pressCubes', 'week', 'month', 'faceProgress', 'ties'];
+const noPoints = function (s) {
+    const out = { ...s };
+    for (const k of NEW_KEYS) delete out[k];
+    return out;
+};
+
+// **The rack is the second deliberate divergence, and it is handled exactly like the first.**
+//
+// The reference caps a loadout at a per-profile `slots` count, bought one prestige at a time off a
+// `+1 Special Cube Slot` pick. The cap survived and the purchase didn't: `slots` is now `bagSize()` on
+// every profile there has ever been, `equipped` is trimmed to that rather than to a stored number, and
+// `rewardChoices` no longer sells the difference. Comparing any of that against the frozen engine would
+// be asserting the rule this change exists to remove — the harness would be pinning the bug.
+//
+// So the two affected keys come off both sides and are asserted **on their own** against the new rule,
+// below. Never simply dropped: the loadout is still the thing that decides which cubes reach a line,
+// which is as close to the money as anything in this file.
+const noRack = function (s) {
+    const out = noPoints(s);
+    delete out.slots;
+    delete out.equipped;
+    return out;
+};
+
 profiles.forEach((profile, n) => {
     // Each engine gets its own copy: these functions mutate what they are handed.
     const a = orig.cubeState(JSON.parse(JSON.stringify(profile)));
     const b = pstate.cubeState(JSON.parse(JSON.stringify(profile)));
-    stateSame(`profile ${n} · cubeState`, b, a);
+    stateSame(`profile ${n} · cubeState points`, b.points, Math.max(0, Math.floor(Number(profile.cube?.points) || 0)));
+    stateSame(`profile ${n} · cubeState`, noRack(b), noRack(a));
+
+    // The press, asserted against its own rules rather than against an engine that has no press.
+    // The price is derived from the ceiling and nothing else; the memory is read defensively, so a
+    // profile that never touched a weld reads back an empty object rather than undefined.
+    stateSame(`profile ${n} · weld reroll price`, b.weldRerollCost, pstate.weldRerollCostFor(b.prestige));
+    stateSame(`profile ${n} · weld memory is an object`, typeof b.weldSeen, 'object');
+    stateSame(`profile ${n} · weld memory holds only string lists`,
+        Object.values(b.weldSeen).every(v => Array.isArray(v) && v.every(x => typeof x === 'string')), true);
+
+    // The press ladder, clamped on read: a hand-edited profile must not be able to field a tier the
+    // data has no cuts for, and `pressCubes` is a pure function of the tier rather than a second fact.
+    const wanted = Math.max(0, Math.min(tuningConfig.weldTiers.length,
+        Math.floor(Number(profile.cube?.pressTier) || 0)));
+    stateSame(`profile ${n} · press tier is clamped`, b.pressTier, wanted);
+    stateSame(`profile ${n} · press cubes follow the tier`, b.pressCubes, wanted >= 3 ? 3 : 2);
+    stateSame(`profile ${n} · the press is offered until it is bought`,
+        pstate.rewardChoices(b).some(c => c.kind === 'press'), wanted < tuningConfig.weldTiers.length);
+
+    // This week's bests read back under the current key or as zeroes — never as last week's numbers.
+    stateSame(`profile ${n} · the week is current`, b.week.id, pstate.weekKey());
+    stateSame(`profile ${n} · a stale week reads as nothing`,
+        profile.cube?.week?.id === b.week.id ? true : b.week.multiple === 0 && b.week.cubes === 0,
+        true);
+
+    // **The collection is one entry per distinct face, not per cube-face pair** — a mine sits on four
+    // cubes and a wipeout on six, and the number worth showing is how often a face has landed at all.
+    // So the count is summed across every cube carrying it, and `owned` means *some* cube of yours
+    // does, which is the difference between a face that has not turned up and one that cannot.
+    const distinct = new Set(SPECIALS.flatMap(sp => (sp.faces || []).map(f => f.id)));
+    stateSame(`profile ${n} · every distinct face is listed once`,
+        b.faceProgress.length, distinct.size);
+    stateSame(`profile ${n} · and none of them twice`,
+        new Set(b.faceProgress.map(f => f.id)).size, b.faceProgress.length);
+    // `owned` is about the rack, **not** about the tally. A stored count can name a cube the profile
+    // does not list — a hand-edited profile does exactly that, and so does history from before a
+    // cube's id changed — so a face can have landed without being carried by anything owned today.
+    // Asserting otherwise made this harness demand the count be thrown away, which is the opposite of
+    // what a lifetime tally is for.
+    stateSame(`profile ${n} · owned means some cube of yours carries it`,
+        b.faceProgress.every(f => f.owned === SPECIALS.some(sp => b.cubes.includes(sp.id)
+            && (sp.faces || []).some(x => x.id === f.id))), true);
+    // Summed rather than sampled: the stored tally is per cube, so a face on two owned cubes has to
+    // report both. Recomputed here from the raw profile rather than trusting the same code twice.
+    const summed = function (id) {
+        let total = 0;
+        for (const sp of SPECIALS) {
+            if (!(sp.faces || []).some(f => f.id === id)) continue;
+            total += Number(profile.cube?.faces?.[sp.id]?.[id]) || 0;
+        }
+        return total;
+    };
+    stateSame(`profile ${n} · counts are summed across every cube carrying the face`,
+        b.faceProgress.every(f => f.n === summed(f.id)), true);
+
+    // Ties are read defensively and clamped, like every other tally a profile written before them
+    // has none of. `total` is the sum of the three settlement paths and nothing else — a tie is
+    // settled exactly one way, so anything that does not add up is a double count somewhere.
+    stateSame(`profile ${n} · tie counts are whole and non-negative`,
+        Object.values(b.ties).every(v => Number.isInteger(v) && v >= 0), true);
+    stateSame(`profile ${n} · his cube's colours sum to his cube's ties`,
+        b.ties.blue + b.ties.red <= b.ties.rolled, true);
+    stateSame(`profile ${n} · only his cube's ties can be won or lost`,
+        b.ties.won <= b.ties.rolled, true);
+
+    // The month window follows the same rules as the week: current key, or nothing.
+    stateSame(`profile ${n} · the month is current`, b.month.id, pstate.monthKey());
+
+    // The loadout, asserted against the rule rather than against the old engine: everything stored
+    // that is actually owned, in stored order, cut to the bag. The **stored** `slots` is still not read
+    // — a profile carrying one from the days when the cap was bought reads back the same as one that
+    // never had it — and the `slots` that comes back out is the ladder's constant, identical on every
+    // profile in this list.
+    stateSame(`profile ${n} · cubeState equipped is owned, ordered and capped`, b.equipped,
+        Object.values(profile.cube?.equipped || {})
+            .filter(id => b.cubes.includes(id))
+            .slice(0, engine.bagSize()));
+    // Constant across every profile in this list, including the ones storing `slots: 1` and
+    // `slots: -1` — which is the whole claim: the cap is the ladder's, not the profile's.
+    stateSame(`profile ${n} · cubeState reports the bag as the cap`, b.slots, engine.bagSize());
 
     // Pricing, which the ceiling and the shop both read off.
     stateSame(`profile ${n} · maxStakeFor`, pstate.maxStakeFor(a.prestige), orig.maxStakeFor(a.prestige));
@@ -173,8 +299,28 @@ profiles.forEach((profile, n) => {
 
     // The reward menu, minus the emoji the original attached — that is the presentation this
     // split exists to remove, so it is checked by the glyph table rather than here.
-    const strip = o => o.map(x => ({ value: x.value, label: x.label, description: x.description }));
+    //
+    // **Two entries come off both sides, and they are the two deliberate divergences above wearing
+    // their menu clothes.** The `slot` entry is off the reference side because the cap it bought no
+    // longer exists; `cube:octahedron` is off it because `OFF_RACK` did not exist at the reference
+    // commit, so the frozen engine happily offers a cube that is earned by collecting eight planet
+    // faces rather than bought with a prestige. Neither is a divergence in the ported rules — one is
+    // a rule deleted on purpose and the other is a cube the proof cannot be about, exactly as the
+    // note on `ALL` says. Everything else about the list, including the order the cubes and perks
+    // come in, still has to match.
+    //
+    // Both are then asserted **on their own** against the new rule, because a list that quietly
+    // stopped offering something is the failure this strip could otherwise hide.
+    // `press` joins them for the same reason: the frozen engine has no press to sell, so its absence
+    // from the old list is the feature rather than a divergence. Asserted on its own below.
+    const OFF_MENU = new Set(['slot', 'cube:octahedron', 'press']);
+    const strip = o => o.map(x => ({ value: x.value, label: x.label, description: x.description }))
+        .filter(x => !OFF_MENU.has(x.value));
     stateSame(`profile ${n} · rewardChoices`, strip(pstate.rewardChoices(b)), strip(orig.rewardChoices(a)));
+    stateSame(`profile ${n} · rewardChoices offers no slot`,
+        pstate.rewardChoices(b).some(c => c.value === 'slot'), false);
+    stateSame(`profile ${n} · rewardChoices offers no octahedron`,
+        pstate.rewardChoices(b).some(c => c.value === 'cube:octahedron'), false);
 
     // Every mutator, each on its own fresh pair so one can't contaminate the next.
     const pairOf = () => [orig.cubeState(JSON.parse(JSON.stringify(profile))),
@@ -184,29 +330,83 @@ profiles.forEach((profile, n) => {
     let px = {}; let py = {};
     stateSame(`profile ${n} · awardClear`, pstate.awardClear(y, py), orig.awardClear(x, px));
     stateSame(`profile ${n} · awardClear patch`, py, px);
-    stateSame(`profile ${n} · awardClear state`, y, x);
+    stateSame(`profile ${n} · awardClear state`, noRack(y), noRack(x));
 
-    for (const reward of ['slot', 'reroll', 'nudge', 'bribe', 'cube:wild', 'cube:greed', 'cube:nope']) {
+    // Prestige-then-spend against the old prestige-with-a-reward. The composition has to land in
+    // exactly the state the single call used to, which is what proves the split changed the *timing*
+    // of the pick and nothing about what it grants: the point is banked and immediately spent, so it
+    // nets back to the balance it started at.
+    // `slot` is off the list, because it is off the rack — there is nothing left for the reference to
+    // be compared against on that one. The cube rewards stay, with the rack keys stripped: the
+    // reference equips a granted cube only if a slot was free under a cap it sold, and this equips it
+    // if there is a seat under a cap every rack shares. Asserted directly underneath.
+    for (const reward of ['reroll', 'nudge', 'bribe', 'cube:wild', 'cube:greed', 'cube:nope']) {
         [x, y] = pairOf();
         px = {}; py = {};
+        const held = y.points;
         orig.applyPrestige(x, px, reward);
-        pstate.applyPrestige(y, py, reward);
-        stateSame(`profile ${n} · applyPrestige(${reward}) patch`, py, px);
-        stateSame(`profile ${n} · applyPrestige(${reward}) state`, y, x);
+        pstate.applyPrestige(y, py);
+        stateSame(`profile ${n} · applyPrestige banks a point`, y.points, held + 1);
+        pstate.spendPoint(y, py, reward);
+        stateSame(`profile ${n} · spendPoint(${reward}) nets the point back`, y.points, held);
+        stateSame(`profile ${n} · prestige+spend(${reward}) patch`, noRack(py), noRack(px));
+        stateSame(`profile ${n} · prestige+spend(${reward}) state`, noRack(y), noRack(x));
     }
+
+    // A granted cube lands on the table if there is a seat for it, and stays owned either way. The
+    // complaint the reward half of this came out of was a pick that reported success and quietly did
+    // nothing — so the only case where it may arrive benched is the one where fielding it would have
+    // had to throw off a cube the player chose.
+    [x, y] = pairOf();
+    py = {};
+    if (!y.cubes.includes('boost')) {
+        const room = y.equipped.length < engine.bagSize();
+        pstate.spendPoint(y, py, 'cube:boost');
+        stateSame(`profile ${n} · a granted cube is owned`, y.cubes.includes('boost'), true);
+        stateSame(`profile ${n} · a granted cube takes a free seat`,
+            y.equipped.includes('boost'), room);
+        stateSame(`profile ${n} · a granted cube is equipped in the patch`,
+            (py.equipped || []).includes('boost'), room);
+        stateSame(`profile ${n} · a granted cube never displaces one`,
+            y.equipped.length <= engine.bagSize(), true);
+    }
+
+    // Nothing on the rack raises the cap, because the cap is the bag and the bag is not for sale.
+    // Spending on every entry still on offer must leave `slots` exactly where it started.
+    [x, y] = pairOf();
+    py = {};
+    for (const c of pstate.rewardChoices(y)) pstate.spendPoint(y, py, c.value);
+    stateSame(`profile ${n} · spending the whole rack raises no cap`, y.slots, engine.bagSize());
+    stateSame(`profile ${n} · spending the whole rack overfills nothing`,
+        y.equipped.length <= engine.bagSize(), true);
 
     [x, y] = pairOf();
     px = {}; py = {};
+    // Asserted against the rule instead of the reference, which trimmed to a `slots` it sold.
+    // Duplicates collapse, `ghost` is not a cube and unowned ids are dropped — and what survives that
+    // is cut to the bag.
     const ids = ['greed', 'wild', 'wild', 'ghost', 'mirror', 'binder'];
-    stateSame(`profile ${n} · setLoadout`, pstate.setLoadout(y, py, ids), orig.setLoadout(x, px, ids));
-    stateSame(`profile ${n} · setLoadout patch`, py, px);
+    const want = [...new Set(ids)].filter(id => y.cubes.includes(id)).slice(0, engine.bagSize());
+    stateSame(`profile ${n} · setLoadout`, pstate.setLoadout(y, py, ids), want);
+    stateSame(`profile ${n} · setLoadout patch`, py, { equipped: want });
+    stateSame(`profile ${n} · setLoadout never exceeds the bag`,
+        y.equipped.length <= engine.bagSize(), true);
 
     [x, y] = pairOf();
     px = {}; py = {};
     const roll = { call: 'blue', won: n % 2 === 0, cubes: ['blue', 'red', 'blue'], level: n % 5, standing: n * 500, line: n % 13, multiple: (n % 9) * 1.5 };
     stateSame(`profile ${n} · recordRoll`, pstate.recordRoll(y, py, roll), orig.recordRoll(x, px, roll));
-    stateSame(`profile ${n} · recordRoll patch`, py, px);
-    stateSame(`profile ${n} · recordRoll state`, y, x);
+    // `week` comes off the patch for the same reason it comes off the state: the frozen engine files
+    // no weekly bests and cannot grow a key for them. Asserted on its own immediately below, against
+    // the roll that was just recorded — which is a stronger check than comparing it to nothing.
+    const { week, month, ...pyRest } = py;
+    stateSame(`profile ${n} · recordRoll patch`, pyRest, px);
+    if (week) {
+        stateSame(`profile ${n} · the week filed is this one`, week.id, pstate.weekKey());
+        stateSame(`profile ${n} · the week holds the roll's own numbers`,
+            week.multiple >= roll.multiple && week.cubes >= roll.line, true);
+    }
+    stateSame(`profile ${n} · recordRoll state`, noRack(y), noRack(x));
 
     [x, y] = pairOf();
     px = {}; py = {};
@@ -214,7 +414,7 @@ profiles.forEach((profile, n) => {
     orig.recordFaces(x, px, log);
     pstate.recordFaces(y, py, log);
     stateSame(`profile ${n} · recordFaces patch`, py, px);
-    stateSame(`profile ${n} · recordFaces state`, y, x);
+    stateSame(`profile ${n} · recordFaces state`, noRack(y), noRack(x));
 
     for (const fn of ['recordWon', 'recordLost', 'recordSpent', 'unrecordLost']) {
         [x, y] = pairOf();
@@ -222,7 +422,7 @@ profiles.forEach((profile, n) => {
         orig[fn](x, px, 1234);
         pstate[fn](y, py, 1234);
         stateSame(`profile ${n} · ${fn} patch`, py, px);
-        stateSame(`profile ${n} · ${fn} state`, y, x);
+        stateSame(`profile ${n} · ${fn} state`, noRack(y), noRack(x));
     }
 
     [x, y] = pairOf();
@@ -269,6 +469,21 @@ const climb = function (e, rack, topLevel, call) {
 // The new engine's ids, drawn as the old engine's glyphs.
 const asGlyphs = ids => ids.map(faceGlyph);
 
+// A set of **slots** flattened back to the bare ids the reference engine deals in.
+//
+// The set grew from `['wild', null]` to a list of objects when the Planet Octahedron needed somewhere
+// to hang a cube's scorch marks and its ice. On a rack without that cube nothing ever writes either,
+// so the two representations describe the same table and this is the whole of the translation.
+//
+// **Deliberately not a blanket unwrap.** A slot carrying state would compare equal to a bare id under
+// a lazier version of this, which would let a real divergence through — so any set entry with
+// anything on it is left as the object it is, and fails loudly against the reference's `null`.
+const asIds = set => (set || []).map((x) => {
+    if (!x || typeof x !== 'object') return x || null;
+    if ((x.burned && x.burned.length) || x.frozen) return x;
+    return x.id || null;
+});
+
 // ---------------------------------------------------------------------------
 // Comparison
 // ---------------------------------------------------------------------------
@@ -295,8 +510,15 @@ let mismatched = 0;
 const stats = { ended: 0, broken: 0, grew: 0, steps: 0, pays: 0, ties: 0, pures: 0, longest: 0 };
 
 for (let i = 0; i < ROLLS; i++) {
-    // Rack size cycles 0..10 so every path gets exercised, including no specials at all.
-    const rackSize = i % (ALL.length + 1);
+    // **Rack size cycles 0..`bagSize()`, which is every rack there is.** The cap makes the ceiling the
+    // frozen reference happened to share with this engine the only ceiling either of them has, so the
+    // whole legal range is compared rather than a slice of it.
+    //
+    // Above it the two were never comparable anyway: the reference *cut* a longer rack down, spending
+    // an extra `shuffle` to pick which cubes survived, so a mismatch up there would have said nothing
+    // about whether either was correct. Nothing can get up there now — see the cap phase at the bottom,
+    // which asserts that at each of the three places a loadout is written.
+    const rackSize = i % (Math.min(ALL.length, engine.bagSize()) + 1);
     const rack = ALL.slice(0, rackSize);
     const top = i % 5;
     const call = i % 2 ? 'red' : 'blue';
@@ -340,9 +562,12 @@ for (let i = 0; i < ROLLS; i++) {
             if (!same(i, w(`multSteps[${m}].multiple`), wmC[m].multiple, wmA[m].multiple)) bad = true;
         }
         for (const f of ['cubes', 'set', 'majority', 'pure', 'swept', 'mult', 'mults',
-            'shortcut', 'rerolls', 'broken', 'ended', 'specials', 'faceLog']) {
-            if (!same(i, w(f), C[f], A[f])) bad = true;
+            'rerolls', 'broken', 'ended', 'specials', 'faceLog']) {
+            if (!same(i, w(f), f === 'set' ? asIds(C[f]) : C[f], A[f])) bad = true;
         }
+        // Shortcuts pay per face and the reference only ever flagged that one had, so the most this
+        // can still prove is that the same lines pay something.
+        if (!same(i, w('shortcut'), C.shortcuts > 0, A.shortcut)) bad = true;
     }
 
     for (let lv = 0; lv < Math.min(a.length, b.length); lv++) {
@@ -356,9 +581,10 @@ for (let i = 0; i < ROLLS; i++) {
         if (!same(i, w('faces'), asGlyphs(B.faceIds), A.faces)) bad = true;
 
         for (const f of ['cubes', 'set', 'majority', 'pure', 'swept', 'mult', 'mults',
-            'shortcut', 'rerolls', 'broken', 'ended', 'specials', 'faceLog']) {
-            if (!same(i, w(f), B[f], A[f])) bad = true;
+            'rerolls', 'broken', 'ended', 'specials', 'faceLog']) {
+            if (!same(i, w(f), f === 'set' ? asIds(B[f]) : B[f], A[f])) bad = true;
         }
+        if (!same(i, w('shortcut'), B.shortcuts > 0, A.shortcut)) bad = true;
 
         // Every effect frame: same count, same line, same pointer.
         if (!same(i, w('steps.length'), B.steps.length, A.steps.length)) bad = true;
@@ -402,9 +628,20 @@ for (let i = 0; i < ROLLS; i++) {
         if (B.cubes.length > B.faceIds.length) record(i, w('invariant'), 'cubes longer than faceIds', '');
         if (B.set.length > B.faceIds.length) record(i, w('invariant'), 'set longer than faceIds', '');
         if (B.faceIds.some(x => !x)) record(i, w('invariant'), 'empty face id in line', '');
-        // The run ends if and only if Ratts is visible on the resolved line.
-        const rattsShowing = B.faceIds.includes('end');
-        if (rattsShowing !== !!B.ended) record(i, w('invariant'), `ratts shown ${rattsShowing} but ended ${B.ended}`, '');
+        // **A mine never survives onto a resolved line**, because it goes with its own blast.
+        //
+        // This assertion used to read "the run ends if and only if Ratts is visible", which was the
+        // invariant while he stayed put in his own crater — and it made his position the one place on
+        // the line the blast could not reach. It became false the day the blast started taking him too,
+        // and went on failing on every single detonation, which is a stale assertion rather than a
+        // divergence: it was checking a rule the engine had deliberately replaced.
+        if (B.faceIds.includes('end')) record(i, w('invariant'), 'a mine survived onto the resolved line', '');
+        // What replaced it. The run ends when there is nothing left on the table, so an ending and a
+        // standing position are mutually exclusive — a shielded blast survives precisely because the
+        // shield it was stopped by is still there.
+        if (B.ended && B.faceIds.length) {
+            record(i, w('invariant'), `ended with ${B.faceIds.length} positions standing`, '');
+        }
 
         stats.steps += B.steps.length;
         stats.pays += B.pays.length;
@@ -418,9 +655,55 @@ for (let i = 0; i < ROLLS; i++) {
     if (bad) mismatched++;
 }
 
+// ---------------------------------------------------------------------------
+// The cap
+// ---------------------------------------------------------------------------
+//
+// Racks bigger than the bag, which are no longer a thing a player can field. This used to be the
+// overflow phase, playing a rack of nine-plus through the engine and the wrapper and proving they
+// agreed about a bench that no level could reach. **The bench is gone**: `equipped` is capped at
+// `bagSize()` where it is written, where a reward grants a cube and again where a profile is read, so
+// every cube on a rack is a cube the climb will meet.
+//
+// There is nothing to compare against the frozen reference here — it capped at a `slots` it sold — so
+// this asserts the rule at each place a loadout could grow past the bag, plus the defensive cut in
+// `fillBag` that catches a hand-edited profile getting past all three.
+let capChecked = 0;
+const bigRacks = ALL.length > engine.bagSize();
+if (bigRacks) {
+    const everything = Object.fromEntries(ALL.map(id => [id, true]));
+    for (let i = 0; i < Math.max(40, Math.floor(ROLLS / 10)); i++) {
+        const rack = ALL.slice(0, engine.bagSize() + 1 + (i % (ALL.length - engine.bagSize())));
+
+        // 1. The read. A profile written when the loadout was uncapped comes back fielding the first
+        //    `bagSize()` of what it stored — kept, in order, not rejected and not reshuffled.
+        const s = pstate.cubeState({ cube: { cubes: everything, equipped: rack } });
+        if (!same(`cap ${i}`, 'a stored overflow reads back cut to the bag',
+            s.equipped, rack.slice(0, engine.bagSize()))) mismatched++;
+        if (!same(`cap ${i}`, 'the overflow is still owned',
+            rack.every(id => s.cubes.includes(id)), true)) mismatched++;
+
+        // 2. The write. Same cut, from the other direction.
+        const patch = {};
+        if (!same(`cap ${i}`, 'setLoadout cuts an over-long list',
+            pstate.setLoadout(s, patch, rack), rack.slice(0, engine.bagSize()))) mismatched++;
+
+        // 3. The bag. Never longer than the levels can draw, whatever it is handed.
+        seed(10_000 + i);
+        const bag = engine.fillBag(rack);
+        if (!same(`cap ${i}`, 'the bag is the bag', bag.length, engine.bagSize())) mismatched++;
+        if (!same(`cap ${i}`, 'a full rack leaves no plain padding',
+            bag.filter(x => !x).length, 0)) mismatched++;
+        if (!same(`cap ${i}`, 'every cube in the bag came off the rack',
+            bag.every(id => rack.includes(id)), true)) mismatched++;
+        capChecked++;
+    }
+}
+
 console.log(`Compared ${compared} resolved lines across ${ROLLS} climbs.`);
 console.log(`  ended ${stats.ended} · shattered ${stats.broken} · ties ${stats.ties} · pures ${stats.pures}`);
 console.log(`  effect steps ${stats.steps} · paying faces ${stats.pays} · longest line ${stats.longest}`);
+console.log(`  the ${engine.bagSize()}-cube cap held on ${capChecked} racks bigger than the bag`);
 
 if (failures.length) {
     console.log(`\n${mismatched} climb(s) diverged. First ${failures.length}:\n`);

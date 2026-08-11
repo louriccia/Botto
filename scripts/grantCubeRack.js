@@ -1,6 +1,10 @@
-// Grants (or revokes) a full Chance Cube rack for one user by Discord ID: every special cube,
-// a slot for each of them, and all three one-time perks — purchase rerolls, Qui-Gon's Nudge and
-// Bribe Ties. For playtesting the deep end of the ladder without prestiging a dozen times.
+// Grants (or revokes) a full Chance Cube rack for one user by Discord ID: every special cube, the
+// first `bagSize()` of them equipped, and all three one-time perks — purchase rerolls, Qui-Gon's
+// Nudge and Bribe Ties. For playtesting the deep end of the ladder without prestiging a dozen times.
+//
+// **Owning everything and fielding everything are different things.** The table holds `bagSize()`
+// cubes, which is what a run draws, so the rest of the rack lands on the bench and swapping between
+// them is part of what this fixture is for. Equipping the lot would only be clamped back on read.
 //
 // The cube list is read from the game data rather than hardcoded, so a cube added later is
 // granted by this script without it needing an edit.
@@ -21,6 +25,8 @@
 require('dotenv').config();
 const admin = require('firebase-admin');
 const { SPECIALS, LEVELS } = require('../src/data/challenge/cube.js');
+const { OFF_RACK } = require('../src/game/cube/state.js');
+const { bagSize } = require('../src/game/cube/engine.js');
 
 admin.initializeApp({
     credential: admin.credential.cert({
@@ -42,7 +48,20 @@ if (!discordId) {
     process.exit(1);
 }
 
+// Every cube in the game, and the ones that are **not Watto's to sell**.
+//
+// The Planet Octahedron is the only cube owned by collecting rather than by picking off the rack, so
+// it does not belong in `cube.cubes` — that key is the rack, and writing it there would hand the test
+// account a profile no real player can have. It is granted through `effects.grand_circuit` instead,
+// which is the same flag the Grand Circuit collection sets and the only thing `cubeState` reads it
+// from. It sits at the front of the loadout for the same reason the whole script exists — it is the
+// cube most worth having on the table for a playtest.
 const ids = SPECIALS.map(sp => sp.id);
+const rackIds = ids.filter(id => !OFF_RACK.has(id));
+// What actually goes on the table: the bag's worth, in `SPECIALS` order, with the rest benched.
+const fielded = ids.slice(0, bagSize());
+// Collection rewards that grant a cube, mirroring `COLLECTED` in `game/cube/state.js`.
+const COLLECTED_FLAGS = ['grand_circuit'];
 
 (async () => {
     const db = admin.database();
@@ -58,18 +77,21 @@ const ids = SPECIALS.map(sp => sp.id);
     const c = user.random?.cube || {};
     const owned = Object.keys(c.cubes || {});
 
-    // Revoking drops back to the state a fresh account has, not to nothing: `startingSlots` is 1
-    // and the engine clamps to it on read anyway, so writing 0 would just be a lie in the data.
+    // Revoking drops back to the state a fresh account has. `slots` is cleared rather than set to 1:
+    // there is no slot count any more, the engine never reads the key, and leaving a stale one behind
+    // would only confuse the next person to inspect the profile.
     const patch = revoke
         ? {
-            cubes: null, equipped: null, slots: 1,
+            cubes: null, equipped: null, slots: null,
             buyReroll: null, nudge: null, bribe: null, bribes: 0,
         }
         : {
-            cubes: Object.fromEntries(ids.map(id => [id, true])),
-            // A slot each, so the whole rack can be fielded at once — the point of the grant.
-            slots: ids.length,
-            equipped: ids,
+            cubes: Object.fromEntries(rackIds.map(id => [id, true])),
+            // The whole rack owned, the bag's worth of it fielded — including the collected cubes,
+            // which are owned through `effects` but still have to be on the table to be thrown. The
+            // stale `slots` key is cleared: the cap is `bagSize()` for everyone and nothing reads it.
+            slots: null,
+            equipped: fielded,
             buyReroll: true,
             nudge: true,
             bribe: true,
@@ -80,6 +102,13 @@ const ids = SPECIALS.map(sp => sp.id);
 
     if (unlock && !revoke) patch.unlocked = LEVELS.length - 1;
 
+    // The collection rewards, which live beside `cube` rather than inside it — same node the
+    // Grand Circuit collection writes when its eighth face is claimed.
+    const effects = user.random?.effects || {};
+    const effectsPatch = Object.fromEntries(
+        COLLECTED_FLAGS.map(flag => [flag, revoke ? null : true]),
+    );
+
     const show = (label, before, after) => console.log(`  ${label.padEnd(11)} ${String(before).padEnd(28)} ->  ${after}`);
 
     console.log(`user key      ${key}`);
@@ -87,15 +116,18 @@ const ids = SPECIALS.map(sp => sp.id);
     console.log(`name          ${user.random?.name ?? '(none)'}`);
     console.log(`prestige      ${c.prestige ?? 0}   ·   levels open 1-${(Number(c.unlocked) || 0) + 1}   ·   turn ${c.turn ?? 0}`);
     console.log('\nrack');
-    show('cubes', `${owned.length}/${ids.length}${owned.length ? ` (${owned.join(',')})` : ''}`,
-        revoke ? 'none' : `${ids.length}/${ids.length} (all)`);
-    show('slots', Number(c.slots) || 1, patch.slots);
+    // Counted against the **rack**, not against every cube in the game — the Planet Octahedron is not
+    // on it, so `15/15` here would be a lie about a key that only ever holds fourteen.
+    show('cubes', `${owned.length}/${rackIds.length}${owned.length ? ` (${owned.join(',')})` : ''}`,
+        revoke ? 'none' : `${rackIds.length}/${rackIds.length} (all)`);
+    if (c.slots !== undefined) show('slots', `${Number(c.slots) || 0} (stale, ignored)`, 'cleared');
     show('equipped', Object.values(c.equipped || {}).join(',') || '(none)',
-        revoke ? '(none)' : `all ${ids.length}`);
+        revoke ? '(none)' : `${fielded.length}/${bagSize()} (${fielded.join(',')})`);
     show('buyReroll', !!c.buyReroll, !revoke);
     show('nudge', !!c.nudge, !revoke);
     show('bribe', !!c.bribe, !revoke);
     show('bribes paid', Number(c.bribes) || 0, 0);
+    for (const flag of COLLECTED_FLAGS) show(flag, !!effects[flag], !revoke);
     if (unlock && !revoke) show('unlocked', `1-${(Number(c.unlocked) || 0) + 1}`, `1-${LEVELS.length}`);
 
     // Loud, because writing the rack mid-run changes what the *next* push rolls with.
@@ -111,20 +143,26 @@ const ids = SPECIALS.map(sp => sp.id);
         process.exit(0);
     }
 
-    // Targeted child update, so the lifetime record and the turn counter are untouched.
+    // Targeted child updates, so the lifetime record and the turn counter are untouched. Two nodes
+    // rather than one, because a collected cube is not part of the rack: `cube` is what Watto sold and
+    // `effects` is what was assembled out of collectibles.
     await db.ref(`users/${key}/random/cube`).update(patch);
+    await db.ref(`users/${key}/random/effects`).update(effectsPatch);
 
     const after = (await db.ref(`users/${key}/random/cube`).get()).val() || {};
+    const afterEffects = (await db.ref(`users/${key}/random/effects`).get()).val() || {};
     const got = Object.keys(after.cubes || {});
-    const ok = revoke
+    const flagsOk = COLLECTED_FLAGS.every(f => !!afterEffects[f] === !revoke);
+    const ok = flagsOk && (revoke
         ? !got.length && !after.nudge && !after.bribe && !after.buyReroll
-        : got.length === ids.length && after.nudge === true && after.bribe === true
-        && after.buyReroll === true && Number(after.slots) === ids.length;
-    console.log(`\nWrote users/${key}/random/cube`);
-    console.log(`  cubes ${got.length}/${ids.length} · slots ${after.slots ?? '(unset)'}`
-        + ` · equipped ${Object.values(after.equipped || {}).length}`
+        : got.length === rackIds.length && after.nudge === true && after.bribe === true
+        && after.buyReroll === true && after.slots === undefined);
+    console.log(`\nWrote users/${key}/random/cube and .../effects`);
+    console.log(`  cubes ${got.length}/${rackIds.length}`
+        + ` · equipped ${Object.values(after.equipped || {}).length}/${bagSize()}`
         + ` · buyReroll ${!!after.buyReroll} · nudge ${!!after.nudge} · bribe ${!!after.bribe}`
         + ` · bribes ${Number(after.bribes) || 0} · levels open 1-${(Number(after.unlocked) || 0) + 1}`);
+    console.log(`  ${COLLECTED_FLAGS.map(f => `${f} ${!!afterEffects[f]}`).join(' · ')}`);
     console.log(ok ? 'Verified.' : 'MISMATCH — read back does not match what was requested.');
     process.exit(ok ? 0 : 1);
 })().catch(err => {

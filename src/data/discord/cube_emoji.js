@@ -11,9 +11,16 @@
 
 const { goal_symbols, emojimap } = require('./emoji.js');
 const { ChanceCube } = require('./emoji.js');
+const { planets } = require('../sw_racer/planet.js');
+
+// One planet's emoji, by the index it sits at in `planet.js`. Falls back to the face-down cube rather
+// than to `undefined`, which is the failure mode this whole file is written for: a line with a hole in
+// it beats a line that throws.
+const planetGlyph = i => (planets[i] && planets[i].emoji) || null;
 const {
     DyeGon, RIPratts, wipeout, TuskenRaider, WideBen1, WideBen2, WideBen3, Fodesinbeed, PadmeWhat,
     andotent, restart, flamejet, binder, BallQuadinaros, PraiseMaja,
+    PitDroid, OdyOhNo, speedo, Sebulba, seb_engine_l, seb_engine_r,
 } = emojimap;
 
 // The two faces of a plain cube. There is exactly one pair, because the two sides are
@@ -49,6 +56,37 @@ const FACE_EMOJI = {
     'razed:right': WideBen3,
     pair: Fodesinbeed,
     twins: PadmeWhat,
+    // The Gungan energy shield, doing in a row of cubes what it does on the Naboo plains: it stops a
+    // blast and lets everything else through. Unicode, like 💰 and 🪞 — the picture is the mechanic and
+    // there is nothing a custom emoji would add to it.
+    shield: '🛡️',
+    // The pit droid hands you a cube; Ody Mandrell is what happens when one gets into the engines,
+    // which is the canonical version of this cube's downside face.
+    draw: PitDroid,
+    purge: OdyOhNo,
+    // A number that climbs, for the one paying face whose number isn't fixed until the line stops
+    // moving. Phase two of the reveal is already a climbing readout, so the glyph and the mechanic say
+    // the same thing.
+    boost: speedo,
+    // Sebulba's two engines, pointing the two ways he can cheat. The only face in the game whose
+    // *heading* is what distinguishes it, and the art carries that without a word of explanation.
+    'engine:left': seb_engine_l,
+    'engine:right': seb_engine_r,
+    // The eight faces of the Planet Octahedron, drawn as the eight planets — which is the one place in
+    // this table where the artwork already existed. `planet.js` has carried a custom emoji per planet
+    // since long before the cube did, so the die costs nothing here but the mapping.
+    //
+    // Read out of that list by index rather than pasted in, so a planet emoji re-uploaded to the guild
+    // is re-uploaded once. The order is the order the planets are declared in, which is alphabetical
+    // and is also the order the faces are declared in the tuning — the two lists line up on purpose.
+    freeze: planetGlyph(0), // Ando Prime — ice holds a face
+    vault: planetGlyph(1), // Aquilaris — the doors seal a side
+    scorch: planetGlyph(2), // Baroonda — lava takes a face off a cube
+    lockout: planetGlyph(3), // Malastare — the arena seals the bank
+    seam: planetGlyph(4), // Mon Gazza — the spice seam pays for depth
+    jail: planetGlyph(5), // Oovo IV — the prison
+    plunge: planetGlyph(6), // Ord Ibanna — the chasm
+    boonta: planetGlyph(7), // Tatooine — the Boonta, and the tie
     // A position the reveal hasn't turned over yet.
     hidden: ChanceCube,
 };
@@ -83,6 +121,10 @@ exports.SPECIAL_EMOJI = {
     reroll: restart,
     binder: binder,
     multiplier: BallQuadinaros,
+    gungan: '🛡️',
+    pitdroid: PitDroid,
+    boost: speedo,
+    sebulba: Sebulba,
 };
 
 // Level medals run the goal-time symbols backwards — bronze at Level 1, diamond at the top —
@@ -104,6 +146,14 @@ exports.CUBE_GAP = ' ';
 // Everything below is pacing and layout for the **embed**, and none of it is a rule. It lived in
 // the tuning data while the embed was the only client; it is here now because a message edit is
 // the constraint it is written against, and a web client has none of these limits.
+//
+// **It is also, as of the Activity, dead configuration.** `/chubacubes` launches the Activity and
+// the embed board draws no game any more, so nothing outside `src/interactions/cube*.js` reads a
+// single value below. It is kept because that board is still the parity harness's subject — the
+// frozen reference it is checked against renders through this table — and deleting it would retire
+// the only independent check that the extracted rules still resolve a line the way the original
+// did. Read it as a record of what a message-edit budget costs a reveal, not as tuning anyone can
+// usefully change: the numbers the player actually meets are `BEAT` in the Activity's `board.js`.
 exports.RENDER = {
     // The roll is drawn at heading size, which is what makes a handful of cubes read as an event
     // rather than a sentence. It doesn't survive a long line on a phone: nine heading-sized emoji

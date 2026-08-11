@@ -8,9 +8,10 @@
 //   cube_stake_<turn>_<owner>              -> open the stake modal
 //   cube_setstake            (modal)       -> store the stake
 //   cube_prestige_<turn>_<owner>           -> the prestige offer
-//   cube_reward_<turn>_<owner>     (select)-> take one off the rack, which commits the prestige
+//   cube_doprestige_<turn>_<owner>         -> hand the ladder back, banking a prestige point
 //   cube_loadout_<turn>_<owner>            -> the rack
 //   cube_setloadout_<turn>_<owner> (select)-> equip special cubes
+//   cube_spend_<turn>_<owner>      (select)-> spend one prestige point off the rack
 //   cube_buyreroll_<turn>_<owner>          -> buy one reroll into stock
 //   cube_tiebreak_<turn>_<owner>           -> let Watto's cube settle a tie
 //   cube_bribe_<turn>_<owner>              -> buy the tie off him instead
@@ -34,7 +35,7 @@ const { WattoLOL, Whatto, wipeout } = require('../data/discord/emoji.js').emojim
 // What is left of this import is the *screen*. Everything that decides anything moved to
 // `game/cube/actions.js`, and the shrinking of this list is the shape of that change.
 const {
-    ensurePot, potOf, cubeState, ladderOf, deadOf, tieOf, topOf, MAX_LEVEL,
+    cubeState, ladderOf, deadOf, tieOf, topOf, MAX_LEVEL,
     decidedAt, revealSteps, canPrestige, goalOf,
     prestigeEmbed, prestigeComponents, loadoutEmbed, loadoutComponents,
     encodeSet, specialById, applyMults, multSteps,
@@ -99,7 +100,6 @@ module.exports = {
             return interaction.reply({ embeds: [lockedEmbed()], ephemeral: true });
         }
 
-        await ensurePot(database, db);
         const s = cubeState(user_profile);
 
         // What `game/cube/actions.js` needs to act. `s` is shared rather than rebuilt, because the
@@ -116,7 +116,7 @@ module.exports = {
 
         if (interaction.isModalSubmit() && action === 'setstake') return setStake();
         if (interaction.isStringSelectMenu()) {
-            if (action === 'reward') return doPrestige(args[1]);
+            if (action === 'spend') return doSpend(args[1]);
             if (action === 'setloadout') return doLoadout(args[1]);
         }
 
@@ -125,11 +125,12 @@ module.exports = {
             // `play` is the "no thanks" on that screen, so it clears it.
             case 'open': return render(view());
             case 'play': return declineReroll();
-            case 'help': return interaction.reply({ embeds: [helpEmbed({ pot: potOf(db), s })], ephemeral: true });
+            case 'help': return interaction.reply({ embeds: [helpEmbed({ s })], ephemeral: true });
             case 'stake': return openStakeModal();
             case 'call': return doCall(args[1], args[2]);
             case 'bank': return doBank(args[1]);
             case 'prestige': return offerPrestige(args[1]);
+            case 'doprestige': return doPrestige(args[1]);
             case 'loadout': return offerLoadout(args[1]);
             case 'buyreroll': return buyReroll(args[1]);
             case 'reroll': return spendReroll(args[1]);
@@ -148,7 +149,7 @@ module.exports = {
         // has already run by then, so reading live state would spoil the result in the
         // footer balance and the clears bar a full second before the reveal.
         function payload(frame, components, snapshot) {
-            const state = snapshot || { balance: balanceOf(user_profile), pot: potOf(db), s };
+            const state = snapshot || { balance: balanceOf(user_profile), s };
             return { embeds: [playEmbed({ ...state, frame })], components };
         }
 
@@ -237,7 +238,7 @@ module.exports = {
             } catch (err) {
                 // A dropped frame mid-reveal is a missing beat; a throw here is a stranded
                 // board. By the time these run the roll is settled either into a live ladder or
-                // into the pot, and the payout frame at the end redraws all of it from state —
+                // or into the ledger, and the payout frame at the end redraws all of it from state —
                 // so a beat nobody sees costs nothing, while bailing out would leave the player
                 // looking at face-down cubes with every button still off.
                 console.error(`[cube] dropped a reveal frame: ${err.message}`);
@@ -322,14 +323,14 @@ module.exports = {
             return render({ embeds: [prestigeEmbed(s)], components: prestigeComponents(s.turn, s, member_id) });
         }
 
-        // Taking something off the rack is the commit. Re-checked here rather than trusted from
-        // the offer screen, so a stale select menu can't reset a ladder twice — and the reward
-        // itself is re-validated, so a menu rendered before a cube was owned can't grant it again.
+        // Handing the ladder back. Re-checked here rather than trusted from the offer screen, so a
+        // stale button can't reset a ladder twice. Nothing is chosen: the point it banks is spent on
+        // the rack, whenever.
         function doPrestige(turnArg) {
             if (stale(turnArg)) return refreshStale();
             if (busy() || !canPrestige(s)) return refreshStale();
 
-            const done = actions.prestige(ctx(), { reward: interaction.values[0] });
+            const done = actions.prestige(ctx());
             if (!done.ok) return refreshStale();
             bumpTurn();
             return render(view());
@@ -339,9 +340,10 @@ module.exports = {
 
         // Which special cubes are on the table. Locked for the duration of a run for the same
         // reason the stake is — the loadout is what the roll was made against.
+        // An unspent point can open this on an empty rack, which is the one way in to spending it.
         function offerLoadout(turnArg) {
             if (stale(turnArg)) return refreshStale();
-            if (busy() || !s.cubes.length) return refreshStale();
+            if (busy() || (!s.cubes.length && s.points < 1)) return refreshStale();
             return render({ embeds: [loadoutEmbed(s)], components: loadoutComponents(s.turn, s, member_id) });
         }
 
@@ -352,6 +354,18 @@ module.exports = {
             if (!done.ok) return refreshStale();
             bumpTurn();
             return render(view());
+        }
+
+        // Spending one banked point. Stays on the rack rather than bouncing back to the board: the
+        // screen the pick just changed is the screen worth looking at, and a second point is spent
+        // against what the first one bought.
+        function doSpend(turnArg) {
+            if (stale(turnArg)) return refreshStale();
+            if (busy() || s.points < 1) return refreshStale();
+            const done = actions.spendPoint(ctx(), { reward: interaction.values[0] });
+            if (!done.ok) return refreshStale();
+            bumpTurn();
+            return render({ embeds: [loadoutEmbed(s)], components: loadoutComponents(s.turn, s, member_id) });
         }
 
         // Rerolls are bought into stock and spent later, on a game over screen, so the price is
@@ -415,8 +429,8 @@ module.exports = {
         // ---- rerolls -------------------------------------------------------
 
         // Buys back the roll that just killed the run: the same level, the same call, the same
-        // stake. The bust was already settled, so this reverses the two numbers it moved — the
-        // pot and the lifetime loss — and rolls that level again.
+        // stake. The bust was already settled, so this reverses the one number it moved — the
+        // lifetime loss — and rolls that level again.
         //
         // The tallies from the void roll are deliberately *not* reversed. It was rolled, it was
         // called, and it broke the streak; a reroll is a second call rather than a rewrite.
@@ -445,9 +459,6 @@ module.exports = {
         // is the side that wins: frames drawn while that is still open show the payout *without*
         // it, and only a frame that has an answer shows the payout with it.
         function frameFactory(run, mult, cubes, cubeRecord = false, multRecord = false) {
-            // Read before settling: a third clear moves the ceiling, and this roll's clears
-            // meter belongs to the level that was the ceiling when the cubes left the cup.
-            const atCeiling = run.level === topOf(s);
             // Reaching a level is known the moment you push into it, so the deepest-level
             // badge is safe to wear from the first frame — unlike anything the roll decides.
             const deepest = run.level > s.bestLevel;
@@ -455,7 +466,11 @@ module.exports = {
             // isn't spoiled by the line above the cubes.
             return (facesStr, flavor, lines, outcome, bar, result) => ({
                 levelIdx: run.level,
-                bar: atCeiling ? bar : null,
+                // Which time round this is, for the header. An Again wears the level's own name.
+                again: run.again || 0,
+                // The road, as the frame should draw it. Always passed now — the map is relevant on
+                // every rung, where the old meter only belonged on the one that could clear.
+                bar,
                 record: deepest,
                 // How many cubes are actually on the table, so the header can say `5 of 7` once
                 // the set has been damaged. It differs between the throw and the payout, which is
@@ -477,7 +492,7 @@ module.exports = {
 
         // Rolls the level, then plays it back: every cube face-down, then the cubes landing
         // a few at a time, then Watto's verdict with the buttons back. The settlement runs
-        // during the first beat, so the pot and the balance are already correct by the
+        // during the first beat, so the balance and the clears are already correct by the
         // first reveal and Discord's 3s response window is never spent waiting on firebase.
         async function roll(run, staked, reverse = 0) {
             // Every draw for this roll happens in one call, before the first await, so the outcome
@@ -492,7 +507,7 @@ module.exports = {
 
             // Everything the frames below draw around the cubes, as it stood before the
             // roll was settled.
-            const snapshot = { balance: balanceOf(user_profile), pot: potOf(db), s: { ...s } };
+            const snapshot = { balance: balanceOf(user_profile), s: { ...s } };
             // What the roll is worth with **none of its paying faces counted** — the ladder and
             // whatever the run already carried, and nothing this throw added. Every frame up to the
             // end of the effects is drawn at this multiple, and phase two builds it up to `base` and
@@ -511,7 +526,13 @@ module.exports = {
             //
             // The engine emits **every** step it took — nine, on a full rack. The cap is this
             // client's, because each frame is a message edit.
-            const effectFrames = (res.steps || []).slice(0, config.maxEffectFrames).map((step) => {
+            //
+            // `quiet` steps are turns that changed nothing: a Binder with nothing on its right to burn, a
+            // Pit Droid reaching into an empty bag. The Activity draws them, because a frame costs it
+            // nothing and the alternative is an effect cube that looks skipped. Here a frame is a message
+            // edit and there are three, so the budget goes to things that actually happened.
+            const effectFrames = (res.steps || []).filter(s => !s.quiet)
+                .slice(0, config.maxEffectFrames).map((step) => {
                 const row = step.faceIds.map(faceGlyph);
                 const draw = frameFactory(run, opening, row.length);
                 return () => draw(
@@ -564,7 +585,7 @@ module.exports = {
             // ladder to resume and no bust on record — the stake would just be gone. Discord
             // being unreachable is a real event, so if the roll never reaches the screen it is
             // discarded and the stake handed straight back. Every later frame is safe: by then
-            // the roll is settled either into a live ladder or into the pot, and the player
+            // the roll is settled either into a live ladder or into the ledger, and the player
             // picks it up again with `/chubacubes`.
             try {
                 await render(payload(rolling(0, snapshot.s), [], snapshot));
@@ -674,7 +695,7 @@ module.exports = {
                 res.faceIds.length > s.bestCubes, mult > s.bestMultiple,
             );
 
-            // Everything that moves — the ledger, the pot, the clears, the ladder, the truguts —
+            // Everything that moves — the ledger, the clears, the ladder, the truguts —
             // happens in one call, in `game/cube/actions.js`, which the Activity calls too. This
             // handler draws the result and nothing else.
             //
@@ -766,53 +787,51 @@ module.exports = {
             }
 
             const lines = [];
-            // A tie is the one win with a bigger story than the level it happened on: losing one
-            // has to sound like the house winning, so winning one has to sound like the house
-            // losing. Neither can collide with a jackpot — a tied line has no majority in it, so it
-            // can never be swept.
+            // A tie is the one win with a bigger story than the rung it happened on: losing one has
+            // to sound like the house winning, so winning one has to sound like the house losing.
+            // A pure can't collide with either — a tied line has no majority in it, so it can never
+            // be swept.
+            //
+            // Under the road, a win is one of five things and Watto has a different mood for each:
+            // he grudges a level, he *hates* an Again coming off your road, he pays out at the top,
+            // and he is delighted when somebody keeps rolling past it for nothing.
             const flavor = watto(
-                settled.prize > 0 ? 'jackpot'
-                    : settled.pure ? 'pure'
-                        : breaker ? 'tiewin'
-                            : bribed ? 'bribe'
-                                : settled.outcome !== 'bank' ? 'win'
-                                    : settled.atTop ? 'final' : 'ceiling',
+                settled.pure ? 'pure'
+                    : breaker ? 'tiewin'
+                        : bribed ? 'bribe'
+                            : settled.prestigeOffered ? 'final'
+                                : settled.opened != null ? 'opened'
+                                    : settled.clear ? 'again'
+                                        : settled.atTop ? 'overtime'
+                                            : 'win',
             );
+            // A pure is called out and pays nothing extra, which is the whole joke — it used to take
+            // a share of the pot and Watto's `pure` lines were written for the tier that didn't.
             if (settled.pure) {
                 lines.push(`✨ **PURE CUBE** — all ${settled.cubes.length} landed ${chip(settled.majority)}.`);
             }
-            if (settled.prize > 0) {
-                lines.push(settled.pureTier >= 1
-                    ? `🏆 **THE POT IS YOURS — ${tg(settled.prize)}.**`
-                    : `💎 A pure ${settled.cubes.length} takes **${tg(settled.prize)}** off the pot.`);
-            }
 
-            if (settled.outcome === 'bank') {
-                // Everything gained on this roll: the profit on the stake, plus any pot.
-                lines.push(wonLine(settled.profit + settled.prize, settled.opened, settled.records.standing));
-                // Worth showing whenever the meter moved, and at the top of the ladder it is how
-                // the prestige offer gets announced.
-                if (settled.clear || settled.extra) lines.push(nextUnlockLine(s));
-                return { flavor, lines };
-            }
-
-            if (settled.reopened) lines.push(openedLine(settled.opened));
-            lines.push(choiceLine(settled.ladder.stake, settled.ladder.level,
-                settled.records.standing, settled.mult));
+            // A gap just filled. Either two more cubes hit the table — and the run pushes straight
+            // into the level it opened — or, at the top, the prestige was earned. Both are said
+            // here because both change what the *next* rung is, which is the decision on screen.
+            if (settled.opened != null) lines.push(openedLine(settled.opened));
+            if (settled.prestigeOffered || settled.opened != null) lines.push(nextUnlockLine(s));
+            lines.push(choiceLine(settled.ladder.stake, settled.records.standing,
+                settled.mult, settled.next));
             return { flavor, lines };
         }
 
-        // The channel only hears about two things: clearing the top of the ladder, and any Pure
-        // Cube that pays off the pot. Taking a bite out of a jar everyone has been feeding is the
-        // one result that is genuinely other people's business.
+        // The channel only hears about one thing now: clearing the top of the ladder. The board is
+        // public and the whole channel is already watching every roll, so an announcement has to
+        // earn its ping — this used to have a second trigger, a Pure Cube taking a bite out of a
+        // jar everyone had been feeding, and the jar is gone. A pure is still called out on the
+        // board itself, where the people watching it already are.
         function channelNote(settled) {
-            if (settled.prize > 0) {
-                return settled.pureTier >= 1
-                    ? `🏆 **${member_name}** rolled a **PURE CUBE** — all ${settled.cubes.length} on ${chip(settled.majority)} — and took the **whole pot**: **${tg(settled.prize)}**.`
-                    : `✨ **${member_name}** rolled a **pure ${settled.cubes.length}** on ${chip(settled.majority)} and took **${tg(settled.prize)}** off the Pure Cube pot.`;
-            }
-            if (settled.outcome === 'bank' && settled.atTop) {
-                return bankNote(settled.standing, MAX_LEVEL);
+            // Surviving Level 5 is what the top of the road is now — it earns the prestige and the
+            // run is still standing, so this fires on the roll that did it rather than on a bank
+            // that no longer happens.
+            if (settled.prestigeOffered) {
+                return `${LEVELS[MAX_LEVEL].emoji} **${member_name}** survived **${LEVELS[MAX_LEVEL].name}** for **${tg(settled.standing)}** — **Prestige ${s.prestige + 1}** is theirs.`;
             }
             return null;
         }
@@ -865,7 +884,7 @@ module.exports = {
             // one and a second copy of it is a second way to hand the player a different roll.
             const { thrown, reverse } = { thrown: answered.thrown, reverse: answered.reverse };
             const { run, res, base, breaker } = thrown;
-            const snapshot = { balance: balanceOf(user_profile), pot: potOf(db), s: { ...s } };
+            const snapshot = { balance: balanceOf(user_profile), s: { ...s } };
             const row = res.faceIds.map(faceGlyph);
             const resolved = faces(row, row.length);
 
@@ -927,7 +946,8 @@ module.exports = {
 
             await render(payload({
                 levelIdx: ladder.level,
-                bar: ladder.level === topOf(s) ? s : null,
+                again: Number(ladder.again) || 0,
+                bar: s,
                 multiple: Number(ladder.mult) || LEVELS[ladder.level].payout,
                 context: contextLine(ladder.call, ladder.stake, Number(ladder.mult) || 0, 'win'),
                 faces: storedFaces(ladder),

@@ -160,8 +160,8 @@ fetchData(database.ref('challenge/trivia'), function (data) {
     db.ch.trivia = data;
 });
 
-// The Chance Cube's live state: the Pure Cube pot and any runs in progress. Both are
-// read on every button press, so they're mirrored into memory rather than fetched.
+// The Chance Cube's live state: any runs in progress. Read on every button press, so it's
+// mirrored into memory rather than fetched.
 fetchData(database.ref('challenge/cube/live'), function (data) {
     db.ch.cube = data;
 });

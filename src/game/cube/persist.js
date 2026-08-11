@@ -5,7 +5,6 @@
 // the in-memory mirror is passed in as `db`. That is what lets the same code run inside the bot
 // process, where those come from `src/firebase.js`, and inside an API server, where they don't.
 //
-//   challenge/cube/live/pot                   the Pure Cube pot
 //   challenge/cube/live/ladders/<discordId>   one live run per player
 //   users/<user_key>/random/cube              the player's standing
 //
@@ -13,64 +12,41 @@
 // animation renders several frames off it inside one interaction and none of them can wait for a
 // round trip. Read-your-own-writes is a requirement here, not an optimisation.
 
-const admin = require('firebase-admin');
-const { LEVELS, cube: config } = require('./tuning.js');
+const { LEVELS } = require('./tuning.js');
 
 const LIVE = 'challenge/cube/live';
 exports.LIVE = LIVE;
 
-const inc = n => admin.database.ServerValue.increment(n);
-
-// ---------------------------------------------------------------------------
-// The pot
-// ---------------------------------------------------------------------------
-
-// Self-healing pot seed, run on first touch. The in-memory check keeps this to a single
-// write for the lifetime of the pot rather than a transaction on every interaction, and
-// it also recovers if the node is ever removed. The transaction aborts when a pot
-// already exists, so a concurrent first touch can't double-seed.
-exports.ensurePot = async function (database, db) {
-    if (!db.ch.cube) db.ch.cube = {};
-    if (db.ch.cube.pot === null || db.ch.cube.pot === undefined) {
-        const seeded = await database.ref(`${LIVE}/pot`).transaction(current =>
-            (current === null || current === undefined) ? config.potSeed : undefined);
-        db.ch.cube.pot = Number(seeded.snapshot.val()) || 0;
-    }
-    return db.ch.cube.pot;
-};
-
-exports.potOf = db => Number(db.ch.cube?.pot) || 0;
-
-// What a busted stake actually puts in the jar. Only a share of it — the rest leaves the
-// economy, which is what stops the mode paying out more than it takes in; see `potShare`.
+// **What the database will not take, and what it does about it.** Firebase refuses `undefined`
+// anywhere in a payload — and it refuses by *throwing*, synchronously, out of `set` and `update`
+// rather than by rejecting the promise they return. So a `.catch` on the write does not cover it,
+// and an optional field nobody filled in does not cost a write: it takes down whatever request was
+// making one. A parked tie stores the roll's Multiplier records, which carry `positions` only when a
+// Boost paid, so a tie with a Multiplier on the line 500'd the roll it had just committed.
 //
-// Both the deposit and the reroll that reverses it go through here, so they can never disagree
-// about the rounding. It floors, and it is called on the same stake both ways, so the reversal
-// takes out exactly the integer that went in rather than a trugut either side of it.
-exports.potCut = stake => Math.floor((Number(stake) || 0) * config.potShare);
-
-// Increment rather than read-modify-write: busted stakes land here from every player at
-// once. A negative amount takes one back out again, which is what a reroll bought off the game
-// over screen does to the bust it undoes — never more than was just put in.
-exports.addToPot = function (database, db, amount) {
-    const add = Math.floor(amount);
-    if (!add) return;
-    database.ref(`${LIVE}/pot`).set(inc(add));
-    if (db.ch.cube) db.ch.cube.pot = Math.max(0, (Number(db.ch.cube.pot) || 0) + add);
+// Pruned rather than defaulted field by field, because the shape belongs to the callers and there
+// are a dozen of them — and pruned for the **mirror** too, so what is held in memory is what a
+// read-back would return instead of drifting from it by one key.
+const pruned = function (value) {
+    if (Array.isArray(value)) return value.map(v => (v === undefined ? null : pruned(v)));
+    if (!value || typeof value !== 'object') return value;
+    const out = {};
+    for (const [k, v] of Object.entries(value)) if (v !== undefined) out[k] = pruned(v);
+    return out;
 };
 
-// Pays a share of the pot and returns what was actually paid. Transactional because two
-// simultaneous pure rolls must not both be paid off the same pre-payout balance.
-exports.payFromPot = async function (database, db, share) {
-    if (!share) return 0;
-    let prize = 0;
-    await database.ref(`${LIVE}/pot`).transaction(current => {
-        const pot = Number(current) || 0;
-        prize = Math.floor(pot * share);
-        return pot - prize;
-    });
-    if (db.ch.cube) db.ch.cube.pot = Math.max(0, (Number(db.ch.cube.pot) || 0) - prize);
-    return prize;
+// Every write here is deliberately un-awaited — a reveal has frames to draw and none of them are
+// waiting on a round trip — which means a failure is this file's business and never the caller's.
+// `.catch` covers the trip; the `try` covers the call itself, which is where a payload the database
+// refuses fails. Loud, because a write that silently did not happen is a standing that quietly
+// disagrees with the screen.
+const fireAndForget = function (what, write) {
+    try {
+        const out = write();
+        if (out && typeof out.catch === 'function') out.catch(() => { });
+    } catch (err) {
+        console.error(`[cube] ${what} was refused by the database:`, err.message);
+    }
 };
 
 // ---------------------------------------------------------------------------
@@ -81,8 +57,9 @@ exports.payFromPot = async function (database, db, share) {
 // new numbers, then to the database. The write is deliberately not awaited: a reveal has frames to
 // draw and a settled ledger is not something any of them are waiting on.
 exports.writeCube = function (profile_ref, user_profile, patch) {
-    user_profile.cube = { ...(user_profile.cube || {}), ...patch };
-    profile_ref.child('cube').update(patch);
+    const clean = pruned(patch);
+    user_profile.cube = { ...(user_profile.cube || {}), ...clean };
+    fireAndForget('a profile patch', () => profile_ref.child('cube').update(clean));
 };
 
 // ---------------------------------------------------------------------------
@@ -129,12 +106,12 @@ exports.tieOf = function (db, member_id) {
 exports.saveLadder = function (database, db, member_id, value) {
     if (!db.ch.cube) db.ch.cube = {};
     if (!db.ch.cube.ladders) db.ch.cube.ladders = {};
-    const stored = { ...value, updated: Date.now() };
+    const stored = pruned({ ...value, updated: Date.now() });
     db.ch.cube.ladders[member_id] = stored;
-    database.ref(`${LIVE}/ladders/${member_id}`).set(stored).catch(() => { });
+    fireAndForget('a live run', () => database.ref(`${LIVE}/ladders/${member_id}`).set(stored));
 };
 
 exports.clearLadder = function (database, db, member_id) {
     if (db.ch.cube?.ladders) delete db.ch.cube.ladders[member_id];
-    database.ref(`${LIVE}/ladders/${member_id}`).remove().catch(() => { });
+    fireAndForget('clearing a live run', () => database.ref(`${LIVE}/ladders/${member_id}`).remove());
 };

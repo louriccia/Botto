@@ -20,7 +20,6 @@ const {
 exports.SIDES = tuning.SIDES;
 exports.FACES = FACES;
 exports.CUBE_GAP = CUBE_GAP;
-exports.SWEEP_SHARE = tuning.SWEEP_SHARE;
 exports.WATTO = tuning.WATTO;
 
 exports.LEVELS = tuning.LEVELS.map((l, i) => ({ ...l, emoji: LEVEL_EMOJI[i] }));

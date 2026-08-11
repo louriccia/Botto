@@ -1,6 +1,5 @@
-// Read-only dump of live Chance Cube state: the Pure Cube pot, any runs in progress, and
-// each player's unlock progress. Useful for confirming the mode is persisting correctly
-// during a playtest.
+// Read-only dump of live Chance Cube state: any runs in progress, and each player's unlock
+// progress. Useful for confirming the mode is persisting correctly during a playtest.
 //
 // Usage:
 //   node scripts/inspectChanceCube.js
@@ -21,9 +20,7 @@ admin.initializeApp({
     const db = admin.database();
     const live = (await db.ref('challenge/cube/live').get()).val() || {};
 
-    console.log(`=== pot ===\n${live.pot ?? '(unset)'}`);
-
-    console.log('\n=== runs in progress ===');
+    console.log('=== runs in progress ===');
     const ladders = live.ladders || {};
     if (!Object.keys(ladders).length) console.log('(none)');
     for (const [id, l] of Object.entries(ladders)) {
@@ -43,7 +40,8 @@ admin.initializeApp({
         const n = v => Number(v) || 0;
         console.log(`${u.random?.name ?? key} (${u.discordID})  prestige ${c.prestige ?? 0} · Level 1-${(c.unlocked ?? 0) + 1} unlocked · ${c.clears ?? 0} clears · stake ${c.stake ?? '(unset)'} · turn ${c.turn ?? 0} · balance ${bal}`);
         const owned = Object.keys(c.cubes || {});
-        console.log(`  rack ${Object.values(c.equipped || {}).join(',') || '(empty)'} / ${n(c.slots) || 1} slot(s)`
+        console.log(`  rack ${Object.values(c.equipped || {}).join(',') || '(empty)'}`
+            + `${c.slots ? ` [stale slots:${n(c.slots)}, ignored]` : ''}`
             + ` · owns ${owned.length ? owned.join(',') : '(none)'}`
             + ` · rerolls ${n(c.rerolls)}${c.buyReroll ? ' (buying unlocked)' : ''}`);
         console.log(`  won ${n(c.totalWon)} · lost ${n(c.totalLost)} · spent ${n(c.totalSpent)}`

@@ -29,7 +29,7 @@ const LOCKED = { random: { name: 'No Cube', truguts_earned: 1000, truguts_spent:
 
 const db = {
     user: { KEY: PLAYER, LOCKEDKEY: LOCKED },
-    ch: { cube: { pot: 123456, ladders: {} } },
+    ch: { cube: { ladders: {} } },
 };
 
 // Records writes instead of performing them, so nothing here can touch the real database.
@@ -40,14 +40,14 @@ const fakeRef = path => ({
     update: (v) => { writes.push({ op: 'update', path, value: v }); return Promise.resolve(); },
     set: (v) => { writes.push({ op: 'set', path, value: v }); return Promise.resolve(); },
     remove: () => { writes.push({ op: 'remove', path }); return Promise.resolve(); },
-    transaction: (fn) => {
-        const next = fn(db.ch.cube.pot);
-        return Promise.resolve({ snapshot: { val: () => (next === undefined ? db.ch.cube.pot : next) } });
-    },
 });
 const database = { ref: fakeRef };
 
 const { createApi } = require('../src/api/index.js');
+// The rules, so what the tuning route serves can be checked against the tuning rather than against a
+// count written down here — which is a number that goes stale every time the rack grows.
+const { LEVELS, SPECIALS } = require('../src/game/cube/tuning.js');
+const { bagSize } = require('../src/game/cube/engine.js');
 
 // The real one lives in a module that initialises Firebase on load. Injected here so the play
 // routes can be exercised, and so this file can assert that they move the right numbers.
@@ -117,7 +117,6 @@ const check = function (name, ok, detail) {
     const board = r.json;
     check('state returns the board', r.status === 200 && !!board?.player, `${r.status} ${r.text}`);
     check('balance is earned minus spent', board?.balance === 200000, `got ${board?.balance}`);
-    check('pot is reported', board?.pot === 123456, `got ${board?.pot}`);
     check('stake ceiling follows prestige', board?.player?.maxStake === 4000, `got ${board?.player?.maxStake}`);
     check('owned cubes come back in SPECIALS order',
         JSON.stringify(board?.player?.cubes) === JSON.stringify(['wild', 'greed']),
@@ -131,8 +130,10 @@ const check = function (name, ok, detail) {
     // --- tuning --------------------------------------------------------------
     r = await call('GET', '/cube/tuning', { auth: t });
     check('tuning serves the ladder and the rack',
-        r.status === 200 && r.json.levels?.length === 5 && r.json.specials?.length === 10,
-        `${r.status} levels=${r.json?.levels?.length} specials=${r.json?.specials?.length}`);
+        r.status === 200 && r.json.levels?.length === LEVELS.length
+        && r.json.specials?.length === SPECIALS.length,
+        `${r.status} levels=${r.json?.levels?.length}/${LEVELS.length} `
+        + `specials=${r.json?.specials?.length}/${SPECIALS.length}`);
     const leaks = JSON.stringify(r.json).match(/<a?:[a-zA-Z0-9_]+:\d+>/g);
     check('tuning carries no Discord emoji', !leaks, leaks && leaks.slice(0, 3).join(' '));
 
@@ -159,6 +160,20 @@ const check = function (name, ok, detail) {
     r = await call('POST', '/cube/loadout', { auth: t, body: {} });
     check('loadout needs an array', r.status === 400, `${r.status} ${r.text}`);
 
+    // **The cap is a bad request, not a trim.** Which of the nine to drop is the decision the request
+    // is making, so a list longer than the bag comes back refused rather than silently shortened —
+    // checked before ownership, which is why nine junk ids are enough to trip it.
+    const tooMany = Array.from({ length: bagSize() + 1 }, (_, i) => `cube${i}`);
+    r = await call('POST', '/cube/loadout', { auth: t, body: { ids: tooMany } });
+    check('a loadout bigger than the bag is refused',
+        r.status === 400 && r.json.code === 'too_many', `${r.status} ${r.text}`);
+
+    r = await call('POST', '/cube/loadout', { auth: t, body: { ids: ['greed', 'wild'] } });
+    check('and the bag-sized one still saves',
+        r.status === 200 && r.json.slots === bagSize()
+        && JSON.stringify(r.json.equipped) === JSON.stringify(['greed', 'wild']),
+        `${r.status} ${r.text}`);
+
     // --- a live run blocks the between-run settings ---------------------------
     db.ch.cube.ladders['d-KEY'] = { level: 1, stake: 1000, standing: 4000, call: 'blue' };
     r = await call('POST', '/cube/stake', { auth: t, body: { stake: 1000 } });
@@ -177,8 +192,10 @@ const check = function (name, ok, detail) {
     check('tie refuses with no tie', r.status === 409 && r.json.code === 'no_tie', `${r.status} ${r.text}`);
     r = await call('POST', '/cube/reroll', { auth: t, body: {} });
     check('reroll refuses with nothing dead', r.status === 409 && r.json.code === 'no_reroll', `${r.status} ${r.text}`);
-    r = await call('POST', '/cube/prestige', { auth: t, body: { reward: 'slot' } });
+    r = await call('POST', '/cube/prestige', { auth: t, body: {} });
     check('prestige refuses when not earned', r.status === 409 && r.json.code === 'not_eligible', `${r.status} ${r.text}`);
+    r = await call('POST', '/cube/point', { auth: t, body: { reward: 'cube:mirror' } });
+    check('spending refuses with no points', r.status === 409 && r.json.code === 'no_points', `${r.status} ${r.text}`);
 
     // A real roll. Level 1 is a single plain cube, so this is a straight coin flip and the
     // response has to describe it fully either way.
@@ -200,8 +217,8 @@ const check = function (name, ok, detail) {
     // Typed even at zero: to a client reading `|| 0`, a missing field and "banked none" are the same
     // answer, and this is the check that tells them apart.
     check('roll reports what it banked, not just the faces it kept',
-        typeof roll?.rerolls === 'number' && typeof roll?.shortcut === 'boolean',
-        `rerolls ${JSON.stringify(roll?.rerolls)}, shortcut ${JSON.stringify(roll?.shortcut)}`);
+        typeof roll?.rerolls === 'number' && typeof roll?.shortcuts === 'number',
+        `rerolls ${JSON.stringify(roll?.rerolls)}, shortcuts ${JSON.stringify(roll?.shortcuts)}`);
     check('the stake left the balance',
         roll?.board?.balance === before - stakeNow + (roll?.settled?.outcome === 'bank' ? roll.settled.standing : 0),
         `balance ${roll?.board?.balance}, before ${before}, stake ${stakeNow}, outcome ${roll?.settled?.outcome}`);
@@ -250,18 +267,13 @@ const check = function (name, ok, detail) {
         JSON.stringify(strayWrites.map(w => w.path)));
     check('the roll wrote a profile patch', writes.some(w => w.path.endsWith('/cube')),
         JSON.stringify([...new Set(writes.map(w => w.path))]));
-    // A quarter of a busted stake feeds the pot; a win that stays live touches it at all only if
-    // it paid a pure. Asserting the pot unconditionally was wrong and passed only on the coin
-    // flips that happened to bust.
-    const touchedPot = writes.some(w => w.path.endsWith('/pot'));
-    check(won ? 'a live win leaves the pot alone' : 'a bust feeds the pot',
-        won ? !touchedPot : touchedPot,
+    // The whole cube writes to two places and one of them is the pot — it used to. There is no jar
+    // now, so a bust moves nothing but the profile, which the check above already covers.
+    check('a roll writes nowhere but the profile and the live run',
+        writes.every(w => w.path.startsWith('users/') || w.path.startsWith('challenge/cube/live/ladders')),
         JSON.stringify([...new Set(writes.map(w => w.path))]));
 
     // --- a dead run is something a reroll can replay --------------------------
-    //
-    // **Must stay last:** the pot audit above reads the whole `writes` array, and a reroll always moves
-    // the pot — reversing the bust takes `potCut(stake)` back out.
     //
     // Guards the field names, which are the whole contract between `settleLoss` writing this node and
     // `spendReroll` reading it back: rename one and the reroll silently replays the wrong table.
@@ -289,6 +301,72 @@ const check = function (name, ok, detail) {
         JSON.stringify(r.json?.board?.player?.rerolls));
     check('a spent reroll leaves nothing further to reroll',
         !r.json?.board?.dead, JSON.stringify(r.json?.board?.dead));
+
+    // --- prestige points ------------------------------------------------------
+    //
+    // The point of a point: prestiging and picking are separate, so a player who never opens the
+    // rack accumulates rather than being blocked. Seeded rather than played — reaching the top of
+    // the ladder honestly is thirty-odd runs of coin flips.
+    //
+    // After the reroll block because it clears the ladder node, and `prestige` refuses while one
+    // stands.
+    delete db.ch.cube.ladders['d-KEY'];
+    const atTop = () => Object.assign(PLAYER.random.cube, { unlocked: 4, clears: 5 });
+
+    atTop();
+    r = await call('POST', '/cube/prestige', { auth: t, body: {} });
+    check('prestige takes no reward and banks a point',
+        r.status === 200 && r.json?.points === 1, `${r.status} ${r.text}`);
+    check('prestige resets the ladder', r.json?.board?.progress?.top === 0,
+        JSON.stringify(r.json?.board?.progress));
+
+    // The whole behaviour change: a second prestige with the first point unspent stacks.
+    atTop();
+    r = await call('POST', '/cube/prestige', { auth: t, body: {} });
+    check('an unspent point does not block the next prestige',
+        r.status === 200 && r.json?.points === 2, `${r.status} ${r.text}`);
+
+    r = await call('GET', '/cube/state', { auth: t });
+    check('the board carries the balance', r.json?.player?.points === 2,
+        JSON.stringify(r.json?.player?.points));
+    check('the board carries what a point buys',
+        Array.isArray(r.json?.choices) && r.json.choices.some(c => c.value === 'cube:mirror'),
+        JSON.stringify(r.json?.choices?.length));
+    // The rack is finite now: no `+1 Special Cube Slot`. The cap it used to sell is still there and is
+    // reported — but it is the bag, identical on every profile, and nothing on the rack moves it.
+    check('the rack no longer sells a slot',
+        !r.json.choices.some(c => c.value === 'slot'),
+        JSON.stringify(r.json.choices.map(c => c.value)));
+    check('the player carries the bag as its cap', r.json?.player?.slots === bagSize(),
+        JSON.stringify(r.json?.player?.slots));
+
+    r = await call('POST', '/cube/point', { auth: t, body: { reward: 'slot' } });
+    check('spending refuses a slot, which is no longer on the rack',
+        r.status === 400 && r.json.code === 'bad_reward', `${r.status} ${r.text}`);
+
+    r = await call('POST', '/cube/point', { auth: t, body: { reward: 'reroll' } });
+    check('spending a point grants the pick', r.status === 200 && r.json?.points === 1,
+        `${r.status} ${r.text}`);
+    check('the pick actually landed', r.json?.board?.player?.buyReroll === true,
+        JSON.stringify(r.json?.board?.player?.buyReroll));
+
+    r = await call('POST', '/cube/point', { auth: t, body: { reward: 'cube:nope' } });
+    check('spending refuses a reward that is not on the rack',
+        r.status === 400 && r.json.code === 'bad_reward', `${r.status} ${r.text}`);
+
+    r = await call('POST', '/cube/point', { auth: t, body: { reward: 'cube:mirror' } });
+    check('spending the last point empties the balance',
+        r.status === 200 && r.json?.points === 0, `${r.status} ${r.text}`);
+    check('a bought cube is owned', r.json?.cubes?.includes('mirror'),
+        JSON.stringify(r.json?.cubes));
+    // The whole reason the cap came off: a granted cube plays immediately, with no second trip to
+    // the loadout screen and no second prestige to make room for it.
+    check('a bought cube is on the table', r.json?.equipped?.includes('mirror'),
+        JSON.stringify(r.json?.equipped));
+
+    r = await call('POST', '/cube/point', { auth: t, body: { reward: 'cube:boost' } });
+    check('an empty balance cannot spend', r.status === 409 && r.json.code === 'no_points',
+        `${r.status} ${r.text}`);
 
     server.close();
     const failed = results.filter(x => !x.ok);

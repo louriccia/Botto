@@ -63,6 +63,21 @@ exports.collections = [
         items: [96, 96, 96, 95, 95, 95]
     },
     {
+        // Eight faces, one per planet, each dropping only on that planet's tracks — so assembling the
+        // die is a tour of the Galactic Podracing Circuit rather than a grind. The same shape as
+        // Red vs Blue above, which is the point: the chance cube is built out of six sides and the
+        // eight-sided one is built out of eight, and both are built by playing.
+        //
+        // Deliberately **not** on Watto's rack. That list holds seventeen picks and empties, and an
+        // eighteenth would put this cube in competition with the endgame it is meant to outlast — see
+        // `OFF_RACK` in `game/cube/state.js`, which is what keeps it off.
+        name: 'Grand Circuit',
+        emoji: '🪐',
+        reward: 'Planet Octahedron - An eight-sided cube, one planet a face',
+        key: 'grand_circuit',
+        items: [269, 270, 271, 272, 273, 274, 275, 276]
+    },
+    {
         name: 'Space Bar',
         emoji: '🍸',
         reward: 'Sorry About the Mess - Sponsor take is doubled',

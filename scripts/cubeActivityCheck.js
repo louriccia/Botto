@@ -101,10 +101,24 @@ const warn = (what, detail, fix) => rows.push({ state: 'warn', what, detail, fix
         fix: 'Developer Portal → Activities → URL Mappings. The portal keeps these apart, so\n'
             + '      there is no ordering question between them:\n'
             + '        Root Mapping        /      ->  bottosjunkyard.com/activity\n'
-            + '        Proxy Path Mapping  /cube  ->  <your-app>.herokuapp.com\n'
+            + '        Proxy Path Mapping  /cube  ->  botto-swe1r.herokuapp.com\n'
             + '      Targets carry no protocol. The root target must be a directory that serves an\n'
             + '      index — /activity, never /activity.html. Ordering only matters if two proxy\n'
             + '      path prefixes overlap.',
+    });
+
+    // The other half of the portal, and a different page of it. This one gates playing on the
+    // **site** rather than inside Discord: the browser OAuth flow sends `redirect_uri` to Discord,
+    // which refuses any value not registered here verbatim — trailing slash and all.
+    rows.push({
+        state: 'manual',
+        what: 'OAuth redirects',
+        detail: 'not readable through the API — check them by eye',
+        fix: 'Developer Portal → OAuth2 → Redirects. Needed only for playing on the site;\n'
+            + '      launching from Discord uses the Embedded SDK and never touches these:\n'
+            + '        https://botto-swe1r.herokuapp.com/cube/auth/callback\n'
+            + '        http://localhost:3030/cube/auth/callback   (local development)\n'
+            + '      Each must match CUBE_OAUTH_REDIRECT in the matching environment exactly.',
     });
 
     // --- report -------------------------------------------------------------

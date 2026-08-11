@@ -4278,7 +4278,102 @@ exports.items = [
         "challenges": null,
         "track": [],
         "racer": [22]
+    },
+    {
+        "id": 269,
+        "name": "Ando Prime Face",
+        "image": "",
+        "description": "one eighth of the Planet Octahedron - ice that holds a face",
+        "rarity": "rare",
+        "value": 2500,
+        "condition": "",
+        "challenges": null,
+        "track": [2, 8, 17, 21],
+        "racer": []
+    },
+    {
+        "id": 270,
+        "name": "Aquilaris Face",
+        "image": "",
+        "description": "one eighth of the Planet Octahedron - vault doors that seal a side",
+        "rarity": "rare",
+        "value": 2500,
+        "condition": "",
+        "challenges": null,
+        "track": [3, 7, 13],
+        "racer": []
+    },
+    {
+        "id": 271,
+        "name": "Baroonda Face",
+        "image": "",
+        "description": "one eighth of the Planet Octahedron - lava that takes a face off a cube",
+        "rarity": "rare",
+        "value": 2500,
+        "condition": "",
+        "challenges": null,
+        "track": [12, 16, 19, 24],
+        "racer": []
+    },
+    {
+        "id": 272,
+        "name": "Malastare Face",
+        "image": "",
+        "description": "one eighth of the Planet Octahedron - an arena that seals the bank",
+        "rarity": "rare",
+        "value": 2500,
+        "condition": "",
+        "challenges": null,
+        "track": [4, 9, 15],
+        "racer": []
+    },
+    {
+        "id": 273,
+        "name": "Mon Gazza Face",
+        "image": "",
+        "description": "one eighth of the Planet Octahedron - a spice seam that pays for depth",
+        "rarity": "rare",
+        "value": 2500,
+        "condition": "",
+        "challenges": null,
+        "track": [1, 6, 11],
+        "racer": []
+    },
+    {
+        "id": 274,
+        "name": "Oovo IV Face",
+        "image": "",
+        "description": "one eighth of the Planet Octahedron - a prison for four cubes",
+        "rarity": "rare",
+        "value": 2500,
+        "condition": "",
+        "challenges": null,
+        "track": [5, 14, 23],
+        "racer": []
+    },
+    {
+        "id": 275,
+        "name": "Ord Ibanna Face",
+        "image": "",
+        "description": "one eighth of the Planet Octahedron - a chasm at both ends of the line",
+        "rarity": "rare",
+        "value": 2500,
+        "condition": "",
+        "challenges": null,
+        "track": [10, 18, 22],
+        "racer": []
+    },
+    {
+        "id": 276,
+        "name": "Tatooine Face",
+        "image": "",
+        "description": "one eighth of the Planet Octahedron - the Boonta, and every tie with it",
+        "rarity": "rare",
+        "value": 2500,
+        "condition": "",
+        "challenges": null,
+        "track": [0, 20],
+        "racer": []
     }
 
 ]
-

@@ -18,11 +18,22 @@ const { warnIfUnconfigured } = require('./auth.js');
 const mountCube = require('./cube.js');
 
 // Requests reach us through Discord's proxy, which fronts the Activity at
-// `https://<application-id>.discordsays.com` and rewrites `/cube/*` to this origin. Anything else
-// is a browser poking at the API directly.
+// `https://<application-id>.discordsays.com` and rewrites `/cube/*` to this origin.
+//
+// **And now also straight from the site**, where the Activity is a page a logged-in junkyard user
+// can play — those requests come from the real origin with no proxy in front of them, so the
+// allow-list has to name it. Same list the OAuth callback validates its return address against
+// (`CUBE_SITE_ORIGINS`), because they are the same question asked twice: which sites is this API
+// willing to hand a session to.
+//
+// Anything else is a browser poking at the API directly.
+const SITE_ORIGINS = (process.env.CUBE_SITE_ORIGINS || '')
+    .split(',').map(s => s.trim().replace(/\/$/, '')).filter(Boolean);
+
 const allowedOrigin = function (origin) {
     if (!origin) return true;
     if (/^https:\/\/[0-9]+\.discordsays\.com$/.test(origin)) return true;
+    if (SITE_ORIGINS.includes(origin)) return true;
     // The Vite dev server, for building the Activity before it is proxied.
     if (/^http:\/\/localhost:\d+$/.test(origin)) return true;
     return false;

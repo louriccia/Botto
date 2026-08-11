@@ -19,6 +19,45 @@ const CLIENT_ID = process.env.clientId;
 const CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
 const JWT_SECRET = process.env.CUBE_JWT_SECRET;
 
+// ---------------------------------------------------------------------------
+// Playing outside Discord
+// ---------------------------------------------------------------------------
+//
+// The Activity is also a page on the site, and a logged-in junkyard user should be able to play it
+// there. That needs a second way in, because the handshake above is the *Embedded SDK* flow: it
+// starts from a code the SDK hands over, and outside a Discord client there is no SDK to hand one.
+//
+// So the browser gets an ordinary OAuth redirect, run by **this** service. Botto already holds both
+// halves of it — `clientId` and `DISCORD_CLIENT_SECRET` are what the code exchange above uses — so
+// this adds no secret and no new trust between services. It deliberately does *not* reuse the
+// site's own session: botto-api signs `{ id, username, roles }` where `id` is a Firestore document,
+// and the cube keys off a Discord id resolved to an RTDB push key. Bridging those would mean either
+// sharing botto-api's signing secret with a third service or making cube sign-in depend on
+// botto-api being up. Asking Discord directly costs one bounce and owes nobody anything.
+//
+// `CUBE_OAUTH_REDIRECT` is this service's own callback and **must match a Redirect URI registered
+// in the Discord Developer Portal exactly** — that is the one piece of this that lives outside the
+// repo. `CUBE_SITE_ORIGINS` is a comma-separated allow-list of sites permitted to receive a token.
+const OAUTH_REDIRECT = process.env.CUBE_OAUTH_REDIRECT;
+const SITE_ORIGINS = (process.env.CUBE_SITE_ORIGINS || '')
+    .split(',').map(s => s.trim().replace(/\/$/, '')).filter(Boolean);
+
+// **The single most important check in this file.** The callback finishes by sending the player
+// back to wherever they started, carrying a token that *is* their account — so an unvalidated
+// `redirect` would be an open redirect that hands any site a working cube session. Only origins on
+// the allow-list are ever sent one.
+//
+// Localhost is allowed only when the process is not in production, which is the same latitude the
+// CORS policy already takes for the Vite dev server.
+const allowedRedirect = function (target) {
+    let url;
+    try { url = new URL(target); } catch (err) { return false; }
+    if (url.protocol !== 'https:' && url.hostname !== 'localhost') return false;
+    if (SITE_ORIGINS.includes(url.origin)) return true;
+    return process.env.NODE_ENV !== 'production' && url.hostname === 'localhost';
+};
+exports.allowedRedirect = allowedRedirect;
+
 // Warned once at startup rather than per request, in the same shape as the lean salt's warning:
 // the API still mounts, and says plainly why nobody can sign in.
 exports.warnIfUnconfigured = function () {
@@ -30,19 +69,32 @@ exports.warnIfUnconfigured = function () {
         console.warn(`[api] the cube Activity cannot authenticate anyone: ${missing.join(', ')} `
             + 'not set. The API is up but every sign-in will fail.');
     }
+    // Warned separately, because these two only gate playing on the **site**. Without them the
+    // Activity still works perfectly well launched from Discord, so this is a missing feature
+    // rather than a broken one and should not read like the same problem.
+    const browser = [];
+    if (!OAUTH_REDIRECT) browser.push('CUBE_OAUTH_REDIRECT');
+    if (!SITE_ORIGINS.length) browser.push('CUBE_SITE_ORIGINS');
+    if (browser.length && !missing.length) {
+        console.warn(`[api] the cube cannot be played outside Discord: ${browser.join(', ')} not `
+            + 'set. Launching from Discord is unaffected.');
+    }
     return missing;
 };
 
-// Exchanges the SDK's code for an access token, then reads the user behind it.
+// Exchanges a code for an access token, then reads the user behind it.
 //
-// `redirect_uri` is deliberately absent: an embedded app has nowhere to redirect to, and Discord
-// does not expect one for this grant.
-const exchange = async function (code) {
+// `redirectUri` is the one difference between the two flows and it is not optional in either
+// direction. The **embedded** flow must omit it — an embedded app has nowhere to redirect to and
+// Discord does not expect one for that grant — while the **browser** flow must send exactly the URI
+// the authorize call was started with, or Discord rejects the exchange.
+const exchange = async function (code, redirectUri = null) {
     const body = new URLSearchParams({
         client_id: CLIENT_ID,
         client_secret: CLIENT_SECRET,
         grant_type: 'authorization_code',
         code,
+        ...(redirectUri ? { redirect_uri: redirectUri } : {}),
     });
     const token = await axios.post(`${DISCORD_API}/oauth2/token`, body, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -98,7 +150,7 @@ exports.tokenHandler = ctx => async function (req, res) {
     const name = discordUser.global_name || discordUser.username;
     const { userKey } = await resolvePlayer(ctx.db, ctx.database, discordUser.id, name);
 
-    const token = jwt.sign({ discordId: discordUser.id, userKey }, JWT_SECRET, { expiresIn: TOKEN_TTL });
+    const token = mintToken(discordUser.id, userKey);
     return res.json({
         // Ours, for this API. Signed with CUBE_JWT_SECRET and meaningless to anyone else.
         token,
@@ -117,6 +169,86 @@ exports.tokenHandler = ctx => async function (req, res) {
                 : null,
         },
     });
+};
+
+// Mints the session every authenticated route checks. One place, so the two ways in cannot drift
+// about what a cube token contains.
+const mintToken = (discordId, userKey) =>
+    jwt.sign({ discordId, userKey }, JWT_SECRET, { expiresIn: TOKEN_TTL });
+
+// GET /cube/auth/discord?redirect=<where to come back to>
+//
+// Step one of the browser flow: remember where the player came from and send them to Discord.
+//
+// The return address rides in `state` as a **signed, short-lived JWT** rather than as a plain query
+// parameter. Discord echoes `state` back verbatim and does not care what is in it, so an unsigned
+// one is attacker-controlled by the time we read it again — and what we do with it is send a token
+// there. Signing it means the callback can only ever honour a destination this route approved.
+exports.browserAuthStart = function (req, res) {
+    if (!CLIENT_ID || !CLIENT_SECRET || !JWT_SECRET || !OAUTH_REDIRECT) {
+        return res.status(503).send('Sign-in is not configured on this server.');
+    }
+    const target = req.query?.redirect;
+    if (typeof target !== 'string' || !allowedRedirect(target)) {
+        // Deliberately terse and deliberately not echoing the value back: this is the branch an
+        // open-redirect probe lands in.
+        return res.status(400).send('That is not somewhere this can send you.');
+    }
+    const state = jwt.sign({ r: target }, JWT_SECRET, { expiresIn: '10m' });
+    const url = new URL('https://discord.com/api/oauth2/authorize');
+    url.searchParams.set('client_id', CLIENT_ID);
+    url.searchParams.set('response_type', 'code');
+    url.searchParams.set('redirect_uri', OAUTH_REDIRECT);
+    // `identify` and nothing else, the same scope the embedded flow asks for: the bot resolves
+    // everything it needs off its own userbase.
+    url.searchParams.set('scope', 'identify');
+    url.searchParams.set('state', state);
+    return res.redirect(url.toString());
+};
+
+// GET /cube/auth/callback?code=&state=
+//
+// Step two: Discord sends the player back here. Exchange, resolve, mint, and bounce them home.
+//
+// **The token goes home in the URL fragment, not the query string.** A fragment is never sent to a
+// server, so it stays out of access logs, out of `Referer` on the next navigation, and out of any
+// proxy in between — and the client strips it from the address bar as soon as it has read it. A
+// query parameter would put a live session in all three.
+exports.browserAuthCallback = ctx => async function (req, res) {
+    if (!CLIENT_SECRET || !JWT_SECRET || !OAUTH_REDIRECT) {
+        return res.status(503).send('Sign-in is not configured on this server.');
+    }
+    const { code, state } = req.query || {};
+    if (typeof code !== 'string' || !code) return res.status(400).send('Discord sent no code.');
+
+    let target;
+    try {
+        target = jwt.verify(String(state || ''), JWT_SECRET).r;
+    } catch (err) {
+        return res.status(400).send('That sign-in has expired. Start it again.');
+    }
+    // Re-checked rather than trusted from the signature. The allow-list is configuration and can
+    // have changed since the state was minted; a signature only proves *we* wrote it, not that it
+    // is still somewhere we are willing to send an account.
+    if (!allowedRedirect(target)) return res.status(400).send('That is not somewhere this can send you.');
+
+    let discordUser;
+    try {
+        ({ user: discordUser } = await exchange(code, OAUTH_REDIRECT));
+    } catch (err) {
+        console.error('[api] browser code exchange failed:', err.response?.data || err.message);
+        return res.status(401).send('Discord would not accept that sign-in.');
+    }
+
+    const name = discordUser.global_name || discordUser.username;
+    const { userKey } = await resolvePlayer(ctx.db, ctx.database, discordUser.id, name);
+    const token = mintToken(discordUser.id, userKey);
+
+    const back = new URL(target);
+    // Appended to whatever fragment was already there rather than replacing it, so a redirect back
+    // to a routed page keeps its route.
+    back.hash = `${back.hash ? `${back.hash.replace(/^#/, '')}&` : ''}cubeToken=${encodeURIComponent(token)}`;
+    return res.redirect(back.toString());
 };
 
 // Verifies the JWT and puts the live profile on the request. Every route but the exchange goes

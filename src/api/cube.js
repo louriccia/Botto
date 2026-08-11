@@ -8,7 +8,9 @@
 // prose — see `src/game/cube/engine.js`. What a face looks like and what it says are the client's
 // business, which is the whole reason the engine was pulled out of the embed.
 
-const { tokenHandler, requireAuth, requireCube } = require('./auth.js');
+const {
+    tokenHandler, requireAuth, requireCube, browserAuthStart, browserAuthCallback,
+} = require('./auth.js');
 const { rateLimit } = require('./ratelimit.js');
 
 const engine = require('../game/cube/engine.js');
@@ -16,7 +18,7 @@ const pstate = require('../game/cube/state.js');
 const persist = require('../game/cube/persist.js');
 const actions = require('../game/cube/actions.js');
 const {
-    LEVELS, SPECIALS, SIDES, SWEEP_SHARE, WATTO, cube: config,
+    LEVELS, SPECIALS, SIDES, WATTO, cube: config,
 } = require('../game/cube/tuning.js');
 
 // Balance is derived, never stored — the profile keeps two lifetime counters and the difference
@@ -34,7 +36,6 @@ const boardOf = function (ctx, req) {
     return {
         player: s,
         balance: balanceOf(profile),
-        pot: persist.potOf(ctx.db),
         // Exactly one of these is ever set: a run in progress, a bust holding a reroll offer, or a
         // roll parked on a tie. They share one node and are not the same thing.
         run: live || null,
@@ -42,13 +43,46 @@ const boardOf = function (ctx, req) {
         tie: tie || null,
         // Derived progression the client would otherwise have to reimplement — and reimplementing
         // it is how two clients start disagreeing about whether a level is open.
+        //
+        // `route` is the whole road in order: the five levels and every **Again** still standing
+        // between them, each flagged `cleared` or not. Cleared ones are **sent** rather than
+        // filtered out, because the map is a progress bar and a progress bar has to show the ground
+        // already covered — the *run* skips them, which is a different question and one only
+        // `next` answers.
         progress: {
             top: pstate.topOf(s),
             goal: pstate.goalOf(s),
-            perLevel: pstate.clearsPerLevel(s),
+            // Agains per gap. `perLevel` is the name the client grew up with and means the same
+            // number; `gap` is what it is called now.
+            gap: pstate.gapSize(s),
+            perLevel: pstate.gapSize(s),
             canPrestige: pstate.canPrestige(s),
             maxLevel: pstate.MAX_LEVEL,
+            ...pstate.routeOf(s),
+            // The rung a live run would push onto, so the client can draw the bank-or-push offer
+            // without walking the route itself. Null between runs, where there is nothing to push.
+            next: live ? pstate.nextRung(s, live.level) : null,
         },
+        // What a prestige point buys, which is a function of what is already owned rather than of
+        // whether there is a point to spend — `player.points` is what decides affordability. Sent
+        // with the board so a rack screen needs no second request, and so there is only ever one
+        // answer on screen about what is on offer.
+        choices: pstate.rewardChoices(s),
+        // **The player's welds, built.** `/tuning` carries the cubes that exist for everyone; a weld
+        // exists for one player and is assembled from an id, so this is the only place a client can
+        // learn what is on one.
+        //
+        // Built here rather than parsed there on purpose. The id *is* the recipe and the client holds
+        // every parent's face list, so it could do this itself — and then there would be two
+        // implementations of what a weld is, which is the thing pulling the engine out of the embed
+        // was meant to stop. Same shape as a `/tuning` special, so the rack draws it with the same
+        // code that draws everything else.
+        welds: s.cubes
+            .map(id => engine.specialById(id))
+            .filter(sp => sp && sp.welded)
+            .map(sp => ({
+                id: sp.id, name: sp.name, blurb: sp.blurb, welded: sp.welded, faces: sp.faces,
+            })),
     };
 };
 
@@ -73,7 +107,12 @@ module.exports = function mountCube(app, ctx) {
 
     // A refusal from `actions.js` carries a code the client can branch on. 409 is the right status
     // for nearly all of them — they mean "not in that state" — with the genuine exceptions listed.
-    const STATUS = { insufficient: 402, locked: 403, bad_reward: 400, bad_stake: 400, too_small: 400 };
+    const STATUS = {
+        insufficient: 402, locked: 403, bad_reward: 400, bad_stake: 400, too_small: 400,
+        // A loadout longer than the bag is a bad request rather than a conflict: nothing about the
+        // player's state would make it succeed, so 400 is what tells a client to fix the list.
+        too_many: 400,
+    };
     const refused = (res, r) => res.status(STATUS[r.code] || 409).json({ error: r.message, code: r.code });
 
     // What every action needs. `s` is rebuilt per request rather than cached: the actions mutate
@@ -92,7 +131,16 @@ module.exports = function mountCube(app, ctx) {
     // Signing in
     // -----------------------------------------------------------------------
 
+    // Inside Discord: the Embedded SDK hands over a code and this exchanges it.
     app.post('/auth/token', tokenHandler(ctx));
+
+    // In a browser: an ordinary OAuth redirect, run by this service, so the Activity is playable as
+    // a page on the site by anyone logged in there. Both flows end at the same cube token and the
+    // same player — see the note in `auth.js` for why the site's own session is not reused.
+    //
+    // Unauthenticated by necessity, like the exchange above: they *are* the sign-in.
+    app.get('/auth/discord', browserAuthStart);
+    app.get('/auth/callback', browserAuthCallback(ctx));
 
     // -----------------------------------------------------------------------
     // Static data
@@ -114,7 +162,6 @@ module.exports = function mountCube(app, ctx) {
         levels: LEVELS,
         specials: SPECIALS,
         sides: SIDES,
-        sweepShare: SWEEP_SHARE,
         watto: WATTO,
         config: wireConfig,
     }));
@@ -125,7 +172,6 @@ module.exports = function mountCube(app, ctx) {
 
     app.get('/state', auth, async (req, res) => {
         try {
-            await persist.ensurePot(ctx.database, ctx.db);
             res.json(boardOf(ctx, req));
         } catch (err) {
             console.error('[api] /cube/state:', err);
@@ -144,8 +190,9 @@ module.exports = function mountCube(app, ctx) {
         return out.ok ? res.json(out) : refused(res, out);
     });
 
-    // The loadout. `setLoadout` drops unknown ids, cubes that aren't owned and anything past the
-    // slot count, so nothing here has to trust the request.
+    // The loadout. `setLoadout` collapses duplicates, drops unknown or unowned ids and **refuses more
+    // than `bagSize()` of them** with `too_many`, so nothing here has to trust the request. The cap is
+    // the bag: a run draws eight cubes across the climb, so eight is what a rack can field.
     app.post('/loadout', auth, rateLimit({ perMinute: 30 }), (req, res) => {
         if (!Array.isArray(req.body?.ids)) {
             return res.status(400).json({ error: 'Expected { ids: [] }.', code: 'bad_body' });
@@ -165,24 +212,45 @@ module.exports = function mountCube(app, ctx) {
     const rollResponse = (thrown, settled) => ({
         // The line as thrown, one id per position, before any effect resolved.
         thrown: thrown.rolled,
+        // **What a face id cannot say about the position it is standing on**, index for index against
+        // the line beside it — see `lineState` in the engine. `frozen` is Ando Prime holding a cube on
+        // the face it is showing, `burned` is what Baroonda has scorched off the cube standing there,
+        // and `cubeIds` is which cube it is at all — the one thing a client naming the casualties of
+        // an effect cannot work out from the faces alone.
+        //
+        // Two copies rather than one, because the two lines genuinely disagree and the difference is
+        // the beat: a scorch applied on this rung is on the resolved line and not on the thrown one,
+        // and a cube whose ice an effect broke against is held on the throw and thawed by the payout.
+        // Every step carries its own for the same reason.
+        thrownState: thrown.rolledState,
         // The line as it ended up, and the walk that got there.
         line: thrown.res.faceIds,
+        frozen: thrown.res.frozen,
+        burned: thrown.res.burned,
+        cubeIds: thrown.res.cubeIds,
         steps: thrown.res.steps,
         notes: thrown.res.notes,
         pays: engine.multSteps(thrown.opening, thrown.res.pays,
             settled ? settled.majority : null),
         level: thrown.run.level,
+        // Which rung this was. `kind` is 'level' or 'again'; `again` is which time round, so a
+        // client can draw `Again ×3` without inferring it from anything.
+        kind: thrown.kind,
+        again: thrown.run.again || 0,
         call: thrown.run.call,
         stake: thrown.run.stake,
         opening: thrown.opening,
         breaker: thrown.breaker,
-        // What the roll banked, as totals rather than as faces — and the client cannot derive either
+        // What the line *held*, as totals rather than as faces — and the client cannot derive either
         // from `line`. Both pay in the first pass and can be written over in the second, which leaves
         // the line with no position to count them off; a mirrored copy pays without ever having been
         // thrown. Sent for the same reason a razed greed still gets a `pays` entry with no `at`: a
         // readout that climbs with nothing on screen to explain it reads as a bug.
+        //
+        // **Held, not banked.** Neither is awarded off a roll that ends the run — see `settleThrow` —
+        // so a client counting these up has to check `settled.won` first, exactly as it does for `pays`.
         rerolls: thrown.res.rerolls,
-        shortcut: thrown.res.shortcut,
+        shortcuts: thrown.res.shortcuts,
         ended: thrown.res.ended,
         ...(settled ? { settled } : {}),
     });
@@ -197,6 +265,10 @@ module.exports = function mountCube(app, ctx) {
         const opened = live ? actions.pushRun(ctx, { call }) : actions.startRun(ctx, { call });
         if (!opened.ok) return refused(res, opened);
 
+        // Whether the roll is on the books. Past this point the stake is not the API's to hand back:
+        // the parked tie holds that same stake and pays out on it, so refunding as well credits the
+        // player twice for one roll and leaves a tie on the board that has already been paid for.
+        let committed = false;
         try {
             const thrown = actions.throwLevel(ctx, opened.run);
 
@@ -205,6 +277,7 @@ module.exports = function mountCube(app, ctx) {
             // finished later — and it blocks the board until it is.
             if (thrown.asking) {
                 actions.parkTie(ctx, thrown, { reverse: opened.reverse || 0 });
+                committed = true;
                 return res.json({
                     ...rollResponse(thrown, null),
                     tie: { asking: true, cost: thrown.cost, worth: thrown.worth },
@@ -217,9 +290,13 @@ module.exports = function mountCube(app, ctx) {
         } catch (err) {
             // The stake is already spent but nothing settled, so the run would simply vanish. Hand
             // it back, exactly as the embed does when Discord is unreachable mid-roll.
-            if (opened.staked) ctx.moveTruguts({ transaction: 'r', amount: opened.staked });
+            if (opened.staked && !committed) ctx.moveTruguts({ transaction: 'r', amount: opened.staked });
             console.error('[api] /cube/roll:', err);
-            return res.status(500).json({ error: 'The roll failed — your stake was returned.' });
+            return res.status(500).json({
+                error: committed
+                    ? 'The roll landed but the answer did not — reopen the board to pick it up.'
+                    : 'The roll failed — your stake was returned.',
+            });
         }
     });
 
@@ -293,20 +370,139 @@ module.exports = function mountCube(app, ctx) {
         return res.json({ ...out, board: boardOf(ctx, req) });
     });
 
-    // Handing the ladder back for a bigger ceiling and one thing off the rack.
+    // Handing the ladder back for a bigger ceiling and a point to spend. Takes no body: what the
+    // point buys is a separate decision, made whenever the player feels like making it.
     app.post('/prestige', auth, rateLimit({ perMinute: 10 }), (req, res) => {
         const ctx = ctxOf(req);
-        const out = actions.prestige(ctx, { reward: req.body?.reward });
+        const out = actions.prestige(ctx);
         if (!out.ok) return refused(res, out);
-        return res.json({ ...out, choices: pstate.rewardChoices(ctx.s), board: boardOf(ctx, req) });
+        return res.json({ ...out, board: boardOf(ctx, req) });
     });
 
-    // What a prestige is worth picking from, so the client can draw the menu.
-    app.get('/prestige/choices', auth, (req, res) => {
+    // Spending one banked point. `boardOf` carries the remaining balance and the shortened list of
+    // what is left on offer, so a client never has to work either out for itself.
+    app.post('/point', auth, rateLimit({ perMinute: 20 }), (req, res) => {
         const ctx = ctxOf(req);
-        if (!pstate.canPrestige(ctx.s)) {
-            return res.status(409).json({ error: 'You have not earned a prestige.', code: 'not_eligible' });
+        const out = actions.spendPoint(ctx, { reward: req.body?.reward });
+        if (!out.ok) return refused(res, out);
+        return res.json({ ...out, board: boardOf(ctx, req) });
+    });
+
+    // ---------------------------------------------------------------------
+    // The board of records
+    // ---------------------------------------------------------------------
+    //
+    // **Weekly, not all-time**, and the reasoning is in `weekKey`: in a mode this swingy an all-time
+    // board is won once by whoever was standing on a fresh prestige road when a ×140 landed and is
+    // dead content afterwards. A week gives everyone a live shot every Monday.
+    //
+    // **No new storage and no new writes.** `db.user` is the whole user tree, already in memory from
+    // the Firebase listener, and `challenge/leaderboard.js` established that scanning it is what a
+    // leaderboard here does. The numbers are the ones `recordRoll` already files.
+    //
+    // Three columns and not truguts won: a wealth board ranks volume, and the point of ranking a
+    // multiple is that nobody can grind their way to one.
+    // **All three ranges come back from one scan.** The client toggles between week, month and
+    // all-time without refetching, which is the difference between a toggle that feels like a filter
+    // and one that feels like a page load — and the expensive half is the walk over the user tree,
+    // which happens once either way.
+    app.get('/leaderboard', auth, rateLimit({ perMinute: 30 }), (req, res) => {
+        try {
+            const me = req.player.discordId;
+            const keys = { week: pstate.weekKey(), month: pstate.monthKey() };
+            const rows = { week: [], month: [], all: [] };
+            for (const u of Object.values(ctx.db.user || {})) {
+                const c = u?.random?.cube;
+                if (!u?.discordID || !c) continue;
+                const who = { id: String(u.discordID), name: u.random?.name || u.name || null };
+                // A rolling window only counts if its stored key is the current one — a stale block is
+                // last week's numbers and must not be ranked against this week's.
+                for (const name of ['week', 'month']) {
+                    const w = c[name];
+                    if (!w || w.id !== keys[name]) continue;
+                    rows[name].push({
+                        ...who,
+                        multiple: Number(w.multiple) || 0,
+                        cubes: Number(w.cubes) || 0,
+                        streak: Number(w.streak) || 0,
+                    });
+                }
+                rows.all.push({
+                    ...who,
+                    multiple: Number(c.bestMultiple) || 0,
+                    cubes: Number(c.bestCubes) || 0,
+                    streak: Number(c.bestStreak) || 0,
+                });
+            }
+            // One ranking per column rather than one sorted list: a player can lead the multiple and
+            // be nowhere on the streak, and collapsing that into a single score invents a composite
+            // nobody asked for.
+            const rank = function (list) {
+                const board = {};
+                for (const key of ['multiple', 'cubes', 'streak']) {
+                    const ranked = list.filter(r => r[key] > 0).sort((a, b) => b[key] - a[key]);
+                    const at = ranked.findIndex(r => r.id === me);
+                    board[key] = {
+                        top: ranked.slice(0, 10).map((r, i) => ({
+                            rank: i + 1, id: r.id, name: r.name, value: r[key], you: r.id === me,
+                        })),
+                        // Where the caller sits, so a player outside the top ten is told something
+                        // rather than left to assume the board is broken.
+                        you: at < 0 ? null : { rank: at + 1, value: ranked[at][key] },
+                        players: ranked.length,
+                    };
+                }
+                return board;
+            };
+            return res.json({
+                keys,
+                ranges: { week: rank(rows.week), month: rank(rows.month), all: rank(rows.all) },
+            });
+        } catch (err) {
+            console.error('[api] /cube/leaderboard:', err);
+            return res.status(500).json({ error: 'Could not read the board.' });
         }
-        return res.json({ choices: pstate.rewardChoices(ctx.s) });
+    });
+
+    // ---------------------------------------------------------------------
+    // The press
+    // ---------------------------------------------------------------------
+    //
+    // Three routes, and every one of them answers with the whole board — welding rewrites `cubes`,
+    // `equipped` and `points` at once, so a client reconciling three separate deltas is a client
+    // that will eventually disagree with the server about what is on the table.
+    //
+    // Rate limits are tighter than the shop's on purpose: a press is a spend, and the reroll is the
+    // one action in the mode a player might reasonably want to hammer.
+
+    // Two cubes in, one out. Costs a prestige point.
+    app.post('/weld', auth, rateLimit({ perMinute: 20 }), (req, res) => {
+        const ctx = ctxOf(req);
+        const ids = Array.isArray(req.body?.ids) ? req.body.ids.filter(x => typeof x === 'string') : [];
+        const out = actions.weldCubes(ctx, { ids });
+        if (!out.ok) return refused(res, out);
+        return res.json({ ...out, board: boardOf(ctx, req) });
+    });
+
+    // A fresh cut of the same two cubes. `paying` picks the currency — anything other than the
+    // literal `points` is truguts, so a malformed body spends the abundant one rather than the
+    // scarce one.
+    app.post('/weld/reroll', auth, rateLimit({ perMinute: 30 }), (req, res) => {
+        const ctx = ctxOf(req);
+        const out = actions.rerollWeld(ctx, {
+            id: req.body?.id,
+            paying: req.body?.paying === 'points' ? 'points' : 'truguts',
+        });
+        if (!out.ok) return refused(res, out);
+        return res.json({ ...out, board: boardOf(ctx, req) });
+    });
+
+    // Breaking one apart. Free, and the roll is lost — the client is responsible for saying so
+    // before it calls this, because there is nothing to undo it with.
+    app.post('/weld/break', auth, rateLimit({ perMinute: 20 }), (req, res) => {
+        const ctx = ctxOf(req);
+        const out = actions.unweld(ctx, { id: req.body?.id });
+        if (!out.ok) return refused(res, out);
+        return res.json({ ...out, board: boardOf(ctx, req) });
     });
 };

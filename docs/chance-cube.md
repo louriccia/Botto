@@ -26,20 +26,28 @@ fair; what makes the game is the ladder you choose to climb with it.
 
 ## 2. The loop
 
-`/chubacubes` opens one embed in the channel and the entire game happens inside it. The board is
-**public** — the whole channel watches the cubes land — which costs one extra guard, see
-[Ownership](#26-a-public-board). Errors stay ephemeral: a stale button or a short balance is
-nobody else's business.
+`/chubacubes` launches the **Activity** and the entire game happens inside it. The bot's whole job
+is the unlock gate and the iframe — the board is drawn by `../junkyard`'s `src/activity/`, which
+reads the same `game/cube/` rules through `src/api/cube.js`.
+
+**Everything is server-authoritative.** The client says "I call blue"; it never says what the cubes
+did. Two reasons, and both are absolute: `CUBE_LEAN_SALT` decides the day's favoured side and
+cannot ship to a browser, and the payouts are real truguts. Responses carry abstract face ids
+(`greed`, `mult:blue`) and structured notes, never emoji or prose — what a face looks like and what
+it says about itself are the client's business, which is the whole reason the engine was pulled out
+of the embed in the first place.
 
 ```
         <a:chance_cube> Botto's Chance Cube
 
-  <:silver:> Level 2 · Test Your Luck · 3 cubes · 4×    ← records badge the value that broke them:
-                                                          `5 cubes <a:newrecord:>`, `6.5× <a:newrecord:>`
-  ▰▰▱ → 🔓 Level 3                       ← only on your ceiling level
+  <:silver:> Level 2 · Test Your Luck · <a:restart:> Again ×1 · 3 cubes · 9×
+                                         ↑ records badge the value that broke them:
+                                           `5 cubes <a:newrecord:>`, `6.5× <a:newrecord:>`
+  <:bronze:> ▰ <:silver:> ▨ <:gold:> ▱ <:platinum:> ▱ <:diamond:> → 🔒 <:grandmaster:> Prestige 1
+                                         ↑ the road, on every frame
 
-  Called 🟦 Blue · 1,000 staked ✅        ← subtext, sits right on the cubes
-  # 🟦 🟦 🟥                              ← heading-size cubes
+  Called 🟦 Blue · 1,000 staked ✅        ← small, sits right on the cubes
+  🟦 🟦 🟥                                ← the line, drawn large
 
   "Hmph. Lucky roll. Don'ta let it go to your head, eh?"
 
@@ -47,7 +55,7 @@ nobody else's business.
 
   [ 🟦 Push Blue ]  [ 🟥 Push Red ]  [ 💰 Bank 4,000 ]  [ ? ]
 
-  📀 499,000  ·  ✨ Pure Cube pot 101,000        ← footer
+  📀 499,000                                     ← the balance readout
 ```
 
 Set a stake, call a side, roll. Win the level if your side is the **majority** — then bank
@@ -62,9 +70,9 @@ player's truguts:
 - `**Congrats!** You won **1,000** truguts and unlocked **Level 2 · Test Your Luck**!`
 - `**Sorry!** You lost **1,000** truguts and a **16,000** standing.`
 
-Both amounts are **net** — what actually changed hands — so they match the footer balance
-moving. The clears counter is deliberately not spelled out in words anywhere; the xp bar is
-the only place it lives.
+Both amounts are **net** — what actually changed hands — so they match the balance readout
+moving. The clears counter is deliberately not spelled out in words anywhere; [the road
+map](#the-map) is the only place it lives.
 
 An end screen that earned a clear also gets one forward-looking line — `Keep playing to
 unlock <:gold:> **Level 3 · Rolling Thunder** (5 dice) **8×**` — so the reason to press Play
@@ -103,46 +111,42 @@ the point: it gives the table something to argue about.
 
 ### 2.2 How a roll plays back
 
-The buttons come off and every cube goes face-down as the animated cube emoji. Then the
-cubes land **a few at a time**, slot-machine style — but only up to the cube that settles
-the majority. Past that point the result cannot change, so there is no tension left to milk
-and everything still face-down lands at once. `decidedAt` finds that cube; `revealSteps`
-spaces the frames out to it.
+The controls come off and every cube goes face-down. Then they turn over **one at a time**, and the
+whole reveal takes about the same three seconds however long the line is: `cubeBeat` divides
+`throwTime` by the count and floors it, so a nine-cube line turns faster per cube than a three
+rather than taking three times as long.
 
-Each frame is a message edit, which is the binding constraint: nine cubes revealed one at a
-time would spend a whole rate-limit bucket on a single roll. `maxRevealFrames` caps it at
-three groups plus the full reveal, so the worst case is five edits over ~4 seconds.
+**The pacing is measured in milliseconds, not in frames**, and that is the single biggest thing the
+Activity changed. The embed drew the board in message edits, which is a rate-limit budget rather
+than a frame budget: nine cubes revealed one at a time would have spent a whole bucket on one roll,
+so the reveal was grouped into at most three batches and stopped early at the cube that settled the
+majority — past that point the result could not change, so there was no tension left to milk.
+**None of that survives.** A DOM update costs nothing, so every cube gets its own turn and every
+effect gets its own beat. `BEAT` in `board.js` is the whole of the pacing, and `reduceMotion` is
+the one thing that overrides it.
 
-Firebase settlement runs *during* the first beat, so Discord's 3s response window is never
-spent waiting on a write and a crash mid-animation still leaves the ledger correct. That
-creates one trap worth knowing about: **by the time the cubes start landing, the player's
-balance and clears have already changed.** Frames drawn while cubes are face-down therefore
-render from a snapshot taken before settlement — otherwise the footer balance and the xp bar
-give the result away a full second before the reveal.
+Settlement still runs *during* the first beat, so a crash mid-animation leaves the ledger correct.
+The trap that used to create is gone with the client that had it: the embed re-rendered the entire
+board on every frame, so a balance or a road tile drawn after settlement gave the result away
+before the cubes landed, and every face-down frame had to be rendered from a pre-settlement
+snapshot to stop it. The Activity animates the line **in place** — `syncLine` and `diffLine` touch
+the cubes that moved and nothing else — so the numbers that would spoil it are simply not part of
+the frame.
 
-Layout constraints that took a couple of passes to find:
+Layout rules, and what is left of them now the client can lay out:
 
-- **Markdown headings render in an embed description but not in a field value.** The cubes
-  get `# ` for heading-size faces, which silently did nothing while the roll still lived in
-  a field — that difference, not the emoji, was the problem. The called side uses `-# `
-  subtext at the other end of the same scale.
-- **The roll steps down through four markdown sizes as the line grows**, each threshold being the
-  count at which the row stops fitting at the size above it:
-
-  | cubes | 1–9 | 10–11 | 12–14 | 15+ |
-  |---|---|---|---|---|
-  | drawn at | `#` | `##` | plain | `-#` |
-
-  A wrapped row is much worse than a smaller one — it stops being something you can count at a
-  glance, which is the entire job of the line. Watto's tie-breaker adds a glyph the count doesn't
-  know about, which is the headroom these numbers carry. This was two steps for a while, and the
-  drop from heading straight to ordinary text was too far in one go; `##` is the rung that was
-  missing.
-- **Footers are plain text** — unicode emoji only, no markup, no custom emoji. Truguts and
-  the pot live there precisely because they are reference numbers, not part of the roll.
-- Blank lines separate the header block, the roll, Watto's line, and the result, so each beat
-  reads as its own thing rather than one paragraph that keeps growing. The called side is the
-  exception — it sits directly on top of the cubes with no gap, because it's a label for them.
+- **The line has to stay countable at a glance**, which is the entire job of it. A row that wraps
+  stops being something you can count, so the cubes shrink as the line grows rather than spilling
+  onto a second row. This used to be four hand-picked markdown sizes with a lookup table behind
+  them — `#`, `##`, plain, `-#`, each threshold being the count at which the row stopped fitting at
+  the size above — because an embed has four text sizes and no way to measure anything. CSS does it
+  properly and the table is gone.
+- **The balance is a reference number, not part of the roll**, so it sits apart from the line and
+  changes only when truguts actually move. It lived in the embed's footer for exactly this reason,
+  which was the one thing that layout got for free.
+- Space separates the header block, the roll, Watto's line, and the result, so each beat reads as
+  its own thing rather than one paragraph that keeps growing. The called side is the exception — it
+  sits directly on top of the cubes with no gap, because it's a label for them.
 - The called-side line carries a **✅ or ❌** once the roll has an answer, and nothing while the
   cubes are still face-down — that mark is the whole question the reveal is asking, so showing it
   early would give the roll away.
@@ -156,12 +160,13 @@ Layout constraints that took a couple of passes to find:
   the results frame whose clear filled it. That frame is already passed a state with `clears` at
   the goal, so the padlock reads straight off it — and the idle board that follows, whose counter
   has reset toward the next level, is correctly locked again.
-- **Two action rows, and nothing in either that can't be pressed.** The top row is the roll —
-  call, bank, help. The bottom row is everything you set up *before* one: the stake, the rack,
-  rerolls, prestige. All of that is locked for the duration of a run and none of it is about a
-  result, so the bottom row disappears entirely mid-run and on an end screen, where the top row
-  collapses to `Play again`. It was one row until the rack arrived; a rack button and a reroll
-  button would have put seven things in it against a limit of five.
+- **Two groups of controls, and nothing in either that can't be pressed.** One is the roll — call,
+  bank, help. The other is everything you set up *before* one: the stake, the rack, rerolls,
+  prestige. All of that is locked for the duration of a run and none of it is about a result, so
+  the second group disappears entirely mid-run and on an end screen, where the first collapses to
+  `Play again`. The split was forced originally — Discord allows five components to an action row,
+  and a rack button plus a reroll button made seven — but it outlived the constraint because it is
+  the right split anyway: what you configure and what you press are different kinds of thing.
 
 **Every effect gets its own frame.** `resolveLine` settles the line in two passes — the first fixes
 every side and modifier, the second restructures, **left to right in the order the cubes were
@@ -176,8 +181,11 @@ The labels are the `notes` the engine has always generated and nothing has ever 
 They live on these frames only and are gone by the payout, which keeps the [result block short](#22-how-a-roll-plays-back)
 while still letting the roll explain itself. A face that changed nothing gets no frame.
 
-Three cubes carry restructuring faces — Mirror, Symbiont, Binder — and each can hold at most one
-position in a set, so **three is the real ceiling** as well as the configured one (`maxEffectFrames`).
+**Nothing caps this any more.** The embed capped the effect walk at three frames (`maxEffectFrames`)
+and resolved the rest silently into the payout, which was affordable only because three cubes carry
+restructuring faces and each can hold at most one position in a set. That stopped being true the day
+a copy could take its own turn — the stress harness has measured **nine** effect steps in a single
+roll — and the Activity simply plays all of them.
 
 **Then the multiple builds, one paying face at a time.** Phase two of the reveal walks the Greed and
 Multiplier faces the same way phase one walks the effects: a frame each, the pointer on the face
@@ -204,15 +212,16 @@ losing side still gets a frame — it was on the table, and silence would read a
 the phase entirely: the run ended when he stood up, and a multiple climbing toward a payout that was
 never coming is a fake-out rather than a reveal.
 
-The walk is capped at `maxPayFrames` (4), and unlike the effect faces that cap is doing real work —
-the Greed Cube pays on five faces in six, and a Binder or a Mirror can put a second copy of it on the
-table, so there is no natural ceiling on how many a roll can throw. Over the cap it keeps the **last**
-frames rather than the first: each header shows the running total, so the walk simply starts partway
-along and no frame ever shows a number that isn't true.
+This walk had a cap too (`maxPayFrames`, 4) and it was the one doing real work — the Greed Cube pays
+on five faces in six, and a Binder or a Mirror can put a second copy of it on the table, so there is
+no natural ceiling on how many a roll can throw. The embed kept the **last** frames rather than the
+first, so the walk started partway along and no frame ever showed a number that wasn't true.
 
-Worst case a roll is now four reveal frames, three effect frames, four multiplier frames, a tie beat
-and the payout: thirteen edits over about eleven seconds, against five over four before the specials
-existed. That is the price of a roll explaining itself, and it is only paid by a rack that earned it.
+Both caps are dead letters now: they live in `RENDER` in `data/discord/cube_emoji.js` and are read
+only by `src/interactions/cube*.js`, which is the retired board. **A long roll is paced rather than
+truncated** — `BEAT.effect` and `BEAT.pay` are about a second each, so a rack that throws a dozen
+paying faces takes its time and says all of it. That is the price of a roll explaining itself, and
+it is only paid by a rack that earned it.
 
 Once special cubes are in play a roll gets one more beat, because the line that lands is not
 necessarily the line that counts. The reveal animates the cubes **as rolled** — a special shows
@@ -239,10 +248,11 @@ roll in progress:
   🟥 picked 48% · won 46% · rolled 49%
   100 calls · 316 cubes rolled
 
-  Your rack · 2/2 slots
-  <a:DyeGon:> Wild Cube · <a:binder:> Binder Cube
-  On the bench: 💰 Greed Cube · 🪞 Mirror Cube
-  <a:restart:> Rerolls banked 3 · next costs 33,750
+  Your rack · 8/8 on the table
+  <a:DyeGon:> Wild Cube · <a:binder:> Binder Cube · …      ← eight seats, because eight is what a
+  The bag is full — swap one out to field another.           run draws. The line below it appears
+  On the bench: 💰 Greed Cube · 🪞 Mirror Cube               only with the table full and cubes
+  <a:restart:> Rerolls banked 3 · next costs 33,750          still on the bench
 
   On a tie
   <:SlyGon:> Qui-Gon's Nudge — his tie-breaker leans 60/40 your way
@@ -283,24 +293,20 @@ screen for.
 against one blue and a wipeout says more about Shmi than her name does. The title says how a cube is
 built; the counts underneath say how it has actually landed.
 
-That page has no fixed size — it grows with every cube owned, and a custom emoji costs about
-twenty-five characters of the 4,096 allowed however small it looks. Six faces per cube plus tallies
-runs a full rack past the limit, and discord.js **throws** on an over-long description rather than
-trimming it. So the screen sheds weight in three tiers, dropping the least valuable thing first: the
-blurbs go before the preamble, because they are the most re-read; the preamble goes before any cube
-does; and a hard cut backstops both so this can never fail in front of a player. Measured across
-every rack size against tallies up to nine digits, the worst case is **4,079** and nothing throws.
+That page has no fixed size — it grows with every cube owned — and in the Activity that costs
+nothing: it is a scrolling panel, so every cube gets its faces, its blurb and its tallies however
+many are owned.
 
 **Your rack** is the only field that isn't history, and it only appears once a prestige has
 handed something over — so most of a first climb never sees it at all. Everything owned is
 listed, split into what's on the table and what's on the bench, because a cube nobody equipped
 never rolls and that is exactly the kind of thing a player should not have to go looking for.
 
-**On a tie** is a separate field and has to be, because *Your rack* is headed by a **slot count**
-and neither [tie pick](#210-ties) is a cube: they can't be equipped, they don't take a slot, and
-they aren't drawn into a line. Anything listed under a slot count reads as something that fills
-one. They earn a place on the screen for the same reason the bench does — a prestige each, and
-they only fire on a roll most climbs never see.
+**On a tie** is a separate field and has to be, because *Your rack* is a list of **things you field**
+and neither [tie pick](#210-ties) is a cube: they can't be equipped and they aren't drawn into a line.
+Anything listed under that heading reads as something that goes on the table. They earn a place on the
+screen for the same reason the bench does — a prestige each, and they only fire on a roll most climbs
+never see.
 
 **Biggest roll** is the longest line ever left standing *after* the effects finished with it, so it
 is the record a Mirror conjuring and a Symbiont inserting are actually chasing — and it counts
@@ -344,10 +350,11 @@ takes hundreds of cubes to mean anything, which is half the fun of showing it. A
 version would be a separate counter node, and is the ghost of the ledger that used to be here.
 
 **Won** and **Lost** are the lifetime trugut ledger, accumulated in exactly the net amounts
-the result lines quote — busted stakes on one side, banked profit and pot prizes on the other.
+the result lines quote — busted stakes on one side, banked profit on the other.
 So the totals are the literal sum of everything the player was ever told, and `won - lost - spent`
 reconciles against the balance the mode has moved. `recordWon`/`recordLost` are called at the
-three points where truguts actually move (bust, bank, pot payout), never inferred afterwards.
+two points where truguts actually move (bust, bank), never inferred afterwards. There was a third
+until the pot came out, and dropping it is the whole of what that removal did to this ledger.
 
 **Spent** is the third column: truguts handed over for *something* rather than wagered — [bought
 rerolls](#29-rerolls) and [bought ties](#210-ties), via `recordSpent`. They were on the loss ledger
@@ -389,7 +396,7 @@ to put it, more often than a settled one does.
 Each level wears the goal-time symbol for its depth — the set run backwards, bronze at Level 1 up to
 diamond at the top.
 
-| Level | Name | Cubes | Payout | P(win) |
+| Level | Name | Cubes | Pays | P(win) |
 |---|---|---|---|---|
 | 1 🥉 | A Friendly Wager | 1 | **2×** | 50% |
 | 2 🥈 | Test Your Luck | 3 | **4×** | 50% |
@@ -397,13 +404,20 @@ diamond at the top.
 | 4 <:platinum:> | Gamblers and Swindlers | 7 | **16×** | 50% |
 | 5 💎 | Fate Decides | 9 | **32×** | 50% |
 
-Payouts are a clean double per level, cumulative on the original stake: reaching Level 5 and
-banking a 📀1,000 stake pays 📀32,000. The doubling is not a lookup — it is applied to a multiple
-the run carries, which is what lets a paying cube raise the whole rest of the ladder rather than
-one rung of it. See [the economy](#41-the-economy).
+**That `Pays` column is what a level is worth on a fully collapsed road, and nothing else.** The
+five levels are not the whole route — see [the road](#27-the-road) — and the multiple is carried by
+the run rather than looked up: **a level doubles it, an Again adds one.** On a road with nothing
+left in the gaps those two rules reproduce the column exactly, which is what it is for. On a padded
+road Level 2 sits further along and pays more, because more coin flips went into reaching it.
 
 **The majority of an odd number of fair cubes is exactly 50/50 at every level.** Nine cubes
 are no harder to call than one — depth buys multiple and variance, nothing else.
+
+**So a level push is exactly fair and an Again is not**, and that split is the whole economy of the
+mode. `M → 2M` on a coin flip is EV 1.000; `M → M+1` is a bad bet that gets worse as `M` grows,
+bottoming out at 0.5. The entire house edge lives in the Agains, which is a far cleaner place for it
+than smeared across every rung — and it is a price the player pays for *progress* rather than for
+depth. See [the economy](#3-economy).
 
 ### 2.5 Prestige and the stake ceiling
 
@@ -424,7 +438,7 @@ levels — what changes is what a level is worth.
 
 **The step was ×5 and is now ×2**, which is the single biggest correction the progression has
 taken. The ceiling is the only thing a prestige *guarantees* — the rack pick runs out after
-thirteen — so what matters about the step is not how impressive it reads on the offer screen but
+seventeen — so what matters about the step is not how impressive it reads on the offer screen but
 how long the cap goes on binding. Measured against live balances (median holder 📀77,418, p75
 📀478k), a ×5 ceiling passes the median player's entire net worth at **prestige 3**, about 217
 runs in. From there the headline reward is a number they can never reach, and every prestige
@@ -436,45 +450,47 @@ The old step also set the reroll price, which is scaled by the same figure: a pr
 cost 📀977M at ×5 against 📀640k at ×2. Scaling rerolls with the ceiling is right; ×5 made it
 meaningless.
 
-**Prestige is offered, never forced.** Clear the top level once and the offer sits there
-indefinitely; you can keep playing a maxed ladder at the old stake ceiling as long as you like.
-Taking it locks Levels 2–5 again, resets clears, doubles the ceiling, and lets you take one
-thing off Watto's rack. Nothing in the lifetime record resets — deepest level, best standing,
+**Prestige is offered, never forced.** Survive Level 5 once and the offer sits there indefinitely;
+you can keep playing a collapsed road at the old stake ceiling as long as you like, Agains past the
+top included. Taking it locks Levels 2–5 again, **fills the gaps back in with Agains**, doubles the
+ceiling, and lets you take one thing off Watto's rack. Nothing in the lifetime record resets — deepest level, best standing,
 won/lost, the rack and the per-side rates all carry across.
 
 Level names live only in `LEVELS`; every line of copy about the top of the ladder interpolates
 `LEVELS[MAX_LEVEL].name`, and Watto's top-level dialogue says "nine cubes" rather than naming
 it — so renaming a level can't leave a stale string behind.
 
-**Every *other* prestige adds one more clear to each level, and it stops at five** — 2 per level
-at prestige 0 and 1, 3 at prestige 2 and 3, 4, then 5 from prestige 6 onward and never more. One
-per prestige made the fourth re-climb a slog: the ladder stays the same five levels, so the grind
-has to grow slower than the reward. The meter simply grows a segment, so the visual language
-doesn't change.
+**Every *other* prestige adds one more Again to each gap, and it stops at four** — 1 per gap at
+prestige 0 and 1, 2 at prestige 2 and 3, 3, then 4 from prestige 6 onward and never more. One per
+prestige made the fourth re-walk a slog: the road stays the same five levels, so the grind has to
+grow slower than the reward. The map simply grows a tile per gap, so the visual language doesn't
+change — and the road getting visibly longer is now what a prestige *looks* like.
 
-The cost of a whole prestige cycle is exactly **30c + 2 runs**, where `c` is the clears each level
-takes — a closed form the simulation reproduces to the run. The `+2` rather than `+32` is
-[the rule that a clear opening a level doesn't end the run](#27-clears--how-levels-open), which is
-worth a flat 30 runs a cycle all by itself. So the first prestige is 62 runs, about half an hour,
-and every extra clear adds 30 runs to every cycle after it.
+The cost of a whole prestige cycle is **`30(g+1) + 2` runs**, where `g` is the Agains per gap — the
+forced-bank model's `30c + 2` with `c = g + 1`, measured to the run and derived in
+[§2.7](#27-the-road). So the first prestige is 62 runs, about half an hour, and every extra Again
+adds 30 runs to every cycle after it. Those are the same numbers the ladder shipped with; the
+one-step offset in `g` is what absorbs the frontier moving a rung deeper.
 
 **What pays for that growth is the rack**, not patience: a Shortcut cube measures a **2.2×**
 speedup on a re-climb, which is close to exactly what +1 clear every other prestige costs. That
 pairing is why the rate is right and why the cap has to exist — the rack is *finite*. Watto's rack
-holds thirteen distinct picks, and once they are gone there is nothing left to accelerate with,
+holds seventeen distinct picks, and once they are gone there is nothing left to accelerate with,
 while an uncapped requirement would go on charging more for less forever: 243 runs a cycle at
-prestige 13, and 362 — nearly three hours — by prestige 22, for a slot you may not need.
+prestige 13, and 362 — nearly three hours — by prestige 22, for nothing at all. That last clause used
+to read "for a slot you may not need", which was the `+1 slot` pick standing in as the thing an
+endgame prestige was still worth. It isn't on the rack any more, so past seventeen a prestige buys the
+ceiling and stops — which is why the cap on the requirement matters more now, not less.
 
 Five is where it stops for two reasons. It is 152 runs a cycle on an empty rack and about 69 with
 one, which is a steady state a player can sit in indefinitely; and it costs almost nothing over
 the progression the mode is actually designed for, taking the run to prestige 13 from 1,890 runs
 to 1,614. The cap is for the endgame past the rack, not for the climb through it.
 
-The **xp bar is what ultimately sets the number.** `barOf` draws one custom emoji per clear
-needed, inline in the description. Five tiles is a meter you can read at a glance; twelve wraps on
-a phone and stops being countable — the same failure [the roll itself](#22-how-a-roll-plays-back)
-steps down through four markdown sizes to avoid, except the meter has no equivalent step-down to
-save it.
+**The number used to be set by what could be drawn.** The old xp bar spent one custom emoji per
+clear needed, inline in an embed description, and twelve of those wrap on a phone — so the cap was a
+drawing limit wearing a rule's clothes. [The road map](#the-map) replaced it and the constraint went
+with it, which is why `maxClears` is now argued for on pacing alone.
 
 At the top of the ladder the clears meter retargets from a level unlock to the prestige offer,
 so the same bar and the same `awardClear` path drive both. That gate is the one thing that
@@ -485,8 +501,6 @@ the gate as well would price prestige out of reach.
 The prestige icon is `<:grandmaster:>`, the top of the existing rank-symbol ladder, taken as
 `level_symbols[length - 1]` so it tracks whatever that ladder's top rank is. It replaces the
 padlock on the clears meter at max level — a level unlock is a padlock, a prestige is a rank.
-One Discord constraint: **embed titles don't render custom emoji**, so the prestige screen wears
-it at the head of the body instead of in the title.
 
 The **thing you take off the rack is the confirmation** — there is no separate confirm button,
 which keeps a destructive action to one deliberate gesture while still stating plainly what it
@@ -494,15 +508,31 @@ costs. The handler re-checks both eligibility *and* the reward on the select rat
 the offer screen, so a stale menu can neither reset a ladder twice nor grant a cube twice.
 
 **Watto's rack** — the pool you pick *from*, not to be confused with *Your rack*, the loadout on
-the start screen — holds fourteen things: the ten [special cubes](#28-special-cubes), **+1 special
-cube slot**, and three **one-time perks that are not cubes at all**: **purchase rerolls** and the
-two [tie](#210-ties) picks, **Qui-Gon's Nudge** and **Bribe Ties**. Cubes already owned drop off
-the list and each perk is offered once, so a very long-lived player eventually has nothing left but
-slots — which stay worth taking until slots outnumber cubes. Fourteen options against a select-menu
-limit of twenty-five means the list never needs paging.
+the start screen — holds seventeen things: the fourteen [special cubes](#28-special-cubes) and three
+**one-time perks that are not cubes at all**: **purchase rerolls** and the two [tie](#210-ties) picks,
+**Qui-Gon's Nudge** and **Bribe Ties**. Cubes already owned drop off the list and each perk is offered
+once, so **the rack is finite and it empties** — take all seventeen and a prestige is worth its stake
+ceiling and nothing more. Seventeen options against a select-menu limit of twenty-five means the list
+never needs paging.
+
+**There was an eighteenth, and cutting it is the biggest correction the prestige rack has taken.**
+`+1 Special Cube Slot` raised a cap on how many cubes could be equipped at once, one prestige at a
+time — and it was the only entry on the rack worth **nothing on its own**. A slot with an empty bench
+does nothing; a benched cube with no slot does nothing. Because their values were exactly
+anti-correlated the pick never had two answers: whichever you were short of was the one to take, so
+half of every prestige went on making the other half work, and a cube taken with the rack full arrived
+**inert** — the pick reported success and changed nothing you could see.
+
+Past the [bag's](#28-special-cubes) eight seats it was worse than pointless: there is nothing above
+the bag to sell, so slots nine and up bought *nothing measurable at all*, and the game charged a
+prestige for each and said so nowhere.
+
+So the **purchase** is gone and the cap isn't: every rack fields eight from the first prestige
+onwards, which is what the bag was always going to allow. What you choose is *which* eight — the
+rest sit on the bench, owned and swappable between runs. See [the bag](#28-special-cubes).
 
 The three perks are stored as plain flags rather than in `cubes`, so nothing about them touches the
-loadout: they can't be equipped, can't be benched, can't take a slot and never appear in a line.
+loadout: they can't be equipped, can't be benched and never appear in a line.
 They are also all worth **nothing on their own**, and that is deliberate: rerolls need a run
 that busts, and the tie picks need a rack destructive enough to leave an even line. Every one of
 them is a bet on a rack you already have.
@@ -522,173 +552,172 @@ when it does — but under ×2 that happens around prestige 7 for a typical hold
 prestige 3, which is the whole reason the step changed. It binds where it matters, and it goes on
 mattering for about as long as the rack does.
 
-### 2.6 A public board
+### 2.6 Whose board it is
 
-A public message means **anyone in the channel can press its buttons**, and the handler reads
-state for whoever pressed. Left alone, a bystander clicking Blue on someone else's board would
-stake their *own* truguts against a screen they don't own — and the turn guard wouldn't stop it,
-since two players' turn counters collide as often as not.
+**Every board is its own player's, and the token is what says so.** The API is reached through
+`requireAuth` — a JWT minted from the player's own Discord OAuth — and then `requireCube`, which
+checks the collection and returns `locked: true` rather than a board. Every route serves the player
+the token names, so ownership is not something the board has to defend; it is the only thing the
+server can answer.
 
-So every component carries its owner's discord id as the **last segment** of the custom_id, and
-a press from anyone else is turned away before the unlock gate — a passer-by gets told whose
-cube it is rather than pitched the collection. Two exemptions: slash commands (no owner segment
-yet) and modal submits (a modal can only ever reach the user it was shown to).
+That replaced a real guard rather than a theoretical one. The embed board was a **public message**,
+so anyone in the channel could press its buttons and the handler would read state for whoever
+pressed — a bystander clicking Blue on someone else's board would have staked their *own* truguts
+against a screen they didn't own. Every component therefore carried its owner's discord id as the
+last segment of its custom_id, and a press from anyone else was refused before the unlock gate.
+None of that is needed when the transport is an authenticated request instead of a shared message.
 
-Encoding the owner in the id rather than reading `message.interactionMetadata` is deliberate:
-it doesn't depend on how Discord treats that field when a message is edited by a component
-response, and it fails safe for boards posted before the guard existed — their ids have no owner
-segment, so every press is politely refused and the player is told to run `/chubacubes` again.
+**What went with it is the audience**, and that is worth recording as a gap rather than a decision.
+The channel used to watch every roll land, which is exactly why the separate in-channel
+announcement was reserved for **clearing the top level** and nothing else — everything smaller was
+already on screen for everyone who cared. That announcement still exists, in `interactions/cube.js`,
+which is the retired board; nothing on the Activity path has replaced it. The one genuinely shared
+object the mode still has is [the daily lean](#21-the-daily-lean), which gives the channel something
+to argue about every day rather than once in a thousand runs.
 
-Because the board is public, the channel is already watching every roll — so the separate
-in-channel announcement is reserved for two things: **clearing the top level**, and **any Pure
-Cube that pays off the pot**. Taking a bite out of a jar everyone has been feeding is the one
-result that's genuinely other people's business, so all three paying tiers announce — a pure 3
-doesn't, because it pays nothing. When a roll is both a jackpot and a top-level clear, the
-jackpot line wins and only one message goes out.
+### 2.7 The road
 
-### 2.7 Clears — how levels open
+The ladder is not five levels, it is a **road of rungs**. Five of them are levels — where two more
+cubes come out of the bag — and between each pair sits a gap holding **Agains**: the same table
+thrown again, for nothing but the right to move on.
 
-**Only Level 1 starts unlocked** — after every prestige as well as at the very beginning. Your
-deepest unlocked level has nothing to push into, so
-winning there banks itself automatically — and surviving your own ceiling like that is a
-**clear**. Enough clears — two at first, [rising to five](#25-prestige-and-the-stake-ceiling) — and
-Watto grudgingly puts two more cubes on the table.
+```
+run 1   🥉 ─ ▱ ─ 🔒          win L1, win the Again → it's gone
+run 2   🥉 ─ 🔒              win L1, bust
+run 3   🥉 ─ 🔒              …
+        🥉 ─ 🥈 ─ ▱ ─ 🔒     the gap closed: 🥈 opens mid-run, two cubes hit the
+                              table, and the standing pushes straight into it
+```
 
-The xp-bar tiles under the level header are that progress: `clearsToUnlock` segments, green
-`new` tiles behind you for clears already banked, the blue `filled` tile marking the one
-being attempted, empty ahead. The blue tile comes off on an end screen — nothing is being
-attempted there, so nothing should look live — except on a bust, where the attempted segment
-shows the **error** tile instead. A bust only ever carries a bar when the roll was at the
-ceiling, which is exactly a failed clear, so it leaves a visible mark rather than reverting to a
-blank meter. Progress itself is untouched: a failed clear costs the run, not the clears
-already banked.
+**Surviving an Again collapses it permanently.** It is never on your road again, so every run that
+gets one rung further than the last makes a visible, permanent change to the board. Eventually a
+prestige run is exactly 🥉🥈🥇💠💎 with nothing in between — and then a prestige pads it out again.
 
-**The bar only appears on the level the clears are earned at** — your ceiling. Rolling Level
-1 on the way up to a Level 3 ceiling shows no bar, because clears at Level 1 aren't a thing
-any more. It disappears for good once every level is open.
+**Nothing forces a stop.** A run ends because it busted or because the player banked, and those are
+the only two. What this replaced was a rule that force-banked you for *winning* at your ceiling —
+the one ending in the mode that came out of a database field rather than off the table, and it fired
+on the best roll of the run.
 
-That test is against the ceiling **as it stood when the cubes left the cup**, captured before
-settlement. A third clear moves the ceiling a level deeper, and reading it live would make the
-meter vanish from the very frame that earned it — the one place it most needs to be.
+Past Level 5 the Agains keep coming. They clear nothing — the prestige is already earned — so they
+are worth truguts and nothing else, and there is no level above them to double what they add. That
+makes them a **third kind of rung**: `overtime`, paying `overtimeBonus` rather than the usual +1.
 
-The frame that *fills* a meter shows it **completed** — `▰▰▰ → 🔓 Level 4` — rather than the
-next level's empty counter. The new meter belongs to a level the player hasn't rolled yet, so
-it isn't theirs to look at until they get there. Each frame therefore carries the progress
-state it should draw rather than reading live state, which by then has already moved on.
+At +1 an overtime push bought one trugut per stake against a base of 32, marginal EV 0.516 falling
+toward 0.5 — which is not a decision, it is a formality nobody sane takes, and an option nobody
+would ever choose is a stop wearing a button. At **+5** it is merely a bad bet: 0.578 at ×32, 0.527
+at ×92. It is safe at any value below 32, because an overtime push is `(M + N) / 2M` and `M` is
+never lower than 32 up there — so the ceiling on that dial is arithmetic rather than taste.
 
-Cashing out *short* of your ceiling is not a clear. That is the whole tension of the gate:
-the only way to progress is to walk up to your own limit and survive it, which is exactly
-the roll you would rather bank before.
+**The road needs no state of its own.** Gaps fill strictly in order, so `unlocked` (how many have
+filled) and `clears` (how far into the current one you are) describe it completely — the same two
+fields the old clears meter kept. A profile written by the previous model reads back as a valid
+road, which is why this shipped without a migration.
 
-**The clear that opens a level does not end the run.** The ceiling only banks itself because
-there is nothing unlocked to push into — so a clear that unlocks something makes that reason
-false, and the run stays live with the offer to carry the standing straight into the level it
-just earned. This is an ordering rule as much as a design one: the clear is awarded *before* the
-bank/continue decision, because deciding first and unlocking second handed the player a key and
-shut the door in the same breath. It also turned the loop's biggest moment — surviving your
-ceiling — into a forced stop followed by a re-climb of everything below it.
+#### Why a gap holds one Again where the meter took two
 
-It can't chain: clears reset to zero on an unlock, so a run opens at most one level, pushes into
-it, and then meets a wall that is genuinely there. Nothing extra is paid out either — the clear
-was earned either way, and the player is choosing to put a banked standing back at risk.
+The pacing had to survive the change, and the first attempt at it was wrong in a way worth keeping
+on the record. A ceiling clear sat at rung `k+1` and the run force-banked with exactly one, so
+`E[clears/run] = 2^-(k+1)`. A frontier Again sits at rung `k+2` — twice as deep — but the run
+doesn't stop, so it can chain several, and `Σ 2^-(k+1+i) = 2^-(k+1)` exactly. That identity is real
+and it is not the answer: **the chain is capped at the size of the gap**, and a truncated geometric
+is worth much less than a whole one. At two Agains a gap the cap costs 50%.
 
-A run that ends — either way — turns the embed **red** for a bust or **green** for a bank and
-collapses the row to a single **Play again**, so there is never any question about whether
+Measured over 20k cycles a side, the route at `g` costs exactly what the ladder cost at `g + 1`:
+
+| Agains per gap | 1 | 2 | 3 | 4 | 5 |
+|---|---|---|---|---|---|
+| road | 61.7 | 92.5 | 121.8 | 153.0 | 181.3 |
+| old ladder | 31.7 | 62.1 | 92.3 | 121.6 | 152.2 |
+
+The bottom row reproduces `30c + 2` to the run, so the closed form is intact and only its argument
+moved. `clearsToUnlock: 1` and `maxClears: 4` therefore hold the shipped curve rung for rung: 62
+runs a cycle at prestige 0, 92 from prestige 2, 122 from 4, 153 from 6 and never more.
+
+#### Clears, and what they buy
+
+**Only Level 1 starts unlocked** — after every prestige as well as at the very beginning. Filling a
+gap is what opens the next level, and Watto grudgingly puts two more cubes on the table.
+
+#### The map
+
+The old xp bar is gone and the **road map** replaced it: the five levels drawn left to right with
+the Agains still standing between them, `🥉 ▰▱ 🥈 ▱▱ 🥇 ▱▱ 💠 ▱▱ 💎 → 🔒 Prestige 3`.
+
+**Cleared Agains are kept and filled in, never dropped.** The run skips them — that is the whole
+reward — but a map that deleted them would shorten mysteriously instead of visibly, and the visible
+part is the point. So it is a progress bar a player watches over a whole prestige rather than a
+counter that resets at every level.
+
+**The road has to fit on one line at its longest**, and in the Activity that is a measurement rather
+than a guess: 9px tiles and 2px gaps bring a sixteen-tile road to ~312px, inside a 375px phone. The
+sketch above draws the tiles as plain unicode and the levels as custom emoji, which is how the embed
+made it fit — a text tile being a fraction of the width of an emoji was the whole trick, and it is
+what let `maxClears` go back to being about pacing instead of about wrapping.
+
+The frontier tile is `▨` while a run is rolling toward it, `✖` on the Again a bust just died on, and
+flat otherwise. Progress itself is untouched either way — **a failed Again costs the run, not the
+road**.
+
+Each frame carries the road state it should draw rather than reading live state, and that is
+load-bearing rather than tidy: settlement runs during the first beat of the reveal, so a frame drawn
+while the cubes are still face-down is describing a road the server has already moved on. Reading
+live would fill the tile a second before the cubes said whether it had been earned. The frame that
+*fills* a gap shows
+it completed rather than the next gap's empty tiles.
+
+Cashing out short of a rung is not a clear. The road only shortens for rungs you actually stood on.
+
+#### Unlocking mid-run
+
+**A gap that fills does not end the run** — nothing does. Two more cubes come out of the bag and the
+standing pushes straight into the level it just opened. This is an ordering rule as much as a design
+one: the clear is awarded *before* the bank/push decision, because deciding first and unlocking
+second handed the player a key and shut the door in the same breath.
+
+**And it chains.** A run that clears the last Again of one gap can push into the level it opened and
+start on the next gap in the same breath — the old rule capped this at one level per run, because
+the run was ending anyway. A lucky enough run can take a whole prestige cycle.
+
+The same ordering protects the prestige. Surviving Level 5 earns it, and `awardClear` writes it into
+that throw's patch, which `settleThrow` commits before the frame is drawn. So a player who pushes on
+into overtime and busts three Agains later **keeps it** — the one thing a later bust must not be
+able to take back.
+
+A run that ends — either way — turns the board **red** for a bust or **green** for a bank and
+collapses the controls to a single **Play again**, so there is never any question about whether
 something is still live.
 
-One live run per player, persisted at `challenge/cube/live/ladders/<discordId>`, so a
-restart or a closed ephemeral never eats a standing. Every action button carries a turn
-counter checked on arrival; without it a double-click on Call would stake twice against
-one run.
-
-### 2.8 The Pure Cube pot
-
-Every cube landing on your called side is a **Pure Cube**. All nine against you is
-**Watto's Cackle**.
-
-| Pure | Odds at that level | Share of the pot |
-|---|---|---|
-| 3 | 1 in 8 | — |
-| 5 | 1 in 32 | **5%** |
-| 7 | 1 in 128 | **25%** |
-| 9 | 1 in 512 | **100%** |
-
-Three paying tiers rather than one keeps the pot circulating: the 5% tier is the one most
-players will ever actually see land, and it is deliberately the smallest of the three because it
-fires often enough to set where the pot rests. Pure 3 stays at nothing — at 1-in-8 on a level
-nearly every run passes through, any share at all would drain the pot faster than busts fill it.
-
-These tiers set **how the pot is spent**, not how much of it there is. They shape the payout
-into one headline prize instead of a drip — which is their whole job — but they can't change
-the total going out, for the reason in the next section. The size of the jar is `potShare`.
-
-A pure 7 needs three straight
-wins first — about 1 in 1,000 runs — and is the payout that carries the feature. A pure 9
-is 1 in 8,000 runs and takes the whole pot; both are announced in-channel, as is any clear of
-the top level — which is what `bankNote` actually gates on, the two cases
-[§2.6](#26-a-public-board) names and nothing else.
-
-**A quarter of every trugut lost on a bust feeds the pot; the rest leaves the economy.** It
-seeds at 📀25,000 and is paid out transactionally, so two simultaneous pure rolls can't both be
-paid off the same balance.
-
-That share used to be all of it, and it made the mode a money printer. The reasoning is worth
-keeping, because the mistake is an easy one to make twice:
-
-- The ladder is a **martingale** — 2^k paid on a 1-in-2^k run — so EV is exactly the stake at
-  every rung and no stopping strategy beats another. That's the right shape for the game.
-- But it means a fair ladder has **no spare money in it**. The busted stakes are already
-  precisely what funds the winners; there is nothing left over to fill a jar with.
-- And a pot in steady state pays out exactly what it takes in — that's what an equilibrium pot
-  size *is*. So routing every bust into it spent the same truguts twice, returning
-  `1 + bustRate` per trugut staked: **1.5× for a player who banks at level 1 and 1.97× for one
-  who pushes to the top.**
-
-**Rarity doesn't help, and this is the part that misleads.** With inflow `i`, a payout chance
-`q` and a tier share `s`, the pot settles where `P* = i / (q·s)`. Rarity sits in the
-*denominator* — a jackpot that fires ten times less often simply rests ten times bigger, and
-the truguts leaving the jar over a year are identical. The tuning above measures this from the
-other side without naming it: dropping the tier share 10% → 5% *raised* the resting pot 440× →
-660×. The jar was compensating.
-
-So the lever is the inflow, not the tiers. Total return is `1 + potShare × bustRate` and the
-resting pot scales linearly with the same number, which puts the headline and the leak on one
-dial: at **0.25** the jar rests around **165× the average stake** and the worst-case return is
-**1.24×**, against 660× and 1.97× before. A jackpot still worth announcing, with three quarters
-of the leak gone.
-
-One number to watch that the maths above doesn't cover: the pot's **half-life to equilibrium is
-around 900 runs**, so the mode reads as a net *sink* for its first thousand-odd runs while the
-jar is still filling. It stops absorbing right about when you've concluded it's fine.
-
-A pure roll is judged on the **resolved** line, and needs **every position on it to be a cube, all
-of them your way**. An effect face in the line kills a pure however the rest of it landed — which
-keeps *all nine landed blue* literally true, and closes an exploit the sideless rule would otherwise
-open: without it, a rack of effect cubes would shorten the counted line, hit "pures" far more often
-off fewer cubes, and still be paid at the level's nominal tier. The share stays keyed on that
-nominal count, because a Symbiont or a Mirror can leave a Level 4 roll six or nine cubes long and there is no
-sensible pot share for a count the ladder doesn't have.
-
-So the pot is now the other half of a real decision — and the split falls exactly along the
-[is-a-side / does-a-thing](#28-special-cubes) line, which is the strongest sign that rule is
-carrying its weight:
-
-- **Effect cubes cost you the pot.** Every effect face is a position that can't be swept, so a pure
-  5 falls from **3.11%** of Level 3 rolls on an empty rack to **0.45%** on a full one, and a pure 9
-  from 0.19% to 0.03%. Nobody fielding ten cubes is taking the jackpot; that is the trade.
-- **Side cubes buy it.** A **wild counts as whatever you called**, so it is a guaranteed match and
-  you only need the *rest* of the line to agree — a Wild Cube equipped takes the pure 5 rate
-  **up**, to **3.68%**, above an empty rack. Over 400k rolls, 35.7% of pure 5s had a wild in them.
-  Shmi and Anakin do the same on the side they force.
-
-Outflow therefore drops on any rack built for effects while inflow doesn't, so the equilibrium pot
-sits **higher** than the figures below — worth watching before adding anything more to the rack.
+One live run per player, persisted at `challenge/cube/live/ladders/<discordId>`, so a restart or a
+closed window never eats a standing. Every action carries a turn counter checked on arrival;
+without it a double-click on Call would stake twice against one run.
 
 ### 2.8 Special cubes
 
-Ten cubes, one taken off the rack per prestige, and they are the only thing the ladder's flat
+Fourteen cubes, one taken off the rack per prestige, and they are the only thing the ladder's flat
 50/50 ever bends for. A special cube **substitutes** one of the level's plain cubes rather than
 joining them, so the line stays the length the header says and the base count stays odd.
+
+**Pure Cubes live here now.** Every cube landing on your called side is a **Pure Cube**; all of
+them against you is **Watto's Cackle**. A pure pays **`pureBonus` per cube on the line** — a swept
+nine is `+9×` on top of whatever the ladder and the paying faces had already built. The Cackle pays
+nothing, because it is a bust. Both are called out on the board because they are the prettiest
+things the mode can draw.
+
+There was a jackpot **pot** behind the pure once, and this bonus is deliberately not a second run
+at it; see [Cut on purpose](#cut-on-purpose). The pot paid a share of a *jar*, which did not scale
+with the stake and made the minimum stake strictly dominant. A multiple rides the standing, so it
+scales with the stake exactly as every other payout in the mode does. Per cube rather than flat
+because the odds of collecting it halve with every cube the line grows while the bonus only climbs
+by one — generous on a three, self-limiting on a nineteen.
+
+A pure is judged on the **resolved** line and needs **every position on it to be a cube, all of
+them your way**. An effect face kills a pure however the rest of it landed, which keeps *all nine
+landed blue* literally true — and now that a pure pays, it is also what stops a rack of effect
+cubes farming the bonus off a shortened count. It is what makes the is-a-side / does-a-thing
+split below visible in play too: a rack of effect cubes
+almost never sweeps — a pure 5 falls from **3.11%** of Level 3 rolls on an empty rack to **0.45%**
+on a full one — while a **wild counts as whatever you called** and takes the same rate *up* to
+**3.68%**, above an empty rack. Shmi and Anakin do the same on the side they force.
 
 **Cubes come out of a bag, and the bag is shuffled once per run.** It holds one entry per cube the
 climb will ever add — every special on your rack, padded out with ordinary cubes — and each level
@@ -720,9 +749,56 @@ levels later still ends the run. Damage is permanent in the same way: a special 
 is an ordinary cube from then on, and a wipeout takes the special off the table for good while
 leaving the cube behind.
 
-One guardrail: **a set always keeps at least one ordinary cube**, because a set with nothing plain
-in it has nothing to decide a roll. That is also what keeps a special off Level 1, where the set is
-one cube long.
+One guardrail: **a set always keeps something on it that can decide a roll**, because a set with
+nothing plain in it has nothing to decide one. That is also what keeps a special off Level 1, where
+the set is one cube long.
+
+**The road turned that into a real trap, and the way out has to be rolled for.** The guardrail used
+to live only in `drawCubes`, which runs when a level adds cubes — but damage happens during
+*resolution* and was never re-checked, and an Again does not draw at all. So a set chewed down to
+cubes that carry no side stayed that way for every rung after it: the line lands, nothing counts,
+and Watto's cube settles it, over and over. Three cubes make that permanent rather than temporary,
+because they have no downside face and so never leave the table — the **Mirror**, the **Binder** and
+the **Gungan Shield**.
+
+Measured over 30k runs on a full rack: **9.6% reached a table that could not decide a roll**, 6.9%
+reached one that could never recover, and the worst run tied **twelve times in a row**.
+
+So **a tie you rolled for and won puts a plain cube on the table** — never one you bought. That is
+the whole of the rule, and it turns the trap into a decision rather than a rescue:
+
+- **Roll it.** A 40% shot (60% with the Nudge). Survive and the table can decide again, for good.
+- **Bribe it.** Certain survival on this rung, and the same wall on the next one — at a price
+  [1.5× dearer every time](#210-ties), against a standing that has grown.
+
+A player who does not own Bribe Ties is never asked, so their tie always rolls and always breaks the
+loop. The trap exists only for someone holding the way out and repeatedly declining to use the cubes,
+which is the shape a trap should have.
+
+**It applies to every tie, not only to a table that can never recover**, and that is measured rather
+than generous. A tie has to be *survived* at 40% to collect, so it lands about once in twelve runs.
+Over 40k runs a full rack's average end table moved **2.2 → 2.3** cubes, the pure rate **0.16% →
+0.21%**, and tie streaks got shorter rather than longer — more countable cubes is fewer even counts,
+so the rule damps the thing that causes it. The narrower version needed a "can this table ever
+decide" test and a special case for the three cubes that can't; this needs neither, and gives the
+same guarantee, because a deadlocked table ties *every* roll and so meets the rule immediately.
+
+The cube **arrives rather than replacing one**, which is the opposite of what `drawCubes` does and
+deliberately so. On a draw, cubes are arriving anyway and turning one plain costs nothing the player
+had; here the set is whatever damage left behind, and converting would destroy somebody's last cube
+as a punishment for a state their own rack created. It is said out loud on the frame — a cube
+appearing from nowhere reads as a bug otherwise.
+
+It is also, deliberately, **not his tie-breaker**. That cube is weighted 60/40 against your call, and
+a weighted cube joining the set permanently would cost 5–10% of the win rate on every remaining rung
+(EV 0.80 on a one-cube line, 0.945 on nine) — and, worse, **invert with the Nudge** to 1.20 and 1.075,
+putting the ladder above even money, which is the one thing the whole payout design forbids. What
+arrives is an ordinary cube.
+
+A face counts as a side-maker if it lands on one: `side`, `wild`, and the Symbiont's `twins`, which
+inserts a matching pair and so conjures a majority. `pair` is excluded on purpose — it inserts one
+of each and leaves the count exactly as even as it found it. The test reads the cube's own face
+list rather than a list of ids, so a new cube is covered the day it is added.
 
 **A line can grow as well as shrink.** Three faces lengthen it: the **Mirror**, conjuring the cubes
 it needs to finish a reflection, and the Symbiont's **Fode** and **Padmé**, which *insert* a cube
@@ -741,10 +817,29 @@ both directions, so the header shows one number.
 Inserting rather than overwriting is also what makes those two *visible*: they push their neighbours
 apart, which every positional face resolving after them then has to deal with.
 
-Each equipped cube independently rolls a **25% chance** per roll to take a position, so a full
-rack usually shows one of them and occasionally all. Each can hold at most one position, so a
-loadout can't stack the same cube twice. **Slots** cap how many you can equip, not how many you
-own — the bench is real, and choosing what to field off it is the whole point of the rack screen.
+An equipped cube reaches the table by being **drawn**, not by passing a per-roll check — the flat
+25% this paragraph used to describe is now the *first* pull out of the bag and it climbs from there.
+Each cube is in the bag exactly once, so a loadout can't stack the same cube twice and a full rack is
+met in full over a climb.
+
+**The loadout is capped at eight, and the cap is the bag.** Eight is what the four drawing levels
+take, so eight is what a rack fields: the bag holds one entry per equipped cube, *padded* out to the
+eight seats. Everything else you own sits on the bench, swappable between runs and never in the bag.
+
+That makes the loadout a decision about **which** rather than **how many** — and it is what lets the
+promise above stand without an asterisk: every cube on your table is a cube the climb will reach. The
+[Pit Droid](#28-special-cubes) doesn't change that, it changes *when*: its `draw` pulls off the back of
+the bag, front-loading a cube the levels would have got to later, which is worth having because a
+special met at Level 2 throws four more times than the same cube met at Level 5.
+
+The cap is enforced in three places — the loadout save, a granted cube, and again when the profile is
+read, so a rack saved under an older rule comes back fielding its first eight rather than breaking.
+
+Two other models were tried and both leaked. A **cap bought a prestige at a time** is what
+[§2.5](#25-prestige-and-the-stake-ceiling) is about: a slot and a cube were complements sold as
+substitutes, and above eight the slot bought nothing at all. Then an **uncapped loadout**, where a
+longer rack made a longer bag and everything behind the eighth entry was a bench inside the bag — sold
+as trading certainty for variety, it played as cubes that don't turn up.
 
 **A face either IS a side, or DOES a thing. Never both.** An effect face — greed, mirror, clone,
 shortcut, all of them — holds its position in the line and contributes **nothing to the red or blue
@@ -778,22 +873,50 @@ of which **five count**, and you can see that by looking at it.
 | **Mirror** | 3 × 🪞, 3 × 🔄 | Reflects everything to its left onto its right — **special cubes included** — or inverts the whole line. |
 | **Symbiont** | Tusken, Ben, 2 × Fode, 2 × Padme | Takes one cube at random, razes both neighbours into **one wide Ben**, or **slips two new cubes in** either side of itself — a red and a blue for Fode, matching twins for Padmé. |
 | **Shortcut** | 5 × shortcut, **1 × Ratts** | A free clear, if the level is won. |
-| **Reroll** | 4 × reroll, **1 × Ratts**, 1 × wipeout | Banks **+1 reroll** and stays on the table. Only the wipeout shatters it. |
+| **Reroll** | 3 × reroll, **1 × Ratts**, 2 × wipeout | Banks **+1 reroll** if the level is won, and stays on the table. Only a wipeout shatters it. |
 | **Binder** | 3 burn, 3 clone | Burns the cube on its right, or makes it a **copy of the cube on its left**. A clone at the head of the line destroys instead; at the tail it adds. |
 | **Multiplier** | 2 red, 2 blue, 2 × wipeout | **+1** on the run's multiple, but only if that face's side is the one that wins. |
+| **Gungan Shield** | 6 × shield | Stops a mine's blast on its own side of the line, and is destroyed doing it. Also holds a neighbouring cube together through a wipeout, which costs it nothing. No downside face. |
+| **Pit Droid** | 5 × draw, 1 × purge | Pulls another cube out of the **back of the bag** and slips it in on its right, thrown and live. On a rack of eight or fewer that front-loads the climb; on a bigger one it is the **only** way to reach the cubes the levels never get to. The purge scraps every special on the line, itself included. |
+| **Boost** | 4 × boost, 2 × wipeout | **+0.25** per position on the resolved line — it pays for a table that got away from you rather than for anything it did itself. |
+| **Sebulba** | 2 × engine left, 2 × engine right, 2 × wipeout | Points an engine one way and burns that cube over to your call, but only if it landed against you. The direction is rolled, which nothing else in the game does. |
 
 Two faces are the price of all that, and they are on the cubes that pay best:
 
-- **Ratts ends the run — if he is still standing when the dust settles.** He is checked against the
-  *resolved* line rather than the thrown one, so a cull, a raze, a clone or a mirror writing over his
-  position takes him off the table and **the run survives**. The cubes can save you from him, which
-  turns a destructive rack from pure downside into an insurance policy, and turns the reveal into a
-  real beat: Ratts lands, then something eats him. On a five-cube rack **19.4%** of the rolls that
-  throw him end up saved. He is 1 face on Wild, Greed, Shortcut and Reroll.
+- **Ratts is a mine, and he takes himself with him.** He detonates in his turn during the second pass:
+  the blast starts on his own position and spreads out from it in both directions, stopped only by a
+  Gungan Shield. Everything it reaches leaves the line, himself included. He is 1 face on Wild, Greed,
+  Shortcut and Reroll.
 
-  The invariant this buys is worth stating: the run ends **if and only if** Ratts is visible on the
-  final line. Measured at 0 phantom deaths and 0 missed ones over 200k rolls, so the screen and the
-  outcome can never disagree about why a run stopped.
+  Something can still get to him first — a cull, a raze, a clone or a mirror writing over his position
+  takes him off the table before his turn comes and **the run survives**. The cubes can save you from
+  him, which turns a destructive rack from pure downside into an insurance policy, and turns the reveal
+  into a real beat: Ratts lands, then something eats him. On a five-cube rack **19.4%** of the rolls
+  that throw him end up saved.
+
+  **A shield is broken by the blast and stops it anyway.** The blast reaches it and no further: it goes
+  off the line with everything between, and every position beyond it is untouched. It dies holding the
+  line rather than instead of holding it. Two shields contain a mine between them, one stops it on its
+  own flank, and none lets it take the row; all three fall out of the same two lookups.
+
+  It is genuinely destroyed — not spent-but-standing, which is what it was first built as, and which put
+  an intact shield on the line after a blast and left the player to read the note to find out it had done
+  anything. **So a shielded blast can still empty the line**, when the shield was at the edge with
+  nothing behind it to save. Measured over 400k throws: 7,757 shielded detonations, of which **1,392
+  (18%) ended the run anyway** and 6,365 were survived. The shield buys you what was standing behind it,
+  which is not the same as buying you the roll.
+
+  **The run ends when there is nothing left on the table.** Not nothing that counts — an effect face is
+  still a cube standing there, and a line with positions but no countable cubes has no majority, which
+  is a tie for Watto to break and has always been survivable. Having no line *at all* is the different
+  thing. An unshielded blast takes every position and gets there; a shielded one never does, because the
+  shield it was stopped by is left standing, and a position on the table is a roll still going.
+
+  He used to end it by *being visible on the final line*, which was the invariant while he stayed put in
+  his own crater. That had to go with him: it made his position the one place the blast could not reach,
+  so the count walked over a cube that was not there and the ending was read off his presence rather than
+  off the table. Measured over 400k throws: `end` never survives onto a resolved line, every detonation
+  takes at least one position, and no shielded mine has ever emptied a line.
 - **A wipeout shatters the cube, and it comes off the line.** Not replaced by an ordinary cube, not
   flagged and left sitting there being drawn — **removed**, in its turn during the second pass like
   every other effect, so the throw shows the wipeout face landing and its own step shows the row
@@ -825,26 +948,59 @@ anything starts copying or fusing cubes around it: first every face that decides
 modifier, then every face that restructures, left to right in the order they were rolled. A cube
 destroyed or overwritten by an earlier effect doesn't get its turn.
 
+**A turn that changed nothing is still a turn, and the reveal says so.** A Binder with nothing on its
+right to burn, a Pit Droid reaching into an empty bag, a Mirror with no room — each writes its note and
+gets a frame, marked `quiet` because the line did not move. They used to be dropped outright, which
+made a face that took its turn and found nothing to do indistinguishable on screen from one that
+never got a turn at all. The flag survives the client that needed it — the embed could afford three
+effect frames and spent them on faces that did something, where the Activity draws every one.
+
 **A copy of a face is a face, and takes its own turn.** A cloned Greed pays, a reflected Tusken
 culls. That means the second pass can't be a walk over the thrown line — it is a **work queue**, and
-the line grows turns as it resolves. Two rules bound it, and without them it doesn't terminate:
+the line grows turns as it resolves. Three rules bound it, and without them it doesn't terminate:
 
 1. **Only an original hands out turns.** A copy acts, but anything *it* copies is inert. One level
    deep, so a Binder cloning a Binder cloning a Binder stops at the second.
 2. **A mirror reflected by a mirror never acts** — the one cascade with no natural end. A Binder
    *cloning* a mirror does work, because a clone is one copy onto one fixed target and cannot feed
    itself.
+3. **A copied Pit Droid still draws**, whoever copied it — the exception to rule 1, and the same
+   exception a cube off the bag already gets. A `draw` spends the bag, which is finite and never
+   refilled, so it cannot feed itself however deep the copying goes.
 
-A copy also never went through the first pass, so the payout half of its face is applied when it
-comes up in the queue — which is what makes a cloned Greed add **+1** rather than +0.5. `mult` and
-`end` are deliberately excluded there, because both are read off the resolved line anyway and a copy
-of either already counts; so is `broken`, since the special shattered once and the copy carries
-`gone` across on its own.
+**A turn handed out mid-pass goes next, not last.** Every cube a face conjures lands on its *right* — a
+reflection, a clone, a cube off the Pit Droid's bag — which is where the walk is heading, so that is
+where its turn belongs. Appending it instead put it behind every original still waiting, and the line
+stopped resolving left to right: a Tusken at position 9 culling before a reflection at position 4 that
+was already on the table when its turn came.
+
+That is not just an ordering nicety, because acting late means acting into a line other cubes have
+already chewed through. Measured over 400k throws, of the Binders a Mirror reflected: **3,772 clones and
+119 burns never got a turn at all**, destroyed while they waited, and a further 1,451 burns took their
+turn to find nothing left on their right. Giving them the next turn instead: **640 and 0**, and no burn
+finds an empty space. A Mirror reflecting a Binder now does what it looks like it does.
+
+Where a face hands out several — a Mirror reflecting a run — they keep the order it made them in,
+nearest the glass first, so the run resolves left to right like everything else rather than backwards.
+
+A copy needs no payout turn of its own, and a cloned Greed still adds **+1** rather than +0.5 — it
+adds it by standing on the resolved line twice, which is where every payout is now read from. It used
+to need one: the originals were scored in the first pass and a copy was never in it, so each paying
+kind had to be applied a second time from a second place, with `mult`, `end` and `broken` carved out
+of that list for three different reasons. One pass over one line replaces all of it.
+
+**A cube off the bag is live whoever drew it**, and that is deliberately not the one-level rule. A Pit
+Droid that was itself a copy used to hand over an inert cube, because the rule that stops copies
+multiplying was doing the queueing for both. Draws cannot multiply — the bag is finite and never
+refilled, so every draw is one fewer cube later in the climb — and the cost of lumping them in was a
+**Ratts that never went off**: a mine sitting on the resolved line, doing nothing, on a roll it should
+have ended. Six of those in 400k throws, all on lines a Mirror had reflected a Pit Droid onto. A drawn
+cube is still marked `copy`, so what *it* hands out stays bounded the same way everything else is.
 
 Stress-tested at 200k full-rack rolls of fifteen cubes: no hangs, slowest single roll **6ms**, most
 effect steps in one roll **9**. That last number retires a claim in
 [§2.2](#22-how-a-roll-plays-back) that three was the natural ceiling — it was, until copies could
-act. `maxEffectFrames` still caps the *animation* at three; the rest resolve into the payout frame.
+act. Nothing caps the animation now, so all nine play.
 
 **Symbiont's raze is the only destructive face that keeps parity**, because it takes both neighbours
 at once; Tusken's cull takes exactly one — never itself, chosen uniformly from every other position
@@ -889,11 +1045,11 @@ cubes: over 40,000 full-rack climbs **64% finished under ten cubes**, 29% betwee
 and the longest line ever drawn was **114**. Nothing is unbounded in *time* either — a throw resolves
 in one pass over a queue only originals feed, and the slowest single throw measured 4ms.
 
-What uncapping does need is a **drawing** budget, because a description that runs past 4,096
-characters makes discord.js throw. `LINE_BUDGET` in the engine draws as many cubes as fit and counts
-the rest (`… **+37**`), at the one place every frame renders through. Tested at 9, 40, 120, 400 and
-2,000 cubes: all draw, none exceed 2,813 characters. A table that got away from you should read as a
-triumph, not a crash.
+Drawing a runaway table is the client's problem and no longer the engine's. The embed needed a
+`LINE_BUDGET` — it drew as many cubes as fit and counted the rest (`… **+37**`) — because a
+description running past 4,096 characters made discord.js throw rather than trim. That budget still
+sits in `interactions/cube/functions.js` with the rest of the retired board; the Activity lays the
+line out and scrolls it. A table that got away from you should read as a triumph, not a crash.
 
 **Ben is drawn across three positions.** A raze doesn't delete its neighbours from the line — it
 replaces them with his left and right thirds, so `<:WideBen1:> <:WideBen2:> <:WideBen3:>` reads as
@@ -983,14 +1139,20 @@ quieter, taken deliberately or not at all. Keeping `Play again` in the same slot
 over screen is the point: a button that moves depending on your stock is a button that eventually
 gets pressed by accident.
 
-Two sources, one stock: a **Reroll Cube** face banks one whatever the roll did — so it is never a
-punishment for having won — and once the rack has handed over **Purchase Rerolls**, a button on the
-idle board sells them.
+Two sources, one stock: a **Reroll Cube** face banks one **if the roll survives**, and once the rack
+has handed over **Purchase Rerolls**, a button on the idle board sells them.
+
+It used to bank whatever the roll did. That made the cube that lost the run pay for a second attempt
+at it: a Reroll Cube standing in the busting line handed back the very thing that undoes the bust, and
+the game-over screen offered a reroll earned by the roll it was offering to erase. Nothing else on a
+line pays off a bust — the standing goes, the clear is not awarded, the multiple was only ever a
+multiple of a standing — and this is no longer the exception. **Only the stock the player brought to
+the roll can buy it back.**
 
 The offer lives on that screen and nowhere else. `Play again`, calling a side, or anything else
 declines it; `/chubacubes` walks back to it, so a standing offer survives being closed. That is the whole
 lifecycle, and it works because **the bust is already fully settled before the offer appears** —
-the stake is in the pot, the loss is on the ledger, the streak is broken. Letting an offer lapse
+the stake is gone, the loss is on the ledger, the streak is broken. Letting an offer lapse
 leaks nothing, and a crash mid-offer leaves a correctly-busted run.
 
 **A reroll buys back the roll, not the draw.** The same cubes are picked up and thrown again: same
@@ -1000,8 +1162,9 @@ entirely (`regrow: false`). Regrowing would have quietly rerolled the *loadout* 
 back a different pair of cubes and sometimes different specials, which is a second thing the player
 never asked to gamble on.
 
-Which means spending a reroll is a **reversal of exactly two numbers**: the stake comes back out of
-the pot and off the lifetime loss. Nothing else needs undoing, because the stake left the player's
+Which means spending a reroll is a **reversal of exactly one number**: the stake comes back off
+the lifetime loss. It was two while the pot existed — the jar had to give back precisely the
+floored share it took — and that pairing is gone with it. Nothing else needs undoing, because the stake left the player's
 balance when the *run* started, not on the roll that killed it. The dead run is held at the usual
 `ladders/<id>` node marked `dead`, so `ladderOf` refuses it everywhere a standing would be assumed
 and only `deadOf` can see it.
@@ -1021,10 +1184,10 @@ A purchase goes on the lifetime **spend** with `recordSpent` rather than on the 
 a price, not a wager — so `won - lost - spent` still reconciles against the balance the mode has
 moved. See [the start screen](#23-the-start-screen).
 
-**A Shortcut clear is the only progress ever made below your ceiling** — it pays wherever it
-lands, and the run carries on. It can therefore open a level *mid-run*, which then becomes
-pushable immediately. One guard: it pays nothing once the whole ladder is open, because there is
-no next locked level to pay toward. Without that, a shortcut on a one-cube Level 1 wager would
+**A Shortcut clear is the only progress ever made off a rung that isn't an Again** — it collapses
+one wherever it lands, including from a level rung, and the run carries on. It can therefore open a
+level *mid-run*, which then becomes pushable immediately. One guard: it pays nothing once the whole
+road is open, because there is no gap left to pay into. Without that, a shortcut on a one-cube Level 1 wager would
 hand over the prestige gate that is meant to cost a run at the top of the ladder.
 
 ### 2.10 Ties
@@ -1091,28 +1254,37 @@ button muscle memory hits.
 The price is **25% of the standing the tie would pay, ×1.5 for every bribe already paid**, and the
 count **resets at prestige**. A share rather than a flat price because the standing doubles every
 level and a flat price would be free money at the top; a reset because a permanent escalation would
-eventually price the pick out of the game for good, and a rack slot that stops doing anything is
-worse than one that was never offered.
+eventually price the pick out of the game for good, and a rack pick that stops doing anything is
+worse than one that was never offered — which is exactly the charge that eventually retired
+[`+1 Special Cube Slot`](#25-prestige-and-the-stake-ceiling).
 
-**He stops asking once his price passes what the tie pays.** At that point there is nothing to
-weigh, so the roll doesn't stop for it — it just plays the tie-breaker like any other. That is
-what keeps every button on the tie screen one you might actually press. On a 📀16,000 standing the
-ladder runs 4,000 → 6,000 → 9,000 → 13,500 → *withdrawn*.
+**The offer is never withdrawn.** Own the pick and every tie is one you get asked about, at whatever
+the ladder has climbed to. On a 📀16,000 standing it runs 4,000 → 6,000 → 9,000 → 13,500 → 20,250 →
+30,375 and keeps going, and the fourth rung onward costs more than the tie itself pays.
 
-Which makes the two picks **interact**, and against each other: his cube pays you 0.4 × the
-standing in expectation, so a bribe is worth taking under 40% of it — the first two on that ladder.
-Hold the Nudge as well and his cube is worth 0.6 × the standing, so the bribe has to beat a much
-better alternative and only the first is clearly worth buying. Owning both makes each one worth
-less than owning either.
+He used to stop asking at that crossover, on the grounds that there was nothing left to weigh. There
+was, and the sum was being done wrong on the player's behalf. **A lost tie is a bust** — the stake
+and the standing both go and the run is over — while a bought one keeps the climb alive to push again
+at double. So the price is not weighed against this level's payout but against the rest of the run,
+and at Level 4 with a standing worth pushing, a tie dearer than the level pays can still be the
+cheapest thing on the table. Whether it is depends on what the player means to do next, which is
+exactly the thing the game cannot know.
+
+The two picks still **interact**, and against each other: his cube pays you 0.4 × the standing in
+expectation, so measured on *this level alone* a bribe beats rolling under 40% of it — the first two
+rungs. Hold the Nudge as well and his cube is worth 0.6 × the standing, so only the first rung clears
+that bar. Owning both makes each one worth less than owning either. Read those as the floor rather
+than the answer: they price the tie as if banking immediately, and a run that intends to push is
+buying more than the tie.
 
 **A tie broken your way is a win in every sense** — it pays, it clears, it keeps the streak — with
 one exception: it is **never a Pure Cube**. A swept line has a majority in it by definition, so a
-line that tied can't have been swept, and the pot never pays on a tie.
+line that tied can't have been swept.
 
 #### What a parked tie is
 
 A tie the player is being *asked* about is the only place a roll stops mid-flight, and it settles
-**nothing** while it waits — no tallies, no clears, no pot, no ledger. The whole roll is written to
+**nothing** while it waits — no tallies, no clears, no ledger. The whole roll is written to
 the usual `ladders/<id>` node marked `tie` during the same beat settlement would have used, which
 buys three things:
 
@@ -1131,10 +1303,10 @@ the data no longer has is released rather than left blocking forever.
 
 ## 3. Economy
 
-Nothing is raked and every level is a clean double, so **the ladder has no house edge at
-all.** A 2× payout on a 50/50 is exactly fair, and it stays exactly fair all the way up:
+Nothing is raked and every level is a clean double, so **the levels have no house edge at all.** A
+2× payout on a 50/50 is exactly fair, and it stays exactly fair all the way up:
 
-| Bank at | Survival | Payout | EV per stake |
+| Bank at | Survival | Pays | EV per stake |
 |---|---|---|---|
 | Level 1 | 50.0% | 2× | **1.000** |
 | Level 2 | 25.0% | 4× | 1.000 |
@@ -1142,33 +1314,86 @@ all.** A 2× payout on a 50/50 is exactly fair, and it stays exactly fair all th
 | Level 4 | 6.3% | 16× | 1.000 |
 | Level 5 | 3.1% | 32× | **1.000** |
 
-Depth is therefore a pure variance choice and nothing else — which is the cleanest version
-of a press-your-luck ladder, and it means the mode's entire economic behaviour is the pot.
+Depth is therefore a pure variance choice and nothing else — the cleanest version of a
+press-your-luck ladder.
 
-**The pot is a faucet, and worth watching.** Payouts are gross on the original stake, so
-the 2× table already assumes busted stakes are what pays winners. Routing 100% of busted
-stakes into the pot *as well* funds the jackpot with newly minted truguts rather than
-recycled ones. Inflow is 0.5× every stake for a Level 1 bank and rises to ~0.97× for
-someone pushing to the top level; outflow is ~0.04% of the pot per run. So the pot climbs to
-an equilibrium somewhere around **1,400–2,700× the average stake** and, once there, hands
-the entire inflow back out. Aggregate EV including pot payouts lands between **+50% and
-+97%**, concentrated into rare jackpots rather than spread across players.
+**The Agains are the house edge, and they are all of it.** An Again turns `M` into `M+1` on a coin
+flip, which is EV `(M+1)/2M` — 0.75 on the first one out of Level 1, and asymptotically 0.5 as the
+base grows. That is deliberately a bad bet: you take it for the road, not the truguts. Putting the
+whole edge on one kind of rung means the thing a player is buying is *legible* — progress costs
+money, depth doesn't — where a sub-exponential ladder would have taxed both and made neither clear.
 
-That is a deliberate faucet, but it is a faucet, and with a fair ladder underneath it there
-is nothing else pulling the other way. The knob if it runs hot is the fraction of a busted
-stake that reaches the pot (`settleLoss` in `src/interactions/cube.js`) — the pot still
-grows visibly at a much smaller share.
+**And because the levels multiply, an Again compounds.** One banked in the first gap is doubled by
+L2, L3, L4 and L5, so it is worth **16×** what it added; one banked in the last gap is worth 2. A
+full road therefore peaks at `32 + 30g` — 62× at `g=1`, 152× at `g=4` — where a collapsed one tops
+out at 32×, and **every Again you bank takes its compounded value off that peak forever**:
 
-**Special cubes are the second faucet, and half of them are drains.** The bare ladder is still
-exactly fair — measured over 200k simulated climbs per row with an empty rack, EV per stake is
-1.000 at every level, unchanged. A rack bends it either way, and it bends further the deeper you
-push, because a multiplier caught early rides every level above it and Ratts gets more chances to
-turn up:
+| Road (g=2) | Rungs | Peak | Odds of sweeping it |
+|---|---|---|---|
+| fresh prestige | 13 | **92×** | 1 in 8,192 |
+| gap 1 closed | 11 | 60× | 1 in 2,048 |
+| gap 2 closed | 9 | 44× | 1 in 512 |
+| gap 3 closed | 7 | 36× | 1 in 128 |
+| collapsed | 5 | 32× | 1 in 32 |
+
+The prize shrinks as the odds improve, so the biggest number in the game exists **only on a fresh
+prestige**. That is the one thing a player gives up by making progress, and it is why the prestige
+screen quotes the peak the new road is worth.
+
+**Sub-exponential schemes were tried first and all of them failed the same way.** Ordinal addends
+(`rung n adds n`), flat addends (an Again adds its level's number), and `2^n` levels with `+1`
+Agains were each measured. Two results killed them. The shallow rungs are where the grind actually
+lives — the frontier Again sits at rung `k+2` for `k` in 1–4 — and every additive schedule taxes
+exactly those hardest; flat addends charge 25% on the very first clear a player ever earns. And a
+rung is fair **only if it doubles the multiple**, since you are risking `M` to hold `M'` on a coin
+flip, so any schedule steep enough to stay fair *is* the exponential. Multiplying the levels and
+adding on the Agains is the only shape that keeps the published ladder, bounds the tail at `32+30g`,
+and leaves the compounding the paying cubes were measured against intact.
+
+**Nothing in the mode mints, and that is new.** Payouts are gross on the original stake, so the
+2× table already assumes busted stakes are what pays winners — which means a fair ladder has no
+spare money in it, and anything skimming off a bust to fund a second prize is spending the same
+truguts twice. The Pure Cube pot did exactly that and was the mode's only faucet; it is gone, and
+the reasoning is in [Cut on purpose](#cut-on-purpose). A busted stake now simply leaves.
+
+So the whole economy is two numbers: the levels are exactly fair, and the **Agains are the house
+edge**. That makes the cube a clean sink, which is what the surrounding challenge economy wants
+from it — worth stating plainly, because the removal of the pot moved the mode from returning up
+to **1.24×** per trugut staked to returning exactly **1.00×** before rack effects.
+
+**The bare ladder is fair on the cubes, and `pureBonus` is now the one thing sitting on top of it.**
+Without the bonus, EV per stake measures 1.000 at every level on an empty rack — the coin flip is
+the coin flip. The pure bonus adds `n × 2⁻ⁿ` to a rung of `n` cubes, and that term is **front-loaded
+at the shallow end**, because a short line is the one that sweeps often enough to matter:
+
+| rung | cubes | pure rate | EV/stake, bonus off | on | change |
+|---|---|---|---|---|---|
+| Level 2 | 3 | 12.9% | 1.00 | 1.39 | **+40%** |
+| Level 3 | 5 | 3.4% | 1.00 | 1.17 | +17% |
+| Level 4 | 7 | 0.96% | 1.00 | 1.06 | +6% |
+| Level 5 | 9 | 0.27% | 1.00 | 1.03 | +2% |
+
+*400k rolls per row, empty rack, `pureBonus: 1`.*
+
+**This is a real edge and it is worth stating rather than burying.** A three-cube line sweeps your
+way one time in eight, which is not rare, so a bonus proportional to the count is worth most exactly
+where the mode used to be exactly fair. It does not bring the pot's *exploit* back — this scales with
+the stake, so min-staking still gains nothing — but it does mean "the levels are fair, the Agains are
+the whole house edge" is now true of the **ladder** rather than of the mode.
+
+Three dials, if that trade is not wanted: drop `pureBonus` (0.25 puts Level 2 at +10%), raise the
+`final.length >= 3` floor in `resolveLine` so short lines are called out but not paid, or pay
+`cubes - 4` so the bonus starts at a five and the shallow end drops out entirely. The last keeps the
+headline number on the rare sweeps, which is the whole point of it, without paying for a coin flip.
+
+**Special cubes are the other faucet, and half of them are drains.** A rack bends the ladder either
+way, and it bends further the deeper you push, because a multiplier caught early rides every level
+above it and Ratts gets more chances to turn up:
 
 Rerolls are banked *and spent* in this measurement, and **clears per climb** is carried alongside
 EV because it is a second currency that one cube trades in almost exclusively.
 
-| Rack (1 slot unless noted) | L1 | L3 | L5 | clears/climb at L5 |
+| Rack (1 cube fielded unless noted) | L1 | L3 | L5 | clears/climb at L5 |
 |---|---|---|---|---|
 | empty | 1.00 | 1.00 | 1.00 | 0.03 |
 | Anakin *calling blue* | 1.00 | 1.15 | **1.38** | 0.04 |
@@ -1176,7 +1401,7 @@ EV because it is a second currency that one cube trades in almost exclusively.
 | **Reroll** | 1.00 | 1.01 | 1.22 | 0.04 |
 | Binder + Nudge | 1.00 | 1.02 | 1.06 | 0.03 |
 | Binder + Bribe | 1.00 | 1.03 | 1.01 | 0.03 |
-| Wild + Greed + Multiplier + Binder (4 slots) | 1.00 | 1.03 | 0.97 | 0.03 |
+| Wild + Greed + Multiplier + Binder (4 fielded) | 1.00 | 1.03 | 0.97 | 0.03 |
 | Binder | 1.00 | 0.98 | 0.93 | 0.03 |
 | Symbiont | 1.00 | 0.96 | 0.92 | 0.03 |
 | Multiplier | 1.00 | 0.97 | 0.89 | 0.03 |
@@ -1215,13 +1440,27 @@ from beyond the grave (0 ghost payouts over 66,433 culls); one a Binder cloned o
 pays twice, because there really are two of them on the table; and `applyMults` runs after the
 tie-breaker, so a tie broken your way still cashes them in.
 
-**The bag is what makes slots the real prize.** A single special got slightly *weaker* — the old
+**And so is every other paying face, which took a second pass to get right.** The Multiplier and Ratts
+were read off the resolved line; the Greed Cube, the Shortcut and the Reroll Cube were scored in the
+first pass, off the line as *thrown*. So the cubes could save you from Ratts but could not take a
+payout back, and Ben lying across a Greed Cube left the multiple standing at what it had already
+added — a number on the board with nothing on the board behind it, on a payout walk built to make
+exactly that unreadable. Measured over 450,000 throws on a Ben-heavy rack it hit **15% of throws that
+razed anything**. All four now come off one pass over the resolved line: **what is not on the table
+does not pay**, and a copy counts by standing there rather than by being handed a turn of its own.
+
+The engine's parity harness (`scripts/cubeParity.js`) diverges from its frozen pre-port reference
+because of this, and should: over 3,000 climbs it reports `mult`/`pays` on 41, `rerolls` on 14,
+`shortcut` on 11, and the reroll note's wording on 196 — and nothing else at all. That harness was the
+gate on the *port* being faithful; it cannot also be the gate on the rules never changing.
+
+**The bag is what makes a big rack worth building.** A single special got slightly *weaker* — the old
 flat chance rolled per cube, so two cubes a level gave it a 44% look-in and it usually landed early;
 the bag gives it one uniformly-placed seat in eight, so it arrives later on average even though it
 now always arrives. A **four-cube rack fills half the bag**, so the whole thing deploys and deploys
 fast, and the tie picks are what turn that deployment into an edge: **0.97 → 1.26** at Level 5. The
 bag size, or capping how much of the bag a rack may occupy, are the levers if a loaded rack ever
-outruns the pot; on these numbers it does not.
+takes the mode above even money on its own; on these numbers it does not.
 
 **The two paying cubes are currently the worst things you can equip, and that is a live problem.**
 Greed measures **0.60** and the Multiplier **0.89** at Level 5. The compounding helped both — Greed
@@ -1340,22 +1579,26 @@ negative balance.
 
 ## 4. Implementation
 
+**Three layers, and the split is the point.** The rules know nothing about how they are drawn, the
+API knows nothing about how they are played, and the client knows nothing it was not told.
+
 | Concern | Where |
 |---|---|
-| Command | `src/commands/cube.js` — bare `/chubacubes`, no subcommands |
-| Router + handlers | `src/interactions/cube.js` |
-| Engine + views | `src/interactions/cube/functions.js` |
-| Tuning | `src/data/challenge/cube.js` |
-| Special cubes | `SPECIALS` in the tuning data — six faces each; resolved by `resolveLine` |
-| Ties | `rollTiebreak` + `applyMults` in the engine; `finishTie` + `settleRoll` in the router |
-| Face art | one emoji per face in `SPECIALS`, never composed — see `faceEmoji`, one glyph per position |
+| Command | `src/commands/cube.js` — bare `/chubacubes`, no subcommands; gates and launches the Activity |
+| Rules | `src/game/cube/` — `tuning.js` (every number), `engine.js` (resolution), `state.js` (the profile), `actions.js` (run lifecycle), `persist.js` |
+| HTTP surface | `src/api/cube.js` — server-authoritative; abstract face ids and structured notes, never emoji or prose |
+| Client | `../junkyard/src/activity/` — `board.js`, `faces.js`, `notes.js`, `rack.js`, `sheets.js`, `feed.js` |
+| Special cubes | `SPECIALS` in `game/cube/tuning.js`; resolved by `resolveLine` |
+| Ties | `rollTiebreak` + `applyMults` in the engine; `parkTie` / `resumeTie` / `answerTie` in `actions.js` |
+| Face art | one glyph per face, never composed — Discord's map is `data/discord/cube_emoji.js`, the Activity's is `activity/faces.js` |
 | Live state mirror | `src/firebase.js` listener on `challenge/cube/live` |
+| Retired board | `src/interactions/cube.js`, `cube/functions.js`, `data/challenge/cube.js` — the embed. Still loaded for `isUnlocked`/`lockedEmbed` and as the parity harness's subject; it draws no game any more |
+| Harnesses | `scripts/cubeParity.js` (the port is faithful), `cubeOctahedron.js`, `cubeEconomy.js`, `cubePoints.js`, `cubeFixtures.js` (client fixtures), `cubeApiSmoke.js`, `cubeActivityCheck.js` |
 | Inspector | `scripts/inspectChanceCube.js` |
 
 **State.**
 
 ```
-challenge/cube/live/pot                   the Pure Cube pot
 challenge/cube/live/ladders/<discordId>   one live run per player — or one dead one, or one
                                           parked on a tie
                                           { stake, level, call, standing, mult, spent,
@@ -1366,7 +1609,7 @@ users/<key>/random/cube                   { stake, turn, unlocked, clears,
                                             calls, wins, rolled, bestLevel, bestStanding,
                                             totalWon, totalLost, totalSpent, prestige,
                                             streak, bestStreak,
-                                            cubes, equipped, slots, rerolls, buyReroll,
+                                            cubes, equipped, rerolls, buyReroll,
                                             nudge, bribe, bribes, faces, bestCubes,
                                             bestMultiple }
 ```
@@ -1398,36 +1641,80 @@ tie, which is the only node that has to hold an *unsettled* roll.
 
 `cubes` is a `{ id: true }` map so a grant is a single key; `equipped` is an ordered list. Both are
 read back through `SPECIALS`, so an id the data no longer has is dropped rather than trusted into a
-roll, and `equipped` is filtered against both what is owned and the slot count on **read as well as
-write** — a loadout saved when there were more slots can't field an extra cube.
+roll, and `equipped` is filtered against what is owned on **read as well as write** — a cube sold out
+from under a saved loadout can't reach the table. It is **cut to `bagSize()` on read as well**, so a
+loadout stored while the rack was uncapped comes back as its first eight with the rest benched, and a
+hand-edited profile cannot field nine. The write path refuses an over-long list outright (`too_many`)
+rather than choosing for you. A `slots` key written by the old model is ignored either way; nothing
+was migrated, because the cap it bought is now the same eight for everybody.
 
 **No subcommands, deliberately.** Discord forces a subcommand choice once any exist.
 `/chubacubes` is separate from `/chancecube` for the same reason — that command stays a plain
 coin flip plus a guild-specific easter egg in `1199872145354915920` that **must be
 preserved**.
 
-Navigation is buttons routed through `client.buttons` by the existing
-`interaction.customId.split("_")` convention (`src/bot.js:148`), not collectors: this
-codebase drives interactive state through persisted Firebase state, which is what makes it
-survive restarts.
+**Nothing is held in memory between actions.** Every action is a fresh authenticated request that
+reads the run back out of Firebase, settles, and writes — which is what makes a run survive a bot
+restart, a reload, or a closed window. The embed reached the same property through persisted state
+rather than collectors, and the Activity gets it for free by being stateless over HTTP.
 
-Two guards on a public board, not one: the owner id in every custom_id, and the turn counter.
-Both matter more now that a press can change a loadout or spend truguts on a reroll — every one
-of the new components carries the owner as its last segment, and the rack is refused mid-run for
-the same reason the stake is.
+The turn counter is the guard that survived the transport change: every action carries one and it is
+checked on arrival, because without it a double-click on Call stakes twice against one run. The
+owner-id-in-the-custom_id guard did not survive and did not need to — see [§2.6](#26-whose-board-it-is).
 
 ### Cut on purpose
 
 An earlier draft had a hidden daily loading with a public server-wide ledger to read it
 from, a rake, a per-player daily stake cap with prestige tiers, cosmetic face palettes, and
 a multiplayer shared table. All of it went: the mode is a fast, legible press-your-luck
-ladder in one embed, and every one of those systems was a second screen or a paragraph of
+ladder on one screen, and every one of those systems was a second screen or a paragraph of
 rules standing between the player and a roll. The ideas are in git history if the loop
 proves too thin.
 
 The one piece of that draft that came back is the unlock gate — the old "rack" of cubes won
 off Watto, rebuilt as the much smaller clears counter in §2.3. A ladder where a new player
 can stake into the 32× immediately has no shape to it.
+
+**The Pure Cube pot**, which did ship and then came out. A jar seeded at 📀25,000, fed by a
+quarter of every busted stake, paying 5% / 25% / 100% of itself on a pure 5, 7 or 9. The
+reasoning is worth keeping because the shape of the mistake is general rather than a tuning
+miss:
+
+- **The prize did not scale with the stake, and every other payout in the mode does.** A level
+  double, a Greed, a Multiplier, a Boost — all of them multiply what you risked. The pot paid a
+  share of the *jar* however little you had put up. That made the minimum stake strictly
+  dominant: the ladder underneath is exactly fair at every size, so stake size bought nothing
+  except a smaller share of a fixed prize. Min-stake and push deep was the whole game.
+- **Shrinking the share could not fix it.** The share scaled the prize and the exploit in
+  lockstep and never the ratio between them, which is what a min-staker is actually playing for.
+  The only setting with no exploit in it was the setting with no pot in it.
+- **It was also the mode's only faucet.** Total return was `1 + potShare × bustRate` — up to
+  **1.24×** per trugut staked at `potShare: 0.25`, and 1.97× when the share was 1. A fair ladder
+  has no spare money in it: busted stakes are already precisely what funds the winners, so
+  routing them into a jar as well spent the same truguts twice.
+- **Rarity never helped, and that is the part that misleads.** With inflow `i`, payout chance `q`
+  and share `s` the jar settles at `P* = i / (q·s)` — rarity sits in the *denominator*, so a
+  jackpot firing ten times less often simply rests ten times bigger and the truguts leaving over
+  a year are identical. There was no tier schedule that leaked less. Measured from the other
+  side: dropping the tier share 10% → 5% *raised* the resting pot 440× → 660× average stake.
+
+What went with it was the mode's only shared object and its only prize bigger than a capped
+stake. The first is covered better by [the daily lean](#21-the-daily-lean), which gives the
+channel something to argue about every day rather than once in a thousand runs and costs nothing
+to run. The second was never really the pot's — `32 + 30g` on a fresh prestige road is the
+biggest number in the game, and §3 is where it lives.
+
+What it bought is that **every trugut lost now simply leaves.** The mode is a clean sink, the
+Agains are the whole of the house edge, and there is nothing in it that mints.
+
+**What came back, and why it is not the pot again.** Cutting the jar left a pure paying the level
+flat — the rarest thing the mode can draw, worth exactly what any other win was worth. `pureBonus`
+puts a price back on it as a **multiple** rather than a prize, and that single change answers every
+bullet above. It scales with the stake, because a multiple rides the standing. It is not a faucet,
+because it comes out of the same fair ladder every other payout does rather than out of a jar fed by
+busts. And rarity now works the right way round: a bonus of one per cube grows linearly while the
+odds of collecting it halve per cube, where the jar's resting size grew as fast as its rarity fell.
+The pot's mistake was the jar, not the idea that a swept line should be worth something.
 
 ---
 
