@@ -40,10 +40,15 @@ function dispatch(event) {
 }
 
 function connect() {
-    const base = process.env.BOTTO_API_BASE_URL
+    // SSE needs a host that actually streams. The main API base may sit behind
+    // Firebase Hosting's rewrite, which buffers responses — events then arrive
+    // in late bursts on reconnect replay instead of in real time. Point
+    // BOTTO_SSE_BASE_URL at the direct Cloud Run mapping
+    // (e.g. https://events.bottosjunkyard.com/api/v1/) to bypass the CDN.
+    const base = process.env.BOTTO_SSE_BASE_URL || process.env.BOTTO_API_BASE_URL
     const token = process.env.BOT_API_KEY
     if (!base || !token) {
-        console.warn('[sseClient] BOTTO_API_BASE_URL or BOT_API_KEY missing, not connecting')
+        console.warn('[sseClient] BOTTO_SSE_BASE_URL/BOTTO_API_BASE_URL or BOT_API_KEY missing, not connecting')
         return
     }
 
@@ -55,7 +60,7 @@ function connect() {
 
     source.addEventListener('open', () => {
         backoffMs = INITIAL_BACKOFF_MS
-        console.log('[sseClient] connected')
+        console.log(`[sseClient] connected to ${url}`)
     })
 
     source.addEventListener('entity', (msg) => {
