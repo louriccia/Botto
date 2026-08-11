@@ -130,7 +130,9 @@ scheduler.register({
                         content: `<@&${LIVEMATCH_ROLE_ID}> **${matchLabel(fresh)}** — match starts ${startTag(startMs)}`,
                         allowedMentions: { roles: [LIVEMATCH_ROLE_ID] },
                     });
-                    await channel.send({ flags: MessageFlags.IsComponentsV2, components: [view] });
+                    // setupMatchView already returns [container] — wrapping it again
+                    // nests the array and Discord rejects the payload (no setup card).
+                    await channel.send({ flags: MessageFlags.IsComponentsV2, components: view });
                 } catch (err) {
                     console.error(`[cron:liveMatchSetup] setup post failed for ${match.id}`, err?.message ?? err);
                 }
