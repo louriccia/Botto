@@ -711,10 +711,14 @@ exports.getPoolOption = function (option, selected) {
 }
 
 exports.getEventOption = function (option, selected) {
+    // Authored option content is free text from the ruleset editor; Discord
+    // hard-rejects the whole select menu when label/description/value exceed
+    // 100 chars, and an option without an `events` array must not throw here.
+    const bundled = Array.isArray(option.events) ? option.events : []
     const eventOption = {
-        label: option.name || option.id,
-        description: `${option.description || ""} (${option.events.length}${option.events.some(event => event.type == 'dynamicEvent') ? "+" : ""} events)`,
-        value: option.id,
+        label: String(option.name || option.id).substring(0, 100),
+        description: `${option.description || ""} (${bundled.length}${bundled.some(event => event.type == 'dynamicEvent') ? "+" : ""} events)`.substring(0, 100),
+        value: String(option.id).substring(0, 100),
         default: selected
     }
 
@@ -738,7 +742,11 @@ exports.optionGetters = {
 
 exports.eventSelector = function ({ event, options, index } = {}) {
     const eventRow = new ActionRowBuilder()
-    const eventOptions = options?.[event.id]
+    // Prefer the API's enriched per-event options (ban/repeat status), but fall
+    // back to the event's own authored options — a render path that never called
+    // the API (e.g. a stale component interaction) has no options map, and a
+    // bare `.forEach` on undefined would kill the whole pre-race view.
+    const eventOptions = options?.[event.id] ?? event.options ?? []
     let eventQty = (event.qty == 1 ? event.type : `${event.qty} ${event.type}s`)
     let placeholder = event.name || capitalize(
         [
@@ -797,19 +805,21 @@ exports.eventSelector = function ({ event, options, index } = {}) {
         return eventRow
     }
 
-    eventOptions.forEach(option => {
+    // Route through the zero-option guard: Discord rejects a select menu with no
+    // options (BASE_TYPE_BAD_LENGTH), which would fail the entire V2 view.
+    const builtOptions = eventOptions.map(option => {
         const selected = event.selection?.some(selection => selection.id == option.id)
         const getOption = exports.optionGetters[event.type]
-        event_selector.addOptions(
-            getOption
-                ? getOption(option, selected)
-                : { label: option.id, value: option.id, default: selected }
-        )
+        return getOption
+            ? getOption(option, selected)
+            : { label: String(option.id), value: String(option.id), default: selected }
     })
+    attachSelectOptions(event_selector, builtOptions)
 
     //overwrite description with ban / repeat status
     event_selector.options.forEach(option => {
         const matchingOption = eventOptions.find(o => o.id == option.data.value)
+        if (!matchingOption) return // e.g. the disabled '__none__' placeholder
         if (matchingOption.banStatus) {
             option.data.description = banStatusMap[matchingOption.banStatus].name
             option.data.emoji = { name: banStatusMap[matchingOption.banStatus].emoji }
