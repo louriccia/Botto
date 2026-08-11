@@ -314,13 +314,32 @@ profiles.forEach((profile, n) => {
     // `press` joins them for the same reason: the frozen engine has no press to sell, so its absence
     // from the old list is the feature rather than a divergence. Asserted on its own below.
     const OFF_MENU = new Set(['slot', 'cube:octahedron', 'press']);
-    const strip = o => o.map(x => ({ value: x.value, label: x.label, description: x.description }))
-        .filter(x => !OFF_MENU.has(x.value));
+    // **Qui-Gon's Nudge is a fourth deliberate divergence, and the smallest: only its sentence moved.**
+    // The pick used to reuse `tieLean` reversed, so taking it turned a 40/60 tie into a 60/40 one and the
+    // copy quoted his number back. `nudgeLean` gives it a weight of its own, so the promise is now 55/45
+    // and the frozen engine has no field that could ever say so.
+    //
+    // The **entry** still has to be there, in the same position, with the same label — that is what this
+    // comparison is for and none of it is allowed to move. So the description is blanked on both sides
+    // rather than the row being dropped, and the new copy is asserted on its own below, because a
+    // description that quietly went back to quoting `tieLean` is exactly the regression this could hide.
+    const RECOPIED = new Set(['nudge']);
+    const strip = o => o.map(x => ({
+        value: x.value,
+        label: x.label,
+        description: RECOPIED.has(x.value) ? null : x.description,
+    })).filter(x => !OFF_MENU.has(x.value));
     stateSame(`profile ${n} · rewardChoices`, strip(pstate.rewardChoices(b)), strip(orig.rewardChoices(a)));
     stateSame(`profile ${n} · rewardChoices offers no slot`,
         pstate.rewardChoices(b).some(c => c.value === 'slot'), false);
     stateSame(`profile ${n} · rewardChoices offers no octahedron`,
         pstate.rewardChoices(b).some(c => c.value === 'cube:octahedron'), false);
+    const nudgeOffer = pstate.rewardChoices(b).find(c => c.value === 'nudge');
+    if (nudgeOffer) {
+        const pct = Math.round(tuningConfig.nudgeLean * 100);
+        stateSame(`profile ${n} · the Nudge quotes nudgeLean, not tieLean`, nudgeOffer.description,
+            `Watto's tie-breaker leans ${pct}/${100 - pct} your way instead of his.`);
+    }
 
     // Every mutator, each on its own fresh pair so one can't contaminate the next.
     const pairOf = () => [orig.cubeState(JSON.parse(JSON.stringify(profile))),

@@ -199,7 +199,12 @@ const ROLLS = Math.max(60000, CLIMBS * 3);
 
 {
     for (const pair of [['greed', 'wild'], ['gungan', 'reroll'], ['gungan', 'wild'], ['boost', 'multiplier']]) {
-        const space = engine.weldSpace(pair);
+        // **The press's own floor, not the whole space.** `weldPurity` keeps all but 1% of presses to
+        // welds carrying a downside face, so the memory is floored against `weldDrawSpace` — and a test
+        // that reproduced the old `weldSpace` floor would demand no repeats from a pairing with one
+        // routine outcome, which is not a rule the game has. Gungan+Wild is exactly that pairing: two
+        // distinct welds, one of which keeps Wild's mine.
+        const space = engine.weldDrawSpace(pair);
         const cap = Math.max(0, Math.min(config.weldMemory, space - 1));
         let held = [];
         let repeats = 0;
@@ -550,18 +555,42 @@ const makeWorld = function (cube = {}) {
             + `${ev.toFixed(3)}   ${(ev / base).toFixed(3)}   ${tie.toFixed(2).padStart(6)}`);
     }
     console.log('');
-    console.log('  the chase · rerolls expected to reach a weld with no downside face on it');
-    console.log('    weld                    clean    rerolls');
+    // **The chase is the sink.** `weldPurity` is what a downside-free weld costs to reach, and the
+    // interesting column is the last one: `weldRerollCost` scales with the stake ceiling, so at the
+    // prestige a printing purse reaches, the chase is priced in multiples of that purse.
+    //
+    // `was` is the rate before the dial existed — the raw combinatorics of the cut, which is what the
+    // press used to hand out. A quarter for two one-mine cubes, and a coin flip for anything welded to a
+    // parent with no downside face to inherit. `now` is measured, not asserted, because the rule lives in
+    // `rollWeld` and this file's job is to disbelieve it.
+    console.log('  the chase · reaching a weld with no downside face on it');
+    console.log('    weld                     was     now    rerolls   at prestige 33');
     const choose = (n, k) => (k < 0 || k > n ? 0 : Array.from({ length: k })
         .reduce((acc, _, i) => (acc * (n - i)) / (i + 1), 1));
+    const price = config.weldRerollCost * (config.maxStakeStep ** 33);
+    const TRIALS = 200000;
     for (const [a, b] of PAIRS) {
-        const p = [a, b].reduce((acc, id) => {
+        const was = [a, b].reduce((acc, id) => {
             const sp = SPECIALS.find(s => s.id === id);
             const good = sp.faces.filter(f => !isDown(f)).length;
             return acc * (choose(good, 3) / choose(sp.faces.length, 3));
         }, 1);
-        console.log(`    ${`${a}+${b}`.padEnd(22)}  ${p.toFixed(3)}   ${p ? `${(1 / p).toFixed(0)}×` : 'never'}`);
+        let clean = 0;
+        for (let i = 0; i < TRIALS; i++) {
+            const sp = engine.specialById(engine.rollWeld([a, b], { tier: 1 }));
+            if (sp && !sp.faces.some(isDown)) clean += 1;
+        }
+        const now = clean / TRIALS;
+        const cost = now ? (1 / now) * price : 0;
+        console.log(`    ${`${a}+${b}`.padEnd(22)}  ${was.toFixed(3)}   ${now.toFixed(3)}`
+            + `   ${now ? `${(1 / now).toFixed(0)}×`.padStart(6) : ' never'}`
+            + `   ${now ? `📀${(cost / 1e12).toFixed(0)}T` : '—'}`);
     }
+    // A pairing where neither parent carries a downside face has nothing to inherit, so the rule cannot
+    // touch it and every weld of it is clean. That is not a leak — it is two cubes that were already
+    // permanent being welded into one permanent cube.
+    check('a pairing with no downside to inherit is always clean',
+        engine.specialById(engine.rollWeld(['mirror', 'gungan'], { tier: 1 })).faces.some(isDown), false);
     console.log('');
 
     if (fail.length) {

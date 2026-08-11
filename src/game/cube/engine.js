@@ -191,10 +191,11 @@ const rollSplit = function (parents, tier) {
 
 // `take` distinct positions from `n`, uniformly. Partial Fisher-Yates, off the same CSPRNG as
 // everything else that decides a payout.
-const pickIdx = function (n, take) {
-    const all = Array.from({ length: n }, (_, i) => i);
-    for (let i = 0; i < take; i++) {
-        const j = i + crypto.randomInt(0, n - i);
+const pickIdx = function (n, take, from) {
+    const all = from ? [...from] : Array.from({ length: n }, (_, i) => i);
+    const len = all.length;
+    for (let i = 0; i < take && i < len; i++) {
+        const j = i + crypto.randomInt(0, len - i);
         [all[i], all[j]] = [all[j], all[i]];
     }
     return all.slice(0, take).sort((a, b) => a - b);
@@ -203,19 +204,25 @@ const pickIdx = function (n, take) {
 // How many **distinct** halves a cube can give up, which is far fewer than the positions suggest
 // because its faces repeat: Wild is five identical wilds and a mine, so three-of-six is either three
 // wilds or two and the mine. Two outcomes, not twenty.
+// `goodOnly` counts the halves a **pure** press could produce — the draw confined to non-downside
+// positions. `weldSpace` needs both totals to work out how big the space the press routinely draws
+// from actually is.
 const halvesCache = new Map();
-const distinctHalves = function (parent, take) {
-    const key = `${parent.id}|${take}`;
+const distinctHalves = function (parent, take, goodOnly) {
+    const key = `${parent.id}|${take}|${goodOnly ? 'good' : 'all'}`;
     if (halvesCache.has(key)) return halvesCache.get(key);
+    const from = parent.faces
+        .map((f, i) => ((goodOnly && DOWNSIDE.has(f.kind)) ? -1 : i))
+        .filter(i => i >= 0);
     const seen = new Set();
-    const walk = function (i, chosen) {
+    const walk = function (at, chosen) {
         if (chosen.length === take) {
             seen.add(chosen.map(k => parent.faces[k].id).sort().join(','));
             return;
         }
-        if (i >= parent.faces.length) return;
-        walk(i + 1, [...chosen, i]);
-        walk(i + 1, chosen);
+        if (at >= from.length) return;
+        walk(at + 1, [...chosen, from[at]]);
+        walk(at + 1, chosen);
     };
     walk(0, []);
     halvesCache.set(key, seen.size);
@@ -226,10 +233,11 @@ const distinctHalves = function (parent, take) {
 // reroll memory against so a pairing can never be excluded to nothing. The Gungan Shield is six
 // shield faces and therefore has exactly **one** half, so a pairing containing it is small enough
 // for that floor to do real work.
+//
 const spaceCache = new Map();
-exports.weldSpace = function (ids) {
+const spaceOf = function (ids, routine) {
     if (!Array.isArray(ids) || !ids.length) return 0;
-    const key = ids.join('+');
+    const key = `${ids.join('+')}|${routine ? 'routine' : 'all'}`;
     if (spaceCache.has(key)) return spaceCache.get(key);
     const parents = ids.map(baseById);
     let n = 0;
@@ -238,11 +246,29 @@ exports.weldSpace = function (ids) {
         // is the draw the memory is nearly always excluding against.
         const cuts = (config.weldSplits || {})[ids.length] || [];
         const take = (cuts[0] && cuts[0].take) || parents.map(() => 3);
-        n = parents.reduce((acc, p, k) => acc * distinctHalves(p, Math.min(take[k] ?? 3, p.faces.length)), 1);
+        const want = k => Math.min(take[k] ?? 3, parents[k].faces.length);
+        n = parents.reduce((acc, p, k) => acc * distinctHalves(p, want(k)), 1);
+        // A pairing with no downside face anywhere is never constrained, so all of its space is routine.
+        const anyDownside = parents.some(p => p.faces.some(f => DOWNSIDE.has(f.kind)));
+        if (routine && anyDownside) {
+            const clean = parents.reduce((acc, p, k) => acc * distinctHalves(p, want(k), true), 1);
+            n = Math.max(1, n - clean);
+        }
     }
     spaceCache.set(key, n);
     return n;
 };
+exports.weldSpace = ids => spaceOf(ids, false);
+
+// **What the press routinely produces, which is not the whole space.** `weldPurity` confines all but 1%
+// of presses to welds carrying a downside face, so the clean ones have to come off the total before the
+// reroll memory is floored against it — this is the number `rememberWeld` needs and `weldSpace` is not.
+//
+// Gungan+Wild is the pairing that proves the difference. It has two distinct welds and exactly one of
+// them keeps Wild's mine, so flooring the memory against 2 let it exclude the only weld the press could
+// hand back, and the roll then repeated inside its own memory. Against 1 the memory floors to 0 — no
+// exclusion at all, which is the honest answer for a pairing with one routine outcome.
+exports.weldDrawSpace = ids => spaceOf(ids, true);
 
 // **Roll a weld of two cubes.** `seen` is the ids this pairing has already produced and must not
 // produce again — see `weldMemory`.
@@ -264,9 +290,39 @@ exports.rollWeld = function (ids, { seen = [], tier = 1 } = {}) {
     if (!cutsFor(ids.length, tier).length) return null;
 
     const block = new Set(seen);
+
+    // **The press keeps a downside face unless it very rarely doesn't.** `take` decides how many faces
+    // come from each parent and says nothing about which, so left alone a 3+3 of two one-mine cubes
+    // dropped both mines a quarter of the time — see `weldPurity` for what that was worth.
+    //
+    // A pairing with no downside face anywhere among its parents has nothing to inherit, so the rule
+    // does not apply to it and the press does not invent one.
+    const anyDownside = parents.some(p => p.faces.some(f => DOWNSIDE.has(f.kind)));
+    // **Rolled once for the press, not once per attempt.** Per attempt, sixty draws each with a 1%
+    // chance would let the rare case through about half the time — the loop below exists to dodge the
+    // reroll memory and must not become sixty rolls of this.
+    //
+    // When it fires the draw is confined to the good faces rather than merely unconstrained, so
+    // `weldPurity` **is** the rate a clean weld appears. Lifting the constraint instead would make the
+    // rate `weldPurity × P(clean by chance)`, which is a different number for every pairing — 0.25% for
+    // Greed+Wild against 0.04% for Multiplier+Boost — and would leave the dial naming something no
+    // player could ever observe. It also has to be a real jackpot when it lands: a rare roll that then
+    // hands you a 25% shot at the prize is not one.
+    let pure = anyDownside && chance(config.weldPurity);
+    // Which positions are worth keeping, per parent. Only consulted on a pure press.
+    const goodIdx = parents.map(p => p.faces
+        .map((f, i) => (DOWNSIDE.has(f.kind) ? -1 : i))
+        .filter(i => i >= 0));
+
     // Bounded because the outcome space is tiny — six to twenty-one distinct welds for a real pairing
     // — so a handful of draws covers it, and falling through to an excluded roll is better than
     // looping. `weldMemory` is floored below the space size by `rememberWeld`, so this rarely bites.
+    //
+    // The floor is against the *whole* space, though, and this loop now rejects part of it: a Greed+Wild
+    // pairing has four distinct welds, three of which carry a mine, so with two remembered there is
+    // exactly one draw left to find. It terminates — a clean weld is never the only option, since the
+    // downside faces are a minority of every parent — but a reroll on the smallest pairings is close to
+    // deterministic, which is a property of those pairings being four cubes wide rather than of this rule.
     let last = null;
     for (let attempt = 0; attempt < 60; attempt++) {
         const take = rollSplit(ids.length, tier);
@@ -279,10 +335,28 @@ exports.rollWeld = function (ids, { seen = [], tier = 1 } = {}) {
         const order = shuffle(parents.map((_, i) => i));
         const picks = parents.map((p, k) => {
             const want = Math.min(take[order[k]] ?? take[take.length - 1], p.faces.length);
-            return { id: p.id, idx: pickIdx(p.faces.length, want) };
+            // A cut deeper than the parent has good faces cannot be pure — five off the Reroll Cube,
+            // which carries three downsides — so it falls back to the ordinary draw and comes out
+            // carrying one. That is the right answer rather than an edge case: some cuts have no clean
+            // version, and it only nudges the effective rate below `weldPurity` on the rarest splits.
+            const from = pure && goodIdx[k].length >= want ? goodIdx[k] : null;
+            return { id: p.id, idx: pickIdx(p.faces.length, want, from) };
         });
+        // Read off the drawn positions rather than the id, because `weldId` canonicalises — which maps
+        // positions onto the same *face ids* and so preserves whether a downside is among them, but
+        // there is no reason to make that a thing this has to know.
+        const keeps = picks.some((pk, k) => pk.idx.some(i => DOWNSIDE.has(parents[k].faces[i].kind)));
         last = weldId(picks);
-        if (!block.has(last)) return last;
+        if (block.has(last)) {
+            // **The memory can decline the jackpot.** A pure draw is confined to the good faces, so it
+            // produces the *same* clean weld every attempt — if the player already holds that one, sixty
+            // more tries produce it sixty more times and the loop would hand back a weld it is meant to
+            // be excluding. Offered once, then the press goes back to cutting normally.
+            pure = false;
+            continue;
+        }
+        if (anyDownside && !pure && !keeps) continue;
+        return last;
     }
     return last;
 };
@@ -350,11 +424,17 @@ exports.rollSide = rollSide;
 
 // Watto's tie-breaker. Deliberately *not* a plain cube and deliberately not drawn through
 // `rollSide`: the daily lean favours a colour, and this thing favours the house — it leans
-// against whatever you called, whichever colour that is. Qui-Gon's Nudge doesn't remove the
-// weight, it turns it around, so a tie is always somebody's coin flip and never a fair one.
+// against whatever you called, whichever colour that is. A tie is always somebody's coin flip and
+// never a fair one.
+//
+// **Qui-Gon's Nudge has its own weight rather than turning Watto's around.** It used to reuse
+// `tieLean` reversed, which made the pick a 20-point swing — 40/60 against becomes 60/40 for — and
+// measured +23% EV on any rack, so every dial in the tuning data had to be read twice. `nudgeLean`
+// is the same idea at a price the rest of the file can be tuned against; see the note there, including
+// why the gap between the two populations cannot be closed while the pick exists.
 exports.rollTiebreak = function (call, nudge) {
-    const favoured = nudge ? call : OTHER[call];
-    return chance(config.tieLean) ? favoured : OTHER[favoured];
+    if (nudge) return chance(config.nudgeLean) ? call : OTHER[call];
+    return chance(config.tieLean) ? OTHER[call] : call;
 };
 
 // ---------------------------------------------------------------------------

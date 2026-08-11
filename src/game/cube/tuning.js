@@ -717,7 +717,52 @@ exports.cube = {
     // Watto leans on the cube. Every day one side is quietly favoured this much and the other
     // takes the rest — enough to be worth noticing over a day's rolls, not enough to make a
     // call feel decided for you. Which side is never announced.
-    dayLean: 0.55,
+    //
+    // **It was 0.55 and that was a money printer.** The reason is that the lean does not stay 55/45:
+    // a level's winner is the *majority* of an odd number of cubes, and majority-of-N amplifies a
+    // per-cube bias with depth. Measured on a collapsed road:
+    //
+    //     level   cubes   P(call wins)   × levelStep
+    //     L1        1        0.5500         1.100
+    //     L2        3        0.5748         1.150
+    //     L3        5        0.5931         1.186
+    //     L4        7        0.6083         1.217
+    //     L5        9        0.6214         1.243
+    //
+    // Every rung is independently above even money, so a player who knows the day's side has no reason
+    // ever to bank and the ladder's "a level push is exactly fair" property — the thing §3 of the design
+    // doc is built on — is simply gone. Compounded, a bare ladder measures **EV 2.27** at 0.55 against
+    // 1.000 at 0.50, and a real rack took one holder from 20T to 800T in an afternoon at ~1% of purse
+    // a roll. The salt being secret does not help: a nine-cube line is enough information that ~36
+    // throws identify the day's side to 95% confidence, so it is inferred from the table rather than
+    // read out of the source.
+    //
+    // **It is also not zero-sum against a player who never works it out.** Blind play — one colour
+    // forever, half the days wrong — measured EV 1.66 at 0.55, because `E[∏P] > ∏P(E[p])` by convexity:
+    // the ladder pays exponentially in streak length, so *any* p ≠ 0.5 mints truguts in either
+    // direction. There is no value of this dial that is EV-neutral except 0.500.
+    //
+    // So the number is chosen for how much flavour survives per unit of leak, not for fairness. Measured
+    // by `scripts/cubeLean.js` on a bare ladder — the dial with nothing else in the sample — scored at
+    // the best stopping level and staked at 1.07% of purse, which is `maxStake` at prestige 33:
+    //
+    //     dayLean   reads as   informed EV   blind EV   informed, 250 runs
+    //     0.550      55/45        2.937        1.921          45×
+    //     0.530      53/47        2.078        1.541         6.8×
+    //     0.520      52/48        1.579        1.318         3.2×      ← shipped
+    //     0.510      51/49        1.493        1.311         2.6×
+    //     0.500      50/50        1.190        1.229         1.6×
+    //
+    // **0.52 is the floor of perceptibility, not a fairness target.** A 52/48 day is still genuinely
+    // noticeable across a few hundred rolls, which is the only timescale the lean was ever meant to be
+    // felt on. Below 0.51 the mode pays the whole cost of the mechanic for a bias nobody can perceive,
+    // and at that point the honest move is to delete it rather than trim it again.
+    //
+    // The residual ~1.19 at a perfectly fair 0.500 is `pureBonus`, not this dial — see the note there.
+    // A hand-picked rack measures ~2.2 with the lean switched off entirely, which is a third leak this
+    // number cannot touch: the cubes were each measured alone when they were built and never as a chosen
+    // eight together. `cubeLean.js` prints that row on purpose.
+    dayLean: 0.52,
     // ---------------------------------------------------------------------
     // The route
     // ---------------------------------------------------------------------
@@ -835,9 +880,44 @@ exports.cube = {
     maxCubes: Infinity,
     // Watto's tie-breaker cube. A destructive face can leave an even line with no majority in
     // it, so he brings out a cube of his own — and his own cube is weighted. This is the chance
-    // it lands *against* your call. Qui-Gon's Nudge turns the same weight around rather than
-    // removing it, so a tie is always a coin flip that somebody owns.
+    // it lands *against* your call.
     tieLean: 0.6,
+    // What Qui-Gon's Nudge makes a tie worth instead — the chance it lands *your* way once the pick is
+    // taken. Its own lean rather than a mirror of Watto's, which is the whole change: the Nudge used to
+    // reuse `tieLean` reversed, so taking it swung a tie from 40/60 against to 60/40 for, and that
+    // 20-point swing measured **+23% EV on any rack**.
+    //
+    // The problem with that is not the size, it is that every other dial in this file then has to be
+    // tuned twice — once for the population holding the pick and once for the population without it —
+    // and `rewardChoices` describes these tie picks as "worth exactly as much as the rack that causes
+    // them, and worth nothing on their own". A flat quarter of a player's EV is not that.
+    //
+    // Measured by `scripts/cubeLean.js` on a tie-heavy rack at the shipped dials, 200k climbs a row,
+    // against an un-nudged baseline of EV 1.356 ±0.008:
+    //
+    //     nudgeLean   reads as    EV      fork vs un-nudged
+    //     0.600        60/40     1.692        +24.7% ±1.1       ← the old reversal
+    //     0.575        57/43     1.641        +21.0%
+    //     0.550        55/45     1.625        +19.8%            ← shipped
+    //     0.525        53/48     1.583        +16.7%
+    //     0.500        50/50     1.556        +14.8%
+    //
+    // That section of the script runs at five times the sample count of the rest, and the ± is printed,
+    // because the rows sit a few points apart and ties are only ~8% of rungs. Under-sampled, this table
+    // comes out non-monotone and reads as the dial behaving erratically. It isn't; the measurement was.
+    //
+    // **The fork cannot be closed while the pick exists**, and that is worth knowing before anybody
+    // tries: at 0.500 the Nudge makes a tie *fair*, which is still a 10-point gain over losing 60% of
+    // them, so it is still worth +15%. Only removing the pick takes it to zero. The dial chooses the
+    // width, not whether there is one.
+    //
+    // 0.55, because the pick has to stay obviously worth a prestige point — going from losing 60% of
+    // ties to winning 55% is a 15-point swing and reads as a real prize — while it gives up a third of
+    // the old reversal's fork, which is the most that can be bought without gutting the pick.
+    //
+    // A tie is still always a coin flip that somebody owns; the two owners just no longer hold the
+    // same weight.
+    nudgeLean: 0.55,
     // Buying a tie off him instead, once the rack has handed that over. Priced as a share of
     // the standing it buys, because a tie at the top of the ladder is worth thirty-two times one
     // at the bottom and a flat price would be free money up there. Every bribe already paid makes
@@ -1070,6 +1150,54 @@ exports.cube = {
             { take: [4, 1, 1], weight: 1, tier: 4 },
         ],
     },
+    // **The chance a weld is allowed to drop every downside face its parents had.** Otherwise the press
+    // keeps at least one, and which one is still a roll.
+    //
+    // The note above treats a downside-free weld as the rare prize at the end of the press. It was not
+    // rare. `take` says how many faces come from each parent and nothing about *which*, so a 3+3 of two
+    // one-mine cubes drops both mines a quarter of the time:
+    //
+    //     pairing                        downsides   P(clean) before this dial
+    //     Greed + Wild                     1 + 1            25.0%
+    //     Wild + Shortcut                  1 + 1            25.0%
+    //     Wild + Gungan Shield             1 + 0            50.0%    ← the partner has none to inherit
+    //     Greed + Mirror                   1 + 0            50.0%
+    //     Wild + Multiplier                1 + 2            10.0%
+    //     Multiplier + Boost               2 + 2             4.0%
+    //
+    // A quarter is the modal outcome, and welding a payer to the Shield or the Mirror was a coin flip,
+    // because neither of those carries a downside face to pass on. What that produced is the cube the
+    // Sebulba note warns about in so many words — *"a cube with no downside face never leaves the
+    // table, so a one-sided effect is re-applied at every level for the rest of the climb and compounds
+    // against a ladder that doubles"* — except welded, so it is also two cubes' worth of good faces.
+    //
+    // Measured in a real rack, one surviving mine roughly halves the weld:
+    //
+    //     wild+greed weld        EV     an evening at 1% of purse
+    //     no mine               2.99          56×
+    //     one mine (greed)      1.89           7×
+    //     one mine (wild)       1.70           4×
+    //     two mines             1.40         2.5×
+    //
+    //     expected weld, 25% clean (before)     1.997
+    //     expected weld at weldPurity 0.01      1.679
+    //
+    // **1%, and the number is chosen for the sink rather than the EV.** By 0.01 the expected weld has
+    // effectively bottomed out — 0.005 buys another 0.007 and nothing else — so everything below it is
+    // bought purely as something to spend truguts on. `weldRerollCost` scales with the stake ceiling, so
+    // at prestige 33 a reroll is 📀21.5T and a hundred of them is **📀2,147T**: about 2.7× the entire
+    // purse the old faucet produced, which makes this the first thing in the mode that can absorb a
+    // whale. See `weldRerollCost` for why the truguts price and the prestige-point path both stay live —
+    // at a hundred attempts the point path is ~15,000 runs, so a rich player pays truguts and a normal
+    // one simply never sees a clean weld, which is the right shape for a jackpot.
+    //
+    // It also makes 5+1 safe to keep rather than something to argue about: five good faces plus an
+    // inherited mine is a superb cube instead of a strictly-better-than-its-parent one, which was the
+    // objection `docs/the-weld.md` §5.2 records.
+    //
+    // A pairing where **no** parent has a downside face — Mirror, Gungan Shield, Symbiont — is untouched
+    // by this. There is nothing to inherit, so the press cannot invent one and does not try.
+    weldPurity: 0.01,
     // How many of a pairing's previous welds the press will not hand back. **Two, which is the rule
     // Stardew's forge uses** — a tool there tracks the last two enchantments so neither is reselected.
     //

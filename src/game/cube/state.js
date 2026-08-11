@@ -674,7 +674,9 @@ exports.rewardChoices = function (s) {
             value: 'nudge',
             kind: 'nudge',
             label: "Qui-Gon's Nudge",
-            description: `Watto's tie-breaker leans ${Math.round(config.tieLean * 100)}/${Math.round((1 - config.tieLean) * 100)} your way instead of his.`,
+            // Reads off `nudgeLean`, not `tieLean`. The Nudge holds its own weight rather than turning
+            // his around, so quoting his numbers here would promise a 60/40 the pick no longer pays.
+            description: `Watto's tie-breaker leans ${Math.round(config.nudgeLean * 100)}/${Math.round((1 - config.nudgeLean) * 100)} your way instead of his.`,
         });
     }
     if (!s.bribe) {
@@ -833,7 +835,10 @@ exports.rememberWeld = function (s, patch, id) {
     const key = pairKeyOf(id);
     const parents = engine.weldParents(id);
     if (!key || !parents) return;
-    const cap = Math.max(0, Math.min(config.weldMemory, engine.weldSpace(parents) - 1));
+    // Floored against what the press **routinely** produces rather than the whole space: `weldPurity`
+    // keeps all but 1% of presses to welds carrying a downside face, and excluding against a total that
+    // includes the clean ones let a small pairing be excluded down to nothing. See `weldDrawSpace`.
+    const cap = Math.max(0, Math.min(config.weldMemory, engine.weldDrawSpace(parents) - 1));
     const seen = [id, ...(s.weldSeen[key] || []).filter(x => x !== id)].slice(0, cap);
     s.weldSeen = { ...s.weldSeen };
     if (seen.length) s.weldSeen[key] = seen;
