@@ -418,7 +418,13 @@ exports.recordRoll = function (s, patch, { call, won, cubes, level, standing, li
     }
     s.streak = won ? s.streak + 1 : 0;
     patch.streak = s.streak;
-    if (s.streak > s.bestStreak) {
+    // **Filed here rather than with the others at the top, and it has to be.** Every record above is
+    // read off a figure the roll arrived carrying, so all of them can be judged before anything moves.
+    // A streak record cannot: the streak *is* the thing this roll changes, so there is nothing to
+    // compare until it has changed. Written onto the same object all the same, because a caller asking
+    // "what did this roll break" should not have to know that one of the answers is late.
+    records.streak = s.streak > s.bestStreak;
+    if (records.streak) {
         s.bestStreak = s.streak;
         patch.bestStreak = s.streak;
     }

@@ -414,7 +414,22 @@ profiles.forEach((profile, n) => {
     [x, y] = pairOf();
     px = {}; py = {};
     const roll = { call: 'blue', won: n % 2 === 0, cubes: ['blue', 'red', 'blue'], level: n % 5, standing: n * 500, line: n % 13, multiple: (n % 9) * 1.5 };
-    stateSame(`profile ${n} · recordRoll`, pstate.recordRoll(y, py, roll), orig.recordRoll(x, px, roll));
+    // **`streak` is a fifth deliberate divergence, and it is a record the frozen engine never reported.**
+    // It tracked `bestStreak` and moved it, but told nobody — so the client could badge a record multiple
+    // and a record line and had no way to badge the third. Off both sides and asserted on its own below,
+    // which is the same treatment `slots`, `points`, `press` and the Nudge's copy get.
+    // **Read before either engine runs.** `recordRoll` moves `streak` and `bestStreak` on the state it
+    // is handed, so asking the state afterwards what the streak *was* gets the answer it has become —
+    // which is how the first version of this check managed to disagree with correct code.
+    const wasStreak = y.streak;
+    const wasBest = y.bestStreak;
+    const got = pstate.recordRoll(y, py, roll);
+    const { streak: gotStreak, ...gotRest } = got;
+    stateSame(`profile ${n} · recordRoll`, gotRest, orig.recordRoll(x, px, roll));
+    // A won roll takes the streak to `was + 1`; the record is whether that beat the stored best. A lost
+    // roll zeroes it, and zero is never a record.
+    stateSame(`profile ${n} · recordRoll flags a streak record`,
+        gotStreak, roll.won && (wasStreak + 1) > wasBest);
     // `week` comes off the patch for the same reason it comes off the state: the frozen engine files
     // no weekly bests and cannot grow a key for them. Asserted on its own immediately below, against
     // the roll that was just recorded — which is a stronger check than comparing it to nothing.
