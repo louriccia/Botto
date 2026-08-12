@@ -825,6 +825,20 @@ exports.spendPoint = function (ctx, { reward }) {
     };
 };
 
+// **The ceiling is clamped to silently; the balance is refused.** They look like the same check and they
+// are not. `maxStake` is a permanent rule — a number the player cannot change and will not cross again
+// this prestige — so quietly holding a request down to it loses nothing. A balance is a transient, and
+// rewriting a stake the player deliberately configured because they happen to be poor this minute throws
+// away the only copy of that intent. So one clamps and the other says no.
+//
+// It used to consult neither, which let a stake be stored at any value up to the ceiling however little
+// was in the purse — 📀1,000,000 against a balance of 📀5,000, stored, reported back as `clamped: false`.
+// No trugut was ever mis-withdrawn, because `startRun` checks the balance before it charges, so the whole
+// symptom was a board that accepted a stake and then refused to play it. Refusing here moves the answer
+// to where the mistake is made.
+//
+// `insufficient` deliberately reuses `startRun`'s code and message shape: it is the same refusal for the
+// same reason, and every client already handles it.
 exports.setStake = function (ctx, { stake }) {
     const { s, db, profile, profileRef, discordId } = ctx;
     if (persist.ladderOf(db, discordId)) return refuse('run_live', 'Not while a run is live.');
@@ -834,6 +848,14 @@ exports.setStake = function (ctx, { stake }) {
         return refuse('too_small', `The minimum stake is ${config.minStake}.`, { min: config.minStake });
     }
     const clamped = Math.min(wanted, s.maxStake);
+    // Checked against the **clamped** figure, so a request over both limits is refused for the one the
+    // player can do something about. Nobody needs telling that a stake they cannot afford is also over a
+    // ceiling they were never going to reach.
+    const balance = balanceOf(profile);
+    if (clamped > balance) {
+        return refuse('insufficient', `That stake is ${clamped} but you only have ${balance}.`,
+            { stake: clamped, balance });
+    }
     persist.writeCube(profileRef, profile, { stake: clamped });
     s.stake = clamped;
     return { ok: true, stake: clamped, maxStake: s.maxStake, clamped: clamped !== wanted };

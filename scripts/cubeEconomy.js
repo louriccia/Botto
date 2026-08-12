@@ -298,8 +298,84 @@ const play = async function (rack, runs, label) {
     return problems;
 };
 
+// ---------------------------------------------------------------------------
+// The stake can never exceed the purse
+// ---------------------------------------------------------------------------
+//
+// `startRun` has always checked the balance before it charges, so this was never a currency bug — but
+// `setStake` checked only the prestige ceiling, which let a stake be *stored* at any value the ceiling
+// allowed however little was in the purse. The symptom was a board that accepted 📀1,000,000 against a
+// balance of 📀5,000, reported it as unclamped, and then refused to play it.
+//
+// Both halves are asserted here: that the write path says no, and that the charge path still says no for
+// a stake stored before it did — a legacy profile cannot be fixed by a validation added later.
+const stakeGuards = function () {
+    const problems = [];
+    const check = function (label, got, want) {
+        if (JSON.stringify(got) !== JSON.stringify(want)) {
+            problems.push(`${label}: got ${JSON.stringify(got)}, want ${JSON.stringify(want)}`);
+        }
+    };
+
+    // `balance` is set by moving `truguts_spent`, which is how a real profile gets poor.
+    const at = function (balance, stake) {
+        const world = makeWorld([]);
+        world.profile.truguts_earned = balance;
+        world.profile.truguts_spent = 0;
+        world.profile.cube.stake = stake;
+        const moved = [];
+        const ctx = () => ({
+            db: world.db,
+            database: world.database,
+            profile: world.profile,
+            profileRef: world.database.ref('users/KEY/random'),
+            discordId: ME,
+            s: pstate.cubeState(world.profile),
+            moveTruguts: makeMoveTruguts(world.profile, moved),
+        });
+        return { world, ctx, moved };
+    };
+
+    {
+        const { ctx, world } = at(5000, 1000);
+        const out = actions.setStake(ctx(), { stake: 1000000 });
+        check('setStake over the purse is refused', out.code, 'insufficient');
+        check('and does not store it', world.profile.cube.stake, 1000);
+    }
+    {
+        // Over the ceiling but inside the purse: still a silent clamp, which is the case that must not
+        // regress into a refusal.
+        const { ctx } = at(10 ** 12, 1000);
+        const out = actions.setStake(ctx(), { stake: 10 ** 9 });
+        check('setStake over the ceiling still clamps', [out.ok, out.clamped], [true, true]);
+    }
+    {
+        const { ctx } = at(5000, 1000);
+        const out = actions.setStake(ctx(), { stake: 5000 });
+        check('a stake of exactly the purse is allowed', [out.ok, out.stake], [true, 5000]);
+    }
+    {
+        // A stake stored while rich, with the purse spent down afterwards. Nothing re-clamps it, so the
+        // charge path is the only thing standing between it and an overdraft.
+        const { ctx, moved } = at(5000, 500000);
+        const out = actions.startRun(ctx(), { call: 'red' });
+        check('startRun refuses a stored stake over the purse', out.code, 'insufficient');
+        check('and withdraws nothing', moved, []);
+    }
+    {
+        const { ctx, moved } = at(5000, 5000);
+        const out = actions.startRun(ctx(), { call: 'red' });
+        check('startRun allows a stake of exactly the purse', [out.ok, out.staked], [true, 5000]);
+        check('and withdraws exactly that', moved, [{ t: 'w', n: 5000 }]);
+    }
+
+    console.log(`\nStake guards: ${problems.length ? `${problems.length} failed` : 'the stake can never exceed the purse'}`);
+    return problems;
+};
+
 (async () => {
     const all = [];
+    all.push(...stakeGuards());
     all.push(...await play([], Math.floor(RUNS / 2), 'Starting empty (the rack grows as it prestiges)'));
     all.push(...await play(['greed', 'wild'], Math.floor(RUNS / 4), 'Two cubes'));
     all.push(...await play(ALL, Math.floor(RUNS / 4), 'Full rack'));
