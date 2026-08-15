@@ -1,0 +1,203 @@
+{
+  "takenAt": "2026-08-15T02:35:59.565Z",
+  "discordId": "256236315144749059",
+  "userKey": "-N8PFNb3Bmoi7zfk_cP4",
+  "name": "LightningPirate",
+  "cube": {
+    "bestCubes": 27,
+    "bestLevel": 4,
+    "bestMultiple": 116,
+    "bestStanding": 2161783796802,
+    "bestStreak": 14,
+    "bribe": true,
+    "bribes": 7,
+    "buyReroll": true,
+    "calls": {
+      "blue": 262,
+      "red": 5190
+    },
+    "clears": 1,
+    "cubes": {
+      "anakin": true,
+      "binder:034+mirror:013": true,
+      "boost:014+turbine:012": true,
+      "greed": true,
+      "guide": true,
+      "gungan": true,
+      "multiplier": true,
+      "octahedron": true,
+      "pitdroid": true,
+      "reroll": true,
+      "scavenger": true,
+      "sebulba": true,
+      "shmi": true,
+      "shortcut": true,
+      "symbiont": true,
+      "wild": true
+    },
+    "equipped": [
+      "wild",
+      "scavenger",
+      "guide",
+      "reroll",
+      "pitdroid",
+      "binder:034+mirror:013",
+      "gungan",
+      "boost:014+turbine:012"
+    ],
+    "faces": {
+      "anakin": {
+        "broken": 12,
+        "side:blue": 57,
+        "side:red": 17
+      },
+      "binder": {
+        "burn": 322,
+        "clone": 336
+      },
+      "boost": {
+        "boost": 248,
+        "broken": 128
+      },
+      "circuit": {
+        "boonta": 5,
+        "freeze": 3,
+        "jail": 1,
+        "lockout": 5,
+        "plunge": 1,
+        "scorch": 4,
+        "seam": 7,
+        "vault": 5
+      },
+      "greed": {
+        "end": 15,
+        "greed": 403
+      },
+      "guide": {
+        "end": 26,
+        "guide": 82
+      },
+      "gungan": {
+        "shield": 294
+      },
+      "mirror": {
+        "invert": 165,
+        "mirror": 246
+      },
+      "multiplier": {
+        "broken": 140,
+        "mult:blue": 128,
+        "mult:red": 137
+      },
+      "octahedron": {
+        "boonta": 45,
+        "freeze": 44,
+        "jail": 12,
+        "lockout": 33,
+        "plunge": 26,
+        "scorch": 31,
+        "seam": 32,
+        "vault": 39
+      },
+      "pitdroid": {
+        "charred": 3,
+        "draw": 430,
+        "purge": 74
+      },
+      "reroll": {
+        "broken": 52,
+        "end": 29,
+        "reroll": 69
+      },
+      "scavenger": {
+        "broken": 17,
+        "haul": 25,
+        "scavenge": 49
+      },
+      "sebulba": {
+        "broken": 205,
+        "engine:left": 192,
+        "engine:right": 219
+      },
+      "shmi": {
+        "broken": 125,
+        "side:blue": 88,
+        "side:red": 485
+      },
+      "shortcut": {
+        "end": 18,
+        "shortcut": 122
+      },
+      "symbiont": {
+        "cull": 32,
+        "pair": 226,
+        "raze": 29,
+        "twins": 157
+      },
+      "turbine": {
+        "broken": 12,
+        "heat": 62
+      },
+      "wild": {
+        "end": 68,
+        "wild": 650
+      }
+    },
+    "month": {
+      "cubes": 21,
+      "id": "2026-08",
+      "multiple": 115,
+      "streak": 14
+    },
+    "nudge": true,
+    "points": 1,
+    "pressTier": 1,
+    "prestige": 26,
+    "rerolls": 5,
+    "rolled": {
+      "blue": 4409,
+      "red": 5940
+    },
+    "stake": 67108864000,
+    "streak": 1,
+    "ties": {
+      "blue": 163,
+      "boonta": 10,
+      "bribed": 37,
+      "lostBlue": 31,
+      "lostRed": 0,
+      "red": 197,
+      "rolled": 360,
+      "total": 407,
+      "won": 203,
+      "wonBlue": 0,
+      "wonRed": 32
+    },
+    "totalLost": 1979506634415,
+    "totalSpent": 992372322759,
+    "totalWon": 5759456559220,
+    "unlocked": 4,
+    "week": {
+      "cubes": 21,
+      "id": "2026-33",
+      "multiple": 115,
+      "streak": 14
+    },
+    "weldSeen": {
+      "binder+mirror": [
+        "binder:034+mirror:013"
+      ],
+      "boost+turbine": [
+        "boost:014+turbine:012",
+        "boost:014+turbine:015"
+      ]
+    },
+    "wins": {
+      "blue": 120,
+      "red": 2953
+    }
+  },
+  "trugutsEarned": 6049355667850,
+  "trugutsSpent": 3239595772404,
+  "ladder": null
+}

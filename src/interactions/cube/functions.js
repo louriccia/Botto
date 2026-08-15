@@ -80,7 +80,7 @@ for (const [k, v] of Object.entries(persist)) exports[k] = v;
 
 // Re-bound locally, because the view half calls them by name rather than off `exports`.
 const {
-    maxStakeFor, rerollCostFor, bribeCostFor, gapSize, goalOf, canPrestige, topOf,
+    maxStakeFor, rerollCostFor, bribeCostFor, bribeShareFor, gapSize, goalOf, canPrestige, topOf,
     routeOf, nextRung,
 } = pstate;
 const { bankPayout, nextMultiple, faceKey } = engine;
@@ -562,7 +562,7 @@ const loadoutFields = function (s) {
                     ? `${SlyGon} **Qui-Gon's Nudge** — his tie-breaker leans **${Math.round(config.tieLean * 100)}/${Math.round((1 - config.tieLean) * 100)}** your way`
                     : null,
                 s.bribe
-                    ? `${BRIBE} **Bribe ties** — next one costs **${Math.round(config.bribeShare * (config.bribeStep ** s.bribes) * 100)}%** of the standing`
+                    ? `${BRIBE} **Bribe ties** — next one costs **${Math.round(bribeShareFor(s.nudge) * (config.bribeStep ** s.bribes) * 100)}%** of the standing`
                     : null,
             ].filter(Boolean).join('\n'),
         });
@@ -831,7 +831,7 @@ const tieStanding = function (pending) {
 };
 exports.tieStanding = tieStanding;
 
-exports.tieCostOf = (pending, s) => bribeCostFor(tieStanding(pending), s.bribes);
+exports.tieCostOf = (pending, s) => bribeCostFor(tieStanding(pending), s.bribes, s.nudge);
 
 // The tie screen. The line came back even, Watto's cube is face-down on the table, and the roll is
 // parked until the player answers. Rebuilt entirely from the stored run, because it has to draw the
@@ -840,7 +840,7 @@ exports.tieCostOf = (pending, s) => bribeCostFor(tieStanding(pending), s.bribes)
 // Nothing on it is settled yet, which is what makes that safe: `bestLevel` and the clears meter
 // still read exactly as they did when the cubes left the cup.
 exports.tieFrame = function (pending, s) {
-    const cost = bribeCostFor(tieStanding(pending), s.bribes);
+    const cost = bribeCostFor(tieStanding(pending), s.bribes, s.nudge);
     return {
         levelIdx: pending.level,
         again: Number(pending.again) || 0,

@@ -99,9 +99,10 @@ const SAY = {
         + `${n.both ? 'they hold their faces' : 'it holds its face'} next roll.`,
     'scorch.nothing': () => 'nothing beside it to burn.',
     // Names the faces it took, because which one it took is the entire value of the effect and the
-    // cube it came off is about to draw differently forever.
-    scorch: n => `burned ${n.burned.map(faceGlyph).join(' ')} off `
-        + `${n.both ? 'the cubes' : 'the cube'} beside it, for the rest of the climb.`,
+    // cube it came off is about to roll dead on it forever. **Charred rather than taken off**: the face
+    // is still there and still turns up, and does nothing when it does.
+    scorch: n => `charred ${n.burned.map(faceGlyph).join(' ')} on `
+        + `${n.both ? 'the cubes' : 'the cube'} beside it — dead for the rest of the climb.`,
     vault: n => `sealed ${chip(n.side)} — call the other way next roll.`,
     lockout: () => '**sealed the bank** — no cashing out until you clear a level.',
     // Past tense, unlike the Greed's flat rate, because what it pays is a function of how far the run
@@ -116,6 +117,8 @@ const SAY = {
     plunge: n => 'the ends of the line fell away'
         + (n.self ? ' — **the die went with them**.' : '.'),
     boonta: () => 'a tie on this line is **won**, not rolled for.',
+    // No face behind it either: the table stopped resolving, which is not something a cube did.
+    overflow: n => `**Memory overflow** — ${plural(n.spawned, 'cube')} on the table and still growing.`,
 
     // What the ice ate. Every one of these is an effect that found a frozen cube and broke against
     // it — the cube survives, thawed, and the effect is spent. They are separate kinds rather than one

@@ -87,16 +87,28 @@ exports.monthKey = monthKey;
 const WINDOWS = { week: weekKey, month: monthKey };
 exports.WINDOWS = WINDOWS;
 
+// When each of the three records was set, in milliseconds. A best with no stamp reads back as 0 —
+// every record filed before this existed has one, and the board prints nothing rather than a date it
+// had to invent. Kept beside the figures rather than derived: a best is a moment, and the tallies it
+// is folded into remember nothing about when anything landed.
+const stampsOf = stored => ({
+    multiple: Number(stored?.multiple) || 0,
+    cubes: Number(stored?.cubes) || 0,
+    streak: Number(stored?.streak) || 0,
+});
+exports.stampsOf = stampsOf;
+
 // One window's bests, reset lazily. **Nothing sweeps at midnight**: a stored window that is not the
 // current one simply reads back as zeroes and the next write files under the new key. So a player who
 // has not rolled since last Tuesday has no standing on this week's board rather than a stale one.
 const windowOf = function (stored, id) {
-    if (!stored || stored.id !== id) return { id, multiple: 0, cubes: 0, streak: 0 };
+    if (!stored || stored.id !== id) return { id, multiple: 0, cubes: 0, streak: 0, at: stampsOf(null) };
     return {
         id,
         multiple: Number(stored.multiple) || 0,
         cubes: Number(stored.cubes) || 0,
         streak: Number(stored.streak) || 0,
+        at: stampsOf(stored.at),
     };
 };
 exports.windowOf = windowOf;
@@ -160,8 +172,21 @@ exports.pairKeyOf = pairKeyOf;
 // What buying a tie costs. A share of the standing it buys rather than a flat price, because the
 // standing doubles every level and a flat price would be free money at the top; dearer with every
 // bribe already paid, and the count resets at prestige so it can't price itself out for good.
-exports.bribeCostFor = (standing, bribes = 0) => Math.floor(
-    standing * config.bribeShare * (config.bribeStep ** bribes),
+//
+// **The share starts at what the tie actually risks.** Losing a tie costs the whole standing, so a
+// bribe priced below `P(lose the tie)` is a straight subtraction in the player's favour however the
+// rest of the mode is tuned — see the note on `bribeEdge`, which is what the house keeps over that
+// floor. `nudge` is which lean applies: Watto's cube lands against you `tieLean` of the time, and
+// Qui-Gon's Nudge replaces that with landing your way `nudgeLean` of the time.
+//
+// Taking the flag rather than the probability because every caller already holds `s.nudge` and none
+// of them holds the lean — a caller that had to work out the odds itself is a caller that can get
+// them wrong, and there are five of them.
+const bribeShareFor = nudge => (nudge ? 1 - config.nudgeLean : config.tieLean) * (1 + config.bribeEdge);
+exports.bribeShareFor = bribeShareFor;
+
+exports.bribeCostFor = (standing, bribes = 0, nudge = false) => Math.floor(
+    standing * bribeShareFor(nudge) * (config.bribeStep ** bribes),
 );
 
 // ---------------------------------------------------------------------------
@@ -279,6 +304,18 @@ exports.cubeState = function (user_profile) {
             blue: Math.max(0, Math.floor(Number(c.ties?.blue) || 0)),
             red: Math.max(0, Math.floor(Number(c.ties?.red) || 0)),
             won: Math.max(0, Math.floor(Number(c.ties?.won) || 0)),
+            // **His cube's colour crossed with the result, which the four above cannot reconstruct.**
+            // `blue`/`red` and `won` are two margins of the same table and the table has a degree of
+            // freedom neither of them fixes: `won` is `breaker === call` summed over both colours, so how
+            // many *blue* breakers came good is not derivable from any combination of them. All four cells
+            // are kept rather than two and the rest inferred, because a profile written before this
+            // existed has `blue` and `red` covering ties these four know nothing about — `blue - wonBlue`
+            // would then count legacy ties as losses. Summing all four gives the covered total instead,
+            // and whatever `rolled` has beyond it is honestly unattributed.
+            wonBlue: Math.max(0, Math.floor(Number(c.ties?.wonBlue) || 0)),
+            wonRed: Math.max(0, Math.floor(Number(c.ties?.wonRed) || 0)),
+            lostBlue: Math.max(0, Math.floor(Number(c.ties?.lostBlue) || 0)),
+            lostRed: Math.max(0, Math.floor(Number(c.ties?.lostRed) || 0)),
         },
         // This week's and this month's bests, for the board's two rolling windows. Reset lazily —
         // see `windowOf`. All-time needs no entry: it is `bestMultiple` and friends.
@@ -328,6 +365,9 @@ exports.cubeState = function (user_profile) {
         // streak runs across games and can outlive any single run.
         streak: Number(c.streak) || 0,
         bestStreak: Number(c.bestStreak) || 0,
+        // When each of the three lifetime bests was set. The rolling windows keep their own; see
+        // `stampsOf`.
+        bestAt: stampsOf(c.bestAt),
         // Lifetime trugut ledger, in the same net numbers the result lines quote.
         totalWon: Number(c.totalWon) || 0,
         totalLost: Number(c.totalLost) || 0,
@@ -408,13 +448,22 @@ exports.recordRoll = function (s, patch, { call, won, cubes, level, standing, li
         s.bestStanding = standing;
         patch.bestStanding = standing;
     }
+    // Every stamp below is this one, so the three records a single roll can break all carry the same
+    // moment rather than three readings of the clock taken microseconds apart.
+    const now = Date.now();
+    const stamp = function (key) {
+        s.bestAt = { ...s.bestAt, [key]: now };
+        patch.bestAt = s.bestAt;
+    };
     if (line > s.bestCubes) {
         s.bestCubes = line;
         patch.bestCubes = line;
+        stamp('cubes');
     }
     if (multiple > s.bestMultiple) {
         s.bestMultiple = multiple;
         patch.bestMultiple = multiple;
+        stamp('multiple');
     }
     s.streak = won ? s.streak + 1 : 0;
     patch.streak = s.streak;
@@ -427,6 +476,7 @@ exports.recordRoll = function (s, patch, { call, won, cubes, level, standing, li
     if (records.streak) {
         s.bestStreak = s.streak;
         patch.bestStreak = s.streak;
+        stamp('streak');
     }
 
     // **This week's and this month's bests, for the board**, kept alongside the lifetime ones rather
@@ -438,12 +488,22 @@ exports.recordRoll = function (s, patch, { call, won, cubes, level, standing, li
     for (const [name, keyOf] of Object.entries(WINDOWS)) {
         const id = keyOf();
         const was = windowOf(s[name], id);
-        if (multiple > was.multiple || line > was.cubes || s.streak > was.streak || s[name].id !== id) {
+        const now3 = { multiple, cubes: line, streak: s.streak };
+        const beat = key => now3[key] > was[key];
+        if (beat('multiple') || beat('cubes') || beat('streak') || s[name].id !== id) {
             s[name] = {
                 id,
                 multiple: Math.max(was.multiple, multiple),
                 cubes: Math.max(was.cubes, line),
                 streak: Math.max(was.streak, s.streak),
+                // A window's stamp only moves when that window's figure does, which is not the same
+                // question as whether the lifetime best moved: a player can set this week's biggest
+                // multiple with a roll that is nowhere near their own record.
+                at: {
+                    multiple: beat('multiple') ? now : was.at.multiple,
+                    cubes: beat('cubes') ? now : was.at.cubes,
+                    streak: beat('streak') ? now : was.at.streak,
+                },
             };
             patch[name] = s[name];
         }
@@ -473,6 +533,11 @@ exports.recordTie = function (s, patch, { bribed, breaker, boonta, call }) {
         if (breaker === 'blue') t.blue += 1;
         if (breaker === 'red') t.red += 1;
         if (breaker === call) t.won += 1;
+        // The same throw filed a second way: colour crossed with result rather than each on its own. It is
+        // the one thing the flat tallies cannot be asked afterwards — see the note on `wonBlue` in
+        // `cubeState` — and it costs a branch on a path that runs once per throw.
+        if (breaker === 'blue') breaker === call ? t.wonBlue += 1 : t.lostBlue += 1;
+        else if (breaker === 'red') breaker === call ? t.wonRed += 1 : t.lostRed += 1;
     }
     s.ties = t;
     patch.ties = t;

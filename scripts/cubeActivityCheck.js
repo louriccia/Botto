@@ -35,7 +35,6 @@ const warn = (what, detail, fix) => rows.push({ state: 'warn', what, detail, fix
 
     // --- the environment ----------------------------------------------------
     for (const [name, why] of [
-        ['CUBE_LEAN_SALT', 'the daily lean is guessable from the public repo without it'],
         ['CUBE_JWT_SECRET', 'nobody can hold a session'],
         ['DISCORD_CLIENT_SECRET', 'the code exchange cannot run, so nobody can sign in'],
     ]) {

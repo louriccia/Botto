@@ -33,6 +33,8 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
+const moment = require('moment');
+require('moment-timezone');
 
 // ---------------------------------------------------------------------------
 // The reference implementation
@@ -81,7 +83,29 @@ crypto.randomInt = (min, max) => (max === undefined
     ? Math.floor(next() * min)
     : min + Math.floor(next() * (max - min)));
 
+// **The daily lean is a deliberate divergence that needs a stub rather than an exemption.**
+//
+// `dayLean` is gone: `rollSide` is a fair coin now, drawn as one `chance(0.5) ? 'blue' : 'red'`. The
+// frozen engine still leans — it hashes `CUBE_LEAN_SALT` with the date for a favoured side, then draws
+// `chance(config.dayLean)` to decide whether to use it. Both spend exactly one random value per cube,
+// so the streams stay aligned; the only thing that differs is which colour a given draw names.
+//
+// So the reference is pinned rather than excused. A salt is chosen here that makes **today's** favoured
+// side blue, and `dayLean` is put back on the shim's config at the one value that is not a lean. The
+// frozen engine then draws `chance(0.5) ? 'blue' : 'red'` — the current `rollSide`, expression for
+// expression — and every other rule it carries goes on being compared honestly.
+//
+// Excusing it instead would have retired the roll phase altogether: a favoured side that disagrees with
+// blue inverts every plain cube, which is not a divergence anyone could read past.
+const day = moment().tz('America/New_York').format('YYYY-DDDD');
+let pin = 0;
+while (crypto.createHash('sha256').update(`parity-${pin}:${day}`).digest()[0] % 2) pin += 1;
+process.env.CUBE_LEAN_SALT = `parity-${pin}`;
+
 const orig = require('../src/interactions/cube/.parity-reference.js');
+// The shim **copies** the tuning (`{ ...tuning.cube, ...RENDER }`), so this has to be set on the shim's
+// own object and after the reference has pulled it in, not on the tuning it was copied from.
+require('../src/data/challenge/cube.js').cube.dayLean = 0.5;
 const engine = require('../src/game/cube/engine.js');
 // The file the bot actually loads: the engine with Discord's clothes on.
 const wrapper = require('../src/interactions/cube/functions.js');
@@ -291,7 +315,21 @@ profiles.forEach((profile, n) => {
     // Pricing, which the ceiling and the shop both read off.
     stateSame(`profile ${n} · maxStakeFor`, pstate.maxStakeFor(a.prestige), orig.maxStakeFor(a.prestige));
     stateSame(`profile ${n} · rerollCostFor`, pstate.rerollCostFor(a.prestige, a.rerolls), orig.rerollCostFor(a.prestige, a.rerolls));
-    stateSame(`profile ${n} · bribeCostFor`, pstate.bribeCostFor(16000, a.bribes), orig.bribeCostFor(16000, a.bribes));
+    // **A deliberate divergence, like the octahedron and the three cubes.** The reference prices a
+    // bribe at a flat quarter of the standing; this engine prices it off the lean the tie is actually
+    // settled by, because a quarter against a 45–60% chance of losing the lot was free money twice per
+    // prestige. So the shape is asserted here rather than the number: the price still steps with the
+    // count, and it now sits above what the tie risks instead of a third of it. See `bribeEdge`.
+    stateSame(`profile ${n} · bribeCostFor steps with the count`,
+        pstate.bribeCostFor(16000, a.bribes, false) > pstate.bribeCostFor(16000, Math.max(0, a.bribes - 1), false)
+            || a.bribes === 0,
+        true);
+    stateSame(`profile ${n} · bribeCostFor covers what the tie risks`,
+        pstate.bribeCostFor(16000, 0, false) >= Math.floor(16000 * tuningConfig.tieLean),
+        true);
+    stateSame(`profile ${n} · bribeCostFor covers what a nudged tie risks`,
+        pstate.bribeCostFor(16000, 0, true) >= Math.floor(16000 * (1 - tuningConfig.nudgeLean)),
+        true);
     stateSame(`profile ${n} · clearsPerLevel`, pstate.clearsPerLevel(a), orig.clearsPerLevel(a));
     stateSame(`profile ${n} · goalOf`, pstate.goalOf(a), orig.goalOf(a));
     stateSame(`profile ${n} · canPrestige`, pstate.canPrestige(a), orig.canPrestige(a));

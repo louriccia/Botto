@@ -31,8 +31,8 @@ is the unlock gate and the iframe — the board is drawn by `../junkyard`'s `src
 reads the same `game/cube/` rules through `src/api/cube.js`.
 
 **Everything is server-authoritative.** The client says "I call blue"; it never says what the cubes
-did. Two reasons, and both are absolute: `CUBE_LEAN_SALT` decides the day's favoured side and
-cannot ship to a browser, and the payouts are real truguts. Responses carry abstract face ids
+did. The reason is absolute and outlived the secret the mode used to keep: the payouts are real
+truguts, so a client that reported its own outcomes would be a client that could mint them. Responses carry abstract face ids
 (`greed`, `mult:blue`) and structured notes, never emoji or prose — what a face looks like and what
 it says about itself are the client's business, which is the whole reason the engine was pulled out
 of the embed in the first place.
@@ -81,33 +81,40 @@ again is on screen at the moment the player is deciding whether to.
 While a run is live, the bank-or-push decision is a single line rather than a standing plus a
 pitch: `Bank **4,000** or keep playing for **8,000**`.
 
-### 2.1 The daily lean
+### 2.1 The cube is fair, and the edge is in the pay table
 
-The cube is not quite fair. **Every day one side is favoured 55/45**, and which side is never
-announced — a run of red is either the lean or nothing at all, and there's no way to tell from
-inside one game.
+**Every plain cube is an honest 50/50**, drawn through `rollSide` so the level's own cubes and any a
+special spawns all come from one place.
 
-It's derived from the date rather than stored: `sha256(secret salt + ':' + eastern day)`, one
-bit off the digest. No rollover race, no extra node to keep in sync, and every player rolling on
-the same day is playing the same cube — which is the property that makes it worth talking about
-in the channel. Memoised per day, because a nine-cube roll would otherwise hash the date nine
-times. Eastern midnight, matching the daily challenge boundary.
+There used to be a **daily lean** here: one side favoured every day — 55/45, later 52/48 — derived
+from `sha256(secret salt + ':' + eastern day)` so that every player rolling on the same day was
+playing the same cube, and never announced. It was the mode's best table-talk object and it is gone,
+because it could not be priced and it was not what it looked like.
 
-**The salt lives in `CUBE_LEAN_SALT`, and it has to.** The lean is safe from a human — spotting
-55/45 takes a few hundred cubes tallied inside one Eastern day, through the noise of every
-special cube that forces a side, with no per-day readout anywhere in the UI to help. It is not
-safe from a public repo. A hardcoded salt makes the day's favoured side a two-line script, and
-knowing it is worth a great deal: calling the favoured side takes a Level 5 run from 1-in-32 to
-about 1-in-14, an **EV of 2.27** on a ladder that is otherwise exactly fair. In the environment
-it costs nothing and the shared-cube property survives intact. The bot warns at startup if it
-isn't set.
+**It was a player edge, not a house edge, and it stayed one in both directions.** Two properties of
+the ladder, neither of them fixable by trimming the number:
 
-Every plain cube in the game draws through `rollSide`, so the lean covers the level's own cubes
-and any a special spawns, in one place.
+- **Majority-of-N amplifies a per-cube bias with depth.** A level's winner is the majority of an odd
+  number of cubes, so a 52/48 cube is 52/48 at Level 1 and 54.9/45.1 at Level 5. Every rung ends up
+  mispriced by a different amount and the deepest by the most, so no single `levelStep` prices them
+  all and whichever rung is loosest is the one that gets farmed. This is also why a flat rake could
+  never absorb it.
+- **It paid the uninformed too.** `E[∏P] > ∏P(E[p])` by convexity, and the ladder pays exponentially
+  in streak length, so *any* p ≠ 0.5 mints truguts whichever way the player calls. Blind play — one
+  colour forever, half the days wrong — measured **EV 1.66** at 0.55. There is no EV-neutral value of
+  that dial except 0.500, which is to say: no lean.
 
-A 55/45 edge is small enough that it never decides a call for you — over nine cubes it moves the
-majority from 50% to about 60% — but it's large enough to be real across a day's play, which is
-the point: it gives the table something to argue about.
+Measured at the end, 0.52 was worth **+0.37 EV to the player** on a bare ladder. The secrecy of the
+salt never helped: a nine-cube line carries enough information that ~36 throws identify the day's
+side to 95% confidence, so it was inferred from the table rather than read out of the source.
+
+**What a fair coin buys is the ability to charge for the game at all.** At 0.500 the majority of any
+odd number of cubes is exactly 0.500 too, so one multiple prices every rung, the edge is uniform, and
+there is no loose rung to find. That is the same arrangement a casino runs: the wheel is honestly
+balanced and pays 35:1 on a 37:1 shot. `scripts/cubeLean.js` prints the pricing table as a standing
+check that the property still holds.
+
+`CUBE_LEAN_SALT` is no longer read by anything and can come out of the environment, Heroku included.
 
 ### 2.2 How a roll plays back
 
@@ -398,26 +405,31 @@ diamond at the top.
 
 | Level | Name | Cubes | Pays | P(win) |
 |---|---|---|---|---|
-| 1 🥉 | A Friendly Wager | 1 | **2×** | 50% |
-| 2 🥈 | Test Your Luck | 3 | **4×** | 50% |
-| 3 🥇 | Rolling Thunder | 5 | **8×** | 50% |
-| 4 <:platinum:> | Gamblers and Swindlers | 7 | **16×** | 50% |
-| 5 💎 | Fate Decides | 9 | **32×** | 50% |
+| 1 🥉 | A Friendly Wager | 1 | **1.9×** | 50% |
+| 2 🥈 | Test Your Luck | 3 | **3.8×** | 50% |
+| 3 🥇 | Rolling Thunder | 5 | **7.3×** | 50% |
+| 4 <:platinum:> | Gamblers and Swindlers | 7 | **14.2×** | 50% |
+| 5 💎 | Fate Decides | 9 | **27.5×** | 50% |
 
-**That `Pays` column is what a level is worth on a fully collapsed road, and nothing else.** The
-five levels are not the whole route — see [the road](#27-the-road) — and the multiple is carried by
-the run rather than looked up: **a level doubles it, an Again adds one.** On a road with nothing
-left in the gaps those two rules reproduce the column exactly, which is what it is for. On a padded
-road Level 2 sits further along and pays more, because more coin flips went into reaching it.
+**That `Pays` column is computed, not chosen.** It is `levelStep^n` exactly — so it cannot go stale
+the way a hand-typed `2, 4, 8, 16, 32` did the moment the step was priced — and it is quoted here at
+**one decimal, which is how the client draws every multiple**. The exact figures are what the wire
+carries and what the money is computed from; a run's multiple is a float from its first rung, and
+`×7.301384000000001` is what an unrounded readout printed. It is also what a
+level is worth on a fully collapsed road and nothing else: the five levels are not the whole route —
+see [the road](#27-the-road) — and the multiple is carried by the run rather than looked up. **A
+level multiplies it by `levelStep`, an Again adds one.** On a padded road Level 2 sits further along
+and pays more, because more coin flips went into reaching it.
 
 **The majority of an odd number of fair cubes is exactly 50/50 at every level.** Nine cubes
 are no harder to call than one — depth buys multiple and variance, nothing else.
 
-**So a level push is exactly fair and an Again is not**, and that split is the whole economy of the
-mode. `M → 2M` on a coin flip is EV 1.000; `M → M+1` is a bad bet that gets worse as `M` grows,
-bottoming out at 0.5. The entire house edge lives in the Agains, which is a far cleaner place for it
-than smeared across every rung — and it is a price the player pays for *progress* rather than for
-depth. See [the economy](#3-economy).
+**So a level push is a priced bet and an Again is a worse one.** A rung is a coin flip, so its fair
+price is `2×`; it pays `1.94×`, which keeps 3% of every push. `M → M+1` on an Again is a bad bet that
+gets worse as `M` grows, bottoming out at 0.5. The house edge now lives on both kinds of rung — 3%
+uniformly on the levels, because a fair cube makes every rung the same coin flip and one number
+prices them all, and the rest on the Agains, which is still where a player pays for *progress* rather
+than for depth. See [the economy](#3-economy).
 
 ### 2.5 Prestige and the stake ceiling
 
@@ -460,11 +472,12 @@ Level names live only in `LEVELS`; every line of copy about the top of the ladde
 `LEVELS[MAX_LEVEL].name`, and Watto's top-level dialogue says "nine cubes" rather than naming
 it — so renaming a level can't leave a stale string behind.
 
-**Every *other* prestige adds one more Again to each gap, and it stops at four** — 1 per gap at
-prestige 0 and 1, 2 at prestige 2 and 3, 3, then 4 from prestige 6 onward and never more. One per
-prestige made the fourth re-walk a slog: the road stays the same five levels, so the grind has to
-grow slower than the reward. The map simply grows a tile per gap, so the visual language doesn't
-change — and the road getting visibly longer is now what a prestige *looks* like.
+**Every *other* prestige adds one more Again to each gap, and it stops at five** — 1 per gap at
+prestige 0 and 1, 2 at prestige 2 and 3, 3 at 4 and 5, 4 at 6 and 7, then 5 from prestige 8 onward
+and never more. One per prestige made the fourth re-walk a slog: the road stays the same five
+levels, so the grind has to grow slower than the reward. The map simply grows a tile per gap, so the
+visual language doesn't change — and the road getting visibly longer is now what a prestige *looks*
+like.
 
 The cost of a whole prestige cycle is **`30(g+1) + 2` runs**, where `g` is the Agains per gap — the
 forced-bank model's `30c + 2` with `c = g + 1`, measured to the run and derived in
@@ -482,10 +495,10 @@ to read "for a slot you may not need", which was the `+1 slot` pick standing in 
 endgame prestige was still worth. It isn't on the rack any more, so past seventeen a prestige buys the
 ceiling and stops — which is why the cap on the requirement matters more now, not less.
 
-Five is where it stops for two reasons. It is 152 runs a cycle on an empty rack and about 69 with
-one, which is a steady state a player can sit in indefinitely; and it costs almost nothing over
-the progression the mode is actually designed for, taking the run to prestige 13 from 1,890 runs
-to 1,614. The cap is for the endgame past the rack, not for the climb through it.
+Five is where it stops. That is 181 runs a cycle on an empty rack and about 82 with a Shortcut on
+it — a steady state a player can sit in indefinitely — and it binds nowhere before prestige 8, so
+it costs the progression the mode is actually designed for nothing at all. The cap is for the
+endgame past the rack, not for the climb through it.
 
 **The number used to be set by what could be drawn.** The old xp bar spent one custom emoji per
 clear needed, inline in an embed description, and twelve of those wrap on a phone — so the cap was a
@@ -571,9 +584,10 @@ None of that is needed when the transport is an authenticated request instead of
 The channel used to watch every roll land, which is exactly why the separate in-channel
 announcement was reserved for **clearing the top level** and nothing else — everything smaller was
 already on screen for everyone who cared. That announcement still exists, in `interactions/cube.js`,
-which is the retired board; nothing on the Activity path has replaced it. The one genuinely shared
-object the mode still has is [the daily lean](#21-the-daily-lean), which gives the channel something
-to argue about every day rather than once in a thousand runs.
+which is the retired board; nothing on the Activity path has replaced it. **The mode now has no
+shared object at all** — the daily lean was the last one, and [pricing it honestly meant deleting
+it](#21-the-cube-is-fair-and-the-edge-is-in-the-pay-table). Whatever replaces it has to be something
+the whole channel can see without it also being something the whole channel can farm.
 
 ### 2.7 The road
 
@@ -602,11 +616,12 @@ Past Level 5 the Agains keep coming. They clear nothing — the prestige is alre
 are worth truguts and nothing else, and there is no level above them to double what they add. That
 makes them a **third kind of rung**: `overtime`, paying `overtimeBonus` rather than the usual +1.
 
-At +1 an overtime push bought one trugut per stake against a base of 32, marginal EV 0.516 falling
+At +1 an overtime push bought one trugut per stake against a base of 27.48, marginal EV 0.518 falling
 toward 0.5 — which is not a decision, it is a formality nobody sane takes, and an option nobody
-would ever choose is a stop wearing a button. At **+5** it is merely a bad bet: 0.578 at ×32, 0.527
-at ×92. It is safe at any value below 32, because an overtime push is `(M + N) / 2M` and `M` is
-never lower than 32 up there — so the ceiling on that dial is arithmetic rather than taste.
+would ever choose is a stop wearing a button. At **+5** it is merely a bad bet: 0.591 at ×27.48,
+0.531 at ×81.82. It is safe at any value below the collapsed top, because an overtime push is
+`(M + N) / 2M` and `M` is never lower than 27.48 up there — so the ceiling on that dial is arithmetic
+rather than taste, and it moves with `levelStep`.
 
 **The road needs no state of its own.** Gaps fill strictly in order, so `unlocked` (how many have
 filled) and `clears` (how far into the current one you are) describe it completely — the same two
@@ -630,8 +645,9 @@ Measured over 20k cycles a side, the route at `g` costs exactly what the ladder 
 | old ladder | 31.7 | 62.1 | 92.3 | 121.6 | 152.2 |
 
 The bottom row reproduces `30c + 2` to the run, so the closed form is intact and only its argument
-moved. `clearsToUnlock: 1` and `maxClears: 4` therefore hold the shipped curve rung for rung: 62
-runs a cycle at prestige 0, 92 from prestige 2, 122 from 4, 153 from 6 and never more.
+moved. `clearsToUnlock: 1` therefore holds the shipped curve rung for rung — 62 runs a cycle at
+prestige 0, 92 from prestige 2, 122 from 4, 153 from 6 — and `maxClears: 5` carries it one gap past
+anything the old ladder charged: 181 from prestige 8, and never more.
 
 #### Clears, and what they buy
 
@@ -649,7 +665,12 @@ part is the point. So it is a progress bar a player watches over a whole prestig
 counter that resets at every level.
 
 **The road has to fit on one line at its longest**, and in the Activity that is a measurement rather
-than a guess: 9px tiles and 2px gaps bring a sixteen-tile road to ~312px, inside a 375px phone. The
+than a guess. At `maxClears: 5` the longest road is five medals and twenty tiles: 7px tiles and 2px
+gaps bring it to 332px of the 335px a 375px phone leaves, with the medals still at their full 24px —
+so it fits, and it fits with nothing to spare. Overshooting would not overflow, which is why this
+has to be measured rather than watched for: every tile is a flex item with a definite width, so the
+row shrinks its own children instead and the medals go first. That is what 9px tiles and a 4px gap
+were quietly already doing at sixteen tiles. A sixth Again needs thinner tiles first. The
 sketch above draws the tiles as plain unicode and the levels as custom emoji, which is how the embed
 made it fit — a text tile being a fraction of the width of an emoji was the whole trick, and it is
 what let `maxClears` go back to being about pacing instead of about wrapping.
@@ -1221,8 +1242,9 @@ tenth. It stays there face-up on the payout frame, since it decided the roll.
   <a:Whatto> His cube is weighted 60/40 against you.
 ```
 
-It is deliberately **not** drawn through `rollSide`, so the daily lean doesn't touch it — the lean
-favours a colour and this favours the house, and mixing the two would make one of them unreadable.
+It is deliberately **not** drawn through `rollSide`. That is the one place in the mode where a
+weighted coin is still correct: `rollSide` is a fair cube and this leans against *your call* rather
+than toward a colour, so keeping them apart is what lets the fair one stay provably fair.
 It is also **not** counted in the player's `rolled` tallies, for the same reason: it isn't theirs.
 
 Two things change that, and they are the only things in the game that do. **Neither is a special
@@ -1303,38 +1325,56 @@ the data no longer has is released rather than left blocking forever.
 
 ## 3. Economy
 
-Nothing is raked and every level is a clean double, so **the levels have no house edge at all.** A
-2× payout on a 50/50 is exactly fair, and it stays exactly fair all the way up:
+Nothing is raked at the door. **The levels are priced instead: a rung is a coin flip worth `2×` and
+it pays `1.94×`, so the house keeps 3% of every push.** Because the cube is fair, the majority of any
+odd number of cubes is also exactly 0.500, so that 3% is identical at all five rungs — one number
+prices the whole road and no rung is looser than another:
 
 | Bank at | Survival | Pays | EV per stake |
 |---|---|---|---|
-| Level 1 | 50.0% | 2× | **1.000** |
-| Level 2 | 25.0% | 4× | 1.000 |
-| Level 3 | 12.5% | 8× | 1.000 |
-| Level 4 | 6.3% | 16× | 1.000 |
-| Level 5 | 3.1% | 32× | **1.000** |
+| Level 1 | 50.0% | 1.94× | **0.970** |
+| Level 2 | 25.0% | 3.76× | 0.941 |
+| Level 3 | 12.5% | 7.3× | 0.913 |
+| Level 4 | 6.3% | 14.16× | 0.885 |
+| Level 5 | 3.1% | 27.48× | **0.859** |
 
-Depth is therefore a pure variance choice and nothing else — the cleanest version of a
-press-your-luck ladder.
+Depth is therefore no longer free: it is variance **and** compounding cost, 3% a rung, 14% over a
+full collapsed climb.
 
-**The Agains are the house edge, and they are all of it.** An Again turns `M` into `M+1` on a coin
-flip, which is EV `(M+1)/2M` — 0.75 on the first one out of Level 1, and asymptotically 0.5 as the
-base grows. That is deliberately a bad bet: you take it for the road, not the truguts. Putting the
-whole edge on one kind of rung means the thing a player is buying is *legible* — progress costs
-money, depth doesn't — where a sub-exponential ladder would have taxed both and made neither clear.
+**This reverses what §3 used to say, and measurement is what reversed it.** The ladder was a clean
+double — EV exactly 1.000 at every level, the whole edge in the Agains, depth a pure variance choice.
+It read beautifully and it did not survive being measured: with the cube fair and the ladder exactly
+fair, an **empty rack still returned 1.31 and a hand-picked eight 2.09**, because `pureBonus` and the
+special cubes sit on top of the ladder and nothing sat against them. A mode whose ladder is exactly
+fair and whose cubes are better than fair is a faucet. The ladder is the one surface every player
+touches on every roll, which makes it the cheapest place to charge and the only place a single number
+can charge evenly.
 
-**And because the levels multiply, an Again compounds.** One banked in the first gap is doubled by
-L2, L3, L4 and L5, so it is worth **16×** what it added; one banked in the last gap is worth 2. A
-full road therefore peaks at `32 + 30g` — 62× at `g=1`, 152× at `g=4` — where a collapsed one tops
-out at 32×, and **every Again you bank takes its compounded value off that peak forever**:
+**3% is the genre's number, not a guess.** Crash, Mines and Tower are the same cash-out ladder and all
+price it the same way — `payout = RTP × fair odds`, 96–99% a step, with the shave folded into the
+multiplier where it is invisible. A steeper step was measured and rejected: `1.90` keeps 23% of a full
+climb, which is keno rather than a casino.
+
+**The Agains are still the steeper edge by a long way.** An Again turns `M` into `M+1` on a coin flip,
+which is EV `(M+1)/2M` — 0.72 on the first one out of Level 1, and asymptotically 0.5 as the base
+grows, against a flat 0.97 on a level. So the two prices stay legible and stay in the same order:
+progress is expensive, depth is merely not free.
+
+**And because the levels multiply, an Again compounds.** One banked in the first gap is multiplied by
+L2, L3, L4 and L5, so it is worth **14.16×** what it added; one banked in the last gap is worth 1.94.
+A collapsed road tops out at **27.48×**, a fresh one runs 54.65× at `g=1` to 163.33× at `g=5`, and
+**every Again you bank takes its compounded value off that peak forever**:
 
 | Road (g=2) | Rungs | Peak | Odds of sweeping it |
 |---|---|---|---|
-| fresh prestige | 13 | **92×** | 1 in 8,192 |
-| gap 1 closed | 11 | 60× | 1 in 2,048 |
-| gap 2 closed | 9 | 44× | 1 in 512 |
-| gap 3 closed | 7 | 36× | 1 in 128 |
-| collapsed | 5 | 32× | 1 in 32 |
+| fresh prestige | 13 | **81.82×** | 1 in 8,192 |
+| gap 1 closed | 11 | 53.49× | 1 in 2,048 |
+| gap 2 closed | 9 | 38.89× | 1 in 512 |
+| gap 3 closed | 7 | 31.36× | 1 in 128 |
+| collapsed | 5 | 27.48× | 1 in 32 |
+
+The peak is no longer the tidy `32 + 30g` it was under a clean double — the closed form went when the
+step stopped being 2, and these are computed from `levelStep` and `againBonus` rather than quoted.
 
 The prize shrinks as the odds improve, so the biggest number in the game exists **only on a fresh
 prestige**. That is the one thing a player gives up by making progress, and it is why the prestige
@@ -1346,9 +1386,10 @@ Agains were each measured. Two results killed them. The shallow rungs are where 
 lives — the frontier Again sits at rung `k+2` for `k` in 1–4 — and every additive schedule taxes
 exactly those hardest; flat addends charge 25% on the very first clear a player ever earns. And a
 rung is fair **only if it doubles the multiple**, since you are risking `M` to hold `M'` on a coin
-flip, so any schedule steep enough to stay fair *is* the exponential. Multiplying the levels and
-adding on the Agains is the only shape that keeps the published ladder, bounds the tail at `32+30g`,
-and leaves the compounding the paying cubes were measured against intact.
+flip, so any schedule steep enough to stay fair *is* the exponential — which is exactly why the edge
+is expressed as a *fraction of that double* rather than as a different shape. Multiplying the levels
+and adding on the Agains is the only form that keeps the ladder legible, bounds the tail linearly in
+the padding, and leaves the compounding the paying cubes were measured against intact.
 
 **Nothing in the mode mints, and that is new.** Payouts are gross on the original stake, so the
 2× table already assumes busted stakes are what pays winners — which means a fair ladder has no
@@ -1356,15 +1397,16 @@ spare money in it, and anything skimming off a bust to fund a second prize is sp
 truguts twice. The Pure Cube pot did exactly that and was the mode's only faucet; it is gone, and
 the reasoning is in [Cut on purpose](#cut-on-purpose). A busted stake now simply leaves.
 
-So the whole economy is two numbers: the levels are exactly fair, and the **Agains are the house
-edge**. That makes the cube a clean sink, which is what the surrounding challenge economy wants
-from it — worth stating plainly, because the removal of the pot moved the mode from returning up
-to **1.24×** per trugut staked to returning exactly **1.00×** before rack effects.
+So the whole economy is three numbers: the levels keep **3% a rung**, the **Agains** keep far more,
+and `pureBonus` and the rack pay some of it back. That makes the cube a sink at the ladder and not yet
+a sink at the table — worth stating plainly rather than claiming the win. Measured on the priced
+ladder at a fair cube, 20k climbs a row, banking wherever it pays best: an **empty rack 1.10–1.15**,
+**greed + wild 1.14–1.16**, a **hand-picked eight 1.55–1.99**, and only *every cube at once* — the bag
+caps at eight, so that rack is deliberately bad — bleeding at 0.97.
 
-**The bare ladder is fair on the cubes, and `pureBonus` is now the one thing sitting on top of it.**
-Without the bonus, EV per stake measures 1.000 at every level on an empty rack — the coin flip is
-the coin flip. The pure bonus adds `n × 2⁻ⁿ` to a rung of `n` cubes, and that term is **front-loaded
-at the shallow end**, because a short line is the one that sweeps often enough to matter:
+**`pureBonus` and the rack are what is left above water, and they are the next job.** The pure bonus
+adds `n × pureBonus` to a rung of `n` cubes, and that term is **front-loaded at the shallow end**,
+because a short line is the one that sweeps often enough to matter:
 
 | rung | cubes | pure rate | EV/stake, bonus off | on | change |
 |---|---|---|---|---|---|
@@ -1373,13 +1415,17 @@ at the shallow end**, because a short line is the one that sweeps often enough t
 | Level 4 | 7 | 0.96% | 1.00 | 1.06 | +6% |
 | Level 5 | 9 | 0.27% | 1.00 | 1.03 | +2% |
 
-*400k rolls per row, empty rack, `pureBonus: 1`.*
+*400k rolls per row, empty rack, `pureBonus: 1`.* **Measured against the clean-double ladder, so the
+`bonus off` column is now 0.941, 0.913, 0.885 and 0.859 rather than 1.00.** `pureBonus` itself is
+untouched and the shape of the table holds, but the *relative* uplift is now slightly larger, not
+smaller — the same additive bonus lands on a smaller base. The rows want re-measuring before anyone
+quotes them as current.
 
 **This is a real edge and it is worth stating rather than burying.** A three-cube line sweeps your
 way one time in eight, which is not rare, so a bonus proportional to the count is worth most exactly
-where the mode used to be exactly fair. It does not bring the pot's *exploit* back — this scales with
-the stake, so min-staking still gains nothing — but it does mean "the levels are fair, the Agains are
-the whole house edge" is now true of the **ladder** rather than of the mode.
+at the shallow end, where the priced ladder is charging least in absolute terms. It does not bring the
+pot's *exploit* back — this scales with the stake, so min-staking still gains nothing — but it is most
+of the reason a bare rack still measures above 1.00 on a ladder that charges 3% a rung.
 
 Three dials, if that trade is not wanted: drop `pureBonus` (0.25 puts Level 2 at +10%), raise the
 `final.length >= 3` floor in `resolveLine` so short lines are called out but not paid, or pay
@@ -1468,8 +1514,9 @@ was 0.57 and the Multiplier 0.88 under the flat-bonus model — but not nearly e
 cost and the benefit are different *kinds* of quantity. A paying face is sideless, so the cube it
 sits on contributes nothing to the majority, and under carry-over that liability is re-thrown every
 level for the rest of the climb. That is a multiplicative cost against a *linear* +0.5 or +1. The
-survivors bear it out: a Greed rack banks at ×34.5 on average against a clean ×32, an 8% better
-payout bought with a 40% worse survival rate.
+survivors bear it out: a Greed rack banks at ×34.5 on average against the clean ×32 the ladder paid
+when this was measured, an 8% better payout bought with a 40% worse survival rate. (Both figures are
+from the clean-double ladder; the ratio is what the row is about, and the ratio holds.)
 
 Greed is the worse of the two and the reason is structural rather than a matter of tuning. Its sixth
 face is **Ratts**, so it carries a 1-in-6 run-ender that fires on every level after it is drawn; the
@@ -1492,11 +1539,11 @@ is, Greed is a deliberate gamble that the numbers say is never worth taking — 
 thing from a hard cube, and worth deciding on rather than shipping by default.
 
 Level 1 is 1.00 in every row, which is the guardrail doing its job: a rack is worth nothing until
-you climb with it. Measured over 1M climbs per cell with the daily lean switched off, which puts
-**±0.006** on the Level 5 column — the lean is left out because it is *not* EV-neutral on a deep
-climb (per-level probabilities multiply, so calling the leaned side compounds and calling against
-it decays, and the two don't cancel: with the lean on, an empty rack measures ~1.30 at Level 5).
-That is a property of the lean rather than of the cubes, and this table is about the cubes.
+you climb with it. Measured over 1M climbs per cell, which puts **±0.006** on the Level 5 column.
+The figures were originally taken with the daily lean forced off, because it was *not* EV-neutral
+on a deep climb — per-level probabilities multiply, so calling the leaned side compounded and
+calling against it decayed, and the two never cancelled. The cube is fair now, so what was once a
+correction is simply the game.
 
 **Carry-over is what reshaped this table**, and it did so along one axis: a cube that survives on
 the table fires again every level, so a good cube compounds — and a cube carrying a run-ending face
@@ -1673,7 +1720,7 @@ proves too thin.
 
 The one piece of that draft that came back is the unlock gate — the old "rack" of cubes won
 off Watto, rebuilt as the much smaller clears counter in §2.3. A ladder where a new player
-can stake into the 32× immediately has no shape to it.
+can stake into the top multiple immediately has no shape to it.
 
 **The Pure Cube pot**, which did ship and then came out. A jar seeded at 📀25,000, fed by a
 quarter of every busted stake, paying 5% / 25% / 100% of itself on a pure 5, 7 or 9. The
@@ -1699,9 +1746,9 @@ miss:
   side: dropping the tier share 10% → 5% *raised* the resting pot 440× → 660× average stake.
 
 What went with it was the mode's only shared object and its only prize bigger than a capped
-stake. The first is covered better by [the daily lean](#21-the-daily-lean), which gives the
-channel something to argue about every day rather than once in a thousand runs and costs nothing
-to run. The second was never really the pot's — `32 + 30g` on a fresh prestige road is the
+stake. The first was covered by the daily lean for a while, and [that is gone
+too](#21-the-cube-is-fair-and-the-edge-is-in-the-pay-table) — so the gap is open and §2.6 records
+it. The second was never really the pot's — the peak of a fresh prestige road is the
 biggest number in the game, and §3 is where it lives.
 
 What it bought is that **every trugut lost now simply leaves.** The mode is a clean sink, the

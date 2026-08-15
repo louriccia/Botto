@@ -135,11 +135,12 @@ Red vs Blue collection literally assembles, so one scorch is 60/40 and it takes 
 to a colour. That endpoint still exists — a cube that always lands blue — but it has to be earned by
 Baroonda finding the same cube five times, which almost never happens in one climb.
 
-**A scorched cube is out of the day's reach**, and it is the only cube in the game that ever is. The
-daily lean is a cosmic thumb on the scale — a shift in the Force that tests whether a player can feel
-it, never announced and never readable from inside one game. A cube Baroonda has been at is not being
-nudged by anything; it is **physically loaded**, and its bias is sitting right there on the rack screen
-to be counted. So the die quietly hands the player the one bias they can *read* in a mode whose other
+**A scorched cube carries the only bias left in the mode**, and it is the only cube in the game that
+ever did. There was a daily lean once — a cosmic thumb on the scale, never announced and never
+readable from inside one game — and it is gone, because a bias nobody can read is also a bias nobody
+can be charged for. A cube Baroonda has been at is not being nudged by anything; it is **physically
+loaded**, and its bias is sitting right there on the rack screen to be counted. So the die hands the
+player a bias they can *read*, in a mode whose other
 bias can only be sensed — and, if the day is running against you, taking a cube out of the Force's
 reach is a real use for a burn that nobody will find on their first climb.
 
@@ -194,9 +195,10 @@ the only stretch of road the house makes money on. Malastare is not a punishment
 economy; it is the house's own face on the die.
 
 **And the cost scales with how much road is left.** On a collapsed route the next rung *is* a level,
-so it is one fair push and barely a scratch. On a fresh prestige with four Agains standing in the
-gap, it is four bad bets in a row with no exit. Malastare is at its most merciless immediately after
-a prestige and nearly harmless by the end of a cycle — the opposite of how a flat punishment behaves.
+so it is one fair push and barely a scratch. On a fresh prestige with a full gap of Agains standing
+in it — five, at `maxClears` — it is that many bad bets in a row with no exit. Malastare is at its
+most merciless immediately after a prestige and nearly harmless by the end of a cycle — the opposite
+of how a flat punishment behaves.
 
 Past Level 5 there are no level rungs left to clear, so **in overtime it lasts one rung**. That is
 preferred over an exemption because it keeps the face live everywhere and needs no "does this apply"
@@ -384,18 +386,20 @@ turned** — `seamBonus` shipped at the 0.5 it was designed at.
 **Three things about that number are worth more than the number.**
 
 **A bare ladder does not measure 1.000, and finding out why took a re-tune that nearly happened.**
-Five fair coin flips paying ×32 is exactly fair — but `pureBonus` pays +1× per cube on a line that
-lands all one way, and a bare ladder throws those. Measured, an empty rack banks 3.03% of runs against
+Five fair coin flips paying ×32 would be exactly fair — that is what the ladder paid when this was
+measured, and it is now priced at ×27.48 on purpose — but `pureBonus` pays +1× per cube on a line
+that lands all one way, and a bare ladder throws those. Measured, an empty rack banks 3.03% of runs against
 the 3.125% the ladder predicts, at an average multiple of **×40** rather than ×32. There is no
 absolute 1.000 to compare against, so the harness measures other cubes in the same process and
 normalises against them. Against a presumed 1.000 the die reads 0.59 and looks unshippable; against
 the cubes that exist it is ordinary.
 
-**The daily lean has to come out of an EV measurement.** The ladder is convex in `p`: calling the
-favoured side is worth **2.27** and the unfavoured **0.37**, so a player calling at random averages
-~1.32 on a bare ladder. Worse, a sim that calls in a *pattern* rather than drawing correlates with a
-lean that is fixed for the whole process — measured that way the bare ladder came out at **1.18**. The
-harness draws the call from the CSPRNG and sets `dayLean` to a half for the EV phase.
+**The daily lean had to come out of an EV measurement, and then out of the game.** The ladder is
+convex in `p`: calling the favoured side was worth **2.27** and the unfavoured **0.37**, so a player
+calling at random averaged ~1.32 on a bare ladder. Worse, a sim that called in a *pattern* rather
+than drawing correlated with a lean that was fixed for the whole process — measured that way the
+bare ladder came out at **1.18**. The harness still draws the call from the CSPRNG; the half it used
+to force `dayLean` to is now what the cube does on its own.
 
 **The tie tax is the die's real cost and it is bigger than the design assumed.** 22–26% of rungs tie
 with the die on the table, each lost 60% of the time to Watto's cube, and `boonta` only answers one

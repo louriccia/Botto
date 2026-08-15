@@ -178,7 +178,7 @@ contributing. That ordering is structural and survives; the margin has not been 
 tie fix in [§10](#10-what-it-measured).
 
 It is allowed because **this mode is built to reward luck.** `pureBonus` pays for a 1-in-512 sweep
-that took no skill; the daily lean gives the whole server a coin nobody can read. A cube that comes
+that took no skill. A cube that comes
 out of the press strictly better than either parent, once in a very long while, is the same idea
 applied to the one part of the game a player keeps.
 
@@ -421,8 +421,9 @@ Three caveats on every number above, none of them fixable in these harnesses:
 - **The Reroll Cube and the Shortcut Cube read low.** EV is `banked / staked` over independent runs,
   so banked rerolls are never spent and free clears never pay — both hand the *next* run something,
   and every run here starts from the same road.
-- **There is no absolute 1.000.** A bare ladder is five fair coin flips paying ×32, but `pureBonus`
-  rides on top, so the empty rack lands near 1.23 raw. Only the normalised column means anything.
+- **There is no absolute 1.000.** A bare ladder is five fair coin flips, paying ×32 when this was
+  measured and ×27.48 now that the step is priced, and `pureBonus` rides on top either way — so the
+  empty rack landed near 1.23 raw. Only the normalised column means anything.
 - **These are collapsed roads with no Agains in them**, which is the most player-favourable route in
   the game and skips where the entire house edge lives. A 5+1 rack's edge compounds on a baseline that
   is already a faucet under this policy, and truguts are a shared economy across the whole bot. That

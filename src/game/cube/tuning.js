@@ -1,10 +1,11 @@
 // Static design data for Botto's Chance Cube — the betting minigame unlocked by the
 // "Red vs Blue" collection (3× Red Side + 3× Blue Side, see data/challenge/collection.js).
 //
-// The cube is fair: every face is a straight 50/50 draw from the CSPRNG, and every level
-// is a clean double, so the ladder itself has no house edge at all. The **Agains** standing
-// in the gaps are the entire edge — `M → M+1` on a coin flip — and a busted stake simply
-// leaves the economy. Nothing is raked and nothing is minted; see `againBonus`.
+// The cube is fair: every face is a straight 50/50 draw from the CSPRNG. **The house edge is in
+// the pay table, not in the cube** — a level rung is a coin flip worth 2× and pays `levelStep`,
+// keeping 3% of every push, and the **Agains** standing in the gaps are the steeper price on top
+// of that: `M → M+1` on a coin flip. Nothing is raked at the door, nothing is minted, and a
+// busted stake simply leaves the economy. See `levelStep` and `againBonus`.
 //
 // There was a **Pure Cube pot** here once: a jar fed by a share of every bust, paying a share
 // of itself out on a line that landed all one way. It came out, and the reason is worth keeping
@@ -42,23 +43,38 @@ exports.SIDE_IDS = SIDE_IDS;
 // A position with nothing shown on it yet: the face-down cube the reveal opens on.
 exports.HIDDEN = 'hidden';
 
+// What a level rung multiplies the run's multiple by, and the mode's entire house edge: a rung is a
+// coin flip worth 2.000 and it pays this. Declared up here rather than beside its siblings in `cube`
+// because the `payout` column below is derived from it — see `levelStep` for the argument, which is
+// where anyone changing it will look.
+const LEVEL_STEP = 1.94;
+
 // N is always odd, so a bare level always has a majority in it and only a special cube can
 // leave a tie. The majority of an odd number of fair cubes is always exactly 50/50, so climbing
-// never changes your odds — it only doubles the multiple and the size of the crater.
+// never changes your odds — it only raises the multiple and the size of the crater.
 //
 // **`payout` is the multiple a level pays on a fully collapsed route, and nothing else.** A run
 // walks a *route* of rungs — these five levels, plus the uncleared `Again` rungs still standing in
 // the gaps between them — and the multiple is carried by the run rather than looked up here: a
-// level rung doubles it, an Again rung adds one. On a route with nothing left in the gaps those
+// level rung multiplies it, an Again rung adds one. On a route with nothing left in the gaps those
 // two facts reproduce this column exactly, which is what it is for. On a padded route Level 2 sits
 // further along and pays more, because more coin flips went into it. See `levelStep`/`againBonus`.
+//
+// **Computed rather than typed, because it is not independent.** It was `2, 4, 8, 16, 32` by hand
+// while the step was a clean double, and a hand-typed column is a column that goes stale the first
+// time the step is priced — which it now has been. This is `LEVEL_STEP^(n+1)` exactly, which is what
+// a run walking a collapsed route arrives at, to the last place.
+//
+// **Not rounded here.** It is a base multiple as well as a readout — `settleTie` falls back to it for
+// a parked tie — and money is `stake × multiple`, so a rounded column pays a rounded prize. The
+// client rounds it to one decimal when it draws it; see `dec` in the Activity's `sheets.js`.
 exports.LEVELS = [
-    { name: 'A Friendly Wager', cubes: 1, payout: 2 },
-    { name: 'Test Your Luck', cubes: 3, payout: 4 },
-    { name: 'Rolling Thunder', cubes: 5, payout: 8 },
-    { name: 'Gamblers and Swindlers', cubes: 7, payout: 16 },
-    { name: 'Fate Decides', cubes: 9, payout: 32 },
-];
+    { name: 'A Friendly Wager', cubes: 1 },
+    { name: 'Test Your Luck', cubes: 3 },
+    { name: 'Rolling Thunder', cubes: 5 },
+    { name: 'Gamblers and Swindlers', cubes: 7 },
+    { name: 'Fate Decides', cubes: 9 },
+].map((l, i) => ({ ...l, payout: LEVEL_STEP ** (i + 1) }));
 
 // ---------------------------------------------------------------------------
 // Special cubes
@@ -126,6 +142,12 @@ exports.LEVELS = [
 //   twins       inserts a cube either side of it, both the same side — the line grows by two
 //   razed       not a rollable face: what a cube destroyed by a raze is replaced with, so the
 //               three positions read as one wide picture instead of two cubes going missing
+//   heat        payout multiplier + heatBonus for every heat face this cube has already landed, this
+//               one included — then burns itself off the cube, so it pays more and dies sooner
+//   scavenge    takes the last cube to enter the hold and slips it in on its right, thrown and live
+//   haul        takes the cube on its right off the line and into the hold, to be scavenged back
+//   guide       payout multiplier + guideBonus for every cube in the unbroken run of the called side
+//               touching it, counted outward both ways from its own position
 //
 // The eight faces of the Planet Octahedron are the only ones in the game that reach outside the
 // line — see the note on that cube for what each is for and what pays for it:
@@ -211,6 +233,12 @@ exports.POINTS = {
     boost: 1,
     shortcut: 1,
     reroll: 1,
+    heat: 1,
+    guide: 1,
+    // The Scavenger. `scavenge` changes the shape of the line and `haul` moves one thing off it, which
+    // is the same split `draw` and `burn` already sit either side of.
+    scavenge: 3,
+    haul: 2,
     // The Planet Octahedron, scored by the same rule as everything above it: 3 changes the shape of
     // the board, 2 moves one thing, 1 is the floor for turning up. `scorch`, `jail` and `plunge`
     // restructure; `freeze`, `vault` and `boonta` move one thing each — a face, a call, a verdict;
@@ -485,6 +513,97 @@ exports.SPECIALS = [
         ],
     },
     {
+        // **The one cube that grows, and it grows by spending itself.**
+        //
+        // Every other payer is flat (`greed`), per-position (`boost`), conditional on a side (`mult`)
+        // or per-rung (`seam`). None of them has a memory of itself, so no cube on the rack is worth
+        // more at Level 5 than it was at Level 2. This one pays `heatBonus` more on every landing than
+        // it paid on the last, and burns one of its own faces off to do it.
+        //
+        // **The distribution is exact rather than measured.** Heat faces leave and the wipeout does
+        // not, so the cube is a uniform shuffle of six faces read in order until the wipeout turns up:
+        // the number of heats before it is uniform on 0–5 at 1/6 apiece, and the run totals are
+        // 0, +0.5, +1.5, +3, +5, +7.5 for E = **+2.92**.
+        //
+        // Two things hold it down and neither is a dial. It is **back-loaded against a ladder that
+        // doubles** — a +0.5 caught at Level 2 is doubled three more times and lands worth 4, where the
+        // +2.5 arriving at Level 5 is worth 2.5 — so the big numbers turn up where they buy least. And
+        // it carries **no mine**: it cannot end a run, its whole price is that it destroys itself on a
+        // schedule the player can count off the rack screen.
+        //
+        // It needs no state of its own. `burned` already exists for Baroonda's scorch and a burnt face
+        // is already filtered out of the roll, so the payout is read off the cube's own damage.
+        id: 'turbine', name: 'Turbine Cube',
+        blurb: 'Five faces pay more every time, and burn themselves off the cube. One shatters it.',
+        faces: [...rep(5, { kind: 'heat', id: 'heat' }), BROKEN],
+    },
+    {
+        // **The only thing in the game that puts a cube back.**
+        //
+        // There are nine ways to destroy one and none to recover it, and that asymmetry is measured:
+        // 9.6% of full-rack runs reached a table that could not decide a roll, which is why a won tie
+        // hands over a plain cube. That rule is the mode apologising for a hole in the rack; this is
+        // the cube that fills it.
+        //
+        // **`haul` is the price, and it is also the setup.** Four salvage faces and two wipeouts left
+        // the cube dead on a clean run — nothing destroyed, nothing to recover. Jawas do not wait for
+        // scrap: the sandcrawler takes the cube on its right off the line and into the hold, and a
+        // later `scavenge` puts it back. It costs a position for the rest of the roll, which pushes an
+        // odd count even on a mode where a tie is lost 60% of the time; it takes whatever is standing
+        // there, which can be a Wild or a hot Turbine; and if the run ends first the cube never comes
+        // back at all.
+        //
+        // **One wipeout stays** for the reason the Sebulba note gives: a cube with no wipeout and no
+        // mine never leaves the table, and `haul` is frequently a cost the player is glad to pay. There
+        // is a loop in it — a Scavenger that shatters goes into the hold it reads, so a reflected copy
+        // can pull the original back out.
+        //
+        // What earns it a seat is the correlation rather than the recovery. Every other cube is worth
+        // more when the run is going well; this one is worth exactly as much as the rest of the rack
+        // has failed.
+        id: 'scavenger', name: 'Scavenger Cube',
+        blurb: 'Three faces pull the last cube out of the hold. Two haul one off the line into it. '
+            + 'One shatters the cube.',
+        faces: [
+            ...rep(3, { kind: 'scavenge', id: 'scavenge' }),
+            ...rep(2, { kind: 'haul', id: 'haul' }),
+            BROKEN,
+        ],
+    },
+    {
+        // **The first face that pays for the shape of the line.**
+        //
+        // Ten faces care intensely about position — the Mirror reflects left onto right, the Binder
+        // copies left to right, Sebulba's engines point, Ben eats both neighbours, the plunge takes the
+        // ends — and the only patterns anything ever *reads* are majority and all-one-side. Position
+        // decides everything about what happens and nothing about what it pays.
+        //
+        // **It is the pure bonus for racks that can never have one.** Effect cubes hold positions
+        // without being sides, so a full rack takes the Level 3 pure-5 rate from 3.11% to 0.45% and a
+        // player who actually built a rack is locked out of the one thing that pays for clean colour.
+        // `pureBonus` pays +1 per cube for a whole clean line; this pays `guideBonus` per cube for a
+        // clean stretch. Half rate, for a strictly easier condition.
+        //
+        // **And the two can never both be collected**, by construction rather than by a rule: a pure
+        // needs every position on the resolved line to be a cube on the called side, and this face is
+        // not a side, so a Guide on the line disqualifies the pure it is paying in place of. There is
+        // no stacking case to price.
+        //
+        // It counts outward from its own position **both ways**, stopping at the first position that
+        // is not a cube on the called side. One direction would be worth zero from position alone
+        // about half the time, and "the clear stretch it is standing in" is one object a player counts
+        // at a glance where "the run to its right" is a rule they have to remember. Both-neighbour
+        // geometry is already Ando Prime's and Baroonda's.
+        //
+        // Every other position stops it, effect faces included. Making them transparent would pay more
+        // and read worse: the justification for the whole cube is that the payout can be counted by
+        // looking at the line, and a rule that asks the player to mentally skip positions gives that up.
+        id: 'guide', name: 'Guide Cube',
+        blurb: 'Five faces pay for every cube in the unbroken run of your call touching it. '
+            + 'One ends the run.',
+        faces: [...rep(5, { kind: 'guide', id: 'guide' }), END],
+    },
+    {
         // **Eight faces, one per planet, and not one of them is a side.**
         //
         // Every other cube in the game acts on the line. This one reaches outside it: at the cubes
@@ -714,55 +833,22 @@ exports.cube = {
     // reroll cost 📀977M against 📀640k at ×2. The coupling is right; the old step made it absurd.
     maxStake: 1000,
     maxStakeStep: 2,
-    // Watto leans on the cube. Every day one side is quietly favoured this much and the other
-    // takes the rest — enough to be worth noticing over a day's rolls, not enough to make a
-    // call feel decided for you. Which side is never announced.
+    // **`dayLean` used to live here and it is gone on purpose.** Watto leaned on the cube: one side
+    // quietly favoured every day, 0.52 at the end and 0.55 before that. It read as flavour and
+    // measured as a **money printer worth +0.37 EV to the player** — the argument is kept at
+    // `rollSide` in `engine.js`, because the reason is a property of the ladder rather than of the
+    // number, and anything put here in its place would inherit it.
     //
-    // **It was 0.55 and that was a money printer.** The reason is that the lean does not stay 55/45:
-    // a level's winner is the *majority* of an odd number of cubes, and majority-of-N amplifies a
-    // per-cube bias with depth. Measured on a collapsed road:
+    // The short version: majority-of-N amplifies a per-cube bias with depth, so a leaned cube
+    // mispriced every rung by a different amount; and by convexity any p ≠ 0.5 mints truguts in
+    // either direction whether or not the player ever works out the day's side. A fair coin is the
+    // only value that lets one `levelStep` price the whole road, which is what makes a house edge
+    // expressible at all.
     //
-    //     level   cubes   P(call wins)   × levelStep
-    //     L1        1        0.5500         1.100
-    //     L2        3        0.5748         1.150
-    //     L3        5        0.5931         1.186
-    //     L4        7        0.6083         1.217
-    //     L5        9        0.6214         1.243
-    //
-    // Every rung is independently above even money, so a player who knows the day's side has no reason
-    // ever to bank and the ladder's "a level push is exactly fair" property — the thing §3 of the design
-    // doc is built on — is simply gone. Compounded, a bare ladder measures **EV 2.27** at 0.55 against
-    // 1.000 at 0.50, and a real rack took one holder from 20T to 800T in an afternoon at ~1% of purse
-    // a roll. The salt being secret does not help: a nine-cube line is enough information that ~36
-    // throws identify the day's side to 95% confidence, so it is inferred from the table rather than
-    // read out of the source.
-    //
-    // **It is also not zero-sum against a player who never works it out.** Blind play — one colour
-    // forever, half the days wrong — measured EV 1.66 at 0.55, because `E[∏P] > ∏P(E[p])` by convexity:
-    // the ladder pays exponentially in streak length, so *any* p ≠ 0.5 mints truguts in either
-    // direction. There is no value of this dial that is EV-neutral except 0.500.
-    //
-    // So the number is chosen for how much flavour survives per unit of leak, not for fairness. Measured
-    // by `scripts/cubeLean.js` on a bare ladder — the dial with nothing else in the sample — scored at
-    // the best stopping level and staked at 1.07% of purse, which is `maxStake` at prestige 33:
-    //
-    //     dayLean   reads as   informed EV   blind EV   informed, 250 runs
-    //     0.550      55/45        2.937        1.921          45×
-    //     0.530      53/47        2.078        1.541         6.8×
-    //     0.520      52/48        1.579        1.318         3.2×      ← shipped
-    //     0.510      51/49        1.493        1.311         2.6×
-    //     0.500      50/50        1.190        1.229         1.6×
-    //
-    // **0.52 is the floor of perceptibility, not a fairness target.** A 52/48 day is still genuinely
-    // noticeable across a few hundred rolls, which is the only timescale the lean was ever meant to be
-    // felt on. Below 0.51 the mode pays the whole cost of the mechanic for a bias nobody can perceive,
-    // and at that point the honest move is to delete it rather than trim it again.
-    //
-    // The residual ~1.19 at a perfectly fair 0.500 is `pureBonus`, not this dial — see the note there.
-    // A hand-picked rack measures ~2.2 with the lean switched off entirely, which is a third leak this
-    // number cannot touch: the cubes were each measured alone when they were built and never as a chosen
-    // eight together. `cubeLean.js` prints that row on purpose.
-    dayLean: 0.52,
+    // What is left of that measurement and still true: a bare ladder at a fair coin measured **1.24**,
+    // and a hand-picked rack **2.15**. Neither is the lean's doing. The first is `pureBonus` and the
+    // pay table; the second is the rack, whose cubes were each measured alone when they were built
+    // and never as a chosen eight together. `cubeLean.js` prints both on purpose.
     // ---------------------------------------------------------------------
     // The route
     // ---------------------------------------------------------------------
@@ -799,8 +885,9 @@ exports.cube = {
     // of the gap**, and a truncated geometric is worth much less than a whole one. At g=2 that cap
     // costs 50%; it fades as the gap grows, which is exactly the g→g+1 shift above.
     //
-    // So `clearsToUnlock: 1` and `maxClears: 4` reproduce the shipped curve rung for rung: 62 runs
-    // a cycle at prestige 0, 92 from prestige 2, 122 from 4, 153 from 6 and never more. Every
+    // So `clearsToUnlock: 1` reproduces the shipped curve rung for rung — 62 runs a cycle at
+    // prestige 0, 92 from prestige 2, 122 from 4, 153 from 6 — and `maxClears: 5` carries it one
+    // gap past anything the old ladder ever charged: 181 from prestige 8, and never more. Every
     // pacing decision in the design doc survives; only the number they are written against moved.
     clearsToUnlock: 1,
     // Prestiges between each extra required clear. Every prestige adding one made the
@@ -822,18 +909,17 @@ exports.cube = {
     // a slot you may not need. Uncapped, a cycle reaches 243 runs at prestige 13 and 362 (~2.7
     // hours) by prestige 22, by which point the rack can't accelerate any further either.
     //
-    // Five, for two reasons. It is 152 runs a cycle on an empty rack and about 69 with one, which
-    // is a steady state a player can sit in; and it costs almost nothing over the progression the
-    // mode is actually designed for — the run to prestige 13 goes 1,890 → 1,614 runs. The cap is
-    // there for the endgame past it, not for the climb.
+    // Five, which the table above prices at **181 runs a cycle** on an empty rack and about 82 with
+    // a Shortcut on it — the steady state from prestige 8 onward, and one a player can sit in. It
+    // binds nowhere before that, so it costs the climb the mode is actually designed around nothing
+    // at all: the cap is for the endgame past the rack, not for the road up to it.
     //
     // This **used to be a drawing limit wearing a rule's clothes.** The old meter drew one custom
     // emoji per clear needed, and twelve of those wrap on a phone. The route map replaced it and
-    // draws the Agains in plain unicode, so twenty tiles fit on a line and the constraint is gone;
-    // what is left is pacing, and pacing is why it is now **4 rather than 5** — one step down, to
-    // match `clearsToUnlock` moving the same way. Four Agains a gap is the 153-run steady state the
-    // old five-clear cap bought at 152, and the road is sixteen tiles long by then.
-    maxClears: 4,
+    // draws the Agains as plain tiles, so the twenty a five-Again road carries still hold one line
+    // at full size on a 375px phone — measured, in `.route` in the Activity's stylesheet, which is
+    // where raising this number has to be checked. What is left here is pacing.
+    maxClears: 5,
     // Banks at the top level needed before prestige is offered. One, because surviving five
     // straight calls is already a 1-in-32 run — three of those would be a hundred-run grind.
     clearsToPrestige: 1,
@@ -873,11 +959,23 @@ exports.cube = {
     // across levels a table that grows keeps on growing. That is the point: a run where the line
     // gets away from you is the interesting one.
     //
-    // Nothing about this is unbounded in *time* — a throw resolves in one pass over a queue that
-    // only originals feed — so the risk is purely how much of a screen a very long row can eat.
-    // That is handled where it belongs, at the point of drawing. Set a number here to put the cap
-    // back.
+    // How much of a screen a very long row can eat is handled where it belongs, at the point of
+    // drawing. Set a number here to put the cap back.
     maxCubes: Infinity,
+    // **And no ceiling in time either, so this is the one that catches it.**
+    //
+    // Copies act — a reflected Mirror reflects, a cloned Binder clones — so a rack carrying two of
+    // them draws lines that feed themselves and a throw that never finishes resolving. There is no
+    // rule that ends it, deliberately: see the queue in `resolveLine`. This is the budget instead.
+    // Past this many cubes handed a turn, the roll is abandoned where it stands and the run dies of a
+    // **memory overflow**.
+    //
+    // Which is not an apology for a limit, it is the ending. The game this mode is named after does
+    // exactly this — pile enough onto a track and Racer falls over — and a player who builds the rack
+    // that does it has found something rather than hit something. It should stay findable: rare
+    // enough that most players never see it, cheap enough at 100 that the reveal is still watchable
+    // when they do.
+    overflowAt: 100,
     // Watto's tie-breaker cube. A destructive face can leave an even line with no majority in
     // it, so he brings out a cube of his own — and his own cube is weighted. This is the chance
     // it lands *against* your call.
@@ -925,30 +1023,67 @@ exports.cube = {
     // good. **The offer itself is never withdrawn** — the price climbs past what the tie pays and he
     // goes on asking, because a lost tie is a bust and what that is worth avoiding is the player's
     // sum to do. See `asking` in actions.js.
-    bribeShare: 0.25,
+    //
+    // **The share is derived from the lean, not typed, and that is the whole of the fix here.** It was
+    // a flat `bribeShare: 0.25` against a tie you lose 45% of the time nudged and 60% un-nudged, so
+    // the first bribe bought a 45–60% risk of losing the entire standing for a quarter of it. That is
+    // free money by subtraction, at every level, on every rack, for every player — and because
+    // `bribes` resets at prestige it came back every prestige. A live account reached prestige 26 and
+    // 📀2.8T on it, with `bribe (7 paid)` still on the clock:
+    //
+    //     bribe #   old share   P(lose the tie), nudged   verdict
+    //     1           25.0%              45.0%            free money
+    //     2           37.5%              45.0%            free money
+    //     3           56.3%              45.0%            priced
+    //
+    // Measured on a tie-heavy rack at 2.39% of purse, buying exactly the two underpriced bribes and
+    // then prestiging to refill them took an evening from 20.5× to 33.3×. Buying *every* tie bled,
+    // which is why it never showed up as a bad-policy leak: the exploit was to stop at two.
+    //
+    // A typed share cannot be right for both populations at once — the un-nudged player loses 60% of
+    // ties and the nudged one 45%, so any single number is a subsidy to one of them. So the floor is
+    // `P(lose the tie)`, read off whichever lean actually applies, and `bribeEdge` is what the house
+    // keeps on top. See `bribeCostFor` in state.js, which is where the two are put together.
+    //
+    // **Fair on the standing is still a good deal, and that is deliberate.** Winning a tie does not
+    // just pay the standing, it keeps the climb alive to push again — so at exactly `P(lose)` the
+    // bribe still carries the whole option value of the rest of the run for nothing. The mechanic
+    // stays worth taking off the rack; it just stops being worth taking *twice and prestiging*.
+    bribeEdge: 0.03,
     bribeStep: 1.5,
     // What a rung does to the run's multiple. **A level multiplies it; an Again adds.**
     //
     // That split is the whole economy of the route, and it is the only shape that does all three
     // jobs at once:
     //
-    // - **The ladder stays exactly fair.** A level push turns M into 2M on a coin flip, so its
-    //   marginal EV is 1.000 — unchanged from the flat ladder the mode shipped with, and the
-    //   property §3 of the design doc is built on. The entire house edge lives in the Agains,
-    //   which is a far cleaner place for it than smeared across every rung.
-    // - **The Agains compound.** Because the levels multiply, a +1 banked in gap 1 is doubled by
-    //   L2, L3, L4 and L5 — worth **16×** what it added. One banked in gap 4 is worth 2×. So the
-    //   peak a route can reach is `32 + 30g`, and every Again you bank takes its compounded value
-    //   off that peak *forever*: 92× on a fresh g=2 route decays to 32× on a collapsed one. The
-    //   biggest number in the game exists only on a fresh prestige, which is the whole reason to
-    //   try to sweep a gap in one run instead of chipping at it.
-    // - **The tail stays bounded** without a house limit or any other new furniture, because
-    //   `32 + 30g` is linear in the padding rather than exponential in the depth.
+    // - **The ladder carries the house edge, and this number is the whole of it.** A rung is a coin
+    //   flip, so the fair price of a push is exactly 2.000. It pays `LEVEL_STEP` instead, which
+    //   keeps **3% of every push** — and because a fair cube makes the majority of any odd number of
+    //   cubes exactly 0.500, that 3% is the same at all five rungs. One number prices the whole
+    //   road, no rung is looser than any other, and there is nothing to farm. See `rollSide`.
     //
-    // Past Level 5 every rung is an Again, so a push there buys +1 against a base of 32 or more:
+    //   This reverses what §3 of the design doc was built on. The ladder used to be a clean double —
+    //   marginal EV exactly 1.000, with the entire edge in the Agains — and measurement is what
+    //   overturned it: at a fair cube and a clean double, an **empty rack still returned 1.31 and a
+    //   hand-picked eight 2.09**. A mode whose ladder is exactly fair and whose cubes are better
+    //   than fair is a faucet, and the ladder is the only surface every player touches every roll.
+    //
+    //   3% is the crash/mines number rather than a guess: that genre prices a cash-out ladder at
+    //   96–99% RTP a step, and the shave belongs in the pay table where it is invisible. Over a
+    //   five-rung climb it compounds to **86% RTP**, which is a real edge without being a wall.
+    //   Steeper was measured and rejected — 1.90 keeps 23% of a full climb, which is keno.
+    // - **The Agains still compound.** Because the levels multiply, a +1 banked in gap 1 is
+    //   multiplied by L2, L3, L4 and L5 — worth **14×** what it added at this step. One banked in
+    //   gap 4 is worth 1.94×. So every Again you bank takes its compounded value off the route's
+    //   peak *forever*, and the biggest number in the game exists only on a fresh prestige, which is
+    //   the whole reason to try to sweep a gap in one run instead of chipping at it.
+    // - **The tail stays bounded** without a house limit or any other new furniture, because the
+    //   peak is linear in the padding rather than exponential in the depth.
+    //
+    // Past Level 5 every rung is an Again, so a push there buys +1 against a base of 27 or more:
     // marginal EV ~0.52, asymptotically 0.5. That is deliberately a bad deal rather than a wall.
     // The player can always keep rolling; the game just stops pretending it is a good idea.
-    levelStep: 2,
+    levelStep: LEVEL_STEP,
     againBonus: 1,
     // What an Again is worth **past Level 5**, where there are no levels left to double it.
     //
@@ -993,6 +1128,18 @@ exports.cube = {
     // table the other cubes grew. Raising it rewards the growth racks specifically, which is the only
     // thing in the mode this dial touches.
     boostBonus: 0.25,
+    // What the Turbine's first heat pays. The *n*th pays `heatBonus × n`, so the step and the floor are
+    // the same dial and the cube's whole run totals `heatBonus × n(n+1)/2`. Half, so a Turbine that
+    // blows on its first landing has paid exactly a Greed and everything above that is what the cube
+    // is arguing for. Raising it steepens the tail rather than lifting the floor, because the top of
+    // the curve is where the multiplier is doing the most work.
+    heatBonus: 0.5,
+    // What the Guide pays, **per cube in the unbroken run of the called side touching it**. Half of
+    // `pureBonus`, deliberately and not by coincidence: a pure pays 1 per cube for a whole clean line,
+    // and this is the same reward at a coarser resolution for a rack that can never draw one. The two
+    // can never both be collected — this face is not a side, so its presence disqualifies the pure —
+    // so the ratio between them is the only thing this dial has to get right.
+    guideBonus: 0.5,
     // ---------------------------------------------------------------------
     // The Planet Octahedron
     // ---------------------------------------------------------------------

@@ -427,8 +427,6 @@ const makeWorld = function (cube = {}) {
 
 (async function main() {
     const drawCall = () => (crypto.randomInt(0, 2) ? 'red' : 'blue');
-    const leanWas = config.dayLean;
-    config.dayLean = 0.5;
 
     const runOf = async function (rack, runs) {
         const world = makeWorld({
@@ -540,7 +538,6 @@ const makeWorld = function (cube = {}) {
 
     const bench = [];
     for (const [label, rack] of BENCH) bench.push([label, await runOf(rack, RUNS)]);
-    config.dayLean = leanWas;
     const base = bench[0][1].returned / bench[0][1].staked;
 
     console.log('');

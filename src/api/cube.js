@@ -1,8 +1,8 @@
 // The chance cube's HTTP surface, for the Discord Activity.
 //
 // Everything here is **server-authoritative**. The client says "I call blue"; it never says what
-// the cubes did. Two reasons, and both are absolute: `CUBE_LEAN_SALT` decides the day's favoured
-// side and cannot ship to a browser, and the payouts are real truguts.
+// the cubes did. The reason is absolute and survives the cube being fair: the payouts are real
+// truguts, so a client that reported its own outcomes would be a client that could mint them.
 //
 // Responses carry abstract face ids (`greed`, `mult:blue`) and structured notes, never emoji or
 // prose — see `src/game/cube/engine.js`. What a face looks like and what it says are the client's
@@ -227,6 +227,9 @@ module.exports = function mountCube(app, ctx) {
         line: thrown.res.faceIds,
         frozen: thrown.res.frozen,
         burned: thrown.res.burned,
+        // Which positions landed on a face Baroonda had already been at — dead where they stand, and
+        // counting toward nothing. See `lineState`.
+        charred: thrown.res.charred,
         cubeIds: thrown.res.cubeIds,
         steps: thrown.res.steps,
         notes: thrown.res.notes,
@@ -252,6 +255,18 @@ module.exports = function mountCube(app, ctx) {
         rerolls: thrown.res.rerolls,
         shortcuts: thrown.res.shortcuts,
         ended: thrown.res.ended,
+        // How many cubes the table had spawned when the engine gave up on it, 0 on every roll that
+        // resolved. The bust reason already says `overflow`; this is the number, which is the only
+        // part of that ending a client can't work out from the line in front of it — the line stops
+        // at whatever `maxCubes` and the effects left standing, not at the count that tripped it.
+        overflow: thrown.res.overflow,
+        // **How many cubes the bag had left when this roll finished.** The client reads that off the
+        // run the roll left behind, which works until there is no run left to read: a bust by a player
+        // with no reroll banked clears the ladder outright — see `settleLoss` — so a run that died on
+        // its opening throw could never say what it had been drawing from. Sent on every roll rather
+        // than only on that one, because a figure a client has to fetch two ways is a figure that will
+        // disagree with itself.
+        bag: (thrown.bag || []).length,
         ...(settled ? { settled } : {}),
     });
 
@@ -425,6 +440,9 @@ module.exports = function mountCube(app, ctx) {
                         multiple: Number(w.multiple) || 0,
                         cubes: Number(w.cubes) || 0,
                         streak: Number(w.streak) || 0,
+                        // When each of those landed, so the board can date its rows. Zero for anything
+                        // filed before the stamps existed — see `stampsOf`.
+                        at: pstate.stampsOf(w.at),
                     });
                 }
                 rows.all.push({
@@ -432,6 +450,7 @@ module.exports = function mountCube(app, ctx) {
                     multiple: Number(c.bestMultiple) || 0,
                     cubes: Number(c.bestCubes) || 0,
                     streak: Number(c.bestStreak) || 0,
+                    at: pstate.stampsOf(c.bestAt),
                 });
             }
             // One ranking per column rather than one sorted list: a player can lead the multiple and
@@ -445,10 +464,11 @@ module.exports = function mountCube(app, ctx) {
                     board[key] = {
                         top: ranked.slice(0, 10).map((r, i) => ({
                             rank: i + 1, id: r.id, name: r.name, value: r[key], you: r.id === me,
+                            at: r.at?.[key] || 0,
                         })),
                         // Where the caller sits, so a player outside the top ten is told something
                         // rather than left to assume the board is broken.
-                        you: at < 0 ? null : { rank: at + 1, value: ranked[at][key] },
+                        you: at < 0 ? null : { rank: at + 1, value: ranked[at][key], at: ranked[at].at?.[key] || 0 },
                         players: ranked.length,
                     };
                 }

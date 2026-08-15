@@ -109,6 +109,7 @@ const responseOf = (thrown, settled) => ({
     rerolls: thrown.res.rerolls,
     shortcuts: thrown.res.shortcuts,
     ended: thrown.res.ended,
+    overflow: thrown.res.overflow,
     ...(settled ? { settled } : {}),
 });
 
@@ -121,6 +122,12 @@ const WANTED = {
     manyEffects: r => r.steps.length >= 6,
     paying: r => r.pays.length >= 3,
     ratts: r => r.settled?.reason === 'ratts',
+    // **The runaway.** Copies act, so a Mirror and a Binder on the same rack draw lines that spawn
+    // faster than they resolve, and the engine gives up at `overflowAt` — the longest line and the
+    // longest run of frames the client will ever be asked to draw, by a wide margin. It wants the two
+    // cubes in the same eight, which the rotating rack only sometimes gives it, so this is one of the
+    // entries a sweep can legitimately come back without.
+    overflow: r => r.settled?.reason === 'overflow',
     shattered: r => r.settled?.shattered?.length >= 1,
     tieBroken: r => !!r.breaker,
     // A tie he breaks that also has something waiting on the answer: a Multiplier naming a side, or a

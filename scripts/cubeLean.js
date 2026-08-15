@@ -1,16 +1,16 @@
-// Measures the three dials that decide whether the mode is a sink or a faucet: `dayLean`, `nudgeLean`
-// and `weldPurity`.
+// Measures the dials that decide whether the mode is a sink or a faucet: `levelStep`, `nudgeLean` and
+// `weldPurity` — and prices the racks they act on.
 //
-// It exists because all three were shipped on reasoning rather than measurement, and all three were
-// wrong in the same direction. The mode paid one holder 20T → 800T in an afternoon at ~1% of purse a
-// roll, and no single dial was the cause — it was `dayLean` amplified by majority-of-N, a weld that had
-// dropped both its parents' mines, and a tie pick that reversed the house edge instead of softening it.
+// It exists because they were shipped on reasoning rather than measurement, and were wrong in the same
+// direction. The mode paid one holder 20T → 800T in an afternoon at ~1% of purse a roll, and no single
+// dial was the cause — it was `dayLean` amplified by majority-of-N, a weld that had dropped both its
+// parents' mines, and a tie pick that reversed the house edge instead of softening it.
 //
-// **The thing to understand before touching any of them.** A level's winner is the majority of an odd
-// number of cubes, and majority-of-N *amplifies* a per-cube bias with depth. So a 55/45 cube is not a
-// 55/45 game: it is 55/45 at Level 1 and 62/38 at Level 5, against a ladder that doubles at every rung.
-// That is what section one prints, and it is why trimming a dial by 10% does not trim the exploit by
-// 10%.
+// **The lean is gone and the lesson it taught is the reason section one exists.** A level's winner is
+// the majority of an odd number of cubes, and majority-of-N *amplifies* a per-cube bias with depth: a
+// 55/45 cube was not a 55/45 game, it was 55/45 at Level 1 and 62/38 at Level 5, against a ladder that
+// doubles at every rung. Trimming that dial by 10% never trimmed the exploit by 10%. A fair coin is
+// what makes the pay table priceable, and section one is the standing check that it still is.
 //
 // Every figure is at the **collapsed road** — five level rungs with no Agains standing between them,
 // which is what a maxed player's road looks like and where the leak is worst. Growth is quoted at
@@ -28,11 +28,6 @@ const CLIMBS = Number(process.argv[2]) || 40000;
 const CUBES = LEVELS.map(l => l.cubes);
 const ALL = SPECIALS.map(s => s.id);
 const OTHER = { red: 'blue', blue: 'red' };
-
-// The side the cube is actually leaning on today. Read rather than forced, so this measures the game
-// as it will be played — an informed player is one who has worked out this value, which takes about
-// thirty-six nine-cube throws to do to 95% confidence.
-const LEANED = engine.dailyLean().side;
 
 // **The stake fraction a deep player is pinned to.** `maxStakeFor` is `maxStake × maxStakeStep^prestige`
 // with no cap, so it grows forever — but a printing purse outgrows it, and the fraction shrinks. At
@@ -85,7 +80,9 @@ const climb = function (rack, call, nudge) {
 const measure = function (rack, nudge, climbs = CLIMBS) {
     const pay = LEVELS.map(() => []);
     for (let i = 0; i < climbs; i++) {
-        const st = climb(rack, LEANED, nudge);
+        // The call is fixed rather than drawn. On a fair cube the colour cannot matter — it used to,
+        // when one of them was the day's favoured side, and that is the whole of what changed here.
+        const st = climb(rack, 'blue', nudge);
         LEVELS.forEach((_, lv) => pay[lv].push(st[lv] || 0));
     }
     const rows = pay.map((s) => {
@@ -121,20 +118,26 @@ const majority = function (n, p) {
     return w;
 };
 
-console.log(`${CLIMBS.toLocaleString()} climbs a row · collapsed road · today leans ${LEANED}`);
+console.log(`${CLIMBS.toLocaleString()} climbs a row · collapsed road · fair cube`);
 console.log(`stake ${(FRACTION * 100).toFixed(2)}% of purse (maxStake at prestige 33 against 800T)`);
 
-console.log(`\n\nAMPLIFICATION — a ${Math.round(config.dayLean * 100)}/${Math.round((1 - config.dayLean) * 100)}`
-    + ' cube seen as a per-rung win rate (exact)');
-console.log('  level  cubes  per-cube  P(rung)  × levelStep   fair step');
+// **What a fair coin buys, and why `dayLean` had to go before the pay table could be priced.**
+//
+// A level's winner is the majority of an odd number of cubes, and majority-of-N amplifies a per-cube
+// bias with depth — so under a lean every rung wanted a different multiple and the deepest wanted the
+// most. At 0.500 the majority of any odd number is exactly 0.500, so **one `levelStep` prices the whole
+// road**: the fair column below is flat, and whatever fraction of it the house keeps is the same edge
+// at every rung. That is the property the ladder's edge rests on, so it is asserted rather than trusted.
+console.log('\n\nPRICING — what each rung is worth at a fair cube (exact)');
+console.log('  level  cubes  P(rung)   × levelStep   fair step   edge');
 CUBES.forEach((n, lv) => {
-    const w = majority(n, config.dayLean);
-    console.log(`  L${lv + 1}     ${String(n).padStart(2)}      ${config.dayLean.toFixed(3)}`
-        + `    ${w.toFixed(4)}     ${(config.levelStep * w).toFixed(3)}`
-        + `        ${(1 / w).toFixed(3)}`);
+    const w = majority(n, 0.5);
+    console.log(`  L${lv + 1}     ${String(n).padStart(2)}     ${w.toFixed(4)}      `
+        + `${(config.levelStep * w).toFixed(3)}        ${(1 / w).toFixed(3)}`
+        + `    ${(((1 / w) - config.levelStep) / (1 / w) * 100).toFixed(2)}%`);
 });
-console.log('  Every rung above 1.000 is farmable on its own, and the deepest is the worst — which is');
-console.log('  why no single `levelStep` prices both ends and why a rake cannot absorb this.');
+console.log(`  One number prices every rung, so the edge is uniform and there is no loose rung to`);
+console.log(`  farm. levelStep ${config.levelStep} against a fair 2.000 is the whole of the ladder's house edge.`);
 
 // ---------------------------------------------------------------------------
 // 2. Racks, informed against blind
@@ -162,49 +165,14 @@ for (const { rack, label } of RACKS) {
     }
 }
 
-// **A hand-picked rack is above water with no lean at all.** That is a separate leak from anything this
-// file tunes and it is not fixed by any of the three dials: the cubes were measured one at a time when
-// they were built — Wild 1.30, Sebulba 1.20, Greed 0.60, each "fielded alone" — and never as a chosen
-// eight together. Printed so nobody mistakes a tamed lean for a tamed mode.
-console.log('\n  the same racks with the lean switched off entirely (dayLean 0.500)');
-const shippedDay = config.dayLean;
-config.dayLean = 0.5;
-for (const { rack, label } of RACKS) {
-    const m = measure(rack, true);
-    console.log(`  ${label.padEnd(28)}  yes    L${m.best + 1}   ${m.ev.toFixed(3).padStart(6)}`
-        + `   ${evening(m.g).padStart(9)}      ${m.top.ev.toFixed(3)}`);
-}
-config.dayLean = shippedDay;
+// **A hand-picked rack is above water on a fair cube, and that is the leak the ladder cannot reach.**
+// The cubes were measured one at a time when they were built — Wild 1.30, Sebulba 1.20, Greed 0.60,
+// each "fielded alone" — and never as a chosen eight together. Deleting the lean did not touch it and
+// no `levelStep` gentle enough for a bare rack will either. Printed so nobody mistakes a priced ladder
+// for a priced mode.
 
 // ---------------------------------------------------------------------------
-// 3. dayLean
-// ---------------------------------------------------------------------------
-
-console.log('\n\ndayLean — a bare ladder, which is what the dial alone is worth');
-console.log('  dayLean   reads as   informed EV   blind EV   informed evening');
-for (const p of [0.55, 0.53, 0.52, 0.51, 0.50]) {
-    config.dayLean = p;
-    const inf = measure([], true);
-    // Blind is the average of both directions: calling the leaned side and calling against it.
-    const against = (() => {
-        const saved = LEANED;
-        // Calling against the lean is the same as leaning against the call, so flip the dial instead
-        // of the call and reuse the same path.
-        config.dayLean = 1 - p;
-        const m = measure([], true);
-        config.dayLean = p;
-        void saved;
-        return m;
-    })();
-    const blindEv = (inf.ev + against.ev) / 2;
-    console.log(`  ${p.toFixed(3)}     ${Math.round(p * 100)}/${Math.round((1 - p) * 100)}`
-        + `       ${inf.ev.toFixed(3).padStart(6)}       ${blindEv.toFixed(3).padStart(6)}`
-        + `     ${evening(inf.g).padStart(9)}${p === shippedDay ? '   ← shipped' : ''}`);
-}
-config.dayLean = shippedDay;
-
-// ---------------------------------------------------------------------------
-// 4. nudgeLean, and the fork it leaves behind
+// 3. nudgeLean, and the fork it leaves behind
 // ---------------------------------------------------------------------------
 //
 // The fork is the tuning cost the pick imposes on every other dial in the file, because each one has to

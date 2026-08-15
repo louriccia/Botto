@@ -10,8 +10,6 @@
 // here is seedable by design; the parity harness patches the module when it needs determinism.
 
 const crypto = require('crypto');
-const moment = require('moment');
-require('moment-timezone');
 
 const {
     LEVELS, SPECIALS, SIDES, POINTS, PLAIN_FACES, SIDE_IDS, cube: config,
@@ -369,57 +367,45 @@ const JAILERS = new Set(
 );
 exports.JAILERS = JAILERS;
 
+// The same test for the Scavenger, and it buys the same thing: a hauled cube walks out of the hold
+// the moment no cube that could have taken it is standing. Wrecked cubes do not — nothing is holding
+// them — which is what stops a run with no Scavenger in it spilling its own wreckage every rung.
+const HOLDERS = new Set(
+    SPECIALS.filter(sp => (sp.faces || []).some(f => f && f.kind === 'haul')).map(sp => sp.id),
+);
+exports.HOLDERS = HOLDERS;
+
 exports.MAX_LEVEL = LEVELS.length - 1;
 
 // ---------------------------------------------------------------------------
-// Randomness and the daily lean
+// Randomness
 // ---------------------------------------------------------------------------
 
 // Every weighted coin in the mode goes through here.
 const chance = p => crypto.randomInt(0, 10000) < Math.round(p * 10000);
 exports.chance = chance;
 
-// Which side Watto leans on today. Derived from the date rather than stored: no rollover race,
-// no extra node to keep in sync, and the same day always leans the same way — so two players
-// rolling an hour apart are playing the same cube. Memoised because a nine-cube roll would
-// otherwise hash the date nine times.
+// Every plain cube in the game comes through here — the level's own cubes and any a special
+// spawns. It is an honest coin, and that is a **pricing** decision rather than a fairness one.
 //
-// Eastern time, matching the daily challenge boundary, so the cube turns over when the rest of
-// the bot's day does.
+// A `dayLean` used to sit here: one side quietly favoured every day, the day derived from a hash
+// of a secret salt so everyone rolled the same cube. It was 0.52 and it was worth **+0.37 EV to
+// the player**, for two reasons that are both properties of the ladder rather than of the number:
 //
-// **The salt is secret and has to be.** A lean is unguessable to a human — spotting 55/45 needs
-// a few hundred cubes tallied inside one Eastern day, through the noise of every special cube
-// that forces a side — but this repo is public, so a hardcoded salt makes the day's favoured
-// side a two-line script rather than an inference. Knowing it is worth a great deal: calling the
-// favoured side lifts a level 5 run from 1-in-32 to about 1-in-14, which is an EV of 2.27 on a
-// ladder that is otherwise exactly fair. Out of the source and into the environment, so the
-// property that makes the lean fun — everyone rolling the same cube — costs nothing to keep.
+//   - **Majority-of-N amplifies a per-cube bias with depth.** A level's winner is the majority of
+//     an odd number of cubes, so a 52/48 cube is 52/48 at Level 1 and 54.9/45.1 at Level 5. Every
+//     rung is mispriced by a different amount and the deepest is worst, so no single `levelStep`
+//     prices them all and whichever rung is loosest gets farmed.
+//   - **It is not zero-sum against a player who never works out the day's side.** `E[∏P] > ∏P(E[p])`
+//     by convexity, and the ladder pays exponentially in streak length, so *any* p ≠ 0.5 mints
+//     truguts in either direction. Blind play measured 1.66 at 0.55. There is no EV-neutral value
+//     of that dial except 0.500 — which is to say, no lean.
 //
-// Every client must share the salt, or two players on the same day are no longer on the same cube,
-// which is the one property the whole mechanic is for.
-const LEAN_SALT = process.env.CUBE_LEAN_SALT;
-if (!LEAN_SALT) {
-    console.warn('[cube] CUBE_LEAN_SALT is not set — the daily lean is derived from a public '
-        + 'fallback and can be computed by anyone with the source. Set it in the environment.');
-}
-let leanCache = null;
-const dailyLean = function () {
-    const day = moment().tz('America/New_York').format('YYYY-DDDD');
-    if (!leanCache || leanCache.day !== day) {
-        const h = crypto.createHash('sha256')
-            .update(`${LEAN_SALT || 'chance-cube-lean'}:${day}`).digest();
-        leanCache = { day, side: h[0] % 2 ? 'red' : 'blue' };
-    }
-    return leanCache;
-};
-exports.dailyLean = dailyLean;
-
-// Every plain cube in the game comes through here, so the lean applies to the whole table at
-// once — the level's own cubes and any a special spawns.
-const rollSide = function () {
-    const { side } = dailyLean();
-    return chance(config.dayLean) ? side : OTHER[side];
-};
+// A fair coin is what makes an edge priceable at all: at 0.500 the majority of any odd number of
+// cubes is exactly 0.500 too, so one multiple prices every rung and there is no loose one to find.
+// The house takes its cut in the pay table, the way a wheel that is honestly balanced still pays
+// 35:1 on a 37:1 shot. See `levelStep`.
+const rollSide = () => (chance(0.5) ? 'blue' : 'red');
 exports.rollSide = rollSide;
 
 // Watto's tie-breaker. Deliberately *not* a plain cube and deliberately not drawn through
@@ -508,24 +494,24 @@ exports.bankPayout = (stake, multiple) => Math.floor(stake * (Number(multiple) |
 // **A level multiplies the multiple; an Again adds to it.** A run opens holding ×1 — its own stake,
 // unrisked — and every rung it survives works on that number:
 //
-//     🥉 ×2  ─ again ─▸ ×3 ─ again ─▸ ×4  ─ 🥈 ─▸ ×8  ── a Multiplier lands ──▸ ×9
+//     🥉 ×1.94 ─ again ─▸ ×2.94 ─ again ─▸ ×3.94 ─ 🥈 ─▸ ×7.64 ── a Multiplier lands ──▸ ×8.64
 //
 // Two things fall out of it, and both are why the split is this way round rather than the other:
 //
-// - **A level push is exactly fair.** M → 2M on a coin flip is EV 1.000, so the ladder keeps the
-//   property the mode was built on and the entire house edge sits in the Agains, where it is one
-//   legible price rather than a tax on every rung.
-// - **An Again compounds.** A +1 banked before four levels is worth 16 by the top; the same +1
-//   banked in the last gap is worth 2. So catching one early matters, a fresh route can reach
-//   `32 + 30g` where a collapsed one tops out at 32, and collapsing the route permanently lowers
-//   the biggest number you will ever be able to reach on it.
+// - **A level push is priced, and evenly.** M → M×`levelStep` on a coin flip whose fair price is
+//   M → 2M, so the house keeps 3% — the same 3% at all five rungs, because a fair cube makes the
+//   majority of any odd number of cubes exactly 0.500. The Agains are the steeper price on top.
+// - **An Again compounds.** A +1 banked before four levels is worth 14.16 by the top; the same +1
+//   banked in the last gap is worth 1.94. So catching one early matters, a collapsed route tops out
+//   at 27.48 where a fresh one runs far higher, and collapsing the route permanently lowers the
+//   biggest number you will ever be able to reach on it.
 //
 // It is also what keeps the paying faces meaningful at depth: a Greed's +0.5 is still doubled by
 // every level above it, exactly as it was measured.
 //
-// **Past Level 5 there is nothing left to double**, so an Again there pays `overtimeBonus` instead
-// — the whole reason overtime is a decision rather than a formality. See the note on that dial for
-// why the number is safe at any value below 32.
+// **Past Level 5 there is no level left to multiply what an Again adds**, so an Again there pays
+// `overtimeBonus` instead — the whole reason overtime is a decision rather than a formality. See the
+// note on that dial for why the number is safe below the multiple the top of the road arrives at.
 const BONUS = { again: 'againBonus', overtime: 'overtimeBonus' };
 
 const rungMultiple = function (kind, carried, added = 0) {
@@ -625,14 +611,20 @@ const slotOf = function (v) {
             // Firebase hands back an object where an array went in, so both go through `Object.values`.
             burned: Object.values(v.burned || {}).map(String),
             frozen: v.frozen ? String(v.frozen) : null,
+            heat: Number(v.heat) || 0,
+            hauled: !!v.hauled,
         };
     }
-    return { id: v ? String(v) : null, burned: [], frozen: null };
+    return {
+        id: v ? String(v) : null, burned: [], frozen: null, heat: 0, hauled: false,
+    };
 };
 exports.slotOf = slotOf;
 
 // An ordinary cube with nothing done to it — the thing most of a set is.
-const plainSlot = () => ({ id: null, burned: [], frozen: null });
+const plainSlot = () => ({
+    id: null, burned: [], frozen: null, heat: 0, hauled: false,
+});
 exports.plainSlot = plainSlot;
 
 // The faces a cube can actually still land on. **A scorch takes one face of the six, not a kind** —
@@ -652,6 +644,61 @@ const liveFaces = function (special, burned) {
     return all;
 };
 exports.liveFaces = liveFaces;
+
+// Every face a cube can land on, burnt ones included. **A scorch no longer takes a face off the cube;
+// it kills it where it stands.** The face is still in the pile and still turns up as often as it ever
+// did — what it no longer does is anything at all: no side, no effect, no bonus, no colour toward the
+// count. See `charredFace`.
+//
+// The two lists are the difference between the two questions, and both are still asked. This one is
+// what a cube *rolls*; `liveFaces` is what a cube has *left*, which is what the floor is counted
+// against and what a rack screen means by a cube's odds.
+const allFaces = special => (special ? special.faces : PLAIN_FACES).slice();
+exports.allFaces = allFaces;
+
+// What a cube actually throws from. **A spent heat is not a scorched face**, and the difference is the
+// whole of the Turbine: a scorch leaves the face in the pile and kills it where it lands, so the odds
+// of every *other* face are untouched; a heat is genuinely consumed, so the list gets shorter and the
+// one face that never leaves — the wipeout — climbs from 1-in-6 to certain across five landings.
+//
+// That is what makes the cube a uniform shuffle read until the wipeout, and so what makes 0 through 5
+// heats equally likely. Reusing `burned` would have left the wipeout flat at 1-in-6 and turned the
+// cube inert instead of dangerous, which is a different and much worse object.
+const rollFaces = function (special, slot) {
+    const all = allFaces(special);
+    let n = (slot && slot.heat) || 0;
+    if (!n) return all;
+    return all.filter((f) => {
+        if (n > 0 && f && f.kind === 'heat') { n -= 1; return false; }
+        return true;
+    });
+};
+exports.rollFaces = rollFaces;
+
+// **Whether the face just drawn is one of the charred ones.**
+//
+// `burned` is a multiset of face *ids*, and a cube can carry several faces under one id — a Wild Cube
+// is four wilds and a Ratts. Which of the four the fire took is not recorded and does not need to be:
+// drawing one of them and charring it with probability `burnt of that id / all of that id` is the same
+// distribution as having charred a particular one and asking whether this is it. That is also what
+// keeps the stored shape unchanged — a run in progress carries its scorch marks through this.
+const isCharred = function (faces, burned, face) {
+    const id = face && face.id;
+    if (!id || !(burned || []).length) return false;
+    const burnt = burned.filter(b => b === id).length;
+    if (!burnt) return false;
+    const of = faces.filter(f => f && f.id === id).length;
+    return of > 0 && crypto.randomInt(0, of) < burnt;
+};
+
+// What a charred face lands as. **The id survives and the kind does not**, which is the whole of the
+// mechanic in one object: the client still knows which face it was and draws it burnt, and every pass
+// that dispatches on `kind` — the two effect switches, the paying faces, the `SIDED` test that decides
+// whether a position keeps its colour — falls through to nothing without a single case of its own.
+//
+// `charred` on the position rather than only on the face, because `lineState` reports it per position
+// and a face object is not what the line is indexed by.
+const charredFace = (cube, id) => ({ ...cube, side: null, charred: true, face: { id, kind: 'charred' } });
 
 // What a frozen slot comes back up as: the face it was holding when the ice took it, rebuilt off the
 // cube it belongs to. `null` when that face isn't there any anymore — scorched off in the meantime, or
@@ -712,10 +759,12 @@ exports.drawCubes = function (set, bag, levelIdx) {
 exports.encodeSet = function (set) {
     return (set || []).map((c) => {
         const slot = slotOf(c);
-        if (!slot.burned.length && !slot.frozen) return slot.id || 0;
+        if (!slot.burned.length && !slot.frozen && !slot.heat && !slot.hauled) return slot.id || 0;
         const out = { id: slot.id || 0 };
         if (slot.burned.length) out.burned = slot.burned;
         if (slot.frozen) out.frozen = slot.frozen;
+        if (slot.heat) out.heat = slot.heat;
+        if (slot.hauled) out.hauled = true;
         return out;
     });
 };
@@ -763,23 +812,21 @@ exports.throwSet = function (set) {
             if (held) return { ...held, slot, frozen: true };
         }
 
-        const faces = liveFaces(special, slot.burned);
+        const faces = rollFaces(special, slot);
         if (!special) {
-            // **An untouched plain cube draws through `rollSide`, and a scorched one does not.** That
-            // is the daily lean's whole reach: it lives in `rollSide`, a cube drawing off a face list
-            // never calls it, and so a cube Baroonda has been at is the one cube on the table the day
-            // cannot touch. Nothing here is a special case — it is where the two draws already were.
-            const side = slot.burned.length
-                ? faces[crypto.randomInt(0, faces.length)].side
-                : rollSide();
-            return { side, special: null, face: null, slot };
+            // **A plain cube draws through `rollSide` however burnt it is.** A scorch does not change
+            // what a cube rolls any more — it changes what the roll is worth — so the draw is the same
+            // one it has always been, the daily lean included, and the fire is applied to the answer.
+            const side = rollSide();
+            const face = faces.find(f => f.side === side);
+            return isCharred(faces, slot.burned, face)
+                ? charredFace({ special: null, slot }, face.id)
+                : { side, special: null, face: null, slot };
         }
-        return {
-            side: rollSide(),
-            special,
-            face: faces.length ? faces[crypto.randomInt(0, faces.length)] : null,
-            slot,
-        };
+        const face = faces.length ? faces[crypto.randomInt(0, faces.length)] : null;
+        return isCharred(faces, slot.burned, face)
+            ? charredFace({ special, slot }, face.id)
+            : { side: rollSide(), special, face, slot };
     });
 };
 
@@ -894,6 +941,11 @@ exports.rolledFaces = line => line.map(faceIdOf);
 const lineState = line => ({
     frozen: (line || []).map(c => !!(c && c.frozen)),
     burned: (line || []).map(c => ((c && c.slot && c.slot.burned) ? [...c.slot.burned] : [])),
+    // **This position landed on one of the burnt faces**, which is not answerable from `burned`: that
+    // says what the fire has taken off the cube over the whole climb, and this says whether the face
+    // showing right now is one of them. A charred position counts toward nothing and does nothing, and
+    // without this it would draw as an ordinary one doing neither for no visible reason.
+    charred: (line || []).map(c => !!(c && c.charred)),
     // Off `special` rather than off `slot.id`, which is the cube the position *arrived* with: a clone
     // or a reflection rewrites the cube standing here and only the first of the two follows it.
     cubeIds: (line || []).map(c => ((c && c.special) ? c.special.id : null)),
@@ -939,6 +991,14 @@ const resolveLine = function (line, call, bag, opts = {}) {
     // in and handed back like the bag, and for the same reason: a caller that ignores it gets a prison
     // that never fills.
     const held = [...(opts.jail || [])];
+    // The Scavenger's hold, carried by the run for the same reason the prison is: these cubes are off
+    // the table without being gone. Everything that leaves the line ends up in it — wreckage swept up
+    // at the end of the roll, hauled cubes carried off during it — and `scavenge` takes the last one
+    // in. Order is the whole of the structure.
+    const hold = [...(opts.hold || [])];
+    // Specials this roll pulled back out of the hold, so the caller can take them off `spent`. A cube
+    // standing on the table and listed as shattered is a lie the rack screen would eventually tell.
+    const recovered = [];
     // How many rungs this run has walked, **including the one being thrown.** Mon Gazza is the only
     // face that needs it and it is the only number in a roll that is about the run rather than the
     // line, which is why it comes in rather than being derivable from anything here.
@@ -1053,6 +1113,19 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 // and like every other effect face it counts toward neither.
                 note(c, 'mult', { side: c.face.side, bonus: config.multBonus });
                 break;
+            case 'heat':
+                // The rate is knowable here and nowhere else is it cheaper: it comes off how many
+                // heats this cube has already spent, which the slot carried in. The face burns itself
+                // off in the payout pass, where it is also counted, so what the throw promises and what
+                // the walk quotes are the same number read at two moments.
+                note(c, 'heat', { bonus: config.heatBonus * (((c.slot && c.slot.heat) || 0) + 1) });
+                break;
+            case 'guide':
+                // What it will be worth isn't knowable yet — it pays for a run of cubes the line has
+                // not finished rearranging — so the throw says nothing about the amount and the payout
+                // walk quotes it, the same split the Boost Cube has.
+                note(c, 'guide');
+                break;
             case 'shortcut':
                 note(c, 'shortcut');
                 break;
@@ -1082,6 +1155,18 @@ const resolveLine = function (line, call, bag, opts = {}) {
     // is as legitimate as burning a cube — but anything that *copies* or *fuses* sides needs a side
     // to work with, and an effect hasn't got one.
     const isCube = c => !!c && !!c.side;
+    // How long a run of the called side a position is standing in, counted outward both ways and not
+    // counting the position itself. A corpse is not a cube, so a razed wing stops it exactly as an
+    // opposing colour does — and so does any effect face, which is what makes what the Guide pays the
+    // same thing a player counts by looking at the line.
+    const ours = x => !!x && !x.gone && x.side === call;
+    const guideRun = function (idx) {
+        if (idx < 0) return 0;
+        let n = 0;
+        for (let k = idx - 1; k >= 0 && ours(final[k]); k--) n += 1;
+        for (let k = idx + 1; k < final.length && ours(final[k]); k++) n += 1;
+        return n;
+    };
     // A cube destroyed *in place*: it holds its position so the line can draw what happened to it,
     // counts toward neither side, and is dropped from the set — so the table is genuinely shorter
     // from the next level on, it just doesn't vanish mid-picture. Ben's wings are the only user.
@@ -1103,27 +1188,27 @@ const resolveLine = function (line, call, bag, opts = {}) {
     // reflected Tusken culls twice. That needs a **work queue** rather than a walk over the thrown
     // line, because the line grows turns as it resolves.
     //
-    // Two rules bound it, and without them it doesn't terminate:
+    // **A copy is a cube, so it acts exactly like one, and there is no depth rule.** A reflected
+    // Mirror reflects. A cloned Binder clones. A Binder off a Mirror off a Binder goes on going.
+    // Copies used to be inert one level down — a Binder cloning a Binder stopped at the second — for
+    // the obvious reason: without that, the queue feeds itself and never empties.
     //
-    //   1. **A copy hands out no turns of its own — except through the glass.** A Binder that is
-    //      itself a copy clones inertly, so a Binder cloning a Binder cloning a Binder stops at the
-    //      second. A mirror is the exception: what it reflects takes its turn whether the glass was
-    //      thrown, pulled out of the bag or cloned off a Binder.
+    // It feeds itself. That is the point. The one rule that stopped it was also the rule that made
+    // two Mirrors on a rack the dullest thing the mode could draw, and the runaway it was holding
+    // back is a better outcome than the sentence it was written in. **The overflow is what stops
+    // it** — `overflowAt` cubes handed a turn and the roll is abandoned where it stands — so the
+    // bound is a budget rather than a rule about what a copy is allowed to be.
     //
-    //      That exception is the cube working at all. Under the flat rule, a Mirror the Pit Droid
-    //      drew duplicated half the table and every duplicate sat there inert — the same picture as
-    //      the Mirror never having fired, on a shape that is not rare: measured 0 of 92 reflections
-    //      acting behind a drawn mirror and 0 of 200 behind a cloned one. It stays bounded because
-    //      rule 2 kills the only cascade that feeds itself, and because rule 1 still holds for
-    //      cloning — nothing a reflection hands out can hand out more.
-    //   2. **A mirror reflected by a mirror never acts.** That is the one cascade with no natural
-    //      end — a reflection that reflects reflects again — and it is what makes the exception
-    //      above safe to make. A Binder *cloning* a mirror does work: cloning is a single copy with
-    //      a fixed target, so it can't feed itself.
-    //   3. **A copied Pit Droid draws whoever copied it.** Rule 1 exists to stop copies multiplying
-    //      without bound and a `draw` cannot: it spends the bag, which is finite and never refilled.
-    //      Same argument `drawOne` makes for the cube a copied droid hands over.
+    // A copied Pit Droid draws like any other: `drawOne` spends the bag, which is finite and never
+    // refilled, so it was never the thing that needed bounding.
     const queue = line.slice();
+
+    // Every cube handed a turn after the throw — reflections, clones, draws off the bag, a wipeout
+    // the shield held together. The line as thrown is not in it: this counts the *growth*, which is
+    // the only thing here that has no end of its own.
+    let spawned = 0;
+    // Tripped when the budget runs out, and it takes the run with it. See `overflowAt`.
+    let overflow = false;
 
     for (let q = 0; q < queue.length; q++) {
         const c = queue[q];
@@ -1161,14 +1246,13 @@ const resolveLine = function (line, call, bag, opts = {}) {
         const giveTurn = (x) => {
             queue.splice(q + 1 + handed, 0, x);
             handed += 1;
+            spawned += 1;
+            if (spawned >= config.overflowAt) overflow = true;
             return x;
         };
 
-        // Hands a freshly made copy its own turn, subject to the rules above. `reflected` marks
-        // copies a mirror made, which is the only place rule 2 applies.
-        const enliven = function (x, reflected) {
-            if (c.copy && !reflected && x.face?.kind !== 'draw') return x;
-            if (reflected && x.face && x.face.kind === 'mirror') return x;
+        // Hands a freshly made copy its own turn. Unconditional: see the note on the queue.
+        const enliven = function (x) {
             x.copy = true;
             return giveTurn(x);
         };
@@ -1214,7 +1298,10 @@ const resolveLine = function (line, call, bag, opts = {}) {
             // Straight off the bag, so it arrives with a clean slot: nothing has been done to a cube
             // that has not been on the table yet.
             const slot = slotOf(id);
-            const faces = liveFaces(special, slot.burned);
+            // Straight off the bag and therefore unburnt — nothing has been at a cube that has not been
+            // on the table yet — so there is nothing here for the fire to have taken. Drawn through the
+            // same list the throw uses all the same, so the two draws cannot drift apart.
+            const faces = rollFaces(special, slot);
             const x = settle({
                 side: rollSide(),
                 special,
@@ -1224,19 +1311,33 @@ const resolveLine = function (line, call, bag, opts = {}) {
             // It was genuinely thrown, so it belongs in the lifetime face tallies like any other throw
             // — against the parent cube if this is a weld, exactly as the thrown line above does it.
             if (special && x.face) faceLog.push({ id: x.face.from || special.id, key: faceKey(x.face) });
-            // **Always live, whoever drew it** — given its turn directly rather than through `enliven`,
-            // which would refuse it whenever the Pit Droid holding it was itself a copy. That rule is
-            // there to stop *copies* multiplying without bound, and a draw cannot: the bag is finite, it
-            // is never refilled, and this just took one out of it. Under the rule, a reflected Pit Droid
-            // handed over a cube that never acted — and a Ratts drawn that way sat on the resolved line
-            // as a mine that never went off, which is the one face that must never be able to do that.
+            // **Always live, whoever drew it.** A cube handed over that never acted put a Ratts on the
+            // resolved line as a mine that never went off, which is the one face that must never be able
+            // to do that. It goes in next, like every other turn handed out mid-pass: slipped in on the
+            // droid's right, so the walk reaches it there rather than after everything to the right of it.
             //
-            // Next, like every other turn handed out mid-pass: it is slipped in on the droid's right, so
-            // the walk should reach it there rather than after everything already to the right of it.
-            //
-            // `copy` still goes on, so what it hands out is bounded the same way everything else is: the
-            // drawn cube may take its turn, and a Binder off the bag may not hand out more. A Mirror off
-            // the bag is the exception, and rule 1 above is where it is argued.
+            // `copy` still goes on. It no longer gates anything — see the queue — but it is what the
+            // line means by a position that was not thrown, and the drawn cube wasn't.
+            x.copy = true;
+            return giveTurn(x);
+        };
+        // The hold's answer to `drawOne`, and the difference between them is the whole of the two
+        // cubes: the droid takes a cube the climb had not reached yet, this takes one the climb has
+        // already lost. It arrives with the state it left with — a Turbine comes back as hot as it was,
+        // a scorched cube as burnt — because the slot is the cube and it was never destroyed, only put
+        // somewhere. `hauled` is cleared: it is back on the table and nobody is holding it.
+        const liftOne = function () {
+            const slot = { ...slotOf(hold.pop()), hauled: false };
+            const special = slot.id ? specialById(slot.id) : null;
+            const faces = rollFaces(special, slot);
+            const x = settle({
+                side: rollSide(),
+                special,
+                face: special && faces.length ? faces[crypto.randomInt(0, faces.length)] : null,
+                slot,
+            });
+            if (special && x.face) faceLog.push({ id: x.face.from || special.id, key: faceKey(x.face) });
+            if (special) recovered.push(special.id);
             x.copy = true;
             return giveTurn(x);
         };
@@ -1280,10 +1381,9 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 // was there, so the line never changes length. [A B 🪞 C D] becomes
                 // [A B 🪞 B A]: C and D are gone, not pushed along.
                 //
-                // Only cubes reflect. An effect standing behind the glass has no side to copy, so
-                // it passes straight through and the position opposite it is left as it was —
-                // a mirror duplicating effects would cascade, which is the one thing the two-pass
-                // resolution exists to prevent.
+                // **Everything behind the glass reflects**, effects included. It used to be cubes
+                // only, on the grounds that a mirror duplicating effects would cascade. It does
+                // cascade; that is now the budget's problem rather than the rule's.
                 const left = final.slice(0, i).reverse();
                 if (!left.length) {
                     note(c, 'mirror.nothing');
@@ -1303,10 +1403,11 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 // comes back as a Binder, drawing the face its original drew and counting whatever
                 // its original counts.
                 //
-                // Nothing cascades, and it can't: pass two walks the cubes that were **thrown**, and
-                // a reflection was never thrown, so a copied effect gets no turn of its own. It is
-                // an image this roll and a real cube from the next one, which is how a Mirror ends
-                // up handing you a **second copy** of something off your own rack.
+                // **And it cascades.** A reflected effect takes its turn like anything else on the
+                // line, so a Mirror behind a Mirror reflects the reflection, and the pair of them
+                // will run the table off the end of the world if the budget lets them. The image is
+                // also a real cube from the next roll on, which is how a Mirror ends up handing you a
+                // **second copy** of something off your own rack.
                 let copied = 0;
                 let made = 0;
                 let froze = 0;
@@ -1320,7 +1421,7 @@ const resolveLine = function (line, call, bag, opts = {}) {
                         continue;
                     }
                     if (to >= final.length) made++;
-                    final[to] = enliven(turned(left[k]), true);
+                    final[to] = enliven(turned(left[k]));
                     copied++;
                 }
                 // Anything the mirror skipped past that has no cube yet is filled in, so the line
@@ -1432,8 +1533,8 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 //
                 // It arrives settled and live, exactly like a cube out of the bag — see `drawOne`, which
                 // is the other place a face joins the line mid-pass and needs pass one applied to it and
-                // a turn of its own. `copy` bounds what it can hand out for the same reason every other
-                // mid-pass turn is bounded.
+                // a turn of its own. It costs a cube out of the overflow budget like every other turn
+                // handed out mid-pass, which is the only thing bounding any of them now.
                 if (shielding(final[i - 1]) || shielding(final[i + 1])) {
                     const swap = refaced(c);
                     if (!swap) {
@@ -1507,7 +1608,7 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 // Turned, like a reflection: cloning Ben's left third onto the right would
                 // otherwise put two of the same third on the table. A cloned wing is junk either
                 // way — it carries `gone` across, so it drops out of the set next level.
-                const copy = enliven(turned(src), false);
+                const copy = enliven(turned(src));
                 // **At the tail it makes room rather than giving up** — the one case where a clone
                 // lengthens the line, and the only reason it needs the ceiling.
                 if (!hasRight) {
@@ -1632,6 +1733,62 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 notes.push(...its);
                 break;
             }
+            case 'scavenge': {
+                // The Jawa goes through the hold and puts the last thing in it back on the line, in on
+                // its right, thrown and live — the same geometry and the same liveness the droid's draw
+                // has, for the same reason: a special handed over inert would be a Ratts that never went
+                // off.
+                //
+                // **It reads the hold as it stands at this moment**, which is the previous rungs'
+                // wreckage plus anything hauled earlier in this roll. What this roll destroys is swept
+                // up after resolution, so a cube cannot break and come straight back on the same throw —
+                // and the haul-then-scavenge loop still closes inside one roll, because a haul happens
+                // in its turn.
+                if (!hold.length) {
+                    note(c, 'scavenge.empty');
+                    break;
+                }
+                if (final.length + 1 > config.maxCubes) {
+                    note(c, 'scavenge.noroom');
+                    break;
+                }
+                // The recovered cube's own note is lifted off and re-appended behind the Jawa's, so the
+                // frame is labelled with the salvage rather than with whatever the cube happened to roll
+                // on the way back. Same trick and same reason as `draw`.
+                const before = notes.length;
+                const got = liftOne();
+                const its = notes.splice(before);
+                final.splice(i + 1, 0, got);
+                note(c, 'scavenge', { faceId: faceIdOf(got), special: !!got.special });
+                notes.push(...its);
+                break;
+            }
+            case 'haul': {
+                // The sandcrawler takes the cube on its right off the line and into the hold. Not
+                // destroyed — held, exactly as Oovo IV holds a prisoner, and a later `scavenge` is what
+                // fetches it back.
+                //
+                // It is the cube's price and its setup at once. The line is a position shorter for the
+                // rest of the roll, which pushes an odd count even on a mode that loses 60% of its ties;
+                // it takes whatever is standing there, up to and including a hot Turbine; and a run that
+                // ends before a `scavenge` comes up never sees the cube again.
+                const target = final[i + 1];
+                if (!target || target.gone) {
+                    note(c, 'haul.nothing');
+                    break;
+                }
+                // The slot itself rather than a copy of it, so the sweep below can tell a cube that was
+                // carried off from one that was destroyed — they leave the line the same way and only
+                // identity separates them.
+                const slot = target.slot || plainSlot();
+                slot.hauled = true;
+                hold.push(slot);
+                final.splice(i + 1, 1);
+                note(c, 'haul', {
+                    faceId: faceIdOf(target), special: !!target.special, at: i + 1,
+                });
+                break;
+            }
             case 'purge': {
                 // Order 66. Every special standing on the line is shattered, **this cube included**, so
                 // it fires once a run and never twice — and the more the Pit Droid has already put on
@@ -1721,17 +1878,20 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 break;
             }
             case 'scorch': {
-                // **Baroonda.** Burns the face each neighbour is *currently showing* off that cube,
-                // permanently, for the rest of the climb.
+                // **Baroonda.** Chars the face each neighbour is *currently showing*, permanently, for
+                // the rest of the climb.
                 //
                 // The landed face rather than a random one, which is what makes it readable: the thing
                 // being destroyed is on screen at the moment it is destroyed. It also flips how a line
                 // reads — a wipeout or a Ratts landing next to Baroonda is good news.
                 //
-                // **One face of six, never a kind.** A Wild scorched of a wild is four wilds and a
-                // Ratts, so the mine goes from 1-in-6 to 1-in-5: burning a good face concentrates the
-                // bad ones, which is exactly what pays for burning a Ratts being the best thing that
-                // can happen to a rack. See `liveFaces`, where the floor lives.
+                // **One face of six, never a kind.** A Wild charred of a wild is three live wilds, a
+                // dead one and a Ratts — so the mine keeps its 1-in-6 and the cube loses a sixth of its
+                // usefulness. That is the difference from what this used to do: burning a face off
+                // *shortened* the cube and made every remaining face likelier, which quietly made a
+                // scorched Wild Cube more dangerous than a fresh one. A charred face still turns up and
+                // simply does nothing, so the fire only ever takes away. See `charredFace`, and
+                // `liveFaces`, where the floor on how much of a cube can be killed still lives.
                 const targets = [i - 1, i + 1]
                     .filter(j => j >= 0 && j < final.length && final[j] && !final[j].gone);
                 if (!targets.length) {
@@ -1741,10 +1901,26 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 const burned = [];
                 for (const j of targets) {
                     const x = final[j];
-                    // Fire melts ice, and takes the whole of its turn on that neighbour doing it.
+                    // **Fire does not burn fire.** The Binder's flamejet is the one face on the table
+                    // that is already alight, and Baroonda has nothing to do to it — she passes over it
+                    // entirely, which is why this is checked before the ice: a frozen flamejet does not
+                    // even spend the thaw. It is also the pairing the two cubes are worth having on a
+                    // rack together for, so it should not be the pairing that quietly kills one of them.
+                    if (x.face && x.face.kind === 'burn') continue;
+                    // Fire melts ice, and takes the whole of its turn on that neighbour doing it —
+                    // **either kind of ice**. `iced` is the cube being held on this face right now; the
+                    // line below is a freeze that landed earlier in this same pass and would otherwise
+                    // hold it through the *next* roll. Both are ice on the cube the fire reached, and a
+                    // scorch that melted one and left the other standing would be answering half a
+                    // question. Neither is charred: the turn went on the thaw.
                     if (iced(x)) continue;
                     if (!x.slot) continue;
-                    // Nothing to take: the cube is already down to its last face.
+                    if (x.slot.frozen) { x.slot.frozen = null; continue; }
+                    // Already ash. The face standing there has been burnt once and there is nothing
+                    // left in it to take — and charring it twice would spend a mark off the floor
+                    // below for nothing.
+                    if (x.charred) continue;
+                    // Nothing to take: the cube is already down to its last live face.
                     if (liveFaces(x.special, x.slot.burned).length <= config.minFaces) continue;
                     const id = faceIdOf(x);
                     x.slot.burned = [...x.slot.burned, id];
@@ -1895,6 +2071,18 @@ const resolveLine = function (line, call, bag, opts = {}) {
             if (!changed) step.quiet = true;
             steps.push(step);
         }
+
+        // **The table ran away with itself.** Broken *after* the frame, so the last thing that fired
+        // is drawn like every other effect and the line stops on the cube that tripped it rather than
+        // one short of it. Whatever is still in the queue never gets its turn, which is the whole of
+        // what an abandoned roll means — nothing here tidies the line up, because a line the engine
+        // gave up on is exactly the picture worth keeping.
+        if (overflow) {
+            notes.push({
+                kind: 'overflow', faceId: null, specialId: null, specialName: null, spawned,
+            });
+            break;
+        }
     }
 
     // **And so is everything that pays, for exactly the same reason.** What is not on the table does
@@ -1948,6 +2136,31 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 mults.push(c.face.side);
                 pay(c, 'mult', c.face.side, config.multBonus);
                 break;
+            case 'heat': {
+                // Paid off how many heats the cube has already spent and then **spending this one**,
+                // which is why the increment lives here rather than at the throw: a heat that never
+                // reached the payout — culled, razed, cloned over — did not pay and must not have
+                // burned either. The slot travels with the position, so writing it here is what carries
+                // it into the next rung.
+                const spent = (c.slot.heat || 0) + 1;
+                const earned = config.heatBonus * spent;
+                mult += earned;
+                pay(c, 'heat', null, earned, spent);
+                c.slot.heat = spent;
+                break;
+            }
+            case 'guide': {
+                // The unbroken run of the called side this cube is standing in, counted outward from
+                // its own position both ways. **Its own position is the only transparent one** — it is
+                // the thing doing the looking — and every other stops the count, effect faces included,
+                // so what it pays is what a player counts by looking at the line.
+                const run = guideRun(at(c));
+                if (!run) break;
+                const earned = config.guideBonus * run;
+                mult += earned;
+                pay(c, 'guide', null, earned, run);
+                break;
+            }
             case 'shortcut':
                 shortcuts += 1;
                 break;
@@ -2046,6 +2259,41 @@ const resolveLine = function (line, call, bag, opts = {}) {
         });
     }
 
+    // **The hold takes everything the roll took**, swept up once here rather than at nine separate
+    // destruction sites. A slot is an object and the line holds references to it, so what left the
+    // table is exactly the slots that came in and are not standing at the end — which catches the
+    // blast, the wipeout, the burn, the cull, the raze, the purge and the plunge without any of them
+    // knowing the hold exists, and cannot be missed by a path added later.
+    //
+    // Swept *after* resolution and not during it, which is what stops a cube shattering and being
+    // scavenged back on the same throw. A haul is different and goes in at once: it is a cube being
+    // put somewhere rather than destroyed, and the loop it makes with `scavenge` is meant to close
+    // inside one roll.
+    // The line **as thrown**, so the hold grows with the table rather than with the roll: a cube a
+    // Mirror conjured and a Tusken then ate never really joined the set, and sweeping it up would let
+    // one runaway throw fill the hold with cubes nobody ever owned.
+    const standing = new Set(final.filter(c => !c.gone).map(c => c.slot));
+    const carried = new Set(hold);
+    for (const c of line) {
+        if (c.slot && !standing.has(c.slot) && !carried.has(c.slot)) {
+            hold.push({ ...c.slot, hauled: false });
+        }
+    }
+
+    // **The rescue.** A hauled cube is held by the cube that took it, so the moment no Scavenger is
+    // standing the sandcrawler is open and every one of them walks out — R2 coming back down the ramp.
+    // Wrecked entries stay put: nothing was holding them, and a hold that spilled its scrap as well
+    // would fire on the first destroyed cube of every climb in the game, Scavenger or no Scavenger.
+    let sprung = [];
+    if (hold.some(h => h.hauled)
+        && !final.some(c => !c.gone && c.special && HOLDERS.has(c.special.id))) {
+        sprung = hold.filter(h => h.hauled).map(h => ({ ...h, hauled: false }));
+        for (let k = hold.length - 1; k >= 0; k--) if (hold[k].hauled) hold.splice(k, 1);
+        notes.push({
+            kind: 'haul.break', faceId: null, specialId: null, specialName: null, freed: sprung.length,
+        });
+    }
+
     // **The jailbreak.** Oovo IV's prisoners are held by the cube that took them, so the moment that
     // cube is no longer standing on the line — plunged off an end, culled, razed, cloned over, caught
     // in a blast — the door comes off and every one of them walks at once. Nothing needs to know *how*
@@ -2121,6 +2369,12 @@ const resolveLine = function (line, call, bag, opts = {}) {
         boonta,
         jail: held,
         freed,
+        // The Scavenger's hold as this roll leaves it, `sprung` being the hauled cubes a destroyed
+        // Scavenger just let out, and `recovered` the specials a `scavenge` put back on the table so
+        // the caller can take them off `spent`. Carried by the run exactly as the prison is.
+        hold,
+        sprung,
+        recovered,
         // `mult` is everything already earned outright — the Greed Cube, and the pure bonus, which
         // needs no winner because a swept line *is* one. `mults` is the sides the Multiplier Cubes
         // landed on, still unspent, because whether they pay depends on who wins and a tie doesn't
@@ -2138,6 +2392,11 @@ const resolveLine = function (line, call, bag, opts = {}) {
         rerolls,
         broken,
         ended,
+        // **How many cubes the runaway spawned before the engine gave up**, or 0 on every roll that
+        // resolved. Truthy is the whole of the signal: the caller busts the run on it and pays nothing,
+        // exactly as it does for an empty table. Kept as the count rather than a flag because the
+        // number is the story — it is the one ending that says how far it got.
+        overflow: overflow ? spawned : 0,
         // The bag as this roll leaves it. Only the Pit Droid's `draw` ever spends from it here, so on
         // every other roll this is the bag that came in — but the caller must carry *this* one, or a
         // drawn cube comes out of the bag twice.

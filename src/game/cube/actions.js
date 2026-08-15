@@ -92,6 +92,7 @@ const throwLevel = function (ctx, run) {
     // the only thing Mon Gazza's seam pays off.
     const res = engine.resolveLine(line, run.call, drawn.bag, {
         jail: run.jail || [],
+        hold: run.hold || [],
         rungs: (Number(run.rungs) || 0) + 1,
     });
 
@@ -102,7 +103,11 @@ const throwLevel = function (ctx, run) {
     // the line's length rather than off `res.ended`, because that is the whole of the rule — a mine is
     // only the usual way a line gets to zero positions, not an ending of its own. A line with faces on
     // it but nothing countable is still a tie, and still survivable.
-    const tie = !!res.faceIds.length && !res.majority;
+    //
+    // An overflow trumps both. The roll was abandoned part-resolved, so the line on the table is a
+    // snapshot of a table still moving rather than a result — there is nothing on it for Watto to
+    // break and nothing worth selling. It busts below whatever the cubes said.
+    const tie = !res.overflow && !!res.faceIds.length && !res.majority;
 
     // **Tatooine collects.** A tie on a line with a Boonta face standing on it is simply won — no
     // lean, no cube of Watto's, nothing to ask about. It short-circuits both branches below, so a
@@ -126,7 +131,7 @@ const throwLevel = function (ctx, run) {
     // What the tie is worth if it goes the player's way, and what Watto wants for it. The
     // multipliers still waiting on a winner count, because either answer produces one.
     const worth = tie ? engine.bankPayout(run.stake, engine.applyMults(base, res.mults, run.call)) : 0;
-    const cost = tie && s.bribe && !boonta ? pstate.bribeCostFor(worth, s.bribes) : 0;
+    const cost = tie && s.bribe && !boonta ? pstate.bribeCostFor(worth, s.bribes, s.nudge) : 0;
     // **He always asks.** Owning the pick is the whole gate: if the rack handed over the right to buy a
     // tie, every tie is one you get offered.
     //
@@ -178,11 +183,18 @@ const settleThrow = async function (ctx, { thrown, bribed = 0, reverse = 0 }) {
     // A table with nothing left on it wins nothing, whatever was called and whoever it was called
     // against. Belt and braces — an empty line has no majority to win with either, and no tie, so no
     // breaker and no bought call can reach here — but this is the sentence the rule is written in.
-    const won = !!res.faceIds.length && !!majority && majority === run.call;
+    // An overflowed roll wins nothing however it was going: the engine gave up part way through, so
+    // the majority standing on the table is a majority of a line that had not finished moving. The
+    // same sentence the empty table is refused under — you are paid on a resolved line or not at all.
+    const won = !res.overflow && !!res.faceIds.length && !!majority && majority === run.call;
     const pure = won && res.pure;
     const spent = run.spent || [];
-    // Wipeouts take a cube off the table for the rest of the climb.
-    const stillSpent = res.broken.length ? [...new Set([...spent, ...res.broken])] : spent;
+    // Wipeouts take a cube off the table for the rest of the climb — and a Scavenger takes one back,
+    // so what it recovered comes off the list. A cube standing on the table and still listed as
+    // shattered is a lie the rack screen would eventually tell.
+    const shattered = res.broken.length ? [...new Set([...spent, ...res.broken])] : spent;
+    const back = new Set(res.recovered || []);
+    const stillSpent = back.size ? shattered.filter(id => !back.has(id)) : shattered;
     // Greed and Multiplier cubes ride the standing for the rest of the run. The multipliers only
     // cash in here, because only here is there a winning side to check them against.
     const mult = engine.applyMults(thrown.base, res.mults, majority);
@@ -262,17 +274,21 @@ exports.settleThrow = settleThrow;
 const settleLoss = function (ctx, { run, res, thrown, patch }) {
     const { s, db, database, discordId } = ctx;
     pstate.recordLost(s, patch, run.stake);
-    // Five ways to lose, reported as which one rather than as a sentence. A line with no majority only
+    // Six ways to lose, reported as which one rather than as a sentence. A line with no majority only
     // reaches here once the tie-breaker has already gone the house's way.
     //
     // The two empty-table endings are told apart rather than merged: a mine names itself, and anything
     // else that swept the line to nothing — a purge on a rack of pure specials is the only real way —
     // gets `empty`, because "Ratts stood up" is not true of a roll he was not on.
-    const reason = res.ended ? 'ratts'
-        : !res.faceIds.length ? 'empty'
-            : !res.majority ? 'tie'
-                : res.swept ? 'cackle'
-                    : 'bust';
+    //
+    // `overflow` goes first because it is the only one of the six that isn't about the line: the rest
+    // all read the table the roll left, and an overflowed roll never finished leaving one.
+    const reason = res.overflow ? 'overflow'
+        : res.ended ? 'ratts'
+            : !res.faceIds.length ? 'empty'
+                : !res.majority ? 'tie'
+                    : res.swept ? 'cackle'
+                        : 'bust';
 
     // A bust with a reroll banked stays on file, because that is what `spendReroll` replays. Kept in
     // the live run's own node and marked `dead`, which `ladderOf` refuses — so this *replaces* the
@@ -308,6 +324,7 @@ const settleLoss = function (ctx, { run, res, thrown, patch }) {
             // back, so the prison, the seal, the lock and the rung count all have to come back with
             // it. `thrown.set` is already the table as it was thrown for the same reason.
             jail: engine.encodeSet(run.jail || []),
+            hold: engine.encodeSet(run.hold || []),
             rungs: Number(run.rungs) || 0,
             locked: !!run.locked,
             sealed: run.sealed || null,
@@ -404,6 +421,12 @@ const settleWin = function (ctx, { run, majority, pure, cubes, standing, mult, p
     const released = [...(res.freed || [])];
     if (jail.length) released.push(jail.shift());
 
+    // The Scavenger's hold has one valve and the engine works it out on its own: hauled cubes walk the
+    // moment no Scavenger is standing. There is no drip to add here — a rung won is not what fetches
+    // scrap back, a `scavenge` face is, which is the whole difference between a hold and a prison.
+    const hold = [...(res.hold || [])];
+    released.push(...(res.sprung || []));
+
     const survivors = [...res.set, ...released];
     if (rescued) survivors.push(engine.plainSlot());
 
@@ -432,6 +455,7 @@ const settleWin = function (ctx, { run, majority, pure, cubes, standing, mult, p
         sealed: res.sealed || null,
         locked,
         jail: engine.encodeSet(jail),
+        hold: engine.encodeSet(hold),
         rungs: (Number(run.rungs) || 0) + 1,
     };
     persist.saveLadder(database, db, discordId, live);
@@ -506,7 +530,7 @@ exports.startRun = function (ctx, { call }) {
             bag: engine.fillBag(s.equipped),
             // A fresh run owes the Planet Octahedron nothing: nobody is in the prison, no side is
             // sealed, the bank is open, and no rungs have been walked.
-            jail: [], rungs: 0, locked: false, sealed: null,
+            jail: [], hold: [], rungs: 0, locked: false, sealed: null,
         },
     };
 };
@@ -550,6 +574,7 @@ exports.pushRun = function (ctx, { call }) {
             // Whatever the Planet Octahedron is holding over the run. All four default to nothing, so
             // a ladder written before the die existed reads back as a run it was never on.
             jail: engine.decodeSet(ladder.jail),
+            hold: engine.decodeSet(ladder.hold),
             rungs: Number(ladder.rungs) || 0,
             locked: !!ladder.locked,
             sealed: ladder.sealed || null,
@@ -585,6 +610,7 @@ exports.spendReroll = function (ctx) {
             // The run as it entered the rung that killed it — prison, seal, lock and rung count all
             // come back, because buying the roll back has to buy back the state it was rolled under.
             jail: engine.decodeSet(dead.jail),
+            hold: engine.decodeSet(dead.hold),
             rungs: Number(dead.rungs) || 0,
             locked: !!dead.locked,
             sealed: dead.sealed || null,
@@ -912,7 +938,11 @@ exports.parkTie = function (ctx, thrown, { reverse = 0 } = {}) {
         lockout: !!res.lockout,
         jail: engine.encodeSet(res.jail || []),
         freed: engine.encodeSet(res.freed || []),
+        hold: engine.encodeSet(res.hold || []),
+        sprung: engine.encodeSet(res.sprung || []),
+        recovered: res.recovered || [],
         carryJail: engine.encodeSet(run.jail || []),
+        carryHold: engine.encodeSet(run.hold || []),
         carryRungs: Number(run.rungs) || 0,
         carryLocked: !!run.locked,
         carrySealed: run.sealed || null,
@@ -944,6 +974,7 @@ const resumeTie = function (parked) {
         // What the run *entered* the rung with, which is what the settlement steps from — the same
         // rule `carry` follows for the multiple.
         jail: engine.decodeSet(parked.carryJail),
+        hold: engine.decodeSet(parked.carryHold),
         rungs: Number(parked.carryRungs) || 0,
         locked: !!parked.carryLocked,
         sealed: parked.carrySealed || null,
@@ -977,6 +1008,9 @@ const resumeTie = function (parked) {
         lockout: !!parked.lockout,
         jail: engine.decodeSet(parked.jail),
         freed: engine.decodeSet(parked.freed),
+        hold: engine.decodeSet(parked.hold),
+        sprung: engine.decodeSet(parked.sprung),
+        recovered: Object.values(parked.recovered || {}),
         boonta: false,
     };
     // Taken as-is rather than recomputed: it was stepped up the ladder when the tie was parked and
@@ -1010,7 +1044,7 @@ exports.answerTie = function (ctx, { buying }) {
         if (!s.bribe) return refuse('locked', 'You cannot buy a tie.');
         const worth = engine.bankPayout(thrown.run.stake,
             engine.applyMults(thrown.base, thrown.res.mults, thrown.run.call));
-        const cost = pstate.bribeCostFor(worth, s.bribes);
+        const cost = pstate.bribeCostFor(worth, s.bribes, s.nudge);
         const balance = balanceOf(profile);
         if (cost > balance) {
             return refuse('insufficient', `That costs ${cost} but you only have ${balance}.`, { cost, balance });

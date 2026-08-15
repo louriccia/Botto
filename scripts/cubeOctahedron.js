@@ -32,7 +32,7 @@ const CLIMBS = Number(process.argv[2]) || 40000;
 const DIE = 'octahedron';
 const die = SPECIALS.find(s => s.id === DIE);
 
-const slot = id => ({ id: id || null, burned: [], frozen: null });
+const slot = id => engine.slotOf(id || null);
 const fail = [];
 const check = function (name, got, want) {
     try {
@@ -73,10 +73,10 @@ check('a legacy set round-trips unchanged', engine.encodeSet(engine.decodeSet([0
 check('a Firebase object set decodes', engine.decodeSet({ 0: 0, 1: 'greed' }), [slot(null), slot('greed')]);
 check('a scorched slot survives the round trip',
     engine.decodeSet(engine.encodeSet([{ id: 'wild', burned: ['end'], frozen: null }])),
-    [{ id: 'wild', burned: ['end'], frozen: null }]);
+    [{ ...slot('wild'), burned: ['end'] }]);
 check('a frozen slot survives the round trip',
     engine.decodeSet(engine.encodeSet([{ id: null, burned: [], frozen: 'side:blue' }])),
-    [{ id: null, burned: [], frozen: 'side:blue' }]);
+    [{ ...slot(null), frozen: 'side:blue' }]);
 // The bag is not a set and must not gain slots, or `specialById` is handed an object.
 check('the bag stays bare ids', engine.decodeBag(engine.encodeBag(['wild', null])), ['wild', null]);
 
@@ -349,11 +349,8 @@ const makeWorld = function () {
     // game being wildly overpowered, and measured against each other it just adds 30% of noise on top
     // of an estimator that already has plenty.
     //
-    // The lean applies to every rack equally and is not what any of this is pricing, so it comes out.
-    // With `dayLean` at a half the baseline is exactly 1.000 by construction and everything else on
-    // the table is the cubes.
-    const leanWas = config.dayLean;
-    config.dayLean = 0.5;
+    // The cube is fair, so the baseline is exactly 1.000 by construction and everything else on the
+    // table is the cubes. This used to have to switch a `dayLean` off to get there.
     //
     // **Malastare is in the measurement, not excluded from it.** A run that reaches the top with the
     // bank sealed cannot leave, so it pushes into overtime and takes the bad bet up there until a rung
@@ -436,7 +433,6 @@ const makeWorld = function () {
     ];
     const bench = [];
     for (const [label, rack] of BENCH) bench.push([label, await evOf(rack, EV_RUNS)]);
-    config.dayLean = leanWas;
     const base = bench[0][1] || 1;
 
     // ---------------------------------------------------------------------------
